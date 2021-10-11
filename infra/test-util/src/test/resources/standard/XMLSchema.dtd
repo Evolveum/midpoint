@@ -1,17 +1,8 @@
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2013 Evolveum and contributors
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <!-- DTD for XML Schemas: Part 1: Structures
@@ -33,7 +24,7 @@
      are defined in XML Schema: Part 2: Datatypes -->
 <!ENTITY % xs-datatypes PUBLIC 'datatypes' 'datatypes.dtd' >
 
-<!ENTITY % p 'xs:'> <!-- can be overriden in the internal subset of a
+<!ENTITY % p 'xs:'> <!-- can be overridden in the internal subset of a
                          schema document to establish a different
                          namespace prefix -->
 <!ENTITY % s ':xs'> <!-- if %p is defined (e.g. as foo:) then you must
@@ -146,7 +137,7 @@
      because at the Infoset level where schemas operate,
      xmlns(:prefix) is NOT an attribute! -->
 <!-- The declaration of xmlns is a convenience for schema authors -->
- 
+
 <!-- The id attribute here and below is for use in external references
      from non-schemas using simple fragment identifiers.
      It is NOT used for schema-to-schema reference, internal or
@@ -170,7 +161,7 @@
           %complexTypeAttrs;>
 
 <!-- particleAndAttrs is shorthand for a root type -->
-<!-- mixed is disallowed if simpleContent, overriden if complexContent
+<!-- mixed is disallowed if simpleContent, overridden if complexContent
      has one too. -->
 
 <!-- If anyAttribute appears in one or more referenced attributeGroups
@@ -190,7 +181,7 @@
           id    ID           #IMPLIED
           %simpleContentAttrs;>
 
-<!-- restriction should use the simple branch from part2, not the 
+<!-- restriction should use the simple branch from part2, not the
      one defined above; extension should have no particle  -->
 
 <!ELEMENT %extension; ((%annotation;)?, (%particleAndAttrs;))>
@@ -230,7 +221,7 @@
 <!-- default and fixed are mutually exclusive -->
 
 <!ELEMENT %group; ((%annotation;)?,(%mgs;)?)>
-<!ATTLIST %group; 
+<!ATTLIST %group;
           name        %NCName;               #IMPLIED
           ref         %QName;                #IMPLIED
           minOccurs   %nonNegativeInteger;   #IMPLIED

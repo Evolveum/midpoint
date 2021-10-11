@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.menu;
@@ -28,19 +19,29 @@ import java.util.Arrays;
  * @author Viliam Repan (lazyman)
  */
 public class BaseMenuItem implements Serializable {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private IModel<String> nameModel;
+    public static final String F_ICON_CLASS = "iconClass";
+
+    //TODO why model? would be string key enought
+    private IModel<String> nameModel;
     private Class<? extends WebPage> pageClass;
     private PageParameters params;
     private VisibleEnableBehaviour visibleEnable;
     private Class<? extends WebPage>[] aliases;
+    private String iconClass;
+    /**
+     * Optional field that can be used for sorting. Used for some dynamic submenus, such as collections.
+     * It does not affect the display of menu item in any way. It is just a convenient intermediary place to store
+     * the order for sorting the items before adding them to menu.
+     */
+    private transient Integer displayOrder;
 
     public BaseMenuItem(IModel<String> name, Class<? extends WebPage> page) {
-        this(name, page, null, null);
+        this(name, "", page, null, null);
     }
 
-    public BaseMenuItem(IModel<String> nameModel, Class<? extends WebPage> pageClass,
+    public BaseMenuItem(IModel<String> nameModel, String iconClass, Class<? extends WebPage> pageClass,
                         PageParameters params, VisibleEnableBehaviour visibleEnable,
                         Class<? extends WebPage>... aliases) {
         this.aliases = aliases;
@@ -48,6 +49,7 @@ public class BaseMenuItem implements Serializable {
         this.pageClass = pageClass;
         this.params = params;
         this.visibleEnable = visibleEnable;
+        this.iconClass = iconClass;
     }
 
     /**
@@ -71,6 +73,18 @@ public class BaseMenuItem implements Serializable {
 
     public VisibleEnableBehaviour getVisibleEnable() {
         return visibleEnable;
+    }
+
+    public String getIconClass() {
+        return iconClass;
+    }
+
+    public Integer getDisplayOrder() {
+        return displayOrder;
+    }
+
+    public void setDisplayOrder(Integer displayOrder) {
+        this.displayOrder = displayOrder;
     }
 
     public boolean isMenuActive(WebPage page) {
@@ -107,11 +121,11 @@ public class BaseMenuItem implements Serializable {
         return true;
     }
 
-	@Override
-	public String toString() {
-		return "BaseMenuItem(nameModel=" + nameModel + ", pageClass=" + pageClass + ", params=" + params
-				+ ", visibleEnable=" + visibleEnable + ", aliases=" + Arrays.toString(aliases) + ")";
-	}
+    @Override
+    public String toString() {
+        return "BaseMenuItem(nameModel=" + nameModel + ", pageClass=" + pageClass + ", params=" + params
+                + ", visibleEnable=" + visibleEnable + ", aliases=" + Arrays.toString(aliases) + ")";
+    }
 
 
 }

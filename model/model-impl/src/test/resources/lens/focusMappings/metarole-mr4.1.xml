@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="b2876ccd-ed84-40f4-9841-f694a0722196">
+    <name>mr4.1</name>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <source>
+                    <path>description</path>
+                </source>
+                <expression>
+                    <script>
+                        <code>
+                            // source = this metarole
+                            description + ':' + basic.stringify(source.name)
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>extension/p41</path>
+                </target>
+            </mapping>
+        </focusMappings>
+        <order>2</order>
+        <focusType>UserType</focusType>
+    </inducement>
+</role>

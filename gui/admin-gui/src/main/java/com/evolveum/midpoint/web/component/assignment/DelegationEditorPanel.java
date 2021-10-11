@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.assignment;
@@ -58,9 +49,9 @@ import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.addAjaxOnUpdat
  * Created by honchar.
  */
 public class DelegationEditorPanel extends AssignmentEditorPanel {
-	private static final long serialVersionUID = 1L;
-	
-	private static final String ID_DELEGATION_VALID_FROM = "delegationValidFrom";
+    private static final long serialVersionUID = 1L;
+
+    private static final String ID_DELEGATION_VALID_FROM = "delegationValidFrom";
     private static final String ID_DELEGATION_VALID_TO = "delegationValidTo";
     private static final String ID_DESCRIPTION = "delegationDescription";
     private static final String ID_ARROW_ICON = "arrowIcon";
@@ -139,7 +130,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         typeImage.add(AttributeModifier.append("class", createImageTypeModel(getModel())));
         headerRow.add(typeImage);
 
-        AjaxLink name = new AjaxLink(ID_NAME) {
+        AjaxLink<Void> name = new AjaxLink<Void>(ID_NAME) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -176,7 +167,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         }
         headerRow.add(delegatedToTypeImage);
 
-        AjaxLink delegatedToName = new AjaxLink(ID_DELEGATED_TO) {
+        AjaxLink<Void> delegatedToName = new AjaxLink<Void>(ID_DELEGATED_TO) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -195,15 +186,15 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         delegatedToNameLabel.setOutputMarkupId(true);
         delegatedToName.add(delegatedToNameLabel);
 
-        ToggleIconButton expandButton = new ToggleIconButton(ID_EXPAND, GuiStyleConstants.CLASS_ICON_EXPAND,
+        ToggleIconButton<Void> expandButton = new ToggleIconButton<Void>(ID_EXPAND, GuiStyleConstants.CLASS_ICON_EXPAND,
                 GuiStyleConstants.CLASS_ICON_COLLAPSE) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-            	nameClickPerformed(target);
+                nameClickPerformed(target);
             }
-            
+
             @Override
             public boolean isOn() {
                 return !DelegationEditorPanel.this.getModelObject().isMinimized();
@@ -322,7 +313,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             }
         };
         limitPrivilegesButton.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
             @Override
             public boolean isVisible(){
                 return UserDtoStatus.ADD.equals(getModelObject().getStatus()) &&
@@ -372,12 +363,12 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         };
         approvalRights.setOutputMarkupId(true);
         approvalRights.add(new AjaxFormComponentUpdatingBehavior("blur") {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
             @Override
             protected void onUpdate(AjaxRequestTarget target) {}
         });
         approvalRights.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
             @Override
             public boolean isEnabled(){
                 return getModel().getObject().isEditable();
@@ -425,12 +416,12 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             }
         };
         certificationRights.add(new AjaxFormComponentUpdatingBehavior("blur") {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
             @Override
             protected void onUpdate(AjaxRequestTarget target) {}
         });
         certificationRights.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
             @Override
             public boolean isEnabled(){
                 return getModel().getObject().isEditable();
@@ -458,7 +449,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             }
         });
         body.add(managementWorkItems);
-        
+
         AjaxCheckBox allowTransitive = new AjaxCheckBox(ID_ALLOW_TRANSITIVE,
                 new IModel<Boolean>(){
                     private static final long serialVersionUID = 1L;
@@ -484,12 +475,12 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             }
         };
         allowTransitive.add(new AjaxFormComponentUpdatingBehavior("blur") {
-			private static final long serialVersionUID = 1L;
-			@Override
+            private static final long serialVersionUID = 1L;
+            @Override
             protected void onUpdate(AjaxRequestTarget target) {}
         });
         allowTransitive.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
             @Override
             public boolean isEnabled(){
                 return getModel().getObject().isEditable();
@@ -499,7 +490,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         body.add(allowTransitive);
 
         addAjaxOnUpdateBehavior(body);
-    };
+    }
 
     private void addPrivilegesPanel(WebMarkupContainer body){
         privilegesNames = getPrivilegesNamesList();

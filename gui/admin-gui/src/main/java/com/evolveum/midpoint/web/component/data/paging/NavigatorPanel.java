@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.data.paging;
@@ -37,7 +28,7 @@ import org.apache.wicket.model.IModel;
  */
 public class NavigatorPanel extends Panel {
 
-    private int PAGING_SIZE = 5;
+    private static final int PAGING_SIZE = 5;
 
     private static final String ID_PREVIOUS = "previous";
     private static final String ID_PREVIOUS_LINK = "previousLink";
@@ -98,7 +89,7 @@ public class NavigatorPanel extends Panel {
             }
         }));
         add(previous);
-        AjaxLink previousLink = new AjaxLink(ID_PREVIOUS_LINK) {
+        AjaxLink<Void> previousLink = new AjaxLink<Void>(ID_PREVIOUS_LINK) {
 
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
@@ -130,7 +121,7 @@ public class NavigatorPanel extends Panel {
             }
         }));
         add(first);
-        AjaxLink firstLink = new AjaxLink(ID_FIRST_LINK) {
+        AjaxLink<Void> firstLink = new AjaxLink<Void>(ID_FIRST_LINK) {
 
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
@@ -233,7 +224,7 @@ public class NavigatorPanel extends Panel {
         }));
         add(next);
 
-        AjaxLink nextLink = new AjaxLink(ID_NEXT_LINK) {
+        AjaxLink<Void> nextLink = new AjaxLink<Void>(ID_NEXT_LINK) {
 
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
@@ -266,7 +257,7 @@ public class NavigatorPanel extends Panel {
         }));
         add(last);
 
-        AjaxLink lastLink = new AjaxLink(ID_LAST_LINK) {
+        AjaxLink<Void> lastLink = new AjaxLink<Void>(ID_LAST_LINK) {
 
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
@@ -282,7 +273,7 @@ public class NavigatorPanel extends Panel {
 
             @Override
             public boolean isEnabled() {
-                return BooleanUtils.isTrue(showPageListingModel.getObject()) && isLastEnabled();
+                return !isCountingDisabled() && BooleanUtils.isTrue(showPageListingModel.getObject()) && isLastEnabled();
             }
         });
         last.add(lastLink);
@@ -338,5 +329,9 @@ public class NavigatorPanel extends Panel {
     }
 
     protected void onPageChanged(AjaxRequestTarget target, long page) {
+    }
+
+    protected boolean isCountingDisabled(){
+        return false;
     }
 }

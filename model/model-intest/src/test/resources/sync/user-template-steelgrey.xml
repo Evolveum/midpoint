@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<objectTemplate oid="a7745154-c9c4-43d3-89c1-8de89e615baf"
+                xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+
+    <name>User template for SteelGrey</name>
+
+    <mapping>
+        <name>SteelGrey Role assignment</name>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>c:RoleType</targetType>
+                <oid>3ada6d1a-13a3-495b-943f-5b541a764bf1</oid>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+    </mapping>
+
+</objectTemplate>

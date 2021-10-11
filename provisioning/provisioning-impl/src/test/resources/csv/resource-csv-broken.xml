@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="3e02a0b0-8c9a-4d45-b1b4-cf9b9b6e7918"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+    <name>Test CSV: broken</name>
+    <connectorRef oid="will-be-supplied-by-the-test-code"/>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
+        <icfc:configurationProperties>
+            <icfi:filePath>target/non-existing-file.csv</icfi:filePath>
+            <icfi:encoding>utf-8</icfi:encoding>
+            <icfi:fieldDelimiter>,</icfi:fieldDelimiter>
+            <icfi:multivalueDelimiter>;</icfi:multivalueDelimiter>
+            <icfi:uniqueAttribute>guid</icfi:uniqueAttribute>
+            <icfi:nameAttribute>uname</icfi:nameAttribute>
+            <icfi:passwordAttribute>password</icfi:passwordAttribute>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+
+</resource>

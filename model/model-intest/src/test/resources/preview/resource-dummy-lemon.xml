@@ -1,25 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2018 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~      http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <!-- YELLOW dummy resource for testing. It is used in multi-resource tests.
       If has dependency on default dummy resource. -->
 
 <resource oid="10000000-0000-0000-0000-000000000504"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
@@ -27,34 +18,34 @@
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-								  
-	<name>Dummy Resource Lemon</name>
-	<connectorRef type="c:ConnectorType">
-		<filter>
-			<q:and>
-				<q:equal>
-					<q:path>connectorType</q:path>
-					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
-				</q:equal>
-				<q:equal>
-					<q:path>connectorVersion</q:path>
-					<q:value>2.0</q:value>
-				</q:equal>
-			</q:and>
-		</filter>
-	</connectorRef>
-	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-					   
-		<icfc:configurationProperties>
-			<icfi:instanceId>lemon</icfi:instanceId>
-		</icfc:configurationProperties>
 
-	</connectorConfiguration>
-	
-	<schema>
-		<definition>
-			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    <name>Dummy Resource Lemon</name>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+        <icfc:configurationProperties>
+            <icfi:instanceId>lemon</icfi:instanceId>
+        </icfc:configurationProperties>
+
+    </connectorConfiguration>
+
+    <schema>
+        <definition>
+            <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                      xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
                      xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
@@ -74,7 +65,7 @@
                      <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
                      <ra:namingAttribute>icfs:name</ra:namingAttribute>
                      <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
-                     <ra:account/>
+                     <ra:kind>account</ra:kind>
                      <ra:default/>
                   </xsd:appinfo>
                </xsd:annotation>
@@ -110,124 +101,124 @@
                </xsd:sequence>
             </xsd:complexType>
          </xsd:schema>
-		</definition>
-	</schema>
+        </definition>
+    </schema>
 
-	<schemaHandling>
-		<objectType>
-			<displayName>Default Account</displayName>
-			<default>true</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<attribute>
-				<ref>icfs:name</ref>
-				<displayName>Username</displayName>
-				<outbound>
-				    <source>
-				    	<path>$user/name</path>
-				    </source>
-					<expression>
-						<script>
-							<code>name + iterationToken</code>
-						</script>
-					</expression>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>icfs:uid</ref>
-				<displayName>UID</displayName>
-			</attribute>
-			<attribute>
-				<ref>ri:fullname</ref>
-				<displayName>Full Name</displayName>
-				<outbound>
-					<strength>strong</strength>
-					<source>
-						<path>fullName</path>
-					</source>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:weapon</ref>
-				<limitations>
-					<maxOccurs>-1</maxOccurs>
-				</limitations>
-			</attribute>
-			<attribute>
-				<ref>ri:ship</ref>
-				<displayName>Ship</displayName>
-				<outbound>
-					<strength>strong</strength>
-					<source>
-						<path>$user/organizationalUnit</path>
-					</source>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:gossip</ref>
-				<outbound>
-					<strength>strong</strength>
-					<source>
-						<path>fullName</path>
-					</source>
-					<source>
-						<path>subtype</path>
-					</source>
-					<source>
-						<path>locality</path>
-					</source>
-					<expression>
-						<script>
-							<code>fullName + ' must be the best '+subtype+' the '+locality+' has ever seen'</code>
-						</script>
-					</expression>
-				</outbound>
-				<inbound>
-					<target>
-						<path>description</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:water</ref>
-				<outbound>
-					<strength>strong</strength>
-					<source>
-						<path>fullName</path>
-					</source>
-					<source>
-						<path>subtype</path>
-					</source>
-					<expression>
-						<script>
-							<code>subtype + ' ' + fullName + ' drinks only rum!'</code>
-						</script>
-					</expression>
-				</outbound>
-			</attribute>
-			<dependency>
-				<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-			</dependency>
-			<activation>
-            	<administrativeStatus>
+    <schemaHandling>
+        <objectType>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Username</displayName>
+                <outbound>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>name + iterationToken</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+                <displayName>UID</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <displayName>Full Name</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:weapon</ref>
+                <limitations>
+                    <maxOccurs>-1</maxOccurs>
+                </limitations>
+            </attribute>
+            <attribute>
+                <ref>ri:ship</ref>
+                <displayName>Ship</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>$user/organizationalUnit</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:gossip</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>fullName</path>
+                    </source>
+                    <source>
+                        <path>subtype</path>
+                    </source>
+                    <source>
+                        <path>locality</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>fullName + ' must be the best '+subtype+' the '+locality+' has ever seen'</code>
+                        </script>
+                    </expression>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>description</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:water</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>fullName</path>
+                    </source>
+                    <source>
+                        <path>subtype</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>subtype + ' ' + fullName + ' drinks only rum!'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <dependency>
+                <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+            </dependency>
+            <activation>
+                <administrativeStatus>
                     <outbound>
-                    	<strength>strong</strength>
-                    	<expression>
-                        	<asIs/>
+                        <strength>strong</strength>
+                        <expression>
+                            <asIs/>
                         </expression>
-                    </outbound>            	
-            	</administrativeStatus>
+                    </outbound>
+                </administrativeStatus>
             </activation>
-			<credentials>
+            <credentials>
                 <password>
                     <outbound>
-                    	<strength>strong</strength>
-                    	<expression>
-                        	<asIs/>
+                        <strength>strong</strength>
+                        <expression>
+                            <asIs/>
                         </expression>
                     </outbound>
                 </password>
             </credentials>
-		</objectType>
-	</schemaHandling>
-	
+        </objectType>
+    </schemaHandling>
+
 </resource>

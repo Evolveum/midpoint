@@ -1,24 +1,12 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedExclusionTrigger;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedSituationTrigger;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.impl.util.RecordingProgressListener;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -36,6 +24,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -45,6 +34,7 @@ import org.testng.annotations.Test;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import static org.testng.AssertJUnit.*;
 
@@ -59,243 +49,221 @@ import static org.testng.AssertJUnit.*;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestPolicyRules extends AbstractLensTest {
 
-	private static final String ROLE_JUDGE_POLICY_RULE_EXCLUSION_NAME = "criminal exclusion";
+    private static final String ROLE_JUDGE_POLICY_RULE_EXCLUSION_NAME = "criminal exclusion";
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
-		setDefaultUserTemplate(USER_TEMPLATE_OID);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+        setDefaultUserTemplate(USER_TEMPLATE_OID);
 
-		repoAddObjectFromFile(USER_DRAKE_FILE, initResult);
+        repoAddObjectFromFile(USER_DRAKE_FILE, initResult);
 
-		addObject(ROLE_PIRATE_FILE);
-		addObject(ROLE_MUTINIER_FILE);
-		addObject(ROLE_JUDGE_FILE);
-		addObject(ROLE_CONSTABLE_FILE);
-		addObject(ROLE_THIEF_FILE);
+        addObject(ROLE_PIRATE_FILE);
+        addObject(ROLE_MUTINEER_FILE);
+        addObject(ROLE_JUDGE_FILE);
+        addObject(ROLE_CONSTABLE_FILE);
+        addObject(ROLE_THIEF_FILE);
 
-		addObjects(ROLE_CORP_FILES);
+        addObjects(ROLE_CORP_FILES);
 
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        addObject(USER_LOCALIZED, initTask, initResult);
+        addObject(ROLE_LOCALIZED, initTask, initResult);
 
-		InternalMonitor.reset();
-//		InternalMonitor.setTraceShadowFetchOperation(true);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-//		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
-	}
+        InternalMonitor.reset();
+    }
 
-	@Test
-	public void test005JackAttemptAssignRoleJudge() throws Exception {
-		final String TEST_NAME = "test005JackAttemptAssignRoleJudge";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-
-		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
-
-		LensContext<UserType> context = createUserLensContext();
-		fillContextWithUser(context, USER_JACK_OID, result);
-		addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_JUDGE_OID);
-
-		display("Input context", context);
-
-		assertFocusModificationSanity(context);
-		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
-
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		projector.project(context, "test", task, result);
-
-		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
-
-		dumpPolicyRules(context);
-		//dumpPolicySituations(context);
-
-		assertEvaluatedTargetPolicyRules(context, 7);
-		assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 2);
-		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 4);
-		assertTargetTriggers(context, null, 6);
-	}
-
-	@Test(enabled = false)
-	public void test007JackAttemptAssignRoleJudgeAsOwner() throws Exception {
-		final String TEST_NAME = "test007JackAttemptAssignRoleJudgeAsOwner";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-
-		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
-
-		LensContext<UserType> context = createUserLensContext();
-		fillContextWithUser(context, USER_JACK_OID, result);
-		addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_PIRATE_OID,
-				assignment -> assignment.getTargetRef().setRelation(SchemaConstants.ORG_OWNER)
-		);
-
-		display("Input context", context);
-
-		assertFocusModificationSanity(context);
-		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
-
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		projector.project(context, "test", task, result);
-
-		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
-
-		dumpPolicyRules(context);
-		//dumpPolicySituations(context);
-
-		assertEvaluatedTargetPolicyRules(context, 4);
-		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 0);
-	}
-
-
-	/**
-	 * Mostly preparation for other tests. But good check for no exclusion conflict.
-	 */
-	@Test
-    public void test010JackAssignRoleJudge() throws Exception {
-		final String TEST_NAME = "test010JackAssignRoleJudge";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+    @Test
+    public void test005JackAttemptAssignRoleJudge() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
+
+        LensContext<UserType> context = createUserLensContext();
+        fillContextWithUser(context, USER_JACK_OID, result);
+        addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_JUDGE_OID);
+
+        displayDumpable("Input context", context);
+
+        assertFocusModificationSanity(context);
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
+        projector.project(context, "test", task, result);
+
+        // THEN
+        then();
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        dumpPolicyRules(context);
+
+        assertEvaluatedTargetPolicyRules(context, 7);
+        assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 2);
+        assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 4);
+        assertTargetTriggers(context, null, 6);
+    }
+
+    @Test(enabled = false)
+    public void test007JackAttemptAssignRoleJudgeAsOwner() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+
+        // GIVEN
+
+        LensContext<UserType> context = createUserLensContext();
+        fillContextWithUser(context, USER_JACK_OID, result);
+        addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_PIRATE_OID,
+                assignment -> assignment.getTargetRef().setRelation(SchemaConstants.ORG_OWNER)
+        );
+
+        displayDumpable("Input context", context);
+
+        assertFocusModificationSanity(context);
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
+
+        // WHEN
+        when();
+        projector.project(context, "test", task, result);
+
+        // THEN
+        then();
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        dumpPolicyRules(context);
+
+        assertEvaluatedTargetPolicyRules(context, 4);
+        assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 0);
+    }
+
+
+    /**
+     * Mostly preparation for other tests. But good check for no exclusion conflict.
+     */
+    @Test
+    public void test010JackAssignRoleJudge() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+
+        // GIVEN
+
+        // WHEN
+        when();
         assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
         assertAssignedRole(userAfter, ROLE_JUDGE_OID);
-	}
+    }
 
-	/**
-	 * We expect 2 assignments rules to be triggered: unassign + all operations.
-	 */
-	@Test
-	public void test020JackUnassignRoleJudge() throws Exception {
-		final String TEST_NAME = "test020JackUnassignRoleJudge";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-
-		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
-
-		LensContext<UserType> context = createUserLensContext();
-		fillContextWithUser(context, USER_JACK_OID, result);
-		addModificationToContextUnassignRole(context, USER_JACK_OID, ROLE_JUDGE_OID);
-
-		display("Input context", context);
-
-		assertFocusModificationSanity(context);
-		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
-
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		projector.project(context, "test", task, result);
-
-		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
-
-		dumpPolicyRules(context);
-		dumpPolicySituations(context);
-
-		assertEvaluatedTargetPolicyRules(context, 7);
-		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 2);
-		assertTargetTriggers(context, null, 2);
-	}
-
-
-	/**
-	 * No exclusion here. The assignment should go smoothly.
-	 */
-	@Test
-    public void test100AssignRoleMutinierToJack() throws Exception {
-		final String TEST_NAME = "test100AssignRoleMutinierToJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+    /**
+     * We expect 2 assignments rules to be triggered: unassign + all operations.
+     */
+    @Test
+    public void test020JackUnassignRoleJudge() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
-        addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_MUTINIER_OID);
+        addModificationToContextUnassignRole(context, USER_JACK_OID, ROLE_JUDGE_OID);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         projector.project(context, "test", task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        dumpPolicyRules(context);
+        dumpPolicySituations(context);
+
+        assertEvaluatedTargetPolicyRules(context, 7);
+        assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 2);
+        assertTargetTriggers(context, null, 2);
+    }
+
+
+    /**
+     * No exclusion here. The assignment should go smoothly.
+     */
+    @Test
+    public void test100AssignRoleMutineerToJack() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+
+        // GIVEN
+
+        LensContext<UserType> context = createUserLensContext();
+        fillContextWithUser(context, USER_JACK_OID, result);
+        addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_MUTINEER_OID);
+
+        displayDumpable("Input context", context);
+
+        assertFocusModificationSanity(context);
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
+
+        // WHEN
+        when();
+        projector.project(context, "test", task, result);
+
+        // THEN
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         assertAssignAccountToJack(context);
-
-        DeltaSetTriple<EvaluatedAssignmentImpl<UserType>> evaluatedAssignmentTriple =
-        		(DeltaSetTriple)context.getEvaluatedAssignmentTriple();
-//        display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
 
         dumpPolicyRules(context);
         dumpPolicySituations(context);
         assertEvaluatedTargetPolicyRules(context, 7);
         assertTargetTriggers(context,  null, 0);
-	}
+    }
 
-	@Test(enabled = false)          // after MID-4797 the projector.project now raises PolicyViolationException on conflicting roles
+    @Test(enabled = false)          // after MID-4797 the projector.project now raises PolicyViolationException on conflicting roles
     public void test110AssignRolePirateToJack() throws Exception {
-		final String TEST_NAME = "test110AssignRolePirateToJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_PIRATE_OID);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         projector.project(context, "test", task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         assertAssignAccountToJack(context);
-
-        DeltaSetTriple<EvaluatedAssignmentImpl<UserType>> evaluatedAssignmentTriple =
-        		(DeltaSetTriple)context.getEvaluatedAssignmentTriple();
-//        display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
 
         dumpPolicyRules(context);
         dumpPolicySituations(context);
@@ -303,48 +271,42 @@ public class TestPolicyRules extends AbstractLensTest {
         EvaluatedExclusionTrigger trigger = (EvaluatedExclusionTrigger) assertTriggeredTargetPolicyRule(context, null, PolicyConstraintKindType.EXCLUSION, 1, true);
         assertNotNull("No conflicting assignment in trigger", trigger.getConflictingAssignment());
         assertEquals("Wrong conflicting assignment in trigger", ROLE_PIRATE_OID, trigger.getConflictingAssignment().getTarget().getOid());
-	}
+    }
 
-	/**
-	 * Assignment with an exception from the exclusion rule.
-	 */
-	@Test
+    /**
+     * Assignment with an exception from the exclusion rule.
+     */
+    @Test
     public void test112AssignRolePirateWithExceptionToJack() throws Exception {
-		final String TEST_NAME = "test112AssignRolePirateWithExceptionToJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_PIRATE_OID,
-        		assignment -> {
-        			PolicyExceptionType policyException = new PolicyExceptionType();
-        			policyException.setRuleName(ROLE_JUDGE_POLICY_RULE_EXCLUSION_NAME);
-					assignment.getPolicyException().add(policyException);
-        		});
+                assignment -> {
+                    PolicyExceptionType policyException = new PolicyExceptionType();
+                    policyException.setRuleName(ROLE_JUDGE_POLICY_RULE_EXCLUSION_NAME);
+                    assignment.getPolicyException().add(policyException);
+                });
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         projector.project(context, "test", task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         assertAssignAccountToJack(context);
-
-        DeltaSetTriple<EvaluatedAssignmentImpl<UserType>> evaluatedAssignmentTriple =
-        		(DeltaSetTriple)context.getEvaluatedAssignmentTriple();
-//        display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
 
         dumpPolicyRules(context);
         dumpPolicySituations(context);
@@ -355,49 +317,39 @@ public class TestPolicyRules extends AbstractLensTest {
         Collection<PolicyExceptionType> exceptions = evaluatedPolicyRule.getPolicyExceptions();
         assertEquals("Wrong number of exceptions", 1, exceptions.size());
         PolicyExceptionType policyException = exceptions.iterator().next();
-        assertEquals("Wrong rule name in poliy excpetion", ROLE_JUDGE_POLICY_RULE_EXCLUSION_NAME, policyException.getRuleName());
-	}
+        assertEquals("Wrong rule name in policy exception", ROLE_JUDGE_POLICY_RULE_EXCLUSION_NAME, policyException.getRuleName());
+    }
 
-	@Test
+    @Test
     public void test120AssignRoleConstableToJack() throws Exception {
-		final String TEST_NAME = "test120AssignRoleConstableToJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_CONSTABLE_OID);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         projector.project(context, "test", task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("Output context", context);
-
-        DeltaSetTriple<EvaluatedAssignmentImpl<UserType>> evaluatedAssignmentTriple =
-        		(DeltaSetTriple)context.getEvaluatedAssignmentTriple();
-//        display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
+        displayDumpable("Output context", context);
 
         dumpPolicyRules(context);
         dumpPolicySituations(context);
         assertEvaluatedTargetPolicyRules(context, 8);
-        // conflicting assignment was pruned, so the exclusion is no longer present here
-//		EvaluatedExclusionTrigger trigger = (EvaluatedExclusionTrigger) assertTriggeredTargetPolicyRule(context, null, PolicyConstraintKindType.EXCLUSION, 1, true);
-//        assertNotNull("No conflicting assignment in trigger", trigger.getConflictingAssignment());
-//        assertEquals("Wrong conflicting assignment in trigger", ROLE_JUDGE_OID, trigger.getConflictingAssignment().getTarget().getOid());
 
         ObjectDelta<UserType> focusSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         PrismAsserts.assertIsModify(focusSecondaryDelta);
@@ -409,253 +361,291 @@ public class TestPolicyRules extends AbstractLensTest {
 
         ObjectDelta<ShadowType> accountSecondaryDelta = assertAssignAccountToJack(context);
         PrismAsserts.assertPropertyAdd(accountSecondaryDelta,
-    		  getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
-    		  "Constable");
+              getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
+              "Constable");
         PrismAsserts.assertPropertyDelete(accountSecondaryDelta,
-      		  getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
-      		  "Honorable Justice");
-	}
+                getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
+                "Honorable Justice");
+    }
 
-	/**
-	 * Thief has got separated constraints and actions.
-	 */
-	@Test
-	public void test150AssignRoleThiefToJack() throws Exception {
-		final String TEST_NAME = "test150AssignRoleThiefToJack";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+    /**
+     * Thief has got separated constraints and actions.
+     */
+    @Test
+    public void test150AssignRoleThiefToJack() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
-		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
+        // GIVEN
 
-		LensContext<UserType> context = createUserLensContext();
-		fillContextWithUser(context, USER_JACK_OID, result);
-		addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_THIEF_OID);
+        LensContext<UserType> context = createUserLensContext();
+        fillContextWithUser(context, USER_JACK_OID, result);
+        addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_THIEF_OID);
 
-		display("Input context", context);
+        displayDumpable("Input context", context);
 
-		assertFocusModificationSanity(context);
-		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
+        assertFocusModificationSanity(context);
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		projector.project(context, "test", task, result);
+        // WHEN
+        when();
+        projector.project(context, "test", task, result);
 
-		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+        // THEN
+        then();
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
 
-		DeltaSetTriple<EvaluatedAssignmentImpl<UserType>> evaluatedAssignmentTriple =
-				(DeltaSetTriple)context.getEvaluatedAssignmentTriple();
-		display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
+        DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+        displayDumpable("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
 
-		dumpPolicyRules(context);
-		dumpPolicySituations(context);
+        dumpPolicyRules(context);
+        dumpPolicySituations(context);
 
-		assertEvaluatedTargetPolicyRules(context, 9);
-		assertTargetTriggers(context, PolicyConstraintKindType.EXCLUSION, 1);
-		assertTargetTriggers(context, PolicyConstraintKindType.SITUATION, 1);
+        assertEvaluatedTargetPolicyRules(context, 9);
+        assertTargetTriggers(context, PolicyConstraintKindType.EXCLUSION, 1);
+        assertTargetTriggers(context, PolicyConstraintKindType.SITUATION, 1);
 
-		EvaluatedExclusionTrigger triggerExclusion = (EvaluatedExclusionTrigger) assertTriggeredTargetPolicyRule(context, null, PolicyConstraintKindType.EXCLUSION, 1, false);
-		assertNotNull("No conflicting assignment in trigger", triggerExclusion.getConflictingAssignment());
-		assertEquals("Wrong conflicting assignment in trigger", ROLE_JUDGE_OID, triggerExclusion.getConflictingAssignment().getTarget().getOid());
+        EvaluatedExclusionTrigger triggerExclusion = (EvaluatedExclusionTrigger) assertTriggeredTargetPolicyRule(context, null, PolicyConstraintKindType.EXCLUSION, 1, false);
+        assertNotNull("No conflicting assignment in trigger", triggerExclusion.getConflictingAssignment());
+        assertEquals("Wrong conflicting assignment in trigger", ROLE_JUDGE_OID, triggerExclusion.getConflictingAssignment().getTarget().getOid());
 
-		EvaluatedSituationTrigger triggerSituation = (EvaluatedSituationTrigger) assertTriggeredTargetPolicyRule(context, null, PolicyConstraintKindType.SITUATION, 1, false);
-		assertEquals("Wrong # of source rules", 1, triggerSituation.getSourceRules().size());
-		EvaluatedPolicyRule sourceRule = triggerSituation.getSourceRules().iterator().next();
-		EvaluatedExclusionTrigger sourceTrigger = (EvaluatedExclusionTrigger) sourceRule.getTriggers().iterator().next();
-		assertNotNull("No conflicting assignment in source trigger", sourceTrigger.getConflictingAssignment());
-		assertEquals("Wrong conflicting assignment in source trigger", ROLE_JUDGE_OID, sourceTrigger.getConflictingAssignment().getTarget().getOid());
-	}
+        EvaluatedSituationTrigger triggerSituation = (EvaluatedSituationTrigger) assertTriggeredTargetPolicyRule(context, null, PolicyConstraintKindType.SITUATION, 1, false);
+        assertEquals("Wrong # of source rules", 1, triggerSituation.getSourceRules().size());
+        EvaluatedPolicyRule sourceRule = triggerSituation.getSourceRules().iterator().next();
+        EvaluatedExclusionTrigger sourceTrigger = (EvaluatedExclusionTrigger) sourceRule.getTriggers().iterator().next();
+        assertNotNull("No conflicting assignment in source trigger", sourceTrigger.getConflictingAssignment());
+        assertEquals("Wrong conflicting assignment in source trigger", ROLE_JUDGE_OID, sourceTrigger.getConflictingAssignment().getTarget().getOid());
+    }
 
-	/**
-	 * Mostly preparation for other tests. But good check for no exclusion conflict.
-	 */
-	@Test
-	public void test200JackAssignRoleContractor() throws Exception {
-		final String TEST_NAME = "test200JackAssignRoleContractor";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+    /**
+     * Mostly preparation for other tests. But good check for no exclusion conflict.
+     */
+    @Test
+    public void test200JackAssignRoleContractor() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
-		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
+        // GIVEN
 
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		assignRole(USER_JACK_OID, ROLE_CORP_CONTRACTOR_OID, task, result);
+        // WHEN
+        when();
+        assignRole(USER_JACK_OID, ROLE_CORP_CONTRACTOR_OID, task, result);
 
-		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+        // THEN
+        then();
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("User after", userAfter);
-		assertAssignedRole(userAfter, ROLE_CORP_CONTRACTOR_OID);
-	}
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_CORP_CONTRACTOR_OID);
+    }
 
-	/**
-	 *  Employee conflicts with Contractor.
-	 */
-	@Test
-	public void test210AssignRoleEmployeeToJack() throws Exception {
-		final String TEST_NAME = "test210AssignRoleEmployeeToJack";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+    /**
+     *  Employee conflicts with Contractor.
+     */
+    @Test
+    public void test210AssignRoleEmployeeToJack() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
-		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
+        // GIVEN
 
-		LensContext<UserType> context = createUserLensContext();
-		fillContextWithUser(context, USER_JACK_OID, result);
-		addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_CORP_EMPLOYEE_OID);
+        LensContext<UserType> context = createUserLensContext();
+        fillContextWithUser(context, USER_JACK_OID, result);
+        addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_CORP_EMPLOYEE_OID);
 
-		display("Input context", context);
+        displayDumpable("Input context", context);
 
-		assertFocusModificationSanity(context);
-		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
+        assertFocusModificationSanity(context);
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		projector.project(context, "test", task, result);
+        // WHEN
+        when();
+        projector.project(context, "test", task, result);
 
-		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+        // THEN
+        then();
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
 
-		DeltaSetTriple<EvaluatedAssignmentImpl<UserType>> evaluatedAssignmentTriple =
-				(DeltaSetTriple)context.getEvaluatedAssignmentTriple();
-		//display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
+        dumpPolicyRules(context);
+        dumpPolicySituations(context);
 
-		dumpPolicyRules(context);
-		dumpPolicySituations(context);
+        // Judge: criminal-exclusion, unassignment, all-assignment-operations, all-assignment-operations-on-jack, all-assignment-operations-on-elaine, all-assignment-operations-on-jack-via-script, global-assignment-notification-for-judge
+        // Employee: approve-any-corp-role, notify-exclusion-violations, employee-excludes-contractor
+        // Contractor: approve-any-corp-role, notify-exclusion-violations, contractor-excludes-employee
+        assertEvaluatedTargetPolicyRules(context, 13);
 
-		// Judge: criminal-exclusion, unassignment, all-assignment-operations, all-assignment-operations-on-jack, all-assignment-operations-on-elaine, all-assignment-operations-on-jack-via-script, global-assignment-notification-for-judge
-		// Employee: approve-any-corp-role, notify-exclusion-violations, employee-excludes-contractor
-		// Contractor: approve-any-corp-role, notify-exclusion-violations, contractor-excludes-employee
-		assertEvaluatedTargetPolicyRules(context, 13);
+        EvaluatedExclusionTrigger trigger = (EvaluatedExclusionTrigger) assertTriggeredTargetPolicyRule(context, ROLE_CORP_EMPLOYEE_OID, PolicyConstraintKindType.EXCLUSION, 1, false);
+        assertNotNull("No conflicting assignment in trigger", trigger.getConflictingAssignment());
+        assertEquals("Wrong conflicting assignment in trigger", ROLE_CORP_CONTRACTOR_OID, trigger.getConflictingAssignment().getTarget().getOid());
+    }
 
-		EvaluatedExclusionTrigger trigger = (EvaluatedExclusionTrigger) assertTriggeredTargetPolicyRule(context, ROLE_CORP_EMPLOYEE_OID, PolicyConstraintKindType.EXCLUSION, 1, false);
-		assertNotNull("No conflicting assignment in trigger", trigger.getConflictingAssignment());
-		assertEquals("Wrong conflicting assignment in trigger", ROLE_CORP_CONTRACTOR_OID, trigger.getConflictingAssignment().getTarget().getOid());
-	}
+    /**
+     *  Engineer->Employee conflicts with Contractor.
+     */
+    @Test
+    public void test220AssignRoleEngineerToJack() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
-	/**
-	 *  Engineer->Employee conflicts with Contractor.
-	 */
-	@Test
-	public void test220AssignRoleEngineerToJack() throws Exception {
-		final String TEST_NAME = "test220AssignRoleEngineerToJack";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+        // GIVEN
 
-		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
+        LensContext<UserType> context = createUserLensContext();
+        fillContextWithUser(context, USER_JACK_OID, result);
+        addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_CORP_ENGINEER_OID);
 
-		LensContext<UserType> context = createUserLensContext();
-		fillContextWithUser(context, USER_JACK_OID, result);
-		addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_CORP_ENGINEER_OID);
+        displayDumpable("Input context", context);
 
-		display("Input context", context);
+        assertFocusModificationSanity(context);
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-		assertFocusModificationSanity(context);
-		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
+        // WHEN
+        when();
+        projector.project(context, "test", task, result);
 
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		projector.project(context, "test", task, result);
+        // THEN
+        then();
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
 
-		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+        dumpPolicyRules(context);
+        dumpPolicySituations(context);
 
-		DeltaSetTriple<EvaluatedAssignmentImpl<UserType>> evaluatedAssignmentTriple =
-				(DeltaSetTriple)context.getEvaluatedAssignmentTriple();
-		//display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
+        // Judge: L:criminal-exclusion, L:unassignment, L:all-assignment-operations
+        // Contractor: L:approve-any-corp-role, L:notify-exclusion-violations, L:contractor-excludes-employee
+        // Engineer: approve-any-corp-role, notify-exclusion-violations, employee-excludes-contractor, L:approve-any-corp-role, L:notify-exclusion-violations
+        assertEvaluatedTargetPolicyRules(context, 15);
+        EvaluatedExclusionTrigger engineerTrigger = (EvaluatedExclusionTrigger) assertTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.EXCLUSION, 1, false);
+        assertNotNull("No conflicting assignment in trigger", engineerTrigger.getConflictingAssignment());
+        assertEquals("Wrong conflicting assignment in trigger", ROLE_CORP_CONTRACTOR_OID, engineerTrigger.getConflictingAssignment().getTarget().getOid());
+        assertTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 1, false);
+        assertTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.SITUATION, 1, false);
 
-		dumpPolicyRules(context);
-		dumpPolicySituations(context);
+        EvaluatedPolicyRule engineerRule = getTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.EXCLUSION);
+        displayDumpable("exclusion rule for Engineer", engineerRule);
+        displayDumpable("exclusion trigger for Engineer", engineerTrigger);
+        displayDumpable("Engineer: assignmentPath", engineerRule.getAssignmentPath());
+        displayDumpable("Engineer: conflictingPath", engineerTrigger.getConflictingPath());
+        assertAssignmentPath(engineerRule.getAssignmentPath(), ROLE_CORP_ENGINEER_OID, ROLE_CORP_EMPLOYEE_OID, null);
+        assertAssignmentPath(engineerTrigger.getConflictingPath(), ROLE_CORP_CONTRACTOR_OID);
 
-		// Judge: L:criminal-exclusion, L:unassignment, L:all-assignment-operations
-		// Contractor: L:approve-any-corp-role, L:notify-exclusion-violations, L:contractor-excludes-employee
-		// Engineer: approve-any-corp-role, notify-exclusion-violations, employee-excludes-contractor, L:approve-any-corp-role, L:notify-exclusion-violations
-		assertEvaluatedTargetPolicyRules(context, 15);
-		EvaluatedExclusionTrigger engineerTrigger = (EvaluatedExclusionTrigger) assertTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.EXCLUSION, 1, false);
-		assertNotNull("No conflicting assignment in trigger", engineerTrigger.getConflictingAssignment());
-		assertEquals("Wrong conflicting assignment in trigger", ROLE_CORP_CONTRACTOR_OID, engineerTrigger.getConflictingAssignment().getTarget().getOid());
-		assertTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 1, false);
-		assertTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.SITUATION, 1, false);
+        EvaluatedPolicyRule contractorRule = getTriggeredTargetPolicyRule(context, ROLE_CORP_CONTRACTOR_OID, PolicyConstraintKindType.EXCLUSION);
+        EvaluatedExclusionTrigger contractorTrigger = (EvaluatedExclusionTrigger) assertTriggeredTargetPolicyRule(context, ROLE_CORP_CONTRACTOR_OID, PolicyConstraintKindType.EXCLUSION, 1, false);
+        displayDumpable("exclusion rule for Contractor", contractorRule);
+        displayDumpable("exclusion trigger for Contractor", contractorTrigger);
+        displayDumpable("Contractor: assignmentPath", contractorRule.getAssignmentPath());
+        displayDumpable("Contractor: conflictingPath", contractorTrigger.getConflictingPath());
+        assertAssignmentPath(contractorRule.getAssignmentPath(), ROLE_CORP_CONTRACTOR_OID, null);
+        assertAssignmentPath(contractorTrigger.getConflictingPath(), ROLE_CORP_ENGINEER_OID, ROLE_CORP_EMPLOYEE_OID);
+    }
 
-		EvaluatedPolicyRule engineerRule = getTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.EXCLUSION);
-		display("exclusion rule for Engineer", engineerRule);
-		display("exclusion trigger for Engineer", engineerTrigger);
-		display("Engineer: assignmentPath", engineerRule.getAssignmentPath());
-		display("Engineer: conflictingPath", engineerTrigger.getConflictingPath());
-		assertAssignmentPath(engineerRule.getAssignmentPath(), ROLE_CORP_ENGINEER_OID, ROLE_CORP_EMPLOYEE_OID, null);
-		assertAssignmentPath(engineerTrigger.getConflictingPath(), ROLE_CORP_CONTRACTOR_OID);
+    /**
+     * MID-4132
+     *
+     * Drake changes employeeType null to T. There's a global notification policy rule applicable to users with employeeType != T.
+     * Should we get the notification?
+     *
+     * Yes and no. The condition is checked on objectCurrent. So, in primary state the rule is applied (employeeType is null
+     * at that moment). But in final state (when notification actions are evaluated) the condition should be already false.
+     * So we should not get the notification.
+     */
+    @Test
+    public void test300DrakeChangeEmployeeType() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
-		EvaluatedPolicyRule contractorRule = getTriggeredTargetPolicyRule(context, ROLE_CORP_CONTRACTOR_OID, PolicyConstraintKindType.EXCLUSION);
-		EvaluatedExclusionTrigger contractorTrigger = (EvaluatedExclusionTrigger) assertTriggeredTargetPolicyRule(context, ROLE_CORP_CONTRACTOR_OID, PolicyConstraintKindType.EXCLUSION, 1, false);
-		display("exclusion rule for Contractor", contractorRule);
-		display("exclusion trigger for Contractor", contractorTrigger);
-		display("Contractor: assignmentPath", contractorRule.getAssignmentPath());
-		display("Contractor: conflictingPath", contractorTrigger.getConflictingPath());
-		assertAssignmentPath(contractorRule.getAssignmentPath(), ROLE_CORP_CONTRACTOR_OID, null);
-		assertAssignmentPath(contractorTrigger.getConflictingPath(), ROLE_CORP_ENGINEER_OID, ROLE_CORP_EMPLOYEE_OID);
-	}
+        // GIVEN
 
-	/**
-	 * MID-4132
-	 *
-	 * Drake changes employeeType null to T. There's a global notification policy rule applicable to users with employeeType != T.
-	 * Should we get the notification?
-	 *
-	 * Yes and no. The condition is checked on objectCurrent. So, in primary state the rule is applied (employeeType is null
-	 * at that moment). But in final state (when notification actions are evaluated) the condition should be already false.
-	 * So we should not get the notification.
-	 */
-	@SuppressWarnings("unchecked")
-	@Test
-	public void test300DrakeChangeEmployeeType() throws Exception {
-		final String TEST_NAME = "test300DrakeChangeEmployeeType";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+        // WHEN
+        when();
+        ObjectDelta<? extends ObjectType> delta = deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(ObjectTypeUtil.createAssignmentTo(ROLE_JUDGE_OID, ObjectTypes.ROLE, prismContext))
+                .item(UserType.F_EMPLOYEE_TYPE).replace("T")
+                .asObjectDelta(USER_DRAKE_OID);
 
-		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
+        RecordingProgressListener recordingListener = new RecordingProgressListener();
+        modelService.executeChanges(Collections.singletonList(delta), null, task, Collections.singleton(recordingListener), result);
 
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		ObjectDelta<? extends ObjectType> delta = deltaFor(UserType.class)
-				.item(UserType.F_ASSIGNMENT)
-				.add(ObjectTypeUtil.createAssignmentTo(ROLE_JUDGE_OID, ObjectTypes.ROLE, prismContext))
-				.item(UserType.F_EMPLOYEE_TYPE).replace("T")
-				.asObjectDelta(USER_DRAKE_OID);
+        // THEN
+        then();
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
 
-		RecordingProgressListener recordingListener = new RecordingProgressListener();
-		modelService.executeChanges(Collections.singletonList(delta), null, task, Collections.singleton(recordingListener), result);
+        PrismObject<UserType> userAfter = getUser(USER_DRAKE_OID);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_JUDGE_OID);
 
-		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+        LensFocusContext<?> focusContext = ((LensContext<?>) recordingListener.getModelContext()).getFocusContext();
+        displayDumpable("focusContext", focusContext);
+        assertEquals("Wrong # of focus policy rules", 0, focusContext.getPolicyRules().size());
+    }
 
-		PrismObject<UserType> userAfter = getUser(USER_DRAKE_OID);
-		display("User after", userAfter);
-		assertAssignedRole(userAfter, ROLE_JUDGE_OID);
+    /**
+     * Tests policy rule messages for objects with localized names.
+     * See also MID-5916.
+     */
+    @Test
+    public void test400AssignRoleLocalized() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
-		LensFocusContext<?> focusContext = ((LensContext) recordingListener.getModelContext()).getFocusContext();
-		display("focusContext", focusContext);
-		assertEquals("Wrong # of focus policy rules", 0, focusContext.getPolicyRules().size());
-	}
+        // GIVEN
 
-	private ObjectDelta<ShadowType> assertAssignAccountToJack(LensContext<UserType> context) {
-        display("Output context", context);
+        LensContext<UserType> context = createUserLensContext();
+        fillContextWithUser(context, USER_LOCALIZED.oid, result);
+        addModificationToContextAssignRole(context, USER_LOCALIZED.oid, ROLE_LOCALIZED.oid);
 
-        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        displayDumpable("Input context", context);
+
+        assertFocusModificationSanity(context);
+
+        // WHEN
+        when();
+        projector.project(context, "test", task, result);
+
+        // THEN
+        then();
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        dumpPolicyRules(context);
+
+        Locale SLOVAK = Locale.forLanguageTag("sk-SK");
+        assertNotNull("No Slovak locale", SLOVAK);
+
+        // sanity check
+        PrismObject<RoleType> roleLocalized = getRole(ROLE_LOCALIZED.oid);
+        String roleNameUs = localizationService.translate(roleLocalized.getName(), Locale.US, false);
+        String roleNameSk = localizationService.translate(roleLocalized.getName(), SLOVAK, false);
+        System.out.println("Role name translated (US): " + roleNameUs);
+        System.out.println("Role name translated (SK): " + roleNameSk);
+        assertEquals("Wrong US role name", roleNameUs, "Localized role");
+        assertEquals("Wrong SK role name", roleNameSk, "Lokalizovana rola");
+
+        // checking the rules
+        assertEvaluatedTargetPolicyRules(context, 1);
+        assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 1);
+        EvaluatedPolicyRuleTrigger<?> trigger = assertTriggeredTargetPolicyRule(context, ROLE_LOCALIZED.oid,
+                PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 1, true);
+        LocalizableMessage message = trigger.getMessage();
+
+        System.out.println("Trigger message: " + message);
+        String messageUs = localizationService.translate(message, Locale.US);
+        String messageSk = localizationService.translate(message, SLOVAK);
+        System.out.println("Trigger message translated (US): " + messageUs);
+        System.out.println("Trigger message translated (SK): " + messageSk);
+        assertEquals("Wrong US message", messageUs, "Assignment of role \"Localized role\" (relation default) is to be added");
+        assertEquals("Wrong SK message", messageSk, "Priradenie pre rola \"Lokalizovana rola\" (vztah default) ma byt pridane");
+    }
+
+    private ObjectDelta<ShadowType> assertAssignAccountToJack(LensContext<UserType> context) {
+        displayDumpable("Output context", context);
+
+        assertSame(context.getFocusContext().getPrimaryDelta().getChangeType(), ChangeType.MODIFY);
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
         Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
@@ -670,7 +660,5 @@ public class TestPolicyRules extends AbstractLensTest {
 
         return accountSecondaryDelta;
 
-	}
-
-
+    }
 }

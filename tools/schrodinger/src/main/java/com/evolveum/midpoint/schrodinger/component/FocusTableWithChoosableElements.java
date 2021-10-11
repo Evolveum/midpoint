@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.schrodinger.component;
 
 import com.codeborne.selenide.Condition;
@@ -42,9 +48,10 @@ public class FocusTableWithChoosableElements<T> extends AbstractTable<T> {
 
     @Override
     public Search<FocusTableWithChoosableElements<T>> search() {
-        SelenideElement searchElement = $(By.cssSelector(".form-inline.pull-right.search-form"))
+        SelenideElement searchElement = getParentElement().$x(".//div[contains(@class, \"form-inline\") "
+                + "and contains(@class, \"pull-right\") and contains(@class, \"search-form\")]")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
-        return new Search<>(this, searchElement);
+        return new Search<FocusTableWithChoosableElements<T>>(this, searchElement);
     }
 }

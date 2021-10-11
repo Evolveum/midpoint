@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.page.admin.users.component;
@@ -21,10 +12,11 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
+import com.evolveum.midpoint.web.page.admin.orgs.MidpointNestedTree;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.tree.ITreeProvider;
-import org.apache.wicket.extensions.markup.html.repeater.tree.TableTree;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -42,7 +34,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 /**
@@ -96,17 +88,17 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
 
     protected static final List<String> SEARCH_SCOPE_VALUES = Arrays.asList( SEARCH_SCOPE_SUBTREE, SEARCH_SCOPE_ONE);
 
-    protected IModel<SelectableBean<OrgType>> selected;
+    protected IModel<TreeSelectableBean<OrgType>> selected;
 
     public AbstractTreeTablePanel(String id, IModel<String> rootOid) {
         super(id, rootOid);
     }
 
 
-    protected SelectableBean<OrgType> getRootFromProvider() {
-        TableTree<SelectableBean<OrgType>, String> tree = getTree();
-        ITreeProvider<SelectableBean<OrgType>> provider = tree.getProvider();
-        Iterator<? extends SelectableBean<OrgType>> iterator = provider.getRoots();
+    protected TreeSelectableBean<OrgType> getRootFromProvider() {
+        MidpointNestedTree tree = getTree();
+        ITreeProvider<TreeSelectableBean<OrgType>> provider = tree.getProvider();
+        Iterator<? extends TreeSelectableBean<OrgType>> iterator = provider.getRoots();
 
         return iterator.hasNext() ? iterator.next() : null;
     }
@@ -129,8 +121,8 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
         target.add(page.getFeedbackPanel());
     }
 
-    protected TableTree<SelectableBean<OrgType>, String> getTree() {
-        return (TableTree<SelectableBean<OrgType>, String>) get(createComponentPath(ID_TREE_CONTAINER, ID_TREE));
+    protected MidpointNestedTree getTree() {
+        return (MidpointNestedTree) get(createComponentPath(ID_TREE_CONTAINER, ID_TREE));
     }
 
     protected WebMarkupContainer getOrgChildContainer() {
@@ -142,7 +134,7 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
     }
 
     protected ObjectQuery createOrgChildQuery() {
-    	SelectableBean<OrgType> dto = selected.getObject();
+        SelectableBeanImpl<OrgType> dto = selected.getObject();
         String oid = dto != null && dto.getValue() != null ? dto.getValue().getOid() : getModel().getObject();
 
         BasicSearchPanel<String> basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
@@ -152,7 +144,7 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
         String scope = searchScopeChoice.getModelObject();
 
         if (StringUtils.isBlank(object)) {
-        	object = null;
+            object = null;
         }
 
         PageBase page = getPageBase();

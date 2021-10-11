@@ -1,0 +1,18 @@
+{
+  "encrypted": false,
+  "esbEvent": [
+    {
+      "sourceId": "ldap",
+      "membershipType": "flattened",
+      "fieldName": "members",
+      "groupId": "321931093132132alumni",
+      "changeOccurred": false,
+      "createdOnMicros": 1551884899000000,
+      "subjectId": "banderson",
+      "id": "43294320943029403294023113333333",
+      "sequenceNumber": "200",
+      "eventType": "MEMBERSHIP_ADD",
+      "groupName": "ref:affiliation:alumni"
+    }
+  ]
+}

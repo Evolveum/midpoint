@@ -1,0 +1,33 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="e5144353-c39d-445c-bf15-c4b80ce75918">
+    <name>metarole-approve-unassign</name>
+    <inducement>
+        <policyRule>
+            <name>approve-unassign</name>
+            <policyConstraints>
+                <assignment>
+                    <operation>delete</operation>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <compositionStrategy>
+                        <order>1</order>
+                    </compositionStrategy>
+                    <approvalSchema>
+                        <stage>
+                            <approverRelation>approver</approverRelation>
+                        </stage>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </inducement>
+</role>

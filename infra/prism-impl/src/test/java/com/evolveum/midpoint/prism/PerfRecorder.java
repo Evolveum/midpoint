@@ -1,81 +1,76 @@
 /*
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism;
 
-import org.testng.AssertJUnit;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author semancik
- *
  */
 public class PerfRecorder {
 
-	private String name;
-	private int count = 0;
-	private Double min = null;
-	private Double max = null;
-	private Double sum = 0D;
+    private String name;
+    private int count = 0;
+    private Double min = null;
+    private Double max = null;
+    private double sum = 0d;
 
-	public PerfRecorder(String name) {
-		super();
-		this.name = name;
-	}
+    public PerfRecorder(String name) {
+        super();
+        this.name = name;
+    }
 
-	public void record(int index, Double value) {
-		sum += value;
-		count ++;
-		if (min == null || value < min) {
-			min = value;
-		}
-		if (max == null || value > max) {
-			max = value;
-		}
-	}
+    public void record(int index, double value) {
+        sum += value;
+        count++;
+        if (min == null || value < min) {
+            min = value;
+        }
+        if (max == null || value > max) {
+            max = value;
+        }
+    }
 
-	public int getCount() {
-		return count;
-	}
+    public int getCount() {
+        return count;
+    }
 
-	public Double getMin() {
-		return min;
-	}
+    public Double getMin() {
+        return min;
+    }
 
-	public Double getMax() {
-		return max;
-	}
+    public Double getMax() {
+        return max;
+    }
 
-	public Double getSum() {
-		return sum;
-	}
+    public Double getSum() {
+        return sum;
+    }
 
-	public double getAverage() {
-		return sum/count;
-	}
+    public double getAverage() {
+        return sum / count;
+    }
 
-	public void assertAverageBelow(double expected) {
-		AssertJUnit.assertTrue(name+ ": Expected average below "+expected+" but was "+getAverage(), getAverage() < expected);
-	}
+    public void assertAverageBelow(double expected) {
+        assertThat(getAverage())
+                .as("average for %s", name)
+                .isLessThan(expected);
+        // remove in 2022 if everybody's happy: original without AssertJ
+//        AssertJUnit.assertTrue(name + ": Expected average below " + expected + " but was " + getAverage(), getAverage() < expected);
+    }
 
-	public void assertMaxBelow(double expected) {
-		AssertJUnit.assertTrue(name+ ": Expected maximum below "+expected+" but was "+max, max < expected);
-	}
+    public void assertMaxBelow(double expected) {
+        assertThat(max)
+                .as("maximum for %s", name)
+                .isLessThan(expected);
+    }
 
-
-	public String dump() {
-		return name + ": min / avg / max = "+min+" / "+getAverage()+" / "+max + " (sum="+sum+", count="+count+")";
-	}
-
+    public String dump() {
+        return name + ": min / avg / max = " + min + " / " + getAverage() + " / " + max
+                + " (sum=" + sum + ", count=" + count + ")";
+    }
 }

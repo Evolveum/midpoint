@@ -1,76 +1,128 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.security;
 
-import java.io.IOException;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.evolveum.midpoint.gui.api.GuiConstants;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
+import com.evolveum.midpoint.model.api.authentication.StateOfModule;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
-import org.springframework.security.web.util.UrlUtils;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.RequestCache;
+import org.springframework.security.web.savedrequest.SavedRequest;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SelfRegistrationPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+import static org.springframework.security.saml.util.StringUtils.stripSlashes;
 
 /**
- * @author Viliam Repan (lazyman)
+ * @author skublik
  */
+
 public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
+    @Autowired
+    private ModelInteractionService modelInteractionService;
+
+    @Autowired
+    private TaskManager taskManager;
+
     private String defaultTargetUrl;
-    
-    @Autowired private ModelInteractionService modelInteractionService;
-    @Autowired private TaskManager taskManager;
-    
-    @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
-    		throws ServletException, IOException {
-    	
-    	if (WebModelServiceUtils.isPostAuthenticationEnabled(taskManager, modelInteractionService)) {
-    		String requestUrl = request.getRequestURL().toString();
-			 if (requestUrl.contains("spring_security_login")) {
-				 String target = requestUrl.replace("spring_security_login", "self/postAuthentication");
-				 getRedirectStrategy().sendRedirect(request, response, target);
-				 return;
-			 }
-    	}
-    	super.onAuthenticationSuccess(request, response, authentication);
+
+    private String prefix = "";
+
+    public MidPointAuthenticationSuccessHandler setPrefix(String prefix) {
+        this.prefix = "/" + stripSlashes(prefix) + "/";
+        return this;
     }
 
-	@Override
-	protected String getTargetUrlParameter() {
-		
-    	
-    	return defaultTargetUrl;
-	}
+    public MidPointAuthenticationSuccessHandler() {
+        setRequestCache(new HttpSessionRequestCache());
+    }
+
+    private RequestCache requestCache;
+
+    @Override
+    public void setRequestCache(RequestCache requestCache) {
+        super.setRequestCache(requestCache);
+        this.requestCache = requestCache;
+    }
+
+    public RequestCache getRequestCache() {
+        return requestCache;
+    }
+
+    @Override
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+            throws ServletException, IOException {
+
+        String urlSuffix = GuiConstants.DEFAULT_PATH_AFTER_LOGIN;
+        String authenticatedChannel = null;
+        if (authentication instanceof MidpointAuthentication) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+            moduleAuthentication.setState(StateOfModule.SUCCESSFULLY);
+            if (mpAuthentication.getAuthenticationChannel() != null) {
+                authenticatedChannel = mpAuthentication.getAuthenticationChannel().getChannelId();
+                if (mpAuthentication.isAuthenticated()) {
+                    urlSuffix = mpAuthentication.getAuthenticationChannel().getPathAfterSuccessfulAuthentication();
+                    mpAuthentication.getAuthenticationChannel().postSuccessAuthenticationProcessing();
+                } else {
+                    urlSuffix = mpAuthentication.getAuthenticationChannel().getPathDuringProccessing();
+                }
+            }
+        }
+
+        SavedRequest savedRequest = requestCache.getRequest(request, response);
+        if (savedRequest != null && savedRequest.getRedirectUrl().contains(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + "/")) {
+            String target = savedRequest.getRedirectUrl().substring(0, savedRequest.getRedirectUrl().indexOf(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + "/")) + urlSuffix;
+            getRedirectStrategy().sendRedirect(request, response, target);
+            return;
+        }
+        if (savedRequest != null && authenticatedChannel != null) {
+            int startIndex = savedRequest.getRedirectUrl().indexOf(request.getContextPath()) + request.getContextPath().length();
+            int endIndex = savedRequest.getRedirectUrl().length()-1;
+            String channelSavedRequest = null;
+            if ((startIndex < endIndex)) {
+                String localePath = savedRequest.getRedirectUrl().substring(startIndex, endIndex);
+                channelSavedRequest = SecurityUtils.searchChannelByPath(localePath);
+            }
+            if (channelSavedRequest == null) {
+                channelSavedRequest = SecurityPolicyUtil.DEFAULT_CHANNEL;
+            }
+            if (!(channelSavedRequest.equals(authenticatedChannel))) {
+                getRedirectStrategy().sendRedirect(request, response, urlSuffix);
+                return;
+            }
+
+        } else {
+            setDefaultTargetUrl(urlSuffix);
+        }
+        super.onAuthenticationSuccess(request, response, authentication);
+    }
+
+    @Override
+    protected String getTargetUrlParameter() {
+
+
+        return defaultTargetUrl;
+    }
 
 
     @Override

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism.impl.xjc;
@@ -20,6 +11,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
+import com.evolveum.midpoint.prism.util.PrismList;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.Validate;
@@ -37,10 +29,10 @@ import java.util.*;
  *
  * @author lazyman
  */
-public class PropertyArrayList<T> extends AbstractList<T> implements Serializable {
+public class PropertyArrayList<T> extends AbstractList<T> implements Serializable, PrismList {
 
     private PrismProperty property;
-	private PrismContainerValue<?> parent;
+    private PrismContainerValue<?> parent;
 
     public PropertyArrayList(@NotNull PrismProperty property, @NotNull PrismContainerValue<?> parent) {
         this.property = property;
@@ -55,7 +47,7 @@ public class PropertyArrayList<T> extends AbstractList<T> implements Serializabl
     @Override
     public T get(int index) {
         //todo fix PropertyValue set generics in Property, Property class should be generifiable
-    	Object propertyRealValue = getPropertyValue(index).getValue();
+        Object propertyRealValue = getPropertyValue(index).getValue();
         return (T) JaxbTypeConverter.mapPropertyRealValueToJaxb(propertyRealValue);
     }
 
@@ -67,16 +59,16 @@ public class PropertyArrayList<T> extends AbstractList<T> implements Serializabl
             return false;
         }
 
-		try {
-        	if (property.getParent() == null) {
-				parent.add(property);
-			}
-		} catch (SchemaException e) {
-			throw new SystemException(e.getMessage(), e);
-		}
+        try {
+            if (property.getParent() == null) {
+                parent.add(property);
+            }
+        } catch (SchemaException e) {
+            throw new SystemException(e.getMessage(), e);
+        }
 
-		for (T jaxbObject : ts) {
-        	Object propertyRealValue = JaxbTypeConverter.mapJaxbToPropertyRealValue(jaxbObject);
+        for (T jaxbObject : ts) {
+            Object propertyRealValue = JaxbTypeConverter.mapJaxbToPropertyRealValue(jaxbObject);
             property.addValue(new PrismPropertyValueImpl(propertyRealValue, null, null));
         }
 
@@ -154,5 +146,18 @@ public class PropertyArrayList<T> extends AbstractList<T> implements Serializabl
             }
         }
         return changed;
+    }
+
+    @Override
+    public T set(int index, T element) {
+
+        if (index < 0 || index >= size()) {
+            throw new IndexOutOfBoundsException("Can't set object on position '"
+                    + index + "', list size is '" + size() + "'.");
+        }
+        Object propertyRealValue = JaxbTypeConverter.mapJaxbToPropertyRealValue(element);
+        getPropertyValue(index).setValue(propertyRealValue);
+
+        return element;
     }
 }

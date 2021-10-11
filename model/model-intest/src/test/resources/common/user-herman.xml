@@ -1,33 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
-<user oid="c0c010c0-d34d-b33f-f00d-111111111122" 
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+<user oid="c0c010c0-d34d-b33f-f00d-111111111122"
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+        xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>herman</name>
-    
+
     <activation>
-		<validFrom>1700-05-30T11:00:00Z</validFrom>
-		<validTo>2233-03-23T18:30:00Z</validTo>
-	</activation>
-    
+        <validFrom>1700-05-30T11:00:00Z</validFrom>
+        <validTo>2233-03-23T18:30:00Z</validTo>
+    </activation>
+
     <fullName>Herman Toothrot</fullName>
     <givenName>Herman</givenName>
     <familyName>Toothrot</familyName>
@@ -35,8 +26,8 @@
 
     <credentials>
         <password>
-        	<value>
-	            <t:clearValue>m0nk3y</t:clearValue>
+            <value>
+                <t:clearValue>m0nk3y</t:clearValue>
             </value>
         </password>
     </credentials>

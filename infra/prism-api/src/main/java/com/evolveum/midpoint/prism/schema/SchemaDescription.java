@@ -1,81 +1,59 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism.schema;
 
+import com.evolveum.midpoint.prism.Freezable;
 import com.evolveum.midpoint.util.DebugDumpable;
 import org.w3c.dom.Element;
 
-import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 import java.io.InputStream;
-import java.util.Map;
 
 /**
- *
+ * Schema (prism or non-prism) with additional information.
  */
-public interface SchemaDescription extends DebugDumpable {
+public interface SchemaDescription extends DebugDumpable, Freezable {
 
-	String getPath();
+    /**
+     * @return Path to schema source data (e.g. XSD file) - if known.
+     */
+    String getPath();
 
-	void setResourcePath(String path);
+    /**
+     * @return Namespace for elements in this schema.
+     */
+    String getNamespace();
 
-	String getNamespace();
+    /**
+     * @return Prefix that is usually used for this schema/namespace (e.g. "c" for common-3).
+     */
+    String getUsualPrefix();
 
-	void setNamespace(String namespace);
+    /**
+     * @return True if this prefix should be declared in XML files by default at the top of the file.
+     */
+    boolean isDeclaredByDefault();
 
-	String getUsualPrefix();
+    boolean isDefault();
 
-	void setUsualPrefix(String usualPrefix);
+    String getSourceDescription();
 
-	String getSourceDescription();
+    boolean isPrismSchema();
 
-	void setSourceDescription(String sourceDescription);
+    PrismSchema getSchema();
 
-	void setPath(String path);
+    Package getCompileTimeClassesPackage();
 
-	boolean isPrismSchema();
+    boolean canInputStream();
 
-	void setPrismSchema(boolean isMidPointSchema);
+    InputStream openInputStream();
 
-	boolean isDefault();
+    Source getSource();
 
-	void setDefault(boolean isDefault);
-
-	boolean isDeclaredByDefault();
-
-	void setDeclaredByDefault(boolean isDeclaredByDefault);
-
-	PrismSchema getSchema();
-
-	void setSchema(PrismSchema schema);
-
-	Package getCompileTimeClassesPackage();
-
-	void setCompileTimeClassesPackage(Package compileTimeClassesPackage);
-
-	Map<QName, Class<?>> getXsdTypeTocompileTimeClassMap();
-
-	void setXsdTypeTocompileTimeClassMap(Map<QName, Class<?>> xsdTypeTocompileTimeClassMap);
-
-	boolean canInputStream();
-
-	InputStream openInputStream();
-
-	Source getSource();
-
-	Element getDomElement();
+    Element getDomElement();
 }

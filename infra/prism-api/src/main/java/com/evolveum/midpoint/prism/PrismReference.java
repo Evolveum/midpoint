@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism;
@@ -36,51 +27,51 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public interface PrismReference extends Item<PrismReferenceValue,PrismReferenceDefinition> {
-//	public PrismReference(QName name) {
+//    public PrismReference(QName name) {
 //        super(name);
 //    }
 //
-//	PrismReference(QName name, PrismReferenceDefinition definition, PrismContext prismContext) {
-//		super(name, definition, prismContext);
-//	}
+//    PrismReference(QName name, PrismReferenceDefinition definition, PrismContext prismContext) {
+//        super(name, definition, prismContext);
+//    }
 
-	@Override
-	Referencable getRealValue();
+    @Override
+    Referencable getRealValue();
 
-	@NotNull
-	@Override
-	Collection<Referencable> getRealValues();
+    @NotNull
+    @Override
+    Collection<Referencable> getRealValues();
 
-	boolean merge(PrismReferenceValue value);
+    boolean merge(PrismReferenceValue value);
 
-	String getOid();
+    String getOid();
 
-	PolyString getTargetName();
+    PolyString getTargetName();
 
-	PrismReferenceValue findValueByOid(String oid);
+    PrismReferenceValue findValueByOid(String oid);
 
-	@Override
-	Object find(ItemPath path);
+    @Override
+    <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
 
-	@Override
-	<IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
+    @Override
+    ReferenceDelta createDelta();
 
-	@Override
-	ReferenceDelta createDelta();
+    @Override
+    ReferenceDelta createDelta(ItemPath path);
 
-	@Override
-	ReferenceDelta createDelta(ItemPath path);
+    @Override
+    PrismReference clone();
 
-	@Override
-	PrismReference clone();
+    @Override
+    PrismReference createImmutableClone();
 
-	@Override
-	PrismReference cloneComplex(CloneStrategy strategy);
+    @Override
+    PrismReference cloneComplex(CloneStrategy strategy);
 
-	@Override
-	String toString();
+    @Override
+    String toString();
 
-	@Override
-	String debugDump(int indent);
+    @Override
+    String debugDump(int indent);
 
 }

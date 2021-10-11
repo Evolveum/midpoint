@@ -1,13 +1,34 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import org.apache.wicket.model.IModel;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Used to determine whether tabs have to be refreshed - by comparing instances of this class before and after task update.
@@ -15,185 +36,259 @@ import java.io.Serializable;
  * @author mederly
  */
 class TaskTabsVisibility implements Serializable {
+
+    private static final transient Trace LOGGER = TraceManager.getTrace(TaskTabsVisibility.class);
+
     private boolean basicVisible;
     private boolean schedulingVisible;
+    private boolean workManagementVisible;
     private boolean subtasksAndThreadsVisible;
+    private boolean cleanupPolicyVisible;
     private boolean progressVisible;
     private boolean environmentalPerformanceVisible;
-    private boolean approvalsVisible;
+    private boolean internalPerformanceVisible;
     private boolean operationVisible;
     private boolean resultVisible;
     private boolean errorsVisible;
 
-	public boolean computeBasicVisible(PageTaskEdit parentPage) {
-		basicVisible = parentPage.isShowAdvanced() || !parentPage.getTaskDto().isWorkflow();
-		return basicVisible;
-	}
-
-	public boolean computeSchedulingVisible(PageTaskEdit parentPage) {
-		schedulingVisible = (parentPage.isShowAdvanced() || !parentPage.getTaskDto().isWorkflow())
-			&& parentPage.isReadableSomeOf(
-				TaskType.F_LAST_RUN_START_TIMESTAMP, TaskType.F_LAST_RUN_FINISH_TIMESTAMP,
-				TaskType.F_NEXT_RUN_START_TIMESTAMP, TaskType.F_NEXT_RETRY_TIMESTAMP,
-				TaskType.F_RECURRENCE, TaskType.F_BINDING, TaskType.F_SCHEDULE, TaskType.F_THREAD_STOP_ACTION);
-
-		return schedulingVisible;
-	}
-
-	public boolean computeSubtasksAndThreadsVisible(PageTaskEdit parentPage) {
-        if (parentPage.isEdit()) {
-            subtasksAndThreadsVisible = parentPage.getTaskDto().configuresWorkerThreads()
-					&& parentPage.isExtensionReadable(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
-        } else if (parentPage.isShowAdvanced() || !parentPage.getTaskDto().isWorkflow()) {
-            IModel<TaskDto> taskDtoModel = parentPage.getTaskDtoModel();
-            subtasksAndThreadsVisible =
-					(parentPage.getTaskDto().configuresWorkerThreads() && parentPage.isExtensionReadable(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS))
-							|| !taskDtoModel.getObject().getSubtasks().isEmpty() || !taskDtoModel.getObject().getTransientSubtasks().isEmpty();
-        } else {
-			subtasksAndThreadsVisible = false;
-		}
-        return subtasksAndThreadsVisible;
+    public boolean computeBasicVisible(PageTask parentPage, TaskType task) {
+        basicVisible = !WebComponentUtil.isWorkflowTask(task);
+        return basicVisible;
     }
 
-	public boolean computeProgressVisible(PageTaskEdit parentPage) {
-        final OperationStatsType operationStats = parentPage.getTaskDto().getTaskType().getOperationStats();
-        progressVisible = !parentPage.isEdit() && operationStats != null
-				// readability is maybe not required, as the corresponding data would be null if not readable
-				&& parentPage.isReadable(TaskType.F_OPERATION_STATS)
-                && (operationStats.getIterativeTaskInformation() != null ||
-                        operationStats.getSynchronizationInformation() != null ||
-                        operationStats.getActionsExecutedInformation() != null);
-        return progressVisible;
+    public boolean computeSchedulingVisible(PageTask parentPage, TaskType task) {
+        schedulingVisible = !WebComponentUtil.isWorkflowTask(task);
+        return schedulingVisible;
     }
 
-    public boolean computeEnvironmentalPerformanceVisible(PageTaskEdit parentPage) {
-        final OperationStatsType operationStats = parentPage.getTaskDto().getTaskType().getOperationStats();
-        environmentalPerformanceVisible = !parentPage.isEdit()
-				&& parentPage.isReadable(TaskType.F_OPERATION_STATS)
-				&& operationStats != null
-				&& !StatisticsUtil.isEmpty(operationStats.getEnvironmentalPerformanceInformation());
+    public boolean computeWorkManagementVisible(TaskType taskType){
+        String taskHandler = taskType.getHandlerUri();
+        if (WebComponentUtil.hasArchetypeAssignment(taskType, SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value()) || (taskHandler != null &&
+                (taskHandler.endsWith("task/lightweight-partitioning/handler-3")
+                || taskHandler.endsWith("model/partitioned-focus-validity-scanner/handler-3")
+                || taskHandler.endsWith("model/synchronization/task/partitioned-reconciliation/handler-3")
+                || taskHandler.endsWith("task/generic-partitioning/handler-3")
+                || taskHandler.endsWith("task/workers-creation/handler-3")))) {
+            workManagementVisible = true;
+        }
+        return workManagementVisible;
+    }
+
+    public boolean computeCleanupPolicyVisible(){
+        cleanupPolicyVisible = false;   //todo when cleanup policy should be visible?
+        return cleanupPolicyVisible;
+    }
+
+    public boolean computeSubtasksAndThreadsVisible(TaskType task) {
+
+        List<ObjectReferenceType> subtasks =  task.getSubtaskRef();
+        if (CollectionUtils.isEmpty(subtasks)) {
+            return subtasksAndThreadsVisible = false;
+        }
+
+        boolean allEmpty = true;
+        for (ObjectReferenceType subtask : subtasks) {
+            if (!subtask.asReferenceValue().isEmpty()){
+                allEmpty = false;
+            }
+        }
+
+        return subtasksAndThreadsVisible = !allEmpty;
+
+
+
+        // TODO we want to show subtasks always when subtasks exist. Following should be the behavior for tables on subtasks tab.
+//        boolean isThreadsReadable = isTaskItemReadable(taskWrapper, ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
+//        TaskType task = taskWrapper.getObject().asObjectable();
+//
+//        if (parentPage.isEditingFocus()) {
+//            subtasksAndThreadsVisible = configuresWorkerThreads(task) && isThreadsReadable;
+//        } else if (!parentPage.isAdd() && !WebComponentUtil.isWorkflowTask(taskWrapper.getObject().asObjectable())) {
+//            subtasksAndThreadsVisible = configuresWorkerThreads(task) && isThreadsReadable
+//                    || !CollectionUtils.isNotEmpty(task.getSubtaskRef());
+//        } else {
+//            subtasksAndThreadsVisible = false;
+//        }
+//        return subtasksAndThreadsVisible;
+    }
+
+    public boolean configuresWorkerThreads(TaskType task) {
+        return WebComponentUtil.isReconciliation(task) || WebComponentUtil.isImport(task) || WebComponentUtil.isRecomputation(task) || isExecuteChanges(task.getHandlerUri())
+                || isShadowIntegrityCheck(task.getHandlerUri()) || isFocusValidityScanner(task.getHandlerUri()) || isTriggerScanner(task.getHandlerUri());
+    }
+
+    public boolean computeEnvironmentalPerformanceVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
+        final OperationStatsType operationStats = taskWrapper.getObject().asObjectable().getOperationStats();
+        environmentalPerformanceVisible = parentPage.isEditingFocus();
         return environmentalPerformanceVisible;
     }
 
-    public boolean computeApprovalsVisible(PageTaskEdit parentPage) {
-        approvalsVisible = !parentPage.isEdit()
-				&& parentPage.isReadable(TaskType.F_WORKFLOW_CONTEXT)
-				&& (parentPage.getTaskDto().isWorkflowChild() || parentPage.getTaskDto().isWorkflowParent());
-                //&& parentPage.getTaskDto().getTaskType().getWorkflowContext() != null
-                //&& parentPage.getTaskDto().getWorkflowDeltaIn() != null;
-        return approvalsVisible;
+    public boolean computeInternalPerformanceVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
+        internalPerformanceVisible = parentPage.isEditingFocus();
+        return internalPerformanceVisible;
     }
 
-	public boolean computeOperationVisible(PageTaskEdit parentPage) {
-		operationVisible = !parentPage.isEdit()
-				&& parentPage.isReadable(TaskType.F_MODEL_OPERATION_CONTEXT)
-				&& parentPage.getTaskDto().getTaskType().getModelOperationContext() != null
-				&& (!parentPage.getTaskDto().isWorkflow() || parentPage.isShowAdvanced());
-		return operationVisible;
-	}
+    public boolean computeOperationVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
+        PrismContainerWrapper lensContext = null;
+        try{
+            lensContext = taskWrapper.findContainer(TaskType.F_MODEL_OPERATION_CONTEXT);
+        } catch (SchemaException ex){
+            LOGGER.warn("Unable to find modelOperationContext in task {}", taskWrapper.getObject().asObjectable());
+        }
+        operationVisible = parentPage.isEditingFocus()
+                && isTaskItemReadable(taskWrapper, TaskType.F_MODEL_OPERATION_CONTEXT)
+                && lensContext != null && !lensContext.isEmpty()
+                && !WebComponentUtil.isWorkflowTask(taskWrapper.getObject().asObjectable());
+        return operationVisible;
+    }
 
-	public boolean computeResultVisible(PageTaskEdit parentPage) {
-        resultVisible = !parentPage.isEdit()
-				&& parentPage.isReadable(TaskType.F_RESULT)
-				&& (parentPage.isShowAdvanced() || !parentPage.getTaskDto().isWorkflow());
+    public boolean computeResultVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
+        resultVisible = parentPage.isEditingFocus()
+                && isTaskItemReadable(taskWrapper, TaskType.F_RESULT)
+                && !WebComponentUtil.isWorkflowTask(taskWrapper.getObject().asObjectable());
         return resultVisible;
     }
 
-	public boolean computeErrorsVisible(PageTaskEdit parentPage) {
-		//TODO what are the correct visibility conditions?
-		errorsVisible = !parentPage.isEdit()
-				&& (parentPage.isShowAdvanced() || !parentPage.getTaskDto().isWorkflow());
+    public boolean computeErrorsVisible(PageTask parentPage, TaskType task) {
+        errorsVisible = parentPage.isEditingFocus()
+                && !WebComponentUtil.isWorkflowTask(task);
         return errorsVisible;
     }
 
-	public void computeAll(PageTaskEdit parentPage) {
-		computeBasicVisible(parentPage);
-		computeSchedulingVisible(parentPage);
-		computeSubtasksAndThreadsVisible(parentPage);
-		computeProgressVisible(parentPage);
-		computeEnvironmentalPerformanceVisible(parentPage);
-		computeApprovalsVisible(parentPage);
-		computeOperationVisible(parentPage);
-		computeResultVisible(parentPage);
-		computeErrorsVisible(parentPage);
-	}
+    public void computeAll(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
+        TaskType taskType = taskWrapper.getObject().asObjectable();
+        computeBasicVisible(parentPage, taskType);
+        computeSchedulingVisible(parentPage, taskType);
+        computeWorkManagementVisible(taskType);
+        computeCleanupPolicyVisible();
+        computeSubtasksAndThreadsVisible(taskType);
+        computeProgressVisible(parentPage);
+        computeEnvironmentalPerformanceVisible(parentPage, taskWrapper);
+        computeInternalPerformanceVisible(parentPage, taskWrapper);
+        computeOperationVisible(parentPage, taskWrapper);
+        computeResultVisible(parentPage, taskWrapper);
+        computeErrorsVisible(parentPage, taskType);
+    }
 
-	public boolean isBasicVisible() {
-		return basicVisible;
-	}
+    public boolean computeProgressVisible(PageTask parentPage) {
+        progressVisible = parentPage.isEditingFocus();
+        return progressVisible;
+    }
 
-	public boolean isSchedulingVisible() {
-		return schedulingVisible;
-	}
+    private boolean isShadowIntegrityCheck(String handlerUri) {
+        return ModelPublicConstants.SHADOW_INTEGRITY_CHECK_TASK_HANDLER_URI.equals(handlerUri);
+    }
 
-	public boolean isSubtasksAndThreadsVisible() {
-		return subtasksAndThreadsVisible;
-	}
+    private boolean isFocusValidityScanner(String handlerUri) {
+        return ModelPublicConstants.FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI.equals(handlerUri)
+                || ModelPublicConstants.DEPRECATED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI.equals(handlerUri);
+    }
 
-	public boolean isProgressVisible() {
-		return progressVisible;
-	}
+    private boolean isTriggerScanner(String handlerUri) {
+        return ModelPublicConstants.TRIGGER_SCANNER_TASK_HANDLER_URI.equals(handlerUri);
+    }
 
-	public boolean isEnvironmentalPerformanceVisible() {
-		return environmentalPerformanceVisible;
-	}
+    private boolean isExecuteChanges(String handlerUri) {
+        return ModelPublicConstants.EXECUTE_CHANGES_TASK_HANDLER_URI.equals(handlerUri);
+    }
 
-	public boolean isApprovalsVisible() {
-		return approvalsVisible;
-	}
+    private boolean isTaskItemReadable(PrismObjectWrapper<TaskType> taskWrapper, ItemPath itemPath){
+        ItemWrapper taskProperty = null;
+        try {
+            taskProperty = taskWrapper.findProperty(itemPath);
+        } catch (SchemaException ex){
+            LOGGER.warn("Unable to find {} property in task object {}, {}", itemPath,
+                    taskWrapper.getObject().asObjectable(), ex.getLocalizedMessage());
+        }
+        return taskProperty != null && taskProperty.canRead();
+    }
 
-	public boolean isOperationVisible() {
-		return operationVisible;
-	}
+    public boolean isBasicVisible() {
+        return basicVisible;
+    }
 
-	public boolean isResultVisible() {
-		return resultVisible;
-	}
+    public boolean isSchedulingVisible() {
+        return schedulingVisible;
+    }
 
-	public boolean isErrorsVisible() {
-		return errorsVisible;
-	}
+    public boolean isWorkManagementVisible(TaskType task) {
+        workManagementVisible = computeWorkManagementVisible(task);
+        return workManagementVisible;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (o == null || getClass() != o.getClass())
-			return false;
+    public boolean isCleanupPolicyVisible() {
+        return cleanupPolicyVisible;
+    }
 
-		TaskTabsVisibility that = (TaskTabsVisibility) o;
+    public boolean isSubtasksAndThreadsVisible(TaskType task) {
+        subtasksAndThreadsVisible = computeSubtasksAndThreadsVisible(task);
+        return subtasksAndThreadsVisible;
+    }
 
-		if (basicVisible != that.basicVisible)
-			return false;
-		if (schedulingVisible != that.schedulingVisible)
-			return false;
-		if (subtasksAndThreadsVisible != that.subtasksAndThreadsVisible)
-			return false;
-		if (progressVisible != that.progressVisible)
-			return false;
-		if (environmentalPerformanceVisible != that.environmentalPerformanceVisible)
-			return false;
-		if (approvalsVisible != that.approvalsVisible)
-			return false;
-		if (operationVisible != that.operationVisible)
-			return false;
-		if (errorsVisible != that.errorsVisible)
-			return false;
-		return resultVisible == that.resultVisible;
+    public boolean isProgressVisible() {
+        return progressVisible;
+    }
 
-	}
+    public boolean isEnvironmentalPerformanceVisible() {
+        return environmentalPerformanceVisible;
+    }
 
-	@Override
-	public int hashCode() {
-		int result = (basicVisible ? 1 : 0);
-		result = 31 * result + (schedulingVisible ? 1 : 0);
-		result = 31 * result + (subtasksAndThreadsVisible ? 1 : 0);
-		result = 31 * result + (progressVisible ? 1 : 0);
-		result = 31 * result + (environmentalPerformanceVisible ? 1 : 0);
-		result = 31 * result + (approvalsVisible ? 1 : 0);
-		result = 31 * result + (operationVisible ? 1 : 0);
-		result = 31 * result + (resultVisible ? 1 : 0);
-		result = 31 * result + (errorsVisible ? 1 : 0);
-		return result;
-	}
+    public boolean isInternalPerformanceVisible() {
+        return internalPerformanceVisible;
+    }
+
+    public boolean isOperationVisible() {
+        return operationVisible;
+    }
+
+    public boolean isResultVisible() {
+        return resultVisible;
+    }
+
+    public boolean isErrorsVisible() {
+        return errorsVisible;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        TaskTabsVisibility that = (TaskTabsVisibility) o;
+
+        if (basicVisible != that.basicVisible)
+            return false;
+        if (schedulingVisible != that.schedulingVisible)
+            return false;
+        if (subtasksAndThreadsVisible != that.subtasksAndThreadsVisible)
+            return false;
+        if (progressVisible != that.progressVisible)
+            return false;
+        if (workManagementVisible != that.workManagementVisible)
+            return false;
+        if (environmentalPerformanceVisible != that.environmentalPerformanceVisible)
+            return false;
+        if (operationVisible != that.operationVisible)
+            return false;
+        if (errorsVisible != that.errorsVisible)
+            return false;
+        return resultVisible == that.resultVisible;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (basicVisible ? 1 : 0);
+        result = 31 * result + (schedulingVisible ? 1 : 0);
+        result = 31 * result + (subtasksAndThreadsVisible ? 1 : 0);
+        result = 31 * result + (progressVisible ? 1 : 0);
+        result = 31 * result + (workManagementVisible ? 1 : 0);
+        result = 31 * result + (environmentalPerformanceVisible ? 1 : 0);
+        result = 31 * result + (operationVisible ? 1 : 0);
+        result = 31 * result + (resultVisible ? 1 : 0);
+        result = 31 * result + (errorsVisible ? 1 : 0);
+        return result;
+    }
 }

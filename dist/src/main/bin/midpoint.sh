@@ -1,18 +1,9 @@
 #!/bin/bash
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# This work is dual-licensed under the Apache License 2.0
+# and European Union Public License. See LICENSE file for details.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# Parts of this file Copyright (c) 2017 Evolveum
+# Parts of this file Copyright (c) 2017 Evolveum and contributors
 #
 
 SCRIPT_PATH=$(cd $(dirname "$0") && pwd -P)/$(basename "$2")
@@ -38,15 +29,15 @@ cd "$PRGDIR/.." >/dev/null
 cd "$SCRIPT_PATH/.."
 
 if [ ! -d var ] ; then
-	mkdir var
+    mkdir var
 fi
 
 if [ ! -d var/log ] ; then
-	mkdir var/log
+    mkdir var/log
 fi
 
 if [ -z "$MIDPOINT_HOME" ] ; then
-	MIDPOINT_HOME=$(cd "$SCRIPT_PATH../var"; pwd)
+    MIDPOINT_HOME=$(cd "$SCRIPT_PATH../var"; pwd)
 fi
 JAVA_OPTS="$JAVA_OPTS
 -Xms2048M
@@ -59,11 +50,11 @@ JAVA_OPTS="$JAVA_OPTS
 # apply setenv.sh if it exists. This can be used for -Dmidpoint.nodeId etc.
 # the script can either append or overwrite JAVA_OPTS
 if [ -r "$SCRIPT_PATH/setenv.sh" ]; then
-	echo "Applying setenv.sh from $SCRIPT_PATH directory."
-	. "$SCRIPT_PATH/setenv.sh"
+    echo "Applying setenv.sh from $SCRIPT_PATH directory."
+    . "$SCRIPT_PATH/setenv.sh"
 fi
 
-if [ -z "$BOOT_OUT" ] ; then  
+if [ -z "$BOOT_OUT" ] ; then
   BOOT_OUT="$SCRIPT_PATH"../var/log/midpoint.out
 fi
 
@@ -75,10 +66,10 @@ fi
 
 cd "$SCRIPT_PATH../lib"
 
-if [ ! -f midpoint.war ] ; then 
+if [ ! -f midpoint.war ] ; then
 echo "ERROR: midpoint.war is not in /lib directory"
 exit 1
-fi 
+fi
 
 # Bugzilla 37848: When no TTY is available, don't output to console
 have_tty=0
@@ -109,14 +100,12 @@ fi
 
 # ----- Execute The Requested Command -----------------------------------------
 
-#if [ $have_tty -eq 1 ]; then
-#  if [ ! -z "$PID_FILE" ]; then
-#    echo "Using PID_FILE:    $PID_FILE"
-#  fi
-#fi
-
 if [ "$1" = "start" ] ; then
- if [ ! -z "$PID_FILE" ]; then
+  if ! which "$_RUNJAVA" &> /dev/null; then
+    echo "$_RUNJAVA not found (or not executable). Start aborted."
+    exit 1
+  fi
+  if [ ! -z "$PID_FILE" ]; then
     if [ -f "$PID_FILE" ]; then
       if [ -s "$PID_FILE" ]; then
         echo "Existing PID file found during start."
@@ -146,7 +135,7 @@ if [ "$1" = "start" ] ; then
         fi
       else
         rm -f "$PID_FILE" >/dev/null 2>&1
-if [ $? != 0 ]; then
+        if [ $? != 0 ]; then
           if [ ! -w "$PID_FILE" ]; then
             echo "Unable to remove or write to empty PID file. Start aborted."
             exit 1
@@ -159,19 +148,17 @@ if [ $? != 0 ]; then
   shift
   touch "$BOOT_OUT"
 
-echo "Starting midPoint..."
-echo "MIDPOINT_HOME=$MIDPOINT_HOME"
+  echo "Starting midPoint..."
+  echo "MIDPOINT_HOME=$MIDPOINT_HOME"
 
-cd 
-eval $_NOHUP "\"$_RUNJAVA\"" -jar $LOGGING_MANAGER $JAVA_OPTS \
-	$SCRIPT_PATH../lib/midpoint.war \
-      >> "$BOOT_OUT" 2>&1 "&"
-      
+  cd
+  eval $_NOHUP "\"$_RUNJAVA\"" -jar $LOGGING_MANAGER $JAVA_OPTS \
+      $SCRIPT_PATH../lib/midpoint.war \
+        >> "$BOOT_OUT" 2>&1 "&"
 
-if [ ! -z "$PID_FILE" ]; then
-    echo $! > "$PID_FILE"
-fi
-
+  if [ ! -z "$PID_FILE" ]; then
+      echo $! > "$PID_FILE"
+  fi
 
 elif [ "$1" = "stop" ] ; then
 
@@ -208,23 +195,23 @@ elif [ "$1" = "stop" ] ; then
       exit 1
     fi
   fi
-  
+
     if [ ! -z "$CATALINA_PID" ]; then
       echo "The stop command failed. Attempting to signal the process to stop through OS signal."
       kill -15 `cat "$CATALINA_PID"` >/dev/null 2>&1
     fi
 
     if [ ! -z "$PID_FILE" ]; then
-	echo "Stopping midPoint"
+    echo "Stopping midPoint"
       kill -TERM `cat "$PID_FILE"` >/dev/null 2>&1
     fi
   # stop failed. Shutdown port disabled? Try a normal kill.
-    
+
 
   if [ ! -z "$PID_FILE" ]; then
     if [ -f "$PID_FILE" ]; then
       while [ $SLEEP -ge 0 ]; do
-	
+
         kill -0 `cat "$PID_FILE"` >/dev/null 2>&1
         if [ $? -gt 0 ]; then
           rm -f "$PID_FILE" >/dev/null 2>&1

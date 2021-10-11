@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.page.admin.configuration.component;
@@ -49,9 +40,9 @@ import java.util.List;
  *  the one that resides in the popup window (ObjectSelectionPanel).
  */
 public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewDto<T>> {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(ChooseTypePanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ChooseTypePanel.class);
 
     private static final String ID_OBJECT_NAME = "name";
     private static final String ID_INPUT_CONTAINER = "inputContainer";
@@ -64,7 +55,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
     }
 
     public ChooseTypePanel(String id, ObjectReferenceType ref){
-    	super(id, Model.of(new ObjectViewDto<>(ref != null ? ref.getOid() : null, ref != null ? WebComponentUtil.getOrigStringFromPoly(ref.getTargetName()) : null)));
+        super(id, Model.of(new ObjectViewDto<>(ref != null ? ref.getOid() : null, ref != null ? WebComponentUtil.getOrigStringFromPoly(ref.getTargetName()) : null)));
         initLayout();
     }
 
@@ -77,8 +68,8 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
         final TextField<String> name = new TextField<>(ID_OBJECT_NAME, new PropertyModel<>(getModel(), ObjectViewDto.F_NAME));
 
 
-//        		new Model<String>(){
-//        	private static final long serialVersionUID = 1L;
+//                new Model<String>(){
+//            private static final long serialVersionUID = 1L;
 //
 //            @Override
 //            public String getObject() {
@@ -99,7 +90,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
 
 
         AjaxLink<String> choose = new AjaxLink<String>(ID_LINK_CHOOSE) {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -115,7 +106,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
         choose.setOutputMarkupId(true);
 
         AjaxLink<String> remove = new AjaxLink<String>(ID_LINK_REMOVE) {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -144,7 +135,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
     }
 
     private void choosePerformed(AjaxRequestTarget target, T object){
-    	getPageBase().hideMainPopup(target);
+        getPageBase().hideMainPopup(target);
         ObjectViewDto<T> o = getModel().getObject();
 
         o.setName(WebComponentUtil.getName(object));
@@ -164,21 +155,21 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
     }
 
     private void changeOptionPerformed(AjaxRequestTarget target){
-    	Class<T> type = getObjectTypeClass();
-    	List<QName> supportedTypes = new ArrayList<>();
-    	supportedTypes.add(WebComponentUtil.classToQName(getPageBase().getPrismContext(), type));
-    	ObjectBrowserPanel<T> objectBrowserPanel = new ObjectBrowserPanel<T>(getPageBase().getMainPopupBodyId(),
+        Class<T> type = getObjectTypeClass();
+        List<QName> supportedTypes = new ArrayList<>();
+        supportedTypes.add(WebComponentUtil.classToQName(getPageBase().getPrismContext(), type));
+        ObjectBrowserPanel<T> objectBrowserPanel = new ObjectBrowserPanel<T>(getPageBase().getMainPopupBodyId(),
                 type, supportedTypes, false, getPageBase(), getChooseQuery() != null ? getChooseQuery().getFilter() : null){
-    		private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-    		protected void onSelectPerformed(AjaxRequestTarget target, T focus) {
-    			choosePerformed(target, focus);
-    		}
-    	};
-    	objectBrowserPanel.setOutputMarkupId(true);
+            @Override
+            protected void onSelectPerformed(AjaxRequestTarget target, T focus) {
+                choosePerformed(target, focus);
+            }
+        };
+        objectBrowserPanel.setOutputMarkupId(true);
 
-    	getPageBase().showMainPopup(objectBrowserPanel, target);
+        getPageBase().showMainPopup(objectBrowserPanel, target);
     }
 
     private void setToDefault(AjaxRequestTarget target){

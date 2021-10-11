@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="1d7c0e3a-4456-409c-9f50-95407b2eb785">
+    <name>affiliations</name>
+    <displayName>Affiliations</displayName>
+</org>

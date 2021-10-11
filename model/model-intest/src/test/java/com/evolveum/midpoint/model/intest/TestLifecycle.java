@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest;
 
@@ -25,7 +16,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -33,80 +23,67 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-/**
- * @author Radovan Semancik
- *
- */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 
-	public static final File TEST_DIR = new File("src/test/resources/lifecycle");
-	
-	public static final File SYSTEM_CONFIGURATION_LIFECYCLE_FILE = new File(TEST_DIR, "system-configuration-lifecycle.xml");
-	
-	// subtype = dataProcessingBasis
-	public static final File ROLE_HEADMASTER_FILE = new File(TEST_DIR, "role-headmaster.xml");
-	protected static final String ROLE_HEADMASTER_OID = "b9c885ba-034b-11e8-a708-13836b619045";
-	
-	// subtype = dataProcessingBasis
-	public static final File ROLE_CARETAKER_FILE = new File(TEST_DIR, "role-caretaker.xml");
-	protected static final String ROLE_CARETAKER_OID = "9162a952-034b-11e8-afb7-138a763f2350";
-	
-	// no subtype, this is NOT a dataProcessingBasis
-	public static final File ROLE_GAMBLER_FILE = new File(TEST_DIR, "role-gambler.xml");
-	protected static final String ROLE_GAMBLER_OID = "2bb2fb86-034e-11e8-9cf3-77abfc7aafec";
-	
-	//no subtype, forced in draft state
-	public static final File ROLE_CROUPIER_FILE = new File(TEST_DIR, "role-croupier.xml");
-	protected static final String ROLE_CROUPIER_OID = "a7b8de9a-20a1-84f6-b452-01254a1256e3";
-	
-	public static final File ROLE_PIT_BOSS_FILE = new File(TEST_DIR, "role-pit-boss.xml");
-	protected static final String ROLE_PIT_BOSS_OID = "c4525ef8-31d4-95e6-d542-745e263f596c";
-	
-	public static final String SUBTYPE_EMPLOYEE = "employee";
-	private static final Object USER_JACK_TELEPHONE_NUMBER = "12345654321";
+    public static final File TEST_DIR = new File("src/test/resources/lifecycle");
 
-	private String accontJackOid;
+    public static final File SYSTEM_CONFIGURATION_LIFECYCLE_FILE = new File(TEST_DIR, "system-configuration-lifecycle.xml");
 
-	@Override
+    // subtype = dataProcessingBasis
+    public static final File ROLE_HEADMASTER_FILE = new File(TEST_DIR, "role-headmaster.xml");
+    protected static final String ROLE_HEADMASTER_OID = "b9c885ba-034b-11e8-a708-13836b619045";
+
+    // subtype = dataProcessingBasis
+    public static final File ROLE_CARETAKER_FILE = new File(TEST_DIR, "role-caretaker.xml");
+    protected static final String ROLE_CARETAKER_OID = "9162a952-034b-11e8-afb7-138a763f2350";
+
+    // no subtype, this is NOT a dataProcessingBasis
+    public static final File ROLE_GAMBLER_FILE = new File(TEST_DIR, "role-gambler.xml");
+    protected static final String ROLE_GAMBLER_OID = "2bb2fb86-034e-11e8-9cf3-77abfc7aafec";
+
+    //no subtype, forced in draft state
+    public static final File ROLE_CROUPIER_FILE = new File(TEST_DIR, "role-croupier.xml");
+
+    public static final File ROLE_PIT_BOSS_FILE = new File(TEST_DIR, "role-pit-boss.xml");
+
+    public static final String SUBTYPE_EMPLOYEE = "employee";
+    private static final Object USER_JACK_TELEPHONE_NUMBER = "12345654321";
+
+    @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        
-		repoAddObjectFromFile(ROLE_HEADMASTER_FILE, initResult);
-		repoAddObjectFromFile(ROLE_CARETAKER_FILE, initResult);
-		repoAddObjectFromFile(ROLE_GAMBLER_FILE, initResult);
-		repoAddObjectFromFile(ROLE_CROUPIER_FILE, initResult);
-		repoAddObjectFromFile(ROLE_PIT_BOSS_FILE, initResult);
-		
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-    }
-	
-	@Override
-	protected File getSystemConfigurationFile() {
-		return SYSTEM_CONFIGURATION_LIFECYCLE_FILE;
-	}
 
-	/**
-	 * Setup jack. Setting subtype to employee will put him under lifecycle
-	 * control. But before that we want him to have at least one
-	 * processing basis role.
-	 * This starts from "draft" state.
-	 */
+        repoAddObjectFromFile(ROLE_HEADMASTER_FILE, initResult);
+        repoAddObjectFromFile(ROLE_CARETAKER_FILE, initResult);
+        repoAddObjectFromFile(ROLE_GAMBLER_FILE, initResult);
+        repoAddObjectFromFile(ROLE_CROUPIER_FILE, initResult);
+        repoAddObjectFromFile(ROLE_PIT_BOSS_FILE, initResult);
+
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+    }
+
+    @Override
+    protected File getSystemConfigurationFile() {
+        return SYSTEM_CONFIGURATION_LIFECYCLE_FILE;
+    }
+
+    /**
+     * Setup jack. Setting subtype to employee will put him under lifecycle
+     * control. But before that we want him to have at least one
+     * processing basis role.
+     * This starts from "draft" state.
+     */
     @Test
     public void test050SetupJack() throws Exception {
-		final String TEST_NAME = "test050SetupJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assignRole(USER_JACK_OID, ROLE_HEADMASTER_OID, task, result);
         assignRole(USER_JACK_OID, ROLE_GAMBLER_OID, task, result);
@@ -116,7 +93,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         modifyUserReplace(USER_JACK_OID, UserType.F_TELEPHONE_NUMBER, task, result, USER_JACK_TELEPHONE_NUMBER);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -128,44 +105,37 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         // User is in draft lifecycle. Assignments are not active. Therefore account does not exist yet.
         assertLinks(userAfter, 0);
     }
-    
+
     @Test
     public void test052PrincipalJackDraft() throws Exception {
-		final String TEST_NAME = "test052AutzJackDraft";
-        displayTestTitle(TEST_NAME);
-        // GIVEN
-
         // WHEN
-        displayWhen(TEST_NAME);
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
-        
+        when();
+        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
+
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
         assertNotAuthorized(principal, AUTZ_GAMBLE_URL);
         assertNotAuthorized(principal, AUTZ_APPARATE_URL);
-	}
-    
+    }
+
     /**
      * Transition Jack to proposed lifecycle state (manual transition).
      * Proposed state should have effective status of "disabled" by default.
      * But that is overridden in the lifecycle model. So the user should be
-     * enabled. 
+     * enabled.
      */
     @Test
     public void test060TransitionJackToProposed() throws Exception {
-		final String TEST_NAME = "test060TransitionJackToProposed";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, SchemaConstants.LIFECYCLE_PROPOSED);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -177,21 +147,17 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         // Although we are in the proposed lifecycle and assignments would not be active by default
         // the proposed lifecycle is forcing activation to enabled. Therefore also assignments are
         // considered active.
-        accontJackOid = getSingleLinkOid(userAfter);
+        getSingleLinkOid(userAfter);
     }
-    
+
     @Test
     public void test062PrincipalJackProposed() throws Exception {
-		final String TEST_NAME = "test062PrincipalJackProposed";
-        displayTestTitle(TEST_NAME);
-        // GIVEN
-
         // WHEN
-        displayWhen(TEST_NAME);
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
-        
+        when();
+        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
+
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
         // Although we are in the proposed lifecycle and assignments would not be active by default
         // the proposed lifecycle is forcing activation to enabled. Therefore also assignments are
@@ -202,26 +168,23 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         assertAuthorized(principal, AUTZ_PIT_BOSS_URL);
         // and induced authz from pit boss
         assertAuthorized(principal, AUTZ_CROUPIER_URL);
-	}
-    
+    }
+
     /**
      * Transition Jack to default lifecycle (active) state (manual transition).
-     * This prepares jack for next tests. 
+     * This prepares jack for next tests.
      */
     @Test
     public void test090TransitionJackToDefaultActive() throws Exception {
-		final String TEST_NAME = "test090TransitionJackToDefaultActive";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result /* no value */);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -233,50 +196,43 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         assertEffectiveActivation(userAfter, ActivationStatusType.ENABLED);
         assertLinks(userAfter, 1);
     }
-    
+
     @Test
     public void test092PrincipalJackDefaultActive() throws Exception {
-		final String TEST_NAME = "test092PrincipalJackDefaultActive";
-        displayTestTitle(TEST_NAME);
-        // GIVEN
-
         // WHEN
-        displayWhen(TEST_NAME);
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
-        
+        when();
+        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
+
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
         assertAuthorized(principal, AUTZ_GAMBLE_URL);
         assertAuthorized(principal, AUTZ_APPARATE_URL);
-     // Forced assignment not specified for active lifecycle state
+        // Forced assignment not specified for active lifecycle state
         assertNotAuthorized(principal, AUTZ_PIT_BOSS_URL);
         assertNotAuthorized(principal, AUTZ_CROUPIER_URL);
-	}
-    
+    }
+
     private void assertTelephoneNumber(PrismObject<UserType> user, Object expectedTelephoneNumber) {
-    	assertEquals("Wrong telephoe number in "+user, expectedTelephoneNumber, user.asObjectable().getTelephoneNumber());
-	}
+        assertEquals("Wrong telephoe number in " + user, expectedTelephoneNumber, user.asObjectable().getTelephoneNumber());
+    }
 
-	protected <O extends ObjectType> void assertLifecycleState(PrismObject<O> object, String expectedLifecycleState) {
-		assertEquals("Wrong lifecycle state in "+object, expectedLifecycleState, object.asObjectable().getLifecycleState());
-	}
+    protected <O extends ObjectType> void assertLifecycleState(PrismObject<O> object, String expectedLifecycleState) {
+        assertEquals("Wrong lifecycle state in " + object, expectedLifecycleState, object.asObjectable().getLifecycleState());
+    }
 
-	@Test
+    @Test
     public void test100AssignJackCaretaker() throws Exception {
-		final String TEST_NAME = "test100AssignJackCaretaker";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assignRole(USER_JACK_OID, ROLE_CARETAKER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -287,21 +243,18 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         assertTelephoneNumber(userAfter, USER_JACK_TELEPHONE_NUMBER);
     }
 
-	@Test
+    @Test
     public void test102UnassignJackHeadmaster() throws Exception {
-		final String TEST_NAME = "test102UnassignJackHeadmaster";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         unassignRole(USER_JACK_OID, ROLE_HEADMASTER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -311,26 +264,23 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         assertLifecycleState(userAfter, null);
         assertTelephoneNumber(userAfter, USER_JACK_TELEPHONE_NUMBER);
     }
-	
-	/**
-	 * This is the real test. Now lifecycle transition should take
-	 * place because jack has no processing basis role.
-	 */
-	@Test
-    public void test110UnassignJackCaretaker() throws Exception {
-		final String TEST_NAME = "test110UnassignJackCaretaker";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+    /**
+     * This is the real test. Now lifecycle transition should take
+     * place because jack has no processing basis role.
+     */
+    @Test
+    public void test110UnassignJackCaretaker() throws Exception {
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         unassignRole(USER_JACK_OID, ROLE_CARETAKER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -340,25 +290,22 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         assertTelephoneNumber(userAfter, null);
     }
 
-	/**
-	 * Jack is now archived. So, even if we assign a new processing basis
-	 * role the lifecycle should not change. Archival is a one-way process.
-	 */
-	@Test
+    /**
+     * Jack is now archived. So, even if we assign a new processing basis
+     * role the lifecycle should not change. Archival is a one-way process.
+     */
+    @Test
     public void test112UnassignJackCaretaker() throws Exception {
-		final String TEST_NAME = "test110UnassignJackCaretaker";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assignRole(USER_JACK_OID, ROLE_HEADMASTER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);

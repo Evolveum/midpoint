@@ -1,46 +1,34 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by honchar
@@ -56,17 +44,12 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
     private static final String ID_TABLE = "table";
 
 
-    public PageAdminObjectList(){
+    public PageAdminObjectList() {
         this(null);
     }
 
     public PageAdminObjectList(PageParameters parameters) {
         super(parameters);
-    }
-
-    @Override
-    protected void onInitialize(){
-        super.onInitialize();
         initLayout();
     }
 
@@ -78,10 +61,9 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
     }
 
     private void initTable(Form mainForm) {
-        StringValue collectionNameParameter = getCollectionNameParameterValue();
-        MainObjectListPanel<O, CompiledObjectCollectionView> userListPanel = new MainObjectListPanel<O, CompiledObjectCollectionView>(ID_TABLE,
-                getType(), !isCollectionViewPage() ?
-                getTableId() : UserProfileStorage.TableId.COLLECTION_VIEW_TABLE, getQueryOptions(), this) {
+//        StringValue collectionNameParameter = getCollectionNameParameterValue();
+        MainObjectListPanel<O> userListPanel = new  MainObjectListPanel<O>(ID_TABLE,
+                getType(), getTableId(), getQueryOptions()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -100,55 +82,10 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             }
 
             @Override
-            protected void newObjectPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
-                newObjectActionPerformed(target, collectionView);
+            protected boolean isCreateNewObjectEnabled(){
+                return PageAdminObjectList.this.isCreateNewObjectEnabled();
             }
 
-            @Override
-            protected List<CompiledObjectCollectionView> getNewObjectInfluencesList(){
-                if (isCollectionViewPage()){
-                    return new ArrayList<>();
-                }
-                return getCompiledUserProfile().findAllApplicableObjectCollectionViews(getType());
-            }
-
-            @Override
-            protected String getNewObjectButtonStyle(){
-                if (isCollectionViewPage()){
-                    return getCollectionViewIconClass(getCollectionViewObject());
-                } else {
-                    return WebComponentUtil.createDefaultBlackIcon(WebComponentUtil.classToQName(PageAdminObjectList.this.getPrismContext(),
-                            getType()));
-                }
-            }
-
-            @Override
-            protected String getNewObjectSpecificStyle(CompiledObjectCollectionView collectionView){
-                return getCollectionViewIconClass(collectionView);
-            }
-
-            @Override
-            protected String getNewObjectSpecificTitle(CompiledObjectCollectionView collectionView){
-                if (collectionView == null || collectionView.getDisplay() == null
-                        || collectionView.getDisplay().getLabel() == null){
-                    return "";
-                }
-
-                return collectionView.getDisplay().getLabel().getOrig();
-            }
-
-            @Override
-            protected ObjectQuery createContentQuery() {
-                ObjectQuery contentQuery = super.createContentQuery();
-                ObjectFilter usersViewFilter = getArchetypeViewFilter();
-                if (usersViewFilter != null){
-                    if (contentQuery == null) {
-                        contentQuery = PageAdminObjectList.this.getPrismContext().queryFactory().createQuery();
-                    }
-                    contentQuery.addFilter(usersViewFilter);
-                }
-                return contentQuery;
-            }
 
             @Override
             protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
@@ -156,7 +93,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             }
 
             @Override
-            protected boolean isClickable(IModel<SelectableBean<O>> rowModel) {
+            protected boolean isObjectDetailsEnabled(IModel<SelectableBean<O>> rowModel) {
                 return isNameColumnClickable(rowModel);
             }
 
@@ -165,24 +102,31 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
                 return PageAdminObjectList.this.createCustomOrdering(sortParam);
             }
 
+
+            protected void setDefaultSorting(BaseSortableDataProvider<SelectableBean<O>> provider){
+                PageAdminObjectList.this.setDefaultSorting(provider);
+            }
+
             @Override
-            protected String getTableIdKeyValue(){
-                return !isCollectionViewPage() ?
-                        super.getTableIdKeyValue() : super.getTableIdKeyValue() + "." + collectionNameParameter.toString();
+            protected BaseSortableDataProvider<SelectableBean<O>> initProvider() {
+                if (getCustomProvider() != null) {
+                    return getCustomProvider();
+                }
+                return super.initProvider();
             }
 
             @Override
             protected String getStorageKey() {
-                StringValue collectionName = getCollectionNameParameterValue();
-                String key = !isCollectionViewPage() ?
-                        SessionStorage.KEY_OBJECT_LIST + "." + collectionName : SessionStorage.KEY_OBJECT_LIST + "." + getType().getSimpleName();
-                return key;
+                return super.getStorageKey();
             }
         };
 
         userListPanel.setAdditionalBoxCssClasses(WebComponentUtil.getBoxCssClasses(WebComponentUtil.classToQName(getPrismContext(), getType())));
         userListPanel.setOutputMarkupId(true);
         mainForm.add(userListPanel);
+    }
+    protected BaseSortableDataProvider<SelectableBean<O>> getCustomProvider() {
+        return null;
     }
 
     protected abstract Class<O> getType();
@@ -193,28 +137,17 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
     protected void objectDetailsPerformed(AjaxRequestTarget target, O object){}
 
-    protected void newObjectActionPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView){}
-
-    protected ObjectFilter getArchetypeViewFilter(){
-        CompiledObjectCollectionView view = getCollectionViewObject();
-        return view != null ? view.getFilter() : null;
+    protected boolean isCreateNewObjectEnabled(){
+        return true;
     }
 
-    protected CompiledObjectCollectionView getCollectionViewObject(){
-        if (!isCollectionViewPage()) {
-            return null;
-        }
-        String collectionName = getCollectionNameParameterValue().toString();
-        return getCompiledUserProfile().findObjectViewByViewName(getType(), collectionName);
-    }
-
-    protected StringValue getCollectionNameParameterValue(){
-        PageParameters parameters = getPageParameters();
-        return parameters ==  null ? null : parameters.get(PARAMETER_OBJECT_COLLECTION_NAME);
-    }
 
     protected ObjectQuery addCustomFilterToContentQuery(ObjectQuery query){
         return query;
+    }
+
+    protected void setDefaultSorting(BaseSortableDataProvider<SelectableBean<O>> provider){
+        //should be overrided if needed
     }
 
     protected boolean isNameColumnClickable(IModel<SelectableBean<O>> rowModel) {
@@ -235,21 +168,8 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
         return (Form) get(ID_MAIN_FORM);
     }
 
-    public MainObjectListPanel<O, CompiledObjectCollectionView> getObjectListPanel() {
-        return (MainObjectListPanel<O, CompiledObjectCollectionView>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+    public MainObjectListPanel<O> getObjectListPanel() {
+        return (MainObjectListPanel<O>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
-    private boolean isCollectionViewPage(){
-        StringValue collectionNameParam = getCollectionNameParameterValue();
-        return collectionNameParam != null && !collectionNameParam.isEmpty();
-    }
-
-    private String getCollectionViewIconClass(CompiledObjectCollectionView view){
-        if (view == null || view.getDisplay() == null ||
-                view.getDisplay().getIcon() == null){
-            return "";
-        }
-
-        return view.getDisplay().getIcon().getCssClass();
-    }
 }

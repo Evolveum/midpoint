@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl;
 
@@ -72,7 +63,7 @@ import javax.xml.ws.soap.SOAPFaultException;
 @Service
 public class ModelWebServiceRaw implements Provider<DOMSource> {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ModelWebServiceRaw.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ModelWebServiceRaw.class);
 
     public static final String NS_SOAP11_ENV = "http://schemas.xmlsoap.org/soap/envelope/";
     public static final String NS_SOAP11_ENV_PREFIX = "SOAP-ENV";
@@ -85,10 +76,10 @@ public class ModelWebServiceRaw implements Provider<DOMSource> {
     public static final String ACTOR = "TODO";
 
     @Autowired
-	private ModelWebService ws;
+    private ModelWebService ws;
 
-	@Autowired
-	private PrismContext prismContext;
+    @Autowired
+    private PrismContext prismContext;
 
     @Override
     public DOMSource invoke(DOMSource request) {
@@ -114,7 +105,7 @@ public class ModelWebServiceRaw implements Provider<DOMSource> {
         }
     }
 
-	public DOMSource invokeAllowingFaults(DOMSource request) throws FaultMessage {
+    public DOMSource invokeAllowingFaults(DOMSource request) throws FaultMessage {
         Node rootNode = request.getNode();
         Element rootElement;
         if (rootNode instanceof Document) {
@@ -193,9 +184,9 @@ public class ModelWebServiceRaw implements Provider<DOMSource> {
                 throw ws.createIllegalArgumentFault("Unsupported request type: " + requestObject);
             }
         } catch (SchemaException e) {
-        	throwFault(e, operationResultTypeHolder.value);
-        	// not reached
-        	return null;
+            throwFault(e, operationResultTypeHolder.value);
+            // not reached
+            return null;
         }
 
         // brutal hack for MID-2001 (serializing and parsing eliminates the problem!)
@@ -206,21 +197,16 @@ public class ModelWebServiceRaw implements Provider<DOMSource> {
         return new DOMSource(response);
     }
 
-	private void serializeFaultMessage(Detail detail, FaultMessage faultMessage) {
+    private void serializeFaultMessage(Detail detail, FaultMessage faultMessage) {
         prismContext.hacks()
                 .serializeFaultMessage(detail, faultMessage.getFaultInfo(), SchemaConstants.FAULT_MESSAGE_ELEMENT_NAME, LOGGER);
-	}
+    }
 
     private void throwFault(Exception ex, OperationResultType resultType) throws FaultMessage {
-		if (resultType != null) {
-            try {
-				ws.throwFault(ex, OperationResult.createOperationResult(resultType));
-			} catch (SchemaException e) {
-				LOGGER.error("Error serializing operation result: {}", e.getMessage(), e);
-				ws.throwFault(ex, null);
-			}
-		} else {
+        if (resultType != null) {
+            ws.throwFault(ex, OperationResult.createOperationResult(resultType));
+        } else {
             ws.throwFault(ex, null);
         }
-	}
+    }
 }

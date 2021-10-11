@@ -1,0 +1,40 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!-- Role with elements that were removed in 4.0. -->
+
+<role oid="12345678-d34d-b33f-f00d-000387987988"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <name>
+        <t:orig>r3</t:orig>
+        <t:norm>r3</t:norm>
+    </name>
+
+    <adminGuiConfiguration>
+        <defaultTimezone>Europe/Bratislava</defaultTimezone>
+    </adminGuiConfiguration>
+
+    <approverExpression> <!-- Removed from schema in 4.0. -->
+        <script>
+            <code>midpoint.oid2ort(user.getOid())</code>
+        </script>
+    </approverExpression>
+
+    <policyConstraints> <!-- Removed from schema in 4.0. -->
+        <minAssignees>
+            <enforcement>report</enforcement>
+            <multiplicity>2</multiplicity>
+        </minAssignees>
+        <minAssignees>
+            <multiplicity>1</multiplicity>
+        </minAssignees>
+        <maxAssignees>
+            <multiplicity>unbounded</multiplicity>
+        </maxAssignees>
+    </policyConstraints>
+</role>

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism.query;
@@ -30,48 +21,48 @@ import java.io.Serializable;
  */
 public interface ObjectQuery extends DebugDumpable, Serializable {
 
-	ObjectFilter getFilter();
+    ObjectFilter getFilter();
 
-	void setFilter(ObjectFilter filter);
+    void setFilter(ObjectFilter filter);
 
-	void setPaging(ObjectPaging paging);
+    void setPaging(ObjectPaging paging);
 
-	ObjectPaging getPaging();
+    ObjectPaging getPaging();
 
-	boolean isAllowPartialResults();
+    boolean isAllowPartialResults();
 
-	void setAllowPartialResults(boolean allowPartialResults);
+    void setAllowPartialResults(boolean allowPartialResults);
 
-	ObjectQuery clone();
+    ObjectQuery clone();
 
-	ObjectQuery cloneEmpty();
+    ObjectQuery cloneEmpty();
 
-	void addFilter(ObjectFilter objectFilter);
+    void addFilter(ObjectFilter objectFilter);
 
-	// use when offset/maxSize is expected
-	Integer getOffset();
+    // use when offset/maxSize is expected
+    Integer getOffset();
 
-	// use when offset/maxSize is expected
-	Integer getMaxSize();
+    // use when offset/maxSize is expected
+    Integer getMaxSize();
 
-	boolean equivalent(Object o);
+    boolean equivalent(Object o);
 
-	boolean equals(Object o, boolean exact);
+    boolean equals(Object o, boolean exact);
 
-	// TODO decide what to do with these static methods
+    // TODO decide what to do with these static methods
 
-	// although we do our best to match even incomplete relations (null, unqualified), ultimately
-	// it is the client's responsibility to ensure relations in object and filter are normalized (namely: null -> org:default)
-	static <T extends Objectable> boolean match(
-			PrismObject<T> object, ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-		return filter.match(object.getValue(), matchingRuleRegistry);
-	}
+    // although we do our best to match even incomplete relations (null, unqualified), ultimately
+    // it is the client's responsibility to ensure relations in object and filter are normalized (namely: null -> org:default)
+    static <T extends Objectable> boolean match(
+            PrismObject<T> object, ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+        return filter.match(object.getValue(), matchingRuleRegistry);
+    }
 
-	// although we do our best to match even incomplete relations (null, unqualified), ultimately
-	// it is the client's responsibility to ensure relations in object and filter are normalized (namely: null -> org:default)
-	static boolean match(Containerable object, ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
-		return filter.match(object.asPrismContainerValue(), matchingRuleRegistry);
-	}
+    // although we do our best to match even incomplete relations (null, unqualified), ultimately
+    // it is the client's responsibility to ensure relations in object and filter are normalized (namely: null -> org:default)
+    static boolean match(Containerable object, ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
+        return filter.match(object.asPrismContainerValue(), matchingRuleRegistry);
+    }
 
 
 

@@ -1,21 +1,15 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.notifications.impl.handlers;
 
+import com.evolveum.midpoint.model.api.ProgressInformation;
+import com.evolveum.midpoint.notifications.api.events.ModelEvent;
+import com.evolveum.midpoint.notifications.impl.EventHandlerRegistry;
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.impl.helpers.NotificationExpressionHelper;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -31,81 +25,95 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageAttachmentType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 
+import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.NOTIFICATIONS;
+import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
+
 /**
- * @author mederly
+ *
  */
 @Component
-public abstract class BaseHandler implements EventHandler {
+public abstract class BaseHandler<E extends Event, C extends EventHandlerType> implements EventHandler<E, C> {
 
     private static final Trace LOGGER = TraceManager.getTrace(BaseHandler.class);
 
     @Autowired protected NotificationManagerImpl notificationManager;
-	@Autowired protected NotificationFunctionsImpl notificationsUtil;
-	@Autowired protected PrismContext prismContext;
-	@Autowired protected ExpressionFactory expressionFactory;
-	@Autowired protected TextFormatter textFormatter;
-	@Autowired protected NotificationExpressionHelper expressionHelper;
+    @Autowired protected NotificationFunctionsImpl notificationsUtil;
+    @Autowired protected PrismContext prismContext;
+    @Autowired protected ExpressionFactory expressionFactory;
+    @Autowired protected TextFormatter textFormatter;
+    @Autowired protected NotificationExpressionHelper expressionHelper;
+    @Autowired protected EventHandlerRegistry eventHandlerRegistry;
 
-	protected void register(Class<? extends EventHandlerType> clazz) {
-        notificationManager.registerEventHandler(clazz, this);
+    @PostConstruct
+    protected void register() {
+        eventHandlerRegistry.registerEventHandler(getEventHandlerConfigurationType(), this);
     }
 
-    protected void logStart(Trace LOGGER, Event event, EventHandlerType eventHandlerType) {
-        logStart(LOGGER, event, eventHandlerType, null);
+    protected void logStart(Trace LOGGER, E event, C handlerConfiguration) {
+        logStart(LOGGER, event, handlerConfiguration, null);
     }
 
-    protected void logStart(Trace LOGGER, Event event, EventHandlerType eventHandlerType, Object additionalData) {
+    protected void logStart(Trace LOGGER, E event, C handlerConfiguration, Object additionalData) {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Starting processing event " + event.shortDump() + " with handler " +
-            		getHumanReadableHandlerDescription(eventHandlerType) + "\n  parameters: " +
-            		(additionalData != null ? ("\n  parameters: " + additionalData) :
-                        ("\n  configuration: " + eventHandlerType)));
+                    getHumanReadableHandlerDescription(handlerConfiguration) + "\n  parameters: " +
+                    (additionalData != null ? ("\n  parameters: " + additionalData) :
+                        ("\n  configuration: " + handlerConfiguration)));
 
         }
     }
 
-    protected void logNotApplicable(Event event, String reason) {
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace(
-				"{} is not applicable for event {}, continuing in the handler chain; reason: {}",
-				this.getClass().getSimpleName(), event.shortDump(), reason);
-		}
-	}
-
-    protected String getHumanReadableHandlerDescription(EventHandlerType eventHandlerType) {
-    	if (eventHandlerType.getName() != null) {
-    		return eventHandlerType.getName();
-    	} else {
-    		return eventHandlerType.getClass().getSimpleName();
-    	}
-	}
-
-	public static void staticLogStart(Trace LOGGER, Event event, String description, Object additionalData) {
+    protected void logNotApplicable(E event, String reason) {
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Starting processing event " + event + " with handler " +
-                    description +
-                    (additionalData != null ? (", parameters: " + additionalData) : ""));
+            LOGGER.trace(
+                "{} is not applicable for event {}, continuing in the handler chain; reason: {}",
+                this.getClass().getSimpleName(), event.shortDump(), reason);
         }
     }
 
-    public void logEnd(Trace LOGGER, Event event, EventHandlerType eventHandlerType, boolean result) {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Finishing processing event " + event + " result = " + result);
+    protected String getHumanReadableHandlerDescription(C handlerConfiguration) {
+        if (handlerConfiguration.getName() != null) {
+            return handlerConfiguration.getName();
+        } else {
+            return handlerConfiguration.getClass().getSimpleName();
         }
     }
 
-	protected List<String> evaluateExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
-			String shortDesc, Task task, OperationResult result) {
-		return expressionHelper.evaluateExpressionChecked(expressionType, expressionVariables, shortDesc, task, result);
-	}
+    public void logEnd(Trace logger, E event, boolean result) {
+        logger.trace("Finishing processing event {}, result = {}", event, result);
+    }
 
-	protected ExpressionVariables getDefaultVariables(Event event, OperationResult result) {
-		return expressionHelper.getDefaultVariables(event, result);
+    protected List<String> evaluateExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
+            String shortDesc, Task task, OperationResult result) {
+        return expressionHelper.evaluateExpressionChecked(expressionType, expressionVariables, shortDesc, task, result);
+    }
+
+    protected List<NotificationMessageAttachmentType> evaluateNotificationMessageAttachmentTypeExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
+            String shortDesc, Task task, OperationResult result) {
+        return expressionHelper.evaluateNotificationMessageAttachmentTypeExpressionChecked(expressionType, expressionVariables, shortDesc, task, result);
+    }
+
+    protected ExpressionVariables getDefaultVariables(E event, OperationResult result) {
+        return expressionHelper.getDefaultVariables(event, result);
+    }
+
+    protected void reportNotificationStart(E event) {
+        if (event instanceof ModelEvent) {
+            ((ModelEvent) event).getModelContext().reportProgress(new ProgressInformation(NOTIFICATIONS, ENTERING));
+        }
+    }
+
+    protected void reportNotificationEnd(E event, OperationResult result) {
+        if (event instanceof ModelEvent) {
+            ((ModelEvent) event).getModelContext().reportProgress(new ProgressInformation(NOTIFICATIONS, result));
+        }
     }
 }

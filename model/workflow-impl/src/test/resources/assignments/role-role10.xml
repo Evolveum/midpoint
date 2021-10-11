@@ -1,0 +1,12 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role oid="00000001-d34d-b33f-f00d-000000000010">
+    <name>Role10</name>
+    <description>Induced by Role1</description>
+    <delegable>true</delegable>
+</role>

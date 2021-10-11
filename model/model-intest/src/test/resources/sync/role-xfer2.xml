@@ -1,0 +1,26 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="59fdad1b-45fa-4a8c-bda4-d8a6ab980671">
+    <name>xfer2</name>
+    <inducement>
+        <construction>
+            <resourceRef oid="60a5f2d4-1abc-4178-a687-4a9627779676"/> <!-- xfer2-target-not-deletable -->
+        </construction>
+        <condition>
+            <source>
+                <path>$focus/fullName</path>
+            </source>
+            <expression>
+                <script>
+                    <code>!fullName?.startsWith('_')</code>
+                </script>
+            </expression>
+        </condition>
+    </inducement>
+</role>

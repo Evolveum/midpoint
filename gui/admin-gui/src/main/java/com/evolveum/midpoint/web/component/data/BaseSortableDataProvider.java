@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.data;
@@ -20,7 +11,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
@@ -36,9 +27,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DistinctSearchOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
+
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -152,10 +142,10 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return application.getAuditService();
     }
 
-	protected WorkflowManager getWorkflowManager() {
-		MidPointApplication application = MidPointApplication.get();
-		return application.getWorkflowManager();
-	}
+    protected WorkflowManager getWorkflowManager() {
+        MidPointApplication application = MidPointApplication.get();
+        return application.getWorkflowManager();
+    }
 
     public List<T> getAvailableData() {
         if (availableData == null) {
@@ -214,7 +204,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     }
 
     public boolean isDistinct() {
-    	// TODO: Default list view setting should never be needed. Always check setting for specific object type (and archetype).
+        // TODO: Default list view setting should never be needed. Always check setting for specific object type (and archetype).
         CompiledObjectCollectionView def = WebComponentUtil.getDefaultGuiObjectListType((PageBase) component.getPage());
         return def == null || def.getDistinct() != DistinctSearchOptionType.NEVER;      // change after other options are added
     }
@@ -223,7 +213,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return getDistinctRelatedOptionsBuilder();  // probably others in the future
     }
 
-	@NotNull
+    @NotNull
     protected Collection<SelectorOptions<GetOperationOptions>> getDistinctRelatedOptions() {
         return getDistinctRelatedOptionsBuilder().build();
     }
@@ -244,7 +234,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         }
         // TODO: Default list view setting should never be needed. Always check setting for specific object type (and archetype).
         CompiledObjectCollectionView def = WebComponentUtil.getDefaultGuiObjectListType((PageBase) component.getPage());
-        return def != null && def.isDisableSorting();
+        return def != null && def.isDisableSorting() != null && def.isDisableSorting();
     }
 
     protected ObjectPaging createPaging(long offset, long pageSize) {
@@ -257,22 +247,22 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return getPrismContext().queryFactory().createPaging(o, size, orderings);
     }
 
-	/**
-	 * Could be overridden in subclasses.
-	 */
-	@NotNull
-	protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-		if (sortParam != null && sortParam.getProperty() != null) {
-			OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
-			return Collections.singletonList(
-					getPrismContext().queryFactory().createOrdering(
+    /**
+     * Could be overridden in subclasses.
+     */
+    @NotNull
+    protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+        if (sortParam != null && sortParam.getProperty() != null) {
+            OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
+            return Collections.singletonList(
+                    getPrismContext().queryFactory().createOrdering(
                             ItemPath.create(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty())), order));
-		} else {
-			return Collections.emptyList();
-		}
-	}
+        } else {
+            return Collections.emptyList();
+        }
+    }
 
-	public void clearCache() {
+    public void clearCache() {
         cache.clear();
         getAvailableData().clear();
     }
@@ -386,7 +376,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     private void setExportLimitValue() {
         OperationResult result = new OperationResult(OPERATION_GET_EXPORT_SIZE_LIMIT);
         try {
-            CompiledUserProfile adminGui = getModelInteractionService().getCompiledUserProfile(null, result);
+            CompiledGuiProfile adminGui = getModelInteractionService().getCompiledGuiProfile(null, result);
             if (adminGui.getDefaultExportSettings() != null && adminGui.getDefaultExportSettings().getSizeLimit() != null) {
                 exportLimit = adminGui.getDefaultExportSettings().getSizeLimit();
             }
@@ -401,5 +391,9 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
 
     public void setExportSize(boolean exportSize) {
         this.exportSize = exportSize;
+    }
+
+    public boolean isUseCache() {
+        return useCache;
     }
 }

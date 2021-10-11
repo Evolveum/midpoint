@@ -1,0 +1,17 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user oid="ad6f2526-4b59-4e57-9bb4-4584d34babc0"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>longshanks</name>
+    <assignment> <!-- approver -->
+        <targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>
+    </assignment>
+    <assignment> <!-- Prince -->
+        <targetRef oid="9252328b-b0b4-458f-9397-31b67291d566" type="RoleType" relation="approver"/>
+    </assignment>
+</user>

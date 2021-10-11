@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.message;
@@ -35,63 +26,63 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
  */
 public class FeedbackListView extends ListView<FeedbackMessage> {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public FeedbackListView(String id, Component component) {
-		super(id);
-		setDefaultModel(new FeedbackMessagesModel(component));
-	}
+    public FeedbackListView(String id, Component component) {
+        super(id);
+        setDefaultModel(new FeedbackMessagesModel(component));
+    }
 
-	@Override
-	protected void populateItem(final ListItem<FeedbackMessage> item) {
+    @Override
+    protected void populateItem(final ListItem<FeedbackMessage> item) {
 
-		final FeedbackMessage message = item.getModelObject();
+        final FeedbackMessage message = item.getModelObject();
 
-		if (message.getMessage() instanceof OpResult) {
-			final OpResult opResult = (OpResult) message.getMessage();
-			OperationResultPanel panel = new OperationResultPanel("message", Model.of(opResult), getPage()) {
+        if (message.getMessage() instanceof OpResult) {
+            final OpResult opResult = (OpResult) message.getMessage();
+            OperationResultPanel panel = new OperationResultPanel("message", Model.of(opResult)) {
 
-				private static final long serialVersionUID = 1L;
+                private static final long serialVersionUID = 1L;
 
-				@Override
-				public void close(AjaxRequestTarget target) {
-					super.close(target);
-					message.markRendered();
-				}
+                @Override
+                public void close(AjaxRequestTarget target) {
+                    super.close(target);
+                    message.markRendered();
+                }
 
-				protected void onAfterRender() {
-					opResult.setAlreadyShown(true);
-					super.onAfterRender();
-				};
-			};
-			panel.add(new VisibleEnableBehaviour() {
+                protected void onAfterRender() {
+                    opResult.setAlreadyShown(true);
+                    super.onAfterRender();
+                }
+            };
+            panel.add(new VisibleEnableBehaviour() {
 
-				private static final long serialVersionUID = 1L;
+                private static final long serialVersionUID = 1L;
 
-				public boolean isVisible() {
-					return !opResult.isAlreadyShown();
-				};
-			});
+                public boolean isVisible() {
+                    return !opResult.isAlreadyShown();
+                }
+            });
 
-			panel.setOutputMarkupId(true);
-			item.add(panel);
-		} else {
+            panel.setOutputMarkupId(true);
+            item.add(panel);
+        } else {
 
-			message.markRendered();
-			ValidationErrorPanel validationPanel = new ValidationErrorPanel("message", item.getModel()) {
+            message.markRendered();
+            ValidationErrorPanel validationPanel = new ValidationErrorPanel("message", item.getModel()) {
 
-				private static final long serialVersionUID = 1L;
+                private static final long serialVersionUID = 1L;
 
-				@Override
-				public void close(AjaxRequestTarget target) {
-					super.close(target);
-					message.markRendered();
-				}
+                @Override
+                public void close(AjaxRequestTarget target) {
+                    super.close(target);
+                    message.markRendered();
+                }
 
-			};
-			validationPanel.setOutputMarkupId(true);
-			item.add(validationPanel);
+            };
+            validationPanel.setOutputMarkupId(true);
+            item.add(validationPanel);
 
-		}
-	}
+        }
+    }
 }

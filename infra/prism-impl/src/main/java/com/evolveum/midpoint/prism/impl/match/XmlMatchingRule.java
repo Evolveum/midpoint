@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl.match;
 
@@ -38,68 +29,68 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public class XmlMatchingRule implements MatchingRule<String> {
 
-	public static final Trace LOGGER = TraceManager.getTrace(XmlMatchingRule.class);
+    public static final Trace LOGGER = TraceManager.getTrace(XmlMatchingRule.class);
 
-	@Override
-	public QName getName() {
-		return PrismConstants.XML_MATCHING_RULE_NAME;
-	}
+    @Override
+    public QName getName() {
+        return PrismConstants.XML_MATCHING_RULE_NAME;
+    }
 
-	@Override
-	public boolean isSupported(QName xsdType) {
-		return (DOMUtil.XSD_STRING.equals(xsdType));
-	}
+    @Override
+    public boolean isSupported(QName xsdType) {
+        return (DOMUtil.XSD_STRING.equals(xsdType));
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.match.MatchingRule#match(java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public boolean match(String a, String b) {
-		if (a == null && b == null) {
-			return true;
-		}
-		if (a == null || b == null) {
-			return false;
-		}
-		try {
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.model.match.MatchingRule#match(java.lang.Object, java.lang.Object)
+     */
+    @Override
+    public boolean match(String a, String b) {
+        if (a == null && b == null) {
+            return true;
+        }
+        if (a == null || b == null) {
+            return false;
+        }
+        try {
 
-			Document docA = DOMUtil.parseDocument(a);
-			Document docB = DOMUtil.parseDocument(b);
-			return DOMUtil.compareDocument(docA, docB, false, false);
+            Document docA = DOMUtil.parseDocument(a);
+            Document docB = DOMUtil.parseDocument(b);
+            return DOMUtil.compareDocument(docA, docB, false, false);
 
-		} catch (IllegalStateException | IllegalArgumentException e) {
-			LOGGER.warn("Invalid XML in XML matching rule: {}", e.getMessage());
-			// Invalid XML. We do not want to throw the exception from matching rule.
-			// So fall back to ordinary string comparison.
-			return StringUtils.equals(a, b);
-		}
-	}
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            LOGGER.warn("Invalid XML in XML matching rule: {}", e.getMessage());
+            // Invalid XML. We do not want to throw the exception from matching rule.
+            // So fall back to ordinary string comparison.
+            return StringUtils.equals(a, b);
+        }
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.match.MatchingRule#normalize(java.lang.Object)
-	 */
-	@Override
-	public String normalize(String original) {
-		if (original == null) {
-			return original;
-		}
-		try {
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.prism.match.MatchingRule#normalize(java.lang.Object)
+     */
+    @Override
+    public String normalize(String original) {
+        if (original == null) {
+            return original;
+        }
+        try {
 
-			Document doc = DOMUtil.parseDocument(original);
-			DOMUtil.normalize(doc, false);
-			String out = DOMUtil.printDom(doc, false, true).toString();
-			return out.trim();
+            Document doc = DOMUtil.parseDocument(original);
+            DOMUtil.normalize(doc, false);
+            String out = DOMUtil.printDom(doc, false, true).toString();
+            return out.trim();
 
-		} catch (IllegalStateException | IllegalArgumentException e) {
-			LOGGER.warn("Invalid XML in XML matching rule: {}", e.getMessage());
-			return original.trim();
-		}
-	}
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            LOGGER.warn("Invalid XML in XML matching rule: {}", e.getMessage());
+            return original.trim();
+        }
+    }
 
-	@Override
-	public boolean matchRegex(String a, String regex) {
-		LOGGER.warn("Regular expression matching is not supported for XML data types");
-		return false;
-	}
+    @Override
+    public boolean matchRegex(String a, String regex) {
+        LOGGER.warn("Regular expression matching is not supported for XML data types");
+        return false;
+    }
 
 }

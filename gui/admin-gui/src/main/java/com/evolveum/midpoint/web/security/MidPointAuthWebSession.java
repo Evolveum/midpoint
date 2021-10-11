@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.security;
@@ -23,6 +14,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import org.apache.wicket.Session;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebSession;
@@ -105,27 +97,27 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession implements D
         LOGGER.debug("Using {} as time zone", props.getTimeZone());
     }
 
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("MidPointAuthWebSession\n");
-		DebugUtil.debugDumpWithLabel(sb, "sessionStorage", sessionStorage, indent+1);
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("MidPointAuthWebSession\n");
+        DebugUtil.debugDumpWithLabel(sb, "sessionStorage", sessionStorage, indent+1);
+        return sb.toString();
+    }
 
-	public String dumpSizeEstimates(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.dumpObjectSizeEstimate(sb, "MidPointAuthWebSession", this, indent);
-		if (sessionStorage != null) {
-			sb.append("\n");
-			sessionStorage.dumpSizeEstimates(sb, indent + 1);
-		}
-		return sb.toString();
-	}
+    public String dumpSizeEstimates(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.dumpObjectSizeEstimate(sb, "MidPointAuthWebSession", this, indent);
+        if (sessionStorage != null) {
+            sb.append("\n");
+            sessionStorage.dumpSizeEstimates(sb, indent + 1);
+        }
+        return sb.toString();
+    }
 }

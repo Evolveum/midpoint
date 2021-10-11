@@ -1,23 +1,15 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -45,8 +37,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-
-import java.util.Collections;
 
 /**
  * @author lazyman
@@ -116,12 +106,12 @@ public class PageBulkAction extends PageAdminConfiguration {
         try {
             parsed = getPrismContext().parserFor(bulkActionDto.getScript()).parseRealValue();
             if (parsed == null) {
-            	result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.provided").getString());
+                result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.provided").getString());
             } else if (!(parsed instanceof ExecuteScriptType) && !(parsed instanceof ScriptingExpressionType)) {
-            	result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.notBulkAction", "{scripting-3}ScriptingExpressionType", parsed.getClass()).getString());
+                result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.notBulkAction", "{scripting-3}ScriptingExpressionType", parsed.getClass()).getString());
             }
         } catch (SchemaException|RuntimeException e) {
-        	result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.parse").getString(), e);
+            result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.parse").getString(), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse bulk action object", e);
         }
 
@@ -135,8 +125,9 @@ public class PageBulkAction extends PageAdminConfiguration {
                         getScriptingService().evaluateExpressionInBackground((ScriptingExpressionType) parsed, task, result);
                     }
                     result.recordStatus(OperationResultStatus.IN_PROGRESS, createStringResource("PageBulkAction.message.startPerformed.inProgress", task.getName()).getString());
-                } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
-                	result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.submit").getString(), e);
+                } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException
+                        | CommunicationException | ConfigurationException | ClassCastException e) {
+                    result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.submit").getString(), e);
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit bulk action to execution", e);
                 }
             } else {
@@ -144,13 +135,14 @@ public class PageBulkAction extends PageAdminConfiguration {
                     //noinspection ConstantConditions
                     ScriptExecutionResult executionResult =
                             parsed instanceof ExecuteScriptType ?
-                                    getScriptingService().evaluateExpression((ExecuteScriptType) parsed, Collections.emptyMap(),
+                                    getScriptingService().evaluateExpression((ExecuteScriptType) parsed, VariablesMap.emptyMap(),
                                             false, task, result) :
                                     getScriptingService().evaluateExpression((ScriptingExpressionType) parsed, task, result);
                     result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("PageBulkAction.message.startPerformed.success", executionResult.getDataOutput().size()).getString());
                     result.addReturn("console", executionResult.getConsoleOutput());
                     result.addArbitraryObjectCollectionAsReturn("data", executionResult.getDataOutput());
-                } catch (ScriptExecutionException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+                } catch (ScriptExecutionException | SchemaException | SecurityViolationException | ExpressionEvaluationException
+                        | ObjectNotFoundException | CommunicationException | ConfigurationException | ClassCastException e) {
                     result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.execute").getString(), e);
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute bulk action", e);
                 }

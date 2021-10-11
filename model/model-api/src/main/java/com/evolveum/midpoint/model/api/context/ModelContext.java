@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.api.context;
 
@@ -27,11 +18,13 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerPreviewOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,22 +35,24 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface ModelContext<F extends ObjectType> extends Serializable, DebugDumpable {
 
-	ModelState getState();
+    String getRequestIdentifier();
 
-	ModelElementContext<F> getFocusContext();
+    ModelState getState();
 
-	Collection<? extends ModelProjectionContext> getProjectionContexts();
+    ModelElementContext<F> getFocusContext();
 
-	ModelProjectionContext findProjectionContext(ResourceShadowDiscriminator rat);
+    Collection<? extends ModelProjectionContext> getProjectionContexts();
 
-	ModelExecuteOptions getOptions();
+    ModelProjectionContext findProjectionContext(ResourceShadowDiscriminator rat);
 
-	@NotNull
-	PartialProcessingOptionsType getPartialProcessingOptions();
+    ModelExecuteOptions getOptions();
 
-	Class<F> getFocusClass();
+    @NotNull
+    PartialProcessingOptionsType getPartialProcessingOptions();
 
-	void reportProgress(ProgressInformation progress);
+    Class<F> getFocusClass();
+
+    void reportProgress(ProgressInformation progress);
 
     DeltaSetTriple<? extends EvaluatedAssignment<?>> getEvaluatedAssignmentTriple();
 
@@ -66,30 +61,39 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
     PrismObject<SystemConfigurationType> getSystemConfiguration();  // beware, may be null - use only as a performance optimization
 
     String getChannel();
-    
+
     Collection<ObjectDelta<? extends ObjectType>> getAllChanges() throws SchemaException;
 
-	// For diagnostic purposes (this is more detailed than rule-related part of LensContext debugDump,
-	// while less detailed than that part of detailed LensContext debugDump).
-	default String dumpAssignmentPolicyRules(int indent) {
-		return dumpAssignmentPolicyRules(indent, false);
-	}
+    // For diagnostic purposes (this is more detailed than rule-related part of LensContext debugDump,
+    // while less detailed than that part of detailed LensContext debugDump).
+    default String dumpAssignmentPolicyRules(int indent) {
+        return dumpAssignmentPolicyRules(indent, false);
+    }
 
-	String dumpAssignmentPolicyRules(int indent, boolean alsoMessages);
+    String dumpAssignmentPolicyRules(int indent, boolean alsoMessages);
 
-	default String dumpFocusPolicyRules(int indent) {
-		return dumpFocusPolicyRules(indent, false);
-	}
+    default String dumpFocusPolicyRules(int indent) {
+        return dumpFocusPolicyRules(indent, false);
+    }
 
-	String dumpFocusPolicyRules(int indent, boolean alsoMessages);
+    String dumpFocusPolicyRules(int indent, boolean alsoMessages);
 
-	Map<String, Collection<Containerable>> getHookPreviewResultsMap();
+    Map<String, Collection<Containerable>> getHookPreviewResultsMap();
 
-	@NotNull
-	<T> List<T> getHookPreviewResults(@NotNull Class<T> clazz);
+    @NotNull
+    <T> List<T> getHookPreviewResults(@NotNull Class<T> clazz);
 
-	@Nullable
-	<T> T getHookPreviewResult(@NotNull Class<T> clazz);
+    @Nullable
+    PolicyRuleEnforcerPreviewOutputType getPolicyRuleEnforcerPreviewOutput();
 
-	boolean isPreview();
+    boolean isPreview();
+
+    @NotNull
+    ObjectTreeDeltas<F> getTreeDeltas();
+
+    Collection<ResourceShadowDiscriminator> getHistoricResourceObjects();
+
+    Long getSequenceCounter(String sequenceOid);
+
+    void setSequenceCounter(String sequenceOid, long counter);
 }

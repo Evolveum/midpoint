@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.web.component.prism.show;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -6,6 +12,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -23,7 +30,8 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ApprovalProcessExecutio
 import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerHookPreviewOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerPreviewOutputType;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -76,12 +84,12 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
         try {
             if (modelContext != null) {
                 if (modelContext.getFocusContext() != null) {
-                    addIgnoreNull(primaryDeltas, modelContext.getFocusContext().getPrimaryDelta());
-                    addIgnoreNull(secondaryDeltas, modelContext.getFocusContext().getSecondaryDelta());
+                    addIgnoreNull(primaryDeltas, CloneUtil.clone(modelContext.getFocusContext().getPrimaryDelta()));
+                    addIgnoreNull(secondaryDeltas, CloneUtil.clone(modelContext.getFocusContext().getSecondaryDelta()));
                 }
                 for (ModelProjectionContext projCtx : modelContext.getProjectionContexts()) {
-                    addIgnoreNull(primaryDeltas, projCtx.getPrimaryDelta());
-                    addIgnoreNull(secondaryDeltas, projCtx.getExecutableDelta());
+                    addIgnoreNull(primaryDeltas, CloneUtil.clone(projCtx.getPrimaryDelta()));
+                    addIgnoreNull(secondaryDeltas, CloneUtil.clone(projCtx.getExecutableDelta()));
                 }
             }
             if (LOGGER.isTraceEnabled()) {
@@ -93,7 +101,7 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
             primaryScenes = getPageBase().getModelInteractionService().visualizeDeltas(primaryDeltas, task, task.getResult());
             secondaryScenes = getPageBase().getModelInteractionService().visualizeDeltas(secondaryDeltas, task, task.getResult());
         } catch (SchemaException | ExpressionEvaluationException e) {
-            throw new SystemException(e);		// TODO
+            throw new SystemException(e);        // TODO
         }
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Creating context DTO for primary deltas:\n{}", DebugUtil.debugDump(primaryScenes));
@@ -119,8 +127,8 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
             }
         };
 
-        PolicyRuleEnforcerHookPreviewOutputType enforcements = modelContext != null
-                ? modelContext.getHookPreviewResult(PolicyRuleEnforcerHookPreviewOutputType.class)
+        PolicyRuleEnforcerPreviewOutputType enforcements = modelContext != null
+                ? modelContext.getPolicyRuleEnforcerPreviewOutput()
                 : null;
         List<EvaluatedTriggerGroupDto> triggerGroups = enforcements != null
                 ? Collections.singletonList(EvaluatedTriggerGroupDto.initializeFromRules(enforcements.getRule(), false, null))
@@ -143,7 +151,8 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
                 result.computeStatus();
             } catch (Throwable t) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare approval information", t);
-                result.recordFatalError("Couldn't prepare approval information: " + t.getMessage(), t);
+                result.recordFatalError(
+                        createStringResource("PreviewChangesTabPanel.message.prepareApproval.fatalError", t.getMessage()).getString(), t);
             }
             if (WebComponentUtil.showResultInPage(result)) {
                 getPageBase().showResult(result);

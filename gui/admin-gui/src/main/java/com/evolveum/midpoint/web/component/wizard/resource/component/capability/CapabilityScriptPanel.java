@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.capability;
@@ -48,28 +39,28 @@ public class CapabilityScriptPanel extends BasePanel<CapabilityDto<ScriptCapabil
     private static final String ID_T_ON_RESOURCE = "onResourceTooltip";
 
     public CapabilityScriptPanel(String componentId, IModel<CapabilityDto<ScriptCapabilityType>> model, WebMarkupContainer capabilitiesTable,
-			PageResourceWizard parentPage){
+            PageResourceWizard parentPage){
         super(componentId, model);
-		initLayout(capabilitiesTable, parentPage);
+        initLayout(capabilitiesTable, parentPage);
     }
 
     protected void initLayout(final WebMarkupContainer capabilitiesTable, PageResourceWizard parentPage) {
-		parentPage.addEditingEnabledBehavior(this);
+        parentPage.addEditingEnabledBehavior(this);
 
         CheckBox enabled = new CheckBox(ID_ENABLED, new PropertyModel<>(getModel(), "capability.enabled"));
-		enabled.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				target.add(capabilitiesTable);
-			}
-		});
+        enabled.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                target.add(capabilitiesTable);
+            }
+        });
         add(enabled);
 
         MultiValueTextPanel onConnector = new MultiValueTextPanel(ID_ON_CONNECTOR, prepareOnConnectorModel(), parentPage.getReadOnlyModel(), true);
         add(onConnector);
 
         MultiValueTextPanel onResource = new MultiValueTextPanel(ID_ON_RESOURCE, Model.of(prepareOnResourceModel()), parentPage.getReadOnlyModel(),
-				true);
+                true);
         add(onResource);
 
         Label enabledTooltip = new Label(ID_T_ENABLED);

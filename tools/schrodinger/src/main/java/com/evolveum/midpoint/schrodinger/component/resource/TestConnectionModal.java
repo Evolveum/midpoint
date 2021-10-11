@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.schrodinger.component.resource;
 
 import com.codeborne.selenide.Condition;
@@ -5,7 +11,7 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
-import com.evolveum.midpoint.schrodinger.component.common.ModalBox;
+import com.evolveum.midpoint.schrodinger.component.modal.ModalBox;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -140,8 +146,6 @@ public class TestConnectionModal<T> extends ModalBox<T> {
 
         return isFailure;
     }
-
-    ;
 
     public T clickOk() {
 

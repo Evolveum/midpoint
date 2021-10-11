@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+        xmlns:idfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:my="http://myself.me/schemas/whatever">
+
+        <!-- Resource name. It will be displayed in GUI.  -->
+    <name>Undeclared Filter Element</name>
+
+     <extension>
+         <my:menOnChest xsi:type="xsd:int">15</my:menOnChest>
+     </extension>
+
+         <!-- Reference to the ICF LDAP connector. OID is "virtual" for now. -->
+    <connectorRef type="ConnectorType">
+        <description>Search for LDAP connector type, resolved during import</description>
+        <filter>
+                <q:equal>
+                    <undeclared>FooBar</undeclared>
+                    <q:path>connectorType</q:path>
+                    <q:value>org.identityconnectors.ldap.LdapConnector</q:value>
+                </q:equal>
+
+        </filter>
+    </connectorRef>
+
+        <!-- Configuration section contains configuration of the connector,
+             such as hostnames and passwords -->
+    <connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector" xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
+
+            <!-- Configuration specific for the LDAP connector -->
+        <icfcldap:configurationProperties>
+            <icfcldap:port>1389</icfcldap:port>
+            <icfcldap:host>localhost</icfcldap:host>
+            <icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
+            <icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
+            <icfcldap:credentials>secret</icfcldap:credentials>
+            <icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
+            <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
+            <icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
+        </icfcldap:configurationProperties>
+
+    </connectorConfiguration>
+
+        <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
+    <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
+</resource>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2015-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="0f93d8d4-5fb4-11ea-8571-a3f090bf921f"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <name>Synchronization: Active Directory Chimera (LDAP)</name>
+
+    <taskIdentifier>0f93d8d4-5fb4-11ea-8571-a3f090bf921f</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
+    <objectRef oid="eced6d24-73e3-11e5-8457-93eff15a6b85" xsi:type="c:ResourceType"/>
+    <recurrence>recurring</recurrence>
+    <schedule>
+        <interval>3</interval>
+    </schedule>
+
+</task>

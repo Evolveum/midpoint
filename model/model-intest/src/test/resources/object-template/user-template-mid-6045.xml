@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<objectTemplate oid="f3dbd582-11dc-473f-8b51-a30be5cbd5ce"
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <name>User Template 6045</name>
+
+    <mapping>       <!-- MID-6045 -->
+        <strength>strong</strength>
+        <source>
+            <path>name</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    null
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>assignment</path>
+            <set>
+                <condition>
+                    <script>
+                        <code>
+                            // role that should be removed
+                            assignment?.targetRef?.oid == '00000000-0000-0000-0000-000000000004'
+                        </code>
+                    </script>
+                </condition>
+            </set>
+        </target>
+        <timeFrom>
+            <expression>
+                <script>
+                    <code>
+                        basic.fromNow("P8D")
+                    </code>
+                </script>
+            </expression>
+        </timeFrom>
+    </mapping>
+</objectTemplate>

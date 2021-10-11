@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user oid="065c4592-0787-11ea-af06-f7eae18b6b4a"
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+        xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+    <name>selfmademan</name>
+    <assignment>
+        <targetRef oid="3911cac2-78a6-11e9-8b5e-4b5bdb0c81d5" type="ArchetypeType"/> <!-- Contractor -->
+    </assignment>
+    <archetypeRef oid="3911cac2-78a6-11e9-8b5e-4b5bdb0c81d5"/> <!-- MID-5909 -->
+    <roleMembershipRef oid="3911cac2-78a6-11e9-8b5e-4b5bdb0c81d5"/> <!-- MID-5909 -->
+    <fullName>Self Made Man</fullName>
+</user>

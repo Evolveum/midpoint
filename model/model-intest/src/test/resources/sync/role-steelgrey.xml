@@ -1,0 +1,18 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="3ada6d1a-13a3-495b-943f-5b541a764bf1"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>SteelGrey</name>
+    <inducement>
+        <construction>
+            <resourceRef oid="ff5899c7-8b02-4a0e-8f7d-74c154721d5d" type="c:ResourceType"/> <!--  Dummy Steel Grey -->
+            <kind>account</kind>
+            <intent>default</intent>
+        </construction>
+    </inducement>
+</role>

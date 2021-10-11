@@ -1,65 +1,33 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.testing.sanity;
 
+import static org.testng.AssertJUnit.*;
+
 import static com.evolveum.midpoint.prism.util.PrismAsserts.assertEqualsPolyString;
 import static com.evolveum.midpoint.prism.util.PrismAsserts.assertParentConsistency;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeNotNull;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertNotEmpty;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayJaxb;
-import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValues;
-import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-
+import java.util.*;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.task.api.TaskManagerException;
-import com.evolveum.midpoint.util.exception.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.types.*;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.*;
 import org.opends.server.util.ChangeRecordEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -74,14 +42,24 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -92,12 +70,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.Checker;
@@ -109,49 +82,20 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectShadowChangeDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SelectorQualifiedGetOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.ObjectAlreadyExistsFaultType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import com.evolveum.prism.xml.ns._public.types_3.*;
 
 /**
  * Sanity test suite.
@@ -171,13 +115,13 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  *
  * @author Radovan Semancik
  */
-@ContextConfiguration(locations = {"classpath:ctx-sanity-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-sanity-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestSanity extends AbstractModelIntegrationTest {
 
-	private static final String REPO_DIR_NAME = "src/test/resources/repo/";
-	private static final String REQUEST_DIR_NAME = "src/test/resources/request/";
-	private static final File REQUEST_DIR = new File(REQUEST_DIR_NAME);
+    private static final String REPO_DIR_NAME = "src/test/resources/repo/";
+    private static final String REQUEST_DIR_NAME = "src/test/resources/request/";
+    private static final File REQUEST_DIR = new File(REQUEST_DIR_NAME);
 
     private static final String SYSTEM_CONFIGURATION_FILENAME = REPO_DIR_NAME + "system-configuration.xml";
     private static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
@@ -188,10 +132,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
     private static final String RESOURCE_OPENDJ_FILENAME = REPO_DIR_NAME + "resource-opendj.xml";
     private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
     private static final String RESOURCE_OPENDJ_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
-    protected static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_OPENDJ_NS,"inetOrgPerson");
-	private static final String RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME = "entryUUID";
-	private static final String RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME = "dn";
-
+    protected static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_OPENDJ_NS, "inetOrgPerson");
+    private static final String RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME = "entryUUID";
+    private static final String RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME = "dn";
 
     private static final String RESOURCE_DERBY_FILENAME = REPO_DIR_NAME + "resource-derby.xml";
     private static final String RESOURCE_DERBY_OID = "ef2bc95b-76e0-59e2-86d6-999902d3abab";
@@ -284,7 +227,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     private static final File REQUEST_ACCOUNT_MODIFY_BAD_PATH_FILE = new File(REQUEST_DIR, "account-modify-bad-path.xml");
 
     private static final String LDIF_WILL_FILENAME = REQUEST_DIR_NAME + "will.ldif";
-    private static final File LDIF_WILL_MODIFY_FILE = new File (REQUEST_DIR_NAME, "will-modify.ldif");
+    private static final File LDIF_WILL_MODIFY_FILE = new File(REQUEST_DIR_NAME, "will-modify.ldif");
     private static final String LDIF_WILL_WITHOUT_LOCATION_FILENAME = REQUEST_DIR_NAME + "will-without-location.ldif";
     private static final String WILL_NAME = "wturner";
 
@@ -293,21 +236,18 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     private static final String ACCOUNT_ANGELIKA_FILENAME = REQUEST_DIR_NAME + "account-angelika.xml";
 
-
     private static final String LDIF_ELAINE_FILENAME = REQUEST_DIR_NAME + "elaine.ldif";
     private static final String ELAINE_NAME = "elaine";
 
-    private static final File LDIF_GIBBS_MODIFY_FILE = new File (REQUEST_DIR_NAME, "gibbs-modify.ldif");
+    private static final File LDIF_GIBBS_MODIFY_FILE = new File(REQUEST_DIR_NAME, "gibbs-modify.ldif");
 
-    private static final String  LDIF_HERMAN_FILENAME = REQUEST_DIR_NAME + "herman.ldif";
+    private static final String LDIF_HERMAN_FILENAME = REQUEST_DIR_NAME + "herman.ldif";
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestSanity.class);
+    private static final String NS_MY = "http://whatever.com/my";
+    private static final ItemName MY_SHIP_STATE = new ItemName(NS_MY, "shipState");
+    private static final ItemName MY_DEAD = new ItemName(NS_MY, "dead");
 
-	private static final String NS_MY = "http://whatever.com/my";
-	private static final ItemName MY_SHIP_STATE = new ItemName(NS_MY, "shipState");
-	private static final ItemName MY_DEAD = new ItemName(NS_MY, "dead");
-
-	private static final long WAIT_FOR_LOOP_SLEEP_MILIS = 1000;
+    private static final long WAIT_FOR_LOOP_SLEEP_MILLIS = 1000;
 
     /**
      * Unmarshalled resource definition to reach the embedded OpenDJ instance.
@@ -324,49 +264,49 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     private int lastSyncToken;
 
-    @Autowired(required = true)
+    @Autowired
     private MatchingRuleRegistry matchingRuleRegistry;
 
     // This will get called from the superclass to init the repository
     // It will be called only once
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        LOGGER.trace("initSystem");
-        try{
-        super.initSystem(initTask, initResult);
+        logger.trace("initSystem");
+        try {
+            super.initSystem(initTask, initResult);
 
-        repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, initResult);
-        repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, initResult);
+            repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, initResult);
+            repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, initResult);
 
-        // This should discover the connectors
-        LOGGER.trace("initSystem: trying modelService.postInit()");
-        modelService.postInit(initResult);
-        LOGGER.trace("initSystem: modelService.postInit() done");
+            // This should discover the connectors
+            logger.trace("initSystem: trying modelService.postInit()");
+            modelService.postInit(initResult);
+            logger.trace("initSystem: modelService.postInit() done");
 
-        login(USER_ADMINISTRATOR_NAME);
+            login(USER_ADMINISTRATOR_NAME);
 
-        // We need to add config after calling postInit() so it will not be applied.
-        // we want original logging configuration from the test logback config file, not
-        // the one from the system config.
-        repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, initResult);
+            // We need to add config after calling postInit() so it will not be applied.
+            // we want original logging configuration from the test logback config file, not
+            // the one from the system config.
+            repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, initResult);
 
-        // Add broken connector before importing resources
-        repoAddObjectFromFile(CONNECTOR_BROKEN_FILENAME, initResult);
+            // Add broken connector before importing resources
+            repoAddObjectFromFile(CONNECTOR_BROKEN_FILENAME, initResult);
 
-        // Need to import instead of add, so the (dynamic) connector reference
-        // will be resolved
-        // correctly
-        importObjectFromFile(RESOURCE_OPENDJ_FILENAME, initResult);
-        importObjectFromFile(RESOURCE_BROKEN_FILENAME, initResult);
+            // Need to import instead of add, so the (dynamic) connector reference
+            // will be resolved
+            // correctly
+            importObjectFromFile(RESOURCE_OPENDJ_FILENAME, initResult);
+            importObjectFromFile(RESOURCE_BROKEN_FILENAME, initResult);
 
-        repoAddObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, initResult);
-        repoAddObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
-        repoAddObjectFromFile(ROLE_SAILOR_FILENAME, initResult);
-        repoAddObjectFromFile(ROLE_PIRATE_FILENAME, initResult);
-        repoAddObjectFromFile(ROLE_CAPTAIN_FILENAME, initResult);
-        repoAddObjectFromFile(ROLE_JUDGE_FILENAME, initResult);
-        } catch (Exception ex){
-        	LOGGER.error("erro: {}", ex);
-        	throw ex;
+            repoAddObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, initResult);
+            repoAddObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
+            repoAddObjectFromFile(ROLE_SAILOR_FILENAME, initResult);
+            repoAddObjectFromFile(ROLE_PIRATE_FILENAME, initResult);
+            repoAddObjectFromFile(ROLE_CAPTAIN_FILENAME, initResult);
+            repoAddObjectFromFile(ROLE_JUDGE_FILENAME, initResult);
+        } catch (Exception ex) {
+            logger.error("erro: {}", ex);
+            throw ex;
         }
     }
 
@@ -399,12 +339,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
      */
     @Test
     public void test000Integrity() throws Exception {
-    	final String TEST_NAME = "test000Integrity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         assertNotNull(modelWeb);
         assertNotNull(modelService);
         assertNotNull(repositoryService);
-        assertTrue(isSystemInitialized());
         assertNotNull(taskManager);
 
         assertNotNull(prismContext);
@@ -441,12 +378,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * Repeat self-test when we have all the dependencies on the classpath.
      */
     @Test
-    public void test001SelfTests() throws Exception {
-    	final String TEST_NAME = "test001SelfTests";
-        displayTestTitle(TEST_NAME);
-
+    public void test001SelfTests() {
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSanity.class.getName()+"."+TEST_NAME);
+        Task task = getTestTask();
 
         // WHEN
         OperationResult repositorySelfTestResult = modelDiagnosticService.repositorySelfTest(task);
@@ -461,80 +395,74 @@ public class TestSanity extends AbstractModelIntegrationTest {
         display("Repository self test result", provisioningSelfTestResult);
         // There may be warning about illegal key size on some platforms. As far as it is warning and not error we are OK
         // the system will fall back to a interoperable key size
-		if (provisioningSelfTestResult.getStatus() != OperationResultStatus.SUCCESS && provisioningSelfTestResult.getStatus() != OperationResultStatus.WARNING) {
-			AssertJUnit.fail("Provisioning self-test failed: "+provisioningSelfTestResult);
-		}
-}
-
+        if (provisioningSelfTestResult.getStatus() != OperationResultStatus.SUCCESS && provisioningSelfTestResult.getStatus() != OperationResultStatus.WARNING) {
+            AssertJUnit.fail("Provisioning self-test failed: " + provisioningSelfTestResult);
+        }
+    }
 
     /**
      * Test the testResource method. Expect a complete success for now.
      */
     @Test
     public void test001TestConnectionOpenDJ() throws Exception {
-    	final String TEST_NAME = "test001TestConnectionOpenDJ";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        try{
-        assertNoRepoCache();
+        try {
+            assertNoRepoCache();
 
-        // WHEN
-        OperationResultType result = modelWeb.testResource(RESOURCE_OPENDJ_OID);
+            // WHEN
+            OperationResultType result = modelWeb.testResource(RESOURCE_OPENDJ_OID);
 
-        // THEN
+            // THEN
 
-        assertNoRepoCache();
+            assertNoRepoCache();
 
-        displayJaxb("testResource result:", result, SchemaConstants.C_RESULT);
+            displayJaxb("testResource result:", result, SchemaConstants.C_RESULT);
 
-        TestUtil.assertSuccess("testResource has failed", result);
+            TestUtil.assertSuccess("testResource has failed", result);
 
-        OperationResult opResult = new OperationResult(TestSanity.class.getName() + ".test001TestConnectionOpenDJ");
+            OperationResult opResult = new OperationResult(TestSanity.class.getName() + ".test001TestConnectionOpenDJ");
 
-        PrismObject<ResourceType> resourceOpenDjRepo = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, opResult);
-        resourceTypeOpenDjrepo = resourceOpenDjRepo.asObjectable();
+            PrismObject<ResourceType> resourceOpenDjRepo = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, opResult);
+            resourceTypeOpenDjrepo = resourceOpenDjRepo.asObjectable();
 
-        assertNoRepoCache();
-        assertEquals(RESOURCE_OPENDJ_OID, resourceTypeOpenDjrepo.getOid());
-        display("Initialized OpenDJ resource (respository)", resourceTypeOpenDjrepo);
-        assertNotNull("Resource schema was not generated", resourceTypeOpenDjrepo.getSchema());
-        Element resourceOpenDjXsdSchemaElement = ResourceTypeUtil.getResourceXsdSchema(resourceTypeOpenDjrepo);
-        assertNotNull("Resource schema was not generated", resourceOpenDjXsdSchemaElement);
+            assertNoRepoCache();
+            assertEquals(RESOURCE_OPENDJ_OID, resourceTypeOpenDjrepo.getOid());
+            display("Initialized OpenDJ resource (respository)", resourceTypeOpenDjrepo);
+            assertNotNull("Resource schema was not generated", resourceTypeOpenDjrepo.getSchema());
+            Element resourceOpenDjXsdSchemaElement = ResourceTypeUtil.getResourceXsdSchema(resourceTypeOpenDjrepo);
+            assertNotNull("Resource schema was not generated", resourceOpenDjXsdSchemaElement);
 
-        PrismObject<ResourceType> openDjResourceProvisioninig = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID,
-        		null, null, opResult);
-        display("Initialized OpenDJ resource resource (provisioning)", openDjResourceProvisioninig);
+            PrismObject<ResourceType> openDjResourceProvisioninig = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID,
+                    null, null, opResult);
+            display("Initialized OpenDJ resource resource (provisioning)", openDjResourceProvisioninig);
 
-        PrismObject<ResourceType> openDjResourceModel = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, null, opResult);
-        display("Initialized OpenDJ resource OpenDJ resource (model)", openDjResourceModel);
+            PrismObject<ResourceType> openDjResourceModel = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, null, opResult);
+            display("Initialized OpenDJ resource OpenDJ resource (model)", openDjResourceModel);
 
-        checkOpenDjResource(resourceTypeOpenDjrepo, "repository");
+            checkOpenDjResource(resourceTypeOpenDjrepo, "repository");
 
-        System.out.println("------------------------------------------------------------------");
-        display("OpenDJ resource schema (repo XML)", DOMUtil.serializeDOMToString(ResourceTypeUtil.getResourceXsdSchema(resourceOpenDjRepo)));
-        System.out.println("------------------------------------------------------------------");
+            System.out.println("------------------------------------------------------------------");
+            displayValue("OpenDJ resource schema (repo XML)", DOMUtil.serializeDOMToString(ResourceTypeUtil.getResourceXsdSchema(resourceOpenDjRepo)));
+            System.out.println("------------------------------------------------------------------");
 
-        checkOpenDjResource(openDjResourceProvisioninig.asObjectable(), "provisioning");
-        checkOpenDjResource(openDjResourceModel.asObjectable(), "model");
-        // TODO: model web
-        } catch (Exception ex){
-        	LOGGER.info("exception: " + ex);
-        	throw ex;
+            checkOpenDjResource(openDjResourceProvisioninig.asObjectable(), "provisioning");
+            checkOpenDjResource(openDjResourceModel.asObjectable(), "model");
+            // TODO: model web
+        } catch (Exception ex) {
+            logger.info("exception: " + ex);
+            throw ex;
         }
 
     }
 
     private void checkRepoOpenDjResource() throws ObjectNotFoundException, SchemaException {
-    	OperationResult result = new OperationResult(TestSanity.class.getName()+".checkRepoOpenDjResource");
-    	PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result);
-    	checkOpenDjResource(resource.asObjectable(), "repository");
+        OperationResult result = new OperationResult(TestSanity.class.getName() + ".checkRepoOpenDjResource");
+        PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result);
+        checkOpenDjResource(resource.asObjectable(), "repository");
     }
 
-	/**
+    /**
      * Checks if the resource is internally consistent, if it has everything it should have.
-     *
-     * @throws SchemaException
      */
     private void checkOpenDjResource(ResourceType resource, String source) throws SchemaException {
         assertNotNull("Resource from " + source + " is null", resource);
@@ -553,7 +481,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
             // This is generated on the fly in provisioning
             assertNotNull("Resource from " + source + " has null nativeCapabilities", resource.getCapabilities().getNative());
             assertFalse("Resource from " + source + " has empty nativeCapabilities",
-            		resource.getCapabilities().getNative().getAny().isEmpty());
+                    resource.getCapabilities().getNative().getAny().isEmpty());
         }
         assertNotNull("Resource from " + source + " has null configured capabilities", resource.getCapabilities().getConfigured());
         assertFalse("Resource from " + source + " has empty capabilities", resource.getCapabilities().getConfigured().getAny().isEmpty());
@@ -574,85 +502,82 @@ public class TestSanity extends AbstractModelIntegrationTest {
             // There is simulated activation capability, check if the attribute is in schema.
             QName enableAttrName = capActivation.getStatus().getAttribute();
             ResourceAttributeDefinition enableAttrDef = accountDefinition.findAttributeDefinition(enableAttrName);
-            display("Simulated activation attribute definition", enableAttrDef);
+            displayDumpable("Simulated activation attribute definition", enableAttrDef);
             assertNotNull("No definition for enable attribute " + enableAttrName + " in account (resource from " + source + ")", enableAttrDef);
             assertTrue("Enable attribute " + enableAttrName + " is not ignored (resource from " + source + ")", enableAttrDef.isIgnored());
         }
     }
 
-	private void checkOpenDjSchemaHandling(ResourceType resource, String source) {
-		SchemaHandlingType schemaHandling = resource.getSchemaHandling();
-		for (ResourceObjectTypeDefinitionType resObjectTypeDef: schemaHandling.getObjectType()) {
-			if (resObjectTypeDef.getKind() == ShadowKindType.ACCOUNT) {
-				String name = resObjectTypeDef.getIntent();
-				assertNotNull("Resource "+resource+" from "+source+" has an schemaHandlig account definition without intent", name);
-				assertNotNull("Account type "+name+" in "+resource+" from "+source+" does not have object class", resObjectTypeDef.getObjectClass());
-			}
-			if (resObjectTypeDef.getKind() == ShadowKindType.ENTITLEMENT) {
-				String name = resObjectTypeDef.getIntent();
-				assertNotNull("Resource "+resource+" from "+source+" has an schemaHandlig entitlement definition without intent", name);
-				assertNotNull("Entitlement type "+name+" in "+resource+" from "+source+" does not have object class", resObjectTypeDef.getObjectClass());
-			}
-		}
-	}
+    private void checkOpenDjSchemaHandling(ResourceType resource, String source) {
+        SchemaHandlingType schemaHandling = resource.getSchemaHandling();
+        for (ResourceObjectTypeDefinitionType resObjectTypeDef : schemaHandling.getObjectType()) {
+            if (resObjectTypeDef.getKind() == ShadowKindType.ACCOUNT) {
+                String name = resObjectTypeDef.getIntent();
+                assertNotNull("Resource " + resource + " from " + source + " has an schemaHandlig account definition without intent", name);
+                assertNotNull("Account type " + name + " in " + resource + " from " + source + " does not have object class", resObjectTypeDef.getObjectClass());
+            }
+            if (resObjectTypeDef.getKind() == ShadowKindType.ENTITLEMENT) {
+                String name = resObjectTypeDef.getIntent();
+                assertNotNull("Resource " + resource + " from " + source + " has an schemaHandlig entitlement definition without intent", name);
+                assertNotNull("Entitlement type " + name + " in " + resource + " from " + source + " does not have object class", resObjectTypeDef.getObjectClass());
+            }
+        }
+    }
 
-	private void checkOpenDjConfiguration(PrismObject<ResourceType> resource, String source) {
-		checkOpenResourceConfiguration(resource, CONNECTOR_LDAP_NAMESPACE, "bindPassword", 8, source);
-	}
+    private void checkOpenDjConfiguration(PrismObject<ResourceType> resource, String source) {
+        checkOpenResourceConfiguration(resource, CONNECTOR_LDAP_NAMESPACE, "bindPassword", 8, source);
+    }
 
-	private void checkOpenResourceConfiguration(PrismObject<ResourceType> resource, String connectorNamespace, String credentialsPropertyName,
-			int numConfigProps, String source) {
-		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
-		assertNotNull("No configuration container in "+resource+" from "+source, configurationContainer);
-		PrismContainer<Containerable> configPropsContainer = configurationContainer.findContainer(SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES);
-		assertNotNull("No configuration properties container in "+resource+" from "+source, configPropsContainer);
-		List<? extends Item<?,?>> configProps = configPropsContainer.getValue().getItems();
-		assertEquals("Wrong number of config properties in "+resource+" from "+source, numConfigProps, configProps.size());
-		PrismProperty<Object> credentialsProp = configPropsContainer.findProperty(new ItemName(connectorNamespace,credentialsPropertyName));
-		if (credentialsProp == null) {
-			// The is the heisenbug we are looking for. Just dump the entire damn thing.
-			display("Configuration with the heisenbug", configurationContainer.debugDump());
-		}
-		assertNotNull("No "+credentialsPropertyName+" property in "+resource+" from "+source, credentialsProp);
-		assertEquals("Wrong number of "+credentialsPropertyName+" property value in "+resource+" from "+source, 1, credentialsProp.getValues().size());
-		PrismPropertyValue<Object> credentialsPropertyValue = credentialsProp.getValues().iterator().next();
-		assertNotNull("No "+credentialsPropertyName+" property value in "+resource+" from "+source, credentialsPropertyValue);
-		if (credentialsPropertyValue.isRaw()) {
-			Object rawElement = credentialsPropertyValue.getRawElement();
-			assertTrue("Wrong element class "+rawElement.getClass()+" in "+resource+" from "+source, rawElement instanceof MapXNode);
-//			Element rawDomElement = (Element)rawElement;
-			MapXNode xmap = (MapXNode) rawElement;
-			try{
-			ProtectedStringType protectedType = new ProtectedStringType();
-			prismContext.hacks().parseProtectedType(protectedType, xmap, prismContext, prismContext.getDefaultParsingContext());
-	//		display("LDAP credentials raw element", DOMUtil.serializeDOMToString(rawDomElement));
-//			assertEquals("Wrong credentials element namespace in "+resource+" from "+source, connectorNamespace, rawDomElement.getNamespaceURI());
-//			assertEquals("Wrong credentials element local name in "+resource+" from "+source, credentialsPropertyName, rawDomElement.getLocalName());
-//			Element encryptedDataElement = DOMUtil.getChildElement(rawDomElement, new QName(DOMUtil.NS_XML_ENC, "EncryptedData"));
-			EncryptedDataType encryptedDataType = protectedType.getEncryptedDataType();
-			assertNotNull("No EncryptedData element", encryptedDataType);
-			} catch (SchemaException ex){
-				throw new IllegalArgumentException(ex);
-			}
-//			assertEquals("Wrong EncryptedData element namespace in "+resource+" from "+source, DOMUtil.NS_XML_ENC, encryptedDataType.getNamespaceURI());
-//			assertEquals("Wrong EncryptedData element local name in "+resource+" from "+source, "EncryptedData", encryptedDataType.getLocalName());
-		} else {
-			Object credentials = credentialsPropertyValue.getValue();
-			assertTrue("Wrong type of credentials configuration property in "+resource+" from "+source+": "+credentials.getClass(), credentials instanceof ProtectedStringType);
-			ProtectedStringType credentialsPs = (ProtectedStringType)credentials;
-			EncryptedDataType encryptedData = credentialsPs.getEncryptedDataType();
-			assertNotNull("No EncryptedData element", encryptedData);
-		}
+    private void checkOpenResourceConfiguration(PrismObject<ResourceType> resource, String connectorNamespace, String credentialsPropertyName,
+            int numConfigProps, String source) {
+        PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+        assertNotNull("No configuration container in " + resource + " from " + source, configurationContainer);
+        PrismContainer<Containerable> configPropsContainer = configurationContainer.findContainer(SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES);
+        assertNotNull("No configuration properties container in " + resource + " from " + source, configPropsContainer);
+        Collection<? extends Item<?, ?>> configProps = configPropsContainer.getValue().getItems();
+        assertEquals("Wrong number of config properties in " + resource + " from " + source, numConfigProps, configProps.size());
+        PrismProperty<Object> credentialsProp = configPropsContainer.findProperty(new ItemName(connectorNamespace, credentialsPropertyName));
+        if (credentialsProp == null) {
+            // The is the heisenbug we are looking for. Just dump the entire damn thing.
+            displayValue("Configuration with the heisenbug", configurationContainer.debugDump());
+        }
+        assertNotNull("No " + credentialsPropertyName + " property in " + resource + " from " + source, credentialsProp);
+        assertEquals("Wrong number of " + credentialsPropertyName + " property value in " + resource + " from " + source, 1, credentialsProp.getValues().size());
+        PrismPropertyValue<Object> credentialsPropertyValue = credentialsProp.getValues().iterator().next();
+        assertNotNull("No " + credentialsPropertyName + " property value in " + resource + " from " + source, credentialsPropertyValue);
+        if (credentialsPropertyValue.isRaw()) {
+            Object rawElement = credentialsPropertyValue.getRawElement();
+            assertTrue("Wrong element class " + rawElement.getClass() + " in " + resource + " from " + source, rawElement instanceof MapXNode);
+//            Element rawDomElement = (Element)rawElement;
+            MapXNode xmap = (MapXNode) rawElement;
+            try {
+                ProtectedStringType protectedType = new ProtectedStringType();
+                prismContext.hacks().parseProtectedType(protectedType, xmap, prismContext, prismContext.getDefaultParsingContext());
+                //        display("LDAP credentials raw element", DOMUtil.serializeDOMToString(rawDomElement));
+//            assertEquals("Wrong credentials element namespace in "+resource+" from "+source, connectorNamespace, rawDomElement.getNamespaceURI());
+//            assertEquals("Wrong credentials element local name in "+resource+" from "+source, credentialsPropertyName, rawDomElement.getLocalName());
+//            Element encryptedDataElement = DOMUtil.getChildElement(rawDomElement, new QName(DOMUtil.NS_XML_ENC, "EncryptedData"));
+                EncryptedDataType encryptedDataType = protectedType.getEncryptedDataType();
+                assertNotNull("No EncryptedData element", encryptedDataType);
+            } catch (SchemaException ex) {
+                throw new IllegalArgumentException(ex);
+            }
+//            assertEquals("Wrong EncryptedData element namespace in "+resource+" from "+source, DOMUtil.NS_XML_ENC, encryptedDataType.getNamespaceURI());
+//            assertEquals("Wrong EncryptedData element local name in "+resource+" from "+source, "EncryptedData", encryptedDataType.getLocalName());
+        } else {
+            Object credentials = credentialsPropertyValue.getValue();
+            assertTrue("Wrong type of credentials configuration property in " + resource + " from " + source + ": " + credentials.getClass(), credentials instanceof ProtectedStringType);
+            ProtectedStringType credentialsPs = (ProtectedStringType) credentials;
+            EncryptedDataType encryptedData = credentialsPs.getEncryptedDataType();
+            assertNotNull("No EncryptedData element", encryptedData);
+        }
 
-	}
+    }
 
-	@Test
+    @Test
     public void test002AddDerbyResource() throws Exception {
-		final String TEST_NAME = "test002AddDerbyResource";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestSanity.class.getName() + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         checkRepoOpenDjResource();
         assertNoRepoCache();
@@ -697,17 +622,17 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 .getValue();
         PrismProperty password = configurationProperties.findProperty(new ItemName(dbConnector.asObjectable().getNamespace(), "password"));
         System.out.println("Password property: " + password);
-	}
+    }
 
     private void addObjectViaModelWS(ObjectType objectType, ModelExecuteOptionsType options, Holder<String> oidHolder, Holder<OperationResultType> resultHolder) throws FaultMessage {
-    	ObjectDeltaListType deltaList = new ObjectDeltaListType();
-    	ObjectDeltaType objectDelta = new ObjectDeltaType();
-    	objectDelta.setObjectToAdd(objectType);
-    	QName type = objectType.asPrismObject().getDefinition().getTypeName();
-    	objectDelta.setObjectType(type);
-    	objectDelta.setChangeType(ChangeTypeType.ADD);
-    	deltaList.getDelta().add(objectDelta);
-    	ObjectDeltaOperationListType objectDeltaOperationListType = modelWeb.executeChanges(deltaList, options);
+        ObjectDeltaListType deltaList = new ObjectDeltaListType();
+        ObjectDeltaType objectDelta = new ObjectDeltaType();
+        objectDelta.setObjectToAdd(objectType);
+        QName type = objectType.asPrismObject().getDefinition().getTypeName();
+        objectDelta.setObjectType(type);
+        objectDelta.setChangeType(ChangeTypeType.ADD);
+        deltaList.getDelta().add(objectDelta);
+        ObjectDeltaOperationListType objectDeltaOperationListType = modelWeb.executeChanges(deltaList, options);
         ObjectDeltaOperationType objectDeltaOperationType = getOdoFromDeltaOperationList(objectDeltaOperationListType, objectDelta);
         resultHolder.value = objectDeltaOperationType.getExecutionResult();
         oidHolder.value = ((ObjectType) objectDeltaOperationType.getObjectDelta().getObjectToAdd()).getOid();
@@ -721,7 +646,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
             ObjectDeltaType objectDeltaType = operationType.getObjectDelta();
             if (originalDelta.getChangeType() == ChangeTypeType.ADD) {
                 if (objectDeltaType.getChangeType() == originalDelta.getChangeType() &&
-                    objectDeltaType.getObjectToAdd() != null) {
+                        objectDeltaType.getObjectToAdd() != null) {
                     ObjectType objectAdded = (ObjectType) objectDeltaType.getObjectToAdd();
                     if (objectAdded.getClass().equals(originalDelta.getObjectToAdd().getClass())) {
                         return operationType;
@@ -738,27 +663,24 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     private void checkRepoDerbyResource() throws ObjectNotFoundException, SchemaException {
-    	OperationResult result = new OperationResult(TestSanity.class.getName()+".checkRepoDerbyResource");
-    	PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result);
-    	checkDerbyResource(resource, "repository");
+        OperationResult result = new OperationResult(TestSanity.class.getName() + ".checkRepoDerbyResource");
+        PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result);
+        checkDerbyResource(resource, "repository");
     }
 
-	private void checkDerbyResource(PrismObject<ResourceType> resource, String source) {
-		checkDerbyConfiguration(resource, source);
-	}
+    private void checkDerbyResource(PrismObject<ResourceType> resource, String source) {
+        checkDerbyConfiguration(resource, source);
+    }
 
-	private void checkDerbyConfiguration(PrismObject<ResourceType> resource, String source) {
-		checkOpenResourceConfiguration(resource, CONNECTOR_DBTABLE_NAMESPACE, "password", 10, source);
-	}
-
+    private void checkDerbyConfiguration(PrismObject<ResourceType> resource, String source) {
+        checkOpenResourceConfiguration(resource, CONNECTOR_DBTABLE_NAMESPACE, "password", 10, source);
+    }
 
     /**
      * Test the testResource method. Expect a complete success for now.
      */
     @Test
     public void test003TestConnectionDerby() throws Exception {
-        TestUtil.displayTestTitle("test003TestConnectionDerby");
-
         // GIVEN
 
         checkRepoDerbyResource();
@@ -796,18 +718,16 @@ public class TestSanity extends AbstractModelIntegrationTest {
         display("Initialized Derby resource (model)", derbyResourceModel);
 
         // TODO: check
-//		checkOpenDjResource(resourceOpenDj,"repository");
-//		checkOpenDjResource(openDjResourceProvisioninig,"provisioning");
-//		checkOpenDjResource(openDjResourceModel,"model");
+//        checkOpenDjResource(resourceOpenDj,"repository");
+//        checkOpenDjResource(openDjResourceProvisioninig,"provisioning");
+//        checkOpenDjResource(openDjResourceModel,"model");
         // TODO: model web
 
     }
 
     @Test
-    public void test004Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException,
-            FaultMessage {
-        TestUtil.displayTestTitle("test004Capabilities");
-
+    public void test004Capabilities()
+            throws ObjectNotFoundException, SchemaException, FaultMessage {
         // GIVEN
 
         checkRepoOpenDjResource();
@@ -818,9 +738,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
         Holder<ObjectType> objectHolder = new Holder<>();
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
 
-		// WHEN
+        // WHEN
         modelWeb.getObject(ObjectTypes.RESOURCE.getTypeQName(), RESOURCE_OPENDJ_OID,
-                options , objectHolder, resultHolder);
+                options, objectHolder, resultHolder);
 
         ResourceType resource = (ResourceType) objectHolder.value;
 
@@ -864,72 +784,62 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test005resolveConnectorRef() throws Exception{
+    public void test005resolveConnectorRef() throws Exception {
+        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(RESOURCE_DUMMY_FILENAME));
 
-    	TestUtil.displayTestTitle("test005resolveConnectorRef");
+        ModelExecuteOptionsType options = new ModelExecuteOptionsType();
+        options.setIsImport(Boolean.TRUE);
+        addObjectViaModelWS(resource.asObjectable(), options, new Holder<>(), new Holder<>());
 
-    	PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(RESOURCE_DUMMY_FILENAME));
+        OperationResult repoResult = new OperationResult("getObject");
 
-    	ModelExecuteOptionsType options = new ModelExecuteOptionsType();
-    	options.setIsImport(Boolean.TRUE);
-    	addObjectViaModelWS(resource.asObjectable(), options, new Holder<>(), new Holder<>());
+        PrismObject<ResourceType> uObject = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, repoResult);
+        assertNotNull(uObject);
 
-    	 OperationResult repoResult = new OperationResult("getObject");
-
-         PrismObject<ResourceType> uObject = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, repoResult);
-         assertNotNull(uObject);
-
-         ResourceType resourceType = uObject.asObjectable();
-         assertNotNull("Reference on the connector must not be null in resource.",resourceType.getConnectorRef());
-         assertNotNull("Missing oid reference on the connector",resourceType.getConnectorRef().getOid());
+        ResourceType resourceType = uObject.asObjectable();
+        assertNotNull("Reference on the connector must not be null in resource.", resourceType.getConnectorRef());
+        assertNotNull("Missing oid reference on the connector", resourceType.getConnectorRef().getOid());
 
     }
 
     @Test
-    public void test006reimportResourceDummy() throws Exception{
+    public void test006reimportResourceDummy() throws Exception {
+        //get object from repo (with version set and try to add it - it should be re-added, without error)
+        OperationResult repoResult = new OperationResult("getObject");
 
-    	TestUtil.displayTestTitle("test006reimportResourceDummy");
+        PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, repoResult);
+        assertNotNull(resource);
 
-    	//get object from repo (with version set and try to add it - it should be re-added, without error)
-    	 OperationResult repoResult = new OperationResult("getObject");
-
-         PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, repoResult);
-         assertNotNull(resource);
-
-
-         ModelExecuteOptionsType options = new ModelExecuteOptionsType();
-         options.setOverwrite(Boolean.TRUE);
-         options.setIsImport(Boolean.TRUE);
-     	addObjectViaModelWS(resource.asObjectable(), options, new Holder<>(), new Holder<>());
-
-     	//TODO: add some asserts
-
-
-     	//parse object from file again and try to add it - this should fail, becasue the same object already exists)
-     	resource = PrismTestUtil.parseObject(new File(RESOURCE_DUMMY_FILENAME));
-
-		try {
-     	Holder<OperationResultType> resultHolder = new Holder<>();
-     	options = new ModelExecuteOptionsType();
+        ModelExecuteOptionsType options = new ModelExecuteOptionsType();
+        options.setOverwrite(Boolean.TRUE);
         options.setIsImport(Boolean.TRUE);
-			addObjectViaModelWS(resource.asObjectable(), options, new Holder<>(),
+        addObjectViaModelWS(resource.asObjectable(), options, new Holder<>(), new Holder<>());
+
+        //TODO: add some asserts
+
+        //parse object from file again and try to add it - this should fail, becasue the same object already exists)
+        resource = PrismTestUtil.parseObject(new File(RESOURCE_DUMMY_FILENAME));
+
+        try {
+            Holder<OperationResultType> resultHolder = new Holder<>();
+            options = new ModelExecuteOptionsType();
+            options.setIsImport(Boolean.TRUE);
+            addObjectViaModelWS(resource.asObjectable(), options, new Holder<>(),
                     resultHolder);
 
-			OperationResultType result = resultHolder.value;
-			TestUtil.assertFailure(result);
+            OperationResultType result = resultHolder.value;
+            TestUtil.assertFailure(result);
 
-			fail("Expected object already exists exception, but haven't got one.");
-		} catch (FaultMessage ex) {
-			LOGGER.info("fault {}", ex.getFaultInfo());
-			LOGGER.info("fault {}", ex.getCause());
-			if (ex.getFaultInfo() instanceof ObjectAlreadyExistsFaultType){
-			// this is OK, we expect this
-			} else{
-				fail("Expected object already exists exception, but haven't got one.");
-			}
+            fail("Expected object already exists exception, but haven't got one.");
+        } catch (FaultMessage ex) {
+            logger.info("fault {}", ex.getFaultInfo(), ex.getCause());
+            if (ex.getFaultInfo() instanceof ObjectAlreadyExistsFaultType) {
+                // this is OK, we expect this
+            } else {
+                fail("Expected object already exists exception, but got: " + ex.getFaultInfo());
+            }
 
-		}
-
+        }
 
 //         ResourceType resourceType = uObject.asObjectable();
 //         assertNotNull("Reference on the connector must not be null in resource.",resourceType.getConnectorRef());
@@ -943,9 +853,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
      */
     @Test
     public void test010AddUser() throws Exception {
-    	final String TEST_NAME = "test010AddUser";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         checkRepoOpenDjResource();
         assertNoRepoCache();
@@ -995,135 +902,133 @@ public class TestSanity extends AbstractModelIntegrationTest {
      */
     @Test
     public void test013AddOpenDjAccountToUser() throws Exception {
-    	final String TEST_NAME = "test013AddOpenDjAccountToUser";
-        displayTestTitle(TEST_NAME);
-        try{
-        // GIVEN
-        checkRepoOpenDjResource();
-        assertNoRepoCache();
+        try {
+            // GIVEN
+            checkRepoOpenDjResource();
+            assertNoRepoCache();
 
-        // IMPORTANT! SWITCHING OFF ASSIGNMENT ENFORCEMENT HERE!
-        setAssignmentEnforcement(AssignmentPolicyEnforcementType.NONE);
-        // This is not redundant. It checks that the previous command set the policy correctly
-        assertSyncSettingsAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.NONE);
+            // IMPORTANT! SWITCHING OFF ASSIGNMENT ENFORCEMENT HERE!
+            setAssignmentEnforcement(AssignmentPolicyEnforcementType.NONE);
+            // This is not redundant. It checks that the previous command set the policy correctly
+            assertSyncSettingsAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.NONE);
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
-                REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME, ObjectDeltaType.class);
+            ObjectDeltaType objectChange = unmarshalValueFromFile(
+                    REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME, ObjectDeltaType.class);
 
-        // WHEN
-        displayWhen(TEST_NAME);
-        OperationResultType result = modifyObjectViaModelWS(objectChange);
+            // WHEN
+            when();
+            OperationResultType result = modifyObjectViaModelWS(objectChange);
 
-        // THEN
-        displayThen(TEST_NAME);
-        assertNoRepoCache();
-        displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
-        TestUtil.assertSuccess("modifyObject has failed", result);
+            // THEN
+            then();
+            assertNoRepoCache();
+            displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
+            TestUtil.assertSuccess("modifyObject has failed", result);
 
-        // Check if user object was modified in the repo
+            // Check if user object was modified in the repo
 
-        OperationResult repoResult = new OperationResult("getObject");
+            OperationResult repoResult = new OperationResult("getObject");
 
-        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID, null, repoResult);
-        UserType repoUserType = repoUser.asObjectable();
+            PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID, null, repoResult);
+            UserType repoUserType = repoUser.asObjectable();
 
-        repoResult.computeStatus();
-        TestUtil.assertSuccess("getObject has failed", repoResult);
-        display("User (repository)", repoUser);
+            repoResult.computeStatus();
+            TestUtil.assertSuccess("getObject has failed", repoResult);
+            display("User (repository)", repoUser);
 
-        List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
-        assertEquals("No accountRefs", 1, accountRefs.size());
-        ObjectReferenceType accountRef = accountRefs.get(0);
-        accountShadowOidOpendj = accountRef.getOid();
-        assertFalse(accountShadowOidOpendj.isEmpty());
+            List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
+            assertEquals("No accountRefs", 1, accountRefs.size());
+            ObjectReferenceType accountRef = accountRefs.get(0);
+            accountShadowOidOpendj = accountRef.getOid();
+            assertFalse(accountShadowOidOpendj.isEmpty());
 
-        // Check if shadow was created in the repo
+            // Check if shadow was created in the repo
 
-        repoResult = new OperationResult("getObject");
+            repoResult = new OperationResult("getObject");
 
-        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidOpendj,
-        		null, repoResult);
-        ShadowType repoShadowType = repoShadow.asObjectable();
-        repoResult.computeStatus();
-        TestUtil.assertSuccess("getObject has failed", repoResult);
-        display("Shadow (repository)", repoShadow);
-        assertNotNull(repoShadowType);
-        assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
+            PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidOpendj,
+                    null, repoResult);
+            ShadowType repoShadowType = repoShadow.asObjectable();
+            repoResult.computeStatus();
+            TestUtil.assertSuccess("getObject has failed", repoResult);
+            display("Shadow (repository)", repoShadow);
+            assertNotNull(repoShadowType);
+            assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
 
-        assertNotNull("Shadow stored in repository has no name", repoShadowType.getName());
-        // Check the "name" property, it should be set to DN, not entryUUID
-        assertEquals("Wrong name property", USER_JACK_LDAP_DN.toLowerCase(), repoShadowType.getName().getOrig().toLowerCase());
+            assertNotNull("Shadow stored in repository has no name", repoShadowType.getName());
+            // Check the "name" property, it should be set to DN, not entryUUID
+            assertEquals("Wrong name property", USER_JACK_LDAP_DN.toLowerCase(), repoShadowType.getName().getOrig().toLowerCase());
 
-        // check attributes in the shadow: should be only identifiers (ICF UID)
-        String uid = checkRepoShadow(repoShadow);
+            // check attributes in the shadow: should be only identifiers (ICF UID)
+            String uid = checkRepoShadow(repoShadow);
 
-        // check if account was created in LDAP
+            // check if account was created in LDAP
 
-        Entry entry = openDJController.searchAndAssertByEntryUuid(uid);
+            Entry entry = openDJController.searchAndAssertByEntryUuid(uid);
 
-        display("LDAP account", entry);
+            display("LDAP account", entry);
 
-        OpenDJController.assertAttribute(entry, "uid", "jack");
-        OpenDJController.assertAttribute(entry, "givenName", "Jack");
-        OpenDJController.assertAttribute(entry, "sn", "Sparrow");
-        OpenDJController.assertAttribute(entry, "cn", "Jack Sparrow");
-        OpenDJController.assertAttribute(entry, "displayName", "Jack Sparrow");
-        // The "l" attribute is assigned indirectly through schemaHandling and
-        // config object
-        OpenDJController.assertAttribute(entry, "l", "Black Pearl");
+            OpenDJController.assertAttribute(entry, "uid", "jack");
+            OpenDJController.assertAttribute(entry, "givenName", "Jack");
+            OpenDJController.assertAttribute(entry, "sn", "Sparrow");
+            OpenDJController.assertAttribute(entry, "cn", "Jack Sparrow");
+            OpenDJController.assertAttribute(entry, "displayName", "Jack Sparrow");
+            // The "l" attribute is assigned indirectly through schemaHandling and
+            // config object
+            OpenDJController.assertAttribute(entry, "l", "Black Pearl");
 
-        assertTrue("LDAP account is not enabled", openDJController.isAccountEnabled(entry));
+            assertTrue("LDAP account is not enabled", openDJController.isAccountEnabled(entry));
 
-        originalJacksLdapPassword = OpenDJController.getAttributeValue(entry, "userPassword");
-        assertNotNull("Pasword was not set on create", originalJacksLdapPassword);
-        System.out.println("password after create: " + originalJacksLdapPassword);
+            originalJacksLdapPassword = OpenDJController.getAttributeValue(entry, "userPassword");
+            assertNotNull("Pasword was not set on create", originalJacksLdapPassword);
+            System.out.println("password after create: " + originalJacksLdapPassword);
 
-        // Use getObject to test fetch of complete shadow
+            // Use getObject to test fetch of complete shadow
 
-        assertNoRepoCache();
+            assertNoRepoCache();
 
-        Holder<OperationResultType> resultHolder = new Holder<>();
-        Holder<ObjectType> objectHolder = new Holder<>();
-        SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
+            Holder<OperationResultType> resultHolder = new Holder<>();
+            Holder<ObjectType> objectHolder = new Holder<>();
+            SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
 
-        // WHEN
-        modelWeb.getObject(ObjectTypes.SHADOW.getTypeQName(), accountShadowOidOpendj,
-                options, objectHolder, resultHolder);
+            // WHEN
+            modelWeb.getObject(ObjectTypes.SHADOW.getTypeQName(), accountShadowOidOpendj,
+                    options, objectHolder, resultHolder);
 
-        // THEN
-        assertNoRepoCache();
-        displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
-        TestUtil.assertSuccess("getObject has failed", resultHolder.value);
+            // THEN
+            assertNoRepoCache();
+            displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
+            TestUtil.assertSuccess("getObject has failed", resultHolder.value);
 
-        ShadowType modelShadow = (ShadowType) objectHolder.value;
-        display("Shadow (model)", modelShadow);
+            ShadowType modelShadow = (ShadowType) objectHolder.value;
+            display("Shadow (model)", modelShadow);
 
-        AssertJUnit.assertNotNull(modelShadow);
-        AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, modelShadow.getResourceRef().getOid());
+            AssertJUnit.assertNotNull(modelShadow);
+            AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, modelShadow.getResourceRef().getOid());
 
-        assertAttributeNotNull(modelShadow, getOpenDjPrimaryIdentifierQName());
-        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "uid", "jack");
-        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "givenName", "Jack");
-        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "sn", "Sparrow");
-        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "cn", "Jack Sparrow");
-        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "displayName", "Jack Sparrow");
-        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "l", "Black Pearl");
-        assertNull("carLicense attribute sneaked to LDAP", OpenDJController.getAttributeValue(entry, "carLicense"));
-        assertNull("postalAddress attribute sneaked to LDAP", OpenDJController.getAttributeValue(entry, "postalAddress"));
+            assertAttributeNotNull(modelShadow, getOpenDjPrimaryIdentifierQName());
+            assertAttribute(resourceTypeOpenDjrepo, modelShadow, "uid", "jack");
+            assertAttribute(resourceTypeOpenDjrepo, modelShadow, "givenName", "Jack");
+            assertAttribute(resourceTypeOpenDjrepo, modelShadow, "sn", "Sparrow");
+            assertAttribute(resourceTypeOpenDjrepo, modelShadow, "cn", "Jack Sparrow");
+            assertAttribute(resourceTypeOpenDjrepo, modelShadow, "displayName", "Jack Sparrow");
+            assertAttribute(resourceTypeOpenDjrepo, modelShadow, "l", "Black Pearl");
+            assertNull("carLicense attribute sneaked to LDAP", OpenDJController.getAttributeValue(entry, "carLicense"));
+            assertNull("postalAddress attribute sneaked to LDAP", OpenDJController.getAttributeValue(entry, "postalAddress"));
 
-        assertNotNull("Activation is null (model)", modelShadow.getActivation());
-        assertEquals("Wrong administrativeStatus in the shadow (model)", ActivationStatusType.ENABLED, modelShadow.getActivation().getAdministrativeStatus());
-        } catch (Exception ex){
-        	LOGGER.info("ERROR: {}", ex);
-        	throw ex;
+            assertNotNull("Activation is null (model)", modelShadow.getActivation());
+            assertEquals("Wrong administrativeStatus in the shadow (model)", ActivationStatusType.ENABLED, modelShadow.getActivation().getAdministrativeStatus());
+        } catch (Exception ex) {
+            logger.info("ERROR", ex);
+            throw ex;
         }
 
     }
 
     private OperationResultType modifyObjectViaModelWS(ObjectDeltaType objectChange) throws FaultMessage {
-    	ObjectDeltaListType deltaList = new ObjectDeltaListType();
-    	deltaList.getDelta().add(objectChange);
-    	ObjectDeltaOperationListType list = modelWeb.executeChanges(deltaList, null);
+        ObjectDeltaListType deltaList = new ObjectDeltaListType();
+        deltaList.getDelta().add(objectChange);
+        ObjectDeltaOperationListType list = modelWeb.executeChanges(deltaList, null);
         return getOdoFromDeltaOperationList(list, objectChange).getExecutionResult();
     }
 
@@ -1133,15 +1038,13 @@ public class TestSanity extends AbstractModelIntegrationTest {
      */
     @Test
     public void test014AddDerbyAccountToUser() throws IOException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, DirectoryException, SQLException {
-        TestUtil.displayTestTitle("test014AddDerbyAccountToUser");
-
+            ObjectNotFoundException, SchemaException, SQLException {
         // GIVEN
 
         checkRepoDerbyResource();
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_ADD_ACCOUNT_DERBY_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(),
@@ -1180,7 +1083,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult = new OperationResult("getObject");
 
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidDerby,
-        		null, repoResult);
+                null, repoResult);
         ShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         TestUtil.assertSuccess("addObject has failed", repoResult);
@@ -1190,7 +1093,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Check the "name" property, it should be set to DN, not entryUUID
         assertEquals("Wrong name property", PrismTestUtil.createPolyStringType(USER_JACK_DERBY_LOGIN),
-        		repoShadowType.getName());
+                repoShadowType.getName());
 
         // check attributes in the shadow: should be only identifiers (ICF UID)
         String uid = checkRepoShadow(repoShadow);
@@ -1219,7 +1122,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         Holder<OperationResultType> resultHolder = new Holder<>();
         Holder<ObjectType> objectHolder = new Holder<>();
-        SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType ();
+        SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
 
         // WHEN
         modelWeb.getObject(ObjectTypes.SHADOW.getTypeQName(), accountShadowOidDerby,
@@ -1243,9 +1146,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test015AccountOwner() throws FaultMessage, ObjectNotFoundException, SchemaException, JAXBException {
-        TestUtil.displayTestTitle("test015AccountOwner");
-
+    public void test015AccountOwner() throws FaultMessage, ObjectNotFoundException, SchemaException {
         // GIVEN
         checkRepoOpenDjResource();
         assertNoRepoCache();
@@ -1270,8 +1171,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     @Test
     public void test016ProvisioningSearchAccountsIterative() throws Exception {
-        TestUtil.displayTestTitle("test016ProvisioningSearchAccountsIterative");
-
         // GIVEN
         OperationResult result = new OperationResult(TestSanity.class.getName() + ".test016ProvisioningSearchAccountsIterative");
 
@@ -1303,10 +1202,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 String icfName = getNormalizedAttributeValue(shadow, refinedAccountDefinition, getOpenDjSecondaryIdentifierQName());
                 assertNotNull("No ICF NAME", icfName);
                 try {
-					PrismAsserts.assertEquals("Wrong shadow name", caseIgnoreMatchingRule, shadow.getName().getOrig(), icfName);
-				} catch (SchemaException e) {
-					throw new IllegalArgumentException(e.getMessage(),e);
-				}
+                    PrismAsserts.assertEquals("Wrong shadow name", caseIgnoreMatchingRule, shadow.getName().getOrig(), icfName);
+                } catch (SchemaException e) {
+                    throw new IllegalArgumentException(e.getMessage(), e);
+                }
                 assertNotNull("Missing LDAP uid", getAttributeValue(shadow, new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "uid")));
                 assertNotNull("Missing LDAP cn", getAttributeValue(shadow, new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "cn")));
                 assertNotNull("Missing LDAP sn", getAttributeValue(shadow, new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "sn")));
@@ -1322,7 +1221,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // THEN
 
-        display("Count", objects.size());
+        displayValue("Count", objects.size());
     }
 
     /**
@@ -1331,13 +1230,11 @@ public class TestSanity extends AbstractModelIntegrationTest {
      */
     @Test
     public void test020ModifyUser() throws Exception {
-    	final String TEST_NAME = "test020ModifyUser";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_FULLNAME_LOCALITY_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(),
@@ -1364,7 +1261,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
         assertEquals(2, accountRefs.size());
         for (ObjectReferenceType accountRef : accountRefs) {
-            assertTrue("No OID in "+accountRef+" in "+repoUserType,
+            assertTrue("No OID in " + accountRef + " in " + repoUserType,
                     accountRef.getOid().equals(accountShadowOidOpendj) ||
                             accountRef.getOid().equals(accountShadowOidDerby));
 
@@ -1390,37 +1287,37 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     private Entry assertOpenDJAccountJack(String entryUuid, String uid) throws DirectoryException {
-    	Entry entry = openDJController.searchAndAssertByEntryUuid(entryUuid);
-    	return assertOpenDJAccountJack(entry, uid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(entryUuid);
+        return assertOpenDJAccountJack(entry, uid);
     }
 
     private Entry assertOpenDJAccountJack(Entry entry, String uid) throws DirectoryException {
-    	return assertOpenDJAccountJack(entry, uid, "Jack");
+        return assertOpenDJAccountJack(entry, uid, "Jack");
     }
 
     private Entry assertOpenDJAccountJack(Entry entry, String uid, String givenName) throws DirectoryException {
         display(entry);
 
-	    OpenDJController.assertDn(entry, "uid="+uid+",ou=people,dc=example,dc=com");
-	    OpenDJController.assertAttribute(entry, "uid", uid);
-	    if (givenName == null) {
-	    	OpenDJController.assertAttribute(entry, "givenName");
-	    } else {
-	    	OpenDJController.assertAttribute(entry, "givenName", givenName);
-	    }
-	    OpenDJController.assertAttribute(entry, "sn", "Sparrow");
-	    // These two should be assigned from the User modification by
-	    // schemaHandling
-	    OpenDJController.assertAttribute(entry, "cn", "Cpt. Jack Sparrow");
-	    OpenDJController.assertAttribute(entry, "displayName", "Cpt. Jack Sparrow");
-		// This will get translated from "somewhere" to this (outbound
-		// expression in schemeHandling) -> this is not more supported...we
-		// don't support complex run-time properties. the value will be
-		// evaluated from outbound expression
-	    OpenDJController.assertAttribute(entry, "l", "somewhere");
-	    OpenDJController.assertAttribute(entry, "postalAddress", "Number 1");
+        OpenDJController.assertDn(entry, "uid=" + uid + ",ou=people,dc=example,dc=com");
+        OpenDJController.assertAttribute(entry, "uid", uid);
+        if (givenName == null) {
+            OpenDJController.assertAttribute(entry, "givenName");
+        } else {
+            OpenDJController.assertAttribute(entry, "givenName", givenName);
+        }
+        OpenDJController.assertAttribute(entry, "sn", "Sparrow");
+        // These two should be assigned from the User modification by
+        // schemaHandling
+        OpenDJController.assertAttribute(entry, "cn", "Cpt. Jack Sparrow");
+        OpenDJController.assertAttribute(entry, "displayName", "Cpt. Jack Sparrow");
+        // This will get translated from "somewhere" to this (outbound
+        // expression in schemeHandling) -> this is not more supported...we
+        // don't support complex run-time properties. the value will be
+        // evaluated from outbound expression
+        OpenDJController.assertAttribute(entry, "l", "somewhere");
+        OpenDJController.assertAttribute(entry, "postalAddress", "Number 1");
 
-	    return entry;
+        return entry;
     }
 
     /**
@@ -1429,11 +1326,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
      */
     @Test
     public void test022ChangeUserPassword() throws Exception {
-    	final String TEST_NAME = "test022ChangeUserPassword";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_PASSWORD_FILENAME, ObjectDeltaType.class);
 
         System.out.println("In modification: " + objectChange.getItemDelta().get(0).getValue().get(0));
@@ -1451,9 +1346,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
      */
     @Test
     public void test023ChangeUserPasswordJAXB() throws Exception {
-    	final String TEST_NAME = "test023ChangeUserPasswordJAXB";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         final String NEW_PASSWORD = "abandonSHIP";
         Document doc = ModelClientUtil.getDocumnent();
@@ -1481,7 +1373,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertUserPasswordChange(NEW_PASSWORD, result);
     }
 
-    private void assertUserPasswordChange(String expectedUserPassword, OperationResultType result) throws JAXBException, ObjectNotFoundException, SchemaException, DirectoryException, EncryptionException {
+    private void assertUserPasswordChange(String expectedUserPassword, OperationResultType result) throws ObjectNotFoundException, SchemaException, DirectoryException, EncryptionException {
         assertNoRepoCache();
         displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
         TestUtil.assertSuccess("modifyObject has failed", result);
@@ -1523,33 +1415,30 @@ public class TestSanity extends AbstractModelIntegrationTest {
         String ldapPasswordAfter = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull(ldapPasswordAfter);
 
-        display("LDAP password after change", ldapPasswordAfter);
+        displayValue("LDAP password after change", ldapPasswordAfter);
 
         assertFalse("No change in password (original)", ldapPasswordAfter.equals(originalJacksLdapPassword));
         if (lastJacksLdapPassword != null) {
-        	assertFalse("No change in password (last)", ldapPasswordAfter.equals(lastJacksLdapPassword));
+            assertFalse("No change in password (last)", ldapPasswordAfter.equals(lastJacksLdapPassword));
         }
         lastJacksLdapPassword = ldapPasswordAfter;
     }
 
     @Test
     public void test027ModifyAccountDj() throws Exception {
-    	final String TEST_NAME = "test027ModifyAccountDj";
-        testModifyAccountDjRoomNumber(TEST_NAME, REQUEST_ACCOUNT_MODIFY_ROOM_NUMBER_FILE, "quarterdeck");
+        testModifyAccountDjRoomNumber(REQUEST_ACCOUNT_MODIFY_ROOM_NUMBER_FILE, "quarterdeck");
     }
 
     @Test
     public void test028ModifyAccountDjExplicitType() throws Exception {
-    	final String TEST_NAME = "test028ModifyAccountDjExplicitType";
-        testModifyAccountDjRoomNumber(TEST_NAME, REQUEST_ACCOUNT_MODIFY_ROOM_NUMBER_EXPLICIT_TYPE_FILE, "upperdeck");
+        testModifyAccountDjRoomNumber(REQUEST_ACCOUNT_MODIFY_ROOM_NUMBER_EXPLICIT_TYPE_FILE, "upperdeck");
     }
 
-    public void testModifyAccountDjRoomNumber(final String TEST_NAME, File reqFile, String expectedVal) throws Exception {
-        displayTestTitle(TEST_NAME);
+    public void testModifyAccountDjRoomNumber(File reqFile, String expectedVal) throws Exception {
         // GIVEN
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(reqFile, ObjectDeltaType.class);
+        ObjectDeltaType objectChange = unmarshalValueFromFile(reqFile, ObjectDeltaType.class);
         objectChange.setOid(accountShadowOidOpendj);
 
         // WHEN
@@ -1578,28 +1467,25 @@ public class TestSanity extends AbstractModelIntegrationTest {
         OpenDJController.assertAttribute(jackLdapEntry, "roomNumber", expectedVal);
     }
 
-
     @Test
     public void test029ModifyAccountDjBadPath() throws Exception {
-    	final String TEST_NAME = "test029ModifyAccountDjBadPath";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_ACCOUNT_MODIFY_BAD_PATH_FILE, ObjectDeltaType.class);
         objectChange.setOid(accountShadowOidOpendj);
 
         OperationResultType result;
         try {
-	        // WHEN
-	        result = modifyObjectViaModelWS(objectChange);
+            // WHEN
+            result = modifyObjectViaModelWS(objectChange);
 
-	        AssertJUnit.fail("Unexpected success");
+            AssertJUnit.fail("Unexpected success");
         } catch (FaultMessage f) {
-        	// this is expected
-        	FaultType faultInfo = f.getFaultInfo();
-        	result = faultInfo.getOperationResult();
+            // this is expected
+            FaultType faultInfo = f.getFaultInfo();
+            result = faultInfo.getOperationResult();
         }
 
         // THEN
@@ -1630,28 +1516,25 @@ public class TestSanity extends AbstractModelIntegrationTest {
      */
     @Test
     public void test030DisableUser() throws Exception {
-    	final String TEST_NAME = "test030DisableUser";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_ACTIVATION_DISABLE_FILENAME, ObjectDeltaType.class);
 
         Entry entry = openDJController.searchByUid("jack");
         assertOpenDJAccountJack(entry, "jack");
 
         String pwpAccountDisabled = OpenDJController.getAttributeValue(entry, "ds-pwp-account-disabled");
-        display("ds-pwp-account-disabled before change", pwpAccountDisabled);
+        displayValue("ds-pwp-account-disabled before change", pwpAccountDisabled);
         assertTrue("LDAP account is not enabled (precondition)", openDJController.isAccountEnabled(entry));
 
         assertNoRepoCache();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         OperationResultType result = modifyObjectViaModelWS(objectChange);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertNoRepoCache();
         displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
         TestUtil.assertSuccess("modifyObject has failed", result);
@@ -1671,7 +1554,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
         assertEquals(2, accountRefs.size());
         for (ObjectReferenceType accountRef : accountRefs) {
-            assertTrue("No OID in "+accountRef+" in "+repoUserType,
+            assertTrue("No OID in " + accountRef + " in " + repoUserType,
                     accountRef.getOid().equals(accountShadowOidOpendj) ||
                             accountRef.getOid().equals(accountShadowOidDerby));
         }
@@ -1697,7 +1580,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertOpenDJAccountJack(entry, "jack");
 
         pwpAccountDisabled = OpenDJController.getAttributeValue(entry, "ds-pwp-account-disabled");
-        display("ds-pwp-account-disabled after change", pwpAccountDisabled);
+        displayValue("ds-pwp-account-disabled after change", pwpAccountDisabled);
         assertFalse("LDAP account was not disabled", openDJController.isAccountEnabled(entry));
 
         // Use getObject to test fetch of complete shadow
@@ -1708,12 +1591,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNoRepoCache();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelWeb.getObject(ObjectTypes.SHADOW.getTypeQName(), accountShadowOidOpendj,
                 options, objectHolder, resultHolder);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertNoRepoCache();
         displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
         TestUtil.assertSuccess("getObject has failed", resultHolder.value);
@@ -1743,11 +1626,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
      */
     @Test
     public void test031EnableUser() throws Exception {
-    	final String TEST_NAME = "test031EnableUser";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_ACTIVATION_ENABLE_FILENAME, ObjectDeltaType.class);
         assertNoRepoCache();
 
@@ -1774,7 +1654,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         List<ObjectReferenceType> accountRefs = repoUser.getLinkRef();
         assertEquals(2, accountRefs.size());
         for (ObjectReferenceType accountRef : accountRefs) {
-            assertTrue("No OID in "+accountRef+" in "+repoUser,
+            assertTrue("No OID in " + accountRef + " in " + repoUser,
                     accountRef.getOid().equals(accountShadowOidOpendj) ||
                             accountRef.getOid().equals(accountShadowOidDerby));
         }
@@ -1783,7 +1663,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult = new OperationResult("getObject");
 
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidOpendj,
-        		null, repoResult);
+                null, repoResult);
         ShadowType repoShadowType = repoShadow.asObjectable();
 
         repoResult.computeStatus();
@@ -1845,10 +1725,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * The account will not be deleted, just the association to user will be broken.
      */
     @Test
-    public void test040UnlinkDerbyAccountFromUser() throws FileNotFoundException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, DirectoryException, SQLException {
-        TestUtil.displayTestTitle("test040UnlinkDerbyAccountFromUser");
-
+    public void test040UnlinkDerbyAccountFromUser()
+            throws FaultMessage, ObjectNotFoundException, SchemaException {
         // GIVEN
 
         ObjectDeltaType objectChange = new ObjectDeltaType();
@@ -1887,7 +1765,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // only OpenDJ account should be left now
         assertEquals(1, accountRefs.size());
         ObjectReferenceType ref = accountRefs.get(0);
-        assertEquals("Wrong OID in accountRef in "+repoUser, accountShadowOidOpendj, ref.getOid());
+        assertEquals("Wrong OID in accountRef in " + repoUser, accountShadowOidOpendj, ref.getOid());
 
     }
 
@@ -1896,10 +1774,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * The account was unlinked in the previous test, therefore no operation with user is needed.
      */
     @Test
-    public void test041DeleteDerbyAccount() throws FileNotFoundException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, DirectoryException, SQLException {
-        TestUtil.displayTestTitle("test041DeleteDerbyAccount");
-
+    public void test041DeleteDerbyAccount()
+            throws FaultMessage, SchemaException, SQLException {
         // GIVEN
 
         assertNoRepoCache();
@@ -1917,7 +1793,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         try {
             repositoryService.getObject(ShadowType.class, accountShadowOidDerby,
-            		null, repoResult);
+                    null, repoResult);
             AssertJUnit.fail("Shadow was not deleted");
         } catch (ObjectNotFoundException ex) {
             display("Caught expected exception from getObject(shadow): " + ex);
@@ -1935,25 +1811,22 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     private OperationResultType deleteObjectViaModelWS(QName typeQName, String oid) throws FaultMessage {
-    	ObjectDeltaListType deltaList = new ObjectDeltaListType();
-    	ObjectDeltaType objectDelta = new ObjectDeltaType();
-    	objectDelta.setOid(oid);
-    	objectDelta.setObjectType(typeQName);
-    	objectDelta.setChangeType(ChangeTypeType.DELETE);
-    	deltaList.getDelta().add(objectDelta);
-    	ObjectDeltaOperationListType list = modelWeb.executeChanges(deltaList, null);
+        ObjectDeltaListType deltaList = new ObjectDeltaListType();
+        ObjectDeltaType objectDelta = new ObjectDeltaType();
+        objectDelta.setOid(oid);
+        objectDelta.setObjectType(typeQName);
+        objectDelta.setChangeType(ChangeTypeType.DELETE);
+        deltaList.getDelta().add(objectDelta);
+        ObjectDeltaOperationListType list = modelWeb.executeChanges(deltaList, null);
         return getOdoFromDeltaOperationList(list, objectDelta).getExecutionResult();
     }
 
     @Test
     public void test047RenameUser() throws Exception {
-    	final String TEST_NAME = "test047RenameUser";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_NAME_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(),
@@ -1981,8 +1854,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
         List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
         assertEquals(1, accountRefs.size());
         ObjectReferenceType accountRef = accountRefs.iterator().next();
-        assertEquals("Wrong OID in "+accountRef+" in "+repoUserType,
-        		accountShadowOidOpendj, accountRef.getOid());
+        assertEquals("Wrong OID in " + accountRef + " in " + repoUserType,
+                accountShadowOidOpendj, accountRef.getOid());
 
         // Check if shadow is still in the repo and that it is untouched
 
@@ -2003,21 +1876,15 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertOpenDJAccountJack(uid, "jsparrow");
     }
 
-
     /**
      * We are going to modify the user. As the user has an account, the user
      * changes should be also applied to the account (by schemaHandling).
-     *
-     * @throws DirectoryException
      */
     @Test
     public void test048ModifyUserRemoveGivenName() throws Exception {
-    	final String TEST_NAME = "test048ModifyUserRemoveGivenName";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         assertNoRepoCache();
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_GIVENNAME_FILENAME, ObjectDeltaType.class);
         displayJaxb("objectChange:", objectChange, SchemaConstants.T_OBJECT_DELTA);
 
@@ -2069,12 +1936,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
     /**
      * The user should have an account now. Let's try to delete the user. The
      * account should be gone as well.
-     *
-     * @throws JAXBException
      */
     @Test
-    public void test049DeleteUser() throws SchemaException, FaultMessage, DirectoryException, JAXBException {
-        TestUtil.displayTestTitle("test049DeleteUser");
+    public void test049DeleteUser() throws SchemaException, FaultMessage, DirectoryException {
         // GIVEN
 
         assertNoRepoCache();
@@ -2118,9 +1982,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     @Test
     public void test100AssignRolePirate() throws Exception {
-    	final String TEST_NAME = "test100AssignRolePirate";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
 
         // IMPORTANT! Assignment enforcement is FULL now
@@ -2144,7 +2005,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNoRepoCache();
         TestUtil.assertSuccess("addObject has failed", resultHolder.value);
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_ADD_ROLE_PIRATE_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(),
@@ -2175,7 +2036,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult = new OperationResult("getObject");
 
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidGuybrushOpendj,
-        		null, repoResult);
+                null, repoResult);
         ShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         TestUtil.assertSuccess("getObject has failed", repoResult);
@@ -2214,9 +2075,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     @Test
     public void test101AccountOwnerAfterRole() throws Exception {
-    	final String TEST_NAME = "test101AccountOwnerAfterRole";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
 
         assertNoRepoCache();
@@ -2238,15 +2096,11 @@ public class TestSanity extends AbstractModelIntegrationTest {
         System.out.println("Account " + accountShadowOidGuybrushOpendj + " has owner " + ObjectTypeUtil.toShortString(user));
     }
 
-
     @Test
     public void test102AssignRoleCaptain() throws Exception {
-    	final String TEST_NAME = "test102AssignRoleCaptain";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_1_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(),
@@ -2276,7 +2130,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult = new OperationResult("getObject");
 
         PrismObject<ShadowType> aObject = repositoryService.getObject(ShadowType.class, accountShadowOidGuybrushOpendj,
-        		null, repoResult);
+                null, repoResult);
         ShadowType repoShadow = aObject.asObjectable();
         repoResult.computeStatus();
         TestUtil.assertSuccess("getObject has failed", repoResult);
@@ -2317,18 +2171,14 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     }
 
-
     /**
      * Assign the same "captain" role again, this time with a slightly different assignment parameters.
      */
     @Test
     public void test103AssignRoleCaptainAgain() throws Exception {
-    	final String TEST_NAME = "test103AssignRoleCaptainAgain";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_2_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(),
@@ -2358,7 +2208,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult = new OperationResult("getObject");
 
         PrismObject<ShadowType> aObject = repositoryService.getObject(ShadowType.class, accountShadowOidGuybrushOpendj,
-        		null, repoResult);
+                null, repoResult);
         ShadowType repoShadow = aObject.asObjectable();
         repoResult.computeStatus();
         TestUtil.assertSuccess("getObject has failed", repoResult);
@@ -2399,15 +2249,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     }
 
-
     @Test
     public void test105ModifyAccount() throws Exception {
-    	final String TEST_NAME = "test105ModifyAccount";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_ACCOUNT_MODIFY_ATTRS_FILE, ObjectDeltaType.class);
         objectChange.setOid(accountShadowOidGuybrushOpendj);
 
@@ -2415,33 +2260,32 @@ public class TestSanity extends AbstractModelIntegrationTest {
         OperationResultType result = modifyObjectViaModelWS(objectChange);
 
         Task task = taskManager.createTaskInstance();
-        OperationResult parentResult = new OperationResult(TEST_NAME + "-get after first modify");
-        PrismObject<ShadowType> shadow= modelService.getObject(ShadowType.class, accountShadowOidGuybrushOpendj, null, task, parentResult);
+        OperationResult parentResult = createOperationResult("get after first modify");
+        PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, accountShadowOidGuybrushOpendj, null, task, parentResult);
         assertNotNull("shadow must not be null", shadow);
 
         ShadowType shadowType = shadow.asObjectable();
         QName employeeTypeQName = new QName(resourceTypeOpenDjrepo.getNamespace(), "employeeType");
         ItemPath employeeTypePath = ItemPath.create(ShadowType.F_ATTRIBUTES, employeeTypeQName);
-        PrismProperty item = shadow.findProperty(employeeTypePath);
+        PrismProperty<String> item = shadow.findProperty(employeeTypePath);
 
-        PropertyDelta deleteDelta = prismContext.deltaFactory().property().create(ShadowType.F_ATTRIBUTES, item.getDefinition().getName(), item.getDefinition());
+        PropertyDelta deleteDelta = prismContext.deltaFactory().property().create(ShadowType.F_ATTRIBUTES, item.getDefinition().getItemName(), item.getDefinition());
 //        PropertyDelta deleteDelta = PropertyDelta.createDelta(employeeTypePath, shadow.getDefinition());
 //        PrismPropertyValue valToDelte = new PrismPropertyValue("A");
 //        valToDelte.setParent(deleteDelta);
-        Collection<PrismPropertyValue> values= item.getValues();
-        for (PrismPropertyValue val : values){
-        	if ("A".equals(val.getValue())){
-        		deleteDelta.addValueToDelete(val.clone());
-        	}
+        Collection<PrismPropertyValue<String>> values = item.getValues();
+        for (PrismPropertyValue val : values) {
+            if ("A".equals(val.getValue())) {
+                deleteDelta.addValueToDelete(val.clone());
+            }
         }
-
 
         ObjectDelta delta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.MODIFY);
         delta.addModification(deleteDelta);
         delta.setOid(accountShadowOidGuybrushOpendj);
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         deltas.add(delta);
-        LOGGER.info("-------->>EXECUTE DELETE MODIFICATION<<------------");
+        logger.info("-------->>EXECUTE DELETE MODIFICATION<<------------");
         modelService.executeChanges(deltas, null, task, parentResult);
 
         // THEN
@@ -2487,28 +2331,24 @@ public class TestSanity extends AbstractModelIntegrationTest {
      */
     @Test
     public void test104AssignRoleJudge() throws Exception {
-    	final String TEST_NAME = "test104AssignRoleJudge";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-
         OperationResultType result = new OperationResultType();
         Holder<OperationResultType> resultHolder = new Holder<>(result);
         Holder<String> oidHolder = new Holder<>();
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_ADD_ROLE_JUDGE_FILENAME, ObjectDeltaType.class);
         try {
 
             // WHEN ObjectTypes.USER.getTypeQName(),
-        	result = modifyObjectViaModelWS(objectChange);
+            result = modifyObjectViaModelWS(objectChange);
 
             // THEN
-        	AssertJUnit.fail("Expected a failure after assigning conflicting roles but nothing happened and life goes on");
+            AssertJUnit.fail("Expected a failure after assigning conflicting roles but nothing happened and life goes on");
         } catch (FaultMessage f) {
-        	// This is expected
-        	// TODO: check if the fault is the right one
+            // This is expected
+            // TODO: check if the fault is the right one
         }
 
         assertNoRepoCache();
@@ -2529,22 +2369,16 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     }
 
-
     @Test
     public void test107UnassignRolePirate() throws Exception {
-    	final String TEST_NAME = "test107UnassignRolePirate";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-
-        OperationResultType result = new OperationResultType();
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_DELETE_ROLE_PIRATE_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(),
-        result = modifyObjectViaModelWS(objectChange);
+        OperationResultType result = modifyObjectViaModelWS(objectChange);
 
         // THEN
         assertNoRepoCache();
@@ -2560,7 +2394,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult.computeStatus();
         display("User (repository)", repoUser);
 
-
         List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
         assertEquals(1, accountRefs.size());
         ObjectReferenceType accountRef = accountRefs.get(0);
@@ -2571,7 +2404,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult = new OperationResult("getObject");
 
         PrismObject<ShadowType> aObject = repositoryService.getObject(ShadowType.class, accountShadowOidGuybrushOpendj,
-        		null, repoResult);
+                null, repoResult);
         ShadowType repoShadow = aObject.asObjectable();
         repoResult.computeStatus();
         TestUtil.assertSuccess("getObject has failed", repoResult);
@@ -2610,24 +2443,18 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // TODO: Derby
 
-
     }
 
     @Test
     public void test108UnassignRoleCaptain() throws Exception {
-    	final String TEST_NAME = "test108UnassignRoleCaptain";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-
-        OperationResultType result = new OperationResultType();
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_1_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(),
-        result = modifyObjectViaModelWS(objectChange);
+        OperationResultType result = modifyObjectViaModelWS(objectChange);
 
         // THEN
         assertNoRepoCache();
@@ -2645,7 +2472,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult.computeStatus();
         display("User (repository)", repoUser);
 
-
         List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
         assertEquals(1, accountRefs.size());
         ObjectReferenceType accountRef = accountRefs.get(0);
@@ -2656,7 +2482,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult = new OperationResult("getObject");
 
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidGuybrushOpendj,
-        		null, repoResult);
+                null, repoResult);
         ShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         TestUtil.assertSuccess("getObject has failed", repoResult);
@@ -2695,7 +2521,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // TODO: Derby
 
-
     }
 
     /**
@@ -2703,19 +2528,15 @@ public class TestSanity extends AbstractModelIntegrationTest {
      */
     @Test
     public void test109UnassignRoleCaptainAgain() throws Exception {
-    	final String TEST_NAME = "test109UnassignRoleCaptainAgain";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
 
-        OperationResultType result = new OperationResultType();
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_2_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(),
-        result = modifyObjectViaModelWS(objectChange);
+        OperationResultType result = modifyObjectViaModelWS(objectChange);
 
         // THEN
         assertNoRepoCache();
@@ -2727,7 +2548,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // Check if user object was modified in the repo
 
         OperationResult repoResult = new OperationResult("getObject");
-        PropertyReferenceListType resolve = new PropertyReferenceListType();
 
         PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_GUYBRUSH_OID, null, repoResult);
         UserType repoUserType = repoUser.asObjectable();
@@ -2743,7 +2563,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         try {
             PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidGuybrushOpendj,
-            		null, repoResult);
+                    null, repoResult);
             AssertJUnit.fail("Account shadow was not deleted from repo");
         } catch (ObjectNotFoundException ex) {
             // This is expected
@@ -2761,7 +2581,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     }
 
-
     // Synchronization tests
 
     /**
@@ -2770,8 +2589,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
      */
     @Test
     public void test300LiveSyncInit() throws Exception {
-    	final String TEST_NAME = "test300LiveSyncInit";
-        displayTestTitle(TEST_NAME);
         // Now it is the right time to add task definition to the repository
         // We don't want it there any sooner, as it may interfere with the
         // previous tests
@@ -2783,11 +2600,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // This is not redundant. It checks that the previous command set the policy correctly
         assertSyncSettingsAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.POSITIVE);
 
-        final OperationResult result = new OperationResult(TestSanity.class.getName()
-                + "." + TEST_NAME);
+        final OperationResult result = createOperationResult();
 
         repoAddObjectFromFile(TASK_OPENDJ_SYNC_FILENAME, result);
-
 
         // We need to wait for a sync interval, so the task scanner has a chance
         // to pick up this
@@ -2795,18 +2610,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         waitFor("Waiting for task manager to pick up the task", new Checker() {
             public boolean check() throws ObjectNotFoundException, SchemaException {
-                Task task = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
+                Task task = taskManager.getTaskPlain(TASK_OPENDJ_SYNC_OID, result);
                 display("Task while waiting for task manager to pick up the task", task);
                 // wait until the task is picked up
                 return task.getLastRunFinishTimestamp() != null;
-//                if (TaskExclusivityStatus.CLAIMED == task.getExclusivityStatus()) {
-//                    // wait until the first run is finished
-//                    if (task.getLastRunFinishTimestamp() == null) {
-//                        return false;
-//                    }
-//                    return true;
-//                }
-//                return false;
             }
 
             @Override
@@ -2817,7 +2624,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Check task status
 
-	    Task task = taskManager.getTask(TASK_OPENDJ_SYNC_OID, retrieveTaskResult(), result);
+        Task task = taskManager.getTaskWithResult(TASK_OPENDJ_SYNC_OID, result);
         result.computeStatus();
         display("getTask result", result);
         TestUtil.assertSuccess("getTask has failed", result);
@@ -2841,7 +2648,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Test for extension. This will also roughly test extension processor
         // and schema processor
-        PrismContainer<?> taskExtension = task.getExtension();
+        PrismContainer<?> taskExtension = task.getExtensionOrClone();
         AssertJUnit.assertNotNull(taskExtension);
         display("Task extension", taskExtension);
         PrismProperty<String> shipStateProp = taskExtension.findProperty(MY_SHIP_STATE);
@@ -2859,43 +2666,40 @@ public class TestSanity extends AbstractModelIntegrationTest {
         OperationResult taskResult = task.getResult();
         AssertJUnit.assertNotNull(taskResult);
 
-         assertTrue("Task result is not a success, it is "+taskResult, taskResult.isSuccess());
+        assertTrue("Task result is not a success, it is " + taskResult, taskResult.isSuccess());
 
-         final Object tokenAfter = findSyncToken(task);
-         display("Sync token after", tokenAfter.toString());
-         lastSyncToken = (Integer)tokenAfter;
+        final Object tokenAfter = findSyncToken(task);
+        displayValue("Sync token after", tokenAfter.toString());
+        lastSyncToken = (Integer) tokenAfter;
 
-         checkAllShadows();
-         
-         // Try without options. The results should NOT be there
-         // MID-4670
-         task = taskManager.getTask(TASK_OPENDJ_SYNC_OID, null, result);
-         taskResult = task.getResult();
-         AssertJUnit.assertNull("Unexpected task result", taskResult);
-         
+        checkAllShadows();
+
+        // Try without options. The results should NOT be there
+        // MID-4670
+        task = taskManager.getTaskPlain(TASK_OPENDJ_SYNC_OID, null, result);
+        taskResult = task.getResult();
+        AssertJUnit.assertNull("Unexpected task result", taskResult);
+
     }
 
-	/**
+    /**
      * Create LDAP object. That should be picked up by liveSync and a user
      * should be created in repo.
      */
     @Test
     public void test301LiveSyncCreate() throws Exception {
-    	final String TEST_NAME = "test301LiveSyncCreate";
-        displayTestTitle(TEST_NAME);
         // Sync task should be running (tested in previous test), so just create
         // new LDAP object.
 
-        final OperationResult result = new OperationResult(TestSanity.class.getName()
-                + "." + TEST_NAME);
-        final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
+        final OperationResult result = createOperationResult();
+        final Task syncCycle = taskManager.getTaskPlain(TASK_OPENDJ_SYNC_OID, result);
         AssertJUnit.assertNotNull(syncCycle);
 
         final Object tokenBefore = findSyncToken(syncCycle);
-        display("Sync token before", tokenBefore.toString());
+        displayValue("Sync token before", tokenBefore.toString());
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         Entry entry = openDJController.addEntryFromLdifFile(LDIF_WILL_FILENAME);
         display("Entry from LDIF", entry);
@@ -2904,11 +2708,11 @@ public class TestSanity extends AbstractModelIntegrationTest {
         basicWaitForSyncChangeDetection(syncCycle, tokenBefore, 2, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         // Search for the user that should be created now
         UserType user = searchUserByName(WILL_NAME);
 
-        PrismAsserts.assertEqualsPolyString("Wrong name.",  WILL_NAME, user.getName());
+        PrismAsserts.assertEqualsPolyString("Wrong name.", WILL_NAME, user.getName());
         assertNotNull(user.getLinkRef());
         assertFalse(user.getLinkRef().isEmpty());
 //        AssertJUnit.assertEquals(user.getName(), WILL_NAME);
@@ -2921,31 +2725,27 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     @Test
     public void test302LiveSyncModify() throws Exception {
-    	final String TEST_NAME = "test302LiveSyncModify";
-        displayTestTitle(TEST_NAME);
-
-        final OperationResult result = new OperationResult(TestSanity.class.getName()
-                + "." + TEST_NAME);
-        final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
+        final OperationResult result = createOperationResult();
+        final Task syncCycle = taskManager.getTaskPlain(TASK_OPENDJ_SYNC_OID, result);
         AssertJUnit.assertNotNull(syncCycle);
 
         int tokenBefore = findSyncToken(syncCycle);
-        display("Sync token before", tokenBefore);
+        displayValue("Sync token before", tokenBefore);
 
         // WHEN
         display("Modifying LDAP entry");
         ChangeRecordEntry entry = openDJController.executeLdifChange(LDIF_WILL_MODIFY_FILE);
 
         // THEN
-        display("Entry from LDIF", entry);
+        displayValue("Entry from LDIF", entry);
 
         // Wait a bit to give the sync cycle time to detect the change
         basicWaitForSyncChangeDetection(syncCycle, tokenBefore, 1, result);
         // Search for the user that should be created now
-        UserType user = searchUserByName (WILL_NAME);
+        UserType user = searchUserByName(WILL_NAME);
 
 //        AssertJUnit.assertEquals(WILL_NAME, user.getName());
-        PrismAsserts.assertEqualsPolyString("Wrong name.",  WILL_NAME, user.getName());
+        PrismAsserts.assertEqualsPolyString("Wrong name.", WILL_NAME, user.getName());
         PrismAsserts.assertEqualsPolyString("wrong givenName", "asdf", user.getGivenName());
 
         assertAndStoreSyncTokenIncrement(syncCycle, 1);
@@ -2954,9 +2754,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     @Test
     public void test303LiveSyncLink() throws Exception {
-    	final String TEST_NAME = "test303LiveSyncLink";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         assertNoRepoCache();
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_E_LINK_ACTION_FILE);
@@ -2977,16 +2774,15 @@ public class TestSanity extends AbstractModelIntegrationTest {
 //        AssertJUnit.assertEquals(userOid, oidHolder.value);
 
         //WHEN
-        displayWhen(TEST_NAME);
-        
+        when();
+
         //create account for e which should be correlated
-        final OperationResult result = new OperationResult(TestSanity.class.getName()
-                + "." + TEST_NAME);
-        final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
+        final OperationResult result = createOperationResult();
+        final Task syncCycle = taskManager.getTaskPlain(TASK_OPENDJ_SYNC_OID, result);
         AssertJUnit.assertNotNull(syncCycle);
 
         int tokenBefore = findSyncToken(syncCycle);
-        display("Sync token before", tokenBefore);
+        displayValue("Sync token before", tokenBefore);
 
         Entry entry = openDJController.addEntryFromLdifFile(LDIF_E_FILENAME_LINK);
         display("Entry from LDIF", entry);
@@ -2995,8 +2791,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
         basicWaitForSyncChangeDetection(syncCycle, tokenBefore, 1, result);
 
         // THEN
-        displayThen(TEST_NAME);
-        
+        then();
+
         //check user and account ref
         userType = searchUserByName("e");
 
@@ -3007,7 +2803,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         String accountOid = accountRefs.get(0).getOid();
         ShadowType account = searchAccountByOid(accountOid);
 
-        assertEqualsPolyString("Name doesn't match",  "uid=e,ou=People,dc=example,dc=com", account.getName());
+        assertEqualsPolyString("Name doesn't match", "uid=e,ou=People,dc=example,dc=com", account.getName());
 
         assertAndStoreSyncTokenIncrement(syncCycle, 1);
         checkAllShadows();
@@ -3020,18 +2816,15 @@ public class TestSanity extends AbstractModelIntegrationTest {
      */
     @Test
     public void test304LiveSyncCreateNoLocation() throws Exception {
-    	final String TEST_NAME = "test304LiveSyncCreateNoLocation";
-        displayTestTitle(TEST_NAME);
         // Sync task should be running (tested in previous test), so just create
         // new LDAP object.
 
-        final OperationResult result = new OperationResult(TestSanity.class.getName()
-                + "." + TEST_NAME);
-        final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
+        final OperationResult result = createOperationResult();
+        final Task syncCycle = taskManager.getTaskPlain(TASK_OPENDJ_SYNC_OID, result);
         AssertJUnit.assertNotNull(syncCycle);
 
         int tokenBefore = findSyncToken(syncCycle);
-        display("Sync token before", tokenBefore);
+        displayValue("Sync token before", tokenBefore);
 
         // WHEN
         Entry entry = openDJController.addEntryFromLdifFile(LDIF_WILL_WITHOUT_LOCATION_FILENAME);
@@ -3051,7 +2844,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         String accountOid = accountRefs.get(0).getOid();
         ShadowType account = searchAccountByOid(accountOid);
 
-        assertEqualsPolyString("Name doesn't match",  "uid=" + userName + ",ou=People,dc=example,dc=com", account.getName());
+        assertEqualsPolyString("Name doesn't match", "uid=" + userName + ",ou=People,dc=example,dc=com", account.getName());
 //        assertEquals("Name doesn't match", "uid=" + userName + ",ou=People,dc=example,dc=com", account.getName());
         Collection<String> localities = getAttributeValues(account, new QName(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS.getNamespaceURI(), "l"));
         assertNotNull("null value list for attribute 'l'", localities);
@@ -3062,27 +2855,27 @@ public class TestSanity extends AbstractModelIntegrationTest {
         checkAllShadows();
     }
 
-	private void assertAndStoreSyncTokenIncrement(Task syncCycle, int increment) {
+    private void assertAndStoreSyncTokenIncrement(Task syncCycle, int increment) {
         final Object tokenAfter = findSyncToken(syncCycle);
-        display("Sync token after", tokenAfter.toString());
-        int tokenAfterInt = (Integer)tokenAfter;
+        displayValue("Sync token after", tokenAfter.toString());
+        int tokenAfterInt = (Integer) tokenAfter;
         int expectedToken = lastSyncToken + increment;
         lastSyncToken = tokenAfterInt;
         assertEquals("Unexpected sync toke value", expectedToken, tokenAfterInt);
-	}
+    }
 
     private int findSyncToken(Task syncCycle) {
-    	return (Integer)findSyncTokenObject(syncCycle);
+        return (Integer) findSyncTokenObject(syncCycle);
     }
 
     private Object findSyncTokenObject(Task syncCycle) {
         Object token = null;
-        PrismProperty<?> tokenProperty = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
+        PrismProperty<?> tokenProperty = syncCycle.getExtensionOrClone().findProperty(SchemaConstants.SYNC_TOKEN);
         if (tokenProperty != null) {
-        	Collection<?> values = tokenProperty.getRealValues();
-        	if (values.size() > 1) {
-        		throw new IllegalStateException("Too must values in token "+tokenProperty);
-        	}
+            Collection<?> values = tokenProperty.getRealValues();
+            if (values.size() > 1) {
+                throw new IllegalStateException("Too must values in token " + tokenProperty);
+            }
             token = values.iterator().next();
         }
 
@@ -3094,10 +2887,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
      */
     @Test
     public void test399LiveSyncCleanup() throws Exception {
-    	final String TEST_NAME = "test399LiveSyncCleanup";
-        displayTestTitle(TEST_NAME);
-        final OperationResult result = new OperationResult(TestSanity.class.getName()
-                + "." + TEST_NAME);
+        final OperationResult result = createOperationResult();
 
         taskManager.deleteTask(TASK_OPENDJ_SYNC_OID, result);
 
@@ -3106,29 +2896,26 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     @Test
     public void test400ImportFromResource() throws Exception {
-    	final String TEST_NAME = "test400ImportFromResource";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         checkAllShadows();
         assertNoRepoCache();
 
-        OperationResult result = new OperationResult(TestSanity.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         // Make sure Mr. Gibbs has "l" attribute set to the same value as an outbound expression is setting
         ChangeRecordEntry entry = openDJController.executeLdifChange(LDIF_GIBBS_MODIFY_FILE);
-        display("Entry from LDIF", entry);
+        displayValue("Entry from LDIF", entry);
 
         // Let's add an entry with multiple uids.
         Entry addEntry = openDJController.addEntryFromLdifFile(LDIF_HERMAN_FILENAME);
         display("Entry from LDIF", addEntry);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         TaskType taskType = modelWeb.importFromResource(RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertNoRepoCache();
         displayJaxb("importFromResource result", taskType.getResult(), SchemaConstants.C_RESULT);
         AssertJUnit.assertEquals("importFromResource has failed", OperationResultStatusType.IN_PROGRESS, taskType.getResult().getStatus());
@@ -3159,14 +2946,14 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 OperationResult opResult = new OperationResult("import check");
                 assertNoRepoCache();
                 SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
-				try {
-					modelWeb.getObject(ObjectTypes.TASK.getTypeQName(), taskOid,
-							options, objectHolder, resultHolder);
-				} catch (FaultMessage faultMessage) {
-					throw new SystemException(faultMessage);
-				}
-				assertNoRepoCache();
-                //				display("getObject result (wait loop)",resultHolder.value);
+                try {
+                    modelWeb.getObject(ObjectTypes.TASK.getTypeQName(), taskOid,
+                            options, objectHolder, resultHolder);
+                } catch (FaultMessage faultMessage) {
+                    throw new SystemException(faultMessage);
+                }
+                assertNoRepoCache();
+                //                display("getObject result (wait loop)",resultHolder.value);
                 TestUtil.assertSuccess("getObject has failed", resultHolder.value);
                 Task task = taskManager.createTaskInstance((PrismObject<TaskType>) objectHolder.value.asPrismObject(), opResult);
                 System.out.println(new Date() + ": Import task status: " + task.getExecutionStatus() + ", progress: " + task.getProgress());
@@ -3174,7 +2961,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                     // Task closed, wait finished
                     return true;
                 }
-                //				IntegrationTestTools.display("Task result while waiting: ", task.getResult());
+                //                IntegrationTestTools.display("Task result while waiting: ", task.getResult());
                 return false;
             }
 
@@ -3205,8 +2992,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
 
-        assertNotNull("Null lastRunStartTimestamp in "+task, task.getLastRunStartTimestamp());
-        assertNotNull("Null lastRunFinishTimestamp in "+task, task.getLastRunFinishTimestamp());
+        assertNotNull("Null lastRunStartTimestamp in " + task, task.getLastRunStartTimestamp());
+        assertNotNull("Null lastRunFinishTimestamp in " + task, task.getLastRunFinishTimestamp());
 
         long importDuration = task.getLastRunFinishTimestamp() - task.getLastRunStartTimestamp();
         double usersPerSec = (task.getProgress() * 1000) / importDuration;
@@ -3236,9 +3023,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
             AssertJUnit.assertNotNull("Null attributes in shadow", shadow.getAttributes());
             String resourceOid = shadow.getResourceRef().getOid();
             if (resourceOid.equals(RESOURCE_OPENDJ_OID)) {
-            	assertAttributeNotNull("No identifier in shadow", shadow, getOpenDjPrimaryIdentifierQName());
+                assertAttributeNotNull("No identifier in shadow", shadow, getOpenDjPrimaryIdentifierQName());
             } else {
-            	assertAttributeNotNull("No UID in shadow", shadow, SchemaConstants.ICFS_UID);
+                assertAttributeNotNull("No UID in shadow", shadow, SchemaConstants.ICFS_UID);
             }
         }
 
@@ -3255,7 +3042,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // TODO: use another account, not guybrush
 
-        display("Users after import "+uobjects.getObject().size());
+        display("Users after import " + uobjects.getObject().size());
 
         for (ObjectType oo : uobjects.getObject()) {
             UserType user = (UserType) oo;
@@ -3275,12 +3062,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
             // be present on user
 
             if (user.getName().getOrig().equals(USER_GUYBRUSH_USERNAME)) {
-            	// skip the rest of checks for guybrush, he does not have LDAP account now
-            	continue;
+                // skip the rest of checks for guybrush, he does not have LDAP account now
+                continue;
             }
 
-            assertTrue("User "+user.getName()+" is disabled ("+user.getActivation().getAdministrativeStatus()+")", user.getActivation() == null ||
-            		user.getActivation().getAdministrativeStatus() == ActivationStatusType.ENABLED);
+            assertTrue("User " + user.getName() + " is disabled (" + user.getActivation().getAdministrativeStatus() + ")", user.getActivation() == null ||
+                    user.getActivation().getAdministrativeStatus() == ActivationStatusType.ENABLED);
 
             List<ObjectReferenceType> accountRefs = user.getLinkRef();
             AssertJUnit.assertEquals("Wrong accountRef for user " + user.getName(), 1, accountRefs.size());
@@ -3304,7 +3091,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
             display("Account after import ", account);
 
             String attributeValueL = ShadowUtil.getMultiStringAttributeValueAsSingle(account,
-            		new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "l"));
+                    new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "l"));
 //            assertEquals("Unexcpected value of l", "middle of nowhere", attributeValueL);
             assertEquals("Unexcpected value of l", getUserLocality(user), attributeValueL);
         }
@@ -3316,30 +3103,25 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     }
 
-    private String getUserLocality(UserType user){
-    	return user.getLocality() != null ? user.getLocality().getOrig() :"middle of nowhere";
+    private String getUserLocality(UserType user) {
+        return user.getLocality() != null ? user.getLocality().getOrig() : "middle of nowhere";
     }
 
     @Test
     public void test420RecomputeUsers() throws Exception {
-    	final String TEST_NAME = "test420RecomputeUsers";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
-        final OperationResult result = new OperationResult(TestSanity.class.getName()
-                + "." + TEST_NAME);
+        final OperationResult result = createOperationResult();
 
         // Assign role to a user, but we do this using a repository instead of model.
         // The role assignment will not be executed and this created an inconsistent state.
-        ObjectDeltaType changeAddRoleCaptain = unmarshallValueFromFile(
+        ObjectDeltaType changeAddRoleCaptain = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_1_FILENAME, ObjectDeltaType.class);
         Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(changeAddRoleCaptain.getItemDelta(),
-        		getUserDefinition());
+                getUserDefinition());
         repositoryService.modifyObject(UserType.class, changeAddRoleCaptain.getOid(), modifications, result);
 
-
         // TODO: setup more "inconsistent" state
-
 
         // Add reconciliation task. This will trigger reconciliation
 
@@ -3351,7 +3133,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         waitFor("Waiting for task to finish", new Checker() {
             public boolean check() throws ObjectNotFoundException, SchemaException {
-                Task task = taskManager.getTask(TASK_USER_RECOMPUTE_OID, result);
+                Task task = taskManager.getTaskPlain(TASK_USER_RECOMPUTE_OID, result);
                 //display("Task while waiting for task manager to pick up the task", task);
                 // wait until the task is finished
                 if (TaskExecutionStatus.CLOSED == task.getExecutionStatus()) {
@@ -3371,7 +3153,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Check task status
 
-        Task task = taskManager.getTask(TASK_USER_RECOMPUTE_OID, retrieveTaskResult(), result);
+        Task task = taskManager.getTaskWithResult(TASK_USER_RECOMPUTE_OID, result);
         result.computeStatus();
         display("getTask result", result);
         TestUtil.assertSuccess("getTask has failed", result);
@@ -3416,7 +3198,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         displayJaxb("User (repository)", repoUser, new QName("user"));
 
         List<ObjectReferenceType> accountRefs = repoUser.getLinkRef();
-        assertEquals("Wrong number of accountRefs after recompute for user "+repoUser.getName(), 1, accountRefs.size());
+        assertEquals("Wrong number of accountRefs after recompute for user " + repoUser.getName(), 1, accountRefs.size());
         ObjectReferenceType accountRef = accountRefs.get(0);
         accountShadowOidGuybrushOpendj = accountRef.getOid();
         assertFalse(accountShadowOidGuybrushOpendj.isEmpty());
@@ -3425,8 +3207,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         repoResult = new OperationResult("getObject");
 
-         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidGuybrushOpendj,
-        		 null, repoResult);
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidGuybrushOpendj,
+                null, repoResult);
         ShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         TestUtil.assertSuccess("getObject has failed", repoResult);
@@ -3465,12 +3247,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     @Test
     public void test440ReconcileResourceOpenDj() throws Exception {
-    	final String TEST_NAME = "test440ReconcileResourceOpenDj";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
-        final OperationResult result = new OperationResult(TestSanity.class.getName()
-                + "." + TEST_NAME);
+        final OperationResult result = createOperationResult();
 
         // Create LDAP account without an owner. The liveSync is off, so it will not be picked up
 
@@ -3500,14 +3279,13 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         repoAddObjectFromFile(TASK_OPENDJ_RECON_FILENAME, result);
 
-
         // We need to wait for a sync interval, so the task scanner has a chance
         // to pick up this
         // task
 
         waitFor("Waiting for task to finish first run", new Checker() {
             public boolean check() throws ObjectNotFoundException, SchemaException {
-                Task task = taskManager.getTask(TASK_OPENDJ_RECON_OID, result);
+                Task task = taskManager.getTaskPlain(TASK_OPENDJ_RECON_OID, result);
                 display("Task while waiting for task manager to pick up the task", task);
                 // wait until the task is finished
                 return task.getLastRunFinishTimestamp() != null;
@@ -3521,7 +3299,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Check task status
 
-        Task task = taskManager.getTask(TASK_OPENDJ_RECON_OID, result);
+        Task task = taskManager.getTaskPlain(TASK_OPENDJ_RECON_OID, result);
         result.computeStatus();
         display("getTask result", result);
         TestUtil.assertSuccess("getTask has failed", result);
@@ -3579,7 +3357,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult = new OperationResult("getObject");
 
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidGuybrushOpendj,
-        		null, repoResult);
+                null, repoResult);
         ShadowType repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         TestUtil.assertSuccess("getObject has failed", repoResult);
@@ -3619,7 +3397,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
         String guybrushPassword = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull("Pasword was not set on create", guybrushPassword);
 
-
 //        QueryType query = QueryUtil.createNameQuery(ELAINE_NAME);
 //        ObjectQuery query = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, ELAINE_NAME));
         ObjectQuery query = ObjectQueryUtil.createNameQuery(ELAINE_NAME, prismContext);
@@ -3647,7 +3424,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         repoResult = new OperationResult("getObject");
 
         repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidElaineOpendj,
-        		null, repoResult);
+                null, repoResult);
         repoShadowType = repoShadow.asObjectable();
         repoResult.computeStatus();
         TestUtil.assertSuccess("getObject has failed", repoResult);
@@ -3686,8 +3463,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     @Test
     public void test480ListResources() throws Exception {
-    	final String TEST_NAME = "test480ListResources";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResultType result = new OperationResultType();
         Holder<OperationResultType> resultHolder = new Holder<>(result);
@@ -3695,29 +3470,27 @@ public class TestSanity extends AbstractModelIntegrationTest {
         Holder<ObjectListType> objectListHolder = new Holder<>();
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
 
-		// WHEN
+        // WHEN
         modelWeb.searchObjects(ObjectTypes.RESOURCE.getTypeQName(), null, options, objectListHolder, resultHolder);
 
         // THEN
 
-        display("Resources", objectListHolder.value);
+        displayValue("Resources", objectListHolder.value);
         assertEquals("Unexpected number of resources", 4, objectListHolder.value.getObject().size());
         // TODO
 
-        for(ObjectType object: objectListHolder.value.getObject()) {
-        	// Marshalling may fail even though the Java object is OK so test for it
-        	String xml = prismContext.serializeObjectToString(object.asPrismObject(), PrismContext.LANG_XML);
+        for (ObjectType object : objectListHolder.value.getObject()) {
+            // Marshalling may fail even though the Java object is OK so test for it
+            String xml = prismContext.xmlSerializer().serialize(object.asPrismObject());
         }
 
     }
 
     @Test
     public void test485ListResourcesWithBrokenResource() throws Exception {
-        TestUtil.displayTestTitle("test485ListResourcesWithBrokenResource");
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSanity.class.getName() + ".test410ListResourcesWithBrokenResource");
-        final OperationResult result = task.getResult();
+        Task task = getTestTask();
+        final OperationResult result = getTestOperationResult();
 
         // WHEN
         List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, null, task, result);
@@ -3746,65 +3519,62 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test500NotifyChangeCreateAccount() throws Exception{
-    	final String TEST_NAME = "test500NotifyChangeCreateAccount";
-		displayTestTitle(TEST_NAME);
-
-    	Entry ldifEntry = openDJController.addEntryFromLdifFile(LDIF_ANGELIKA_FILENAME);
+    public void test500NotifyChangeCreateAccount() throws Exception {
+        Entry ldifEntry = openDJController.addEntryFromLdifFile(LDIF_ANGELIKA_FILENAME);
         display("Entry from LDIF", ldifEntry);
 
         List<Attribute> attributes = ldifEntry.getAttributes();
         List<Attribute> attrs = ldifEntry.getAttribute("entryUUID");
 
         AttributeValue val = null;
-        if (attrs == null){
-        	for (Attribute a : attributes){
-        		if (a.getName().equals("entryUUID")){
-        			val = a.iterator().next();
-        		}
-        	}
-        } else{
-        	val = attrs.get(0).iterator().next();
+        if (attrs == null) {
+            for (Attribute a : attributes) {
+                if (a.getName().equals("entryUUID")) {
+                    val = a.iterator().next();
+                }
+            }
+        } else {
+            val = attrs.get(0).iterator().next();
         }
 
         String entryUuid = val.toString();
 
         ShadowType anglicaAccount = parseObjectType(new File(ACCOUNT_ANGELIKA_FILENAME), ShadowType.class);
         PrismProperty<String> prop = anglicaAccount.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES).getValue().createProperty(
-		        prismContext.definitionFactory().createPropertyDefinition(getOpenDjPrimaryIdentifierQName(), DOMUtil.XSD_STRING));
-    	prop.setRealValue(entryUuid);
-    	anglicaAccount.setResourceRef(ObjectTypeUtil.createObjectRef(RESOURCE_OPENDJ_OID, ObjectTypes.RESOURCE));
+                prismContext.definitionFactory().createPropertyDefinition(getOpenDjPrimaryIdentifierQName(), DOMUtil.XSD_STRING));
+        prop.setRealValue(entryUuid);
+        anglicaAccount.setResourceRef(ObjectTypeUtil.createObjectRef(RESOURCE_OPENDJ_OID, ObjectTypes.RESOURCE));
 
-    	display("Angelica shadow: ", anglicaAccount.asPrismObject().debugDump());
+        displayValue("Angelica shadow: ", anglicaAccount.asPrismObject().debugDump());
 
-    	ResourceObjectShadowChangeDescriptionType changeDescription = new ResourceObjectShadowChangeDescriptionType();
-    	ObjectDeltaType delta = new ObjectDeltaType();
-    	delta.setChangeType(ChangeTypeType.ADD);
-    	delta.setObjectToAdd(anglicaAccount);
-    	delta.setObjectType(ShadowType.COMPLEX_TYPE);
-    	changeDescription.setObjectDelta(delta);
-    	changeDescription.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+        ResourceObjectShadowChangeDescriptionType changeDescription = new ResourceObjectShadowChangeDescriptionType();
+        ObjectDeltaType delta = new ObjectDeltaType();
+        delta.setChangeType(ChangeTypeType.ADD);
+        delta.setObjectToAdd(anglicaAccount);
+        delta.setObjectType(ShadowType.COMPLEX_TYPE);
+        changeDescription.setObjectDelta(delta);
+        changeDescription.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
 
-    	// WHEN
-    	TaskType task = modelWeb.notifyChange(changeDescription);
+        // WHEN
+        TaskType task = modelWeb.notifyChange(changeDescription);
 
-    	// THEN
-    	OperationResult result = OperationResult.createOperationResult(task.getResult());
-    	display(result);
-    	assertSuccess(result);
+        // THEN
+        OperationResult result = OperationResult.createOperationResult(task.getResult());
+        display(result);
+        assertSuccess(result);
 
-    	PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
-    	assertNotNull("User with the name angelika must exist.", userAngelika);
+        PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
+        assertNotNull("User with the name angelika must exist.", userAngelika);
 
-    	UserType user = userAngelika.asObjectable();
-    	assertNotNull("User with the name angelika must have one link ref.", user.getLinkRef());
+        UserType user = userAngelika.asObjectable();
+        assertNotNull("User with the name angelika must have one link ref.", user.getLinkRef());
 
-    	assertEquals("Expected one account ref in user", 1, user.getLinkRef().size());
-    	String oid = user.getLinkRef().get(0).getOid();
+        assertEquals("Expected one account ref in user", 1, user.getLinkRef().size());
+        String oid = user.getLinkRef().get(0).getOid();
 
-    	PrismObject<ShadowType> modelShadow = modelService.getObject(ShadowType.class, oid, null, taskManager.createTaskInstance(), result);
+        PrismObject<ShadowType> modelShadow = modelService.getObject(ShadowType.class, oid, null, taskManager.createTaskInstance(), result);
 
-    	assertAttributeNotNull(modelShadow, getOpenDjPrimaryIdentifierQName());
+        assertAttributeNotNull(modelShadow, getOpenDjPrimaryIdentifierQName());
         assertAttribute(modelShadow, "uid", "angelika");
         assertAttribute(modelShadow, "givenName", "Angelika");
         assertAttribute(modelShadow, "sn", "Marley");
@@ -3813,84 +3583,77 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test501NotifyChangeModifyAccount() throws Exception{
-    	final String TEST_NAME = "test501NotifyChangeModifyAccount";
-    	displayTestTitle(TEST_NAME);
+    public void test501NotifyChangeModifyAccount() throws Exception {
+        PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
+        assertNotNull("User with the name angelika must exist.", userAngelika);
 
-		OperationResult parentResult = new OperationResult(TEST_NAME);
-		PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
-		assertNotNull("User with the name angelika must exist.", userAngelika);
+        UserType user = userAngelika.asObjectable();
+        assertNotNull("User with the name angelika must have one link ref.", user.getLinkRef());
 
-		UserType user = userAngelika.asObjectable();
-		assertNotNull("User with the name angelika must have one link ref.", user.getLinkRef());
+        assertEquals("Expected one account ref in user", 1, user.getLinkRef().size());
+        String oid = user.getLinkRef().get(0).getOid();
 
-		assertEquals("Expected one account ref in user", 1, user.getLinkRef().size());
-		String oid = user.getLinkRef().get(0).getOid();
+        ResourceObjectShadowChangeDescriptionType changeDescription = new ResourceObjectShadowChangeDescriptionType();
+        ObjectDeltaType delta = new ObjectDeltaType();
+        delta.setChangeType(ChangeTypeType.MODIFY);
+        delta.setObjectType(ShadowType.COMPLEX_TYPE);
 
-    	ResourceObjectShadowChangeDescriptionType changeDescription = new ResourceObjectShadowChangeDescriptionType();
-    	ObjectDeltaType delta = new ObjectDeltaType();
-    	delta.setChangeType(ChangeTypeType.MODIFY);
-    	delta.setObjectType(ShadowType.COMPLEX_TYPE);
+        ItemDeltaType mod1 = new ItemDeltaType();
+        mod1.setModificationType(ModificationTypeType.REPLACE);
+        ItemPathType path = new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName")));
+        mod1.setPath(path);
 
-    	ItemDeltaType mod1 = new ItemDeltaType();
-    	mod1.setModificationType(ModificationTypeType.REPLACE);
-    	ItemPathType path = new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName")));
-    	mod1.setPath(path);
-
-    	RawType value = new RawType(prismContext.xnodeFactory().primitive("newAngelika"), prismContext);
+        RawType value = new RawType(prismContext.xnodeFactory().primitive("newAngelika"), prismContext);
         mod1.getValue().add(value);
 
-    	delta.getItemDelta().add(mod1);
-    	delta.setOid(oid);
+        delta.getItemDelta().add(mod1);
+        delta.setOid(oid);
 
-    	LOGGER.info("item delta: {}", SchemaDebugUtil.prettyPrint(mod1));
+        logger.info("item delta: {}", SchemaDebugUtil.prettyPrint(mod1));
 
-    	LOGGER.info("delta: {}", DebugUtil.dump(mod1));
+        logger.info("delta: {}", DebugUtil.dump(mod1));
 
-    	changeDescription.setObjectDelta(delta);
+        changeDescription.setObjectDelta(delta);
 
-    	changeDescription.setOldShadowOid(oid);
-    	changeDescription.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+        changeDescription.setOldShadowOid(oid);
+        changeDescription.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
 
-    	// WHEN
-    	TaskType task = modelWeb.notifyChange(changeDescription);
+        // WHEN
+        TaskType task = modelWeb.notifyChange(changeDescription);
 
-    	// THEN
-    	OperationResult result = OperationResult.createOperationResult(task.getResult());
-    	display(result);
-    	assertSuccess(result);
+        // THEN
+        OperationResult result = OperationResult.createOperationResult(task.getResult());
+        display(result);
+        assertSuccess(result);
 
-    	PrismObject<UserType> userAngelikaAfterSync = findUserByUsername(ANGELIKA_NAME);
-    	assertNotNull("User with the name angelika must exist.", userAngelikaAfterSync);
+        PrismObject<UserType> userAngelikaAfterSync = findUserByUsername(ANGELIKA_NAME);
+        assertNotNull("User with the name angelika must exist.", userAngelikaAfterSync);
 
-    	UserType userAfterSync = userAngelikaAfterSync.asObjectable();
+        UserType userAfterSync = userAngelikaAfterSync.asObjectable();
 
-    	PrismAsserts.assertEqualsPolyString("wrong given name in user angelika", PrismTestUtil.createPolyStringType("newAngelika"), userAfterSync.getGivenName());
+        PrismAsserts.assertEqualsPolyString("wrong given name in user angelika", PrismTestUtil.createPolyStringType("newAngelika"), userAfterSync.getGivenName());
 
     }
 
     @Test
-    public void test502NotifyChangeModifyAccountPassword() throws Exception{
-    	final String TEST_NAME = "test502NotifyChangeModifyAccountPassword";
-    	displayTestTitle(TEST_NAME);
+    public void test502NotifyChangeModifyAccountPassword() throws Exception {
+        PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
+        assertNotNull("User with the name angelika must exist.", userAngelika);
 
-		PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
-		assertNotNull("User with the name angelika must exist.", userAngelika);
+        UserType user = userAngelika.asObjectable();
+        assertNotNull("User with the name angelika must have one link ref.", user.getLinkRef());
 
-		UserType user = userAngelika.asObjectable();
-		assertNotNull("User with the name angelika must have one link ref.", user.getLinkRef());
+        assertEquals("Expected one account ref in user", 1, user.getLinkRef().size());
+        String oid = user.getLinkRef().get(0).getOid();
 
-		assertEquals("Expected one account ref in user", 1, user.getLinkRef().size());
-		String oid = user.getLinkRef().get(0).getOid();
+        String newPassword = "newPassword";
 
-		String newPassword = "newPassword";
+        openDJController.modifyReplace("uid=" + ANGELIKA_NAME + "," + openDJController.getSuffixPeople(), "userPassword", newPassword);
 
-		openDJController.modifyReplace("uid="+ANGELIKA_NAME+","+openDJController.getSuffixPeople(), "userPassword", newPassword);
-
-    	ResourceObjectShadowChangeDescriptionType changeDescription = new ResourceObjectShadowChangeDescriptionType();
-    	ObjectDeltaType delta = new ObjectDeltaType();
-    	delta.setChangeType(ChangeTypeType.MODIFY);
-    	delta.setObjectType(ShadowType.COMPLEX_TYPE);
+        ResourceObjectShadowChangeDescriptionType changeDescription = new ResourceObjectShadowChangeDescriptionType();
+        ObjectDeltaType delta = new ObjectDeltaType();
+        delta.setChangeType(ChangeTypeType.MODIFY);
+        delta.setObjectType(ShadowType.COMPLEX_TYPE);
 
         ItemDeltaType passwordDelta = new ItemDeltaType();
         passwordDelta.setModificationType(ModificationTypeType.REPLACE);
@@ -3899,89 +3662,80 @@ public class TestSanity extends AbstractModelIntegrationTest {
         passwordDelta.getValue().add(passwordValue);
 
         delta.getItemDelta().add(passwordDelta);
-    	delta.setOid(oid);
+        delta.setOid(oid);
 
-    	LOGGER.info("item delta: {}", SchemaDebugUtil.prettyPrint(passwordDelta));
+        logger.info("item delta: {}", SchemaDebugUtil.prettyPrint(passwordDelta));
 
-    	LOGGER.info("delta: {}", DebugUtil.dump(passwordDelta));
+        logger.info("delta: {}", DebugUtil.dump(passwordDelta));
 
-    	changeDescription.setObjectDelta(delta);
+        changeDescription.setObjectDelta(delta);
 
-    	changeDescription.setOldShadowOid(oid);
-//    	changeDescription.setCurrentShadow(angelicaShadowType);
-    	changeDescription.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+        changeDescription.setOldShadowOid(oid);
+//        changeDescription.setCurrentShadow(angelicaShadowType);
+        changeDescription.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
 
-    	// WHEN
-    	TaskType task = modelWeb.notifyChange(changeDescription);
+        // WHEN
+        TaskType task = modelWeb.notifyChange(changeDescription);
 
-    	// THEN
-    	OperationResult result = OperationResult.createOperationResult(task.getResult());
-    	display(result);
-    	assertSuccess(result);
+        // THEN
+        OperationResult result = OperationResult.createOperationResult(task.getResult());
+        display(result);
+        assertSuccess(result);
 
-    	PrismObject<UserType> userAngelikaAfterSync = findUserByUsername(ANGELIKA_NAME);
-    	assertNotNull("User with the name angelika must exist.", userAngelikaAfterSync);
+        PrismObject<UserType> userAngelikaAfterSync = findUserByUsername(ANGELIKA_NAME);
+        assertNotNull("User with the name angelika must exist.", userAngelikaAfterSync);
 
-    	assertUserLdapPassword(userAngelikaAfterSync, newPassword);
-    	
+        assertUserLdapPassword(userAngelikaAfterSync, newPassword);
+
     }
 
     @Test
-    public void test503NotifyChangeDeleteAccount() throws Exception{
-    	final String TEST_NAME = "test503NotifyChangeDeleteAccount";
-    	displayTestTitle(TEST_NAME);
+    public void test503NotifyChangeDeleteAccount() throws Exception {
+        PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
+        assertNotNull("User with the name angelika must exist.", userAngelika);
 
-		PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
-		assertNotNull("User with the name angelika must exist.", userAngelika);
+        UserType user = userAngelika.asObjectable();
+        assertNotNull("User with the name angelika must have one link ref.", user.getLinkRef());
 
-		UserType user = userAngelika.asObjectable();
-		assertNotNull("User with the name angelika must have one link ref.", user.getLinkRef());
+        assertEquals("Expected one account ref in user", 1, user.getLinkRef().size());
+        String oid = user.getLinkRef().get(0).getOid();
 
-		assertEquals("Expected one account ref in user", 1, user.getLinkRef().size());
-		String oid = user.getLinkRef().get(0).getOid();
-
-    	ResourceObjectShadowChangeDescriptionType changeDescription = new ResourceObjectShadowChangeDescriptionType();
-    	ObjectDeltaType delta = new ObjectDeltaType();
-    	delta.setChangeType(ChangeTypeType.DELETE);
-    	delta.setObjectType(ShadowType.COMPLEX_TYPE);
+        ResourceObjectShadowChangeDescriptionType changeDescription = new ResourceObjectShadowChangeDescriptionType();
+        ObjectDeltaType delta = new ObjectDeltaType();
+        delta.setChangeType(ChangeTypeType.DELETE);
+        delta.setObjectType(ShadowType.COMPLEX_TYPE);
         delta.setOid(oid);
-    	changeDescription.setObjectDelta(delta);
-    	changeDescription.setOldShadowOid(oid);
-    	changeDescription.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+        changeDescription.setObjectDelta(delta);
+        changeDescription.setOldShadowOid(oid);
+        changeDescription.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
 
-    	// WHEN
-    	TaskType task = modelWeb.notifyChange(changeDescription);
+        // WHEN
+        TaskType task = modelWeb.notifyChange(changeDescription);
 
-    	// THEN
-    	OperationResult result = OperationResult.createOperationResult(task.getResult());
-    	display(result);
-    	assertTrue(result.isAcceptable());
+        // THEN
+        OperationResult result = OperationResult.createOperationResult(task.getResult());
+        display(result);
+        assertTrue(result.isAcceptable());
 
-    	PrismObject<UserType> userAngelikaAfterSync = findUserByUsername(ANGELIKA_NAME);
-    	display("User after", userAngelikaAfterSync);
-    	assertNotNull("User with the name angelika must exist.", userAngelikaAfterSync);
+        PrismObject<UserType> userAngelikaAfterSync = findUserByUsername(ANGELIKA_NAME);
+        display("User after", userAngelikaAfterSync);
+        assertNotNull("User with the name angelika must exist.", userAngelikaAfterSync);
 
-    	UserType userType = userAngelikaAfterSync.asObjectable();
-    	assertNotNull("User with the name angelika must have one link ref.", userType.getLinkRef());
+        UserType userType = userAngelikaAfterSync.asObjectable();
+        assertNotNull("User with the name angelika must have one link ref.", userType.getLinkRef());
 
-    	assertEquals("Expected no account ref in user", 0, userType.getLinkRef().size());
+        assertEquals("Expected no account ref in user", 0, userType.getLinkRef().size());
 
     }
-
-
 
     @Test
     public void test999Shutdown() throws Exception {
         taskManager.shutdown();
         waitFor("waiting for task manager shutdown", new Checker() {
             @Override
-            public boolean check() throws CommonException {
-				try {
-					return taskManager.getLocallyRunningTasks(new OperationResult("dummy")).isEmpty();
-				} catch (TaskManagerException e) {
-					throw new SystemException(e);
-				}
-			}
+            public boolean check() {
+                return taskManager.getLocallyRunningTasks(new OperationResult("dummy")).isEmpty();
+            }
 
             @Override
             public void timeout() {
@@ -3989,16 +3743,16 @@ public class TestSanity extends AbstractModelIntegrationTest {
             }
         }, 10000);
         AssertJUnit.assertEquals("Some tasks left running after shutdown", new HashSet<Task>(),
-                taskManager.getLocallyRunningTasks(new OperationResult("dummy")));
+                new HashSet<>(taskManager.getLocallyRunningTasks(new OperationResult("dummy"))));
     }
 
     // TODO: test for missing/corrupt system configuration
     // TODO: test for missing sample config (bad reference in expression
     // arguments)
 
-	private String checkRepoShadow(PrismObject<ShadowType> repoShadow) {
-		ShadowType repoShadowType = repoShadow.asObjectable();
-		String uid = null;
+    private String checkRepoShadow(PrismObject<ShadowType> repoShadow) {
+        ShadowType repoShadowType = repoShadow.asObjectable();
+        String uid = null;
         boolean hasOthers = false;
         List<Object> xmlAttributes = repoShadowType.getAttributes().getAny();
         for (Object element : xmlAttributes) {
@@ -4009,27 +3763,27 @@ public class TestSanity extends AbstractModelIntegrationTest {
                     uid = ((Element) element).getTextContent();
                 }
             } else if (SchemaConstants.ICFS_NAME.equals(JAXBUtil.getElementQName(element)) || getOpenDjSecondaryIdentifierQName().equals(JAXBUtil.getElementQName(element))) {
-            	// This is OK
-        	} else {
+                // This is OK
+            } else {
                 hasOthers = true;
             }
         }
 
-        assertFalse("Shadow "+repoShadow+" has unexpected elements", hasOthers);
+        assertFalse("Shadow " + repoShadow + " has unexpected elements", hasOthers);
         assertNotNull(uid);
 
         return uid;
-	}
+    }
 
     private QName getOpenDjPrimaryIdentifierQName() {
-    	return new QName(RESOURCE_OPENDJ_NS, RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME);
-	}
+        return new QName(RESOURCE_OPENDJ_NS, RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME);
+    }
 
-	private QName getOpenDjSecondaryIdentifierQName() {
-		return new QName(RESOURCE_OPENDJ_NS, RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME);
-	}
+    private QName getOpenDjSecondaryIdentifierQName() {
+        return new QName(RESOURCE_OPENDJ_NS, RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME);
+    }
 
-	private ShadowType searchAccountByOid(final String accountOid) throws Exception {
+    private ShadowType searchAccountByOid(final String accountOid) throws Exception {
         OperationResultType resultType = new OperationResultType();
         Holder<OperationResultType> resultHolder = new Holder<>(resultType);
         Holder<ObjectType> accountHolder = new Holder<>();
@@ -4057,8 +3811,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
 //
 //        QueryType query = new QueryType();
 //        query.setFilter(filter);
-    	ObjectQuery q = ObjectQueryUtil.createNameQuery(UserType.class, prismContext, name);
-    	QueryType query = prismContext.getQueryConverter().createQueryType(q);
+        ObjectQuery q = ObjectQueryUtil.createNameQuery(UserType.class, prismContext, name);
+        QueryType query = prismContext.getQueryConverter().createQueryType(q);
         OperationResultType resultType = new OperationResultType();
         Holder<OperationResultType> resultHolder = new Holder<>(resultType);
         Holder<ObjectListType> listHolder = new Holder<>();
@@ -4079,7 +3833,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     private void basicWaitForSyncChangeDetection(Task syncCycle, Object tokenBefore, int increment,
             final OperationResult result) throws Exception {
-    	basicWaitForSyncChangeDetection(syncCycle, (int)((Integer)tokenBefore), increment, result);
+        basicWaitForSyncChangeDetection(syncCycle, (int) ((Integer) tokenBefore), increment, result);
     }
 
     private void basicWaitForSyncChangeDetection(Task syncCycle, int tokenBefore, int increment,
@@ -4096,30 +3850,24 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 syncCycle.refresh(result);
                 display("SyncCycle while waiting for sync cycle to detect change", syncCycle);
                 if (syncCycle.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
-                	throw new IllegalStateException("Task not runnable: "+syncCycle.getExecutionStatus()+"; "+syncCycle);
+                    throw new IllegalStateException("Task not runnable: " + syncCycle.getExecutionStatus() + "; " + syncCycle);
                 }
                 int tokenNow = findSyncToken(syncCycle);
                 display("tokenNow = " + tokenNow);
-                if (tokenNow >= tokenBefore + increment) {
-                    return true;
-                } else {
-                    return false;
-                }
+
+                return tokenNow >= tokenBefore + increment;
             }
 
             @Override
             public void timeout() {
                 // No reaction, the test will fail right after return from this
             }
-        }, timeout, WAIT_FOR_LOOP_SLEEP_MILIS);
+        }, timeout, WAIT_FOR_LOOP_SLEEP_MILLIS);
     }
 
     private void setAssignmentEnforcement(AssignmentPolicyEnforcementType enforcementType) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-		assumeAssignmentPolicy(enforcementType);
-//    	AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
-//        syncSettings.setAssignmentPolicyEnforcement(enforcementType);
-//        applySyncSettings(SystemConfigurationType.class, syncSettings);
-	}
+        assumeAssignmentPolicy(enforcementType);
+    }
 
     private void assertSyncSettingsAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType assignmentPolicy) throws
             ObjectNotFoundException, SchemaException {
@@ -4135,35 +3883,30 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertEquals("Assignment policy mismatch", assignmentPolicy, assignmentPolicyEnforcement);
     }
 
-    private void checkAllShadows() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-    	LOGGER.trace("Checking all shadows");
-    	System.out.println("Checking all shadows");
-		ObjectChecker<ShadowType> checker = null;
-		IntegrationTestTools.checkAllShadows(resourceTypeOpenDjrepo, repositoryService, checker, prismContext);
-	}
+    private void checkAllShadows() throws SchemaException {
+        logger.trace("Checking all shadows");
+        System.out.println("Checking all shadows");
+        ObjectChecker<ShadowType> checker = null;
+        IntegrationTestTools.checkAllShadows(resourceTypeOpenDjrepo, repositoryService, checker, prismContext);
+    }
 
     public static String getNormalizedAttributeValue(ShadowType repoShadow, RefinedObjectClassDefinition objClassDef, QName name) {
 
-		String value = getAttributeValue(repoShadow, name);
+        String value = getAttributeValue(repoShadow, name);
 
-		RefinedAttributeDefinition idDef = objClassDef.getPrimaryIdentifiers().iterator().next();
-		if (idDef.getMatchingRuleQName() != null && idDef.getMatchingRuleQName().equals(PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME)){
-			return value.toLowerCase();
-		}
+        RefinedAttributeDefinition idDef = objClassDef.getPrimaryIdentifiers().iterator().next();
+        if (idDef.getMatchingRuleQName() != null && idDef.getMatchingRuleQName().equals(PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME)) {
+            return value.toLowerCase();
+        }
 
-		return value;
-	}
+        return value;
+    }
 
-    protected <T> void assertAttribute(ShadowType shadowType, String attrName,  T... expectedValues) {
-		assertAttribute(resourceTypeOpenDjrepo, shadowType, attrName, expectedValues);
-	}
+    protected <T> void assertAttribute(ShadowType shadowType, String attrName, T... expectedValues) {
+        assertAttribute(resourceTypeOpenDjrepo, shadowType, attrName, expectedValues);
+    }
 
-    protected <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName,  T... expectedValues) {
-		assertAttribute(resourceTypeOpenDjrepo, shadow.asObjectable(), attrName, expectedValues);
-	}
-
-    protected <T> void assertAttribute(ShadowType shadowType, QName attrName,  T... expectedValues) {
-		assertAttribute(resourceTypeOpenDjrepo, shadowType, attrName, expectedValues);
-	}
-
+    protected <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
+        assertAttribute(resourceTypeOpenDjrepo, shadow.asObjectable(), attrName, expectedValues);
+    }
 }

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
@@ -210,7 +201,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     }
 
     @Where(clause = RAssignmentReference.REFERENCE_TYPE + "= 0")
-    @OneToMany(mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createApproverRef") })
     public Set<RAssignmentReference> getCreateApproverRef() {
@@ -243,7 +234,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     }
 
     @Where(clause = RAssignmentReference.REFERENCE_TYPE + "= 1")
-    @OneToMany(mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyApproverRef") })
     public Set<RAssignmentReference> getModifyApproverRef() {
@@ -472,10 +463,6 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
             RActivation activation = new RActivation();
             RActivation.fromJaxb(jaxb.getActivation(), activation, repositoryContext);
             repo.setActivation(activation);
-        }
-
-        if (jaxb.getTarget() != null) {
-            LOGGER.warn("Target from assignment type won't be saved. It should be translated to target reference.");
         }
 
         repo.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTargetRef(), repositoryContext.relationRegistry));

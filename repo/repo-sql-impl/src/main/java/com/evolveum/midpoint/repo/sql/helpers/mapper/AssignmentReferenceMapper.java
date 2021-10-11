@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2019 Evolveum
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.helpers.mapper;
@@ -23,6 +14,7 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference
 import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -42,11 +34,15 @@ public class AssignmentReferenceMapper extends ReferenceMapper<RAssignmentRefere
         RAssignment owner = (RAssignment) context.getOwner();
 
         QName name = context.getDelta().getPath().lastName().asSingleName();
-        RCReferenceOwner refType = null;
-        if (MetadataType.F_CREATE_APPROVER_REF.equals(name)) {
+        RCReferenceOwner refType;
+        if (QNameUtil.match(name, MetadataType.F_CREATE_APPROVER_REF)) {
             refType = RCReferenceOwner.CREATE_APPROVER;
-        } else if (MetadataType.F_MODIFY_APPROVER_REF.equals(name)) {
+        } else if (QNameUtil.match(name, MetadataType.F_MODIFY_APPROVER_REF)) {
             refType = RCReferenceOwner.MODIFY_APPROVER;
+        } else {
+            // TODO a warning here?
+            // TODO what about CASE_REVIEWER type?
+            refType = null;
         }
 
         RAssignmentReference ref = new RAssignmentReference();

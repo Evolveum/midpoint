@@ -1,24 +1,12 @@
 /*
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest.orgstruct;
 
 import java.io.File;
-
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -26,6 +14,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -37,24 +27,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationTest {
 
-	public static final File TEST_DIR = new File("src/test/resources/orgstruct");
+    public static final File TEST_DIR = new File("src/test/resources/orgstruct");
 
     protected static final File ORG_CARIBBEAN_FILE = new File(TEST_DIR, "org-caribbean.xml");
-	protected static final String ORG_CARIBBEAN_TOP_OID = "00000000-8888-6666-0000-c00000000001";
-	protected static final String ORG_CARIBBEAN_THE_CROWN_OID = "00000000-8888-6666-0000-c00000000002";
-	protected static final String ORG_CARIBBEAN_JAMAICA_OID = "00000000-8888-6666-0000-c00000000003";
-	protected static final String ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID = "00000000-8888-6666-0000-c00000000004";
-	protected static final String ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID = "00000000-8888-6666-0000-c00000000005";
-	protected static final String ORG_CARIBBEAN_ENTERTAINMENT_SECTION_OID = "00000000-8888-6666-0000-c00000000006";
+    protected static final String ORG_CARIBBEAN_THE_CROWN_OID = "00000000-8888-6666-0000-c00000000002";
+    protected static final String ORG_CARIBBEAN_JAMAICA_OID = "00000000-8888-6666-0000-c00000000003";
+    protected static final String ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID = "00000000-8888-6666-0000-c00000000004";
+    protected static final String ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID = "00000000-8888-6666-0000-c00000000005";
+    protected static final String ORG_CARIBBEAN_ENTERTAINMENT_SECTION_OID = "00000000-8888-6666-0000-c00000000006";
 
-	public static final File USER_GIBBS_FILE = new File(TEST_DIR, "user-gibbs.xml");
+    public static final File USER_GIBBS_FILE = new File(TEST_DIR, "user-gibbs.xml");
     public static final String USER_GIBBS_OID = "aca242ae-a29e-11e6-8bb4-1f8a1be2bd79";
     public static final String USER_GIBBS_USERNAME = "gibbs";
 
@@ -62,8 +50,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     public static final String USER_PINTEL_OID = "16522760-a2a3-11e6-bf77-8baa83388f4b";
     public static final String USER_PINTEL_USERNAME = "pintel";
 
-	public static final File ROLE_META_PIRACY_ORG_FILE = new File(TEST_DIR, "role-meta-piracy-org.xml");
-    public static final String ROLE_META_PIRACY_ORG_OID = "d534f1b2-a26c-11e6-abf5-e71dff038896";
+    public static final File ROLE_META_PIRACY_ORG_FILE = new File(TEST_DIR, "role-meta-piracy-org.xml");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -73,28 +60,22 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         addObject(USER_PINTEL_FILE);
 
         addObject(ROLE_META_PIRACY_ORG_FILE);
-
-        //DebugUtil.setDetailedDebugDump(true);
     }
-
 
     /**
      * MID-3448
      */
     @Test
     public void test100AddOrgCaribbean() throws Exception {
-        final String TEST_NAME = "test100AddOrgCaribbean";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         repoAddObjectsFromFile(ORG_CARIBBEAN_FILE, OrgType.class, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -119,18 +100,15 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
      */
     @Test
     public void test102RecomputeJamaica() throws Exception {
-        final String TEST_NAME = "test102RecomputeJamaica";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.recompute(OrgType.class, ORG_CARIBBEAN_JAMAICA_OID, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -150,18 +128,15 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
      */
     @Test
     public void test103ReconcileJamaica() throws Exception {
-        final String TEST_NAME = "test103ReconcileJamaica";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         reconcileOrg(ORG_CARIBBEAN_JAMAICA_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -181,18 +156,15 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
      */
     @Test
     public void test104RecomputeGovernor() throws Exception {
-        final String TEST_NAME = "test104RecomputeGovernor";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.recompute(OrgType.class, ORG_GOVERNOR_OFFICE_OID, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -212,18 +184,15 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
      */
     @Test
     public void test105ReconcileGovernor() throws Exception {
-        final String TEST_NAME = "test105ReconcileGovernor";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         reconcileOrg(ORG_GOVERNOR_OFFICE_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -241,24 +210,21 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     /**
      * Jamaica has an inducement to Monkey Island Governor Office.
      * Sub-orgs of Jamaica should appear under Governor office.
-     *
+     * <p>
      * MID-3448
      */
     @Test
     public void test106RecomputeDoT() throws Exception {
-        final String TEST_NAME = "test106RecomputeDoT";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.recompute(OrgType.class, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID,
-        		ModelExecuteOptions.createReconcileFocus(), task, result);
+                ModelExecuteOptions.createReconcileFocus(), task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -283,18 +249,15 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
      */
     @Test
     public void test107ReconcileDoT() throws Exception {
-        final String TEST_NAME = "test107ReconcileDoT";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         reconcileOrg(ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -318,23 +281,20 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
      * Department of People (DoP) has in inducement to Monkey Island Scumm Bar.
      * But that inducement is limited to UserType. Therefore sub-orgs of
      * DoP should not not appear under Scumm Bar.
-     *
+     * <p>
      * Related to MID-3448
      */
     @Test
     public void test110RecomputeDoP() throws Exception {
-        final String TEST_NAME = "test110RecomputeDoP";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.recompute(OrgType.class, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -353,15 +313,12 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
      * That inducement is limited to UserType. Therefore sub-orgs of
      * DoP should not not appear under Scumm Bar. But when Jack is assigned
      * to the DoP he should also appear under Scumm Bar.
-     *
+     * <p>
      * Related to MID-3448
      */
     @Test
     public void test115AssignJackToDoP() throws Exception {
-        final String TEST_NAME = "test115AssignJackToDoP";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_JACK_USERNAME);
@@ -371,11 +328,11 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         dumpFocus("User Jack before", userJackBefore);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignOrg(USER_JACK_OID, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, null);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -397,7 +354,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
 
         assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_JACK_USERNAME);
         assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, USER_JACK_USERNAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
 
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME);
 
@@ -409,21 +366,18 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
      */
     @Test
     public void test120AssignBarbossaDoTManager() throws Exception {
-        final String TEST_NAME = "test120AssignBarbossaDoTManager";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_BARBOSSA_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignOrg(USER_BARBOSSA_OID, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID, SchemaConstants.ORG_MANAGER);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -436,7 +390,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
 
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME);
         assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
 
         assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_BARBOSSA_USERNAME);
 
@@ -447,21 +401,18 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
      */
     @Test
     public void test130AssignGibbsAsJacksDeputy() throws Exception {
-        final String TEST_NAME = "test130AssignGibbsAsJacksDeputy";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_GIBBS_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_GIBBS_USERNAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignDeputy(USER_GIBBS_OID, USER_JACK_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -476,10 +427,9 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
 
         assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_GIBBS_USERNAME);
         assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, USER_GIBBS_USERNAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
 
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_GIBBS_USERNAME);
-
     }
 
     /**
@@ -487,21 +437,18 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
      */
     @Test
     public void test140AssignPintelAsBarbossasDeputy() throws Exception {
-        final String TEST_NAME = "test140AssignPintelAsBarbossasDeputy";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_PINTEL_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_PINTEL_USERNAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignDeputy(USER_PINTEL_OID, USER_BARBOSSA_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -515,7 +462,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
 
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_PINTEL_USERNAME);
         assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_PINTEL_USERNAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
 
         assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_PINTEL_USERNAME);
 

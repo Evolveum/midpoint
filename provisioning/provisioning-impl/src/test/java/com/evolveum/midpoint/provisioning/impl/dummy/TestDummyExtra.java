@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2015-2018 Evolveum
+ * Copyright (c) 2015-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
@@ -65,222 +56,206 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapa
 @DirtiesContext
 public class TestDummyExtra extends TestDummy {
 
-	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-extra");
-	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
+    public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-extra");
+    public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
-	private static final String DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME = "mate";
+    private static final String DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME = "mate";
 
-	protected static final QName ASSOCIATION_CREW_NAME = new QName(RESOURCE_DUMMY_NS, "crew");
+    protected static final QName ASSOCIATION_CREW_NAME = new QName(RESOURCE_DUMMY_NS, "crew");
 
-	@Override
-	protected File getResourceDummyFile() {
-		return RESOURCE_DUMMY_FILE;
-	}
+    @Override
+    protected File getResourceDummyFile() {
+        return RESOURCE_DUMMY_FILE;
+    }
 
-	@Override
-	protected void extraDummyResourceInit() throws Exception {
-		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
-		dummyResourceCtl.addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME, String.class, false, true);
-	}
+    @Override
+    protected void extraDummyResourceInit() throws Exception {
+        DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
+        dummyResourceCtl.addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME, String.class, false, true);
+    }
 
-	@Override
-	protected int getExpectedRefinedSchemaDefinitions() {
-		return super.getExpectedRefinedSchemaDefinitions() + 1;
-	}
+    @Override
+    protected int getExpectedRefinedSchemaDefinitions() {
+        return super.getExpectedRefinedSchemaDefinitions() + 1;
+    }
 
-	@Override
-	protected void assertSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) throws Exception {
-		// schema is extended, displayOrders are changed
-		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, false, 20);
+    @Override
+    protected void assertSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) throws Exception {
+        // schema is extended, displayOrders are changed
+        dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, false, 20);
 
-		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-		RefinedObjectClassDefinition accountRDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
+        RefinedObjectClassDefinition accountRDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 
-		Collection<RefinedAssociationDefinition> associationDefinitions = accountRDef.getAssociationDefinitions();
-		assertEquals("Wrong number of association defs", 3, associationDefinitions.size());
-		RefinedAssociationDefinition crewAssociationDef = accountRDef.findAssociationDefinition(ASSOCIATION_CREW_NAME);
-		assertNotNull("No definitin for crew assocation", crewAssociationDef);
-	}
+        Collection<RefinedAssociationDefinition> associationDefinitions = accountRDef.getAssociationDefinitions();
+        assertEquals("Wrong number of association defs", 3, associationDefinitions.size());
+        RefinedAssociationDefinition crewAssociationDef = accountRDef.findAssociationDefinition(ASSOCIATION_CREW_NAME);
+        assertNotNull("No definition for crew association", crewAssociationDef);
+    }
 
-	@Override
-	protected void assertNativeCredentialsCapability(CredentialsCapabilityType capCred) {
-		PasswordCapabilityType passwordCapabilityType = capCred.getPassword();
-		assertNotNull("password native capability not present", passwordCapabilityType);
-		Boolean readable = passwordCapabilityType.isReadable();
-		assertNotNull("No 'readable' inducation in password capability", readable);
-		assertTrue("Password not 'readable' in password capability", readable);
-	}
+    @Override
+    protected void assertNativeCredentialsCapability(CredentialsCapabilityType capCred) {
+        PasswordCapabilityType passwordCapabilityType = capCred.getPassword();
+        assertNotNull("password native capability not present", passwordCapabilityType);
+        Boolean readable = passwordCapabilityType.isReadable();
+        assertNotNull("No 'readable' inducation in password capability", readable);
+        assertTrue("Password not 'readable' in password capability", readable);
+    }
 
-	@Test
-	public void test400AddAccountElizabeth() throws Exception {
-		final String TEST_NAME = "test400AddAccountElizabeth";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-		syncServiceMock.reset();
+    @Test
+    public void test400AddAccountElizabeth() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        syncServiceMock.reset();
 
-		PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_ELIZABETH_FILE);
-		account.checkConsistence();
+        PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_ELIZABETH_FILE);
+        account.checkConsistence();
 
-		display("Adding shadow", account);
+        display("Adding shadow", account);
 
-		XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
+        // WHEN
+        when();
+        String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
 
-		// WHEN
-		displayWhen(TEST_NAME);
-		String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
+        // THEN
+        then();
+        assertSuccess(result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
+        assertEquals(ACCOUNT_ELIZABETH_OID, addedObjectOid);
 
-		XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
+        account.checkConsistence();
 
-		assertEquals(ACCOUNT_ELIZABETH_OID, addedObjectOid);
+        syncServiceMock.assertNotifySuccessOnly();
 
-		account.checkConsistence();
+        PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
+                ACCOUNT_ELIZABETH_OID, null, task, result);
 
-		syncServiceMock.assertNotifySuccessOnly();
+        display("Account will from provisioning", accountProvisioning);
 
-		PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_ELIZABETH_OID, null, task, result);
+        DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_ELIZABETH_USERNAME, ACCOUNT_ELIZABETH_USERNAME);
+        assertNotNull("No dummy account", dummyAccount);
+        assertTrue("The account is not enabled", dummyAccount.isEnabled());
 
-		XMLGregorianCalendar tsAfterRead = clock.currentTimeXMLGregorianCalendar();
+        checkUniqueness(accountProvisioning);
+        assertSteadyResource();
+    }
 
-		display("Account will from provisioning", accountProvisioning);
+    /**
+     * MID-2668
+     */
+    @Test
+    public void test410AssociateCrewWillElizabeth() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
-		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_ELIZABETH_USERNAME, ACCOUNT_ELIZABETH_USERNAME);
-		assertNotNull("No dummy account", dummyAccount);
-		assertTrue("The account is not enabled", dummyAccount.isEnabled());
+        syncServiceMock.reset();
 
-		checkUniqueness(accountProvisioning);
-		assertSteadyResource();
-	}
+        ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID,
+                ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID, prismContext);
+        displayDumpable("ObjectDelta", delta);
+        delta.checkConsistence();
 
-	/**
-	 * MID-2668
-	 */
-	@Test
-	public void test410AssociateCrewWillElizabeth() throws Exception {
-		final String TEST_NAME = "test410AssociateCrewWillElizabeth";
-		TestUtil.displayTestTitle(TEST_NAME);
+        // WHEN
+        when();
+        provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+                new OperationProvisioningScriptsType(), null, task, result);
 
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+        // THEN
+        then();
+        result.computeStatus();
+        display("modifyObject result", result);
+        TestUtil.assertSuccess(result);
 
-		syncServiceMock.reset();
+        syncServiceMock.assertNotifySuccessOnly();
+        delta.checkConsistence();
 
-		ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID,
-				ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID, prismContext);
-		display("ObjectDelta", delta);
-		delta.checkConsistence();
+        DummyAccount dummyAccountWill = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, ACCOUNT_WILL_USERNAME);
+        displayDumpable("Dummy account will", dummyAccountWill);
+        assertNotNull("No dummy account will", dummyAccountWill);
+        assertTrue("The account will is not enabled", dummyAccountWill.isEnabled());
+        assertDummyAttributeValues(dummyAccountWill, DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME, ACCOUNT_ELIZABETH_USERNAME);
 
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
-				new OperationProvisioningScriptsType(), null, task, result);
+        PrismObject<ShadowType> accountWillProvisioning = provisioningService.getObject(ShadowType.class,
+                ACCOUNT_WILL_OID, null, task, result);
+        display("Account will from provisioning", accountWillProvisioning);
+        assertAssociation(accountWillProvisioning, ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID);
 
-		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		display("modifyObject result", result);
-		TestUtil.assertSuccess(result);
+        assertSteadyResource();
+    }
 
-		syncServiceMock.assertNotifySuccessOnly();
-		delta.checkConsistence();
+    /**
+     * MID-2668
+     */
+    @Test
+    public void test419DisassociateCrewWillElizabeth() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
-		DummyAccount dummyAccountWill = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, ACCOUNT_WILL_USERNAME);
-		display("Dummy account will", dummyAccountWill);
-		assertNotNull("No dummy account will", dummyAccountWill);
-		assertTrue("The account will is not enabled", dummyAccountWill.isEnabled());
-		assertDummyAttributeValues(dummyAccountWill, DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME, ACCOUNT_ELIZABETH_USERNAME);
+        syncServiceMock.reset();
 
-		PrismObject<ShadowType> accountWillProvisioning = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_WILL_OID, null, task, result);
-		display("Account will from provisioning", accountWillProvisioning);
-		assertAssociation(accountWillProvisioning, ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID);
+        ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
+                ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID, prismContext);
+        displayDumpable("ObjectDelta", delta);
+        delta.checkConsistence();
 
-		assertSteadyResource();
-	}
+        // WHEN
+        when();
+        provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+                new OperationProvisioningScriptsType(), null, task, result);
 
-	/**
-	 * MID-2668
-	 */
-	@Test
-	public void test419DisassociateCrewWillElizabeth() throws Exception {
-		final String TEST_NAME = "test419DisassociateCrewWillElizabeth";
-		TestUtil.displayTestTitle(TEST_NAME);
+        // THEN
+        then();
+        result.computeStatus();
+        display("modifyObject result", result);
+        TestUtil.assertSuccess(result);
 
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+        syncServiceMock.assertNotifySuccessOnly();
+        delta.checkConsistence();
 
-		syncServiceMock.reset();
+        DummyAccount dummyAccountWill = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, ACCOUNT_WILL_USERNAME);
+        displayDumpable("Dummy account will", dummyAccountWill);
+        assertNotNull("No dummy account will", dummyAccountWill);
+        assertTrue("The account will is not enabled", dummyAccountWill.isEnabled());
+        assertNoDummyAttribute(dummyAccountWill, DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME);
 
-		ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
-				ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID, prismContext);
-		display("ObjectDelta", delta);
-		delta.checkConsistence();
+        PrismObject<ShadowType> accountWillProvisioning = provisioningService.getObject(ShadowType.class,
+                ACCOUNT_WILL_OID, null, task, result);
+        display("Account will from provisioning", accountWillProvisioning);
+        assertNoAssociation(accountWillProvisioning, ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID);
 
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
-				new OperationProvisioningScriptsType(), null, task, result);
+        assertSteadyResource();
+    }
 
-		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		display("modifyObject result", result);
-		TestUtil.assertSuccess(result);
+    // TODO: disassociate
 
-		syncServiceMock.assertNotifySuccessOnly();
-		delta.checkConsistence();
+    @Test
+    public void test499DeleteAccountElizabeth() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        syncServiceMock.reset();
 
-		DummyAccount dummyAccountWill = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, ACCOUNT_WILL_USERNAME);
-		display("Dummy account will", dummyAccountWill);
-		assertNotNull("No dummy account will", dummyAccountWill);
-		assertTrue("The account will is not enabled", dummyAccountWill.isEnabled());
-		assertNoDummyAttribute(dummyAccountWill, DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME);
+        // WHEN
+        when();
+        provisioningService.deleteObject(ShadowType.class, ACCOUNT_ELIZABETH_OID, null, null, task, result);
 
-		PrismObject<ShadowType> accountWillProvisioning = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_WILL_OID, null, task, result);
-		display("Account will from provisioning", accountWillProvisioning);
-		assertNoAssociation(accountWillProvisioning, ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID);
+        // THEN
+        then();
+        assertSuccess(result);
 
-		assertSteadyResource();
-	}
+        syncServiceMock.assertNotifySuccessOnly();
+        assertNoRepoObject(ShadowType.class, ACCOUNT_ELIZABETH_OID);
 
-	// TODO: disassociate
+        assertNoDummyAccount(ACCOUNT_ELIZABETH_USERNAME, ACCOUNT_ELIZABETH_USERNAME);
 
-	@Test
-	public void test499DeleteAccountElizabeth() throws Exception {
-		final String TEST_NAME = "test499DeleteAccountElizabeth";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-		syncServiceMock.reset();
+        assertSteadyResource();
+    }
 
-		// WHEN
-		displayWhen(TEST_NAME);
-		provisioningService.deleteObject(ShadowType.class, ACCOUNT_ELIZABETH_OID, null, null, task, result);
-
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
-
-		syncServiceMock.assertNotifySuccessOnly();
-		assertNoRepoObject(ShadowType.class, ACCOUNT_ELIZABETH_OID);
-
-		assertNoDummyAccount(ACCOUNT_ELIZABETH_USERNAME, ACCOUNT_ELIZABETH_USERNAME);
-
-		assertSteadyResource();
-	}
-
-	@Override
-	protected void checkAccountWill(PrismObject<ShadowType> shadow, OperationResult result, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) throws SchemaException, EncryptionException {
-		super.checkAccountWill(shadow, result, startTs, endTs);
-		assertPassword(shadow.asObjectable(), accountWillCurrentPassword);
-	}
+    @Override
+    protected void checkAccountWill(PrismObject<ShadowType> shadow, OperationResult result, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) throws SchemaException, EncryptionException {
+        super.checkAccountWill(shadow, result, startTs, endTs);
+        assertPassword(shadow.asObjectable(), accountWillCurrentPassword);
+    }
 
 }

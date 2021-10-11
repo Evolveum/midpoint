@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism.impl.delta.builder;
@@ -26,6 +17,7 @@ import com.evolveum.midpoint.prism.impl.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.prism.impl.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.impl.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,6 +35,7 @@ import java.util.*;
  *
  * @author mederly
  */
+@Experimental
 public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
 
     final private Class<T> objectClass;
@@ -122,6 +115,32 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
         return new DeltaBuilder(objectClass, containerCTD, prismContext, newDeltas, newDelta);
     }
 
+    @Override
+    public S_ValuesEntry property(QName... names) {
+        return property(ItemPath.create(names));
+    }
+
+    @Override
+    public S_ValuesEntry property(Object... namesOrIds) {
+        return property(ItemPath.create(namesOrIds));
+    }
+
+    @Override
+    public <T> S_ValuesEntry property(ItemPath path) {
+        PrismPropertyDefinition<T> definition = containerCTD.findPropertyDefinition(path);
+        return property(path, definition);
+    }
+
+    @Override
+    public <T> S_ValuesEntry property(ItemPath path, PrismPropertyDefinition<T> definition) {
+        PropertyDelta<Object> newDelta = new PropertyDeltaImpl(path, definition, prismContext);
+        List<ItemDelta<?,?>> newDeltas = deltas;
+        if (currentDelta != null) {
+            newDeltas.add(currentDelta);
+        }
+        return new DeltaBuilder(objectClass, containerCTD, prismContext, newDeltas, newDelta);
+    }
+
     // TODO fix this after ObjectDelta is changed to accept Containerable
     @Override
     public ObjectDelta asObjectDelta(String oid) {
@@ -132,7 +151,7 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
     @Override
     public List<ObjectDelta<?>> asObjectDeltas(String oid) {
         return Collections.<ObjectDelta<?>>singletonList(
-		        prismContext.deltaFactory().object().createModifyDelta(oid, getAllDeltas(), (Class) objectClass
+                prismContext.deltaFactory().object().createModifyDelta(oid, getAllDeltas(), (Class) objectClass
                 ));
     }
 
@@ -209,7 +228,7 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
         }
         return this;
     }
-    
+
     @Override
     public <T> S_ValuesEntry oldRealValue(T realValue) {
         if (realValue != null) {
@@ -320,20 +339,92 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
         return this;
     }
 
+
+
+    @Override
+    public S_ItemEntry mod(PlusMinusZero plusMinusZero, Object... realValues) {
+        return modRealValues(plusMinusZero, Arrays.asList(realValues));
+    }
+
+    @Override
+    public S_ItemEntry modRealValues(PlusMinusZero plusMinusZero, Collection<?> realValues) {
+        List<PrismValue> prismValues = new ArrayList<>();
+        for (Object v : realValues) {
+            if (v != null) {
+                prismValues.add(toPrismValue(currentDelta, v));
+            }
+        }
+        switch (plusMinusZero) {
+            case PLUS:
+                currentDelta.addValuesToAdd(prismValues);
+                break;
+            case MINUS:
+                currentDelta.addValuesToDelete(prismValues);
+                break;
+            case ZERO:
+                currentDelta.setValuesToReplace(prismValues);
+                break;
+        }
+        return this;
+    }
+
+    @Override
+    public S_ItemEntry mod(PlusMinusZero plusMinusZero, Collection<? extends PrismValue> values) {
+        List<PrismValue> prismValues = new ArrayList<>();
+        for (PrismValue v : values) {
+            if (v != null) {
+                prismValues.add(v);
+            }
+        }
+        switch (plusMinusZero) {
+            case PLUS:
+                currentDelta.addValuesToAdd(prismValues);
+                break;
+            case MINUS:
+                currentDelta.addValuesToDelete(prismValues);
+                break;
+            case ZERO:
+                currentDelta.setValuesToReplace(prismValues);
+                break;
+        }
+        return this;
+    }
+
+    @Override
+    public S_ItemEntry mod(PlusMinusZero plusMinusZero, PrismValue... values) {
+        List<PrismValue> prismValues = new ArrayList<>();
+        for (PrismValue v : values) {
+            if (v != null) {
+                prismValues.add(v);
+            }
+        }
+        switch (plusMinusZero) {
+            case PLUS:
+                currentDelta.addValuesToAdd(prismValues);
+                break;
+            case MINUS:
+                currentDelta.addValuesToDelete(prismValues);
+                break;
+            case ZERO:
+                currentDelta.setValuesToReplace(prismValues);
+                break;
+        }
+        return this;
+    }
+
     private PrismValue toPrismValue(ItemDelta<?,?> currentDelta, @NotNull Object v) {
-        ItemDefinition definition = currentDelta.getDefinition();
-        if (definition instanceof PrismPropertyDefinition) {
+        if (currentDelta instanceof PropertyDelta<?>) {
             return new PrismPropertyValueImpl<>(v);
-        } else if (definition instanceof PrismContainerDefinition) {
+        } else if (currentDelta instanceof ContainerDelta<?>) {
             return ((Containerable) v).asPrismContainerValue();
-        } else if (definition instanceof PrismReferenceDefinition) {
+        } else if (currentDelta instanceof ReferenceDelta) {
             if (v instanceof Referencable) {
                 return ((Referencable) v).asReferenceValue();
             } else {
                 throw new IllegalStateException("Expected Referencable, got: " + v);
             }
         } else {
-            throw new IllegalStateException("Unsupported definition type: " + definition);
+            throw new IllegalStateException("Unsupported delta type: " + currentDelta);
         }
     }
 

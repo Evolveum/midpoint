@@ -1,23 +1,15 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.util.aspect;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.statistics.OperationInvocationRecord;
 
 import java.util.Date;
 
@@ -33,10 +25,10 @@ import java.util.Date;
  *
  *  @author shood
  * */
-@Deprecated
+//@Deprecated
 public class ProfilingDataLog {
 
-    private static Trace LOGGER = TraceManager.getTrace(ProfilingDataManager.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ProfilingDataManager.class);
 
     private String className;
     private String methodName;
@@ -142,16 +134,7 @@ public class ProfilingDataLog {
     private static String formatExecutionTime(long est){
         StringBuilder sb = new StringBuilder();
 
-        sb.append((long) (est / 1000000));
-        sb.append('.');
-        long mikros = (long) (est / 1000) % 1000;
-        if (mikros < 100) {
-            sb.append('0');
-        }
-        if (mikros < 10) {
-            sb.append('0');
-        }
-        sb.append(mikros);
+        OperationInvocationRecord.formatExecutionTime(sb, est);
         sb.append(" ms.");
 
         return sb.toString();

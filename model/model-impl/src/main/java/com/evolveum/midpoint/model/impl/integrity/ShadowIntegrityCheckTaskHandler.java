@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.model.impl.integrity;
@@ -24,13 +15,15 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskRunResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -58,24 +51,10 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
 
     public static final String HANDLER_URI = ModelPublicConstants.SHADOW_INTEGRITY_CHECK_TASK_HANDLER_URI;
 
-    // WARNING! This task handler is efficiently singleton!
- 	// It is a spring bean and it is supposed to handle all search task instances
- 	// Therefore it must not have task-specific fields. It can only contain fields specific to
- 	// all tasks of a specified type
-
-    @Autowired
-    private ProvisioningService provisioningService;
-
-    @Autowired
-    private MatchingRuleRegistry matchingRuleRegistry;
-
-    @Autowired
-    private SynchronizationService synchronizationService;
-
-    @Autowired
-	private SystemObjectCache systemObjectCache;
-
-    private static final Trace LOGGER = TraceManager.getTrace(ShadowIntegrityCheckTaskHandler.class);
+    @Autowired private ProvisioningService provisioningService;
+    @Autowired private MatchingRuleRegistry matchingRuleRegistry;
+    @Autowired private SynchronizationService synchronizationService;
+    @Autowired private SystemObjectCache systemObjectCache;
 
     public ShadowIntegrityCheckTaskHandler() {
         super("Shadow integrity check", OperationConstants.CHECK_SHADOW_INTEGRITY);
@@ -88,12 +67,13 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
         taskManager.registerHandler(HANDLER_URI, this);
     }
 
-	@Override
-	protected ShadowIntegrityCheckResultHandler createHandler(TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
+    @Override
+    protected ShadowIntegrityCheckResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult,
+            RunningTask coordinatorTask, OperationResult opResult) {
         return new ShadowIntegrityCheckResultHandler(coordinatorTask, ShadowIntegrityCheckTaskHandler.class.getName(),
-				"check shadow integrity", "check shadow integrity", taskManager, prismContext, provisioningService,
-                matchingRuleRegistry, repositoryService, synchronizationService, systemObjectCache, opResult);
-	}
+                "check shadow integrity", "check shadow integrity", taskManager, prismContext, provisioningService,
+                matchingRuleRegistry, repositoryService, synchronizationService, systemObjectCache);
+    }
 
     @Override
     protected Class<? extends ObjectType> getType(Task task) {
@@ -101,12 +81,18 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
     }
 
     @Override
-    protected boolean requiresDirectRepositoryAccess(ShadowIntegrityCheckResultHandler resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
+    protected boolean requiresDirectRepositoryAccess(ShadowIntegrityCheckResultHandler resultHandler, TaskRunResult runResult,
+            Task coordinatorTask, OperationResult opResult) {
         return true;
     }
 
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.UTIL;
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
 }

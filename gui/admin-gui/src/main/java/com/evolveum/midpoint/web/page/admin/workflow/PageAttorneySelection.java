@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.page.admin.workflow;
@@ -33,10 +24,10 @@ import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -55,11 +46,11 @@ import java.util.List;
  */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/workItemsAttorneySelection",
-                        matchUrlForSecurity = "/admin/workItemsAttorneySelection")
+                @Url(mountUrl = "/admin/attorneyWorkItems",
+                        matchUrlForSecurity = "/admin/attorneyWorkItems")
         },
         action = {
-                @AuthorizationAction(actionUri = PageAdminWorkItems.AUTH_APPROVALS_ALL,
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
                         label = PageAdminWorkItems.AUTH_APPROVALS_ALL_LABEL,
                         description = PageAdminWorkItems.AUTH_APPROVALS_ALL_DESCRIPTION),
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ATTORNEY_WORK_ITEMS_URL,
@@ -67,12 +58,14 @@ import java.util.List;
                         description = "PageAttorneySelection.auth.workItems.attorney.description")
         })
 public class PageAttorneySelection extends PageBase {
+    private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUsers.class);
 
     private static final String DOT_CLASS = PageUsers.class.getName() + ".";
 
     private static final String OPERATION_GET_DONOR_FILTER = DOT_CLASS + "getDonorFilter";
+    public static final String PARAMETER_DONOR_OID = "donorOid";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";
@@ -98,7 +91,17 @@ public class PageAttorneySelection extends PageBase {
 
 
         ObjectListPanel<UserType> table = new ObjectListPanel<UserType>(ID_TABLE, UserType.class,
-                UserProfileStorage.TableId.PAGE_USER_SELECTION, Collections.emptyList(), this) {
+                UserProfileStorage.TableId.PAGE_USER_SELECTION, Collections.emptyList()) {
+
+//            @Override
+//            protected boolean isRefreshEnabled() {
+//                return false;
+//            }
+//
+//            @Override
+//            protected int getAutoRefreshInterval() {
+//                return 0;
+//            }
 
             @Override
             protected IColumn<SelectableBean<UserType>, String> createCheckboxColumn() {
@@ -132,7 +135,7 @@ public class PageAttorneySelection extends PageBase {
             @Override
             protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
                 if (query == null) {
-                    query = getPrismContext().queryFactory().createQuery();
+                    query = PageAttorneySelection.this.getPrismContext().queryFactory().createQuery();
                 }
 
                 ModelInteractionService service = getModelInteractionService();
@@ -166,19 +169,19 @@ public class PageAttorneySelection extends PageBase {
 
         IColumn<SelectableBean<UserType>, String> column = new PropertyColumn(
                 createStringResource("UserType.givenName"), UserType.F_GIVEN_NAME.getLocalPart(),
-                SelectableBean.F_VALUE + ".givenName");
+                SelectableBeanImpl.F_VALUE + ".givenName");
         columns.add(column);
 
         column = new PropertyColumn(createStringResource("UserType.familyName"),
-                UserType.F_FAMILY_NAME.getLocalPart(), SelectableBean.F_VALUE + ".familyName");
+                UserType.F_FAMILY_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".familyName");
         columns.add(column);
 
         column = new PropertyColumn(createStringResource("UserType.fullName"),
-                UserType.F_FULL_NAME.getLocalPart(), SelectableBean.F_VALUE + ".fullName");
+                UserType.F_FULL_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".fullName");
         columns.add(column);
 
         column = new PropertyColumn(createStringResource("UserType.emailAddress"), null,
-                SelectableBean.F_VALUE + ".emailAddress");
+                SelectableBeanImpl.F_VALUE + ".emailAddress");
         columns.add(column);
 
         return columns;
@@ -186,7 +189,8 @@ public class PageAttorneySelection extends PageBase {
 
     private void selectUserPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-        navigateToNext(PageWorkItemsAttorney.class, parameters);
+        parameters.add(PARAMETER_DONOR_OID, oid);
+        PageWorkItemsAttorney workItemsPage = new PageWorkItemsAttorney(parameters);
+        navigateToNext(workItemsPage);
     }
 }

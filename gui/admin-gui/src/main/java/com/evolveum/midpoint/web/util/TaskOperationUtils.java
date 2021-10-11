@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.util;
 
@@ -33,13 +24,13 @@ import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 
 public class TaskOperationUtils {
 
-	private static final String DOT_CLASS = TaskOperationUtils.class.getName() + ".";
+    private static final String DOT_CLASS = TaskOperationUtils.class.getName() + ".";
     private static final String OPERATION_SUSPEND_TASKS = DOT_CLASS + "suspendTask";
     private static final String OPERATION_RESUME_TASK = DOT_CLASS + "resumeTask";
     private static final String OPERATION_RUN_NOW_TASK = DOT_CLASS + "runNowTask";
 
-	public static OperationResult suspendPerformed(TaskService taskService, Collection<String> oids, PageBase pageBase) {
-		Task opTask = pageBase.createSimpleTask(OPERATION_SUSPEND_TASKS);
+    public static OperationResult suspendPerformed(TaskService taskService, Collection<String> oids, PageBase pageBase) {
+        Task opTask = pageBase.createSimpleTask(OPERATION_SUSPEND_TASKS);
         OperationResult result = opTask.getResult();
         try {
             boolean suspended = taskService.suspendTasks(oids,
@@ -48,7 +39,7 @@ public class TaskOperationUtils {
             result.computeStatus();
             if (result.isSuccess()) {
                 if (suspended) {
-                    result.recordStatus(OperationResultStatus.SUCCESS, pageBase.createStringResource("TaskOperationUtils.message.suspendPerformed.success").getString()); 
+                    result.recordStatus(OperationResultStatus.SUCCESS, pageBase.createStringResource("TaskOperationUtils.message.suspendPerformed.success").getString());
                 } else {
                     result.recordWarning(pageBase.createStringResource("TaskOperationUtils.message.suspendPerformed.warning").getString());
                 }
@@ -61,8 +52,8 @@ public class TaskOperationUtils {
 
     }
 
-	public static OperationResult resumePerformed(TaskService taskService, List<String> oids, PageBase pageBase) {
-		Task opTask = pageBase.createSimpleTask(OPERATION_RESUME_TASK);
+    public static OperationResult resumePerformed(TaskService taskService, List<String> oids, PageBase pageBase) {
+        Task opTask = pageBase.createSimpleTask(OPERATION_RESUME_TASK);
         OperationResult result = opTask.getResult();
         try {
             taskService.resumeTasks(oids, opTask, result);
@@ -78,8 +69,8 @@ public class TaskOperationUtils {
         return result;
     }
 
-	public static OperationResult runNowPerformed(TaskService taskService, List<String> oids, PageBase pageBase) {
-		Task opTask = pageBase.createSimpleTask(OPERATION_RUN_NOW_TASK);
+    public static OperationResult runNowPerformed(TaskService taskService, List<String> oids, PageBase pageBase) {
+        Task opTask = pageBase.createSimpleTask(OPERATION_RUN_NOW_TASK);
         OperationResult result = opTask.getResult();
         try {
             taskService.scheduleTasksNow(oids, opTask, result);

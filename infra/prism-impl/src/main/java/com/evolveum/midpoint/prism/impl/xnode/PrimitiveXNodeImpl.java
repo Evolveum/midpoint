@@ -1,26 +1,19 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl.xnode;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Freezable;
 import com.evolveum.midpoint.prism.impl.marshaller.PrismBeanInspector;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -29,9 +22,8 @@ import com.evolveum.midpoint.prism.impl.xml.XmlTypeConverterInternal;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.ValueParser;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -45,117 +37,113 @@ import org.jetbrains.annotations.Nullable;
 
 public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, PrimitiveXNode<T> {
 
-	private static final Trace LOGGER = TraceManager.getTrace(PrimitiveXNodeImpl.class);
+    //private static final Trace LOGGER = TraceManager.getTrace(PrimitiveXNodeImpl.class);
 
     /*
      * Invariants:
      *   - At most one of value-valueParser may be null.
      *   - If value is non-null, super.typeName must be non-null.
      */
-	private T value;
-	private ValueParser<T> valueParser;
+    private T value;
+    private ValueParser<T> valueParser;
 
-	/**
-	 * If set to true then this primitive value either came from an attribute
-	 * or we prefer this to be represented as an attribute (if the target format
-	 * is capable of representing attributes)
-	 */
-	private boolean isAttribute = false;
+    /**
+     * If set to true then this primitive value either came from an attribute
+     * or we prefer this to be represented as an attribute (if the target format
+     * is capable of representing attributes)
+     */
+    private boolean isAttribute = false;
 
-	public PrimitiveXNodeImpl() {
-		super();
-	}
+    public PrimitiveXNodeImpl() {
+        super();
+    }
 
-	public PrimitiveXNodeImpl(T value) {
-		super();
-		this.value = value;
-	}
+    public PrimitiveXNodeImpl(T value) {
+        super();
+        this.value = value;
+    }
 
-	private void parseValue(@NotNull QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
-        Validate.notNull(typeName, "Cannot parse primitive XNode without knowing its type");
-		if (valueParser != null) {
-			value = valueParser.parse(typeName, mode);
-			// Necessary. It marks that the value is parsed. It also frees some memory.
-			valueParser = null;
-		}
-	}
+    public T getValue() {
+        return value;
+    }
 
-	public T getValue() {
-		return value;
-	}
+    // @post: return value is type-compliant with expectedClass (if both are non-null)
+    public <X> X getParsedValue(@NotNull QName typeName, @Nullable Class<X> expectedClass) throws SchemaException {
+        return getParsedValue(typeName, expectedClass, XNodeProcessorEvaluationMode.STRICT);
+    }
 
-	@Deprecated
-	public T getParsedValue(@NotNull QName typeName) throws SchemaException {
-		return getParsedValue(typeName, null, XNodeProcessorEvaluationMode.STRICT);
-	}
+    // @post: return value is type-compliant with expectedClass (if both are non-null)
+    public <X> X getParsedValue(@NotNull QName typeName, @Nullable Class<X> expectedClass, XNodeProcessorEvaluationMode mode) throws SchemaException {
+        X parsedValue;
+        if (isParsed()) {
+            //noinspection unchecked
+            parsedValue = (X) value;
+        } else {
+            //noinspection unchecked
+            parsedValue = (X) valueParser.parse(typeName, mode);
+            if (!immutable) {
+                //noinspection unchecked
+                value = (T) parsedValue;
+                valueParser = null;     // Necessary. It marks that the value is parsed. It also frees some memory.
+            }
+        }
+        if (JavaTypeConverter.isTypeCompliant(value, expectedClass)) {
+            return parsedValue;
+        } else {
+            throw new SchemaException("Expected " + expectedClass + " but got " + value.getClass() + " instead. Value is " + value);
+        }
+    }
 
-	public T getParsedValue(@NotNull QName typeName, @Nullable Class<T> expectedClass) throws SchemaException {
-		return getParsedValue(typeName, expectedClass, XNodeProcessorEvaluationMode.STRICT);
-	}
+    public ValueParser<T> getValueParser() {
+        return valueParser;
+    }
 
-	public T getParsedValue(@NotNull QName typeName, @Nullable Class<T> expectedClass, XNodeProcessorEvaluationMode mode) throws SchemaException {
-		if (!isParsed()) {
-			parseValue(typeName, mode);
-		}
-		if (JavaTypeConverter.isTypeCompliant(value, expectedClass)) {
-			return value;
-		} else {
-			throw new SchemaException("Expected " + expectedClass + " but got " + value.getClass() + " instead. Value is " + value);
-		}
-	}
-
-	public ValueParser<T> getValueParser() {
-		return valueParser;
-	}
-
-	public void setValueParser(ValueParser<T> valueParser) {
+    public void setValueParser(ValueParser<T> valueParser) {
         Validate.notNull(valueParser, "Value parser cannot be null");
-		this.valueParser = valueParser;
+        checkMutable();
+        this.valueParser = valueParser;
         this.value = null;
-	}
+    }
 
-	public void setValue(T value, QName typeQName) {
+    public void setValue(T value, QName typeQName) {
+        checkMutable();
         if (value != null) {
             if (typeQName == null) {
                 // last desperate attempt to determine type name from the value type
                 typeQName = XsdTypeMapper.getJavaToXsdMapping(value.getClass());
                 if (typeQName == null) {
-	                typeQName = PrismBeanInspector.determineTypeForClassUncached(value.getClass());     // little hack
+                    typeQName = PrismBeanInspector.determineTypeForClassUncached(value.getClass());     // little hack
                 }
                 if (typeQName == null) {
                     throw new IllegalStateException("Cannot determine type QName for a value of '" + value + "'");            // todo show only class? (security/size reasons)
                 }
             }
-			this.setTypeQName(typeQName);
+            this.setTypeQName(typeQName);
         }
-		this.value = value;
+        this.value = value;
         this.valueParser = null;
-	}
+    }
 
-	public boolean isParsed() {
-		return valueParser == null;
-	}
+    public boolean isParsed() {
+        return valueParser == null;
+    }
 
-	public boolean isAttribute() {
-		return isAttribute;
-	}
+    public boolean isAttribute() {
+        return isAttribute;
+    }
 
-	public void setAttribute(boolean isAttribute) {
-		this.isAttribute = isAttribute;
-	}
+    public void setAttribute(boolean isAttribute) {
+        checkMutable();
+        this.isAttribute = isAttribute;
+    }
 
-	public boolean isEmpty() {
-		if (!isParsed()) {
-			return valueParser.isEmpty();
-		}
-		if (value == null) {
-			return true;
-		}
-		if (value instanceof String) {
-			return StringUtils.isBlank((String)value);
-		}
-		return false;
-	}
+    public boolean isEmpty() {
+        if (isParsed()) {
+            return value == null || value instanceof String && StringUtils.isBlank((String) value);
+        } else {
+            return valueParser.isEmpty();
+        }
+    }
 
     /**
      * Returns parsed value without actually changing node state from UNPARSED to PARSED
@@ -174,18 +162,18 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
     }
 
     /**
-	 * Returns a value that is correctly string-formatted according
-	 * to its type definition. Works properly only if definition is set.
-	 */
-	public String getFormattedValue() {
-//		if (getTypeQName() == null) {
-//			throw new IllegalStateException("Cannot fetch formatted value if type definition is not set");
-//		}
-		if (!isParsed()) {
-			throw new IllegalStateException("Cannot fetch formatted value if the xnode is not parsed");
-		}
+     * Returns a value that is correctly string-formatted according
+     * to its type definition. Works properly only if definition is set.
+     */
+    public String getFormattedValue() {
+//        if (getTypeQName() == null) {
+//            throw new IllegalStateException("Cannot fetch formatted value if type definition is not set");
+//        }
+        if (!isParsed()) {
+            throw new IllegalStateException("Cannot fetch formatted value if the xnode is not parsed");
+        }
         return formatValue(value);
-	}
+    }
 
     /**
      * Returns formatted parsed value without actually changing node state from UNPARSED to PARSED
@@ -202,16 +190,16 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
         if (isParsed()) {
             return getFormattedValue();
         }
-        if (getTypeQName() == null) {
+        QName typeName = getTypeQName();
+        if (typeName == null) {
             throw new IllegalStateException("Cannot fetch formatted value if type definition is not set");
         }
-        // brutal hack - fix this! MID-3616
-		try {
-			T value = valueParser.parse(getTypeQName(), XNodeProcessorEvaluationMode.STRICT);
-			return formatValue(value);
-		} catch (SchemaException e) {
-        	return (String) valueParser.parse(DOMUtil.XSD_STRING, XNodeProcessorEvaluationMode.COMPAT);
-		}
+        if (valueParser.canParseAs(typeName)) {
+            T value = valueParser.parse(typeName, XNodeProcessorEvaluationMode.STRICT);
+            return formatValue(value);
+        } else {
+            return valueParser.getStringValue();
+        }
     }
 
     private String formatValue(T value) {
@@ -222,74 +210,74 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
             return QNameUtil.qNameToUri((QName) value);
         }
         if (value instanceof DisplayableValue) {
-        	return ((DisplayableValue) value).getValue().toString();
+            return ((DisplayableValue) value).getValue().toString();
         }
 
         if (value != null && value.getClass().isEnum()){
-        	return value.toString();
+            return value.toString();
         }
 
         return XmlTypeConverterInternal.toXmlTextContent(value, null);
     }
 
     @Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    public void accept(Visitor<XNode> visitor) {
+        visitor.visit(this);
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		valueToString(sb);
-		String dumpSuffix = dumpSuffix();
-		if (dumpSuffix != null) {
-			sb.append(dumpSuffix);
-		}
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        valueToString(sb);
+        String dumpSuffix = dumpSuffix();
+        if (dumpSuffix != null) {
+            sb.append(dumpSuffix);
+        }
+        return sb.toString();
+    }
 
-	@Override
-	public String getDesc() {
-		return "primitive";
-	}
+    @Override
+    public String getDesc() {
+        return "primitive";
+    }
 
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder("XNode(primitive:");
-		valueToString(sb);
-		if (isAttribute) {
-			sb.append(",attr");
-		}
-		sb.append(")");
-		return sb.toString();
-	}
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("XNode(primitive:");
+        valueToString(sb);
+        if (isAttribute) {
+            sb.append(",attr");
+        }
+        sb.append(")");
+        return sb.toString();
+    }
 
-	private void valueToString(StringBuilder sb) {
-		if (value == null) {
-			sb.append("parser ").append(valueParser);
-		} else {
-			sb.append(PrettyPrinter.prettyPrint(value));
-			sb.append(" (").append(value.getClass()).append(")");
-		}
-	}
+    private void valueToString(StringBuilder sb) {
+        if (value == null) {
+            sb.append("parser ").append(valueParser);
+        } else {
+            sb.append(PrettyPrinter.prettyPrint(value));
+            sb.append(" (").append(value.getClass()).append(")");
+        }
+    }
 
-	@Override
-	public String getStringValue() {
-		if (isParsed()) {
-			if (getTypeQName() != null) {
-				return getFormattedValue();
-			} else {
-				if (value == null) {
-					return null;
-				} else {
-					return value.toString();
-				}
-			}
-		} else {
-			return valueParser.getStringValue();
-		}
-	}
+    @Override
+    public String getStringValue() {
+        if (isParsed()) {
+            if (getTypeQName() != null) {
+                return getFormattedValue();
+            } else {
+                if (value == null) {
+                    return null;
+                } else {
+                    return value.toString();
+                }
+            }
+        } else {
+            return valueParser.getStringValue();
+        }
+    }
 
     /**
      * This method is used with conjunction with getStringValue, typically when serializing unparsed values.
@@ -302,8 +290,6 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
      * the xnode's string value for any 'prefix:' substrings. I'm afraid it is all we can do for now.
      *
      * THIS METHOD SHOULD BE CALLED ONLY ON EITHER UNPARSED OR EMPTY NODES.
-     *
-     * @return
      */
     public Map<String, String> getRelevantNamespaceDeclarations() {
         Map<String,String> retval = new HashMap<>();
@@ -331,31 +317,31 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
     }
 
     @Override
-	public boolean equals(Object obj) {
-		if (!(obj instanceof PrimitiveXNodeImpl)) {
-			return false;
-		}
+    public boolean equals(Object obj) {
+        if (!(obj instanceof PrimitiveXNodeImpl)) {
+            return false;
+        }
 
-		PrimitiveXNodeImpl other = (PrimitiveXNodeImpl) obj;
-		if (other.isParsed() && isParsed()){
-			return value.equals(other.value);
-		} else if (!other.isParsed() && !isParsed()){
+        PrimitiveXNodeImpl other = (PrimitiveXNodeImpl) obj;
+        if (other.isParsed() && isParsed()){
+            return value.equals(other.value);
+        } else if (!other.isParsed() && !isParsed()){
             // TODO consider problem with namespaces (if string value is QName/ItemPath its meaning can depend on namespace declarations that are placed outside the element)
-			String thisStringVal = this.getStringValue();
-			String otherStringVal = other.getStringValue();
-			return thisStringVal.equals(otherStringVal);
-		} else if (other.isParsed() && !isParsed()){
+            String thisStringVal = this.getStringValue();
+            String otherStringVal = other.getStringValue();
+            return Objects.equals(thisStringVal, otherStringVal);
+        } else if (other.isParsed() && !isParsed()){
             String thisStringValue = this.getStringValue();
             String otherStringValue = String.valueOf(other.value);
-			return otherStringValue.equals(thisStringValue);
-		} else if (!other.isParsed() && isParsed()){
+            return Objects.equals(otherStringValue, thisStringValue);
+        } else if (!other.isParsed() && isParsed()){
             String thisStringValue = String.valueOf(value);
             String otherStringValue = other.getStringValue();
-			return thisStringValue.equals(otherStringValue);
-		}
+            return Objects.equals(thisStringValue, otherStringValue);
+        }
 
-		return false;
-	}
+        return false;
+    }
 
     /**
      * The basic idea of equals() is:
@@ -363,8 +349,8 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
      *  - if unparsed, compare getStringValue()
      * Therefore the hashcode is generated based on value (if parsed) or getStringValue() (if unparsed).
      */
-	@Override
-	public int hashCode() {
+    @Override
+    public int hashCode() {
         Object objectToHash;
         if (isParsed()) {
             objectToHash = value;
@@ -373,21 +359,32 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
             objectToHash = getStringValue();
         }
         return objectToHash != null ? objectToHash.hashCode() : 0;
-	}
+    }
 
-	PrimitiveXNodeImpl cloneInternal() {
+    PrimitiveXNodeImpl<T> cloneInternal() {
 
-		PrimitiveXNodeImpl clone;
-		if (value != null) {
-			// if we are parsed, things are much simpler
-			clone = new PrimitiveXNodeImpl(CloneUtil.clone(getValue()));
-		} else {
-			clone = new PrimitiveXNodeImpl();
-			clone.valueParser = valueParser;			// for the time being we simply don't clone the valueParser
-		}
+        PrimitiveXNodeImpl<T> clone;
+        if (value != null) {
+            // if we are parsed, things are much simpler
+            clone = new PrimitiveXNodeImpl<>(CloneUtil.clone(getValue()));
+        } else {
+            clone = new PrimitiveXNodeImpl<>();
+            clone.valueParser = valueParser;            // for the time being we simply don't clone the valueParser
+        }
 
-		clone.isAttribute = this.isAttribute;
-		clone.copyCommonAttributesFrom(this);
-		return clone;
-	}
+        clone.isAttribute = this.isAttribute;
+        clone.copyCommonAttributesFrom(this);
+        return clone;
+    }
+
+    @Override
+    public void performFreeze() {
+        if (value instanceof Freezable) {
+            ((Freezable) value).freeze();
+        }
+        if (valueParser != null) {
+            valueParser = valueParser.freeze();
+        }
+        super.performFreeze();
+    }
 }

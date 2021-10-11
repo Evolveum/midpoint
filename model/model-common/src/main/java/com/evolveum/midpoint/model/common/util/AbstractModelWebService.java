@@ -1,19 +1,12 @@
-/**
- * Copyright (c) 2014-2017 Evolveum
+/*
+ * Copyright (c) 2014-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common.util;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -43,48 +36,48 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public abstract class AbstractModelWebService {
 
-	@Autowired protected ModelService modelService;
-	@Autowired protected TaskManager taskManager;
-	@Autowired protected AuditService auditService;
-	@Autowired protected PrismContext prismContext;
-	@Autowired protected SecurityContextManager securityContextManager;
+    @Autowired protected ModelService modelService;
+    @Autowired protected TaskManager taskManager;
+    @Autowired protected AuditService auditService;
+    @Autowired protected PrismContext prismContext;
+    @Autowired protected SecurityContextManager securityContextManager;
 
-	protected void setTaskOwner(Task task) {
+    protected void setTaskOwner(Task task) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
             throw new SystemException("Failed to get authentication object");
         }
-        UserType userType = ((MidPointPrincipal)(SecurityContextHolder.getContext().getAuthentication().getPrincipal())).getUser();
-        if (userType == null) {
+        FocusType focusType = ((MidPointPrincipal)(SecurityContextHolder.getContext().getAuthentication().getPrincipal())).getFocus();
+        if (focusType == null) {
             throw new SystemException("Failed to get user from authentication object");
         }
-        task.setOwner(userType.asPrismObject());
+        task.setOwner(focusType.asPrismObject());
     }
 
-	protected Task createTaskInstance(String operationName) {
-		// TODO: better task initialization
-		Task task = taskManager.createTaskInstance(operationName);
-		setTaskOwner(task);
-		task.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
-		return task;
-	}
+    protected Task createTaskInstance(String operationName) {
+        // TODO: better task initialization
+        Task task = taskManager.createTaskInstance(operationName);
+        setTaskOwner(task);
+        task.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+        return task;
+    }
 
-	protected void auditLogin(Task task) {
+    protected void auditLogin(Task task) {
         AuditEventRecord record = new AuditEventRecord(AuditEventType.CREATE_SESSION, AuditEventStage.REQUEST);
         record.setInitiatorAndLoginParameter(task.getOwner());
         record.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(OperationResultStatus.SUCCESS);
         auditService.audit(record, task);
-	}
+    }
 
-	protected void auditLogout(Task task) {
-		AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
-		record.setInitiatorAndLoginParameter(task.getOwner());
+    protected void auditLogout(Task task) {
+        AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
+        record.setInitiatorAndLoginParameter(task.getOwner());
         record.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(OperationResultStatus.SUCCESS);
         auditService.audit(record, task);
-	}
+    }
 
 }

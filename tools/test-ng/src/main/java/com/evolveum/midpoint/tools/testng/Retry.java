@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.tools.testng;
 
 import org.testng.IRetryAnalyzer;
@@ -9,8 +15,9 @@ public class Retry implements IRetryAnalyzer {
     private String maxRetryCountEnv = System.getProperty("testsRetryCount");
 
     private boolean initMaxRetry() {
-        if (maxRetryCountEnv == null)
+        if (maxRetryCountEnv == null) {
             return false;
+        }
 
         try {
             maxRetryCount = Integer.parseInt(maxRetryCountEnv);
@@ -31,8 +38,9 @@ public class Retry implements IRetryAnalyzer {
     }
 
     public boolean isOneMoreRetryAvailable() {
-        if (!initMaxRetry())
+        if (!initMaxRetry()) {
             return false;
+        }
 
         return retryCount < maxRetryCount;
     }

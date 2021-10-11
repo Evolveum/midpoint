@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<valuePolicy oid="50505050-76e0-59e2-8888-3d4f02d3fffb" xsi:type="c:ValuePolicyType" version="0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <name>Security Policy General</name>
+    <description>Complex Password policy requires at least one lowercase letter, at least one uppercase letter, at least one digit
+and at least on special character in the password. The password must start
+with a lowercase letter and must be at least 6 characters long.</description>
+    <stringPolicy>
+        <description>String validation policy</description>
+        <limitations>
+            <minLength>4</minLength>
+            <maxLength>32</maxLength>
+            <minUniqueChars>3</minUniqueChars>
+            <!-- not implemented yet
+             <checkAgainstDictionary>true</checkAgainstDictionary>
+             -->
+            <checkPattern />
+            <limit>
+                <description>Lowercase alphanumeric characters</description>
+                <minOccurs>1</minOccurs>
+                <mustBeFirst>false</mustBeFirst>
+                <characterClass>
+                    <value>abcdefghijklmnopqrstuvwxyz</value>
+                </characterClass>
+            </limit>
+<!--             <limit> -->
+<!--                 <description>Uppercase alphanumeric characters</description> -->
+<!--                 <minOccurs>1</minOccurs> -->
+<!--                 <mustBeFirst>true</mustBeFirst> -->
+<!--                 <characterClass> -->
+<!--                     <value>ABCDEFGHIJKLMNOPQRSTUVWXYZ</value> -->
+<!--                 </characterClass> -->
+<!--             </limit> -->
+<!--             <limit> -->
+<!--                 <description>Numeric characters</description> -->
+<!--                 <minOccurs>1</minOccurs> -->
+<!--                 <mustBeFirst>false</mustBeFirst> -->
+<!--                 <characterClass> -->
+<!--                     <value>1234567890</value> -->
+<!--                 </characterClass> -->
+<!--             </limit> -->
+<!--             <limit> -->
+<!--                 <description>Special characters</description> -->
+<!--                 <mustBeFirst>false</mustBeFirst> -->
+<!--                 <characterClass> -->
+<!--                     <value> !"#$%&amp;'()*+,-.:;&lt;&gt;?@[]^_`{|}~</value> -->
+<!--                 </characterClass> -->
+<!--             </limit> -->
+            <checkExpression>
+                    <expression>
+                         <script>
+                             <code>
+                                 assert input != null
+                                 assert object != null
+                                 // object.getName() may be null (e.g. new shadow)
+                                 if (object instanceof com.evolveum.midpoint.xml.ns._public.common.common_3.UserType)
+                                 {
+                                     return !basic.containsIgnoreCase(input, object.getName())
+                                 }
+                                 else
+                                 {
+                                     return true
+                                 }
+                             </code>
+                         </script>
+                     </expression>
+                     <failureMessage>Password must not contain User ID</failureMessage>
+            </checkExpression>
+        </limitations>
+    </stringPolicy>
+</valuePolicy>

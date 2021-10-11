@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<service xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="f8b109bf-d393-47b9-8eec-41d74e39a992">
+    <name>sting</name>
+    <assignment>
+        <targetRef oid="2421b2c5-8563-4ba7-9a87-f9ef4b169620" type="RoleType"/>    <!-- bearable -->
+    </assignment>
+</service>

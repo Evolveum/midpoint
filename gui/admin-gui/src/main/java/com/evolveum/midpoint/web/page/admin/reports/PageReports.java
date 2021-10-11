@@ -1,27 +1,20 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.page.admin.reports;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -35,13 +28,17 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.reports.component.RunReportPopupPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportEngineSelectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -85,9 +82,9 @@ public class PageReports extends PageAdmin {
         Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
 
-        MainObjectListPanel<ReportType, CompiledObjectCollectionView> table =
-                new MainObjectListPanel<ReportType, CompiledObjectCollectionView>(ID_REPORTS_TABLE, ReportType.class, UserProfileStorage.TableId.PAGE_REPORTS,
-                null, this) {
+        MainObjectListPanel<ReportType> table =
+                new MainObjectListPanel<ReportType>(ID_REPORTS_TABLE, ReportType.class, UserProfileStorage.TableId.PAGE_REPORTS,
+                null) {
 
             @Override
             protected IColumn<SelectableBean<ReportType>, String> createCheckboxColumn() {
@@ -112,7 +109,7 @@ public class PageReports extends PageAdmin {
             }
 
             @Override
-            protected void newObjectPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
+            protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
                 navigateToNext(PageNewReport.class);
             }
         };
@@ -143,7 +140,7 @@ public class PageReports extends PageAdmin {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<ReportType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<ReportType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -169,7 +166,7 @@ public class PageReports extends PageAdmin {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<ReportType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<ReportType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -194,32 +191,45 @@ public class PageReports extends PageAdmin {
 
     }
 
+    private void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
+        OperationResult result = new OperationResult(OPERATION_RUN_REPORT);
+        Task task = createSimpleTask(OPERATION_RUN_REPORT);
+        task.getUpdatedTaskObject().asObjectable().getAssignment()
+                .add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_REPORT_TASK.value(), ObjectTypes.ARCHETYPE, getPrismContext()));
+        task.getUpdatedTaskObject().asObjectable().getArchetypeRef()
+                .add(ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_REPORT_TASK.value(), ObjectTypes.ARCHETYPE));
+        try {
+            getReportManager().runReport(reportType.asPrismObject(), reportParam, task, result);
+        } catch (Exception ex) {
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+
+        showResult(result);
+        target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM)));
+        hideMainPopup(target);
+
+    }
+
     protected void runReportPerformed(AjaxRequestTarget target, ReportType report) {
 
-    	RunReportPopupPanel runReportPopupPanel = new RunReportPopupPanel(getMainPopupBodyId(), report) {
+        if(report.getReportEngine() != null && report.getReportEngine().equals(ReportEngineSelectionType.DASHBOARD)) {
+            runConfirmPerformed(target, report, null);
+            return;
+        }
 
-    		private static final long serialVersionUID = 1L;
+        RunReportPopupPanel runReportPopupPanel = new RunReportPopupPanel(getMainPopupBodyId(), report) {
 
-			protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
-    			OperationResult result = new OperationResult(OPERATION_RUN_REPORT);
-    	        try {
+            private static final long serialVersionUID = 1L;
 
-    	            Task task = createSimpleTask(OPERATION_RUN_REPORT);
+            protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
+                PageReports.this.runConfirmPerformed(target, reportType, reportParam);
+                hideMainPopup(target);
 
-    	            getReportManager().runReport(reportType.asPrismObject(), reportParam, task, result);
-    	        } catch (Exception ex) {
-    	            result.recordFatalError(ex);
-    	        } finally {
-    	            result.computeStatusIfUnknown();
-    	        }
-
-    	        showResult(result);
-    	        target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM)));
-    	        hideMainPopup(target);
-
-    		};
-    	};
-    	showMainPopup(runReportPopupPanel, target);
+            }
+        };
+        showMainPopup(runReportPopupPanel, target);
 
     }
 

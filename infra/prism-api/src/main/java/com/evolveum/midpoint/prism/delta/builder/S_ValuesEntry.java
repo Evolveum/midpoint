@@ -1,22 +1,14 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism.delta.builder;
 
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 
 import java.util.Collection;
 
@@ -34,14 +26,25 @@ public interface S_ValuesEntry {
     S_MaybeDelete addRealValues(Collection<?> realValues);
     S_MaybeDelete add(PrismValue... values);
     S_MaybeDelete add(Collection<? extends PrismValue> values);
+
     S_ItemEntry delete(Object... realValues);
     S_ItemEntry deleteRealValues(Collection<?> realValues);
     S_ItemEntry delete(PrismValue... values);
     S_ItemEntry delete(Collection<? extends PrismValue> values);
+
     S_ItemEntry replace(Object... realValues);
     S_ItemEntry replaceRealValues(Collection<?> realValues);
     S_ItemEntry replace(PrismValue... values);
     S_ItemEntry replace(Collection<? extends PrismValue> values);
+
+    /**
+     * Create proper modification type based on parameter. Plus means add, minus delete, zero means replace.
+     */
+    S_ItemEntry mod(PlusMinusZero plusMinusZero, Object... realValues);
+    S_ItemEntry modRealValues(PlusMinusZero plusMinusZero, Collection<?> realValues);
+    S_ItemEntry mod(PlusMinusZero plusMinusZero, Collection<? extends PrismValue> values);
+    S_ItemEntry mod(PlusMinusZero plusMinusZero, PrismValue... values);
+
     S_ValuesEntry old(Object... realValues);
     S_ValuesEntry oldRealValues(Collection<?> realValues);
     <T> S_ValuesEntry oldRealValue(T realValue);

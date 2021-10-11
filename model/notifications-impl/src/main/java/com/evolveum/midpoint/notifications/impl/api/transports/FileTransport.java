@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.notifications.impl.api.transports;
@@ -20,6 +11,7 @@ import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
+import com.evolveum.midpoint.notifications.impl.TransportRegistry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -47,29 +39,29 @@ public class FileTransport implements Transport {
     private static final String NAME = "file";
 
     private static final String DOT_CLASS = FileTransport.class.getName() + ".";
-	private static final String DEFAULT_FILE_NAME = "notifications.txt";
+    private static final String DEFAULT_FILE_NAME = "notifications.txt";
 
-	@Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
-    @Autowired private NotificationManager notificationManager;
+    @Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
+    @Autowired private TransportRegistry transportRegistry;
 
     @PostConstruct
     public void init() {
-        notificationManager.registerTransport(NAME, this);
+        transportRegistry.registerTransport(NAME, this);
     }
 
     @Override
     public void send(Message message, String transportName, Event event, Task task, OperationResult parentResult) {
         OperationResult result = parentResult.createMinorSubresult(DOT_CLASS + "send");
-		FileConfigurationType fileConfig = TransportUtil.getTransportConfiguration(transportName, NAME, (c) -> c.getFile(), cacheRepositoryService, result);
-		String fileName;
-		if (fileConfig != null && fileConfig.getFile() != null) {
-			fileName = fileConfig.getFile();
-		} else {
-			LOGGER.info("Notification transport configuration for '{}' was not found or has no file name configured: using default of '{}'",
-					transportName, DEFAULT_FILE_NAME);
-			fileName = DEFAULT_FILE_NAME;
-		}
-		TransportUtil.appendToFile(fileName, formatToFileNew(message, transportName), LOGGER, result);
+        FileConfigurationType fileConfig = TransportUtil.getTransportConfiguration(transportName, NAME, (c) -> c.getFile(), cacheRepositoryService, result);
+        String fileName;
+        if (fileConfig != null && fileConfig.getFile() != null) {
+            fileName = fileConfig.getFile();
+        } else {
+            LOGGER.info("Notification transport configuration for '{}' was not found or has no file name configured: using default of '{}'",
+                    transportName, DEFAULT_FILE_NAME);
+            fileName = DEFAULT_FILE_NAME;
+        }
+        TransportUtil.appendToFile(fileName, formatToFileNew(message, transportName), LOGGER, result);
     }
 
     @Override

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism.impl;
@@ -43,119 +34,124 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContainerDefinitionImpl<O> implements
-		PrismObjectDefinition<O> {
-	private static final long serialVersionUID = -8298581031956931008L;
+        MutablePrismObjectDefinition<O> {
+    private static final long serialVersionUID = -8298581031956931008L;
 
-	public PrismObjectDefinitionImpl(QName elementName, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext,
-			Class<O> compileTimeClass) {
-		// Object definition can only be top-level, hence null parent
-		super(elementName, complexTypeDefinition, prismContext, compileTimeClass);
-	}
+    public PrismObjectDefinitionImpl(QName elementName, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext,
+            Class<O> compileTimeClass) {
+        // Object definition can only be top-level, hence null parent
+        super(elementName, complexTypeDefinition, prismContext, compileTimeClass);
+    }
 
-	@Override
-	@NotNull
-	public PrismObject<O> instantiate() throws SchemaException {
-		if (isAbstract()) {
-			throw new SchemaException("Cannot instantiate abstract definition "+this);
-		}
-		return new PrismObjectImpl<>(getName(), this, prismContext);
-	}
+    @Override
+    @NotNull
+    public PrismObject<O> instantiate() throws SchemaException {
+        if (isAbstract()) {
+            throw new SchemaException("Cannot instantiate abstract definition "+this);
+        }
+        return new PrismObjectImpl<>(getItemName(), this, prismContext);
+    }
 
-	@NotNull
-	@Override
-	public PrismObject<O> instantiate(QName name) throws SchemaException {
-		if (isAbstract()) {
-			throw new SchemaException("Cannot instantiate abstract definition "+this);
-		}
-        name = DefinitionUtil.addNamespaceIfApplicable(name, this.name);
-		return new PrismObjectImpl<>(name, this, prismContext);
-	}
+    @NotNull
+    @Override
+    public PrismObject<O> instantiate(QName name) throws SchemaException {
+        if (isAbstract()) {
+            throw new SchemaException("Cannot instantiate abstract definition "+this);
+        }
+        name = DefinitionUtil.addNamespaceIfApplicable(name, this.itemName);
+        return new PrismObjectImpl<>(name, this, prismContext);
+    }
 
-	@NotNull
-	@Override
-	public PrismObjectDefinitionImpl<O> clone() {
-		PrismObjectDefinitionImpl<O> clone = new PrismObjectDefinitionImpl<>(name, complexTypeDefinition, prismContext, compileTimeClass);
-		copyDefinitionData(clone);
-		return clone;
-	}
+    @NotNull
+    @Override
+    public PrismObjectDefinitionImpl<O> clone() {
+        PrismObjectDefinitionImpl<O> clone = new PrismObjectDefinitionImpl<>(itemName, complexTypeDefinition, prismContext, compileTimeClass);
+        copyDefinitionData(clone);
+        return clone;
+    }
 
-	@Override
-	public PrismObjectDefinition<O> deepClone(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction) {
-		return (PrismObjectDefinition<O>) super.deepClone(ultraDeep, postCloneAction);
-	}
+    @Override
+    public PrismObjectDefinition<O> deepClone(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction) {
+        return (PrismObjectDefinition<O>) super.deepClone(ultraDeep, postCloneAction);
+    }
 
-	@Override
-	public PrismObjectDefinition<O> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
-		return (PrismObjectDefinition<O>) super.cloneWithReplacedDefinition(itemName, newDefinition);
-	}
+    @Override
+    public PrismObjectDefinition<O> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
+        return (PrismObjectDefinition<O>) super.cloneWithReplacedDefinition(itemName, newDefinition);
+    }
 
-	@Override
-	public PrismContainerDefinition<?> getExtensionDefinition() {
-		return findContainerDefinition(getExtensionQName());
-	}
+    @Override
+    public PrismContainerDefinition<?> getExtensionDefinition() {
+        return findContainerDefinition(getExtensionQName());
+    }
 
-//	public void setExtensionDefinition(ComplexTypeDefinition extensionComplexTypeDefinition) {
-//		QName extensionQName = getExtensionQName();
+//    public void setExtensionDefinition(ComplexTypeDefinition extensionComplexTypeDefinition) {
+//        QName extensionQName = getExtensionQName();
 //
-//		PrismContainerDefinition<Containerable> oldExtensionDef = findContainerDefinition(extensionQName);
+//        PrismContainerDefinition<Containerable> oldExtensionDef = findContainerDefinition(extensionQName);
 //
-//		PrismContainerDefinitionImpl<?> newExtensionDef = new PrismContainerDefinitionImpl<>(extensionQName,
-//				extensionComplexTypeDefinition, prismContext);
-//		newExtensionDef.setRuntimeSchema(true);
-//		if (oldExtensionDef != null) {
-//			if (newExtensionDef.getDisplayName() == null) {
-//				newExtensionDef.setDisplayName(oldExtensionDef.getDisplayName());
-//			}
-//			if (newExtensionDef.getDisplayOrder() == null) {
-//				newExtensionDef.setDisplayOrder(oldExtensionDef.getDisplayOrder());
-//			}
-//			if (newExtensionDef.getHelp() == null) {
-//				newExtensionDef.setHelp(oldExtensionDef.getHelp());
-//			}
-//		}
+//        PrismContainerDefinitionImpl<?> newExtensionDef = new PrismContainerDefinitionImpl<>(extensionQName,
+//                extensionComplexTypeDefinition, prismContext);
+//        newExtensionDef.setRuntimeSchema(true);
+//        if (oldExtensionDef != null) {
+//            if (newExtensionDef.getDisplayName() == null) {
+//                newExtensionDef.setDisplayName(oldExtensionDef.getDisplayName());
+//            }
+//            if (newExtensionDef.getDisplayOrder() == null) {
+//                newExtensionDef.setDisplayOrder(oldExtensionDef.getDisplayOrder());
+//            }
+//            if (newExtensionDef.getHelp() == null) {
+//                newExtensionDef.setHelp(oldExtensionDef.getHelp());
+//            }
+//        }
 //
-//		ComplexTypeDefinitionImpl newCtd = (ComplexTypeDefinitionImpl) this.complexTypeDefinition.clone();
-//		newCtd.replaceDefinition(extensionQName, newExtensionDef);
-//		if (newCtd.getDisplayName() == null) {
-//			newCtd.setDisplayName(this.complexTypeDefinition.getDisplayName());
-//		}
-//		if (newCtd.getDisplayOrder() == null) {
-//			newCtd.setDisplayOrder(this.complexTypeDefinition.getDisplayOrder());
-//		}
-//		if (newCtd.getHelp() == null) {
-//			newCtd.setHelp(this.complexTypeDefinition.getHelp());
-//		}
+//        ComplexTypeDefinitionImpl newCtd = (ComplexTypeDefinitionImpl) this.complexTypeDefinition.clone();
+//        newCtd.replaceDefinition(extensionQName, newExtensionDef);
+//        if (newCtd.getDisplayName() == null) {
+//            newCtd.setDisplayName(this.complexTypeDefinition.getDisplayName());
+//        }
+//        if (newCtd.getDisplayOrder() == null) {
+//            newCtd.setDisplayOrder(this.complexTypeDefinition.getDisplayOrder());
+//        }
+//        if (newCtd.getHelp() == null) {
+//            newCtd.setHelp(this.complexTypeDefinition.getHelp());
+//        }
 //
-//		this.complexTypeDefinition = newCtd;
-//	}
+//        this.complexTypeDefinition = newCtd;
+//    }
 
-	@Override
-	public PrismObjectValue<O> createValue() {
-		return new PrismObjectValueImpl<>(prismContext);
-	}
+    @Override
+    public PrismObjectValue<O> createValue() {
+        return new PrismObjectValueImpl<>(prismContext);
+    }
 
 
-	private ItemName getExtensionQName() {
-		String namespace = getName().getNamespaceURI();
-		return new ItemName(namespace, PrismConstants.EXTENSION_LOCAL_NAME);
-	}
+    private ItemName getExtensionQName() {
+        String namespace = getItemName().getNamespaceURI();
+        return new ItemName(namespace, PrismConstants.EXTENSION_LOCAL_NAME);
+    }
 
-//	public <I extends ItemDefinition> I getExtensionItemDefinition(QName elementName) {
-//		PrismContainerDefinition<?> extensionDefinition = getExtensionDefinition();
-//		if (extensionDefinition == null) {
-//			return null;
-//		}
-//		return (I) extensionDefinition.findItemDefinition(elementName);
-//	}
+//    public <I extends ItemDefinition> I getExtensionItemDefinition(QName elementName) {
+//        PrismContainerDefinition<?> extensionDefinition = getExtensionDefinition();
+//        if (extensionDefinition == null) {
+//            return null;
+//        }
+//        return (I) extensionDefinition.findItemDefinition(elementName);
+//    }
 
-	@Override
-	public String getDebugDumpClassName() {
-		return "POD";
-	}
+    @Override
+    public String getDebugDumpClassName() {
+        return "POD";
+    }
 
     @Override
     public String getDocClassName() {
         return "object";
     }
 
+    @Override
+    public MutablePrismObjectDefinition<O> toMutable() {
+        checkMutableOnExposing();
+        return this;
+    }
 }

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.data.audit;
@@ -28,14 +19,17 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.sql.data.InsertQueryBuilder;
+import com.evolveum.midpoint.repo.sql.data.SingleSqlQuery;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -51,14 +45,18 @@ import javax.persistence.Index;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import java.io.Serializable;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.Map.Entry;
 
 /**
  * @author lazyman
@@ -74,10 +72,40 @@ public class RAuditEventRecord implements Serializable {
 
     private static final long serialVersionUID = 621116861556252436L;
 
+    public static final String ID_COLUMN_NAME = "id";
+    public static final String ATTORNEY_NAME_COLUMN_NAME = "attorneyName";
+    public static final String ATTORNEY_OID_COLUMN_NAME = "attorneyOid";
+    private static final String CHANNEL_COLUMN_NAME = "channel";
+    private static final String EVENT_IDENTIFIER_COLUMN_NAME = "eventIdentifier";
+    private static final String EVENT_STAGE_COLUMN_NAME = "eventStage";
+    private static final String EVENT_TYPE_COLUMN_NAME = "eventType";
+    private static final String HOST_IDENTIFIER_COLUMN_NAME = "hostIdentifier";
+    public static final String INITIATOR_NAME_COLUMN_NAME = "initiatorName";
+    public static final String INITIATOR_OID_COLUMN_NAME = "initiatorOid";
+    public static final String INITIATOR_TYPE_COLUMN_NAME = "initiatorType";
+    private static final String MESSAGE_COLUMN_NAME = "message";
+    private static final String NODE_IDENTIFIER_COLUMN_NAME = "nodeIdentifier";
+    private static final String OUTCOME_COLUMN_NAME = "outcome";
+    private static final String PARAMETER_COLUMN_NAME = "parameter";
+    private static final String REMOTE_HOST_ADDRESS_COLUMN_NAME = "remoteHostAddress";
+    private static final String REQUEST_IDENTIFIER_COLUMN_NAME = "requestIdentifier";
+    private static final String RESULT_COLUMN_NAME = "result";
+    private static final String SESSION_IDENTIFIER_COLUMN_NAME = "sessionIdentifier";
+    public static final String TARGET_NAME_COLUMN_NAME = "targetName";
+    public static final String TARGET_OID_COLUMN_NAME = "targetOid";
+    public static final String TARGET_OWNER_NAME_COLUMN_NAME = "targetOwnerName";
+    public static final String TARGET_OWNER_OID_COLUMN_NAME = "targetOwnerOid";
+    public static final String TARGET_OWNER_TYPE_COLUMN_NAME = "targetOwnerType";
+    public static final String TARGET_TYPE_COLUMN_NAME = "targetType";
+    private static final String TASK_IDENTIFIER_COLUMN_NAME = "taskIdentifier";
+    private static final String TASK_OID_COLUMN_NAME = "taskOID";
+    private static final String TIMESTAMP_VALUE_COLUMN_NAME = "timestampValue";
+
     private long id;
     private Timestamp timestamp;
     private String eventIdentifier;
     private String sessionIdentifier;
+    private String requestIdentifier;
     private String taskIdentifier;
     private String taskOID;
     private String hostIdentifier;
@@ -112,6 +140,7 @@ public class RAuditEventRecord implements Serializable {
     private Set<RAuditItem> changedItems;
     private Set<RAuditPropertyValue> propertyValues;
     private Set<RAuditReferenceValue> referenceValues;
+    private Set<RTargetResourceOid> resourceOids;
 
     private String result;
 
@@ -170,6 +199,16 @@ public class RAuditEventRecord implements Serializable {
             referenceValues = new HashSet<>();
         }
         return referenceValues;
+    }
+
+    @ForeignKey(name = "fk_audit_resource")
+    @OneToMany(mappedBy = "record", orphanRemoval = true)
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RTargetResourceOid> getResourceOids() {
+        if (resourceOids == null) {
+            resourceOids = new HashSet<>();
+        }
+        return resourceOids;
     }
 
     public String getEventIdentifier() {
@@ -259,6 +298,10 @@ public class RAuditEventRecord implements Serializable {
         return targetOwnerOid;
     }
 
+    public String getRequestIdentifier() {
+        return requestIdentifier;
+    }
+
     public String getTaskIdentifier() {
         return taskIdentifier;
     }
@@ -299,6 +342,10 @@ public class RAuditEventRecord implements Serializable {
 
     public void setChangedItems(Set<RAuditItem> changedItems) {
         this.changedItems = changedItems;
+    }
+
+    public void setResourceOids(Set<RTargetResourceOid> resourceOids) {
+        this.resourceOids = resourceOids;
     }
 
     public void setPropertyValues(Set<RAuditPropertyValue> propertyValues) {
@@ -385,6 +432,10 @@ public class RAuditEventRecord implements Serializable {
         this.targetOwnerOid = targetOwnerOid;
     }
 
+    public void setRequestIdentifier(String requestIdentifier) {
+        this.requestIdentifier = requestIdentifier;
+    }
+
     public void setTaskIdentifier(String taskIdentifier) {
         this.taskIdentifier = taskIdentifier;
     }
@@ -412,6 +463,7 @@ public class RAuditEventRecord implements Serializable {
             Objects.equals(timestamp, that.timestamp) &&
             Objects.equals(eventIdentifier, that.eventIdentifier) &&
             Objects.equals(sessionIdentifier, that.sessionIdentifier) &&
+            Objects.equals(requestIdentifier, that.requestIdentifier) &&
             Objects.equals(taskIdentifier, that.taskIdentifier) &&
             Objects.equals(taskOID, that.taskOID) &&
             Objects.equals(hostIdentifier, that.hostIdentifier) &&
@@ -436,6 +488,7 @@ public class RAuditEventRecord implements Serializable {
             Objects.equals(parameter, that.parameter) &&
             Objects.equals(message, that.message) &&
             Objects.equals(changedItems, that.changedItems) &&
+            Objects.equals(resourceOids, that.resourceOids) &&
             Objects.equals(propertyValues, that.propertyValues) &&
             Objects.equals(referenceValues, that.referenceValues) &&
             Objects.equals(result, that.result);
@@ -444,11 +497,11 @@ public class RAuditEventRecord implements Serializable {
     @Override
     public int hashCode() {
         return Objects
-            .hash(id, timestamp, eventIdentifier, sessionIdentifier, taskIdentifier, taskOID, hostIdentifier,
+            .hash(id, timestamp, eventIdentifier, sessionIdentifier, requestIdentifier, taskIdentifier, taskOID, hostIdentifier,
                 remoteHostAddress, nodeIdentifier, initiatorOid, initiatorName, initiatorType,
                 attorneyOid, attorneyName, targetOid, targetName, targetType, targetOwnerOid,
                 targetOwnerName, targetOwnerType, eventType, eventStage, deltas, channel, outcome, parameter, message,
-                changedItems, propertyValues, referenceValues, result);
+                changedItems, resourceOids, propertyValues, referenceValues, result);
     }
 
     public static RAuditEventRecord toRepo(AuditEventRecord record, PrismContext prismContext, Boolean isTransient)
@@ -480,9 +533,16 @@ public class RAuditEventRecord implements Serializable {
             repo.setOutcome(RUtil.getRepoEnumValue(record.getOutcome().createStatusType(),
                 ROperationResultStatus.class));
         }
+        repo.setRequestIdentifier(record.getRequestIdentifier());
         repo.setTaskIdentifier(record.getTaskIdentifier());
-        repo.setTaskOID(record.getTaskOID());
+        repo.setTaskOID(record.getTaskOid());
         repo.setResult(record.getResult());
+
+        for(String resourceOid : record.getResourceOids()) {
+            RTargetResourceOid targetResourceOid = RTargetResourceOid.toRepo(repo, resourceOid);
+            targetResourceOid.setTransient(isTransient);
+            repo.getResourceOids().add(targetResourceOid);
+        }
 
         try {
             if (record.getTarget() != null) {
@@ -505,7 +565,7 @@ public class RAuditEventRecord implements Serializable {
                 repo.setInitiatorType(ClassMapper.getHQLTypeForClass(initiator.asObjectable().getClass()));
             }
             if (record.getAttorney() != null) {
-                PrismObject<UserType> attorney = record.getAttorney();
+                PrismObject<? extends FocusType> attorney = record.getAttorney();
                 repo.setAttorneyName(getOrigName(attorney));
                 repo.setAttorneyOid(attorney.getOid());
             }
@@ -578,10 +638,15 @@ public class RAuditEventRecord implements Serializable {
         audit.setParameter(repo.getParameter());
         audit.setResult(repo.getResult());
         audit.setSessionIdentifier(repo.getSessionIdentifier());
+        audit.setRequestIdentifier(repo.getRequestIdentifier());
         audit.setTaskIdentifier(repo.getTaskIdentifier());
-        audit.setTaskOID(repo.getTaskOID());
+        audit.setTaskOid(repo.getTaskOID());
         if (repo.getTimestamp() != null) {
             audit.setTimestamp(repo.getTimestamp().getTime());
+        }
+
+        for(RTargetResourceOid resourceOID : repo.getResourceOids()) {
+            audit.getResourceOids().add(resourceOID.getResourceOid());
         }
 
         List<ObjectDeltaOperation> odos = new ArrayList<>();
@@ -604,7 +669,7 @@ public class RAuditEventRecord implements Serializable {
             audit.addPropertyValue(rPropertyValue.getName(), rPropertyValue.getValue());
         }
         for (RAuditReferenceValue rRefValue : repo.getReferenceValues()) {
-            audit.addReferenceValue(rRefValue.getName(), rRefValue.fromRepo());
+            audit.addReferenceValue(rRefValue.getName(), rRefValue.fromRepo(prismContext));
         }
 
         audit.setRepoId(repo.getId());
@@ -612,6 +677,113 @@ public class RAuditEventRecord implements Serializable {
         return audit;
         // initiator, attorney, target, targetOwner
 
+    }
+
+    public static SingleSqlQuery toRepo(AuditEventRecord record, Map<String, String> customColumn)
+            throws DtoTranslationException {
+
+        Validate.notNull(record, "Audit event record must not be null.");
+        InsertQueryBuilder queryBulder = new InsertQueryBuilder(TABLE_NAME);
+        Map<Integer, Object> parameters = new HashMap<Integer, Object>();
+        if (record.getRepoId() != null) {
+            queryBulder.addParameter(ID_COLUMN_NAME, record.getRepoId());
+        }
+        queryBulder.addParameter(CHANNEL_COLUMN_NAME, record.getChannel());
+        queryBulder.addParameter(TIMESTAMP_VALUE_COLUMN_NAME, new Timestamp(record.getTimestamp()));
+        queryBulder.addParameter(EVENT_STAGE_COLUMN_NAME, RAuditEventStage.toRepo(record.getEventStage()));
+        queryBulder.addParameter(EVENT_TYPE_COLUMN_NAME, RAuditEventType.toRepo(record.getEventType()));
+        queryBulder.addParameter(SESSION_IDENTIFIER_COLUMN_NAME, record.getSessionIdentifier());
+        queryBulder.addParameter(EVENT_IDENTIFIER_COLUMN_NAME, record.getEventIdentifier());
+        queryBulder.addParameter(HOST_IDENTIFIER_COLUMN_NAME, record.getHostIdentifier());
+        queryBulder.addParameter(REMOTE_HOST_ADDRESS_COLUMN_NAME, record.getRemoteHostAddress());
+        queryBulder.addParameter(NODE_IDENTIFIER_COLUMN_NAME, record.getNodeIdentifier());
+        queryBulder.addParameter(PARAMETER_COLUMN_NAME, record.getParameter());
+        queryBulder.addParameter(MESSAGE_COLUMN_NAME, RUtil.trimString(record.getMessage(), AuditService.MAX_MESSAGE_SIZE));
+        if(record.getOutcome() != null) {
+        queryBulder.addParameter(OUTCOME_COLUMN_NAME, RUtil.getRepoEnumValue(record.getOutcome().createStatusType(),
+                ROperationResultStatus.class));
+        } else {
+            queryBulder.addParameter(OUTCOME_COLUMN_NAME, null);
+        }
+        queryBulder.addParameter(REQUEST_IDENTIFIER_COLUMN_NAME, record.getRequestIdentifier());
+        queryBulder.addParameter(TASK_IDENTIFIER_COLUMN_NAME, record.getTaskIdentifier());
+        queryBulder.addParameter(TASK_OID_COLUMN_NAME, record.getTaskOid());
+        queryBulder.addParameter(RESULT_COLUMN_NAME, record.getResult());
+
+        try {
+            if (record.getTarget() != null) {
+                PrismReferenceValue target = record.getTarget();
+                queryBulder.addParameter(TARGET_NAME_COLUMN_NAME, getOrigName(target));
+                queryBulder.addParameter(TARGET_OID_COLUMN_NAME, target.getOid());
+                queryBulder.addParameter(TARGET_TYPE_COLUMN_NAME, ClassMapper.getHQLTypeForQName(target.getTargetType()));
+            }
+            if (record.getTargetOwner() != null) {
+                PrismObject targetOwner = record.getTargetOwner();
+                queryBulder.addParameter(TARGET_OWNER_NAME_COLUMN_NAME, getOrigName(targetOwner));
+                queryBulder.addParameter(TARGET_OWNER_OID_COLUMN_NAME, targetOwner.getOid());
+                queryBulder.addParameter(TARGET_OWNER_TYPE_COLUMN_NAME, ClassMapper.getHQLTypeForClass(targetOwner.getCompileTimeClass()));
+            }
+            if (record.getInitiator() != null) {
+                PrismObject<? extends ObjectType> initiator = record.getInitiator();
+                queryBulder.addParameter(INITIATOR_NAME_COLUMN_NAME, getOrigName(initiator));
+                queryBulder.addParameter(INITIATOR_OID_COLUMN_NAME, initiator.getOid());
+                queryBulder.addParameter(INITIATOR_TYPE_COLUMN_NAME, ClassMapper.getHQLTypeForClass(initiator.asObjectable().getClass()));
+            }
+            if (record.getAttorney() != null) {
+                PrismObject<? extends FocusType> attorney = record.getAttorney();
+                queryBulder.addParameter(ATTORNEY_NAME_COLUMN_NAME, getOrigName(attorney));
+                queryBulder.addParameter(ATTORNEY_OID_COLUMN_NAME, attorney.getOid());
+            }
+
+            if(!customColumn.isEmpty()) {
+                for(Entry<String, String> property : record.getCustomColumnProperty().entrySet()) {
+                    if(!customColumn.containsKey(property.getKey())) {
+                        throw new IllegalArgumentException("Audit event record table don't contains column for property " + property.getKey());
+                    }
+                    queryBulder.addParameter(customColumn.get(property.getKey()), property.getValue());
+                }
+            }
+
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
+
+        return queryBulder.build();
+    }
+
+    public static AuditEventRecord fromRepo(ResultSet resultSet) throws SQLException {
+
+        AuditEventRecord audit = new AuditEventRecord();
+        audit.setChannel(resultSet.getString(CHANNEL_COLUMN_NAME));
+        audit.setEventIdentifier(resultSet.getString(EVENT_IDENTIFIER_COLUMN_NAME));
+        if (resultSet.getObject(EVENT_STAGE_COLUMN_NAME) != null) {
+            audit.setEventStage(RAuditEventStage.values()[resultSet.getInt(EVENT_STAGE_COLUMN_NAME)].getStage());
+        }
+        if (resultSet.getObject(EVENT_TYPE_COLUMN_NAME) != null) {
+            audit.setEventType(RAuditEventType.values()[resultSet.getInt(EVENT_TYPE_COLUMN_NAME)].getType());
+        }
+        audit.setHostIdentifier(resultSet.getString(HOST_IDENTIFIER_COLUMN_NAME));
+        audit.setRemoteHostAddress(resultSet.getString(REMOTE_HOST_ADDRESS_COLUMN_NAME));
+        audit.setNodeIdentifier(resultSet.getString(NODE_IDENTIFIER_COLUMN_NAME));
+        audit.setMessage(resultSet.getString(MESSAGE_COLUMN_NAME));
+
+        if (resultSet.getObject(OUTCOME_COLUMN_NAME) != null) {
+            audit.setOutcome(
+                    ROperationResultStatus.values()[resultSet.getInt(OUTCOME_COLUMN_NAME)].getStatus());
+        }
+        audit.setParameter(resultSet.getString(PARAMETER_COLUMN_NAME));
+        audit.setResult(resultSet.getString(RESULT_COLUMN_NAME));
+        audit.setSessionIdentifier(resultSet.getString(SESSION_IDENTIFIER_COLUMN_NAME));
+        audit.setRequestIdentifier(resultSet.getString(REQUEST_IDENTIFIER_COLUMN_NAME));
+        audit.setTaskIdentifier(resultSet.getString(TASK_IDENTIFIER_COLUMN_NAME));
+        audit.setTaskOid(resultSet.getString(TASK_OID_COLUMN_NAME));
+        if (resultSet.getTimestamp(TIMESTAMP_VALUE_COLUMN_NAME) != null) {
+            audit.setTimestamp(resultSet.getTimestamp(TIMESTAMP_VALUE_COLUMN_NAME).getTime());
+        }
+
+        audit.setRepoId(resultSet.getLong(ID_COLUMN_NAME));
+
+        return audit;
     }
 
     private static String getOrigName(PrismObject object) {
@@ -630,4 +802,5 @@ public class RAuditEventRecord implements Serializable {
     public void merge(RAuditEventRecord repoRecord) {
         this.id = repoRecord.id;
     }
+
 }

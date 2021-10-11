@@ -1,20 +1,20 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql;
+
+import java.util.Collection;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -28,36 +28,19 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.RandomString;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import javax.xml.namespace.QName;
-
-import java.util.Collection;
-import java.util.List;
-
-/**
- * @author lazyman
- */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class EncodingTest extends BaseSQLRepoTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(EncodingTest.class);
 
     /**
      * Long text with national characters. This is used to test whether the database can store a long text
      * and that it maintains national characters.
      */
-    public static String POLICIJA =
+    public static final String POLICIJA =
             "\u013e\u0161\u010d\u0165\u017e\u00fd\u00e1\u00ed\u00e9\u013d\u0139\u00c1\u00c9\n" +
                     "P\u00f3lic\u00edja, p\u00f3lic\u00edja, S\u00e1la\u0161\u00e1ry, pr\u00e1va Jova. Z c\u00e9sty pr\u00edva, z c\u00e9sty pr\u00e1va, s\u00fdmpatika, korpora. \n" +
                     "Popul\u00e1ry, Karpatula. Juv\u00e1 svorno polic\u00e1na. Kerl\u00e9\u0161 na strach, polic\u00edja. Bumtar\u00e1ra, bumtar\u00e1ra, bum. \n" +
@@ -486,8 +469,8 @@ public class EncodingTest extends BaseSQLRepoTest {
     private static final String USER_FULL_NAME = "Grăfula Fèlix Teleke z Tölökö";
     private static final String USER_GIVEN_NAME = "P\u00f3lic\u00edja, p\u00f3lic\u00edja, S\u00e1la\u0161\u00e1ry, pr\u00e1va Jova. Z c\u00e9sty pr\u00edva, z c\u00e9sty pr\u00e1va, s\u00fdmpatika, korpora. Popul\u00e1ry, Karpatula. Juv\u00e1 svorno polic\u00e1na. Kerl\u00e9\u0161 na strach, polic\u00edja. Bumtar\u00e1ra, bumtar\u00e1ra, bum. ";//"Fëľïx";
     private static final String USER_FAMILY_NAME = "ŢæĺêkéčišćeľščťžýáíéäöåøřĺąćęłńóśźżrůāēīūŗļķņģšžčāäǟḑēīļņōȯȱõȭŗšțūžÇĞIİÖŞÜáàâéèêíìîóòôúùûáâãçéêíóôõúÁáĄąÄäÉéĘęĚěÍíÓóÔôÚúŮůÝýČčĎďŤťĽľĹĺŇňŔŕŘřŠšŽž";
-    private static final String[] USER_ORGANIZATION = {"COMITATVS NOBILITVS HVNGARIÆ", "Salsa Verde ğomorula prïvatûła"};
-    private static final String[] USER_SUBTYPE = {"Ģŗąfųŀą", "CANTATOR"};
+    private static final String[] USER_ORGANIZATION = { "COMITATVS NOBILITVS HVNGARIÆ", "Salsa Verde ğomorula prïvatûła" };
+    private static final String[] USER_SUBTYPE = { "Ģŗąfųŀą", "CANTATOR" };
     private static final String INSANE_NATIONAL_STRING = "Pørúga ném nå väšȍm apârátula";
 
     private RandomString randomString;
@@ -495,7 +478,6 @@ public class EncodingTest extends BaseSQLRepoTest {
     public EncodingTest() {
         randomString = new RandomString(NAME_RANDOM_LENGTH, true);
     }
-
 
     @Test
     public void repositorySelfTest() throws Exception {
@@ -507,7 +489,7 @@ public class EncodingTest extends BaseSQLRepoTest {
 
         testResult.computeStatus();
 
-        LOGGER.info(testResult.debugDump());
+        logger.info(testResult.debugDump());
         System.out.println(testResult.debugDump());
         AssertJUnit.assertEquals(OperationResultStatus.SUCCESS, testResult.getStatus());
     }
@@ -549,8 +531,8 @@ public class EncodingTest extends BaseSQLRepoTest {
                 result.recordFatalError(e);
                 return;
             }
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Self-test:user getObject:\n{}", userRetrieved.debugDump());
+            if (logger.isTraceEnabled()) {
+                logger.trace("Self-test:user getObject:\n{}", userRetrieved.debugDump());
             }
             checkUser(userRetrieved, name, subresult);
             subresult.recordSuccessIfUnknown();
@@ -562,8 +544,8 @@ public class EncodingTest extends BaseSQLRepoTest {
                         .build();
                 subresult1.addParam("query", query);
                 List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query, null, subresult1);
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Self-test:user searchObjects:\n{}", DebugUtil.debugDump(foundObjects));
+                if (logger.isTraceEnabled()) {
+                    logger.trace("Self-test:user searchObjects:\n{}", DebugUtil.debugDump(foundObjects));
                 }
                 assertSingleSearchResult("user", foundObjects, subresult1);
 
@@ -573,22 +555,10 @@ public class EncodingTest extends BaseSQLRepoTest {
                 subresult1.recordSuccessIfUnknown();
             } catch (Exception e) {
                 subresult1.recordFatalError(e);
-                return;
             }
         } finally {
-//            try {
-//                repositoryService.deleteObject(UserType.class, oid, testResult);
-//            } catch (ObjectNotFoundException e) {
-//                result.recordFatalError(e);
-//                return;
-//            } catch (RuntimeException e) {
-//                result.recordFatalError(e);
-//                return;
-//            }
-
             result.computeStatus();
         }
-
     }
 
     private void assertSingleSearchResult(String objectTypeMessage, List<PrismObject<UserType>> foundObjects, OperationResult parentResult) {
@@ -609,7 +579,8 @@ public class EncodingTest extends BaseSQLRepoTest {
         checkUserProperty(userRetrieved, UserType.F_DESCRIPTION, subresult, POLICIJA);
     }
 
-    private <O extends ObjectType, T> void checkUserProperty(PrismObject<O> object, QName propQName, OperationResult parentResult, T... expectedValues) {
+    private <O extends ObjectType, T> void checkUserProperty(PrismObject<O> object,
+            QName propQName, OperationResult parentResult, T... expectedValues) {
         String propName = propQName.getLocalPart();
         OperationResult result = parentResult.createSubresult(parentResult.getOperation() + "." + propName);
         PrismProperty<T> prop = object.findProperty(ItemName.fromQName(propQName));
@@ -619,7 +590,7 @@ public class EncodingTest extends BaseSQLRepoTest {
         result.recordSuccessIfUnknown();
     }
 
-    private <T> void assertMultivalue(String message, T expectedVals[], Collection<T> actualVals, OperationResult result) {
+    private <T> void assertMultivalue(String message, T[] expectedVals, Collection<T> actualVals, OperationResult result) {
         if (expectedVals.length != actualVals.size()) {
             fail(message + ": expected " + expectedVals.length + " values but has " + actualVals.size() + " values: " + actualVals, result);
             return;
@@ -638,7 +609,6 @@ public class EncodingTest extends BaseSQLRepoTest {
             }
         }
     }
-
 
     private String polyStringNorm(String orig) {
         return prismContext.getDefaultPolyStringNormalizer().normalize(orig);
@@ -659,11 +629,11 @@ public class EncodingTest extends BaseSQLRepoTest {
     private void fail(String message, OperationResult result) {
         System.out.println(message);
         result.recordFatalError(message);
-        LOGGER.error("Repository self-test assertion failed: {}", message);
+        logger.error("Repository self-test assertion failed: {}", message);
         AssertJUnit.fail(message);
     }
 
-    private void assertMultivaluePolyString(String message, String expectedOrigs[], Collection<PolyString> actualPolyStrings, OperationResult result) {
+    private void assertMultivaluePolyString(String message, String[] expectedOrigs, Collection<PolyString> actualPolyStrings, OperationResult result) {
         if (expectedOrigs.length != actualPolyStrings.size()) {
             fail(message + ": expected " + expectedOrigs.length + " values but has " + actualPolyStrings.size() + " values: " + actualPolyStrings, result);
             return;

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.model.api;
@@ -98,19 +89,11 @@ public interface AccessCertificationService {
     /**
      * Starts the remediation phase for the campaign.
      * The campaign has to be in the last stage and that stage has to be already closed.
-     *
-     * @param campaignOid
-     * @param task
-     * @param result 
      */
     void startRemediation(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
     /**
      * Closes a campaign.
-     *
-     * @param campaignOid
-     * @param task
-     * @param result 
      */
     void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
@@ -135,19 +118,32 @@ public interface AccessCertificationService {
      * @param notDecidedOnly If true, only response==(NO_DECISION or null) should be returned.
      *                       Although it can be formulated in Query API terms, this would refer to implementation details - so
      *                       the cleaner way is keep this knowledge inside certification module only.
+     * @param allItems If true, returns items for all users (requires "ALL" authorization).
      * @param options Options to use (e.g. RESOLVE_NAMES).
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
-     * @return A list of relevant certification cases. 
+     * @return A list of relevant certification cases.
      *
      */
-    List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
+    List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, boolean allItems,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
 
-    int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
+    default List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
+        return searchOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, false, options, task, parentResult);
+    }
+
+    int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, boolean allItems,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
+
+    default int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
+        return countOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, false, options, task, parentResult);
+    }
 
     /**
      * Records a particular decision of a reviewer.
@@ -158,7 +154,7 @@ public interface AccessCertificationService {
      * @param response The response.
      * @param comment Reviewer's comment.
      * @param task Task in context of which all operations will take place.
-     * @param parentResult Result for the operations. 
+     * @param parentResult Result for the operations.
      */
     void recordDecision(String campaignOid, long caseId, long workItemId, AccessCertificationResponseType response, String comment,
                         Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
@@ -176,5 +172,5 @@ public interface AccessCertificationService {
     AccessCertificationCasesStatisticsType getCampaignStatistics(String campaignOid, boolean currentStageOnly, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
-	void cleanupCampaigns(@NotNull CleanupPolicyType policy, Task task, OperationResult result);
+    void cleanupCampaigns(@NotNull CleanupPolicyType policy, Task task, OperationResult result);
 }

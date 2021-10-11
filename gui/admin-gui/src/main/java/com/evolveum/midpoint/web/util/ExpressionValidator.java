@@ -1,8 +1,16 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.web.util;
 
 import java.util.Collection;
 
 import com.evolveum.midpoint.prism.PrismContext;
+
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.ValidationError;
@@ -18,6 +26,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -31,170 +40,100 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 public class ExpressionValidator<T> implements INullAcceptingValidator<T> {
 
-	private static final long serialVersionUID = 1L;
-	
-//	private InputPanel inputPanel;
-	private ExpressionType expressionType;
-	private ModelServiceLocator serviceLocator;
-//	private T realValue;
-	
-	private static final String OPERATION_EVALUATE_EXPRESSION = ExpressionValidator.class.getName() + ".evaluateValidationExpression";
-	
-	public ExpressionValidator(ExpressionType expressionType, ModelServiceLocator serviceLocator) {
-//		this.inputPanel = inputPanel;
-		this.expressionType = expressionType;
-		this.serviceLocator = serviceLocator;
-//		this.realValue = realValue;
-	}
-	
+    private static final long serialVersionUID = 1L;
 
-//	@Override
-//	public FormComponent<?>[] getDependentFormComponents() {
-//		return new FormComponent<?>[]{inputPanel.getBaseFormComponent()};
-//	}
-//
-//	@Override
-//	public void validate(Form<?> form) {
-//		Object valueToValidate = realValue;
-//		String contextDesc = " form component expression validation ";
-//    	PrismPropertyDefinition<OperationResultType> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELEMENT_NAME,
-//    			OperationResultType.COMPLEX_TYPE, serviceLocator.getPrismContext());
-//    	Task task = serviceLocator.createSimpleTask(OPERATION_EVALUATE_EXPRESSION);
-//    	OperationResult result = new OperationResult(OPERATION_EVALUATE_EXPRESSION);
-//    	ExpressionFactory expressionFactory = serviceLocator.getExpressionFactory();
-//		Expression<PrismPropertyValue<OperationResultType>, PrismPropertyDefinition<OperationResultType>> expression;
-//		try {
-//			expression = expressionFactory
-//					.makeExpression(expressionType, outputDefinition, contextDesc, task, result);
-//		} catch (SchemaException | ObjectNotFoundException e) {
-//			form.error("Cannot make expression: " + e.getMessage());
-//			return;
-//		}
-//		ExpressionVariables variables = new ExpressionVariables();
-//		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, valueToValidate);
-////		addAdditionalExpressionVariables(variables);
-//		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task, result);
-//		PrismValueDeltaSetTriple<PrismPropertyValue<OperationResultType>> outputTriple;
-//		try {
-//			outputTriple = expression.evaluate(context);
-//		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-//				| ConfigurationException | SecurityViolationException e) {
-//			form.error("Cannot evaluate expression: " + e.getMessage());
-//			return;
-//		}
-//		if (outputTriple == null) {
-//			return;
-//		}
-//		Collection<PrismPropertyValue<OperationResultType>> outputValues = outputTriple.getNonNegativeValues();
-//		if (outputValues.isEmpty()) {
-//			return;
-//		}
-//		if (outputValues.size() > 1) {
-//			form.error("Expression "+contextDesc+" produced more than one value");
-//		}
-//		
-//		OperationResultType operationResultType = outputValues.iterator().next().getRealValue();
-//		
-//		if (operationResultType == null) {
-//			return;
-//		}
-//		
-//		OperationResult returnResult;
-//		try {
-//			returnResult = OperationResult.createOperationResult(operationResultType);
-//		} catch (SchemaException e) {
-//			return;
-//		}
-//	
-//		if (!returnResult.isSuccess()) {
-//			ValidationError error = new ValidationError();
-////			error.setMessage(WebModelServiceUtils.translateMessage(returnResult, serviceLocator));
-//			if (returnResult.getUserFriendlyMessage() != null) {
-//				form.error(WebModelServiceUtils.translateMessage(returnResult, serviceLocator));
-//			} else {
-//				form.error(returnResult.getMessage());
-//			}
-//		}
-//	}
+    private IModel<ExpressionType> expressionTypeModel;
+    private ModelServiceLocator serviceLocator;
 
-	@Override
-	public void validate(IValidatable<T> validatable) {
-		PrismContext prismContext = serviceLocator.getPrismContext();
-		T valueToValidate = validatable.getValue();
-		String contextDesc = " form component expression validation ";
-    	PrismPropertyDefinition<OperationResultType> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
-			    OperationResultType.COMPLEX_TYPE);
-    	Task task = serviceLocator.createSimpleTask(OPERATION_EVALUATE_EXPRESSION);
-    	OperationResult result = new OperationResult(OPERATION_EVALUATE_EXPRESSION);
-    	ExpressionFactory expressionFactory = serviceLocator.getExpressionFactory();
-		Expression<PrismPropertyValue<OperationResultType>, PrismPropertyDefinition<OperationResultType>> expression;
-		try {
-			expression = expressionFactory
-					.makeExpression(expressionType, outputDefinition, contextDesc, task, result);
-		} catch (SchemaException | ObjectNotFoundException e) {
-			ValidationError error = new ValidationError();
-			error.setMessage("Cannot make expression: " + e.getMessage());
-			validatable.error(error);
-//			form.error("Cannot make expression: " + e.getMessage());
-			return;
-		}
-		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, valueToValidate);
-		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, getObjectType());
-//		addAdditionalExpressionVariables(variables);
-		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task, result);
-		PrismValueDeltaSetTriple<PrismPropertyValue<OperationResultType>> outputTriple;
-		try {
-			outputTriple = expression.evaluate(context);
-		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-				| ConfigurationException | SecurityViolationException e) {
-			ValidationError error = new ValidationError();
-			error.setMessage("Cannot evaluate expression: " + e.getMessage());
-			validatable.error(error);
-//			form.error("Cannot evaluate expression: " + e.getMessage());
-			return;
-		}
-		if (outputTriple == null) {
-			return;
-		}
-		Collection<PrismPropertyValue<OperationResultType>> outputValues = outputTriple.getNonNegativeValues();
-		if (outputValues.isEmpty()) {
-			return;
-		}
-		if (outputValues.size() > 1) {
-			ValidationError error = new ValidationError();
-			error.setMessage("Expression "+contextDesc+" produced more than one value");
-			validatable.error(error);
-//			form.error("Expression "+contextDesc+" produced more than one value");
-		}
-		
-		OperationResultType operationResultType = outputValues.iterator().next().getRealValue();
-		
-		if (operationResultType == null) {
-			return;
-		}
-		
-		OperationResult returnResult;
-		try {
-			returnResult = OperationResult.createOperationResult(operationResultType);
-		} catch (SchemaException e) {
-			return;
-		}
-	
-		if (!returnResult.isSuccess()) {
-			ValidationError error = new ValidationError();
-			if (returnResult.getUserFriendlyMessage() != null) {
-				error.setMessage(WebModelServiceUtils.translateMessage(returnResult, serviceLocator));				
-			} else {
-				error.setMessage(returnResult.getMessage());
-			}
-			validatable.error(error);
-		}
-		
-	}
-	
-	protected <O extends ObjectType> O getObjectType() {
-		return null;
-	}
+    private static final String OPERATION_EVALUATE_EXPRESSION = ExpressionValidator.class.getName() + ".evaluateValidationExpression";
+
+    public ExpressionValidator(IModel<ExpressionType> expressionType, ModelServiceLocator serviceLocator) {
+        this.expressionTypeModel = expressionType;
+        this.serviceLocator = serviceLocator;
+    }
+
+
+
+    @Override
+    public void validate(IValidatable<T> validatable) {
+        ExpressionType expressionType = expressionTypeModel.getObject();
+
+        if (expressionType == null) {
+            return;
+        }
+
+        PrismContext prismContext = serviceLocator.getPrismContext();
+        Object valueToValidate = getValueToValidate(validatable);
+        String contextDesc = " form component expression validation ";
+        PrismPropertyDefinition<OperationResultType> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
+                OperationResultType.COMPLEX_TYPE);
+        Task task = serviceLocator.createSimpleTask(OPERATION_EVALUATE_EXPRESSION);
+        OperationResult result = new OperationResult(OPERATION_EVALUATE_EXPRESSION);
+        ExpressionFactory expressionFactory = serviceLocator.getExpressionFactory();
+        Expression<PrismPropertyValue<OperationResultType>, PrismPropertyDefinition<OperationResultType>> expression;
+        try {
+
+            expression = expressionFactory
+                    .makeExpression(expressionType, outputDefinition, MiscSchemaUtil.getExpressionProfile(), contextDesc, task, result);
+        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException e) {
+            ValidationError error = new ValidationError();
+            error.setMessage("Cannot make expression: " + e.getMessage());
+            validatable.error(error);
+            return;
+        }
+        ExpressionVariables variables = new ExpressionVariables();
+        Class typeClass = (valueToValidate == null ? String.class : valueToValidate.getClass());
+        variables.put(ExpressionConstants.VAR_INPUT, valueToValidate, typeClass);
+        variables.putObject(ExpressionConstants.VAR_OBJECT, (ObjectType)getObjectType(), ObjectType.class);
+        ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task);
+        PrismValueDeltaSetTriple<PrismPropertyValue<OperationResultType>> outputTriple;
+        try {
+            outputTriple = expression.evaluate(context, result);
+        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
+                | ConfigurationException | SecurityViolationException e) {
+            ValidationError error = new ValidationError();
+            error.setMessage("Cannot evaluate expression: " + e.getMessage());
+            validatable.error(error);
+            return;
+        }
+        if (outputTriple == null) {
+            return;
+        }
+        Collection<PrismPropertyValue<OperationResultType>> outputValues = outputTriple.getNonNegativeValues();
+        if (outputValues.isEmpty()) {
+            return;
+        }
+        if (outputValues.size() > 1) {
+            ValidationError error = new ValidationError();
+            error.setMessage("Expression "+contextDesc+" produced more than one value");
+            validatable.error(error);
+        }
+
+        OperationResultType operationResultType = outputValues.iterator().next().getRealValue();
+
+        if (operationResultType == null) {
+            return;
+        }
+
+        OperationResult returnResult = OperationResult.createOperationResult(operationResultType);
+        if (!returnResult.isSuccess()) {
+            ValidationError error = new ValidationError();
+            if (returnResult.getUserFriendlyMessage() != null) {
+                error.setMessage(WebModelServiceUtils.translateMessage(returnResult, serviceLocator));
+            } else {
+                error.setMessage(returnResult.getMessage());
+            }
+            validatable.error(error);
+        }
+
+    }
+
+    protected <O extends ObjectType> O getObjectType() {
+        return null;
+    }
+
+    protected Object getValueToValidate(IValidatable<T> validatable) {
+        return validatable.getValue();
+    }
 
 }

@@ -1,18 +1,9 @@
 
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism.foo;
@@ -68,13 +59,13 @@ public abstract class ObjectType
     implements Serializable, Objectable
 {
 
-	// This is NOT GENERATED. It is supplied here manually for the testing.
-	static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
+    // This is NOT GENERATED. It is supplied here manually for the testing.
+    static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
 
-	// This is NOT GENERATED. It is supplied here manually for the testing.
-	public final static ItemName F_NAME = new ItemName(NS_FOO, "name");
-	public final static ItemName F_DESCRIPTION = new ItemName(NS_FOO, "description");
-	public final static ItemName F_EXTENSION = new ItemName(NS_FOO, "extension");
+    // This is NOT GENERATED. It is supplied here manually for the testing.
+    public final static ItemName F_NAME = new ItemName(NS_FOO, "name");
+    public final static ItemName F_DESCRIPTION = new ItemName(NS_FOO, "description");
+    public final static ItemName F_EXTENSION = new ItemName(NS_FOO, "extension");
     public final static ItemName F_PARENT_ORG_REF = new ItemName(NS_FOO, "parentOrgRef");
 
     private final static long serialVersionUID = 201202081233L;
@@ -207,17 +198,17 @@ public abstract class ObjectType
         this.version = value;
     }
 
-	@Override
-	public String toDebugName() {
-		return toDebugType()+":"+getOid()+"("+getName()+")";
-	}
+    @Override
+    public String toDebugName() {
+        return toDebugType()+":"+getOid()+"("+getName()+")";
+    }
 
-	@Override
-	public String toDebugType() {
-		return "object";
-	}
+    @Override
+    public String toDebugType() {
+        return "object";
+    }
 
-	@Override
+    @Override
     public PrismObject asPrismObject() {
         throw new UnsupportedOperationException("not implemented yet");
     }
@@ -227,15 +218,15 @@ public abstract class ObjectType
         throw new UnsupportedOperationException("not implemented yet");
     }
 
-	@Override
-	public PrismContainerValue asPrismContainerValue() {
-		 throw new UnsupportedOperationException("not implemented yet");
-	}
+    @Override
+    public PrismContainerValue asPrismContainerValue() {
+         throw new UnsupportedOperationException("not implemented yet");
+    }
 
-	@Override
-	public void setupContainerValue(PrismContainerValue container) {
-		throw new UnsupportedOperationException("not implemented yet");
-	}
+    @Override
+    public void setupContainerValue(PrismContainerValue container) {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
 
     public List<ObjectReferenceType> getParentOrgRef() {
         if (parentOrgRef == null) {

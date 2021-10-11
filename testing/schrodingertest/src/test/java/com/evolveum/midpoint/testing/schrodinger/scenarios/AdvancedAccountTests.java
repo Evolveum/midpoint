@@ -1,35 +1,40 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import org.apache.commons.io.FileUtils;
 import org.testng.annotations.Test;
 
-import javax.naming.ConfigurationException;
 import java.io.File;
 import java.io.IOException;
 
 
-public class AdvancedAccountTests extends TestBase {
+public class AdvancedAccountTests extends AbstractSchrodingerTest {
 // TODO in progress
-  private static File CSV_TARGET_FILE;
+  private static File csvTargetFile;
 
   private static final String FILE_RESOUCE_NAME = "midpoint-advanced-sync.csv";
   private static final String INITIALIZE_TEST_CONFIGURATION_DEPENDENCY = "initializeTestConfiguration";
   private static final String DIRECTORY_CURRENT_TEST = "advancedAccountTests";
 
   @Test
-  public void initializeTestConfiguration() throws IOException, ConfigurationException {
+  public void initializeTestConfiguration() throws IOException {
 
     initTestDirectory(DIRECTORY_CURRENT_TEST);
 
-    CSV_TARGET_FILE = new File(CSV_TARGET_DIR, FILE_RESOUCE_NAME);
-    FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE,CSV_TARGET_FILE);
+    csvTargetFile = new File(csvTargetDir, FILE_RESOUCE_NAME);
+    FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE, csvTargetFile);
 
 
     importObject(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_FILE,true);
     importObject(ScenariosCommons.USER_TEST_RAPHAEL_FILE,true);
-    changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, CSV_TARGET_FILE.getAbsolutePath());
+    changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csvTargetFile.getAbsolutePath());
   }
 
   @Test (dependsOnMethods ={INITIALIZE_TEST_CONFIGURATION_DEPENDENCY})
@@ -44,8 +49,7 @@ public class AdvancedAccountTests extends TestBase {
               .and()
               .clickByName(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
                 .selectTabProjections()
-                  .clickCog()
-                    .addProjection()
+                  .clickAddProjection()
                       .table()
                         .search()
                           .byName()
@@ -72,7 +76,7 @@ public class AdvancedAccountTests extends TestBase {
               .clickByName(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
                 .selectTabProjections()
                   .table()
-                    .clickByName(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME);
+                    .clickByName(ScenariosCommons.TEST_USER_RAPHAEL_NAME);
 
     }
 

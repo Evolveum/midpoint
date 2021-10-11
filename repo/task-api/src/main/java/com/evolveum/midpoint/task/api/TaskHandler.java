@@ -1,23 +1,17 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.task.api;
 
+import java.util.List;
+
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 /**
  * @author Radovan Semancik
@@ -25,15 +19,20 @@ import java.util.List;
  */
 public interface TaskHandler {
 
-	TaskRunResult run(Task task);
+    default TaskRunResult run(RunningTask task) {
+        return run(task, null);
+    }
 
-	default Long heartbeat(Task task) {
-		return null;
-	}
+    @Experimental
+    TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partitionDefinition);
 
-	// TODO: fix signature
-	default void refreshStatus(Task task) {
-	}
+    default Long heartbeat(Task task) {
+        return null;
+    }
+
+    // TODO: fix signature
+    default void refreshStatus(Task task) {
+    }
 
     /**
      * Returns a category name for a given task. In most cases, the name would be independent of concrete task.
@@ -42,18 +41,25 @@ public interface TaskHandler {
      *             to all tasks
      * @return a user-understandable name, like "LiveSync" or "Workflow"
      */
-	String getCategoryName(Task task);
+    @Deprecated // Remove in 4.2
+    String getCategoryName(Task task);
 
     /**
      * Returns names of task categories provided by this handler. Usually it will be one-item list.
      * @return a list of category names; may be null - in that case the category info is given by getCategoryName(null)
      */
-	default List<String> getCategoryNames() {
-		return null;
-	}
+    @Deprecated // Remove in 4.2
+    default List<String> getCategoryNames() {
+        return null;
+    }
 
-	@NotNull
-	default StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
-		return new StatisticsCollectionStrategy();
-	}
+    @NotNull
+    default StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+        return new StatisticsCollectionStrategy();
+    }
+
+    /**
+     * @return Archetype OID for tasks that are powered by this handler.
+     */
+    String getArchetypeOid();
 }

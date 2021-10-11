@@ -1,18 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 <configuration>
     <midpoint>
@@ -29,14 +20,8 @@
             <performanceStatisticsLevel>10</performanceStatisticsLevel>
             <performanceStatisticsFile>./target/performance.log</performanceStatisticsFile>
         </repository>
-        <!-- needed for non-H2 tests, in particular in admin-gui, so that activiti (re)initialization exceptions will not occur -->
         <workflow>
             <enabled>true</enabled>
-            <jdbcUrl>jdbc:h2:mem:activiti;DB_CLOSE_DELAY=1000</jdbcUrl>
-            <jdbcDriver>org.h2.Driver</jdbcDriver>
-            <jdbcUsername>sa</jdbcUsername>
-            <jdbcPassword/>
-            <activitiSchemaUpdate>true</activitiSchemaUpdate>
         </workflow>
         <audit>
             <auditService>
@@ -67,13 +52,13 @@
             <encryptionKeyAlias>default</encryptionKeyAlias>
         </keystore>
         <constants>
-        	<useless>xUSEless</useless>
-        	<drink>rum</drink>
-        	<blabla>Bla bla bla</blabla>
-        	<baseDn>dc=example,dc=com</baseDn>
-        	<passwordClear>secret</passwordClear>
-        	<adBaseDn>DC=ad,DC=evolveum,DC=com</adBaseDn>
-        	<adUsersDn>CN=Users,DC=ad,DC=evolveum,DC=com</adUsersDn>
+            <useless>xUSEless</useless>
+            <drink>rum</drink>
+            <blabla>Bla bla bla</blabla>
+            <baseDn>dc=example,dc=com</baseDn>
+            <passwordClear>secret</passwordClear>
+            <adBaseDn>DC=ad,DC=evolveum,DC=com</adBaseDn>
+            <adUsersDn>CN=Users,DC=ad,DC=evolveum,DC=com</adUsersDn>
         </constants>
     </midpoint>
 </configuration>

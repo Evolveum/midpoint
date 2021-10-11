@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.schema.parser;
@@ -36,40 +27,39 @@ import static org.testng.AssertJUnit.assertEquals;
  */
 public class TestParseObjectsIteratively extends AbstractParserTest {
 
-	@Override
-	protected File getFile() {
-		return getFile(OBJECTS_FILE_BASENAME);
-	}
+    @Override
+    protected File getFile() {
+        return getFile(OBJECTS_FILE_BASENAME);
+    }
 
-	@Test
-	public void testRoundTrip() throws Exception {
-		displayTestTitle("testRoundTrip");
-		PrismContext prismContext = getPrismContext();
+    @Test
+    public void testRoundTrip() throws Exception {
+        PrismContext prismContext = getPrismContext();
 
-		PrismParser parser = prismContext.parserFor(getFile());
-		List<PrismObject<?>> objects = new ArrayList<>();
-		parser.parseObjectsIteratively(new PrismParser.ObjectHandler() {
-			@Override
-			public boolean handleData(PrismObject<?> object) {
-				objects.add(object);
-				return true;
-			}
+        PrismParser parser = prismContext.parserFor(getFile());
+        List<PrismObject<?>> objects = new ArrayList<>();
+        parser.parseObjectsIteratively(new PrismParser.ObjectHandler() {
+            @Override
+            public boolean handleData(PrismObject<?> object) {
+                objects.add(object);
+                return true;
+            }
 
-			@Override
-			public boolean handleError(Throwable t) {
-				throw new AssertionError("unexpected handleError call");
-			}
-		});
+            @Override
+            public boolean handleError(Throwable t) {
+                throw new AssertionError("unexpected handleError call");
+            }
+        });
 
-		System.out.println("Objects as parsed: " + DebugUtil.debugDump(objects));
+        System.out.println("Objects as parsed: " + DebugUtil.debugDump(objects));
 
-		assertEquals("Wrong # of objects", 3, objects.size());
-		assertEquals("Wrong class of object 1", UserType.class, objects.get(0).asObjectable().getClass());
-		assertEquals("Wrong class of object 2", UserType.class, objects.get(1).asObjectable().getClass());
-		assertEquals("Wrong class of object 2", RoleType.class, objects.get(2).asObjectable().getClass());
+        assertEquals("Wrong # of objects", 3, objects.size());
+        assertEquals("Wrong class of object 1", UserType.class, objects.get(0).asObjectable().getClass());
+        assertEquals("Wrong class of object 2", UserType.class, objects.get(1).asObjectable().getClass());
+        assertEquals("Wrong class of object 2", RoleType.class, objects.get(2).asObjectable().getClass());
 
-		List<PrismObject<?>> objectsStandard = prismContext.parserFor(getFile()).parseObjects();
-		assertEquals("Objects are different if read in a standard way", objectsStandard, objects);
-	}
+        List<PrismObject<?>> objectsStandard = prismContext.parserFor(getFile()).parseObjects();
+        assertEquals("Objects are different if read in a standard way", objectsStandard, objects);
+    }
 
 }

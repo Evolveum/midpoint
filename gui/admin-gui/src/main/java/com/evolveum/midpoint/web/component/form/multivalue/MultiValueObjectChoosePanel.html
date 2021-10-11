@@ -1,0 +1,36 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <div class="row" wicket:id="multiShadowRefPanel">
+        <div class="col-md-10 prism-property" wicket:id="referenceValueInput"/>
+        <div class="col-md-2" wicket:id="buttonsContainer">
+            <button wicket:id="removeButton" class="btn btn-box-tool">
+                <i class="fa fa-minus-circle"></i>
+            </button>
+            <button wicket:id="addButton" class="btn btn-box-tool">
+                <i class="fa fa-plus-circle"></i>
+            </button>
+        </div>
+    </div>
+    <div class="row" wicket:id="emptyModelContainer">
+        <div class="col-md-10 prism-property" wicket:id="emptyModelInput"/>
+        <div class="col-md-2" wicket:id="buttonsWhenEmptyContainer">
+            <button wicket:id="removeWhenEmptyButton" class="btn btn-box-tool">
+                <i class="fa fa-minus-circle"></i>
+            </button>
+            <button wicket:id="addWhenEmptyButton" class="btn btn-box-tool">
+                <i class="fa fa-plus-circle"></i>
+            </button>
+        </div>
+    </div>
+
+</wicket:panel>
+</html>

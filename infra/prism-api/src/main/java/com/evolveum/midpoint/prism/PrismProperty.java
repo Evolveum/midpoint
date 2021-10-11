@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
- *  
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *  
- *     http://www.apache.org/licenses/LICENSE-2.0
- *  
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (c) 2010-2018 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism;
@@ -19,6 +10,7 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -49,121 +41,91 @@ import java.util.List;
  */
 public interface PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDefinition<T>> {
 
-	/**
-     * Returns applicable property definition.
-     * <p>
-     * May return null if no definition is applicable or the definition is not
-     * know.
-     *
-     * @return applicable property definition
-     */
-	PrismPropertyDefinition<T> getDefinition();
-
-	/**
-     * Sets applicable property definition.
-     *
-	 * TODO remove (method in Item is sufficient)
-     * @param definition the definition to set
-     */
-	void setDefinition(PrismPropertyDefinition<T> definition);
-
-	/**
+    /**
      * Type override, also for compatibility.
      */
-	<X> List<PrismPropertyValue<X>> getValues(Class<X> type);
+    <X> List<PrismPropertyValue<X>> getValues(Class<X> type);
 
-	@Override
-	PrismPropertyValue<T> getValue();
-
-	@NotNull
+    @NotNull
     @Override
-	Collection<T> getRealValues();
+    Collection<T> getRealValues();
 
-	/**
+    /**
      * Type override, also for compatibility.
      */
 
-	<X> Collection<X> getRealValues(Class<X> type);
+    <X> Collection<X> getRealValues(Class<X> type);
 
-	T getAnyRealValue();
+    T getAnyRealValue();
 
-	@Override
-	T getRealValue();
+    @Override
+    T getRealValue();
 
-	/**
+    /**
      * Type override, also for compatibility.
      */
-	<X> X getRealValue(Class<X> type);
+    <X> PrismPropertyValue<X> getValue(Class<X> type);
 
-	/**
-     * Type override, also for compatibility.
-     */
-	<X> X[] getRealValuesArray(Class<X> type);
-
-	/**
-     * Type override, also for compatibility.
-     */
-	<X> PrismPropertyValue<X> getValue(Class<X> type);
-
-	/**
+    /**
      * Means as a short-hand for setting just a value for single-valued attributes.
      * Will remove all existing values.
      */
-	void setValue(PrismPropertyValue<T> value);
+    void setValue(PrismPropertyValue<T> value);
 
-	void setRealValue(T realValue);
+    void setRealValue(T realValue);
 
-	void setRealValues(T... realValues);
+    void setRealValues(T... realValues);
 
-	void addValues(Collection<PrismPropertyValue<T>> pValuesToAdd);
+    void addValues(Collection<PrismPropertyValue<T>> pValuesToAdd);
 
-	void addValue(PrismPropertyValue<T> pValueToAdd);
+    void addValue(PrismPropertyValue<T> pValueToAdd);
 
-	void addRealValue(T valueToAdd);
+    void addRealValue(T valueToAdd);
 
-	void addRealValues(T... valuesToAdd);
+    // TODO Or should we add boolean parameter here?
+    void addRealValueSkipUniquenessCheck(T valueToAdd);
 
-	boolean deleteValues(Collection<PrismPropertyValue<T>> pValuesToDelete);
+    default void addRealValues(T... valuesToAdd) {
+        for (T valueToAdd : valuesToAdd) {
+            addRealValue(valueToAdd);
+        }
+    }
 
-	boolean deleteValue(PrismPropertyValue<T> pValueToDelete);
+    boolean deleteValues(Collection<PrismPropertyValue<T>> pValuesToDelete);
 
-	void replaceValues(Collection<PrismPropertyValue<T>> valuesToReplace);
+    boolean deleteValue(PrismPropertyValue<T> pValueToDelete);
 
-	boolean hasRealValue(PrismPropertyValue<T> value);
+    void replaceValues(Collection<PrismPropertyValue<T>> valuesToReplace);
 
-	Class<T> getValueClass();
+    boolean hasRealValue(PrismPropertyValue<T> value);
 
-	@Override
-	PropertyDelta<T> createDelta();
+    Class<T> getValueClass();
 
-	@Override
-	PropertyDelta<T> createDelta(ItemPath path);
+    @Override
+    PropertyDelta<T> createDelta();
 
-	@Override
-	Object find(ItemPath path);
+    @Override
+    PropertyDelta<T> createDelta(ItemPath path);
 
-	@Override
-	<IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
+    @Override
+    <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
 
-	PropertyDelta<T> diff(PrismProperty<T> other);
+    PropertyDelta<T> diff(PrismProperty<T> other);
 
-	PropertyDelta<T> diff(PrismProperty<T> other, ParameterizedEquivalenceStrategy strategy);
+    PropertyDelta<T> diff(PrismProperty<T> other, ParameterizedEquivalenceStrategy strategy);
 
-	@Override
-	PrismProperty<T> clone();
+    @Override
+    PrismProperty<T> clone();
 
-	@Override
-	PrismProperty<T> cloneComplex(CloneStrategy strategy);
+    @Override
+    PrismProperty<T> createImmutableClone();
 
-	@Override
-	String toString();
+    @Override
+    PrismProperty<T> cloneComplex(CloneStrategy strategy);
 
-	@Override
-	String debugDump(int indent);
+    String toHumanReadableString();
 
-	String toHumanReadableString();
-
-	static <T> T getRealValue(PrismProperty<T> property) {
-    	return property != null ? property.getRealValue() : null;
-	}
+    static <T> T getRealValue(PrismProperty<T> property) {
+        return property != null ? property.getRealValue() : null;
+    }
 }

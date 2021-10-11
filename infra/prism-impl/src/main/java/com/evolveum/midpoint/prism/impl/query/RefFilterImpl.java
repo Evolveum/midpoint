@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl.query;
 
@@ -19,6 +10,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
@@ -28,126 +20,145 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismReferenceDefinition> implements RefFilter {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	// these are currently supported only by built-in match(..) method; e.g. the repo query interpreter simply ignores them
-	private boolean oidNullAsAny = false;
-	private boolean targetTypeNullAsAny = false;
-	private boolean relationNullAsAny = false;          // currently not supported at all
-	
-	public RefFilterImpl(@NotNull ItemPath fullPath, @Nullable PrismReferenceDefinition definition,
-			@Nullable List<PrismReferenceValue> values, @Nullable ExpressionWrapper expression) {
-		super(fullPath, definition, null, values, expression, null, null);
-	}
+    private boolean oidNullAsAny = true;                // "false" is not supported by repo
+    private boolean targetTypeNullAsAny = true;         // "true" to be consistent with the repo implementation; "false" is ignored by repo
+    private boolean relationNullAsAny = false;          // currently ignored
 
-	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, Collection<PrismReferenceValue> values) {
-		return new RefFilterImpl(path, definition, values != null ? new ArrayList<>(values) : null, null);
-	}
-	
-	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, ExpressionWrapper expression) {
-		return new RefFilterImpl(path, definition, null, expression);
-	}
-		
-	@SuppressWarnings("CloneDoesntCallSuperClone")
-	@Override
-	public RefFilterImpl clone() {
-		return new RefFilterImpl(getFullPath(), getDefinition(), getClonedValues(), getExpression());
-	}
+    private RefFilterImpl(@NotNull ItemPath fullPath, @Nullable PrismReferenceDefinition definition,
+            @Nullable List<PrismReferenceValue> values, @Nullable ExpressionWrapper expression) {
+        super(fullPath, definition, null, values, expression, null, null);
+    }
 
-	@Override
-	protected String getFilterName() {
-		return "REF";
-	}
+    public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, Collection<PrismReferenceValue> values) {
+        return new RefFilterImpl(path, definition, values != null ? new ArrayList<>(values) : null, null);
+    }
 
-	@Override
-	public boolean match(PrismContainerValue objectValue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+    public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, ExpressionWrapper expression) {
+        return new RefFilterImpl(path, definition, null, expression);
+    }
 
-		Item filterItem = getFilterItem();
-		Collection<PrismValue> objectItemValues = getObjectItemValues(objectValue);
+    @Override
+    public RefFilterImpl clone() {
+        return new RefFilterImpl(getFullPath(), getDefinition(), getClonedValues(), getExpression());
+    }
 
-		if (!super.match(objectValue, matchingRuleRegistry)) {
-			return false;
-		}
+    @Override
+    protected String getFilterName() {
+        return "REF";
+    }
 
-		boolean filterItemIsEmpty = getValues() == null || getValues().isEmpty();
-		boolean objectItemIsEmpty = objectItemValues.isEmpty();
-		if (filterItemIsEmpty && objectItemIsEmpty) {
-			return true;
-		}
-		assert !filterItemIsEmpty;	// if both are empty, the previous statement causes 'return true'
-		assert !objectItemIsEmpty;	// if only one of them is empty, the super.match() returned false
+    @Override
+    public boolean match(PrismContainerValue objectValue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 
-		for (Object filterItemValue : filterItem.getValues()) {
-			checkPrismReferenceValue(filterItemValue);
-			for (Object objectItemValue : objectItemValues) {
-				checkPrismReferenceValue(objectItemValue);
-				if (valuesMatch(((PrismReferenceValue) filterItemValue), (PrismReferenceValue) objectItemValue)) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
+        Item filterItem = getFilterItem();
+        Collection<PrismValue> objectItemValues = getObjectItemValues(objectValue);
 
-	private void checkPrismReferenceValue(Object value) {
-		if (!(value instanceof PrismReferenceValue)) {
-			throw new IllegalArgumentException("Not supported prism value for ref filter. It must be an instance of PrismReferenceValue but it is " + value.getClass());
-		}
-	}
+        if (!super.match(objectValue, matchingRuleRegistry)) {
+            return false;
+        }
 
-	private boolean valuesMatch(PrismReferenceValue filterValue, PrismReferenceValue objectValue) {
-		if (!matchOid(filterValue.getOid(), objectValue.getOid())) {
-			return false;
-		}
-		if (!QNameUtil.match(PrismConstants.Q_ANY, filterValue.getRelation())) {
-			// similar to relation-matching code in PrismReferenceValue (but awkward to unify, so keeping separate)
-			PrismContext prismContext = getPrismContext();
-			QName objectRelation = objectValue.getRelation();
-			QName filterRelation = filterValue.getRelation();
-			if (prismContext != null) {
-				if (objectRelation == null) {
-					objectRelation = prismContext.getDefaultRelation();
-				}
-				if (filterRelation == null) {
-					filterRelation = prismContext.getDefaultRelation();
-				}
-			}
-			if (!QNameUtil.match(filterRelation, objectRelation)) {
-				return false;
-			}
-		}
-		if (!matchTargetType(filterValue.getTargetType(), objectValue.getTargetType())) {
-			return false;
-		}
-		return true;
-	}
+        boolean filterItemIsEmpty = getValues() == null || getValues().isEmpty();
+        boolean objectItemIsEmpty = objectItemValues.isEmpty();
+        if (filterItemIsEmpty && objectItemIsEmpty) {
+            return true;
+        }
+        assert !filterItemIsEmpty;    // if both are empty, the previous statement causes 'return true'
+        assert !objectItemIsEmpty;    // if only one of them is empty, the super.match() returned false
 
-	private boolean matchOid(String filterOid, String objectOid) {
-		return oidNullAsAny && filterOid == null || objectOid != null && objectOid.equals(filterOid);
-	}
+        for (Object filterItemValue : filterItem.getValues()) {
+            checkPrismReferenceValue(filterItemValue);
+            for (Object objectItemValue : objectItemValues) {
+                checkPrismReferenceValue(objectItemValue);
+                if (valuesMatch(((PrismReferenceValue) filterItemValue), (PrismReferenceValue) objectItemValue)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
-	private boolean matchTargetType(QName filterType, QName objectType) {
-		return targetTypeNullAsAny && filterType == null || QNameUtil.match(objectType, filterType);
+    private void checkPrismReferenceValue(Object value) {
+        if (!(value instanceof PrismReferenceValue)) {
+            throw new IllegalArgumentException("Not supported prism value for ref filter. It must be an instance of PrismReferenceValue but it is " + value.getClass());
+        }
+    }
 
-	}
-	
-	@Override
-	public boolean equals(Object obj, boolean exact) {
-		return obj instanceof RefFilter && super.equals(obj, exact);
-	}
-	
-	public void setOidNullAsAny(boolean oidNullAsAny) {
-		this.oidNullAsAny = oidNullAsAny;
-	}
-	
-	public void setTargetTypeNullAsAny(boolean targetTypeNullAsAny) {
-		this.targetTypeNullAsAny = targetTypeNullAsAny;
-	}
-	
-	public void setRelationNullAsAny(boolean relationNullAsAny) {
-		this.relationNullAsAny = relationNullAsAny;
-	}
+    private boolean valuesMatch(PrismReferenceValue filterValue, PrismReferenceValue objectValue) {
+        if (!matchOid(filterValue.getOid(), objectValue.getOid())) {
+            return false;
+        }
+        if (!QNameUtil.match(PrismConstants.Q_ANY, filterValue.getRelation())) {
+            // similar to relation-matching code in PrismReferenceValue (but awkward to unify, so keeping separate)
+            PrismContext prismContext = getPrismContext();
+            QName objectRelation = objectValue.getRelation();
+            QName filterRelation = filterValue.getRelation();
+            if (prismContext != null) {
+                if (objectRelation == null) {
+                    objectRelation = prismContext.getDefaultRelation();
+                }
+                if (filterRelation == null) {
+                    filterRelation = prismContext.getDefaultRelation();
+                }
+            }
+            if (!QNameUtil.match(filterRelation, objectRelation)) {
+                return false;
+            }
+        }
+        return matchTargetType(filterValue.getTargetType(), objectValue.getTargetType());
+    }
 
+    private boolean matchOid(String filterOid, String objectOid) {
+        return oidNullAsAny && filterOid == null || Objects.equals(objectOid, filterOid);
+    }
+
+    private boolean matchTargetType(QName filterType, QName objectType) {
+        return targetTypeNullAsAny && filterType == null || QNameUtil.match(objectType, filterType);
+
+    }
+
+    @Override
+    public boolean equals(Object obj, boolean exact) {
+        return obj instanceof RefFilter && super.equals(obj, exact);
+    }
+
+    public void setOidNullAsAny(boolean oidNullAsAny) {
+        this.oidNullAsAny = oidNullAsAny;
+    }
+
+    public void setTargetTypeNullAsAny(boolean targetTypeNullAsAny) {
+        this.targetTypeNullAsAny = targetTypeNullAsAny;
+    }
+
+    public void setRelationNullAsAny(boolean relationNullAsAny) {
+        this.relationNullAsAny = relationNullAsAny;
+    }
+
+    @Override
+    public boolean isOidNullAsAny() {
+        return oidNullAsAny;
+    }
+
+    @Override
+    public boolean isTargetTypeNullAsAny() {
+        return targetTypeNullAsAny;
+    }
+
+    @Override
+    public boolean isRelationNullAsAny() {
+        return relationNullAsAny;
+    }
+
+    @Override
+    protected void debugDump(int indent, StringBuilder sb) {
+        super.debugDump(indent, sb);
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "Null OID means any", oidNullAsAny, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "Null target type means any", targetTypeNullAsAny, indent+1);
+        // relationNullAsAny is currently ignored anyway
+    }
 }

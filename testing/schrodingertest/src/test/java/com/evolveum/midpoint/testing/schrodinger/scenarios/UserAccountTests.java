@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import com.evolveum.midpoint.schrodinger.page.self.HomePage;
@@ -13,8 +19,6 @@ public class UserAccountTests extends AccountTests {
     private static final String DISABLE_MP_USER_DEPENDENCY = "disableUser";
     private static final String ENABLE_MP_USER_DEPENDENCY = "enableUser";
     private static final String BULK_DISABLE_MP_USER_DEPENDENCY = "bulkDisableUsers";
-
-
 
     @Test (dependsOnMethods = {CREATE_MP_USER_DEPENDENCY}, groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void modifyUserAttribute(){
@@ -118,13 +122,15 @@ public class UserAccountTests extends AccountTests {
                     .updateSearch()
                 .and()
                 .selectAll()
-                    .clickActionDropDown()
-                        .clickDisable()
-                    .clickYes()
                 .and()
-            .and()
-                .feedback()
-                .isSuccess()
+                    .table()
+                        .clickHeaderActionDropDown()
+                            .clickDisable()
+                            .clickYes()
+                        .and()
+                    .and()
+                    .feedback()
+                        .isSuccess()
             ;
     }
 
@@ -139,6 +145,8 @@ public class UserAccountTests extends AccountTests {
                     .updateSearch()
                 .and()
                 .selectAll()
+                .and()
+                    .table()
                     .clickEnable()
                 .clickYes()
             .and()
@@ -188,12 +196,14 @@ public class UserAccountTests extends AccountTests {
                     .updateSearch()
                 .and()
                 .selectAll()
-                    .clickActionDropDown()
-                        .clickDelete()
-                    .clickYes()
                 .and()
-        .and()
-            .feedback()
-            .isSuccess()
+                    .table()
+                        .clickHeaderActionDropDown()
+                            .clickDelete()
+                        .clickYes()
+                    .and()
+                .and()
+                .feedback()
+                    .isSuccess()
         ;}
 }

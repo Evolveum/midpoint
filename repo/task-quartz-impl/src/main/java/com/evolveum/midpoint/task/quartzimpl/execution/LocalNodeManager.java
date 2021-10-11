@@ -1,21 +1,12 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
+import com.evolveum.midpoint.repo.sql.DataSourceFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
@@ -31,6 +22,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStatusType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.listeners.SchedulerListenerSupport;
@@ -43,6 +36,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Manages task threads on the local node. Concerned mainly with stopping threads and querying their state.
@@ -51,11 +45,11 @@ import java.util.*;
  */
 public class LocalNodeManager {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(LocalNodeManager.class);
+    private static final Trace LOGGER = TraceManager.getTrace(LocalNodeManager.class);
 
     private TaskManagerQuartzImpl taskManager;
 
-    public LocalNodeManager(TaskManagerQuartzImpl taskManager) {
+    LocalNodeManager(TaskManagerQuartzImpl taskManager) {
         this.taskManager = taskManager;
     }
 
@@ -68,8 +62,6 @@ public class LocalNodeManager {
     /**
      * Prepares Quartz scheduler. Configures its properties (based on Task Manager configuration) and creates the instance.
      * Does not start the scheduler, because this is done during post initialization.
-     *
-     * @throws com.evolveum.midpoint.task.api.TaskManagerInitializationException
      */
     void initializeScheduler() throws TaskManagerInitializationException {
 
@@ -79,19 +71,27 @@ public class LocalNodeManager {
         if (configuration.isJdbcJobStore()) {
             quartzProperties.put("org.quartz.jobStore.class", "org.quartz.impl.jdbcjobstore.JobStoreTX");
             quartzProperties.put("org.quartz.jobStore.driverDelegateClass", configuration.getJdbcDriverDelegateClass());
+            quartzProperties.put("org.quartz.jobStore.clusterCheckinInterval", String.valueOf(configuration.getQuartzClusterCheckinInterval()));
+            quartzProperties.put("org.quartz.jobStore.clusterCheckinGracePeriod", String.valueOf(configuration.getQuartzClusterCheckinGracePeriod()));
 
             createQuartzDbSchema(configuration);
 
-            String MY_DS = "myDS";
-            quartzProperties.put("org.quartz.jobStore.dataSource", MY_DS);
-            if (configuration.getDataSource() != null) {
-                quartzProperties.put("org.quartz.dataSource."+MY_DS+".jndiURL", configuration.getDataSource());
+            final String myDs = "myDS";
+            quartzProperties.put("org.quartz.jobStore.dataSource", myDs);
+            if (configuration.isUseRepositoryConnectionProvider()) {
+                DataSourceFactory dataSourceFactory = (DataSourceFactory) taskManager.getBeanFactory().getBean("dataSourceFactory");
+                int index = (int) (Math.random() * Integer.MAX_VALUE);
+                RepositoryConnectionProvider.DATA_SOURCES.put(index, dataSourceFactory.getDataSource());
+                quartzProperties.put("org.quartz.dataSource."+myDs+".connectionProvider.class", RepositoryConnectionProvider.class.getName());
+                quartzProperties.put("org.quartz.dataSource."+myDs+".dataSourceIndex", String.valueOf(index));
+            } else if (configuration.getDataSource() != null) {
+                quartzProperties.put("org.quartz.dataSource."+myDs+".jndiURL", configuration.getDataSource());
             } else {
-                quartzProperties.put("org.quartz.dataSource."+MY_DS+".provider", "hikaricp");
-                quartzProperties.put("org.quartz.dataSource."+MY_DS+".driver", configuration.getJdbcDriver());
-                quartzProperties.put("org.quartz.dataSource."+MY_DS+".URL", configuration.getJdbcUrl());
-                quartzProperties.put("org.quartz.dataSource."+MY_DS+".user", configuration.getJdbcUser());
-                quartzProperties.put("org.quartz.dataSource."+MY_DS+".password", configuration.getJdbcPassword());
+                quartzProperties.put("org.quartz.dataSource."+myDs+".provider", "hikaricp");
+                quartzProperties.put("org.quartz.dataSource."+myDs+".driver", configuration.getJdbcDriver());
+                quartzProperties.put("org.quartz.dataSource."+myDs+".URL", configuration.getJdbcUrl());
+                quartzProperties.put("org.quartz.dataSource."+myDs+".user", configuration.getJdbcUser());
+                quartzProperties.put("org.quartz.dataSource."+myDs+".password", configuration.getJdbcPassword());
             }
 
             quartzProperties.put("org.quartz.jobStore.isClustered", configuration.isClustered() ? "true" : "false");
@@ -107,7 +107,7 @@ public class LocalNodeManager {
         quartzProperties.put("org.quartz.threadPool.threadCount", Integer.toString(configuration.getThreads()));
 
         // in test mode we set idleWaitTime to a lower value, because on some occasions
-        // the Quartz scheduler "forgots" to fire a trigger immediately after creation,
+        // the Quartz scheduler "forgot" to fire a trigger immediately after creation,
         // and the default delay of 10s is too much for most of the tests.
         int schedulerLoopTime;
         if (configuration.isTestMode()) {
@@ -172,15 +172,12 @@ public class LocalNodeManager {
 
     /**
      * Creates Quartz database schema, if it does not exist.
-     *
-     * @throws TaskManagerInitializationException
-     * @param configuration
      */
     private void createQuartzDbSchema(TaskManagerConfiguration configuration) throws TaskManagerInitializationException {
         Connection connection = getConnection(configuration);
         LOGGER.debug("createQuartzDbSchema: trying JDBC connection {}", connection);
         try {
-            if (!doQuartzTablesExist(connection)) {
+            if (areQuartzTablesMissing(connection)) {
 
                 if (configuration.isCreateQuartzTables()) {
                     try {
@@ -195,7 +192,7 @@ public class LocalNodeManager {
                         throw new TaskManagerInitializationException("Could not create Quartz JDBC Job Store tables from " + configuration.getSqlSchemaFile(), e);
                     }
 
-                    if (!doQuartzTablesExist(connection)) {
+                    if (areQuartzTablesMissing(connection)) {
                         throw new TaskManagerInitializationException("Quartz tables seem not to exist even after running creation script.");
                     }
                 } else {
@@ -213,7 +210,10 @@ public class LocalNodeManager {
     private Connection getConnection(TaskManagerConfiguration configuration) throws TaskManagerInitializationException {
         Connection connection;
         try {
-            if (configuration.getDataSource() != null) {
+            if (configuration.isUseRepositoryConnectionProvider()) {
+                DataSourceFactory dataSourceFactory = (DataSourceFactory) taskManager.getBeanFactory().getBean("dataSourceFactory");
+                connection = dataSourceFactory.getDataSource().getConnection();
+            } else if (configuration.getDataSource() != null) {
                 DataSource dataSource;
                 try {
                     InitialContext context = new InitialContext();
@@ -236,14 +236,15 @@ public class LocalNodeManager {
         return connection;
     }
 
-    private boolean doQuartzTablesExist(Connection connection) {
+    private boolean areQuartzTablesMissing(Connection connection) {
+        //noinspection CatchMayIgnoreException
         try {
             connection.prepareStatement("SELECT count(*) FROM QRTZ_JOB_DETAILS").executeQuery().close();
             LOGGER.debug("Quartz tables seem to exist (at least QRTZ_JOB_DETAILS does).");
-            return true;
+            return false;
         } catch (SQLException ignored) {
             LOGGER.debug("Quartz tables seem not to exist (at least QRTZ_JOB_DETAILS does not), we got an exception when trying to access it", ignored);
-            return false;
+            return true;
         }
     }
 
@@ -255,21 +256,7 @@ public class LocalNodeManager {
         return new BufferedReader(new InputStreamReader(stream));
     }
 
-    private String getResource(String name) throws IOException, TaskManagerInitializationException {
-        InputStream stream = getClass().getResourceAsStream(name);
-        if (stream == null) {
-            throw new TaskManagerInitializationException("Quartz DB schema (" + name + ") cannot be found.");
-        }
-        BufferedReader br = new BufferedReader(new InputStreamReader(stream));
-        StringBuffer sb = new StringBuffer();
-        int i;
-        while ((i = br.read()) != -1) {
-            sb.append((char) i);
-        }
-        return sb.toString();
-    }
-
-    void pauseScheduler(OperationResult result) {
+    private void pauseScheduler(OperationResult result) {
 
         LOGGER.info("Putting Quartz scheduler into standby mode");
         try {
@@ -339,7 +326,7 @@ public class LocalNodeManager {
         }
     }
 
-    public NodeExecutionStatusType getLocalNodeExecutionStatus() {
+    NodeExecutionStatusType getLocalNodeExecutionStatus() {
 
         if (taskManager.getLocalNodeErrorStatus() != NodeErrorStatusType.OK) {
             return NodeExecutionStatusType.ERROR;
@@ -368,11 +355,7 @@ public class LocalNodeManager {
 
     public boolean isRunning() {
         Boolean retval = isQuartzSchedulerRunning();
-        if (retval == null) {
-            return false;           // should not occur anyway
-        } else {
-            return retval;
-        }
+        return retval != null && retval;
     }
 
     /*
@@ -387,14 +370,14 @@ public class LocalNodeManager {
         OperationResult result = parentResult.createSubresult(LocalNodeManager.class.getName() + ".stopLocalTaskRun");
         result.addParam("task", oid);
 
-        LOGGER.info("Stopping local task " + oid + " run");
+        LOGGER.info("Stopping local task {} run", oid);
 
         try {
             getQuartzScheduler().interrupt(TaskQuartzImplUtil.createJobKeyForTaskOid(oid));
             result.recordSuccess();
         } catch (UnableToInterruptJobException e) {
             String message = "Unable to interrupt the task " + oid;
-            LoggingUtils.logUnexpectedException(LOGGER, message, e);			// however, we continue (e.g. to suspend the task)
+            LoggingUtils.logUnexpectedException(LOGGER, message, e);            // however, we continue (e.g. to suspend the task)
             result.recordFatalError(message, e);
         }
     }
@@ -444,32 +427,51 @@ public class LocalNodeManager {
         return false;
     }
 
+    Set<String> getLocallyRunningTasksOids(OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(LocalNodeManager.class.getName() + ".getLocallyRunningTasksOids");
+        try {
+            List<JobExecutionContext> jobs = getQuartzScheduler().getCurrentlyExecutingJobs();
+            Set<String> oids = jobs.stream().map(ec -> ec.getJobDetail().getKey().getName()).collect(Collectors.toSet());
+            result.recordSuccess();
+            return oids;
+        } catch (Throwable t) {
+            String message = "Cannot get the list of currently executing jobs on local node.";
+            result.recordFatalError(message, t);
+            LoggingUtils.logUnexpectedException(LOGGER, message, t);
+            return Collections.emptySet();      // todo or throw an exception?
+        }
+    }
+
+    @Nullable
+    Thread getLocalTaskThread(@NotNull String oid) {
+        try {
+            for (JobExecutionContext jec : getQuartzScheduler().getCurrentlyExecutingJobs()) {
+                if (oid.equals(jec.getJobDetail().getKey().getName())) {
+                    Job job = jec.getJobInstance();
+                    if (job instanceof JobExecutor) {
+                        return ((JobExecutor) job).getExecutingThread();
+                    }
+                }
+            }
+        } catch (SchedulerException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot get the list of currently executing jobs", e);
+        }
+        return null;
+    }
+
     /**
      * Returns all the currently executing tasks.
-     *
-     * @return
      */
-    Set<Task> getLocallyRunningTasks(OperationResult parentResult) {
+    Collection<Task> getLocallyRunningTasks(OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(LocalNodeManager.class.getName() + ".getLocallyRunningTasks");
 
-        Set<Task> retval = new HashSet<>();
+        List<Task> retval = new ArrayList<>();
 
-        List<JobExecutionContext> jecs;
-        try {
-            jecs = getQuartzScheduler().getCurrentlyExecutingJobs();
-        } catch (SchedulerException e1) {
-            String message = "Cannot get the list of currently executing jobs on local node.";
-            result.recordFatalError(message, e1);
-            LoggingUtils.logUnexpectedException(LOGGER, message, e1);
-            return retval;
-        }
-
-        for (JobExecutionContext jec : jecs) {
-            String oid = jec.getJobDetail().getKey().getName();
+        for (String oid : getLocallyRunningTasksOids(result)) {
             OperationResult result1 = result.createSubresult(LocalNodeManager.class.getName() + ".getLocallyRunningTask");
             try {
-                retval.add(taskManager.getTask(oid, result1));
+                retval.add(taskManager.getTaskPlain(oid, result1));
                 result1.recordSuccess();
             } catch (ObjectNotFoundException e) {
                 String m = "Cannot get the task with OID " + oid + " as it no longer exists";
@@ -491,11 +493,7 @@ public class LocalNodeManager {
      * Various auxiliary methods
      */
 
-    private OperationResult createOperationResult(String methodName) {
-        return new OperationResult(LocalNodeManager.class.getName() + "." + methodName);
-    }
-
-    public ExecutionManager getGlobalExecutionManager() {
+    private ExecutionManager getGlobalExecutionManager() {
         return taskManager.getExecutionManager();
     }
 

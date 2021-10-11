@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.util;
@@ -40,18 +31,18 @@ public class ListDataProvider<T extends Serializable> extends BaseSortableDataPr
 
     private IModel<List<T>> model;
 
-	private boolean sortable;			// just to ensure backward compatibility with existing usages
+    private boolean sortable;            // just to ensure backward compatibility with existing usages
 
     public ListDataProvider(Component component, IModel<List<T>> model) {
-		this(component, model, false);
-	}
+        this(component, model, false);
+    }
 
     public ListDataProvider(Component component, IModel<List<T>> model, boolean sortable) {
         super(component);
 
         Validate.notNull(model);
         this.model = model;
-		this.sortable = sortable;
+        this.sortable = sortable;
     }
 
     @Override
@@ -59,11 +50,11 @@ public class ListDataProvider<T extends Serializable> extends BaseSortableDataPr
         getAvailableData().clear();
 
         List<T> list = model.getObject();
-		if (sortable && getSort() != null) {
-			sort(list);
-		}
+        if (sortable && getSort() != null) {
+            sort(list);
+        }
         if (list != null) {
-		    long last = list.size() < (first + count) ? list.size() : (first + count);
+            long last = list.size() < (first + count) ? list.size() : (first + count);
             for (long i = first; i < last; i++) {
                 if (i < 0 || i >= list.size()) {
                     throw new ArrayIndexOutOfBoundsException("Trying to get item on index " + i
@@ -76,25 +67,25 @@ public class ListDataProvider<T extends Serializable> extends BaseSortableDataPr
         return getAvailableData().iterator();
     }
 
-	@SuppressWarnings("unchecked")
-	protected <V extends Comparable<V>> void sort(List<T> list) {
-		Collections.sort(list, new Comparator<T>() {
-			@Override
-			public int compare(T o1, T o2) {
-				SortParam<String> sortParam = getSort();
-				String propertyName = sortParam.getProperty();
-				V prop1, prop2;
-				try {
-					prop1 = (V) PropertyUtils.getProperty(o1, propertyName);
-					prop2 = (V) PropertyUtils.getProperty(o2, propertyName);
-				} catch (RuntimeException|IllegalAccessException|InvocationTargetException|NoSuchMethodException e) {
-					throw new SystemException("Couldn't sort the object list: " + e.getMessage(), e);
-				}
-				int comparison = ObjectUtils.compare(prop1, prop2, true);
-				return sortParam.isAscending() ? comparison : -comparison;
-			}
-		});
-	}
+    @SuppressWarnings("unchecked")
+    protected <V extends Comparable<V>> void sort(List<T> list) {
+        Collections.sort(list, new Comparator<T>() {
+            @Override
+            public int compare(T o1, T o2) {
+                SortParam<String> sortParam = getSort();
+                String propertyName = sortParam.getProperty();
+                V prop1, prop2;
+                try {
+                    prop1 = (V) PropertyUtils.getProperty(o1, propertyName);
+                    prop2 = (V) PropertyUtils.getProperty(o2, propertyName);
+                } catch (RuntimeException|IllegalAccessException|InvocationTargetException|NoSuchMethodException e) {
+                    throw new SystemException("Couldn't sort the object list: " + e.getMessage(), e);
+                }
+                int comparison = ObjectUtils.compare(prop1, prop2, true);
+                return sortParam.isAscending() ? comparison : -comparison;
+            }
+        });
+    }
 
     @Override
     protected int internalSize() {

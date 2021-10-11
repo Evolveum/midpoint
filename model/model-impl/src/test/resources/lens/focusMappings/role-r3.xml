@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="7fc1925f-6e54-47a8-aa4b-65b1903d65eb">
+    <name>r3</name>
+    <assignment id="1">
+        <targetRef oid="1b732c09-ecf0-41d6-828a-1cbeba9d4758" type="RoleType"/>        <!-- mr3.1 -->
+    </assignment>
+    <assignment id="2">
+        <targetRef oid="59ae7541-cdb0-4d71-99ad-2df4130d5833" type="RoleType"/>        <!-- mr3.2 -->
+    </assignment>
+    <assignment id="3">
+        <targetRef oid="9af8fcad-05e2-46c0-9e0c-31c037931a32" type="RoleType"/>        <!-- mr3.3 -->
+    </assignment>
+    <activation>
+        <administrativeStatus>disabled</administrativeStatus>
+    </activation>
+</role>

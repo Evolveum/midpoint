@@ -1,0 +1,21 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="96bbb1be-cf8c-4e9c-a994-ec0fbfcadb1d"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Cases Object Self</name>
+    <authorization>
+        <name>cases-target-self-read</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>CaseType</type>
+            <relatedObject>
+                <special>self</special>
+            </relatedObject>
+        </object>
+    </authorization>
+    <delegable>true</delegable>
+</role>

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
@@ -32,38 +23,73 @@ import java.util.Collection;
  */
 public final class Change implements DebugDumpable {
 
+    /*
+     * Object identification: these values should be reasonably filled-in on Change object creation.
+     */
+    private Object primaryIdentifierRealValue;              // we might reconsider this in the future
     private Collection<ResourceAttribute<?>> identifiers;
     private ObjectClassComplexTypeDefinition objectClassDefinition;
+
+    /*
+     * Usually either of the following two should be present. An exception is a notification-only change event.
+     */
+
+    /**
+     * This starts as a (converted) resource object. Gradually it gets augmented with shadow information,
+     * but the process needs to be clarified. See MID-5834.
+     */
+    private PrismObject<ShadowType> currentResourceObject;
+
+    /**
+     * Delta from the resource - if known. Substantial e.g. for asynchronous updates.
+     */
     private ObjectDelta<ShadowType> objectDelta;
+
+    /**
+     * Token is used only in live synchronization process.
+     */
     private PrismProperty<?> token;
-    // TODO: maybe call this repoShadow?
-    private PrismObject<ShadowType> oldShadow;
-    private PrismObject<ShadowType> currentShadow;
 
-    public Change(Collection<ResourceAttribute<?>> identifiers, ObjectDelta<ShadowType> change, PrismProperty<?> token) {
+    /**
+     * Original value of the corresponding shadow stored in repository.
+     *
+     * This is usually filled-in during change processing in provisioning module. (Except for notifyChange calls: TBD.)
+     */
+    private PrismObject<ShadowType> oldRepoShadow;
+
+    /**
+     * This means that the change is just a notification that a resource object has changed. To know about its state
+     * it has to be fetched. For notification-only changes both objectDelta and currentResourceObject have to be null.
+     * (And this flag is introduced to distinguish intentional notification-only changes from malformed ones that have
+     * both currentResourceObject and objectDelta missing.)
+     */
+    private boolean notificationOnly;
+
+    /**
+     * When token is present.
+     */
+    public Change(Object primaryIdentifierRealValue, Collection<ResourceAttribute<?>> identifiers,
+            PrismObject<ShadowType> currentResourceObject, ObjectDelta<ShadowType> delta,
+            PrismProperty<?> token) {
+        this.primaryIdentifierRealValue = primaryIdentifierRealValue;
         this.identifiers = identifiers;
-        this.objectDelta = change;
-        this.currentShadow = null;
+        this.currentResourceObject = currentResourceObject;
+        this.objectDelta = delta;
         this.token = token;
     }
 
-    public Change(Collection<ResourceAttribute<?>> identifiers, PrismObject<ShadowType> currentShadow, PrismProperty<?> token) {
+    /**
+     * When token is not present.
+     */
+    public Change(Object primaryIdentifierRealValue, Collection<ResourceAttribute<?>> identifiers,
+            PrismObject<ShadowType> currentResourceObject, ObjectDelta<ShadowType> delta) {
+        this.primaryIdentifierRealValue = primaryIdentifierRealValue;
         this.identifiers = identifiers;
-        this.objectDelta = null;
-        this.currentShadow = currentShadow;
-        this.token = token;
+        this.currentResourceObject = currentResourceObject;
+        this.objectDelta = delta;
     }
 
-    public Change(Collection<ResourceAttribute<?>> identifiers, PrismObject<ShadowType> currentShadow, PrismObject<ShadowType> oldStadow, ObjectDelta<ShadowType> objectDetla){
-    	this.identifiers = identifiers;
-    	this.currentShadow = currentShadow;
-    	this.oldShadow = oldStadow;
-    	this.objectDelta = objectDetla;
-    }
-
-    public Change(ObjectDelta<ShadowType> change, PrismProperty<?> token) {
-        this.objectDelta = change;
-        this.token = token;
+    private Change() {
     }
 
     public ObjectDelta<ShadowType> getObjectDelta() {
@@ -82,71 +108,99 @@ public final class Change implements DebugDumpable {
         this.identifiers = identifiers;
     }
 
-	public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
-		return objectClassDefinition;
-	}
+    public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
+        return objectClassDefinition;
+    }
 
-	public void setObjectClassDefinition(ObjectClassComplexTypeDefinition objectClassDefinition) {
-		this.objectClassDefinition = objectClassDefinition;
-	}
+    public void setObjectClassDefinition(ObjectClassComplexTypeDefinition objectClassDefinition) {
+        this.objectClassDefinition = objectClassDefinition;
+    }
 
-	public PrismProperty<?> getToken() {
-		return token;
-	}
+    public PrismProperty<?> getToken() {
+        return token;
+    }
 
-	public void setToken(PrismProperty<?> token) {
-		this.token = token;
-	}
+    public void setToken(PrismProperty<?> token) {
+        this.token = token;
+    }
 
-	public PrismObject<ShadowType> getOldShadow() {
-		return oldShadow;
-	}
+    public PrismObject<ShadowType> getOldRepoShadow() {
+        return oldRepoShadow;
+    }
 
-	public void setOldShadow(PrismObject<ShadowType> oldShadow) {
-		this.oldShadow = oldShadow;
-	}
+    public void setOldRepoShadow(PrismObject<ShadowType> oldRepoShadow) {
+        this.oldRepoShadow = oldRepoShadow;
+    }
 
-	public PrismObject<ShadowType> getCurrentShadow() {
-		return currentShadow;
-	}
+    public PrismObject<ShadowType> getCurrentResourceObject() {
+        return currentResourceObject;
+    }
 
-	public void setCurrentShadow(PrismObject<ShadowType> currentShadow) {
-		this.currentShadow = currentShadow;
-	}
+    public void setCurrentResourceObject(PrismObject<ShadowType> currentResourceObject) {
+        this.currentResourceObject = currentResourceObject;
+    }
 
-	public boolean isTokenOnly() {
-		return identifiers == null && objectDelta == null && currentShadow == null && token != null;
-	}
+    public void setNotificationOnly(boolean notificationOnly) {
+        this.notificationOnly = notificationOnly;
+    }
 
+    public boolean isNotificationOnly() {
+        return notificationOnly;
+    }
 
-	@Override
-	public String toString() {
-		return "Change(identifiers=" + identifiers + ", objectDelta=" + objectDelta + ", token=" + token
-				+ ", oldShadow=" + oldShadow + ", currentShadow=" + currentShadow + ")";
-	}
+    public boolean isDelete() {
+        return objectDelta != null && objectDelta.isDelete();
+    }
 
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
+    // todo what if delta is null, oldShadow is null, current is not null?
+    public boolean isAdd() {
+        return objectDelta != null && objectDelta.isAdd();
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, 0);
-		sb.append("Change\n");
-		DebugUtil.debugDumpWithLabel(sb, "identifiers", identifiers, indent + 1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "objectDelta", objectDelta, indent + 1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "objectClassDefinition", objectClassDefinition, indent + 1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "token", token, indent + 1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "oldShadow", oldShadow, indent + 1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "currentShadow", currentShadow, indent + 1);
-		return sb.toString();
-	}
+    @Override
+    public String toString() {
+        return "Change(uid=" + primaryIdentifierRealValue + ",identifiers=" + identifiers + ", objectDelta=" + objectDelta + ", token=" + token
+                + ", oldRepoShadow=" + oldRepoShadow + ", currentResourceObject=" + currentResourceObject + ")";
+    }
 
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, 0);
+        sb.append("Change");
+        if (notificationOnly) {
+            sb.append(" (notification only)");
+        }
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, "primaryIdentifierValue", String.valueOf(primaryIdentifierRealValue), indent + 1);
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, "identifiers", identifiers, indent + 1);
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, "objectDelta", objectDelta, indent + 1);
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, "objectClassDefinition", objectClassDefinition, indent + 1);
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, "token", token, indent + 1);
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, "oldRepoShadow", oldRepoShadow, indent + 1);
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, "currentResourceObject", currentResourceObject, indent + 1);
+        return sb.toString();
+    }
+
+    public String getOid() {
+        if (objectDelta != null && objectDelta.getOid() != null) {
+            return objectDelta.getOid();
+        } else if (currentResourceObject.getOid() != null) {
+            return currentResourceObject.getOid();
+        } else if (oldRepoShadow.getOid() != null) {
+            return oldRepoShadow.getOid();
+        } else {
+            throw new IllegalArgumentException("No oid value defined for the object to synchronize.");
+        }
+    }
+
+    public Object getPrimaryIdentifierRealValue() {
+        return primaryIdentifierRealValue;
+    }
 }

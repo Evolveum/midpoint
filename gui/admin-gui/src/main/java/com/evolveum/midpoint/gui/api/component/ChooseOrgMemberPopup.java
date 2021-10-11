@@ -1,29 +1,18 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
+
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.RelationTypes;
-
-/**
- * Created by honchar
- */
-
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -33,24 +22,29 @@ import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
 import java.util.List;
+import java.util.stream.Collectors;
 
+/**
+ * @author honchar
+ */
 public abstract class ChooseOrgMemberPopup<O extends ObjectType> extends ChooseMemberPopup<O, OrgType> {
     private static final long serialVersionUID = 1L;
 
-    public ChooseOrgMemberPopup(String id, List<QName> availableRelationList){
+    public ChooseOrgMemberPopup(String id, AvailableRelationDto availableRelationList){
         super(id, availableRelationList);
     }
 
     @Override
     protected List<ITab> createAssignmentTabs() {
         List<ITab> tabs = super.createAssignmentTabs();
-        tabs.add(new CountablePanelTab(getPageBase().createStringResource("chooseMemberForOrgPopup.otherTypesLabel"), null) {
+        tabs.add(new CountablePanelTab(getPageBase().createStringResource("chooseMemberForOrgPopup.otherTypesLabel"),
+                new VisibleBehaviour(() -> getAvailableObjectTypes() == null)) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new MultiTypesMemberPopupTabPanel<O>(panelId, availableRelationList){
+                return new MultiTypesMemberPopupTabPanel<O>(panelId, availableRelationList, getArchetypeRefList()){
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -62,6 +56,7 @@ public abstract class ChooseOrgMemberPopup<O extends ObjectType> extends ChooseM
                     protected OrgType getAbstractRoleTypeObject(){
                         return ChooseOrgMemberPopup.this.getAssignmentTargetRefObject();
                     }
+
                 };
             }
 
@@ -71,6 +66,11 @@ public abstract class ChooseOrgMemberPopup<O extends ObjectType> extends ChooseM
             }
         });
         return tabs;
+    }
+
+    @Override
+    protected QName getDefaultTargetType() {
+        return OrgType.COMPLEX_TYPE;
     }
 
 }

@@ -1,0 +1,21 @@
+dn: ou=Affiliations,ou=Groups,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: Affiliations
+
+dn: ou=Courses,ou=Groups,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: Courses
+
+dn: ou=midpoint,ou=Groups,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: midpoint
+
+dn: ou=Generic,ou=Groups,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: Generic
+
+

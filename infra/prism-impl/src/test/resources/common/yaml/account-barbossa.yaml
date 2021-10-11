@@ -1,0 +1,10 @@
+---
+'@ns': "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
+account:
+  oid: "94a0ee25-262f-4c49-ad5c-567418a5f5f3"
+  name: "hbarbossa"
+  attributes:
+    '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    name: "uid=hbarbossa,ou=people,dc=example,dc=com"
+    http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003#uid: "hbarbossa"
+    uid: "8daaeeae-f0c7-41c9-b258-2a3351aa8876"

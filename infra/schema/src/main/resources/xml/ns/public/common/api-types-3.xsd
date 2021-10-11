@@ -1,19 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
@@ -32,13 +23,13 @@
     <xsd:annotation>
         <xsd:documentation>
             Schema that defines data types used in XML version of midPoint APIs.
-            
+
             Version: 3.7
             Recommended namespace prefix: apit
         </xsd:documentation>
     </xsd:annotation>
 
-	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                 schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
         <xsd:annotation>
             <xsd:documentation>
@@ -57,23 +48,23 @@
     </xsd:import>
 
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"
-    			schemaLocation="http://prism.evolveum.com/xml/ns/public/annotation-3">
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/annotation-3">
         <xsd:annotation>
             <xsd:documentation>
                 Common midPoint annotations used in various XSD schemas.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:import>
-    
+
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"
-    			schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3">
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3">
         <xsd:annotation>
             <xsd:documentation>
                 Prism data types.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:import>
-    
+
     <xsd:complexType name="ImportOptionsType">
         <xsd:annotation>
             <xsd:documentation>
@@ -182,6 +173,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="compatMode" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Compatibility model. If selected then the data parsing will be less strict.
+                        E.g. removed element will be ingnored.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -194,7 +193,7 @@
                 documentation of the interface using this type for
                 more details.
 
-               	Used in the interfaces (modifyObject)
+                   Used in the interfaces (modifyObject)
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -213,7 +212,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Describe a change to a single attribute of an object.
-                        
+
                         TODO: this should be renamed to "itemModification"
                     </xsd:documentation>
                 </xsd:annotation>
@@ -222,8 +221,8 @@
     </xsd:complexType>
 
     <xsd:element name="objectModification" type="tns:ObjectModificationType"/>
-    
-    
+
+
     <xsd:complexType name="ObjectListType">
         <xsd:sequence>
             <xsd:element name="object" type="c:ObjectType" minOccurs="0" maxOccurs="unbounded"/>
@@ -231,7 +230,7 @@
         <xsd:attribute name="count" type="xsd:int"/>
     </xsd:complexType>
     <xsd:element name="objectList" type="tns:ObjectListType"/>
-    
+
     <xsd:complexType name="ResourceObjectShadowListType">
         <xsd:sequence>
             <xsd:element name="object" type="c:ShadowType" minOccurs="0" maxOccurs="unbounded"/>
@@ -243,7 +242,7 @@
             <xsd:element name="user" type="c:UserType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
-    
+
         <xsd:complexType name="ResourceObjectType">
         <xsd:annotation>
             <xsd:appinfo>
@@ -279,7 +278,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
-    
+
     <xsd:complexType name="PropertyReferenceListType">
         <xsd:annotation>
             <xsd:documentation>
@@ -290,7 +289,7 @@
             <xsd:element name="property" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
-    
+
     <!-- the following types are related to script execution; these are experimental for now -->
     <xsd:complexType name="XmlScriptsType">
         <xsd:sequence>
@@ -303,12 +302,12 @@
             <xsd:documentation>
                 Result of a single script execution.
             </xsd:documentation>
-			<xsd:appinfo>
-				<a:since>3.6</a:since>
-			</xsd:appinfo>
+            <xsd:appinfo>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-			<xsd:element name="output" type="s:ExecuteScriptOutputType" minOccurs="0">
+            <xsd:element name="output" type="s:ExecuteScriptOutputType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Data and console output of the execution of the script.
@@ -437,134 +436,189 @@
     </xsd:complexType>
 
     <xsd:complexType name="PolicyItemsDefinitionType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Defined items and rules for generating/validating values
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="policyItemDefinition" type="tns:PolicyItemDefinitionType" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						Definition for the item to be generated/validated
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-		</xsd:sequence>
-	</xsd:complexType>
-	<xsd:element name="policyItemsDefinition" type="tns:PolicyItemsDefinitionType"/>
-	
-	<xsd:complexType name="PolicyItemDefinitionType">
-		<xsd:annotation>
-			<xsd:documentation>
-				
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="target" type="tns:PolicyItemTargetType" minOccurs="1">
-				<xsd:annotation>
-					<xsd:documentation>
-						Definition of item for which the value will be generated/validated
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			
-			<xsd:element name="valuePolicyRef" type="c:ObjectReferenceType" minOccurs="0">
-        		<xsd:annotation>
-	                <xsd:documentation>
-	                    Reference to the value policy that should be used to generate/validate the value. 
-	                    If not specified, system defined policy is used
-	                </xsd:documentation>
-	                <xsd:appinfo>
-	        			<a:objectReferenceTargetType>c:ValuePolicyType</a:objectReferenceTargetType>
-	        		</xsd:appinfo>
-	            </xsd:annotation>
-        	</xsd:element>
-        	
-        	<xsd:element name="value" type="xsd:anyType" minOccurs="0">
-        		<xsd:annotation>
-	                <xsd:documentation>
-	                    Contains either generated value or value which will be validated
-	                </xsd:documentation>
-	                <xsd:appinfo>
+        <xsd:annotation>
+            <xsd:documentation>
+                Defined items and rules for generating/validating values
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="policyItemDefinition" type="tns:PolicyItemDefinitionType" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition for the item to be generated/validated
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="policyItemsDefinition" type="tns:PolicyItemsDefinitionType"/>
+
+    <xsd:complexType name="PolicyItemDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="target" type="tns:PolicyItemTargetType" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of item for which the value will be generated/validated
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="valuePolicyRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the value policy that should be used to generate/validate the value.
+                        If not specified, system defined policy is used
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>c:ValuePolicyType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="value" type="xsd:anyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Contains either generated value or value which will be validated
+                    </xsd:documentation>
+                    <xsd:appinfo>
                         <a:rawType/>
                     </xsd:appinfo>
-	            </xsd:annotation>
-        	</xsd:element>
-        	
-        	<xsd:element name="execute" type="xsd:boolean" minOccurs="0">
-        		<xsd:annotation>
-	                <xsd:documentation>
-	                    Specifies if the generated value should be set immediately to the object. 
-	                    Relevant only for generate operation.
-	                </xsd:documentation>	                
-	            </xsd:annotation>
-        	</xsd:element>
-        	
-        	<xsd:element name="result" type="c:OperationResultType" minOccurs="0">
-        		<xsd:annotation>
-	                <xsd:documentation>
-	                    Specifies if the generated value should be set immediately to the object. 
-	                    Relevant only for generate operation.
-	                </xsd:documentation>	                
-	            </xsd:annotation>
-        	</xsd:element>
-        	
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="execute" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies if the generated value should be set immediately to the object.
+                        Relevant only for generate operation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="result" type="c:OperationResultType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies if the generated value should be set immediately to the object.
+                        Relevant only for generate operation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
         </xsd:sequence>
-	</xsd:complexType>
-	<xsd:element name="policyItemDefinition" type="tns:PolicyItemDefinitionType"/>
+    </xsd:complexType>
+    <xsd:element name="policyItemDefinition" type="tns:PolicyItemDefinitionType"/>
 
    <xsd:complexType name="PolicyItemTargetType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Defined items and rules for generating/validating values
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="path" type="t:ItemPathType" minOccurs="1">
-				<xsd:annotation>
-					<xsd:documentation>
-						Definition for the item to be generated/validated
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-		</xsd:sequence>
-	</xsd:complexType>
-	<xsd:element name="policyItemTarget" type="tns:PolicyItemTargetType"/>
+        <xsd:annotation>
+            <xsd:documentation>
+                Defined items and rules for generating/validating values
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition for the item to be generated/validated
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="policyItemTarget" type="tns:PolicyItemTargetType"/>
 
-	
-	<xsd:complexType name="ExecuteCredentialResetRequestType">
-		<xsd:annotation>
-			<xsd:documentation>
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:container/>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="resetMethod" type="xsd:string" minOccurs="0">
-			</xsd:element>
-			<xsd:element name="userEntry" type="xsd:string" minOccurs="0">
-			</xsd:element>
-		</xsd:sequence>
-	</xsd:complexType>
-	<xsd:element name="executeCredentialResetRequest" type="tns:ExecuteCredentialResetRequestType"/>
-	
-	<xsd:complexType name="ExecuteCredentialResetResponseType">
-		<xsd:annotation>
-			<xsd:documentation>
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:container/>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="message" type="c:LocalizableMessageType" minOccurs="0">
-			</xsd:element>
-		</xsd:sequence>
-	</xsd:complexType>
-	<xsd:element name="executeCredentialResetResponse" type="tns:ExecuteCredentialResetResponseType"/>
-	
+
+    <xsd:complexType name="ExecuteCredentialResetRequestType">
+        <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="resetMethod" type="xsd:string" minOccurs="0">
+            </xsd:element>
+            <xsd:element name="userEntry" type="xsd:string" minOccurs="0">
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="executeCredentialResetRequest" type="tns:ExecuteCredentialResetRequestType"/>
+
+    <xsd:complexType name="ExecuteCredentialResetResponseType">
+        <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="message" type="c:LocalizableMessageType" minOccurs="0">
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="executeCredentialResetResponse" type="tns:ExecuteCredentialResetResponseType"/>
+
+
+    <xsd:complexType name="TerminateSessionEventType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describe terminate session event cluster-wide. Strongly experimental.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.0</a:since>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="principal" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="terminateSessionEvent" type="tns:TerminateSessionEventType"/>
+
+    <xsd:complexType name="UserSessionManagementListType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describe list of sessions.
+
+                Be aware: EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="session" type="tns:UserSessionManagementType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="sessionManagement" type="tns:UserSessionManagementListType"/>
+
+    <xsd:complexType name="UserSessionManagementType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describe session - user, active sessions, nodes where the user is active
+
+                Be aware: EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="focus" type="c:FocusType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="activeSessions" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="node" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="userSessionManagement" type="tns:UserSessionManagementType"/>
 
 </xsd:schema>
 

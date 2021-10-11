@@ -1,20 +1,13 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.login;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
@@ -35,140 +28,146 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
 public class PageRegistrationBase extends PageBase {
 
-	private static final long serialVersionUID = 1L;
-	private static final String DOT_CLASS = PageRegistrationBase.class.getName() + ".";
-	private static final String OPERATION_GET_SECURITY_POLICY = DOT_CLASS + "getSecurityPolicy";
+    private static final long serialVersionUID = 1L;
+    private static final String DOT_CLASS = PageRegistrationBase.class.getName() + ".";
+    private static final String OPERATION_GET_SECURITY_POLICY = DOT_CLASS + "getSecurityPolicy";
 
-	protected static final String OPERATION_LOAD_DYNAMIC_FORM = DOT_CLASS + "loadDynamicForm";
+    protected static final String OPERATION_LOAD_DYNAMIC_FORM = DOT_CLASS + "loadDynamicForm";
 
-	private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationBase.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationBase.class);
 
-	@SpringBean(name = "nonceAuthenticationEvaluator")
-	private AuthenticationEvaluator<NonceAuthenticationContext> authenticationEvaluator;
+    @SpringBean(name = "nonceAuthenticationEvaluator")
+    private AuthenticationEvaluator<NonceAuthenticationContext> authenticationEvaluator;
 
-	private ResetPolicyDto resetPasswordPolicy;
-	private SelfRegistrationDto selfRegistrationDto;
-	private SelfRegistrationDto postAuthenticationDto;
+    private ResetPolicyDto resetPasswordPolicy;
+    private SelfRegistrationDto selfRegistrationDto;
+    private SelfRegistrationDto postAuthenticationDto;
 
-	public PageRegistrationBase() {
-//		initSelfRegistrationConfiguration();
-//		initResetCredentialsConfiguration();
-	}
+    public PageRegistrationBase() {
+//        initSelfRegistrationConfiguration();
+//        initResetCredentialsConfiguration();
+    }
 
-	private void initSelfRegistrationConfiguration() {
+    private void initSelfRegistrationConfiguration() {
 
-		SecurityPolicyType securityPolicy = resolveSecurityPolicy();
+        SecurityPolicyType securityPolicy = resolveSecurityPolicy();
 
-		this.selfRegistrationDto = new SelfRegistrationDto();
-		try {
-			this.selfRegistrationDto.initSelfRegistrationDto(securityPolicy);
-		} catch (SchemaException e) {
-			LOGGER.error("Failed to initialize self registration configuration.", e);
-			getSession().error(
-					createStringResource("PageSelfRegistration.selfRegistration.configuration.init.failed")
-							.getString());
-			throw new RestartResponseException(PageLogin.class);
-		}
+        this.selfRegistrationDto = new SelfRegistrationDto();
+        try {
+            this.selfRegistrationDto.initSelfRegistrationDto(securityPolicy);
+        } catch (SchemaException e) {
+            LOGGER.error("Failed to initialize self registration configuration.", e);
+            getSession().error(
+                    createStringResource("PageSelfRegistration.selfRegistration.configuration.init.failed")
+                            .getString());
+            throw new RestartResponseException(PageLogin.class);
+        }
 
-	}
-	
-	private void initPostAuthenticationConfiguration() {
+    }
 
-		SecurityPolicyType securityPolicy = resolveSecurityPolicy();
+    private void initPostAuthenticationConfiguration() {
 
-		this.postAuthenticationDto = new SelfRegistrationDto();
-		try {
-			this.postAuthenticationDto.initPostAuthenticationDto(securityPolicy);
-		} catch (SchemaException e) {
-			LOGGER.error("Failed to initialize self registration configuration.", e);
-			getSession().error(
-					createStringResource("PageSelfRegistration.selfRegistration.configuration.init.failed")
-							.getString());
-			throw new RestartResponseException(PageLogin.class);
-		}
+        SecurityPolicyType securityPolicy = resolveSecurityPolicy();
 
-	}
+        this.postAuthenticationDto = new SelfRegistrationDto();
+        try {
+            this.postAuthenticationDto.initPostAuthenticationDto(securityPolicy);
+        } catch (SchemaException e) {
+            LOGGER.error("Failed to initialize self registration configuration.", e);
+            getSession().error(
+                    createStringResource("PageSelfRegistration.selfRegistration.configuration.init.failed")
+                            .getString());
+            throw new RestartResponseException(PageLogin.class);
+        }
 
-	private void initResetCredentialsConfiguration() {
+    }
 
-		// TODO: cleanup, the same as in the PageRegistrationBase
-		SecurityPolicyType securityPolicy = resolveSecurityPolicy();
+    private void initResetCredentialsConfiguration() {
 
-		this.resetPasswordPolicy = new ResetPolicyDto();
-		try {
-			this.resetPasswordPolicy.initResetPolicyDto(securityPolicy);
-		} catch (SchemaException e) {
-			LOGGER.error("Failed to initialize self registration configuration.", e);
-			getSession().error(
-					createStringResource("PageSelfRegistration.selfRegistration.configuration.init.failed")
-							.getString());
-			throw new RestartResponseException(PageLogin.class);
-		}
+        // TODO: cleanup, the same as in the PageRegistrationBase
+        SecurityPolicyType securityPolicy = resolveSecurityPolicy();
 
-	}
+        this.resetPasswordPolicy = new ResetPolicyDto();
+        try {
+            this.resetPasswordPolicy.initResetPolicyDto(securityPolicy);
+        } catch (SchemaException e) {
+            LOGGER.error("Failed to initialize self registration configuration.", e);
+            getSession().error(
+                    createStringResource("PageSelfRegistration.selfRegistration.configuration.init.failed")
+                            .getString());
+            throw new RestartResponseException(PageLogin.class);
+        }
 
-	private SecurityPolicyType resolveSecurityPolicy() {
-		SecurityPolicyType securityPolicy = runPrivileged(new Producer<SecurityPolicyType>() {
-			private static final long serialVersionUID = 1L;
+    }
 
-			@Override
-			public SecurityPolicyType run() {
+    private SecurityPolicyType resolveSecurityPolicy() {
+        SecurityPolicyType securityPolicy = resolveSecurityPolicy(null);
 
-				Task task = createAnonymousTask(OPERATION_GET_SECURITY_POLICY);
-				task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
-				OperationResult result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
+        if (securityPolicy == null) {
+            LOGGER.error("No security policy defined.");
+            getSession()
+                    .error(createStringResource("PageSelfRegistration.securityPolicy.notFound").getString());
+            throw new RestartResponseException(PageLogin.class);
+        }
 
-				try {
-					return getModelInteractionService().getSecurityPolicy(null, task, result);
-				} catch (CommonException e) {
-					LOGGER.error("Could not retrieve security policy: {}", e.getMessage(), e);
-					return null;
-				}
+        return securityPolicy;
+    }
 
-			}
+    protected SecurityPolicyType resolveSecurityPolicy(PrismObject<UserType> user) {
+        SecurityPolicyType securityPolicy = runPrivileged(new Producer<SecurityPolicyType>() {
+            private static final long serialVersionUID = 1L;
 
-		});
+            @Override
+            public SecurityPolicyType run() {
 
-		if (securityPolicy == null) {
-			LOGGER.error("No security policy defined.");
-			getSession()
-					.error(createStringResource("PageSelfRegistration.securityPolicy.notFound").getString());
-			throw new RestartResponseException(PageLogin.class);
-		}
+                Task task = createAnonymousTask(OPERATION_GET_SECURITY_POLICY);
+                task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
+                OperationResult result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
 
-		return securityPolicy;
+                try {
+                    return getModelInteractionService().getSecurityPolicy(user, task, result);
+                } catch (CommonException e) {
+                    LOGGER.error("Could not retrieve security policy: {}", e.getMessage(), e);
+                    return null;
+                }
 
-	}
+            }
 
-	public SelfRegistrationDto getSelfRegistrationConfiguration() {
+        });
 
-		if (selfRegistrationDto == null) {
-			initSelfRegistrationConfiguration();
-		}
+        return securityPolicy;
 
-		return selfRegistrationDto;
+    }
 
-	}
+    public SelfRegistrationDto getSelfRegistrationConfiguration() {
 
-	public ResetPolicyDto getResetPasswordPolicy() {
-		if (resetPasswordPolicy == null) {
-			initResetCredentialsConfiguration();
-		}
-		return resetPasswordPolicy;
-	}
-	
-	public SelfRegistrationDto getPostAuthenticationConfiguration() {
+        if (selfRegistrationDto == null) {
+            initSelfRegistrationConfiguration();
+        }
 
-		if (postAuthenticationDto == null) {
-			initPostAuthenticationConfiguration();
-		}
+        return selfRegistrationDto;
 
-		return postAuthenticationDto;
+    }
 
-	}
+    public ResetPolicyDto getResetPasswordPolicy() {
+        if (resetPasswordPolicy == null) {
+            initResetCredentialsConfiguration();
+        }
+        return resetPasswordPolicy;
+    }
 
-	public AuthenticationEvaluator<NonceAuthenticationContext> getAuthenticationEvaluator() {
-		return authenticationEvaluator;
-	}
+    public SelfRegistrationDto getPostAuthenticationConfiguration() {
+
+        if (postAuthenticationDto == null) {
+            initPostAuthenticationConfiguration();
+        }
+
+        return postAuthenticationDto;
+
+    }
+
+    public AuthenticationEvaluator<NonceAuthenticationContext> getAuthenticationEvaluator() {
+        return authenticationEvaluator;
+    }
 
 }

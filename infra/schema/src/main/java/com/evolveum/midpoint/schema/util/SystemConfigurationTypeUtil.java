@@ -1,25 +1,17 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.InternalsConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author mederly
@@ -54,19 +46,31 @@ public class SystemConfigurationTypeUtil {
         return sysconfigObject.asObjectable().getInternals().getMaxModelClicks();
     }
 
-    public static String getDefaultHostname(SystemConfigurationType sysconfig) {
-        if (sysconfig == null) {
-            return null;
-        } else if (sysconfig.getInfrastructure() != null && sysconfig.getInfrastructure().getDefaultHostname() != null) {
+    private static String getDefaultHostname(SystemConfigurationType sysconfig) {
+        if (sysconfig != null && sysconfig.getInfrastructure() != null) {
             return sysconfig.getInfrastructure().getDefaultHostname();
         } else {
-            return sysconfig.getDefaultHostname();      // deprecated (legacy)
+            return null;
         }
     }
 
-    // TODO move to better place?
-    public static void applyOperationResultHandling(SystemConfigurationType config) {
-        Integer value = config != null && config.getInternals() != null ? config.getInternals().getSubresultStripThreshold() : null;
-        OperationResult.setSubresultStripThreshold(value);
+    // TODO check the method name
+    public static String getPublicHttpUrlPattern(SystemConfigurationType sysconfig, String host) {
+        if (sysconfig == null) {
+            return null;
+        } else if (sysconfig.getInfrastructure() != null && sysconfig.getInfrastructure().getPublicHttpUrlPattern() != null) {
+            String publicHttpUrlPattern = sysconfig.getInfrastructure().getPublicHttpUrlPattern();
+            if (publicHttpUrlPattern.contains("$host")) {
+                String defaultHostname = getDefaultHostname(sysconfig);
+                if (defaultHostname != null) {
+                    publicHttpUrlPattern = publicHttpUrlPattern.replace("$host", defaultHostname);
+                } else if (StringUtils.isNotBlank(host)) {
+                    publicHttpUrlPattern = publicHttpUrlPattern.replace("$host", host);
+                }
+            }
+            return publicHttpUrlPattern;
+        } else {
+            return null;
+        }
     }
 }

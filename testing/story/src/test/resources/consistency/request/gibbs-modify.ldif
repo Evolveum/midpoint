@@ -1,5 +1,0 @@
-dn: uid=jgibbs,ou=People,dc=example,dc=com
-changetype: modify
-replace: l
-l: middle of nowhere
--

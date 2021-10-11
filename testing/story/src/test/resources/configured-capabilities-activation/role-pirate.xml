@@ -1,0 +1,29 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="34713dae-8d56-4717-b184-86d02c9a2361"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Pirate</name>
+
+    <inducement>
+        <construction>
+            <resourceRef oid="4bac305c-ed1f-4919-aaaa-e11863156811" type="ResourceType"/> <!-- activation-native-simulated -->
+            <kind>account</kind>
+            <intent>default</intent>
+        </construction>
+    </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="3df33d1c-ff1c-11e9-a546-93b539ed664a" type="ResourceType"/> <!-- activation-native -->
+            <kind>account</kind>
+            <intent>default</intent>
+        </construction>
+    </inducement>
+</role>

@@ -1,47 +1,43 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.evolveum.midpoint.tools</groupId>
-    <artifactId>xjc-plugin</artifactId>
-    <version>4.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
-    <name>midPoint Infrastructure - xjc plugin</name>
+
     <parent>
         <artifactId>tools</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
-        <version>4.0-SNAPSHOT</version>
+        <groupId>com.evolveum.midpoint.tools</groupId>
+        <version>4.1.1-SNAPSHOT</version>
     </parent>
-    <scm>
-        <connection>https://github.com/Evolveum/midpoint.git</connection>
-        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/midPoint</url>
-    </scm>
+
+    <artifactId>xjc-plugin</artifactId>
+    <packaging>jar</packaging>
+
+    <name>midPoint Tools - xjc plugin</name>
+
+    <properties>
+        <maven.test.skip>true</maven.test.skip>
+    </properties>
+
     <dependencies>
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-api</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-impl</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.sun.xml.bind</groupId>
@@ -50,10 +46,6 @@
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-tools-common</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jvnet.jaxb2_commons</groupId>
@@ -65,12 +57,11 @@
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
-            <artifactId>annotations-java5</artifactId>
+            <artifactId>annotations</artifactId>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>4.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -1,14 +1,25 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
-import com.codeborne.selenide.Selenide;
-import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import static com.codeborne.selenide.Selenide.open;
+import static com.codeborne.selenide.Selenide.sleep;
 
 import java.io.File;
 
-public class PostAuthenticationTests extends TestBase {
+import com.codeborne.selenide.Selenide;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
+import com.evolveum.midpoint.schrodinger.page.user.UserPage;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
+
+public class PostAuthenticationTests extends AbstractSchrodingerTest {
 
     private static final File SYSTEM_CONFIGURATION_POST_AUTH_ACTIVE_FILE = new File("./src/test/resources/configuration/objects/systemconfig/system-configuration-post-auth-active.xml");
     private static final File SYSTEM_CONFIGURATION_POST_AUTH_NON_ACTIVE_FILE = new File("./src/test/resources/configuration/objects/systemconfig/system-configuration-post-auth-non-active.xml");
@@ -91,8 +102,8 @@ public class PostAuthenticationTests extends TestBase {
     @Test (dependsOnGroups = {TEST_GROUP_BEFORE_POST_AUTH_FLOW}, alwaysRun = true)
     public void flowWithoutPostAuthRoleAssigned(){
         midPoint.logout();
-        midPoint.login()
-                .login(TEST_USER_TITIAN_NAME,TEST_USER_TITIAN_PASSWORD)
+        midPoint.formLogin()
+                .loginWithReloadLoginPage(TEST_USER_TITIAN_NAME,TEST_USER_TITIAN_PASSWORD)
                 .dynamicForm();
 
         Selenide.sleep(5000);
@@ -103,40 +114,44 @@ public class PostAuthenticationTests extends TestBase {
         Selenide.clearBrowserCookies();
         Selenide.refresh();
 
-        midPoint.login()
-                .login(midPoint.getUsername(),midPoint.getPassword());
+        midPoint.formLogin()
+                .loginWithReloadLoginPage(getUsername(), getPassword());
+
+        //todo midpoint opens the previous page before logout
+        open("/self/dashboard");
 
         importObject(SYSTEM_CONFIGURATION_POST_AUTH_ACTIVE_FILE,true);
 
           ListUsersPage usersPage = basicPage.listUsers();
-              usersPage
+        UserPage parent = usersPage
                 .table()
-                    .search()
-                        .byName()
-                        .inputValue(TEST_USER_TITIAN_NAME)
-                    .updateSearch()
+                .search()
+                .byName()
+                .inputValue(TEST_USER_TITIAN_NAME)
+                .updateSearch()
                 .and()
-                    .clickByName(TEST_USER_TITIAN_NAME)
-                      .selectTabAssignments()
-                        .clickAddAssignemnt()
-                            .table()
-                                .search()
-                                    .byName()
-                                    .inputValue(ROLE_POST_AUTHENTICATION_AUTHORIZATION_NAME)
-                                .updateSearch()
-                            .and()
-                            .selectCheckboxByName(ROLE_POST_AUTHENTICATION_AUTHORIZATION_NAME)
-                            .and()
-                            .clickAdd()
-                    .and()
-                    .checkKeepDisplayingResults()
-                      .clickSave()
-                        .feedback()
-                        .isSuccess();
+                .clickByName(TEST_USER_TITIAN_NAME)
+                .selectTabAssignments()
+                .clickAddAssignemnt()
+                .table()
+                .search()
+                .byName()
+                .inputValue(ROLE_POST_AUTHENTICATION_AUTHORIZATION_NAME)
+                .updateSearch()
+                .and()
+                .selectCheckboxByName(ROLE_POST_AUTHENTICATION_AUTHORIZATION_NAME)
+                .and()
+                .clickAdd().and();
+        sleep(1000);
+//                .and()
+        parent.checkKeepDisplayingResults()
+                .clickSave()
+                .feedback()
+                .isSuccess();
 
     midPoint.logout();
-    midPoint.login()
-            .login(TEST_USER_TITIAN_NAME,TEST_USER_TITIAN_PASSWORD)
+    midPoint.formLogin()
+            .loginWithReloadLoginPage(TEST_USER_TITIAN_NAME,TEST_USER_TITIAN_PASSWORD)
                 .dynamicForm();
 
 }

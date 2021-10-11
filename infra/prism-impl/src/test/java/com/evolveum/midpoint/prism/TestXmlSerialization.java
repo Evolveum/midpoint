@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism;
@@ -30,7 +21,7 @@ import javax.xml.namespace.QName;
 import java.io.IOException;
 
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.DEFAULT_NAMESPACE_PREFIX;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.displayTestTitle;
+
 import static org.testng.Assert.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -38,22 +29,12 @@ import static org.testng.AssertJUnit.assertEquals;
  * @author mederly
  *
  */
-public class TestXmlSerialization {
+public class TestXmlSerialization extends AbstractPrismTest {
 
-	@BeforeSuite
-	public void setupDebug() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
-		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
-	}
-
-	@Test
+    @Test
     public void testHandlingInvalidChars() throws Exception {
-		final String TEST_NAME = "testHandlingInvalidChars";
-		displayTestTitle(TEST_NAME);
-
-		// GIVEN
-
-        PrismContext prismContext = PrismTestUtil.getPrismContext();
+        // GIVEN
+        PrismContext prismContext = getPrismContext();
 
         // WHEN
 
@@ -62,8 +43,8 @@ public class TestXmlSerialization {
 
         // THEN
 
-		final DomLexicalProcessor domLexicalProcessor = ((PrismContextImpl) prismContext).getParserDom();
-		String ok = domLexicalProcessor.write(valOkNode, new QName("ok"), null);
+        final DomLexicalProcessor domLexicalProcessor = ((PrismContextImpl) prismContext).getParserDom();
+        String ok = domLexicalProcessor.write(valOkNode, new QName("ok"), null);
         System.out.println("correct value serialized to: " + ok);
         assertEquals("Wrong serialization", "<ok>abcdef</ok>", ok.trim());         // todo make this less brittle with regards to serialization style
 

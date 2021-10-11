@@ -1,25 +1,36 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import com.codeborne.selenide.Selenide;
+import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.ProjectionsTab;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
+import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 
-import javax.naming.ConfigurationException;
 import java.io.File;
 import java.io.IOException;
 
 /**
  * Created by matus on 5/21/2018.
  */
-public class SynchronizationTests extends TestBase {
+public class SynchronizationTests extends AbstractSchrodingerTest {
 
-    private static File CSV_TARGET_FILE;
+    private static File csvTargetFile;
 
+    private static final Logger LOG = LoggerFactory.getLogger(SynchronizationTests.class);
 
     private static final File CSV_INITIAL_SOURCE_FILE = new File("./src/test/resources/midpoint-groups-authoritative-initial.csv");
     private static final File CSV_UPDATED_SOURCE_FILE = new File("./src/test/resources/midpoint-groups-authoritative-updated.csv");
@@ -34,48 +45,53 @@ public class SynchronizationTests extends TestBase {
     private static final String FILE_RESOUCE_NAME = "midpoint-advanced-sync.csv";
     private static final String DIRECTORY_CURRENT_TEST = "synchronizationTests";
 
-    @Test
-    public void setUpResourceAndSynchronizationTask() throws ConfigurationException, IOException {
+    @Test(priority = 0)
+    public void setUpResourceAndSynchronizationTask() throws IOException {
 
         initTestDirectory(DIRECTORY_CURRENT_TEST);
 
-        CSV_TARGET_FILE = new File(CSV_TARGET_DIR, FILE_RESOUCE_NAME);
-        FileUtils.copyFile(CSV_INITIAL_SOURCE_FILE,CSV_TARGET_FILE);
+        csvTargetFile = new File(csvTargetDir, FILE_RESOUCE_NAME);
+        FileUtils.copyFile(CSV_INITIAL_SOURCE_FILE, csvTargetFile);
 
         importObject(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_FILE,true);
         importObject(ScenariosCommons.USER_TEST_RAPHAEL_FILE,true);
 
         //changeResourceFilePath(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME, ScenariosCommons.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath(), true);
 
-        changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, CSV_TARGET_FILE.getAbsolutePath(), true);
+        changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csvTargetFile.getAbsolutePath(), true);
 
 
         refreshResourceSchema(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME);
         ListResourcesPage listResourcesPage = basicPage.listResources();
-        listResourcesPage
+        Selenide.sleep(2000);
+        ((TaskPage)listResourcesPage
                 .table()
                     .clickByName(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
-                        .clicAccountsTab()
+                        .clickAccountsTab()
                         .liveSyncTask()
                             .clickCreateNew()
-                                .basicTable()
-                                    .addAttributeValue("Task name","LiveSyncTest")
+                                .selectTabBasic()
+                                    .form()
+                                        .addAttributeValue("name","LiveSyncTest")
+                                        .selectOption("recurrence","Recurring")
+                                        .and()
+                                    .and())
+                                .selectScheduleTab()
+                                    .form()
+                                        .addAttributeValue("interval", "5")
+                                        .and()
                             .and()
-                                .schedulingTable()
-                                    .clickCheckBox("Recurring task")
-                                    .addAttributeValue("Schedule interval (seconds)","1")
-                            .and()
-                                .clickSave()
+                                .clickSaveAndRun()
                                     .feedback()
-                                    .isSuccess();
+                                    .isInfo();
     }
 
 
-    @Test (dependsOnMethods = {RESOURCE_AND_SYNC_TASK_SETUP_DEPENDENCY})
+    @Test (priority = 1, dependsOnMethods = {RESOURCE_AND_SYNC_TASK_SETUP_DEPENDENCY})
     public void newResourceAccountUserCreated() throws IOException {
 
-    FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE,CSV_TARGET_FILE);
-        Selenide.sleep(3000);
+    FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE, csvTargetFile);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         ListUsersPage usersPage = basicPage.listUsers();
         Assert.assertTrue(
@@ -90,7 +106,7 @@ public class SynchronizationTests extends TestBase {
         );
     }
 
-    @Test (dependsOnMethods = {NEW_USER_AND_ACCOUNT_CREATED_DEPENDENCY})
+    @Test (priority = 2, dependsOnMethods = {NEW_USER_AND_ACCOUNT_CREATED_DEPENDENCY})
     public void protectedAccountAdded(){
 
         ListUsersPage usersPage = basicPage.listUsers();
@@ -116,7 +132,7 @@ public class SynchronizationTests extends TestBase {
                         .updateSearch()
                     .and()
                     .clickByName(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
-                        .clicAccountsTab()
+                        .clickAccountsTab()
                         .clickSearchInResource()
                             .table()
                             .currentTableContains(ScenariosCommons.TEST_USER_PROTECTED_NAME)
@@ -125,7 +141,7 @@ public class SynchronizationTests extends TestBase {
     }
 
 
-    @Test (dependsOnMethods = {NEW_USER_AND_ACCOUNT_CREATED_DEPENDENCY})
+    @Test (priority = 3, dependsOnMethods = {NEW_USER_AND_ACCOUNT_CREATED_DEPENDENCY})
     public void newResourceAccountCreatedLinked() throws IOException {
 
         ListUsersPage usersPage = basicPage.listUsers();
@@ -139,9 +155,9 @@ public class SynchronizationTests extends TestBase {
                     .clickByName(ScenariosCommons.TEST_USER_DON_NAME)
                         .selectTabProjections()
                             .table()
-                                .selectCheckboxByName(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
+                                    .selectCheckboxByName(ScenariosCommons.TEST_USER_DON_NAME)
                         .and()
-                            .clickCog()
+                            .clickHeaderActionDropDown()
                                 .delete()
                                 .clickYes()
                         .and()
@@ -150,12 +166,15 @@ public class SynchronizationTests extends TestBase {
                             .feedback()
                             .isSuccess();
 
-        FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE,CSV_TARGET_FILE);
-        Selenide.sleep(3000);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
-        usersPage = basicPage.listUsers();
-        Assert.assertTrue(
-              usersPage
+        LOG.info("File length before data copying, {}", csvTargetFile.length());
+        FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE, csvTargetFile);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
+        LOG.info("File length after data copying, {}", csvTargetFile.length());
+
+        ListUsersPage usersListPage = basicPage.listUsers();
+        ProjectionsTab projectionsTab = usersListPage
                 .table()
                     .search()
                         .byName()
@@ -163,18 +182,21 @@ public class SynchronizationTests extends TestBase {
                     .updateSearch()
                 .and()
                 .clickByName(ScenariosCommons.TEST_USER_DON_NAME)
-                      .selectTabProjections()
+                      .selectTabProjections();
+        Selenide.screenshot("SynchronizationTests_projectionTab");
+        boolean accountExists = projectionsTab
                         .table()
-                        .currentTableContains(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
-        );
+                        .containsText(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME);
+
+        Assert.assertTrue(accountExists);
 
     }
 
-    @Test (dependsOnMethods = {NEW_USER_ACCOUNT_CREATED_LINKED_DEPENDENCY})
+    @Test (priority = 4, dependsOnMethods = {NEW_USER_ACCOUNT_CREATED_LINKED_DEPENDENCY})
     public void alreadyLinkedResourceAccountModified() throws IOException {
 
-        FileUtils.copyFile(CSV_UPDATED_SOURCE_FILE,CSV_TARGET_FILE);
-        Selenide.sleep(3000);
+        FileUtils.copyFile(CSV_UPDATED_SOURCE_FILE, csvTargetFile);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         ListUsersPage usersPage = basicPage.listUsers();
         Assert.assertTrue(
@@ -188,15 +210,15 @@ public class SynchronizationTests extends TestBase {
                     .clickByName(ScenariosCommons.TEST_USER_DON_NAME)
                         .selectTabBasic()
                             .form()
-                                .compareInputAttributeValue("Given name","Donato")
+                                .compareInputAttributeValue("givenName","Donato")
         );
     }
 
-    @Test (dependsOnMethods = {LINKED_USER_ACCOUNT_MODIFIED})
+    @Test (priority = 5, dependsOnMethods = {LINKED_USER_ACCOUNT_MODIFIED})
     public void alreadyLinkedResourceAccountDeleted() throws IOException {
 
-        FileUtils.copyFile(CSV_INITIAL_SOURCE_FILE,CSV_TARGET_FILE);
-        Selenide.sleep(3000);
+        FileUtils.copyFile(CSV_INITIAL_SOURCE_FILE, csvTargetFile);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         ListUsersPage usersPage = basicPage.listUsers();
         Assert.assertFalse(
@@ -211,7 +233,7 @@ public class SynchronizationTests extends TestBase {
         );
     }
 
-    @Test (dependsOnMethods = {RESOURCE_AND_SYNC_TASK_SETUP_DEPENDENCY})
+    @Test (priority = 6, dependsOnMethods = {RESOURCE_AND_SYNC_TASK_SETUP_DEPENDENCY})
     public void resourceAccountDeleted(){
 
         ListUsersPage usersPage = basicPage.listUsers();
@@ -239,11 +261,11 @@ public class SynchronizationTests extends TestBase {
                         .updateSearch()
                     .and()
                     .clickByName(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
-                        .clicAccountsTab()
+                        .clickAccountsTab()
                         .clickSearchInResource()
                             .table()
                             .selectCheckboxByName("raphael")
-                                .clickCog()
+                                .clickHeaderActionDropDown()
                                     .clickDelete()
                             .clickYes()
                         .and()
@@ -270,14 +292,14 @@ public class SynchronizationTests extends TestBase {
 
 
 
-@Test(dependsOnMethods = {LINKED_USER_ACCOUNT_DELETED})
+@Test(priority = 7, dependsOnMethods = {LINKED_USER_ACCOUNT_DELETED})
     public void resourceAccountCreatedWhenResourceUnreachable() throws IOException {
 
-        changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME,  ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, CSV_TARGET_FILE.getAbsolutePath()+"err", false);
+        changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME,  ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csvTargetFile.getAbsolutePath()+"err", false);
 
-        FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE,CSV_TARGET_FILE);
+        FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE, csvTargetFile);
 
-        Selenide.sleep(3000);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         ListUsersPage usersPage = basicPage.listUsers();
         Assert.assertFalse(
@@ -291,17 +313,23 @@ public class SynchronizationTests extends TestBase {
                     .currentTableContains(ScenariosCommons.TEST_USER_DON_NAME)
         );
 
-    changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, CSV_TARGET_FILE.getAbsolutePath(), true);
+    changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csvTargetFile.getAbsolutePath(), true);
 
 
     ListTasksPage  tasksPage = basicPage.listTasks();
         tasksPage
             .table()
+                .search()
+                .byName()
+                .inputValue("LiveSyncTest")
+                .updateSearch()
+                .and()
                 .clickByName("LiveSyncTest")
-                .clickResume();
+                .clickResume()
+                .resumeStopRefreshing();
 
 
-        Selenide.sleep(3000);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         usersPage = basicPage.listUsers();
         Assert.assertTrue(
@@ -316,9 +344,8 @@ public class SynchronizationTests extends TestBase {
         );
     }
 
-    @Test (dependsOnMethods = {RESOURCE_ACCOUNT_CREATED_WHEN_UNREACHABLE})
+    @Test (priority = 8, dependsOnMethods = {RESOURCE_ACCOUNT_CREATED_WHEN_UNREACHABLE})
     public void resourceAccountCreatedWhenResourceUnreachableToBeLinked() throws IOException {
-
         ListUsersPage listUsersPage= basicPage.listUsers();
         Assert.assertTrue(
             listUsersPage
@@ -331,9 +358,9 @@ public class SynchronizationTests extends TestBase {
                         .clickByName(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
                             .selectTabProjections()
                                 .table()
-                                .selectCheckboxByName(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
+                                .selectCheckboxByName(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
                             .and()
-                                .clickCog()
+                                .clickHeaderActionDropDown()
                                     .delete()
                                     .clickYes()
                             .and()
@@ -342,21 +369,30 @@ public class SynchronizationTests extends TestBase {
                             .feedback()
                     .isSuccess()
         );
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
-        changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME , ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, CSV_TARGET_FILE.getAbsolutePath()+"err",false);
+        changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME , ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csvTargetFile.getAbsolutePath()+"err",false);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
-        FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE,CSV_TARGET_FILE);
+        FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE, csvTargetFile);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
-        changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME , ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, CSV_TARGET_FILE.getAbsolutePath(),true);
-
+        changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME , ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csvTargetFile.getAbsolutePath(),true);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         ListTasksPage  tasksPage = basicPage.listTasks();
         tasksPage
                 .table()
-                    .clickByName("LiveSyncTest")
-                    .clickResume();
+                .search()
+                .byName()
+                .inputValue("LiveSyncTest")
+                .updateSearch()
+                .and()
+                .clickByName("LiveSyncTest")
+                .clickResume()
+                .resumeStopRefreshing();
 
-        Selenide.sleep(3000);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         listUsersPage = basicPage.listUsers();
         Assert.assertTrue(
@@ -370,7 +406,7 @@ public class SynchronizationTests extends TestBase {
                     .clickByName(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
                             .selectTabProjections()
                                 .table()
-                        .currentTableContains(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
+                        .currentTableContains(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
         );
     }
 }

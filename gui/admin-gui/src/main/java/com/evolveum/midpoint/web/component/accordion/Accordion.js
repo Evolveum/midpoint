@@ -1,41 +1,32 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
- 
+
 var accordion = {};
 var TINY = {};
- 
+
 function getAccordion(accordionId) {
         return document.getElementById(accordionId);
 }
 function getPanel(accordionControl, child) {
         return child.getElementsByTagName(accordionControl);
 }
- 
+
 TINY.accordion = function() {
- 
+
         function slider(accordionName) {
                 this.accordionName = accordionName;
                 this.accordions = [];
         }
- 
+
         slider.prototype.init = function(accordionId, accordionControl, accordionMultipleSelect, accordionOpenedPanel, accordionSelectedAttr) {
                 var accordionComponent = getAccordion(accordionId), i = s = 0;
                 var accordionChilds = accordionComponent.childNodes;
                 var length = accordionChilds.length;
- 
+
                 this.selectedAttr = accordionSelectedAttr || 0;
                 this.multipleSelect = accordionMultipleSelect || 0;
                 for (i; i < length; i++) {
@@ -45,7 +36,7 @@ TINY.accordion = function() {
                                 var header = this.accordions[s].header = getPanel(accordionControl, child)[0];
                                 var content = this.accordions[s].content = getPanel('div', child)[0];
                                 header.onclick = new Function(this.accordionName + '.expand(0,' + s + ')');
- 
+
                                 if (accordionOpenedPanel == s) {
                                         header.className = this.selectedAttr;
                                         content.style.height = 'auto';
@@ -59,7 +50,7 @@ TINY.accordion = function() {
                 }
                 this.length = s;
         };
- 
+
         slider.prototype.expand = function(state, component) {
                 for ( var i = 0; i < this.length; i++) {
                         var header = this.accordions[i].header;
@@ -67,7 +58,7 @@ TINY.accordion = function() {
                         var currentHeight = content.style.height;
                         currentHeight = currentHeight == 'auto' ? 1 : parseInt(currentHeight);
                         clearInterval(content.timer);
-                        
+
                         if ((currentHeight != 1 && content.opened == -1) && (state == 1 || i == component)) {
                                 content.style.height = '';
                                 content.totalHeight = content.offsetHeight;
@@ -86,7 +77,7 @@ TINY.accordion = function() {
                         }
                 }
         };
- 
+
         function timer(content) {
                 content.timer = setInterval(function() {slide(content);}, 20);
         }
@@ -107,11 +98,11 @@ TINY.accordion = function() {
                 slider : slider
         };
 }();
-        
+
 function createAccordion(id, expanded, multipleSelect, openedPanel) {
         accordion[id] = new TINY.accordion.slider("accordion['" + id + "']");
         accordion[id].init(id, "h3", multipleSelect, openedPanel, "acc-selected");
- 
+
         if (expanded) {
                 accordion[id].expand(1);
         }

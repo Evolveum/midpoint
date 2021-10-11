@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
@@ -26,9 +17,9 @@ import java.io.Serializable;
  * @author lazyman
  */
 public class InternalsConfigDto implements Serializable {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public static final String F_CONSISTENCY_CHECKS = "consistencyChecks";
+    public static final String F_CONSISTENCY_CHECKS = "consistencyChecks";
     public static final String F_ENCRYPTION_CHECKS = "encryptionChecks";
     public static final String F_READ_ENCRYPTION_CHECKS = "readEncryptionChecks";
     public static final String F_MODEL_PROFILING = "modelProfiling";
@@ -80,15 +71,15 @@ public class InternalsConfigDto implements Serializable {
         this.readEncryptionChecks = readEncryptionChecks;
     }
 
-	protected boolean isModelProfiling() {
-		return modelProfiling;
-	}
+    protected boolean isModelProfiling() {
+        return modelProfiling;
+    }
 
-	protected void setModelProfiling(boolean modelProfiling) {
-		this.modelProfiling = modelProfiling;
-	}
+    protected void setModelProfiling(boolean modelProfiling) {
+        this.modelProfiling = modelProfiling;
+    }
 
-	public boolean isDetailedDebugDump() {
+    public boolean isDetailedDebugDump() {
         return detailedDebugDump;
     }
 

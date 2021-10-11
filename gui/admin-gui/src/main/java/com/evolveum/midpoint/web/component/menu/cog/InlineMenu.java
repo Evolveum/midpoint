@@ -1,23 +1,16 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.menu.cog;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -33,31 +26,38 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * DEPRECATED: use DropdownButtonPanel instead
- * 
+ *
  * This is the old cog-like dropdown from pre-adminlte times
- * 
+ *
  * @author lazyman
  */
 @Deprecated
-public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
+public class InlineMenu extends BasePanel<List<InlineMenuItem>> {
 
-    private static String ID_MENU_ITEM_CONTAINER= "menuItemContainer";
-    private static String ID_MENU_ITEM_BUTTON = "menuItemButton";
-    private static String ID_MENU_ITEM = "menuItem";
-    private static String ID_MENU_ITEM_BODY = "menuItemBody";
-    private static String ID_MENU_ITEM_ICON = "menuItemIcon";
+    private static final String ID_MENU_ITEM_CONTAINER= "menuItemContainer";
+    private static final String ID_MENU_ITEM_BUTTON = "menuItemButton";
+    private static final String ID_MENU_ITEM = "menuItem";
+    private static final String ID_MENU_ITEM_BODY = "menuItemBody";
+    private static final String ID_MENU_ITEM_ICON = "menuItemIcon";
 
     private boolean hideByDefault;
 
-    public InlineMenu(String id, IModel model) {
+    public InlineMenu(String id, IModel<List<InlineMenuItem>> model) {
         this(id, model, false);
     }
 
-    public InlineMenu(String id, IModel model, boolean hideByDefault) {
+    public InlineMenu(String id, IModel<List<InlineMenuItem>> model, boolean hideByDefault) {
         super(id, model);
         this.hideByDefault = hideByDefault;
 
         setOutputMarkupId(true);
+        setOutputMarkupPlaceholderTag(true);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
     }
 
     @Override
@@ -70,10 +70,10 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
         response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
     }
 
-    @Override
-    protected void initLayout() {
+    private void initLayout() {
         WebMarkupContainer menuItemContainer = new WebMarkupContainer(ID_MENU_ITEM_CONTAINER);
         menuItemContainer.setOutputMarkupId(true);
+        menuItemContainer.setOutputMarkupPlaceholderTag(true);
         menuItemContainer.add(new AttributeAppender("class", getMenuItemContainerClass()));
         menuItemContainer.add(new AttributeAppender("style", getMenuItemContainerStyle()));
         add(menuItemContainer);
@@ -102,6 +102,8 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
                 initMenuItem(item);
             }
         };
+        li.setOutputMarkupId(true);
+        li.setOutputMarkupPlaceholderTag(true);
         li.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -111,6 +113,8 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
             }
         });
         menuItemContainer.add(li);
+
+        menuItemContainer.add(new VisibleBehaviour(() -> InlineMenu.this.getModelObject() != null && !InlineMenu.this.getModelObject().isEmpty()));
     }
 
     private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
@@ -143,6 +147,9 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
                 }
             });
 
+            menuItem.setOutputMarkupId(true);
+            menuItem.setOutputMarkupPlaceholderTag(true);
+
         WebMarkupContainer menuItemBody;
         if (item.isMenuHeader() || item.isDivider()) {
             menuItemBody = new MenuDividerPanel(ID_MENU_ITEM_BODY, menuItem.getModel());
@@ -150,7 +157,10 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
             menuItemBody = new MenuLinkPanel(ID_MENU_ITEM_BODY, menuItem.getModel());
         }
         menuItemBody.setRenderBodyOnly(true);
+        menuItemBody.setOutputMarkupPlaceholderTag(true);
+        menuItemBody.setOutputMarkupId(true);
         menuItem.add(menuItemBody);
+
     }
 
     protected String getIconClass(){

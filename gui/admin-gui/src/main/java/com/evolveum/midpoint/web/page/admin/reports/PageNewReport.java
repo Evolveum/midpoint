@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.page.admin.reports;
@@ -53,6 +44,7 @@ import org.apache.wicket.util.file.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author lazyman
@@ -91,10 +83,10 @@ public class PageNewReport extends PageAdmin {
     private Model<String> xmlEditorModel;
 
     public PageNewReport() {
-    	xmlEditorModel = new Model<>(null);
+        xmlEditorModel = new Model<>(null);
 
-    	initLayout();
-	}
+        initLayout();
+    }
 
     private void initLayout() {
         Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
@@ -223,18 +215,16 @@ public class PageNewReport extends PageAdmin {
                 newFile.delete();
             }
             // Save file
-//            Task task = createSimpleTask(OPERATION_IMPORT_FILE);
             newFile.createNewFile();
             FileUtils.copyInputStreamToFile(uploadedFile.getInputStream(), newFile);
 
-            InputStreamReader reader = new InputStreamReader(new FileInputStream(newFile), "utf-8");
-//            reader.
+            InputStreamReader reader = new InputStreamReader(new FileInputStream(newFile), StandardCharsets.UTF_8);
             stream = new ReaderInputStream(reader, reader.getEncoding());
             byte[] reportIn = IOUtils.toByteArray(stream);
 
             setResponsePage(new PageReport(new ReportDto(Base64.encodeBase64(reportIn))));
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't import file.", ex);
+            result.recordFatalError(getString("PageImportObject.message.savePerformed.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import file", ex);
         } finally {
             if (stream != null) {
@@ -259,17 +249,11 @@ public class PageNewReport extends PageAdmin {
         }
 
         OperationResult result = new OperationResult(OPERATION_IMPORT_REPORT_XML);
-        InputStream stream = null;
         try {
-
             setResponsePage(new PageReport(new ReportDto(Base64.encodeBase64(xml.getBytes()))));
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't import object.", ex);
+            result.recordFatalError(getString("PageNewReport.message.importReportFromStreamPerformed.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Error occured during xml import", ex);
-        } finally {
-            if (stream != null) {
-                IOUtils.closeQuietly(stream);
-            }
         }
 
         if (result.isSuccess()) {

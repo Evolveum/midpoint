@@ -1,0 +1,18 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="057aab3c-a7e2-11e9-9920-dbe16a0e2b89"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <name>Reader</name>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ws-3#all</action>
+    </authorization>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    </authorization>
+</role>

@@ -1,36 +1,24 @@
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>midPoint User Interface - admin web gui</name>
-    <groupId>com.evolveum.midpoint.gui</groupId>
-    <artifactId>admin-gui</artifactId>
-    <packaging>war</packaging>
-    <!--     <version>3.7-SNAPSHOT</version> -->
+
     <parent>
         <artifactId>gui</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
-        <version>4.0-SNAPSHOT</version>
+        <groupId>com.evolveum.midpoint.gui</groupId>
+        <version>4.1.1-SNAPSHOT</version>
     </parent>
-    <scm>
-        <connection>https://github.com/Evolveum/midpoint.git</connection>
-        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/midPoint</url>
-    </scm>
+
+    <artifactId>admin-gui</artifactId>
+    <packaging>war</packaging>
+
+    <name>midPoint User Interface - admin web gui</name>
+
     <properties>
         <server.port></server.port>
         <midpoint.host></midpoint.host>
@@ -39,87 +27,36 @@
         <javax.net.ssl.trustStore></javax.net.ssl.trustStore>
         <javax.net.ssl.trustStoreType></javax.net.ssl.trustStoreType>
     </properties>
-    <build>
-        <finalName>midpoint</finalName>
-        <resources>
-            <resource>
-                <filtering>false</filtering>
-                <directory>src/main/resources</directory>
-                <excludes>
-                    <exclude>**/org.identityconnectors.common.logging</exclude>
-                </excludes>
-            </resource>
-            <!-- LOCALIZATION -->
-            <resource>
-                <filtering>true</filtering>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>localization/Midpoint*.properties</include>
-                    <include>banner.txt</include>
-                </includes>
-            </resource>
-            <!--  ICF LOGGING CONFIGURATION -->
-            <resource>
-                <targetPath>../midpoint/META-INF/services</targetPath>
-                <filtering>false</filtering>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>**/org.identityconnectors.common.logging</include>
-                </includes>
-            </resource>
-            <resource>
-                <filtering>false</filtering>
-                <directory>src/main/java</directory>
-                <excludes>
-                    <exclude>**/*.java</exclude>
-                    <exclude>**/*.properties</exclude>
-                </excludes>
-            </resource>
-            <resource>
-                <filtering>true</filtering>
-                <directory>src/main/java</directory>
-                <includes>
-                    <include>**/*.properties</include>
-                </includes>
-            </resource>
-        </resources>
-        <testResources>
-            <testResource>
-                <filtering>false</filtering>
-                <directory>src/test/resources</directory>
-            </testResource>
-            <testResource>
-                <filtering>false</filtering>
-                <directory>src/test/java</directory>
-                <excludes>
-                    <exclude>**/*.java</exclude>
-                    <exclude>**/*.properties</exclude>
-                </excludes>
-            </testResource>
-            <testResource>
-                <filtering>true</filtering>
-                <directory>src/test/java</directory>
-                <includes>
-                    <include>**/*.properties</include>
-                </includes>
-            </testResource>
-        </testResources>
-    </build>
 
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
         </dependency>
         <dependency>
-            <groupId> org.springframework</groupId>
-            <artifactId>spring-webmvc</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-actuator</artifactId>
         </dependency>
-        
+        <dependency>
+            <groupId>org.springframework.security.extensions</groupId>
+            <artifactId>spring-security-saml2-core</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bcprov-jdk15on</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.code.findbugs</groupId>
+                    <artifactId>jsr305</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
@@ -144,28 +81,32 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-transports-http</artifactId>
         </dependency>
-        
         <dependency>
-    		<groupId>org.springframework.boot</groupId>
-   	 		<artifactId>spring-boot-starter-actuator</artifactId>
-		</dependency>
-		<dependency>
-    		<groupId>org.springframework.boot</groupId>
-   	 		<artifactId>spring-boot-actuator-autoconfigure</artifactId>
-		</dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-actuator-autoconfigure</artifactId>
+        </dependency>
 
+        <!-- webjars -->
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>swagger-ui</artifactId>
-            <version>2.2.5</version>
             <scope>runtime</scope>
         </dependency>
-        <!-- webjars -->
         <dependency>
             <groupId>org.webjars.bower</groupId>
             <artifactId>adminlte</artifactId>
@@ -196,28 +137,19 @@
         <dependency>
             <groupId>ro.isdc.wro4j</groupId>
             <artifactId>wro4j-core</artifactId>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>less</artifactId>
-            <version>2.5.3</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-cas</artifactId>
-            <version>${spring.security.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jasig.cas.client</groupId>
-            <artifactId>cas-client-core</artifactId>
-            <version>3.5.0</version>
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>webjars-locator-core</artifactId>
-            <version>0.35</version>
         </dependency>
         <dependency>
             <groupId>ro.isdc.wro4j</groupId>
@@ -313,28 +245,28 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-api</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-impl</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-api</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <artifactId>jaxb-impl</artifactId>
@@ -353,73 +285,75 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-common</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>report-api</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-api</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-common</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-api</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-enforcer-api</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>workflow-api</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>certification-api</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>audit-api</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>task-api</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>system-init</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
         </dependency>
         <!-- MIDPOINT RUNTIME DEPENDENCIES -->
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-sql-impl</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
-        <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-aspects</artifactId>
+        <dependency>
+            <groupId>com.evolveum.midpoint</groupId>
+            <artifactId>midpoint-localization</artifactId>
+            <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
+            <type>pom</type>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -429,15 +363,11 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-cache</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <artifactId>jaxb-impl</artifactId>
                     <groupId>com.sun.xml.bind</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>jaxb-api</artifactId>
-                    <groupId>javax.xml.bind</groupId>
                 </exclusion>
                 <exclusion>
                     <artifactId>jaxb-core</artifactId>
@@ -448,31 +378,31 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>task-quartz-impl</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>audit-impl</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-impl</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-enforcer-impl</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-impl</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
             <scope>runtime</scope>
             <exclusions>
                 <exclusion>
@@ -484,31 +414,37 @@
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>certification-impl</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>workflow-impl</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>notifications-impl</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.provisioning</groupId>
             <artifactId>provisioning-impl</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.provisioning</groupId>
+            <artifactId>ucf-impl-builtin</artifactId>
+            <version>4.1.1-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>report-impl</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
             <scope>runtime</scope>
             <exclusions>
                 <exclusion>
@@ -525,13 +461,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>common</artifactId>
-            <version>4.0-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>xml-apis</groupId>
-                    <artifactId>xml-apis</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- SPRING -->
@@ -555,6 +485,25 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-aop</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+        </dependency>
+        <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aspects</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- SPRING LDAP -->
+        <dependency>
+            <groupId>org.springframework.ldap</groupId>
+            <artifactId>spring-ldap-core</artifactId>
+        </dependency>
 
         <!-- SPRING SECURITY -->
         <dependency>
@@ -574,7 +523,7 @@
             <artifactId>spring-security-ldap</artifactId>
         </dependency>
 
-        <!--  WICKET DEPENDENCIES -->
+        <!-- WICKET DEPENDENCIES -->
         <dependency>
             <groupId>org.apache.wicket</groupId>
             <artifactId>wicket-core</artifactId>
@@ -586,6 +535,12 @@
         <dependency>
             <groupId>org.apache.wicket</groupId>
             <artifactId>wicket-ioc</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.ant</groupId>
+                    <artifactId>ant</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.wicket</groupId>
@@ -646,46 +601,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.ocpsoft.prettytime</groupId>
-            <artifactId>prettytime</artifactId>
-            <version>4.0.0.Final</version>
-        </dependency>
-
-        <!-- Xtext DSL: IDE schema support (experimental) -->
-        <!--        <dependency>
-                    <groupId>com.evolveum.midpoint.msl</groupId>
-                    <artifactId>com.evolveum.midpoint.msl</artifactId>
-                    <version>1.0.0-SNAPSHOT</version>
-                    <scope>runtime</scope>
-                </dependency>
-                <dependency>
-                    <groupId>org.eclipse.xtend</groupId>
-                    <artifactId>org.eclipse.xtend.lib</artifactId>
-                    <version>2.5.1</version>
-                    <scope>runtime</scope>
-                </dependency>
-                <dependency>
-                    <groupId>org.eclipse.xtext</groupId>
-                    <artifactId>org.eclipse.xtext.dependencies</artifactId>
-                    <version>2.5.1</version>
-                    <scope>runtime</scope>
-                </dependency>
-                <dependency>
-                    <groupId>org.eclipse.xtext</groupId>
-                    <artifactId>org.eclipse.xtext.xbase</artifactId>
-                    <version>2.5.1</version>
-                    <scope>runtime</scope>
-                </dependency>
-                <dependency>
-                    <groupId>org.eclipse.xtext</groupId>
-                    <artifactId>org.eclipse.xtext</artifactId>
-                    <version>2.5.1</version>
-                    <scope>runtime</scope>
-                </dependency>
-
-                -->
-
-        <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
         </dependency>
@@ -702,8 +617,8 @@
             <artifactId>commons-codec</artifactId>
         </dependency>
         <dependency>
-            <groupId>commons-configuration</groupId>
-            <artifactId>commons-configuration</artifactId>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-configuration2</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-collections</groupId>
@@ -714,17 +629,13 @@
             <artifactId>commons-beanutils</artifactId>
         </dependency>
         <dependency>
-            <groupId>commons-beanutils</groupId>
-            <artifactId>commons-beanutils-core</artifactId>
-        </dependency>
-        <dependency>
             <groupId>commons-javaflow</groupId>
             <artifactId>commons-javaflow</artifactId>
             <scope>runtime</scope> <!-- TODO: review if we need this dependency -->
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
-            <artifactId>annotations-java5</artifactId>
+            <artifactId>annotations</artifactId>
         </dependency>
         <dependency>
             <groupId>javax.mail</groupId>
@@ -735,37 +646,74 @@
             <artifactId>janino</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.openjson</groupId>
+            <artifactId>openjson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-security-impl</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bcprov-jdk15on</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bcpkix-jdk15on</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk15on</artifactId>
+            <version>1.64</version>
+        </dependency>
 
         <!-- TEST -->
 
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>test-util</artifactId>
-            <version>4.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-test-util</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-sql-impl-test</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>4.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.icf</groupId>
             <artifactId>dummy-resource</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -776,6 +724,16 @@
         <dependency>
             <groupId>javax.annotation</groupId>
             <artifactId>javax.annotation-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -815,17 +773,6 @@
 
         <!-- end connectors -->
 
-        <!-- logging bridges to slf4j -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>log4j-over-slf4j</artifactId>
-            <scope>runtime</scope>
-        </dependency>
         <!-- Jasper reports -->
         <dependency>
             <groupId>net.sf.jasperreports</groupId>
@@ -843,6 +790,10 @@
                     <groupId>bouncycastle</groupId>
                     <artifactId>bctsp-jdk14</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bcprov-jdk15on</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <!-- report dependency (needed for microsoft office formats) -->
@@ -852,54 +803,131 @@
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
+            <artifactId>javax.servlet-api</artifactId>
             <scope>provided</scope>
         </dependency>
-
-        <!-- Uncomment following if you want midpoint to be a part of SSO using CAS server-->
-        <!-- SSO CAS Client dependencies -->
-        <!-- <dependency>
-            <groupId>org.jasig.cas.client</groupId>
-            <artifactId>cas-client-integration-tomcat-v7</artifactId>
-            <version>${cas.client.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jasig.cas.client</groupId>
-            <artifactId>cas-client-core</artifactId>
-            <version>${cas.client.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>xercesImpl</artifactId>
-                    <groupId>xerces</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>xmltooling</artifactId>
-                    <groupId>org.opensaml</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>velocity</artifactId>
-                    <groupId>velocity</groupId>
-                </exclusion>
-            </exclusions>
-            <scope>runtime</scope>
-        </dependency>
-         <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-cas</artifactId>
-            <version>${spring.security.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-         -->
 
         <!-- testing dependencies -->
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-test</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
     </dependencies>
+
+    <build>
+        <finalName>midpoint</finalName>
+        <resources>
+            <resource>
+                <filtering>false</filtering>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>**/org.identityconnectors.common.logging</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <filtering>true</filtering>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>banner.txt</include>
+                </includes>
+            </resource>
+            <!-- ICF LOGGING CONFIGURATION -->
+            <resource>
+                <targetPath>../midpoint/META-INF/services</targetPath>
+                <filtering>false</filtering>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/org.identityconnectors.common.logging</include>
+                </includes>
+            </resource>
+            <resource>
+                <filtering>false</filtering>
+                <directory>src/main/java</directory>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                    <exclude>**/*.properties</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <filtering>true</filtering>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*.properties</include>
+                </includes>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <filtering>false</filtering>
+                <directory>src/test/resources</directory>
+            </testResource>
+            <testResource>
+                <filtering>false</filtering>
+                <directory>src/test/java</directory>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                    <exclude>**/*.properties</exclude>
+                </excludes>
+            </testResource>
+            <testResource>
+                <filtering>true</filtering>
+                <directory>src/test/java</directory>
+                <includes>
+                    <include>**/*.properties</include>
+                </includes>
+            </testResource>
+        </testResources>
+        <plugins>
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <verbose>false</verbose>
+                    <offline>true</offline>
+                </configuration>
+            </plugin>
+            <!-- reference failsafe to run integration tests (surefire/units run by default) -->
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+            </plugin>
+
+            <!--
+            We use both main and test classes downstream.
+            We can't use JAR plugin for main classes, Maven requires different classifier than for
+            the main artifact (which is WAR for admin-gui).
+            -->
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <attachClasses>true</attachClasses>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
     <profiles>
         <profile>
@@ -916,8 +944,9 @@
                         <configuration>
                             <fork>true</fork>
                             <skip>false</skip>
-<!--                             <jvmArguments>-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000 -Dserver.port=${server.port} -Dmidpoint.home=${midpoint.home} -Dmidpoint.schrodinger=${midpoint.schrodinger} -Djavax.net.ssl.trustStore=${javax.net.ssl.trustStore} -Djavax.net.ssl.trustStoreType=${javax.net.ssl.trustStoreType}</jvmArguments> -->
-                            <jvmArguments>-Dserver.port=${server.port} -Dmidpoint.home=${midpoint.home} -Dmidpoint.schrodinger=${midpoint.schrodinger} -Djavax.net.ssl.trustStore=${javax.net.ssl.trustStore} -Djavax.net.ssl.trustStoreType=${javax.net.ssl.trustStoreType}</jvmArguments><!-- TODO question: CAN this argument be active by default, or should be there a different profile defined for this? -->
+                            <!-- <jvmArguments>-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000 -Dserver.port=${server.port} -Dmidpoint.home=${midpoint.home} -Dmidpoint.schrodinger=${midpoint.schrodinger} -Djavax.net.ssl.trustStore=${javax.net.ssl.trustStore} -Djavax.net.ssl.trustStoreType=${javax.net.ssl.trustStoreType}</jvmArguments> -->
+                            <!-- TODO question: CAN this argument be active by default, or should be there a different profile defined for this? -->
+                            <jvmArguments>-Dserver.port=${server.port} -Dmidpoint.home=${midpoint.home} -Dmidpoint.schrodinger=${midpoint.schrodinger} -Djavax.net.ssl.trustStore=${javax.net.ssl.trustStore} -Djavax.net.ssl.trustStoreType=${javax.net.ssl.trustStoreType}</jvmArguments>
                         </configuration>
                         <executions>
                             <execution>
@@ -932,7 +961,7 @@
                         </executions>
                         <dependencies>
                             <dependency>
-                                <groupId>com.evolveum.midpoint</groupId>
+                                <groupId>com.evolveum.midpoint.tools</groupId>
                                 <artifactId>midpoint-war-layout</artifactId>
                                 <version>${project.version}</version>
                             </dependency>
@@ -956,6 +985,7 @@
                 <dependency>
                     <artifactId>jaxb-api</artifactId>
                     <groupId>javax.xml.bind</groupId>
+                    <scope>runtime</scope>
                 </dependency>
                 <dependency>
                     <artifactId>jaxb-core</artifactId>
@@ -972,17 +1002,14 @@
                 <dependency>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-tomcat</artifactId>
-                    <scope>compile</scope>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.tomcat.embed</groupId>
                     <artifactId>tomcat-embed-core</artifactId>
-                    <scope>compile</scope>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.tomcat</groupId>
                     <artifactId>tomcat-annotations-api</artifactId>
-                    <scope>compile</scope>
                 </dependency>
                 <dependency>
                     <groupId>mysql</groupId>

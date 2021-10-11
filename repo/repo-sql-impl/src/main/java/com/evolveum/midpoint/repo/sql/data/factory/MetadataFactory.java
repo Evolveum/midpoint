@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sql.data.factory;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -53,8 +59,6 @@ public class MetadataFactory {
             if (!refs.isEmpty()) {
                 jaxb.getModifyApproverRef().addAll(refs);
             }
-        } else {
-
         }
 
         return jaxb;
@@ -99,13 +103,17 @@ public class MetadataFactory {
         repo.setModifierRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getModifierRef(), relationRegistry));
 
         if (repo instanceof RObject) {
+            repo.getCreateApproverRef().clear();
             repo.getCreateApproverRef().addAll(RUtil.safeListReferenceToSet(jaxb.getCreateApproverRef(),
                     (RObject) repo, RReferenceOwner.CREATE_APPROVER, relationRegistry));
+            repo.getModifyApproverRef().clear();
             repo.getModifyApproverRef().addAll(RUtil.safeListReferenceToSet(jaxb.getModifyApproverRef(),
                     (RObject) repo, RReferenceOwner.MODIFY_APPROVER, relationRegistry));
         } else {
+            repo.getCreateApproverRef().clear();
             repo.getCreateApproverRef().addAll(safeListReferenceToSet(jaxb.getCreateApproverRef(),
                     (RAssignment) repo, RCReferenceOwner.CREATE_APPROVER, relationRegistry));
+            repo.getModifyApproverRef().clear();
             repo.getModifyApproverRef().addAll(safeListReferenceToSet(jaxb.getModifyApproverRef(),
                     (RAssignment) repo, RCReferenceOwner.MODIFY_APPROVER, relationRegistry));
         }

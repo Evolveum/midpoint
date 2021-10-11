@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.api.context;
 
@@ -20,7 +11,10 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationIntentType;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -37,34 +31,53 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
 
     PrismObject<O> getObjectOld();
 
-	void setObjectOld(PrismObject<O> objectOld);
+    void setObjectOld(PrismObject<O> objectOld);
 
-	PrismObject<O> getObjectNew();
+    PrismObject<O> getObjectNew();
 
-	PrismObject<O> getObjectCurrent();
-	
-	void setObjectNew(PrismObject<O> objectNew);
+    PrismObject<O> getObjectCurrent();
 
-	ObjectDelta<O> getPrimaryDelta();
+    PrismObject<O> getObjectAny();
 
-	void setPrimaryDelta(ObjectDelta<O> primaryDelta);
+    void setObjectNew(PrismObject<O> objectNew);
 
-	void addPrimaryDelta(ObjectDelta<O> value) throws SchemaException;
+    ObjectDelta<O> getPrimaryDelta();
 
-	ObjectDelta<O> getSecondaryDelta();
+    void setPrimaryDelta(ObjectDelta<O> primaryDelta);
 
-	void setSecondaryDelta(ObjectDelta<O> secondaryDelta);
+    void addPrimaryDelta(ObjectDelta<O> value) throws SchemaException;
+
+    ObjectDelta<O> getSecondaryDelta();
+
+    void setSecondaryDelta(ObjectDelta<O> secondaryDelta);
 
     List<? extends ObjectDeltaOperation> getExecutedDeltas();
 
     String getOid();
 
     /**
-	 * Returns all policy rules that apply to this object - even those that were not triggered.
-	 * The policy rules are compiled from all the applicable sources (target, meta-roles, etc.)
-	 */
+     * Returns all policy rules that apply to this object - even those that were not triggered.
+     * The policy rules are compiled from all the applicable sources (target, meta-roles, etc.)
+     */
     @NotNull
-	Collection<EvaluatedPolicyRule> getPolicyRules();
+    Collection<EvaluatedPolicyRule> getPolicyRules();
 
-	boolean isOfType(Class<?> aClass);
+    boolean isOfType(Class<?> aClass);
+
+    /**
+     * Initial intent regarding the account. It indicated what the initiator of the operation WANTS TO DO with the
+     * context.
+     * If set to null then the decision is left to "the engine". Null is also a typical value
+     * when the context is created. It may be pre-set under some circumstances, e.g. if an account is being unlinked.
+     */
+    SynchronizationIntent getSynchronizationIntent();
+
+    boolean isAdd();
+
+    boolean isDelete();
+
+    ObjectDelta<O> getDelta() throws SchemaException;
+
+    ArchetypeType getArchetype();
+
 }

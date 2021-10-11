@@ -1,8 +1,13 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.*;
@@ -14,7 +19,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromFile;
-import com.evolveum.midpoint.web.page.error.PageError;
+import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -28,7 +33,6 @@ import org.apache.wicket.util.file.Files;
 import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collection;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -48,6 +52,7 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
     private boolean exportAll;
     private Class<? extends ObjectType> type;
     private boolean useZip;
+    private boolean showAllItems;
     private ObjectQuery query;
 
     public boolean isExportAll() {
@@ -85,6 +90,14 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
         this.useZip = useZip;
     }
 
+    public boolean isShowAllItems() {
+        return showAllItems;
+    }
+
+    public void setShowAllItems(boolean showAllItems) {
+        this.showAllItems = showAllItems;
+    }
+
     @Override
     protected File initFile() {
         PageBase page = getPage();
@@ -115,7 +128,7 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
             result.recomputeStatus();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't init download link", ex);
-            result.recordFatalError("Couldn't init download link", ex);
+            result.recordFatalError(getPage().createStringResource("PageDebugDownloadBehaviour.message.initFile.fatalError").getString(), ex);
         } finally {
             if (writer != null) {
                 IOUtils.closeQuietly(writer);
@@ -128,7 +141,7 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
             LOGGER.debug("Removing file '{}'.", new Object[]{file.getAbsolutePath()});
             Files.remove(file);
 
-            throw new RestartResponseException(PageError.class);
+            throw new RestartResponseException(PageDebugList.class);
         }
 
         return file;
@@ -171,7 +184,9 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
         GetOperationOptionsBuilder optionsBuilder = page.getSchemaHelper().getOperationOptionsBuilder()
                 .raw()
                 .resolveNames();
-        optionsBuilder = WebModelServiceUtils.addIncludeOptionsForExportOrView(optionsBuilder, type);
+        if (showAllItems) {
+            optionsBuilder = optionsBuilder.retrieve();
+        }
         service.searchObjectsIterative(type, query, handler, optionsBuilder.build(),
                 page.createSimpleTask(OPERATION_SEARCH_OBJECT), result);
     }

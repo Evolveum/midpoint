@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="00000000-d34d-b33f-f00d-111111111333">
+    <name>dummy-boss</name>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"/>
+    </assignment>
+    <fullName>Dummy Boss</fullName>
+    <givenName>Dummy</givenName>
+    <familyName>Boss</familyName>
+</user>

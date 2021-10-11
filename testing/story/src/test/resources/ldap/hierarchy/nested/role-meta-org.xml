@@ -1,0 +1,93 @@
+<!--
+  ~ Copyright (c) 2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      oid="10000000-0000-0000-0000-000000006601">
+    <name>Org Metarole</name>
+
+    <inducement>
+        <description>OM-I1</description>
+        <construction>
+            <description>OM-I1</description>
+            <resourceRef oid="10000000-0000-0000-0000-000000000003"/>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+        </construction>
+    </inducement>
+
+    <inducement>
+        <description>OM-I2O</description>
+        <construction>
+            <description>OM-I2O</description>
+            <resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <association>
+                <ref>ri:group</ref>
+                <outbound>
+                    <expression>
+                        <associationFromLink>
+                            <projectionDiscriminator>
+                                <kind>entitlement</kind>
+                                <intent>group</intent>
+                            </projectionDiscriminator>
+                        </associationFromLink>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+        <order>2</order>
+        <condition>
+        <expression>
+          <script>
+            <code>
+              focus.getClass() == com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType.class
+            </code>
+          </script>
+        </expression>
+      </condition>
+    </inducement>
+
+    <inducement>
+        <description>OM-I2U</description>
+        <construction>
+            <description>OM-I2U</description>
+            <resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+            <kind>account</kind>
+            <intent>default</intent>
+            <association>
+                <ref>ri:group</ref>
+                <outbound>
+                    <expression>
+                        <associationFromLink>
+                            <projectionDiscriminator>
+                                <kind>entitlement</kind>
+                                <intent>group</intent>
+                            </projectionDiscriminator>
+                        </associationFromLink>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+        <order>2</order>
+        <condition>
+        <expression>
+          <script>
+            <code>
+              focus.getClass() == com.evolveum.midpoint.xml.ns._public.common.common_3.UserType.class
+            </code>
+          </script>
+        </expression>
+      </condition>
+    </inducement>
+
+</role>

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.report.api;
@@ -35,10 +26,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * todo comments [lazyman]
- *
- * WORK IN PROGRESS
- *
  * @author lazyman
  * @author katkav
  */
@@ -49,7 +36,7 @@ public interface ReportManager {
      * @param report
      * @param parentResult describes report which has to be created
      */
-    void runReport(PrismObject<ReportType> object, PrismContainer<ReportParameterType> params, Task task, OperationResult parentResult);
+    void runReport(PrismObject<ReportType> object, PrismContainer<ReportParameterType> params, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
     /**
      * todo comments [lazyman]
@@ -67,9 +54,9 @@ public interface ReportManager {
      * @param parentResult
      * @return
      */
-	InputStream getReportOutputData(String reportOutputOid, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
-			ConfigurationException, ExpressionEvaluationException, IOException;
+    InputStream getReportOutputData(String reportOutputOid, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException, IOException;
 
 
     void deleteReportOutput(ReportOutputType reportOutput, OperationResult parentResult) throws Exception;

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<objectTemplate oid="55acacd1-2b42-4af1-9e98-d2d54293e4e9"
+                xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <name>User Template MID-5953</name>
+
+    <!-- testing range application for inactive (condition false->false) mappings -->
+
+    <item>
+        <ref>assignment</ref>
+        <mapping>
+            <expression>
+                <script>
+                    <code>null</code>   <!-- this is never executed anyway -->
+                </script>
+            </expression>
+            <target>
+                <set>
+                    <predefined>all</predefined>
+                </set>
+            </target>
+            <condition>
+                <script>
+                    <code>
+                        false
+                    </code>
+                </script>
+            </condition>
+        </mapping>
+    </item>
+</objectTemplate>

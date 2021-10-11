@@ -1,8 +1,15 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
+import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -30,6 +37,7 @@ public class RSecurityPolicy extends RObject<SecurityPolicyType> {
             @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
     })
     @Embedded
+    @NeverNull
     public RPolyString getNameCopy() {
         return nameCopy;
     }

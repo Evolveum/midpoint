@@ -1,18 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <!-- Resource definition that is using expressions. -->
@@ -22,9 +13,9 @@
     <name>Resource with expressions</name>
 
      <connectorRef type="ConnectorType">
-		<filter>
+        <filter>
             <equal>
-            	<path>extension/extConnType</path>
+                <path>extension/extConnType</path>
                 <value>
                     org.identityconnectors.ldap.LdapConnector
                 </value>
@@ -36,22 +27,22 @@
         <configurationProperties>
             <port>389</port>
             <host>
-            	<expression>
-            		<const>ldapHostname</const>
-            	</expression>
+                <expression>
+                    <const>ldapHostname</const>
+                </expression>
             </host>
             <baseContexts>
-            	<expression>
-            		<script>
-            			<code>'dc='+basic.const('orgname')+',dc=com'</code>
-            		</script>
-            	</expression>
+                <expression>
+                    <script>
+                        <code>'dc='+basic.const('orgname')+',dc=com'</code>
+                    </script>
+                </expression>
             </baseContexts>
             <principal>cn=directory manager</principal>
             <credentials>
                 <expression>
-            		<const>password</const>
-            	</expression>
+                    <const>password</const>
+                </expression>
             </credentials>
             <vlvSortAttribute>uid</vlvSortAttribute>
             <accountOperationalAttributes>ds-pwp-account-disabled</accountOperationalAttributes>

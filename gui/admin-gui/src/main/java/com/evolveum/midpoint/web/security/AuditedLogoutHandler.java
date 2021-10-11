@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.security;
@@ -20,19 +11,24 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.gui.api.GuiConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -42,33 +38,70 @@ import java.io.IOException;
  */
 public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
 
+    private static final Trace LOGGER = TraceManager.getTrace(AuditedLogoutHandler.class);
+
     @Autowired
     private TaskManager taskManager;
     @Autowired
     private AuditService auditService;
 
+    boolean useDefaultUrl = false;
+
+    private boolean useDefaultUrl() {
+        return useDefaultUrl;
+    }
+
+    @Override
+    public void setDefaultTargetUrl(String defaultTargetUrl) {
+        super.setDefaultTargetUrl(defaultTargetUrl);
+        this.useDefaultUrl = true;
+    }
+
     @Override
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
-            throws IOException, ServletException {
+            throws IOException {
 
-        super.onLogoutSuccess(request, response, authentication);
+        String targetUrl;
+        if (useDefaultUrl()) {
+            targetUrl = getDefaultTargetUrl();
+        } else {
+            targetUrl = GuiConstants.DEFAULT_PATH_AFTER_LOGOUT;
+            if (authentication instanceof MidpointAuthentication) {
+                MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+                if (mpAuthentication.getAuthenticationChannel() != null) {
+                    targetUrl = mpAuthentication.getAuthenticationChannel().getPathAfterLogout();
+                }
+            }
+        }
+
+        if (response.isCommitted()) {
+            LOGGER.debug("Response has already been committed. Unable to redirect to " + targetUrl);
+        } else {
+            getRedirectStrategy().sendRedirect(request, response, targetUrl);
+        }
 
         auditEvent(request, authentication);
     }
 
     private void auditEvent(HttpServletRequest request, Authentication authentication) {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser(authentication);
-        PrismObject<UserType> user = principal != null ? principal.getUser().asPrismObject() : null;
+        PrismObject<? extends FocusType> user = principal != null ? principal.getFocus().asPrismObject() : null;
+
+        String channel = SchemaConstants.CHANNEL_GUI_USER_URI;
+        if (authentication instanceof MidpointAuthentication
+                && ((MidpointAuthentication) authentication).getAuthenticationChannel() != null) {
+            channel = ((MidpointAuthentication) authentication).getAuthenticationChannel().getChannelId();
+        }
 
         Task task = taskManager.createTaskInstance();
         task.setOwner(user);
-        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        task.setChannel(channel);
 
         AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
         record.setInitiator(user);
-        record.setParameter(WebComponentUtil.getName(user));
+        record.setParameter(WebComponentUtil.getName(user, false));
 
-        record.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        record.setChannel(channel);
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(OperationResultStatus.SUCCESS);
 

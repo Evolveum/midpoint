@@ -1,33 +1,22 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 
 /**
  * Created by honchar
@@ -39,16 +28,15 @@ public class LockoutStatusPanel extends Panel {
     private static final String ID_FEEDBACK = "feedback";
     private boolean isInitialState = true;
     private LockoutStatusType initialValue;
-    private ValueWrapper valueWrapper;
+
 
     public LockoutStatusPanel(String id){
-        this(id, null, null);
+        this(id, null);
     }
 
-    public LockoutStatusPanel(String id, ValueWrapper valueWrapper, IModel<LockoutStatusType> model){
+    public LockoutStatusPanel(String id, IModel<LockoutStatusType> model){
         super(id);
-        initialValue = model.getObject();
-        this.valueWrapper = valueWrapper;
+        initialValue = model.getObject(); //TODO: clone
         initLayout(model);
     }
 
@@ -85,16 +73,10 @@ public class LockoutStatusPanel extends Panel {
         AjaxButton button = new AjaxButton(ID_BUTTON, getButtonModel()) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                PrismPropertyValue oldValue = (PrismPropertyValue)valueWrapper.getOldValue();
                 if (!isInitialState){
                     model.setObject(initialValue);
-                    oldValue.setValue(initialValue);
-                    valueWrapper.setStatus(ValueStatus.NOT_CHANGED);
                 } else {
                     model.setObject(LockoutStatusType.NORMAL);
-                    if (oldValue.getValue() != null) {
-                        oldValue.setValue(null);
-                    }
                 }
                 isInitialState = !isInitialState;
                 ajaxRequestTarget.add(getButton());

@@ -1,19 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2013 Evolveum and contributors
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 <xsd:schema elementFormDefault="qualified"
             targetNamespace="http://example.com/p"
@@ -107,7 +98,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    
+
     <xsd:complexType name="LocationsType">
         <xsd:sequence>
             <xsd:element name="location" type="tns:LocationType"/>
@@ -190,6 +181,55 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:indexed>false</a:indexed>            <!-- changed to true in ModifyTestReindex -->
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="indexOnly" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexOnly>true</a:indexOnly> <!-- MID-5558; implies indexed=true -->
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="protected" type="t:ProtectedStringType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="hidden1" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexOnly>true</a:indexOnly> <!-- MID-5558; implies indexed=true -->
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="hidden2" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexOnly>true</a:indexOnly> <!-- MID-5558; implies indexed=true -->
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="hidden3" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexOnly>true</a:indexOnly> <!-- MID-5558; implies indexed=true -->
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="visible" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>true</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="visibleSingle" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>true</a:indexed>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

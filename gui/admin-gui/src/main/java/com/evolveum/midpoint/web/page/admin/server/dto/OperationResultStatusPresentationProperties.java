@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
@@ -33,8 +24,8 @@ public enum OperationResultStatusPresentationProperties {
     NOT_APPLICABLE("fa-fw " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_NOT_APPLICABLE_COLORED, "OperationResultStatus.NOT_APPLICABLE"),
     IN_PROGRESS("fa-fw " + GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_IN_PROGRESS_COLORED, "OperationResultStatus.IN_PROGRESS");
 
-	private String icon;
-	private String statusLabelKey;
+    private String icon;
+    private String statusLabelKey;
 
     private OperationResultStatusPresentationProperties(String icon, String statusLabelKey) {
         this.icon = icon;
@@ -46,10 +37,10 @@ public enum OperationResultStatusPresentationProperties {
     }
 
     public String getStatusLabelKey() {
-		return statusLabelKey;
-	}
+        return statusLabelKey;
+    }
 
-	public static OperationResultStatusPresentationProperties parseOperationalResultStatus(OperationResultStatusType statusType){
+    public static OperationResultStatusPresentationProperties parseOperationalResultStatus(OperationResultStatusType statusType){
         if (statusType == null) {
             return UNKNOWN;
         }

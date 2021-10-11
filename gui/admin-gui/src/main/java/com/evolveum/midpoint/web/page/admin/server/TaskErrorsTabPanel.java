@@ -1,92 +1,128 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskErrorDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskErrorSelectableBeanImpl;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.Component;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by honchar.
  */
-public class TaskErrorsTabPanel extends AbstractObjectTabPanel<TaskType> implements TaskTabPanel {
+public class TaskErrorsTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_TASK_ERRORS = "taskErrors";
 
-    public TaskErrorsTabPanel(String id, Form mainForm,
-                              LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
-                              IModel<TaskDto> taskDtoModel, PageBase pageBase) {
-        super(id, mainForm, taskWrapperModel, pageBase);
-        initLayout(taskDtoModel, pageBase);
+    public TaskErrorsTabPanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel) {
+        super(id, taskWrapperModel);
+
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
         setOutputMarkupId(true);
     }
 
-    private void initLayout(final IModel<TaskDto> taskDtoModel, PageBase pageBase) {
-        ObjectDataProvider<TaskErrorDto, ObjectType> provider = new ObjectDataProvider<TaskErrorDto, ObjectType>
-                (TaskErrorsTabPanel.this, ObjectType.class) {
-            private static final long serialVersionUID = 1L;
+    private void initLayout() {
+
+
+        SelectableBeanObjectDataProvider<? extends ObjectType> provider = new SelectableBeanObjectDataProvider<ObjectType>(this, ObjectType.class, null) {
 
             @Override
-            public TaskErrorDto createDataObjectWrapper(PrismObject<ObjectType> obj) {
-                return convertToTaskErrorDto(obj.asObjectable(), taskDtoModel);
-            }
-
-            @Override
-            public void setQuery(ObjectQuery query) {
-
-                super.setQuery(query);
+            public SelectableBean<ObjectType> createDataObjectWrapper(ObjectType obj) {
+                return new TaskErrorSelectableBeanImpl<>(obj, getModelObject().getOid());
             }
 
             @Override
             public ObjectQuery getQuery() {
-                return createContentQuery(taskDtoModel.getObject().getOid(), pageBase);
+                return createContentQuery(getModelObject().getOid(), getPageBase());
+            }
+
+            @NotNull
+            @Override
+            protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+                if (sortParam != null && sortParam.getProperty() != null) {
+                    OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
+                    ItemPath ordering;
+                    if (sortParam.getProperty().equals(TaskErrorSelectableBeanImpl.F_ERROR_TIMESTAMP)) {
+                        ordering = ItemPath.create("operationExecution", "timestamp");
+                    } else {
+                        ordering = ItemPath.create(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty()));
+                    }
+                    return Collections.singletonList(
+                            getPrismContext().queryFactory().createOrdering(
+                                    ordering, order));
+                } else {
+                    return Collections.emptyList();
+                }
             }
         };
-        TablePanel resultTablePanel = new TablePanel<>(ID_TASK_ERRORS, provider, initColumns());
-        resultTablePanel.setStyle("padding-top: 0px;");
-        resultTablePanel.setShowPaging(false);
-        resultTablePanel.setOutputMarkupId(true);
-        add(resultTablePanel);
+
+        BoxedTablePanel<TaskErrorSelectableBeanImpl<ObjectType>> table = new BoxedTablePanel<>(ID_TASK_ERRORS, provider, initColumns());
+        table.setOutputMarkupId(true);
+        add(table);
 
     }
 
-    private TaskErrorDto convertToTaskErrorDto(ObjectType object, IModel<TaskDto> taskDtoModel){
-        return new TaskErrorDto(object, taskDtoModel.getObject().getOid());
-    }
-    private List<IColumn<TaskErrorDto, String>> initColumns() {
-        List<IColumn<TaskErrorDto, String>> columns = new ArrayList<>();
-        columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.objectName"), TaskErrorDto.F_OBJECT_REF_NAME));
-        columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.status"), TaskErrorDto.F_STATUS));
-        columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.message"), TaskErrorDto.F_MESSAGE));
+    private List<IColumn<TaskErrorSelectableBeanImpl<ObjectType>, String>> initColumns() {
+        List<IColumn<TaskErrorSelectableBeanImpl<ObjectType>, String>> columns = new ArrayList<>();
+        columns.add(new PropertyColumn<TaskErrorSelectableBeanImpl<ObjectType>, String>(createStringResource("pageTaskEdit.taskErros.objectName"), TaskErrorSelectableBeanImpl.F_OBJECT_REF_NAME){
+            @Override
+            public String getSortProperty() {
+                return "name";
+            }
+        });
+        columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.status"), TaskErrorSelectableBeanImpl.F_STATUS));
+        columns.add(new AbstractColumn<TaskErrorSelectableBeanImpl<ObjectType>, String>(createStringResource("pageTaskEdit.taskErros.timestamp"), TaskErrorSelectableBeanImpl.F_ERROR_TIMESTAMP){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<TaskErrorSelectableBeanImpl<ObjectType>>> cellItem, String componentId,
+                                     IModel<TaskErrorSelectableBeanImpl<ObjectType>> rowModel) {
+                Label label = new Label(componentId, (IModel<String>) () -> WebComponentUtil.getShortDateTimeFormattedValue(rowModel.getObject().getErrorTimestamp(), getPageBase()));
+                cellItem.add(label);
+            }
+
+        });
+        columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.message"), TaskErrorSelectableBeanImpl.F_MESSAGE));
         return columns;
     }
 
@@ -112,4 +148,9 @@ public class TaskErrorsTabPanel extends AbstractObjectTabPanel<TaskType> impleme
         return Collections.singleton(get(ID_TASK_ERRORS));
     }
 
+    @Override
+    protected void detachModel() {
+        super.detachModel();
+        ((LoadableModel) getModel()).reset();
+    }
 }

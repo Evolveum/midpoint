@@ -1,22 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2014-2016 Evolveum
+  ~ Copyright (c) 2014-2019 Evolveum and contributors
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
-  
-<!-- Iteration with token expression and pre- and post-condition. Sequential suffix. -->
-  
+
+<!-- Iteration with token expression and pre- and post-condition. Sequential suffix.
+     Configured in dark-violet dummy resource as account sync template
+     -->
+
 <objectTemplate oid="10000000-0000-0000-0000-0000000d0002"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
@@ -24,75 +17,75 @@
    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
     <name>Iteration User Template</name>
     <iterationSpecification>
-		<maxIterations>5</maxIterations>
-		<tokenExpression>
-			<script>
-				<code>
-					if (iteration == 0) {
-						return "";
-					} else {
-						return "."+iteration;
-					}
-				</code>
-			</script>
-		</tokenExpression>
-		<preIterationCondition>
-			<variable>
-				<name>userName</name>
-				<path>$focus/nickName/t:orig</path>
-			</variable>
-			<script>
-				<code>userName != 'guybrush' || iteration == 3</code>
-			</script>
-		</preIterationCondition>
-		<postIterationCondition>
-			<variable>
-				<name>name</name>
-				<path>$focus/name/t:orig</path>
-			</variable>
-			<script>
-				<code>
-					if (operation == null) {
-						throw new IllegalStateException("Kaboom! No operation!");
-					}
-					log.info("User name in post-iteration (user template): '{}', iteration token: {}", name, iterationToken)
-					name != 'herman' &amp;&amp; name != 'barbossa.2' &amp;&amp; name != 'barbossa.3'
-				</code>
-			</script>
-		</postIterationCondition>
-	</iterationSpecification>
+        <maxIterations>5</maxIterations>
+        <tokenExpression>
+            <script>
+                <code>
+                    if (iteration == 0) {
+                        return "";
+                    } else {
+                        return "."+iteration;
+                    }
+                </code>
+            </script>
+        </tokenExpression>
+        <preIterationCondition>
+            <variable>
+                <name>userName</name>
+                <path>$focus/nickName/t:orig</path>
+            </variable>
+            <script>
+                <code>userName != 'guybrush' || iteration == 3</code>
+            </script>
+        </preIterationCondition>
+        <postIterationCondition>
+            <variable>
+                <name>name</name>
+                <path>$focus/name/t:orig</path>
+            </variable>
+            <script>
+                <code>
+                    if (operation == null) {
+                        throw new IllegalStateException("Kaboom! No operation!");
+                    }
+                    log.info("User name in post-iteration (user template): '{}', iteration token: {}", name, iterationToken)
+                    name != 'herman' &amp;&amp; name != 'barbossa.2' &amp;&amp; name != 'barbossa.3'
+                </code>
+            </script>
+        </postIterationCondition>
+    </iterationSpecification>
     <mapping>
-    	<source>
-    		<path>nickName</path>
-    	</source>
-    	<expression>
-			<script>
-				<code>
-					nickName + iterationToken
-				</code>
-         	</script>
-		</expression>
-    	<target>
-    		<path>name</path>
-    	</target>
+        <source>
+            <path>nickName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    nickName + iterationToken
+                </code>
+             </script>
+        </expression>
+        <target>
+            <path>name</path>
+        </target>
     </mapping>
     <mapping>
-    	<strength>weak</strength>
-    	<source>
-    		<path>$user/givenName</path>
-    	</source>
-    	<source>
-    		<path>$user/familyName</path>
-    	</source>
-    	<expression>
-			<script>
-				<code>
-					givenName + ' ' + familyName
-				</code>
-         	</script>
-		</expression>
-    	<target>
-    		<path>fullName</path>
-    	</target>
+        <strength>weak</strength>
+        <source>
+            <path>$user/givenName</path>
+        </source>
+        <source>
+            <path>$user/familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    givenName + ' ' + familyName
+                </code>
+             </script>
+        </expression>
+        <target>
+            <path>fullName</path>
+        </target>
     </mapping>
 </objectTemplate>

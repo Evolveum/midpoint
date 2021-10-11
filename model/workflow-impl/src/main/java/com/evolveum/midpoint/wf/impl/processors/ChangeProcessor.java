@@ -1,29 +1,19 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.wf.impl.processors;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -31,17 +21,11 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.wf.api.WorkflowException;
-import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
-import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
-import com.evolveum.midpoint.wf.impl.tasks.WfTask;
-import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventCauseInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.wf.impl.engine.EngineInvocationContext;
+import com.evolveum.midpoint.wf.impl.util.MiscHelper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Map;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A change processor can be viewed as a kind of framework supporting customer-specific
@@ -72,8 +56,8 @@ public interface ChangeProcessor {
      * and arranges everything to carry out that interaction.
      *
      * @param context Model context of the operation.
-     * @param wfConfigurationType
-     * @param taskFromModel Task in context of which the operation is carried out.
+     * @param wfConfigurationType Current workflow configuration (part of the system configuration).
+     * @param task Task in context of which the operation is carried out.
      * @param result Where to put information on operation execution.
      * @return non-null value if it processed the request;
      *              BACKGROUND = the process was "caught" by the processor, and continues in background,
@@ -84,8 +68,9 @@ public interface ChangeProcessor {
      * Actually, the FOREGROUND return value is quite unusual, because the change processor cannot
      * know in advance whether other processors would not want to process the invocation from the model.
      */
-    HookOperationMode processModelInvocation(@NotNull ModelContext<?> context, WfConfigurationType wfConfigurationType, @NotNull Task taskFromModel, @NotNull OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+    @Nullable
+    HookOperationMode processModelInvocation(@NotNull ModelInvocationContext<?> ctx, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
     /**
      * Handles an event from WfMS that indicates finishing of the workflow process instance.
@@ -96,38 +81,35 @@ public interface ChangeProcessor {
      * @param result Here should be stored information about whether the finalization was successful or not
      * @throws SchemaException
      */
-    void onProcessEnd(ProcessEvent event, WfTask wfTask, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
+    void onProcessEnd(EngineInvocationContext ctx, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, PreconditionViolationException,
+            ExpressionEvaluationException, ConfigurationException, CommunicationException;
 
     /**
      * Prepares a process instance-related audit record.
      *
-     * @param wfTask
-     * @param stage
      * @param variables
+     * @param aCase
+     * @param stage
      * @param result
      * @return
      */
-    AuditEventRecord prepareProcessInstanceAuditRecord(WfTask wfTask, AuditEventStage stage, Map<String, Object> variables, OperationResult result);
+    AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, ApprovalContextType wfContext, OperationResult result);
 
     /**
      * Prepares a work item-related audit record.
      */
-	// workItem contains taskRef, assignee, candidates resolved (if possible)
-    AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem,
-            TaskEvent taskEvent, WfTask wfTask, OperationResult result) throws WorkflowException;
+    // workItem contains taskRef, assignee, candidates resolved (if possible)
+    AuditEventRecord prepareWorkItemCreatedAuditRecord(CaseWorkItemType workItem,
+            CaseType aCase, OperationResult result);
 
-    AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
-            TaskEvent taskEvent, WfTask wfTask, OperationResult result) throws WorkflowException;
+    AuditEventRecord prepareWorkItemDeletedAuditRecord(CaseWorkItemType workItem, WorkItemEventCauseInformationType cause,
+            CaseType aCase, OperationResult result);
 
-    /**
-     * Auxiliary method to access autowired Spring beans from within non-spring java objects.
-     *
-     * @return
-     */
-    MiscDataUtil getMiscDataUtil();
+    MiscHelper getMiscHelper();
 
     PrismContext getPrismContext();
 
-	RelationRegistry getRelationRegistry();
+    RelationRegistry getRelationRegistry();
 }
 

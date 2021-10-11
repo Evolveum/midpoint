@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.users.component;
 
@@ -22,7 +13,7 @@ import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
@@ -86,7 +77,7 @@ public class OrgUnitAddDeletePopup extends ModalWindow{
     }
 
     public void initLayout(WebMarkupContainer content){
-        List<IColumn<SelectableBean<ObjectType>, String>> columns = initColumns();
+        List<IColumn<SelectableBeanImpl<ObjectType>, String>> columns = initColumns();
 
         ObjectDataProvider provider = new ObjectDataProvider(getPageBase(), OrgType.class);
         provider.setQuery(getDataProviderQuery());
@@ -117,16 +108,16 @@ public class OrgUnitAddDeletePopup extends ModalWindow{
 
     }
 
-    private List<IColumn<SelectableBean<ObjectType>, String>> initColumns(){
-        List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
+    private List<IColumn<SelectableBeanImpl<ObjectType>, String>> initColumns(){
+        List<IColumn<SelectableBeanImpl<ObjectType>, String>> columns = new ArrayList<>();
 
         IColumn column = new CheckBoxHeaderColumn<OrgType>();
         columns.add(column);
 
-        column = new LinkColumn<SelectableBean<OrgType>>(createStringResource("orgUnitAddDeletePopup.column.name"), getSortableProperty(), "value.name"){
+        column = new LinkColumn<SelectableBeanImpl<OrgType>>(createStringResource("orgUnitAddDeletePopup.column.name"), getSortableProperty(), "value.name"){
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel){
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBeanImpl<OrgType>> rowModel){
                 OrgType org = rowModel.getObject().getValue();
                 chooseOperationPerformed(target, org);
             }
@@ -193,7 +184,7 @@ public class OrgUnitAddDeletePopup extends ModalWindow{
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-    	return PageBase.createStringResourceStatic(this, resourceKey, objects);
+        return PageBase.createStringResourceStatic(this, resourceKey, objects);
 //        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
     }
 

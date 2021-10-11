@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<i:user oid="c0c010c0-d34d-b33f-f00d-111112226666"
+   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+   xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+   xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   >
+    <c:name>discovery</c:name>
+    <i:fullName>discovery</i:fullName>
+    <i:givenName>discovery</i:givenName>
+    <i:familyName>discovery</i:familyName>
+
+    <i:emailAddress>discovery@deep.in.the.caribbean.com</i:emailAddress>
+   <i:credentials>
+        <i:password>
+            <i:value>
+                <i:clearValue>piranhaDogs</i:clearValue>
+            </i:value>
+        </i:password>
+    </i:credentials>
+</i:user>

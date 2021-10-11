@@ -1,0 +1,30 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                     oid="0978a754-9224-4afe-993a-ea1528012822">
+    <name>sysconfig</name>
+    <notificationConfiguration>
+        <handler>
+            <simpleUserNotifier>
+                <attachment>
+                    <content>untyped</content>
+                </attachment>
+                <attachment>
+                    <content xsi:type="xsd:string">ABC</content>
+                </attachment>
+                <attachment>
+                    <content xsi:type="xsd:base64Binary">REVG</content>    <!-- meaning DEF -->
+                </attachment>
+                <attachment>
+                    <content xsi:type="xsd:integer">1234567890123456789012345678901234567890</content>
+                </attachment>
+            </simpleUserNotifier>
+        </handler>
+    </notificationConfiguration>
+</systemConfiguration>

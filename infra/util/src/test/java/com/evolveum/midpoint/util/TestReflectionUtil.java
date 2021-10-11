@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.util;
 
@@ -24,149 +15,145 @@ import java.util.List;
 
 import org.testng.annotations.Test;
 
-/**
- * @author semancik
- *
- */
-public class TestReflectionUtil {
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 
-	@Test
-	public void testFindMethodByArity3() throws Exception {
-		// GIVEN
-		ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
+public class TestReflectionUtil extends AbstractUnitTest {
 
-		// WHEN
-		Method method = ReflectionUtil.findMethod(library, "m", 3);
+    @Test
+    public void testFindMethodByArity3() throws Exception {
+        // GIVEN
+        ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
 
-		// THEN
-		assertNotNull("No method", method);
-		method.invoke(library, "foo", 1, 2L);
+        // WHEN
+        Method method = ReflectionUtil.findMethod(library, "m", 3);
 
-		assertCalled(library, "m3");
-	}
+        // THEN
+        assertNotNull("No method", method);
+        method.invoke(library, "foo", 1, 2L);
 
-	@Test
-	public void testFindMethodByArglist3() throws Exception {
-		// GIVEN
-		ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
-		List<Object> argList = new ArrayList<>();
-		argList.add("foo");
-		argList.add(1);
-		argList.add(2L);
+        assertCalled(library, "m3");
+    }
 
-		// WHEN
-		Method method = ReflectionUtil.findMethod(library, "m", argList);
+    @Test
+    public void testFindMethodByArglist3() throws Exception {
+        // GIVEN
+        ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
+        List<Object> argList = new ArrayList<>();
+        argList.add("foo");
+        argList.add(1);
+        argList.add(2L);
 
-		// THEN
-		assertNotNull("No method", method);
-		method.invoke(library, "foo", 1, 2L);
+        // WHEN
+        Method method = ReflectionUtil.findMethod(library, "m", argList);
 
-		assertCalled(library, "m3");
-	}
+        // THEN
+        assertNotNull("No method", method);
+        method.invoke(library, "foo", 1, 2L);
 
-	@Test
-	public void testFindMethodByArglist2() throws Exception {
-		// GIVEN
-		ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
-		List<Object> argList = new ArrayList<>();
-		argList.add("foo");
-		argList.add(1);
+        assertCalled(library, "m3");
+    }
 
-		// WHEN
-		Method method = ReflectionUtil.findMethod(library, "m", argList);
+    @Test
+    public void testFindMethodByArglist2() throws Exception {
+        // GIVEN
+        ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
+        List<Object> argList = new ArrayList<>();
+        argList.add("foo");
+        argList.add(1);
 
-		// THEN
-		assertNotNull("No method", method);
-		method.invoke(library, "foo", 1);
+        // WHEN
+        Method method = ReflectionUtil.findMethod(library, "m", argList);
 
-		assertCalled(library, "m2i");
-	}
+        // THEN
+        assertNotNull("No method", method);
+        method.invoke(library, "foo", 1);
 
-	@Test
-	public void testFindMethodByArglistVararg() throws Exception {
-		// GIVEN
-		ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
-		List<Object> argList = new ArrayList<>();
-		argList.add("foo");
-		argList.add("bar");
-		argList.add("baz");
+        assertCalled(library, "m2i");
+    }
 
-		// WHEN
-		Method method = ReflectionUtil.findMethod(library, "v", argList);
+    @Test
+    public void testFindMethodByArglistVararg() throws Exception {
+        // GIVEN
+        ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
+        List<Object> argList = new ArrayList<>();
+        argList.add("foo");
+        argList.add("bar");
+        argList.add("baz");
 
-		// THEN
-		assertNotNull("No method", method);
-		method.invoke(library, new Object[] { new String[] {"foo", "bar", "baz"}});
+        // WHEN
+        Method method = ReflectionUtil.findMethod(library, "v", argList);
 
-		assertCalled(library, "v:3");
-	}
+        // THEN
+        assertNotNull("No method", method);
+        method.invoke(library, new Object[] { new String[] { "foo", "bar", "baz" } });
 
-	@Test
-	public void testInvokeMethodByArglist3() throws Exception {
-		// GIVEN
-		ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
-		List<Object> argList = new ArrayList<>();
-		argList.add("foo");
-		argList.add(1);
-		argList.add(2L);
+        assertCalled(library, "v:3");
+    }
 
-		// WHEN
-		ReflectionUtil.invokeMethod(library, "m", argList);
+    @Test
+    public void testInvokeMethodByArglist3() throws Exception {
+        // GIVEN
+        ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
+        List<Object> argList = new ArrayList<>();
+        argList.add("foo");
+        argList.add(1);
+        argList.add(2L);
 
-		// THEN
-		assertCalled(library, "m3");
-	}
+        // WHEN
+        ReflectionUtil.invokeMethod(library, "m", argList);
 
-	@Test
-	public void testInvokeMethodByArglist2() throws Exception {
-		// GIVEN
-		ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
-		List<Object> argList = new ArrayList<>();
-		argList.add("foo");
-		argList.add(1);
+        // THEN
+        assertCalled(library, "m3");
+    }
 
-		// WHEN
-		ReflectionUtil.invokeMethod(library, "m", argList);
+    @Test
+    public void testInvokeMethodByArglist2() throws Exception {
+        // GIVEN
+        ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
+        List<Object> argList = new ArrayList<>();
+        argList.add("foo");
+        argList.add(1);
 
-		// THEN
-		assertCalled(library, "m2i");
-	}
+        // WHEN
+        ReflectionUtil.invokeMethod(library, "m", argList);
 
-	@Test
-	public void testInvokeMethodByArglistVararg() throws Exception {
-		// GIVEN
-		ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
-		List<Object> argList = new ArrayList<>();
-		argList.add("foo");
-		argList.add("bar");
-		argList.add("baz");
+        // THEN
+        assertCalled(library, "m2i");
+    }
 
-		// WHEN
-		ReflectionUtil.invokeMethod(library, "v", argList);
+    @Test
+    public void testInvokeMethodByArglistVararg() throws Exception {
+        // GIVEN
+        ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
+        List<Object> argList = new ArrayList<>();
+        argList.add("foo");
+        argList.add("bar");
+        argList.add("baz");
 
-		// THEN
-		assertCalled(library, "v:3");
-	}
+        // WHEN
+        ReflectionUtil.invokeMethod(library, "v", argList);
 
-	@Test
-	public void testInvokeMethodByArglistCollection() throws Exception {
-		// GIVEN
-		ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
-		List<Object> argList = new ArrayList<>();
-		List<String> l = new ArrayList<>();
-		l.add("foo");
-		argList.add(l);
+        // THEN
+        assertCalled(library, "v:3");
+    }
 
-		// WHEN
-		ReflectionUtil.invokeMethod(library, "l", argList);
+    @Test
+    public void testInvokeMethodByArglistCollection() throws Exception {
+        // GIVEN
+        ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
+        List<Object> argList = new ArrayList<>();
+        List<String> l = new ArrayList<>();
+        l.add("foo");
+        argList.add(l);
 
-		// THEN
-		assertCalled(library, "lc");
-	}
+        // WHEN
+        ReflectionUtil.invokeMethod(library, "l", argList);
 
+        // THEN
+        assertCalled(library, "lc");
+    }
 
-	private void assertCalled(ReflectionTestFunctionLibrary library, String methodId) {
-		assertTrue("The method "+methodId+" was not called. Called: "+library.getCalledIds(), library.wasCalled(methodId));
-	}
-
+    private void assertCalled(ReflectionTestFunctionLibrary library, String methodId) {
+        assertTrue("The method " + methodId + " was not called. Called: " + library.getCalledIds(), library.wasCalled(methodId));
+    }
 }

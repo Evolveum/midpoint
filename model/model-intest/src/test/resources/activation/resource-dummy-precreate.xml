@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!-- MID-3507 -->
+
+<resource oid="f18711a2-5db5-4562-b50d-3ef4c74f2e1d"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <name>Dummy Resource: precreate</name>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+        <icfc:configurationProperties>
+            <icfi:instanceId>precreate</icfi:instanceId>
+        </icfc:configurationProperties>
+
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+            </attribute>
+            <activation>
+                <existence>
+                    <outbound>
+                        <name>Basic existence</name>
+                        <description>
+                            The default for account existence in this case is the existence of focus object (user).
+                            Is user exists, account should exist too. Also note that this mapping is weak which
+                            lets the other mapping to take precedence.
+                        </description>
+                        <strength>weak</strength>
+                        <expression>
+                            <path>$focusExists</path>
+                        </expression>
+                    </outbound>
+                    <outbound>
+                        <name>Pre-create</name>
+                        <description>
+                            The mapping above would cause the account to exist as soon as user appears.
+                            But we want to override that and prohibit account existence all the way up to
+                            5 days before user's validFrom. This mapping does right that.
+                        </description>
+                        <timeTo>
+                            <referenceTime>
+                                <path>$focus/activation/validFrom</path>
+                            </referenceTime>
+                            <offset>-P5D</offset>
+                        </timeTo>
+                        <source>
+                            <path>$focus/activation/validFrom</path>
+                        </source>
+                        <expression>
+                            <value>false</value>
+                        </expression>
+                        <condition>
+                            <description>
+                                This condition is not really necessary if all the uses will have a validFrom timestamp.
+                                But if there is a user without validFrom then this mapping will be applied
+                                indefinitely and the account will never be created. We want to avoid that.
+                            </description>
+                            <script>
+                                <code>validFrom != null</code>
+                            </script>
+                        </condition>
+                    </outbound>
+                </existence>
+            </activation>
+        </objectType>
+    </schemaHandling>
+</resource>

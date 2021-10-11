@@ -1,28 +1,24 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.self;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_CREATE_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.F_CREATE_TIMESTAMP;
+import static java.util.Collections.emptyList;
 
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.page.admin.cases.CaseWorkItemsPanel;
+import com.evolveum.midpoint.web.page.admin.cases.CasesListPanel;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
@@ -30,7 +26,6 @@ import org.apache.wicket.Application;
 import org.apache.wicket.Component;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -40,7 +35,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -62,22 +57,16 @@ import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.util.CallableResult;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.AsyncDashboardPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.MyAccountsPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.MyAssignmentsPanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
 import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
-import com.evolveum.midpoint.web.page.admin.workflow.ProcessInstancesPanel;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDtoProvider;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
 import com.evolveum.midpoint.web.page.self.component.LinksPanel;
-import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -117,17 +106,17 @@ public class PageSelfDashboard extends PageSelf {
     private static final int MAX_WORK_ITEMS = 1000;
     private static final int MAX_REQUESTS = 1000;
 
-    private final Model<PrismObject<UserType>> principalModel = new Model<>();
-    private CompiledUserProfile compiledUserProfile;
+    private final Model<PrismObject<? extends FocusType>> principalModel = new Model<>();
+    private CompiledGuiProfile compiledGuiProfile;
 
     public PageSelfDashboard() {
-        compiledUserProfile = getPrincipal().getCompiledUserProfile();
-        principalModel.setObject(loadUser());
+        compiledGuiProfile = getPrincipal().getCompiledGuiProfile();
+        principalModel.setObject(loadFocus());
         setTimeZone(PageSelfDashboard.this);
         initLayout();
     }
 
-	private transient Application application;
+    private transient Application application;
 
     @Override
     protected void createBreadcrumb() {
@@ -164,48 +153,51 @@ public class PageSelfDashboard extends PageSelf {
         });
         add(linksPanel);
 
-		// TODO is this correct? [med]
-		application = getApplication();
-		final Session session = Session.get();
+        // TODO is this correct? [med]
+        application = getApplication();
+        final Session session = Session.get();
 
-		AsyncDashboardPanel<Object, List<WorkItemDto>> workItemsPanel = new AsyncDashboardPanel<Object, List<WorkItemDto>>(
+        AsyncDashboardPanel<Object, List<CaseWorkItemType>> workItemsPanel = new AsyncDashboardPanel<Object, List<CaseWorkItemType>>(
                 ID_WORK_ITEMS_PANEL,
                 createStringResource("PageSelfDashboard.workItems"),
                 GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON,
                 GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_BOX_CSS_CLASSES,
                 true) {
 
-					private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
-					@Override
-                    protected SecurityContextAwareCallable<CallableResult<List<WorkItemDto>>> createCallable(
+                    @Override
+                    protected SecurityContextAwareCallable<CallableResult<List<CaseWorkItemType>>> createCallable(
                             Authentication auth, IModel callableParameterModel) {
 
-                        return new SecurityContextAwareCallable<CallableResult<List<WorkItemDto>>>(
-                        		getSecurityContextManager(), auth) {
+                        return new SecurityContextAwareCallable<CallableResult<List<CaseWorkItemType>>>(
+                                getSecurityContextManager(), auth) {
 
-                        	private static final long serialVersionUID = 1L;
+                            private static final long serialVersionUID = 1L;
 
                             @Override
-                            public CallableResult<List<WorkItemDto>> callWithContextPrepared() throws Exception {
-								setupContext(application, session);	// TODO is this correct? [med]
-                                return loadWorkItems();
+                            public CallableResult<List<CaseWorkItemType>> callWithContextPrepared() {
+                                return new CallableResult<>(emptyList(), null); // it is ignored anyway - FIXME
                             }
                         };
                     }
 
                     @Override
                     protected Component getMainComponent(String markupId) {
-						ISortableDataProvider provider = new ListDataProvider(this,
-                                new PropertyModel<List<WorkItemDto>>(getModel(), CallableResult.F_VALUE));
-						return new WorkItemsPanel(markupId, provider, null, 10, WorkItemsPanel.View.DASHBOARD){
+                        CaseWorkItemsPanel workItemsPanel = new CaseWorkItemsPanel(markupId, CaseWorkItemsPanel.View.DASHBOARD){
                             private static final long serialVersionUID = 1L;
 
                             @Override
-                            protected boolean isFooterVisible(long providerSize, int pageSize){
-                                return providerSize > pageSize;
+                            protected ObjectFilter getCaseWorkItemsFilter(){
+                                return QueryUtils.filterForNotClosedStateAndAssignees(getPrismContext().queryFor(CaseWorkItemType.class),
+                                        SecurityUtils.getPrincipalUser(),
+                                        OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
+                                        .desc(F_CREATE_TIMESTAMP)
+                                        .buildFilter();
                             }
                         };
+                        workItemsPanel.setOutputMarkupId(true);
+                        return workItemsPanel;
                     }
                 };
 
@@ -218,47 +210,53 @@ public class PageSelfDashboard extends PageSelf {
         });
         add(workItemsPanel);
 
-        AsyncDashboardPanel<Object, List<ProcessInstanceDto>> myRequestsPanel =
-                new AsyncDashboardPanel<Object, List<ProcessInstanceDto>>(ID_REQUESTS_PANEL,
+        AsyncDashboardPanel<Object, List<CaseType>> myRequestsPanel =
+                new AsyncDashboardPanel<Object, List<CaseType>>(ID_REQUESTS_PANEL,
                         createStringResource("PageSelfDashboard.myRequests"),
-                		 GuiStyleConstants.CLASS_SHADOW_ICON_REQUEST,
+                         GuiStyleConstants.CLASS_SHADOW_ICON_REQUEST,
                         GuiStyleConstants.CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES, true) {
 
-        			private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected SecurityContextAwareCallable<CallableResult<List<ProcessInstanceDto>>> createCallable(
+                    protected SecurityContextAwareCallable<CallableResult<List<CaseType>>> createCallable(
                             Authentication auth, IModel callableParameterModel) {
 
-                        return new SecurityContextAwareCallable<CallableResult<List<ProcessInstanceDto>>>(
-                        		getSecurityContextManager(), auth) {
-                        	private static final long serialVersionUID = 1L;
+                        return new SecurityContextAwareCallable<CallableResult<List<CaseType>>>(
+                                getSecurityContextManager(), auth) {
+                            private static final long serialVersionUID = 1L;
 
                             @Override
-                            public CallableResult<List<ProcessInstanceDto>> callWithContextPrepared() throws Exception {
-								setupContext(application, session);
-                                return loadMyRequests();
+                            public CallableResult<List<CaseType>> callWithContextPrepared() {
+                                return new CallableResult<>(emptyList(), null); // it is ignored anyway - FIXME
                             }
                         };
                     }
 
                     @Override
                     protected Component getMainComponent(String markupId) {
-						ISortableDataProvider provider = new ListDataProvider(this,
-                                new PropertyModel<List<ProcessInstanceDto>>(getModel(), CallableResult.F_VALUE));
-                        return new ProcessInstancesPanel(markupId, provider, null, 10, ProcessInstancesPanel.View.DASHBOARD, null){
+                        CasesListPanel casesPanel = new CasesListPanel(markupId) {
                             private static final long serialVersionUID = 1L;
 
                             @Override
-                            protected boolean isFooterVisible(long providerSize, int pageSize){
-                                return providerSize > pageSize;
+                            protected ObjectFilter getCasesFilter() {
+                                return QueryUtils.filterForMyRequests(getPrismContext().queryFor(CaseType.class),
+                                        SecurityUtils.getPrincipalUser().getOid())
+                                        .desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
+                                        .buildFilter();
+                            }
+
+                            @Override
+                            protected boolean isDashboard(){
+                                return true;
                             }
                         };
+                        return casesPanel;
                     }
                 };
 
         myRequestsPanel.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -273,79 +271,7 @@ public class PageSelfDashboard extends PageSelf {
         initAssignments();
     }
 
-    private CallableResult<List<WorkItemDto>> loadWorkItems() {
-
-        LOGGER.debug("Loading work items.");
-
-        AccountCallableResult callableResult = new AccountCallableResult();
-        List<WorkItemDto> list = new ArrayList<>();
-        callableResult.setValue(list);
-
-        if (!getWorkflowManager().isEnabled()) {
-            return callableResult;
-        }
-
-        PrismObject<UserType> user = principalModel.getObject();
-        if (user == null) {
-            return callableResult;
-        }
-
-        Task task = createSimpleTask(OPERATION_LOAD_WORK_ITEMS);
-        OperationResult result = task.getResult();
-        callableResult.setResult(result);
-
-        try {
-            // TODO try to use current state (user) instead of potentially obsolete principal
-            // but this requires some computation (of deputy relation)
-            // (Note that the current code is consistent with the other places where work items are displayed.)
-            S_FilterEntryOrEmpty q = getPrismContext().queryFor(WorkItemType.class);
-            ObjectQuery query = QueryUtils.filterForAssignees(q, SecurityUtils.getPrincipalUser(),
-                    OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
-                    .desc(F_CREATE_TIMESTAMP)
-                    .build();
-            Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
-                    .item(T_PARENT, WfContextType.F_OBJECT_REF).resolve()
-                    .item(T_PARENT, WfContextType.F_TARGET_REF).resolve()
-                    .build();
-            List<WorkItemType> workItems = getModelService().searchContainers(WorkItemType.class, query, options, task, result);
-            for (WorkItemType workItem : workItems) {
-                list.add(new WorkItemDto(workItem, PageSelfDashboard.this));
-            }
-        } catch (Exception e) {
-            result.recordFatalError("Couldn't get list of work items.", e);
-        }
-
-        result.recordSuccessIfUnknown();
-        result.recomputeStatus();
-
-        LOGGER.debug("Finished work items loading.");
-
-        return callableResult;
-    }
-
-    private CallableResult<List<ProcessInstanceDto>> loadMyRequests() {
-
-        LOGGER.debug("Loading requests.");
-
-        AccountCallableResult<List<ProcessInstanceDto>> callableResult = new AccountCallableResult<>();
-        List<ProcessInstanceDto> list = new ArrayList<>();
-        callableResult.setValue(list);
-
-        if (!getWorkflowManager().isEnabled()) {
-            return callableResult;
-        }
-
-		ProcessInstanceDtoProvider provider = new ProcessInstanceDtoProvider(this, true, false);
-		provider.iterator(0, Integer.MAX_VALUE);
-		callableResult.setValue(provider.getAvailableData());
-
-        LOGGER.debug("Finished requests loading.");
-
-        return callableResult;
-    }
-
-
-    private PrismObject<UserType> loadUser() {
+    private PrismObject<? extends FocusType> loadFocus() {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
         Validate.notNull(principal, "No principal");
         if (principal.getOid() == null) {
@@ -354,7 +280,7 @@ public class PageSelfDashboard extends PageSelf {
 
         Task task = createSimpleTask(OPERATION_LOAD_USER);
         OperationResult result = task.getResult();
-        PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class,
+        PrismObject<? extends FocusType> focus = WebModelServiceUtils.loadObject(FocusType.class,
                 principal.getOid(), PageSelfDashboard.this, task, result);
         result.computeStatus();
 
@@ -362,15 +288,15 @@ public class PageSelfDashboard extends PageSelf {
             showResult(result);
         }
 
-        return user;
+        return focus;
     }
 
     private List<RichHyperlinkType> loadLinksList() {
-        PrismObject<UserType> user = principalModel.getObject();
-        if (user == null) {
+        PrismObject<? extends FocusType> focus = principalModel.getObject();
+        if (focus == null) {
             return new ArrayList<>();
         } else {
-            return ((PageBase) getPage()).getCompiledUserProfile().getUserDashboardLink();
+            return ((PageBase) getPage()).getCompiledGuiProfile().getUserDashboardLink();
         }
     }
 
@@ -381,19 +307,19 @@ public class PageSelfDashboard extends PageSelf {
                         GuiStyleConstants.CLASS_OBJECT_SHADOW_BOX_CSS_CLASSES,
                         true) {
 
-					private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
-					@Override
+                    @Override
                     protected SecurityContextAwareCallable<CallableResult<List<SimpleAccountDto>>> createCallable(
                             Authentication auth, IModel<Object> callableParameterModel) {
 
                         return new SecurityContextAwareCallable<CallableResult<List<SimpleAccountDto>>>(
-                        		getSecurityContextManager(), auth) {
+                                getSecurityContextManager(), auth) {
 
                             @Override
                             public AccountCallableResult<List<SimpleAccountDto>> callWithContextPrepared()
                                     throws Exception {
-                                setupContext(application, session);	// TODO is this correct? [med]
+                                setupContext(application, session);    // TODO is this correct? [med]
                                 return loadAccounts();
                             }
                         };
@@ -447,8 +373,8 @@ public class PageSelfDashboard extends PageSelf {
         AccountCallableResult callableResult = new AccountCallableResult();
         List<SimpleAccountDto> list = new ArrayList<>();
         callableResult.setValue(list);
-        PrismObject<UserType> user = principalModel.getObject();
-        if (user == null) {
+        PrismObject<? extends FocusType> focus = principalModel.getObject();
+        if (focus == null) {
             return callableResult;
         }
 
@@ -457,9 +383,9 @@ public class PageSelfDashboard extends PageSelf {
         callableResult.setResult(result);
         Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
                 .root().resolveNames().noFetch()
-                .item(ShadowType.F_RESOURCE).resolve().noFetch()
+                .item(ShadowType.F_RESOURCE_REF).resolve().noFetch()
                 .build();
-        List<ObjectReferenceType> references = user.asObjectable().getLinkRef();
+        List<ObjectReferenceType> references = focus.asObjectable().getLinkRef();
         for (ObjectReferenceType reference : references) {
             PrismObject<ShadowType> account = WebModelServiceUtils.loadObject(ShadowType.class, reference.getOid(),
                     options, this, task, result);
@@ -475,8 +401,7 @@ public class PageSelfDashboard extends PageSelf {
                 callableResult.getFetchResults().add(OperationResult.createOperationResult(fetchResult));
             }
 
-            ResourceType resource = accountType.getResource();
-            String resourceName = WebComponentUtil.getName(resource);
+            String resourceName = WebComponentUtil.getName(accountType.getResourceRef());
             list.add(new SimpleAccountDto(WebComponentUtil.getOrigStringFromPoly(accountType.getName()), resourceName));
         }
         result.recordSuccessIfUnknown();
@@ -494,7 +419,7 @@ public class PageSelfDashboard extends PageSelf {
                 GuiStyleConstants.CLASS_OBJECT_ROLE_BOX_CSS_CLASSES,
                 true) {
 
-        			private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
                     @Override
                     protected SecurityContextAwareCallable<CallableResult<List<AssignmentItemDto>>> createCallable(
@@ -535,8 +460,8 @@ public class PageSelfDashboard extends PageSelf {
         List<AssignmentItemDto> list = new ArrayList<>();
         callableResult.setValue(list);
 
-        PrismObject<UserType> user = principalModel.getObject();
-        if (user == null || user.findContainer(UserType.F_ASSIGNMENT) == null) {
+        PrismObject<? extends FocusType> focus = principalModel.getObject();
+        if (focus == null || focus.findContainer(UserType.F_ASSIGNMENT) == null) {
             return callableResult;
         }
 
@@ -544,10 +469,14 @@ public class PageSelfDashboard extends PageSelf {
         OperationResult result = task.getResult();
         callableResult.setResult(result);
 
-        PrismContainer assignments = user.findContainer(UserType.F_ASSIGNMENT);
+        PrismContainer assignments = focus.findContainer(UserType.F_ASSIGNMENT);
         List<PrismContainerValue> values = assignments.getValues();
         for (PrismContainerValue assignment : values) {
-            AssignmentItemDto item = createAssignmentItem(user, assignment, task, result);
+            AssignmentType assignmentType = (AssignmentType)assignment.asContainerable();
+            if (assignmentType.getTargetRef() != null && ArchetypeType.COMPLEX_TYPE.equals(assignmentType.getTargetRef().getType())){
+                continue;
+            }
+            AssignmentItemDto item = createAssignmentItem(assignment, task, result);
             if (item != null) {
                 list.add(item);
             }
@@ -562,60 +491,59 @@ public class PageSelfDashboard extends PageSelf {
         return callableResult;
     }
 
-	private AssignmentItemDto createAssignmentItem(PrismObject<UserType> user,
-                                                   PrismContainerValue<AssignmentType> assignment,
-			Task task, OperationResult result) {
+    private AssignmentItemDto createAssignmentItem(PrismContainerValue<AssignmentType> assignment,
+            Task task, OperationResult result) {
         ActivationType activation = assignment.asContainerable().getActivation();
         if (activation != null && activation.getAdministrativeStatus() != null
                 && !activation.getAdministrativeStatus().equals(ActivationStatusType.ENABLED)) {
             return null;
         }
         PrismReference targetRef = assignment.findReference(AssignmentType.F_TARGET_REF);
-		if (targetRef == null || targetRef.isEmpty()) {
-			// account construction
-			PrismContainer construction = assignment.findContainer(AssignmentType.F_CONSTRUCTION);
-			String name = null;
+        if (targetRef == null || targetRef.isEmpty()) {
+            // account construction
+            PrismContainer construction = assignment.findContainer(AssignmentType.F_CONSTRUCTION);
+            String name = null;
             String description = "";
-			if (construction.getRealValue() != null && !construction.isEmpty()) {
-				ConstructionType constr = (ConstructionType) construction.getRealValue();
+            if (construction.getRealValue() != null && !construction.isEmpty()) {
+                ConstructionType constr = (ConstructionType) construction.getRealValue();
 
-				if (constr.getResourceRef() != null) {
-					ObjectReferenceType resourceRef = constr.getResourceRef();
+                if (constr.getResourceRef() != null) {
+                    ObjectReferenceType resourceRef = constr.getResourceRef();
 
-					PrismObject resource = WebModelServiceUtils.loadObject(ResourceType.class,
-							resourceRef.getOid(), this, task, result);
-					name = WebComponentUtil.getName(resource);
+                    PrismObject resource = WebModelServiceUtils.loadObject(ResourceType.class,
+                            resourceRef.getOid(), this, task, result);
+                    name = WebComponentUtil.getName(resource, false);
                     description = constr.getDescription();
-				}
-			}
+                }
+            }
 
-			return new AssignmentItemDto(AssignmentEditorDtoType.CONSTRUCTION, name, description, null);
-		}
-
-		if (RelationTypes.APPROVER.getRelation().equals(assignment.getValue().getTargetRef().getRelation()) ||
-                RelationTypes.OWNER.getRelation().equals(assignment.getValue().getTargetRef().getRelation())){
-		    return null;
+            return new AssignmentItemDto(AssignmentEditorDtoType.CONSTRUCTION, name, description, null);
         }
-		PrismReferenceValue refValue = targetRef.getValue();
-		PrismObject value = refValue.getObject();
-		if (value == null) {
-			// resolve reference
-			value = WebModelServiceUtils.loadObject(ObjectType.class, refValue.getOid(), this, task, result);
-		}
 
-		if (value == null) {
-			// we couldn't resolve assignment details
-			return new AssignmentItemDto(null, null, null, null);
-		}
+        if (RelationTypes.APPROVER.getRelation().equals(assignment.getValue().getTargetRef().getRelation()) ||
+                RelationTypes.OWNER.getRelation().equals(assignment.getValue().getTargetRef().getRelation())){
+            return null;
+        }
+        PrismReferenceValue refValue = targetRef.getValue();
+        PrismObject value = refValue.getObject();
+        if (value == null) {
+            // resolve reference
+            value = WebModelServiceUtils.loadObject(ObjectType.class, refValue.getOid(), this, task, result);
+        }
 
-		String name = WebComponentUtil.getDisplayNameOrName(value);
-		AssignmentEditorDtoType type = AssignmentEditorDtoType.getType(value.getCompileTimeClass());
-		String relation = refValue.getRelation() != null ? refValue.getRelation().getLocalPart() : null;
+        if (value == null) {
+            // we couldn't resolve assignment details
+            return new AssignmentItemDto(null, null, null, null);
+        }
 
-		return new AssignmentItemDto(type, name, getAssignmentDescription(value), relation);
-	}
+        String name = WebComponentUtil.getDisplayNameOrName(value, false);
+        AssignmentEditorDtoType type = AssignmentEditorDtoType.getType(value.getCompileTimeClass());
+        String relation = refValue.getRelation() != null ? refValue.getRelation().getLocalPart() : null;
 
-	private String getAssignmentDescription(PrismObject value){
+        return new AssignmentItemDto(type, name, getAssignmentDescription(value), relation);
+    }
+
+    private String getAssignmentDescription(PrismObject value){
         Object orgIdentifier = null;
         if (OrgType.class.isAssignableFrom(value.getCompileTimeClass())) {
             orgIdentifier = value.getPropertyRealValue(OrgType.F_IDENTIFIER, String.class);
@@ -626,15 +554,15 @@ public class PageSelfDashboard extends PageSelf {
         return description;
     }
 
-	private UserInterfaceElementVisibilityType getComponentVisibility(PredefinedDashboardWidgetId componentId){
-        if (compiledUserProfile == null || compiledUserProfile.getUserDashboard() == null) {
+    private UserInterfaceElementVisibilityType getComponentVisibility(PredefinedDashboardWidgetId componentId){
+        if (compiledGuiProfile == null || compiledGuiProfile.getUserDashboard() == null) {
             return UserInterfaceElementVisibilityType.AUTOMATIC;
         }
-        List<DashboardWidgetType> widgetsList = compiledUserProfile.getUserDashboard().getWidget();
+        List<DashboardWidgetType> widgetsList = compiledGuiProfile.getUserDashboard().getWidget();
         if (widgetsList == null || widgetsList.size() == 0){
             return UserInterfaceElementVisibilityType.VACANT;
         }
-        DashboardWidgetType widget = compiledUserProfile.findUserDashboardWidget(componentId.getUri());
+        DashboardWidgetType widget = compiledGuiProfile.findUserDashboardWidget(componentId.getUri());
         if (widget == null || widget.getVisibility() == null){
             return UserInterfaceElementVisibilityType.HIDDEN;
         } else {

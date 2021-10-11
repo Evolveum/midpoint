@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  *
  * This file is inspired and uses minor parts of the maven-dependency-plugin by Brian Fox.
  */
@@ -56,7 +47,7 @@ public class ArtifactItem {
     /**
      * @parameter
      */
-    private String catalog;				// intentionally no default
+    private String catalog;                // intentionally no default
 
     private Artifact artifact;
 
@@ -64,77 +55,77 @@ public class ArtifactItem {
 
     private Catalog resolveCatalog;
 
-	public String getGroupId() {
-		return groupId;
-	}
+    public String getGroupId() {
+        return groupId;
+    }
 
-	public void setGroupId(String groupId) {
-		this.groupId = groupId;
-	}
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
+    }
 
-	public String getArtifactId() {
-		return artifactId;
-	}
+    public String getArtifactId() {
+        return artifactId;
+    }
 
-	public void setArtifactId(String artifactId) {
-		this.artifactId = artifactId;
-	}
+    public void setArtifactId(String artifactId) {
+        this.artifactId = artifactId;
+    }
 
-	public String getVersion() {
-		return version;
-	}
+    public String getVersion() {
+        return version;
+    }
 
-	public void setVersion(String version) {
-		this.version = version;
-	}
+    public void setVersion(String version) {
+        this.version = version;
+    }
 
-	public String getType() {
-		return type;
-	}
+    public String getType() {
+        return type;
+    }
 
-	public void setType(String type) {
-		this.type = type;
-	}
+    public void setType(String type) {
+        this.type = type;
+    }
 
-	public String getClassifier() {
-		return classifier;
-	}
+    public String getClassifier() {
+        return classifier;
+    }
 
-	public void setClassifier(String classifier) {
-		this.classifier = classifier;
-	}
+    public void setClassifier(String classifier) {
+        this.classifier = classifier;
+    }
 
-	public String getCatalog() {
-		return catalog;
-	}
+    public String getCatalog() {
+        return catalog;
+    }
 
-	public void setCatalog(String catalog) {
-		this.catalog = catalog;
-	}
+    public void setCatalog(String catalog) {
+        this.catalog = catalog;
+    }
 
-	public Artifact getArtifact() {
-		return artifact;
-	}
+    public Artifact getArtifact() {
+        return artifact;
+    }
 
-	public void setArtifact(Artifact artifact) {
-		this.artifact = artifact;
-	}
+    public void setArtifact(Artifact artifact) {
+        this.artifact = artifact;
+    }
 
-	public File getWorkDir() {
-		return workDir;
-	}
+    public File getWorkDir() {
+        return workDir;
+    }
 
-	public void setWorkDir(File workDir) {
-		this.workDir = workDir;
-	}
+    public void setWorkDir(File workDir) {
+        this.workDir = workDir;
+    }
 
-	public Catalog getResolveCatalog() {
-		return resolveCatalog;
-	}
+    public Catalog getResolveCatalog() {
+        return resolveCatalog;
+    }
 
-	public void setResolveCatalog(Catalog resolveCatalog) {
-		this.resolveCatalog = resolveCatalog;
-	}
+    public void setResolveCatalog(Catalog resolveCatalog) {
+        this.resolveCatalog = resolveCatalog;
+    }
 
 
 }

@@ -1,17 +1,8 @@
-/**
- * Copyright (c) 2017 Evolveum
+/*
+ * Copyright (c) 2017-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema.internals;
 
@@ -20,34 +11,34 @@ package com.evolveum.midpoint.schema.internals;
  *
  */
 public enum InternalOperationClasses {
-	RESOURCE_SCHEMA_OPERATIONS("resourceSchemaOperations", "resource schema operations"),
+    RESOURCE_SCHEMA_OPERATIONS("resourceSchemaOperations", "resource schema operations"),
 
-	CONNECTOR_OPERATIONS("connectorOperations", "connector operations"),
+    CONNECTOR_OPERATIONS("connectorOperations", "connector operations"),
 
-	SHADOW_FETCH_OPERATIONS("shadowFetchOperations", "shadow fetch operations"),
+    SHADOW_FETCH_OPERATIONS("shadowFetchOperations", "shadow fetch operations"),
 
-	REPOSITORY_OPERATIONS("repositoryOperations", "repository operations"),
+    REPOSITORY_OPERATIONS("repositoryOperations", "repository operations"),
 
-	PRISM_OBJECT_CLONES("prismObjectClone", "prism object clones"),
+    ROLE_EVALUATIONS("roleEvaluations", "role evaluations"),
 
-	ROLE_EVALUATIONS("roleEvaluations", "role evaluations");
+    PRISM_OPERATIONS("prismOperations", "prism operations");
 
-	// Used as localization key
-	private String key;
+    // Used as localization key
+    private String key;
 
-	// Used in logfiles, etc.
-	private String label;
+    // Used in logfiles, etc.
+    private String label;
 
-	private InternalOperationClasses(String key, String label) {
-		this.key = key;
-		this.label = label;
-	}
+    InternalOperationClasses(String key, String label) {
+        this.key = key;
+        this.label = label;
+    }
 
-	public String getKey() {
-		return key;
-	}
+    public String getKey() {
+        return key;
+    }
 
-	public String getLabel() {
-		return label;
-	}
+    public String getLabel() {
+        return label;
+    }
 }

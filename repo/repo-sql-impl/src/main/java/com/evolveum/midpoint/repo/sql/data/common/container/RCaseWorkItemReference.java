@@ -1,23 +1,15 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCaseWorkItemReferenceId;
+import com.evolveum.midpoint.repo.sql.data.common.other.RCaseWorkItemReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
@@ -53,12 +45,14 @@ import java.util.Set;
 public class RCaseWorkItemReference extends RReference {
 
     public static final String TABLE = "m_case_wi_reference";
+    public static final String REFERENCE_TYPE = "reference_type";
 
     private RCaseWorkItem owner;
-	private String ownerOwnerOid;						// case OID
-	private Integer ownerId;							// work item ID
+    private String ownerOwnerOid;                        // case OID
+    private Integer ownerId;                            // work item ID
+    private RCaseWorkItemReferenceOwner referenceType;
 
-	@ForeignKey(name = "fk_case_wi_reference_owner")
+    @ForeignKey(name = "fk_case_wi_reference_owner")
     @MapsId("workItem")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
@@ -66,15 +60,15 @@ public class RCaseWorkItemReference extends RReference {
         return owner;
     }
 
-	public void setOwner(RCaseWorkItem owner) {
-		this.owner = owner;
-		if (owner != null) {
-			this.ownerOwnerOid = owner.getOwnerOid();
-			this.ownerId = owner.getId();
-		}
-	}
+    public void setOwner(RCaseWorkItem owner) {
+        this.owner = owner;
+        if (owner != null) {
+            this.ownerOwnerOid = owner.getOwnerOid();
+            this.ownerId = owner.getId();
+        }
+    }
 
-	@Column(name = "owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
+    @Column(name = "owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     @NotQueryable
     public String getOwnerOwnerOid() {
         if (ownerOwnerOid == null && getOwner() != null) {
@@ -83,11 +77,11 @@ public class RCaseWorkItemReference extends RReference {
         return ownerOwnerOid;
     }
 
-	public void setOwnerOwnerOid(String ownerOwnerOid) {
-		this.ownerOwnerOid = ownerOwnerOid;
-	}
+    public void setOwnerOwnerOid(String ownerOwnerOid) {
+        this.ownerOwnerOid = ownerOwnerOid;
+    }
 
-	@Column(name = "owner_id")
+    @Column(name = "owner_id")
     @NotQueryable
     public Integer getOwnerId() {
         if (ownerId == null && getOwner() != null) {
@@ -96,11 +90,11 @@ public class RCaseWorkItemReference extends RReference {
         return ownerId;
     }
 
-	public void setOwnerId(Integer ownerId) {
-		this.ownerId = ownerId;
-	}
+    public void setOwnerId(Integer ownerId) {
+        this.ownerId = ownerId;
+    }
 
-	//@MapsId("target")
+    //@MapsId("target")
     @ForeignKey(name="none")
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false, nullable = true)
@@ -123,22 +117,33 @@ public class RCaseWorkItemReference extends RReference {
         return super.getRelation();
     }
 
-	@Column(name = "targetType")
-	@Enumerated(EnumType.ORDINAL)
-	@Override
-	public RObjectType getType() {
-		return super.getType();
-	}
+    @Id
+    @Column(name = REFERENCE_TYPE, nullable = false)
+    public RCaseWorkItemReferenceOwner getReferenceType() {
+        return referenceType;
+    }
 
-	public static Set<RCaseWorkItemReference> safeListReferenceToSet(List<ObjectReferenceType> list,
-			RCaseWorkItem owner, RelationRegistry relationRegistry) {
+    public void setReferenceType(RCaseWorkItemReferenceOwner referenceType) {
+        this.referenceType = referenceType;
+    }
+
+    @Column(name = "targetType")
+    @Enumerated(EnumType.ORDINAL)
+    @Override
+    public RObjectType getType() {
+        return super.getType();
+    }
+
+    public static Set<RCaseWorkItemReference> safeListReferenceToSet(List<ObjectReferenceType> list,
+            RCaseWorkItem owner, RelationRegistry relationRegistry,
+            RCaseWorkItemReferenceOwner type) {
         Set<RCaseWorkItemReference> set = new HashSet<>();
         if (list == null || list.isEmpty()) {
             return set;
         }
 
         for (ObjectReferenceType ref : list) {
-            RCaseWorkItemReference rRef = jaxbRefToRepo(ref, owner, relationRegistry);
+            RCaseWorkItemReference rRef = jaxbRefToRepo(ref, owner, relationRegistry, type);
             if (rRef != null) {
                 set.add(rRef);
             }
@@ -147,7 +152,7 @@ public class RCaseWorkItemReference extends RReference {
     }
 
     public static RCaseWorkItemReference jaxbRefToRepo(ObjectReferenceType reference, RCaseWorkItem owner,
-		    RelationRegistry relationRegistry) {
+            RelationRegistry relationRegistry, RCaseWorkItemReferenceOwner type) {
         if (reference == null) {
             return null;
         }
@@ -156,7 +161,8 @@ public class RCaseWorkItemReference extends RReference {
 
         RCaseWorkItemReference repoRef = new RCaseWorkItemReference();
         repoRef.setOwner(owner);
-        RCaseWorkItemReference.fromJaxb(reference, repoRef, relationRegistry);
+        RReference.fromJaxb(reference, repoRef, relationRegistry);
+        repoRef.setReferenceType(type);
         return repoRef;
     }
 }

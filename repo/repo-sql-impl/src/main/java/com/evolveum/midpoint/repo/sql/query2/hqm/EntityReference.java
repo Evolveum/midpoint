@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.query2.hqm;
@@ -19,7 +10,9 @@ package com.evolveum.midpoint.repo.sql.query2.hqm;
 import org.apache.commons.lang.Validate;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Specifies an entity that is to be used in the query (its name and its alias),
@@ -42,7 +35,7 @@ public class EntityReference {
      */
     private List<JoinSpecification> joins = new ArrayList<>();
 
-    public EntityReference(String alias, String name) {
+    EntityReference(String alias, String name) {
         Validate.notEmpty(alias);
         Validate.notEmpty(name);
 
@@ -66,7 +59,7 @@ public class EntityReference {
         this.name = name;
     }
 
-    public List<JoinSpecification> getJoins() {
+    List<JoinSpecification> getJoins() {
         return joins;
     }
 
@@ -84,7 +77,7 @@ public class EntityReference {
 
     }
 
-    public boolean containsAlias(String alias) {
+    boolean containsAlias(String alias) {
         if (this.alias.equals(alias)) {
             return true;
         }
@@ -96,12 +89,9 @@ public class EntityReference {
         return false;
     }
 
-    public JoinSpecification findJoinFor(String path) {
-        for (JoinSpecification join : joins) {
-            if (path.equals(join.getPath())) {
-                return join;
-            }
-        }
-        return null;
+    public Collection<JoinSpecification> getJoinsFor(String path) {
+        return joins.stream()
+                .filter(join -> path.equals(join.getPath()))
+                .collect(Collectors.toList());
     }
 }

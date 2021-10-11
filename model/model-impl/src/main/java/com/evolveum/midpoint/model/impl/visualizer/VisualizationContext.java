@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.model.impl.visualizer;
@@ -27,95 +18,95 @@ import java.util.Map;
  */
 public class VisualizationContext {
 
-	private boolean separateSinglevaluedContainers = true;
-	private boolean separateMultivaluedContainers = true;
-	private boolean separateSinglevaluedContainersInDeltas = true;
-	private boolean separateMultivaluedContainersInDeltas = true;
-	private boolean removeExtraDescriptiveItems = true;
-	private boolean includeOperationalItems = false;
-	private Map<String,PrismObject<? extends ObjectType>> oldObjects;
-	private Map<String,PrismObject<? extends ObjectType>> currentObjects;
+    private boolean separateSinglevaluedContainers = true;
+    private boolean separateMultivaluedContainers = true;
+    private boolean separateSinglevaluedContainersInDeltas = true;
+    private boolean separateMultivaluedContainersInDeltas = true;
+    private boolean removeExtraDescriptiveItems = true;
+    private boolean includeOperationalItems = false;
+    private Map<String,PrismObject<? extends ObjectType>> oldObjects;
+    private Map<String,PrismObject<? extends ObjectType>> currentObjects;
 
-	public boolean isSeparateSinglevaluedContainers() {
-		return separateSinglevaluedContainers;
-	}
+    public boolean isSeparateSinglevaluedContainers() {
+        return separateSinglevaluedContainers;
+    }
 
-	public void setSeparateSinglevaluedContainers(boolean separateSinglevaluedContainers) {
-		this.separateSinglevaluedContainers = separateSinglevaluedContainers;
-	}
+    public void setSeparateSinglevaluedContainers(boolean separateSinglevaluedContainers) {
+        this.separateSinglevaluedContainers = separateSinglevaluedContainers;
+    }
 
-	public boolean isSeparateMultivaluedContainers() {
-		return separateMultivaluedContainers;
-	}
+    public boolean isSeparateMultivaluedContainers() {
+        return separateMultivaluedContainers;
+    }
 
-	public void setSeparateMultivaluedContainers(boolean separateMultivaluedContainers) {
-		this.separateMultivaluedContainers = separateMultivaluedContainers;
-	}
+    public void setSeparateMultivaluedContainers(boolean separateMultivaluedContainers) {
+        this.separateMultivaluedContainers = separateMultivaluedContainers;
+    }
 
-	public boolean isSeparateSinglevaluedContainersInDeltas() {
-		return separateSinglevaluedContainersInDeltas;
-	}
+    public boolean isSeparateSinglevaluedContainersInDeltas() {
+        return separateSinglevaluedContainersInDeltas;
+    }
 
-	public void setSeparateSinglevaluedContainersInDeltas(boolean separateSinglevaluedContainersInDeltas) {
-		this.separateSinglevaluedContainersInDeltas = separateSinglevaluedContainersInDeltas;
-	}
+    public void setSeparateSinglevaluedContainersInDeltas(boolean separateSinglevaluedContainersInDeltas) {
+        this.separateSinglevaluedContainersInDeltas = separateSinglevaluedContainersInDeltas;
+    }
 
-	public boolean isSeparateMultivaluedContainersInDeltas() {
-		return separateMultivaluedContainersInDeltas;
-	}
+    public boolean isSeparateMultivaluedContainersInDeltas() {
+        return separateMultivaluedContainersInDeltas;
+    }
 
-	public void setSeparateMultivaluedContainersInDeltas(boolean separateMultivaluedContainersInDeltas) {
-		this.separateMultivaluedContainersInDeltas = separateMultivaluedContainersInDeltas;
-	}
+    public void setSeparateMultivaluedContainersInDeltas(boolean separateMultivaluedContainersInDeltas) {
+        this.separateMultivaluedContainersInDeltas = separateMultivaluedContainersInDeltas;
+    }
 
-	public boolean isRemoveExtraDescriptiveItems() {
-		return removeExtraDescriptiveItems;
-	}
+    public boolean isRemoveExtraDescriptiveItems() {
+        return removeExtraDescriptiveItems;
+    }
 
-	public void setRemoveExtraDescriptiveItems(boolean removeExtraDescriptiveItems) {
-		this.removeExtraDescriptiveItems = removeExtraDescriptiveItems;
-	}
+    public void setRemoveExtraDescriptiveItems(boolean removeExtraDescriptiveItems) {
+        this.removeExtraDescriptiveItems = removeExtraDescriptiveItems;
+    }
 
-	public boolean isIncludeOperationalItems() {
-		return includeOperationalItems;
-	}
+    public boolean isIncludeOperationalItems() {
+        return includeOperationalItems;
+    }
 
-	public void setIncludeOperationalItems(boolean includeOperationalItems) {
-		this.includeOperationalItems = includeOperationalItems;
-	}
+    public void setIncludeOperationalItems(boolean includeOperationalItems) {
+        this.includeOperationalItems = includeOperationalItems;
+    }
 
-	public Map<String, PrismObject<? extends ObjectType>> getOldObjects() {
-		if (oldObjects == null) {
-			oldObjects = new HashMap<>();
-		}
-		return oldObjects;
-	}
+    public Map<String, PrismObject<? extends ObjectType>> getOldObjects() {
+        if (oldObjects == null) {
+            oldObjects = new HashMap<>();
+        }
+        return oldObjects;
+    }
 
-	public void setOldObjects(Map<String, PrismObject<? extends ObjectType>> oldObjects) {
-		this.oldObjects = oldObjects;
-	}
+    public void setOldObjects(Map<String, PrismObject<? extends ObjectType>> oldObjects) {
+        this.oldObjects = oldObjects;
+    }
 
-	public PrismObject<? extends ObjectType> getOldObject(String oid) {
-		return getOldObjects().get(oid);
-	}
+    public PrismObject<? extends ObjectType> getOldObject(String oid) {
+        return getOldObjects().get(oid);
+    }
 
-	public Map<String, PrismObject<? extends ObjectType>> getCurrentObjects() {
-		if (currentObjects == null) {
-			currentObjects = new HashMap<>();
-		}
-		return currentObjects;
-	}
+    public Map<String, PrismObject<? extends ObjectType>> getCurrentObjects() {
+        if (currentObjects == null) {
+            currentObjects = new HashMap<>();
+        }
+        return currentObjects;
+    }
 
-	public void setCurrentObjects(
-			Map<String, PrismObject<? extends ObjectType>> currentObjects) {
-		this.currentObjects = currentObjects;
-	}
+    public void setCurrentObjects(
+            Map<String, PrismObject<? extends ObjectType>> currentObjects) {
+        this.currentObjects = currentObjects;
+    }
 
-	public PrismObject<? extends ObjectType> getCurrentObject(String oid) {
-		return getCurrentObjects().get(oid);
-	}
+    public PrismObject<? extends ObjectType> getCurrentObject(String oid) {
+        return getCurrentObjects().get(oid);
+    }
 
-	public void putObject(PrismObject<? extends ObjectType> object) {
-		getCurrentObjects().put(object.getOid(), object);
-	}
+    public void putObject(PrismObject<? extends ObjectType> object) {
+        getCurrentObjects().put(object.getOid(), object);
+    }
 }

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="4bac305c-ed1f-4919-aaaa-e11863156811"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+    xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+    xmlns:trafo="http://midpoint.evolveum.com/xml/ns/story/trafo/ext"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <name>Dummy Activation Native Simulated</name>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration
+        xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+        <icfc:configurationProperties>
+            <icfi:instanceId>activation-native-simulated</icfi:instanceId>
+            <icfi:caseIgnoreId>true</icfi:caseIgnoreId>
+            <icfi:uidMode>uuid</icfi:uidMode>
+
+            <icfi:supportActivation>true</icfi:supportActivation>
+
+        </icfc:configurationProperties>
+
+        <icfc:resultsHandlerConfiguration>
+            <icfc:enableFilteredResultsHandler>true</icfc:enableFilteredResultsHandler>
+            <icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
+        </icfc:resultsHandlerConfiguration>
+
+    </connectorConfiguration>
+
+    <schemaHandling>
+
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:uid</ref>
+                <displayName>GUID</displayName>
+                <limitations>
+                    <access>
+                        <read>true</read>
+                    </access>
+                </limitations>
+            </attribute>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Name</displayName>
+                <limitations>
+                    <access>
+                        <read>true</read>
+                        <add>true</add>
+                        <modify>true</modify>
+                    </access>
+                </limitations>
+                <outbound>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                </outbound>
+            </attribute>
+
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
+            </activation>
+
+
+        </objectType>
+    </schemaHandling>
+    <capabilities
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+        <configured>
+            <cap:activation>
+                <cap:status>
+                    <!-- MID-5400 -->
+                    <cap:attribute>ri:privileges</cap:attribute>
+                    <cap:enableValue>false</cap:enableValue>
+                    <cap:disableValue>true</cap:disableValue>
+                </cap:status>
+            </cap:activation>
+        </configured>
+    </capabilities>
+    <synchronization>
+        <objectSynchronization>
+            <enabled>true</enabled>
+
+            <correlation>
+                <q:equal>
+                    <q:matching>polyStringNorm</q:matching>
+                    <q:path>c:name</q:path>
+                    <expression>
+                        <script>
+                            <code>
+                                tmpName = basic.getAttributeValue(account, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name');
+                                return tmpName
+                            </code>
+                        </script>
+                    </expression>
+                </q:equal>
+            </correlation>
+
+             <reaction>
+                <situation>deleted</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <!-- THIS is a problem !!! -->
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateShadow</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
+</resource>

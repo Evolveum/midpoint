@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<xsd:schema elementFormDefault="qualified"
+            targetNamespace="http://midpoint.evolveum.com/xml/ns/story/photo/ext"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <xsd:complexType name="ServiceTypeExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:ServiceType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="photo" type="xsd:base64Binary" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+</xsd:schema>

@@ -1,0 +1,121 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!-- jack is current assignee -->
+<case xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      oid="88b9b365-be94-4407-8c1a-6522d6beac7d">
+    <name>case3: Assigning delegation of user "lechuck" to user "capsize" (capsize will be a deputy of lechuck)</name>
+    <metadata>
+        <createTimestamp>2019-07-08T14:38:03.685+02:00</createTimestamp>
+    </metadata>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000342" relation="org:default" type="c:ArchetypeType">
+            <!-- Approval Case -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000342" relation="org:default" type="c:ArchetypeType">
+        <!-- Approval Case -->
+    </archetypeRef>
+    <parentRef oid="32b32dad-f563-4edc-8665-2112960eee8f" relation="org:default" type="c:CaseType">
+        <!-- Approving and executing change of user "capsize" (started 08-Jul-2019 14:38:03) -->
+    </parentRef>
+    <objectRef oid="bab2c6a8-5f2a-11e8-97d2-4fc12ba39043" relation="org:default" type="c:UserType">
+        <!-- capsize -->
+    </objectRef>
+    <targetRef oid="c0c010c0-d34d-b33f-f00d-1c1c11cc11c2" relation="org:default" type="c:UserType">
+        <!-- lechuck -->
+    </targetRef>
+    <requestorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+        <!-- administrator -->
+    </requestorRef>
+    <state>open</state>
+    <event xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="3" xsi:type="c:CaseCreationEventType">
+        <timestamp>2019-07-08T14:38:03.686+02:00</timestamp>
+        <initiatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+            <!-- administrator -->
+        </initiatorRef>
+    </event>
+    <event xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="6" xsi:type="c:WorkItemCompletionEventType">
+        <timestamp>2019-07-08T14:38:17.974+02:00</timestamp>
+        <initiatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+            <!-- administrator -->
+        </initiatorRef>
+        <stageNumber>1</stageNumber>
+        <externalWorkItemId>99cf4e9f-fced-4f09-a302-57ad3ad6c0c1:5</externalWorkItemId>
+        <originalAssigneeRef oid="00000000-0000-0000-0000-110000000012" relation="org:default" type="c:UserType">
+            <!-- estevan -->
+        </originalAssigneeRef>
+        <output>
+            <outcome>http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#approve</outcome>
+        </output>
+    </event>
+    <workItem id="4">
+        <name>...</name>
+        <stageNumber>1</stageNumber>
+        <createTimestamp>2019-07-08T14:38:03.699+02:00</createTimestamp>
+        <originalAssigneeRef oid="c0c010c0-d34d-b33f-f00d-111111111111" relation="org:default" type="c:UserType">
+            <!-- jack -->
+        </originalAssigneeRef>
+        <assigneeRef oid="c0c010c0-d34d-b33f-f00d-111111111111" relation="org:default" type="c:UserType">
+            <!-- jack -->
+        </assigneeRef>
+    </workItem>
+    <workItem id="5">
+        <name>...</name>
+        <stageNumber>1</stageNumber>
+        <createTimestamp>2019-07-08T14:38:03.699+02:00</createTimestamp>
+        <originalAssigneeRef oid="00000000-0000-0000-0000-110000000012" relation="org:default" type="c:UserType">
+            <!-- estevan -->
+        </originalAssigneeRef>
+        <assigneeRef oid="00000000-0000-0000-0000-110000000012" relation="org:default" type="c:UserType">
+            <!-- estevan -->
+        </assigneeRef>
+        <performerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+            <!-- administrator -->
+        </performerRef>
+        <output>
+            <outcome>http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#approve</outcome>
+        </output>
+        <closeTimestamp>2019-07-08T14:38:17.974+02:00</closeTimestamp>
+    </workItem>
+    <approvalContext>
+        <changeAspect>com.evolveum.midpoint.wf.impl.processors.primary.policy.PolicyRuleBasedAspect</changeAspect>
+        <deltasToApprove>
+            <focusPrimaryDelta>
+                <t:changeType>modify</t:changeType>
+                <t:objectType>c:UserType</t:objectType>
+                <t:oid>bab2c6a8-5f2a-11e8-97d2-4fc12ba39043</t:oid>
+                <t:itemDelta>
+                    <t:modificationType>add</t:modificationType>
+                    <t:path>c:assignment</t:path>
+                    <t:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:AssignmentType">
+                        <targetRef oid="00000000-0000-0000-0000-000000000008" relation="org:default" type="c:RoleType"/>
+                    </t:value>
+                </t:itemDelta>
+            </focusPrimaryDelta>
+        </deltasToApprove>
+        <immediateExecution>false</immediateExecution>
+        <approvalSchema>
+            <stage id="2">
+                <number>1</number>
+                <approverRef oid="00000000-0000-0000-0000-110000000011" relation="org:default" type="c:UserType">
+                    <!-- mancomb -->
+                </approverRef>
+                <approverRef oid="00000000-0000-0000-0000-110000000012" relation="org:default" type="c:UserType">
+                    <!-- estevan -->
+                </approverRef>
+                <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+                <groupExpansion>byClaimingWorkItem</groupExpansion>
+            </stage>
+        </approvalSchema>
+        <policyRules/>
+    </approvalContext>
+    <stageNumber>1</stageNumber>
+</case>

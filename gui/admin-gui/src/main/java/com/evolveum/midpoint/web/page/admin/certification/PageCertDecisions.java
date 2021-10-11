@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.page.admin.certification;
@@ -32,7 +23,7 @@ import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.*;
-import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.BUTTON_COLOR_CLASS;
+import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.ButtonColorClass;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
@@ -40,6 +31,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.*;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.session.CertDecisionsStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
@@ -75,9 +67,6 @@ import static com.evolveum.midpoint.web.page.admin.certification.CertDecisionHel
 import static com.evolveum.midpoint.web.page.admin.certification.CertDecisionHelper.WhichObject.TARGET;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
 
-/**
- * @author mederly
- */
 @PageDescriptor(url = "/admin/certification/decisions",
         action = {
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
@@ -104,9 +93,16 @@ public class PageCertDecisions extends PageAdminCertification {
 
     private CertDecisionHelper helper = new CertDecisionHelper();
 
-    private IModel<Boolean> showNotDecidedOnlyModel = new Model<>(false);
+    boolean isDisplayingAllItems() {
+        return false;
+    }
 
     public PageCertDecisions() {
+    }
+
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
         initLayout();
     }
 
@@ -116,16 +112,18 @@ public class PageCertDecisions extends PageAdminCertification {
         provider.setQuery(createCaseQuery());
         provider.setCampaignQuery(createCampaignQuery());
         provider.setReviewerOid(getCurrentUserOid());
+        provider.setNotDecidedOnly(getCertDecisionsStorage().getShowNotDecidedOnly());
+        provider.setAllItems(isDisplayingAllItems());
         provider.setSort(SearchingUtils.CURRENT_REVIEW_DEADLINE, SortOrder.ASCENDING);        // default sorting
         return provider;
     }
 
     private ObjectQuery createCaseQuery() {
-		return getPrismContext().queryFactory().createQuery();
+        return getPrismContext().queryFactory().createQuery();
     }
 
     private ObjectQuery createCampaignQuery() {
-		return getPrismContext().queryFactory().createQuery();
+        return getPrismContext().queryFactory().createQuery();
     }
 
     private String getCurrentUserOid() {
@@ -134,8 +132,8 @@ public class PageCertDecisions extends PageAdminCertification {
         } catch (SecurityViolationException e) {
             // TODO handle more cleanly
             throw new SystemException("Couldn't get currently logged user OID", e);
-		}
-	}
+        }
+    }
     //endregion
 
     //region Layout
@@ -150,7 +148,8 @@ public class PageCertDecisions extends PageAdminCertification {
 
             @Override
             protected WebMarkupContainer createHeader(String headerId) {
-                return new SearchFragment(headerId, ID_TABLE_HEADER, PageCertDecisions.this, showNotDecidedOnlyModel);
+                return new SearchFragment(headerId, ID_TABLE_HEADER, PageCertDecisions.this,
+                        Model.of(getCertDecisionsStorage().getShowNotDecidedOnly()));
             }
         };
         table.setShowPaging(true);
@@ -163,14 +162,14 @@ public class PageCertDecisions extends PageAdminCertification {
         //addVisibleOnWarningBehavior(getTempFeedbackPanel());
     }
 
-//	private void addVisibleOnWarningBehavior(Component c) {
-//		c.add(new VisibleEnableBehaviour() {
-//			@Override
-//			public boolean isVisible() {
-//				return PageCertDecisions.this.getFeedbackMessages().hasMessage(FeedbackMessage.WARNING);
-//			}
-//		});
-//	}
+//    private void addVisibleOnWarningBehavior(Component c) {
+//        c.add(new VisibleEnableBehaviour() {
+//            @Override
+//            public boolean isVisible() {
+//                return PageCertDecisions.this.getFeedbackMessages().hasMessage(FeedbackMessage.WARNING);
+//            }
+//        });
+//    }
 
     private List<IColumn<CertWorkItemDto, String>> initColumns() {
         List<IColumn<CertWorkItemDto, String>> columns = new ArrayList<>();
@@ -180,10 +179,10 @@ public class PageCertDecisions extends PageAdminCertification {
         column = new CheckBoxHeaderColumn<>();
         columns.add(column);
 
-		column = helper.createTypeColumn(OBJECT, this);
-		columns.add(column);
+        column = helper.createTypeColumn(OBJECT, this);
+        columns.add(column);
 
-		column = helper.createObjectNameColumn(this, "PageCertDecisions.table.objectName");
+        column = helper.createObjectNameColumn(this, "PageCertDecisions.table.objectName");
         columns.add(column);
 
         column = helper.createTypeColumn(TARGET, this);
@@ -192,6 +191,11 @@ public class PageCertDecisions extends PageAdminCertification {
         column = helper.createTargetNameColumn(this, "PageCertDecisions.table.targetName");
         columns.add(column);
 
+        if (isDisplayingAllItems()) {
+            column = helper.createReviewerNameColumn(this, "PageCertDecisions.table.reviewer");
+            columns.add(column);
+        }
+
         column = helper.createDetailedInfoColumn(this);
         columns.add(column);
 
@@ -199,47 +203,47 @@ public class PageCertDecisions extends PageAdminCertification {
         columns.add(column);
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CERTIFICATION_ALL_URL,
-				AuthorizationConstants.AUTZ_UI_CERTIFICATION_CAMPAIGN_URL)) {
+                AuthorizationConstants.AUTZ_UI_CERTIFICATION_CAMPAIGN_URL)) {
 
-			column = new LinkColumn<CertWorkItemDto>(
-					createStringResource("PageCertDecisions.table.campaignName"),
-					SearchingUtils.CAMPAIGN_NAME, CertWorkItemDto.F_CAMPAIGN_NAME) {
+            column = new LinkColumn<CertWorkItemDto>(
+                    createStringResource("PageCertDecisions.table.campaignName"),
+                    SearchingUtils.CAMPAIGN_NAME, CertWorkItemDto.F_CAMPAIGN_NAME) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
-				public void populateItem(Item<ICellPopulator<CertWorkItemDto>> item, String componentId, IModel<CertWorkItemDto> rowModel) {
-					super.populateItem(item, componentId, rowModel);
-					AccessCertificationCampaignType campaign = rowModel.getObject().getCampaign();
-					if (campaign != null && campaign.getDescription() != null) {
-						item.add(AttributeModifier.replace("title", campaign.getDescription()));
-						item.add(new TooltipBehavior());
-					}
-				}
+                public void populateItem(Item<ICellPopulator<CertWorkItemDto>> item, String componentId, IModel<CertWorkItemDto> rowModel) {
+                    super.populateItem(item, componentId, rowModel);
+                    AccessCertificationCampaignType campaign = rowModel.getObject().getCampaign();
+                    if (campaign != null && campaign.getDescription() != null) {
+                        item.add(AttributeModifier.replace("title", campaign.getDescription()));
+                        item.add(new TooltipBehavior());
+                    }
+                }
 
-				@Override
-				public void onClick(AjaxRequestTarget target, IModel<CertWorkItemDto> rowModel) {
-					CertWorkItemDto dto = rowModel.getObject();
-					PageParameters parameters = new PageParameters();
-					parameters.add(OnePageParameterEncoder.PARAMETER, dto.getCampaignRef().getOid());
-					navigateToNext(PageCertCampaign.class, parameters);
-				}
-			};
-		} else {
-			column = new AbstractColumn<CertWorkItemDto, String>(createStringResource("PageCertDecisions.table.campaignName"), SearchingUtils.CAMPAIGN_NAME) {
+                @Override
+                public void onClick(AjaxRequestTarget target, IModel<CertWorkItemDto> rowModel) {
+                    CertWorkItemDto dto = rowModel.getObject();
+                    PageParameters parameters = new PageParameters();
+                    parameters.add(OnePageParameterEncoder.PARAMETER, dto.getCampaignRef().getOid());
+                    navigateToNext(PageCertCampaign.class, parameters);
+                }
+            };
+        } else {
+            column = new AbstractColumn<CertWorkItemDto, String>(createStringResource("PageCertDecisions.table.campaignName"), SearchingUtils.CAMPAIGN_NAME) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
-				public void populateItem(Item<ICellPopulator<CertWorkItemDto>> item, String componentId,
-						final IModel<CertWorkItemDto> rowModel) {
-					item.add(new Label(componentId, new IModel<Object>() {
-						@Override
-						public Object getObject() {
-							return rowModel.getObject().getCampaignName();
-						}
-					}));
-				}
-			};
-		}
+                public void populateItem(Item<ICellPopulator<CertWorkItemDto>> item, String componentId,
+                        final IModel<CertWorkItemDto> rowModel) {
+                    item.add(new Label(componentId, new IModel<Object>() {
+                        @Override
+                        public Object getObject() {
+                            return rowModel.getObject().getCampaignName();
+                        }
+                    }));
+                }
+            };
+        }
         columns.add(column);
 
         column = new PropertyColumn<CertWorkItemDto, String>(createStringResource("PageCertDecisions.table.iteration"),
@@ -369,7 +373,7 @@ public class PageCertDecisions extends PageAdminCertification {
                             btn.add(new EnableBehaviour(() -> !decisionEquals(model, availableResponses.getResponseValues().get(index))));
                         } else {
                             btn = buildDefaultButton(componentId, null, new Model(availableResponses.getTitle(index)),
-                                    new Model<>("btn btn-sm " + BUTTON_COLOR_CLASS.DANGER), null);
+                                    new Model<>("btn btn-sm " + ButtonColorClass.DANGER), null);
                             btn.setEnabled(false);
                             btn.add(new VisibleBehaviour(() -> !availableResponses.isAvailable(model.getObject().getResponse())));
                         }
@@ -439,9 +443,9 @@ public class PageCertDecisions extends PageAdminCertification {
 
     private String getDecisionButtonColor(IModel<CertWorkItemDto> model, AccessCertificationResponseType response) {
         if (decisionEquals(model, response)) {
-            return BUTTON_COLOR_CLASS.PRIMARY.toString();
+            return ButtonColorClass.PRIMARY.toString();
         } else {
-            return BUTTON_COLOR_CLASS.DEFAULT.toString();
+            return ButtonColorClass.DEFAULT.toString();
         }
     }
 
@@ -472,7 +476,7 @@ public class PageCertDecisions extends PageAdminCertification {
                 getCertificationService().recordDecision(
                         workItemDto.getCampaignRef().getOid(),
                         workItemDto.getCaseId(), workItemDto.getWorkItemId(),
-						response, workItemDto.getComment(), task, resultOne);
+                        response, workItemDto.getComment(), task, resultOne);
             } catch (Exception ex) {
                 resultOne.recordFatalError(ex);
             } finally {
@@ -521,7 +525,8 @@ public class PageCertDecisions extends PageAdminCertification {
         DataTable table = panel.getDataTable();
         CertWorkItemDtoProvider provider = (CertWorkItemDtoProvider) table.getDataProvider();
         provider.setQuery(query);
-        provider.setNotDecidedOnly(Boolean.TRUE.equals(showNotDecidedOnlyModel.getObject()));
+        provider.setNotDecidedOnly(getCertDecisionsStorage().getShowNotDecidedOnly());
+        provider.setAllItems(isDisplayingAllItems());
         table.setCurrentPage(0);
 
         target.add(getFeedbackPanel());
@@ -531,25 +536,29 @@ public class PageCertDecisions extends PageAdminCertification {
 
     //endregion
 
-//	protected void dispatchToObjectDetailsPage(ObjectReferenceType objectRef) {
-//		if (objectRef == null) {
-//			return;		// should not occur
-//		}
-//		QName type = objectRef.getType();
-//		PageParameters parameters = new PageParameters();
-//		parameters.add(OnePageParameterEncoder.PARAMETER, objectRef.getOid());
-//		if (RoleType.COMPLEX_TYPE.equals(type)) {
+//    protected void dispatchToObjectDetailsPage(ObjectReferenceType objectRef) {
+//        if (objectRef == null) {
+//            return;        // should not occur
+//        }
+//        QName type = objectRef.getType();
+//        PageParameters parameters = new PageParameters();
+//        parameters.add(OnePageParameterEncoder.PARAMETER, objectRef.getOid());
+//        if (RoleType.COMPLEX_TYPE.equals(type)) {
 //            setResponsePage(new PageRole(parameters, this));
 //        } else if (OrgType.COMPLEX_TYPE.equals(type)) {
 //            setResponsePage(new PageOrgUnit(parameters, this));
 //        } else if (UserType.COMPLEX_TYPE.equals(type)) {
 //            setResponsePage(new PageUser(parameters, this));
 //        } else if (ResourceType.COMPLEX_TYPE.equals(type)) {
-//			setResponsePage(new PageResource(parameters, this));
-//		} else {
+//            setResponsePage(new PageResource(parameters, this));
+//        } else {
 //            // nothing to do
 //        }
-//	}
+//    }
+
+    private CertDecisionsStorage getCertDecisionsStorage(){
+        return getSessionStorage().getCertDecisions();
+    }
 
     private static class SearchFragment extends Fragment {
 
@@ -579,7 +588,9 @@ public class PageCertDecisions extends PageAdminCertification {
                 @Override
                 protected void onUpdate(AjaxRequestTarget target) {
                     PageCertDecisions page = (PageCertDecisions) getPage();
+                    page.getCertDecisionsStorage().setShowNotDecidedOnly((Boolean) getDefaultModelObject());
                     page.searchFilterPerformed(target);
+
                 }
             };
         }

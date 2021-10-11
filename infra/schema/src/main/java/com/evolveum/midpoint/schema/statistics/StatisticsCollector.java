@@ -1,23 +1,15 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
@@ -43,12 +35,6 @@ import java.util.List;
 public interface StatisticsCollector {
 
     /**
-     * Gets information from the current task and its transient subtasks (aka worker threads).
-     */
-
-    OperationStatsType getAggregatedLiveOperationStats();
-
-    /**
      * Records various kinds of operational information.
      */
 
@@ -72,14 +58,11 @@ public interface StatisticsCollector {
 
     void recordIterativeOperationEnd(ShadowType shadow, long started, Throwable exception);
 
-    /**
-     * Records information about synchronization events.
-     */
-
-    void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid);
+    void recordSynchronizationOperationEnd(ShadowType shadow, long started,
+            Throwable exception, SynchronizationInformation.Record originalStateIncrement, SynchronizationInformation.Record newStateIncrement);
 
     void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started,
-			Throwable exception, SynchronizationInformation.Record originalStateIncrement, SynchronizationInformation.Record newStateIncrement);
+            Throwable exception, SynchronizationInformation.Record originalStateIncrement, SynchronizationInformation.Record newStateIncrement);
 
     /**
      * Records information about repository (focal) events.
@@ -107,5 +90,6 @@ public interface StatisticsCollector {
 
     // EXPERIMENTAL - TODO: replace by something more serious
     @NotNull
+    @Experimental
     List<String> getLastFailures();
 }

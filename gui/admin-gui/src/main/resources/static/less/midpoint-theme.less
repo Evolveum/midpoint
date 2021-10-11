@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 @import "midpoint-theme-variables.less";
@@ -93,6 +84,8 @@ div.form-inline > div.form-group {
 li.dropdown.user.user-menu {
   & > ul.dropdown-menu {
     border-color: #367fa9;
+    right: 0;
+    left: auto;
 
     & > li.user-footer {
       border-color: #367fa9;
@@ -190,7 +183,7 @@ body .treeview-menu > li > span:hover {
 // Classes that can be used to change icon styles (enabled, disabled, privileged, etc.)
 
 .icon-style-normal {
-	
+
 }
 
 .icon-style-disabled {
@@ -305,21 +298,39 @@ body .treeview-menu > li > span:hover {
 	color: #fff !important;
 }
 
+.object-access-bg {
+	background-color: @object-access-color !important;
+	color: #fff !important;
+}
+
+.object-failed-bg {
+	background-color: @object-failed-color !important;
+	color: #fff !important;
+}
+
+.object-access-only-bg {
+	background-color: @object-access-color !important;
+}
+
+.object-failed-only-bg {
+	background-color: @object-failed-color !important;
+}
+
 // Colored boxes for each object type
 
 #box-object(@color) {
 	border-top-color: @color;
-	
+
 	&.box-solid {
 		border: 1px solid @color;
 	}
-	
+
 	&.box-solid > .box-header {
 		color: #fff;
 		background: @color;
 		background-color: @color;
 	}
-	
+
 }
 
 .object-user-box {
@@ -352,7 +363,7 @@ body .treeview-menu > li > span:hover {
 
 #box-thin-object(@color) {
 	border: 1px solid @color;
-	
+
 	.box-header {
 		border-bottom: 1px solid @color;
 	}
@@ -380,6 +391,10 @@ body .treeview-menu > li > span:hover {
 
 .object-shadow-box-thin {
 	#box-thin-object(@object-shadow-color);
+}
+
+.object-task-box-thin {
+  #box-thin-object(@object-task-color);
 }
 
 // Summary panel (panel above the edit user/role/org forms)
@@ -411,6 +426,10 @@ body .treeview-menu > li > span:hover {
 
 .info-box.summary-panel-shadow {
 	#info-box-summary-panel(@object-shadow-color);
+}
+
+.info-box.summary-panel-task {
+  #info-box-summary-panel(@object-task-color);
 }
 
 #info-box-icon-summary-panel(@color){
@@ -447,6 +466,10 @@ body .treeview-menu > li > span:hover {
 	#info-box-icon-summary-panel(@object-shadow-color);
 }
 
+.info-box-icon.summary-panel-task {
+  #info-box-icon-summary-panel(@object-task-color);
+}
+
 // other info box enhancements (e.g. role assignment)
 
 .info-box-ethereal {
@@ -470,7 +493,7 @@ body .treeview-menu > li > span:hover {
 }
 
 .relation-label {
-	
+
 }
 
 // End-user home (PageSelfDashboard)
@@ -512,7 +535,7 @@ body .treeview-menu > li > span:hover {
 	&.without-box-header-top-border {
 		border-top: 0px;
 	}
-	
+
 	table {
 		// prohibit overflow of the table beyond the bounding box
 		table-layout: fixed;
@@ -527,16 +550,16 @@ body .treeview-menu > li > span:hover {
 .boxed-table-footer-paging {
 	display: block;
 	float: right;
-	
+
 	.btn-group {
 		margin-left: 10px;
 		vertical-align: top;
 	}
-	
+
 	.paging_bootstrap {
 		display: inline-block;
 	}
-	
+
 	.dataTables_info {
 		margin-right: 10px;
 		display: inline-block;
@@ -575,7 +598,7 @@ body .treeview-menu > li > span:hover {
 // resource content pages (ResourceContentPanel)
 
 .resource-content-selection {
-	
+
 	.form-group {
 		margin-bottom: 5px;
 	}
@@ -630,7 +653,7 @@ body .treeview-menu > li > span:hover {
 }
 
 .feedback-message.dl-horizontal {
-	
+
 	& dt {
 		width: 100px;
 	}
@@ -638,7 +661,7 @@ body .treeview-menu > li > span:hover {
 
 
 .feedback-message.dl-horizontal {
-	
+
 	& dd {
 		margin-left: 130px;
 		word-break: break-word;
@@ -713,7 +736,7 @@ body .treeview-menu > li > span:hover {
 }
 
 .summary-tag {
-	display: block;	
+	display: block;
 	padding-left: 10px;
 	padding-right: 10px;
 	margin: 3px;
@@ -821,21 +844,45 @@ body .treeview-menu > li > span:hover {
     margin-left: 15px; // aligning multivalue container with superior container
 }
 
-.top-level-prism-container{							// class for first showed container
-	border-top: 1px solid @table-divider-color;		// line over area of container
-	padding-top:10px;								
+.top-level-prism-container {
+	border-top: 1px solid #ddd;
+	padding-top: 5px;
 }
 
-.top-level-prism-container > .prism-property > .container-fluid > .prism-properties > .container-wrapper { 
-	border-top: 1px solid @table-divider-color;		// line over area of container
-	margin-left: -30px;								// aligning container on first level with superior container (singlevalue container)
-	padding-left: 15px;
+.multivalue-container > .container-wrapper > div {
+	padding-left: 40px;
 }
 
-.top-level-prism-container > .prism-properties > .container-wrapper {
-	border-top: 1px solid @table-divider-color;		// line over area of container
-	margin-left: -15px;								// aligning container on first level with superior container (multivalue container)
-	padding-left: 15px;
+//top-level-prism-container is class for first showed container
+.top-level-prism-container > .container-wrapper > div > div >
+.prism-properties > .prism-containers {
+  	padding-left: 0px; //align one-level containers
+}
+
+//top-level-prism-container is class for first showed container
+.top-level-prism-container > .container-wrapper > div > div >
+.prism-properties > .prism-containers > .prism-property {
+  	border-top: 1px solid #ddd;	// line over area of container
+}
+
+.prism-containers > .top-level-prism-container > .container-wrapper > div > div > .prism-properties > .prism-containers {
+  padding-left: 40px;
+}
+.prism-containers > .top-level-prism-container > .container-wrapper > div > div > .prism-properties > .prism-containers > .prism-property {
+  border-top: 0px solid #ddd;
+}
+
+
+
+.top-level-prism-container .row {
+	margin-right: 0px;
+    margin-left: 0px;
+}
+
+.top-level-prism-container .prism-header {
+  margin-bottom: 0px;
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 
 .prism-container {
@@ -844,19 +891,31 @@ body .treeview-menu > li > span:hover {
 	padding-bottom: 15px;
 }
 
-.prism-multivalue-container > .prism-properties > div > .prism-property > .success {
-	background-color: #dff0d8; // green background for new value of multivalue container
+.multivalue-container > .container-wrapper > div > .added-value-background {
+  background-color: #dff0d8; // green background for new value of multivalue container
+}
+
+.multivalue-container > .container-wrapper > div > .removed-value-background {
+  background-color: #f2dede; // green background for new value of multivalue container
+}
+
+.top-level-prism-container > .prism-properties > div {
+  padding-left: 0px;
 }
 
 .prism-properties {
-	
-	& > div {
-		padding-left: 30px;
-	}
-	
-	.stripe {
-		background-color: @table-stripe-bg-color;
-	}
+
+  & > div {
+    padding-left: 40px;
+  }
+
+  .stripe {
+    background-color: @table-stripe-bg-color;
+  }
+}
+
+.property-stripe:nth-of-type(odd) {
+	background-color: @table-stripe-bg-color;
 }
 
 .prism-header {
@@ -879,7 +938,9 @@ body .treeview-menu > li > span:hover {
 }
 
 .prism-property-label { //padding because expand collapse button, which have 37px
-	padding-left: 37px;
+	padding-left: 20px;
+	word-wrap:break-word;
+	padding-top: 5px;
 }
 
 .prism-value { // DEPRECATED: rework the prism-value vs prism-property-value later
@@ -916,41 +977,41 @@ body .treeview-menu > li > span:hover {
 
 .check-table-header {
 	padding-left: 20px;
-	
+
 	& > input[type="checkbox"] {
 		position: absolute;
 		margin-left: -20px;
 		margin-top: 6px;
     }
-    
+
     .check-table-label {
-    
+
 	    .check-table-header-icon {
 		    margin-left: 4px;
 		    position: relative;
 		    bottom: 1px;
 	    }
-	    
+
 	    .check-table-header-name {
 	    	margin-left: 5px;
 	    	font-size: 18px;
 	    	color: @text-label-color !important;
 	    }
-	    
+
 	    .check-table-header-description {
 	    	margin-left: 10px;
 	    }
-	    
+
 	    .check-table-header-status {
 	    	margin-left: 10px;
 	    	position: relative;
 			bottom: 2px;
 	    }
-    
+
     	.check-table-header-show-more {
 	    	color: @text-dimmed-color !important;
 	    }
-	    
+
 	    .delegation-arrow-icon {
 	    	font-size: 24px;
 	    	margin-left: 5px;
@@ -984,7 +1045,7 @@ body .treeview-menu > li > span:hover {
 }
 
 .options-container {
-	
+
 }
 
 .option-checkbox {
@@ -1014,19 +1075,19 @@ body .treeview-menu > li > span:hover {
 // Projections tab (focus pages)
 
 .projections {
-	
+
 }
 
 .projections-header {
-	
+
 }
 
 .projection {
 	margin-bottom: 10px;
-	#box-thin-object(@object-shadow-color); 
-	
+	#box-thin-object(@object-shadow-color);
+
 	.box-header {
-		
+
 		.box-tools {
 			margin-top: 5px;
 		}
@@ -1040,14 +1101,14 @@ body .treeview-menu > li > span:hover {
 // Assignments tab (focus pages)
 
 .assignments {
-	
+
 }
 
 .assignment {
 	margin-bottom: 10px;
-	
+
 	.box-header {
-		
+
 		.box-tools {
 			margin-top: 5px;
 		}
@@ -1056,9 +1117,35 @@ body .treeview-menu > li > span:hover {
 
 // Orgtree (OrgMemberPanel)
 
+span.tree-content > table {
+  width: 100%;
+  max-width: 100%;
+}
+
+span.tree-content > table tr td:last-child {
+  width: 1%;
+  vertical-align: top;
+}
+
+span.tree-content > table tr td:first-child {
+  width: 1%;
+  vertical-align: top;
+}
+
+.tree-theme-windows > div > .tree-branch > .tree-node.success, .tree-subtree > .tree-branch > .tree-node.success{
+  background-color: #dff0d8;
+}
+
+.tree-subtree > .tree-branch:nth-of-type(odd) {
+  background-color: #f9f9f9;
+}
+
+.tree-subtree > .tree-branch > .tree-node:hover, .tree-theme-windows > div > .tree-branch > .tree-node:hover {
+  background-color: #eee;
+}
+
 .org-tree-container {
   overflow-y: auto;
-  margin-bottom: 20px;
 }
 
 .org-members-additional-search {
@@ -1067,7 +1154,7 @@ body .treeview-menu > li > span:hover {
 }
 
 .org-managers-box {
-	
+
 	.box-body {
 		padding-top: 13px;
 		padding-bottom: 0px;
@@ -1075,7 +1162,7 @@ body .treeview-menu > li > span:hover {
 }
 
 .org-members-box {
-	
+
 	.box-body {
 		padding-top: 13px;
 	}
@@ -1111,7 +1198,7 @@ body .treeview-menu > li > span:hover {
 }
 
 .request-role-col-control {
-	
+
 }
 
 .request-role-col-current {
@@ -1125,13 +1212,13 @@ body .treeview-menu > li > span:hover {
 }
 
 .multiple-assignment-selector {
-	
+
 	.multiple-assignment-selector-section:first-child {
 		border-top-width: 0px;
 		padding-top: 0px;
 		min-height: 36px;
 	}
-	
+
 	.multiple-assignment-selector-section:last-child {
 		padding-bottom: 0px;
 	}
@@ -1189,17 +1276,17 @@ body .treeview-menu > li > span:hover {
 
 .paramtable {
 	border: 0px;
-	
+
 	.paramtable-row {
-		
+
 		.paramtable-name {
 			vertical-align: top;
 		}
-		
+
 		.paramtable-name::after {
 			content: ':';
 		}
-		
+
 		.paramtable-value {
 			padding-left: 5px;
 			padding-right: 20px;
@@ -1235,7 +1322,7 @@ dd.stacktrace::before {
 }
 
 .shopping-cart-item-box {
-	
+
 	.inner {
 		height: 120px;
 		cursor: pointer;
@@ -1271,7 +1358,7 @@ dd.stacktrace::before {
 	z-index: 10;
 	overflow-y: auto;
 	background: rgba(0, 0, 0, 0.1);
-	
+
 	.shopping-cart-item-button-details {
 		cursor: pointer;
 	}
@@ -1321,7 +1408,7 @@ dd.stacktrace::before {
 
 .consent-buttons { // maybe figure out something better, something really reusable
 	float: right;
-	width: 80px;
+	width: 200px;
 	padding-left: 10px;
 	padding-top: 7px;
 }
@@ -1329,27 +1416,27 @@ dd.stacktrace::before {
 // Process (workflow) diagrams
 
 .process-box {
-	border: 1px solid; 
+	border: 1px solid;
 	border-radius: 5px;
 	padding: 0px;
 	margin: 10px;
-	
+
 	.box-label {
 		border-bottom: 1px solid;
 		padding-top: 3px;
     	padding-bottom: 3px;
     	font-weight: bold;
-    	
+
     	.process-label {
-    		
+
     	}
-    	
+
     	.process-outcome {
     		float: right;
     	}
 
 	}
-	
+
 	.box-content {
 		padding: 15px;
 	}
@@ -1369,7 +1456,7 @@ th.icon {
 	// WARNING: this means both the header and the table data
 	//          have just a single icon. No text.
 	// See com.evolveum.midpoint.web.component.data.column.IconColumn
-	width: 25px;
+	width: 30px;
 }
 
 th.check, td.check {
@@ -1423,10 +1510,8 @@ th.countLabel{
 	table-layout: fixed; // fix for text in cells
 }
 
-@-moz-document url-prefix() {
-.shopping-cart-icon > .badge { //fix for bug in firefox
+.shopping-cart-icon > .badge {
     margin-left: -10px !important;
-}
 }
 
 @media (max-width: 767px) {
@@ -1460,4 +1545,79 @@ th.countLabel{
 
 .buttons-panel-marging{
 	margin: 10px;
+}
+
+.position-relative{
+	position: relative;
+}
+
+.small-box h3{
+	white-space: normal;
+	font-size: 28px;
+}
+
+.tbody-nth-of-type-even>tr:nth-of-type(even) {
+  background-color: #f9f9f9 !important;
+}
+.tbody-nth-of-type-even>tr:nth-of-type(odd) {
+  background-color: inherit !important;
+}
+
+@media (min-width: 1550px){
+	.small-box h3 {
+		font-size: 35px;
+	}
+}
+
+.dashboard-widgets{
+	display: flex;
+	flex-flow: row wrap;
+	display: -webkit-flex;
+    -webkit-flex-flow: row wrap;
+}
+
+.dashboard-info-box > .small-box {
+	height:100%;
+}
+
+.dashboard-info-box > .small-box > .small-box-footer {
+	position: absolute;
+    bottom: 0px;
+    width: 100%;
+}
+
+.dashboard-info-box{
+	height: 100%;
+}
+
+.padding-bottom-20 {
+	padding-bottom: 20px;
+}
+.checkbox-without-margin-bottom .checkbox{
+	margin-bottom: 0px !important;
+	margin-top: 5px !important;
+}
+
+th > div > .sortableLabel .row {
+	margin: 0px;
+}
+
+td .prism-property-value {
+	width: 100% !important;
+}
+
+th.composited-icon {
+  width: 30px;
+}
+
+.small-box > .small-box-footer {
+	color: inherit !important;
+}
+
+.pagination-xs>li>a {
+    padding: 0px 5px !important;
+}
+
+.cog-xs {
+	width: 38px;
 }

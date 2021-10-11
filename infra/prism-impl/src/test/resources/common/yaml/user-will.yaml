@@ -44,3 +44,5 @@ user:
   fullName: "Will Turner"
   givenName: "William"
   familyName: "Turner"
+  password:
+    - '@incomplete': true

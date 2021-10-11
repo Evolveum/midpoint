@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism.schema;
@@ -36,144 +27,192 @@ import java.util.function.Function;
 /**
  * @author mederly
  */
-public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
+public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, GlobalDefinitionsStore {
 
-	DynamicNamespacePrefixMapper getNamespacePrefixMapper();
+    DynamicNamespacePrefixMapper getNamespacePrefixMapper();
 
-	PrismContext getPrismContext();
+    void registerInvalidationListener(InvalidationListener listener);
 
-	String getDefaultNamespace();
+    String getDefaultNamespace();
 
-	void initialize() throws SAXException, IOException, SchemaException;
+    void initialize() throws SAXException, IOException, SchemaException;
 
-	javax.xml.validation.Schema getJavaxSchema();
+    javax.xml.validation.Schema getJavaxSchema();
 
-	PrismSchema getPrismSchema(String namespace);
+    javax.xml.validation.Validator getJavaxSchemaValidator();
 
-	Collection<PrismSchema> getSchemas();
+    PrismSchema getPrismSchema(String namespace);
 
-	Collection<SchemaDescription> getSchemaDescriptions();
+    Collection<PrismSchema> getSchemas();
 
-	Collection<Package> getCompileTimePackages();
+    Collection<SchemaDescription> getSchemaDescriptions();
 
-	ItemDefinition locateItemDefinition(@NotNull QName itemName,
-			@Nullable ComplexTypeDefinition complexTypeDefinition,
-			@Nullable Function<QName, ItemDefinition> dynamicDefinitionResolver) throws SchemaException;
+    Collection<Package> getCompileTimePackages();
 
-	// TODO fix this temporary and inefficient implementation
-	QName resolveUnqualifiedTypeName(QName type) throws SchemaException;
+    ItemDefinition locateItemDefinition(@NotNull QName itemName,
+            @Nullable ComplexTypeDefinition complexTypeDefinition,
+            @Nullable Function<QName, ItemDefinition> dynamicDefinitionResolver);
 
-	QName qualifyTypeName(QName typeName) throws SchemaException;
+    // TODO fix this temporary and inefficient implementation
+    QName resolveUnqualifiedTypeName(QName type) throws SchemaException;
 
-	// current implementation tries to find all references to the child CTD and select those that are able to resolve path of 'rest'
-	// fails on ambiguity
-	// it's a bit fragile, as adding new references to child CTD in future may break existing code
-	ComplexTypeDefinition determineParentDefinition(@NotNull ComplexTypeDefinition child, @NotNull ItemPath rest);
+    QName qualifyTypeName(QName typeName) throws SchemaException;
 
-	PrismObjectDefinition determineReferencedObjectDefinition(@NotNull QName targetTypeName, ItemPath rest);
+    // current implementation tries to find all references to the child CTD and select those that are able to resolve path of 'rest'
+    // fails on ambiguity
+    // it's a bit fragile, as adding new references to child CTD in future may break existing code
+    ComplexTypeDefinition determineParentDefinition(@NotNull ComplexTypeDefinition child, @NotNull ItemPath rest);
 
-	Class<? extends ObjectType> getCompileTimeClassForObjectType(QName objectType);
+    PrismObjectDefinition determineReferencedObjectDefinition(@NotNull QName targetTypeName, ItemPath rest);
 
-	ItemDefinition findItemDefinitionByElementName(QName elementName, @Nullable List<String> ignoredNamespaces);
+    Class<? extends ObjectType> getCompileTimeClassForObjectType(QName objectType);
 
-	<T> Class<T> determineCompileTimeClass(QName typeName);
+    ItemDefinition findItemDefinitionByElementName(QName elementName, @Nullable List<String> ignoredNamespaces);
 
-	<T> Class<T> getCompileTimeClass(QName xsdType);
+    <T> Class<T> determineCompileTimeClass(QName typeName);
 
-	PrismSchema findSchemaByCompileTimeClass(@NotNull Class<?> compileTimeClass);
+    <T> Class<T> getCompileTimeClass(QName xsdType);
 
-	/**
-	 * Tries to determine type name for any class (primitive, complex one).
-	 * Does not use schemas (TODO explanation)
-	 * @param clazz
-	 * @return
-	 */
-	QName determineTypeForClass(Class<?> clazz);
+    PrismSchema findSchemaByCompileTimeClass(@NotNull Class<?> compileTimeClass);
 
-	/**
-	 * This method will try to locate the appropriate object definition and apply it.
-	 * @param container
-	 * @param type
-	 */
-	<C extends Containerable> void applyDefinition(PrismContainer<C> container, Class<C> type) throws SchemaException;
+    /**
+     * Tries to determine type name for any class (primitive, complex one).
+     * Does not use schemas (TODO explanation)
+     * @param clazz
+     * @return
+     */
+    QName determineTypeForClass(Class<?> clazz);
 
-	<C extends Containerable> void applyDefinition(PrismContainer<C> prismObject, Class<C> type, boolean force) throws SchemaException;
+    @NotNull
+    default QName determineTypeForClassRequired(Class<?> clazz) {
+        QName typeName = determineTypeForClass(clazz);
+        if (typeName != null) {
+            return typeName;
+        } else {
+            throw new IllegalStateException("No type for " + clazz);
+        }
+    }
 
-	<T extends Objectable> void applyDefinition(ObjectDelta<T> objectDelta, Class<T> type, boolean force) throws SchemaException;
+    /**
+     * This method will try to locate the appropriate object definition and apply it.
+     * @param container
+     * @param type
+     */
+    <C extends Containerable> void applyDefinition(PrismContainer<C> container, Class<C> type) throws SchemaException;
 
-	<C extends Containerable, O extends Objectable> void applyDefinition(PrismContainerValue<C> prismContainerValue,
-			Class<O> type,
-			ItemPath path, boolean force) throws SchemaException;
+    <C extends Containerable> void applyDefinition(PrismContainer<C> prismObject, Class<C> type, boolean force) throws SchemaException;
 
-	<C extends Containerable> void applyDefinition(PrismContainerValue<C> prismContainerValue, QName typeName,
-			ItemPath path, boolean force) throws SchemaException;
+    <T extends Objectable> void applyDefinition(ObjectDelta<T> objectDelta, Class<T> type, boolean force) throws SchemaException;
 
-	<T extends ItemDefinition> T findItemDefinitionByFullPath(Class<? extends Objectable> objectClass, Class<T> defClass,
-			QName... itemNames)
-							throws SchemaException;
+    <C extends Containerable, O extends Objectable> void applyDefinition(PrismContainerValue<C> prismContainerValue,
+            Class<O> type,
+            ItemPath path, boolean force) throws SchemaException;
 
-	PrismSchema findSchemaByNamespace(String namespaceURI);
+    <C extends Containerable> void applyDefinition(PrismContainerValue<C> prismContainerValue, QName typeName,
+            ItemPath path, boolean force) throws SchemaException;
 
-	SchemaDescription findSchemaDescriptionByNamespace(String namespaceURI);
+    <T extends ItemDefinition> T findItemDefinitionByFullPath(Class<? extends Objectable> objectClass, Class<T> defClass,
+            QName... itemNames)
+                            throws SchemaException;
 
-	PrismSchema findSchemaByPrefix(String prefix);
+    PrismSchema findSchemaByNamespace(String namespaceURI);
 
-	SchemaDescription findSchemaDescriptionByPrefix(String prefix);
+    SchemaDescription findSchemaDescriptionByNamespace(String namespaceURI);
 
-	PrismObjectDefinition determineDefinitionFromClass(Class type);
+    PrismSchema findSchemaByPrefix(String prefix);
 
-//	boolean hasImplicitTypeDefinitionOld(QName elementName, QName typeName);
+    SchemaDescription findSchemaDescriptionByPrefix(String prefix);
 
-	boolean hasImplicitTypeDefinition(@NotNull QName itemName, @NotNull QName typeName);
+    PrismObjectDefinition determineDefinitionFromClass(Class type);
 
-	@Deprecated
-	ItemDefinition resolveGlobalItemDefinition(QName elementQName, PrismContainerDefinition<?> containerDefinition) throws SchemaException;
+//    boolean hasImplicitTypeDefinitionOld(QName elementName, QName typeName);
 
-	ItemDefinition resolveGlobalItemDefinition(QName itemName, @Nullable ComplexTypeDefinition complexTypeDefinition) throws SchemaException;
+    boolean hasImplicitTypeDefinition(@NotNull QName itemName, @NotNull QName typeName);
 
-	@Deprecated // use methods from PrismContext
-	<T extends Objectable> PrismObject<T> instantiate(Class<T> compileTimeClass) throws SchemaException;
+    ItemDefinition resolveGlobalItemDefinition(QName itemName, @Nullable ComplexTypeDefinition complexTypeDefinition);
 
-	// Takes XSD types into account as well
-	<T> Class<T> determineClassForType(QName type);
+    // Takes XSD types into account as well
+    <T> Class<T> determineClassForType(QName type);
 
-	// Takes XSD types into account as well
-	Class<?> determineClassForItemDefinition(ItemDefinition<?> itemDefinition);
+    default <T> Class<T> determineClassForTypeRequired(QName type, Class<T> expected) {
+        Class<?> clazz = determineClassForTypeRequired(type);
+        if (!expected.isAssignableFrom(clazz)) {
+            throw new IllegalArgumentException("Expected to get " + expected + " but got " + clazz + " instead, for " + type);
+        } else {
+            //noinspection unchecked
+            return (Class<T>) clazz;
+        }
+    }
 
-	<ID extends ItemDefinition> ID selectMoreSpecific(ID def1, ID def2)
-			throws SchemaException;
+    default <T> Class<T> determineClassForTypeRequired(QName type) {
+        Class<T> clazz = determineClassForType(type);
+        if (clazz != null) {
+            return clazz;
+        } else {
+            throw new IllegalArgumentException("No class for " + type);
+        }
+    }
 
-	// throws SchemaException if not comparable
-	QName selectMoreSpecific(QName type1, QName type2) throws SchemaException;
+    // Takes XSD types into account as well
+    Class<?> determineClassForItemDefinition(ItemDefinition<?> itemDefinition);
 
-	boolean areComparable(QName type1, QName type2) throws SchemaException;
+    <ID extends ItemDefinition> ID selectMoreSpecific(ID def1, ID def2)
+            throws SchemaException;
 
-	boolean isContainer(QName typeName);
+    QName selectMoreSpecific(QName type1, QName type2) throws SchemaException;
 
-	// TODO move to GlobalSchemaRegistry
-	@NotNull
-	<TD extends TypeDefinition> Collection<TD> findTypeDefinitionsByElementName(@NotNull QName name, @NotNull Class<TD> clazz);
+    boolean isContainer(QName typeName);
 
-	enum ComparisonResult {
-		EQUAL,					// types are equal
-		NO_STATIC_CLASS,		// static class cannot be determined
-		FIRST_IS_CHILD,			// first definition is a child (strict subtype) of the second
-		SECOND_IS_CHILD,		// second definition is a child (strict subtype) of the first
-		INCOMPATIBLE			// first and second are incompatible
-	}
-	/**
-	 * @return null means we cannot decide (types are different, and no compile time class for def1 and/or def2)
-	 */
-	<ID extends ItemDefinition> ComparisonResult compareDefinitions(@NotNull ID def1, @NotNull ID def2)
-			throws SchemaException;
+    // TODO move to GlobalSchemaRegistry
+    @NotNull
+    <TD extends TypeDefinition> Collection<TD> findTypeDefinitionsByElementName(@NotNull QName name, @NotNull Class<TD> clazz);
 
-	boolean isAssignableFrom(@NotNull QName superType, @NotNull QName subType);
+    enum IsList {
+        YES, NO, MAYBE
+    }
 
-	/**
-	 * Returns most specific common supertype for these two. If any of input params is null, it means it is ignored
-	 * @return null if unification cannot be done (or if both input types are null)
-	 */
-	QName unifyTypes(QName type1, QName type2);
+    /**
+     * Checks whether element with given (declared) xsi:type and name can be a heterogeneous list.
+     *
+     * @return YES if it is a list,
+     *         NO if it's not,
+     *         MAYBE if it probably is a list but some further content-based checks are needed
+     */
+    @NotNull
+    IsList isList(@Nullable QName xsiType, @NotNull QName elementName);
 
-	ItemDefinition<?> createAdHocDefinition(QName elementName, QName typeName, int minOccurs, int maxOccurs);
+    enum ComparisonResult {
+        EQUAL,                    // types are equal
+        NO_STATIC_CLASS,        // static class cannot be determined
+        FIRST_IS_CHILD,            // first definition is a child (strict subtype) of the second
+        SECOND_IS_CHILD,        // second definition is a child (strict subtype) of the first
+        INCOMPATIBLE            // first and second are incompatible
+    }
+    /**
+     * @return null means we cannot decide (types are different, and no compile time class for def1 and/or def2)
+     */
+    <ID extends ItemDefinition> ComparisonResult compareDefinitions(@NotNull ID def1, @NotNull ID def2)
+            throws SchemaException;
+
+    /**
+     * BEWARE: works only with statically-defined types!
+     */
+    boolean isAssignableFrom(@NotNull Class<?> superType, @NotNull QName subType);
+
+    /**
+     * BEWARE: works only with statically-defined types!
+     */
+    boolean isAssignableFrom(@NotNull QName superType, @NotNull QName subType);
+
+    /**
+     * Returns most specific common supertype for these two. If any of input params is null, it means it is ignored
+     * @return null if unification cannot be done (or if both input types are null)
+     */
+    QName unifyTypes(QName type1, QName type2);
+
+    ItemDefinition<?> createAdHocDefinition(QName elementName, QName typeName, int minOccurs, int maxOccurs);
+
+    interface InvalidationListener {
+        void invalidate();
+    }
 }

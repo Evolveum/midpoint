@@ -1,22 +1,16 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -30,7 +24,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class InlineMenuColumn<T extends InlineMenuable> extends AbstractColumn<T, Void> {
+public class InlineMenuColumn<T extends InlineMenuable> extends AbstractColumn<T, String> {
 
     public InlineMenuColumn(IModel<String> displayModel) {
         super(displayModel);
@@ -40,8 +34,20 @@ public class InlineMenuColumn<T extends InlineMenuable> extends AbstractColumn<T
     public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId,
                              IModel<T> rowModel) {
 
-        cellItem.add(new com.evolveum.midpoint.web.component.menu.cog.InlineMenu(componentId,
-                createMenuModel(rowModel)));
+//        InlineMenu inlineMenu = new com.evolveum.midpoint.web.component.menu.cog.InlineMenu(componentId,
+//                createMenuModel(rowModel));
+        DropdownButtonDto model = new DropdownButtonDto(null, null, null, createMenuModel(rowModel).getObject());
+        DropdownButtonPanel inlineMenu = new DropdownButtonPanel(componentId, model) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String getSpecialButtonClass() {
+                return "btn-xs btn-default";
+            }
+        };
+        inlineMenu.setOutputMarkupId(true);
+        inlineMenu.setOutputMarkupPlaceholderTag(true);
+        cellItem.add(inlineMenu);
     }
 
     private IModel<List<InlineMenuItem>> createMenuModel(final IModel<T> rowModel) {
@@ -74,6 +80,6 @@ public class InlineMenuColumn<T extends InlineMenuable> extends AbstractColumn<T
 
     @Override
     public String getCssClass() {
-        return "cog";
+        return "cog-xs";
     }
 }

@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+    <c:resource oid="10000000-9999-9999-0000-a000ff000002">
+        <c:name>CSV-1 (Document Access)</c:name>
+        <connectorRef type="ConnectorType">
+            <filter>
+                <q:equal>
+                    <q:path>c:connectorType</q:path>
+                    <q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
+                </q:equal>
+            </filter>
+        </connectorRef>
+        <c:connectorConfiguration>
+            <icfc:configurationProperties xmlns:icfcsv="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
+                <icfcsv:filePath>/opt/training/midpoint-labs/flatfiles/csv-1.csv</icfcsv:filePath>
+                <icfcsv:encoding>utf-8</icfcsv:encoding>
+                <icfcsv:quoteMode>ALL</icfcsv:quoteMode>
+                <icfcsv:quote>"</icfcsv:quote>
+                <icfcsv:fieldDelimiter>,</icfcsv:fieldDelimiter>
+                <icfcsv:multivalueDelimiter>;</icfcsv:multivalueDelimiter>
+                <icfcsv:uniqueAttribute>login</icfcsv:uniqueAttribute>
+                <icfcsv:passwordAttribute>password</icfcsv:passwordAttribute>
+            </icfc:configurationProperties>
+        </c:connectorConfiguration>
+        <schemaHandling>
+            <objectType>
+                <kind>account</kind>
+                <intent>default</intent>
+                <displayName>Default Account</displayName>
+                <default>true</default>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <attribute>
+                    <ref>ri:login</ref>
+                    <displayName>Login</displayName>
+                    <limitations>
+                        <minOccurs>0</minOccurs>
+                    </limitations>
+                    <outbound>
+                        <source>
+                            <path>name</path>
+                        </source>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:enumber</ref>
+                    <displayName>Employee Number</displayName>
+                    <description>Definition of Employee Number attribute handling.</description>
+                    <outbound>
+                        <source>
+                            <path>employeeNumber</path>
+                        </source>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:fname</ref>
+                    <displayName>First name</displayName>
+                    <description>Definition of Firstname attribute handling.</description>
+                    <outbound>
+                        <source>
+                            <path>givenName</path>
+                        </source>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:lname</ref>
+                    <displayName>Last name</displayName>
+                    <description>Definition of Lastname attribute handling.</description>
+                    <outbound>
+                        <source>
+                            <path>familyName</path>
+                        </source>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:dep</ref>
+                    <displayName>Department</displayName>
+                    <description>Definition of Department attribute handling.</description>
+                    <outbound>
+                        <source>
+                            <path>organizationalUnit</path>
+                        </source>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:groups</ref>
+                    <displayName>Groups</displayName>
+                    <description>Definition of Group attribute handling.</description>
+                    <limitations>
+                        <minOccurs>0</minOccurs>
+                        <maxOccurs>unbounded</maxOccurs>
+                    </limitations>
+                    <tolerant>false</tolerant> <!-- For also removing group values when recalculating -->
+                </attribute>
+                <protected>
+                    <filter>
+                        <q:equal>
+                            <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+                            <q:path>attributes/ri:login</q:path>
+                            <q:value>admin</q:value>
+                        </q:equal>
+                    </filter>
+                </protected>
+                <activation>
+                    <administrativeStatus>
+                        <outbound>
+                        </outbound>
+                    </administrativeStatus>
+                </activation>
+                <credentials>
+                    <password>
+                        <outbound/>
+                    </password>
+                </credentials>
+            </objectType>
+        </schemaHandling>
+        <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+            <configured>
+                <cap:activation>
+                    <cap:status>
+                        <cap:attribute>ri:dis</cap:attribute>
+                        <cap:enableValue>false</cap:enableValue>
+                        <cap:disableValue>true</cap:disableValue>
+                    </cap:status>
+                </cap:activation>
+                <cap:countObjects>
+                    <cap:simulate>sequentialSearch</cap:simulate>
+                </cap:countObjects>
+            </configured>
+        </capabilities>
+        <synchronization>
+            <objectSynchronization>
+                <name>Default account</name>
+                <description>The default account name does NOT start with "_"</description>
+                <kind>account</kind>
+                <intent>default</intent>
+                <enabled>true</enabled>
+                <condition>
+                    <script>
+                        <code>
+                            name = basic.getAttributeValue(projection, "login")
+                            return !name?.startsWith('_')
+                        </code>
+                    </script>
+                </condition>
+                <correlation>
+                    <q:description>
+                        Correlation expression is a search query.
+                        Following search queury will look for users that have "employeeNumber"
+                        equal to the "enumber" attribute of the account.
+                        The condition will ensure that "enumber" is not
+                        empty, otherwise it would match any midPoint user
+                        with empty "employeeNumber" attribute, such as "administrator".
+                        The correlation rule by default looks for users, so it will not match
+                        any other object type.
+                    </q:description>
+                    <q:equal>
+                        <q:path>c:employeeNumber</q:path>
+                        <expression>
+                            <path>$projection/attributes/ri:enumber</path>
+                        </expression>
+                    </q:equal>
+                    <condition>
+                        <script>
+                            <code>basic.getAttributeValue(projection, 'enumber') != null</code>
+                        </script>
+                    </condition>
+                </correlation>
+                <reaction>
+                    <situation>linked</situation>
+                    <synchronize>true</synchronize>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <synchronize>true</synchronize>
+                    <action>
+                        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                    </action>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <synchronize>true</synchronize>
+                    <action>
+                        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                    </action>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <synchronize>true</synchronize>
+                    <action>
+                        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateShadow</handlerUri>
+                    </action>
+                </reaction>
+            </objectSynchronization>
+        </synchronization>
+    </c:resource>
+</c:objects>

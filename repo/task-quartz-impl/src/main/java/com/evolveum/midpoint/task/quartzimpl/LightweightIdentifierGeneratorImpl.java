@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
@@ -28,32 +19,34 @@ import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 @Service
 public class LightweightIdentifierGeneratorImpl implements LightweightIdentifierGenerator {
 
-	long lastTimestamp;
-	int lastSequence;
-	int hostIdentifier;
+    private static final long BACKWARD_TIME_ALLOWANCE = 10 * 1000L;
 
-	public LightweightIdentifierGeneratorImpl() {
-		lastTimestamp = 0;
-		lastSequence = 0;
-		hostIdentifier = 0;
-	}
+    private long lastTimestamp;     // monotonic increasing sequence
+    private int lastSequence;       // incremented by 1, occasionally reset to 0
+    private int hostIdentifier;     // currently unused
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.task.api.LightweightIdentifierGenerator#generate()
-	 */
-	@Override
-	public synchronized LightweightIdentifier generate() {
-		long timestamp = System.currentTimeMillis();
-		if (timestamp == lastTimestamp) {
-			// Nothing to do
-		} else if (timestamp > lastTimestamp) {
-			// reset the last timestamp and sequence conunter
-			lastTimestamp = timestamp;
-			lastSequence = 0;
-		} else {
-			throw new IllegalStateException("The time has moved back, possible consistency violation");
-		}
-		return new LightweightIdentifier(timestamp, hostIdentifier, ++lastSequence);
-	}
+    public LightweightIdentifierGeneratorImpl() {
+        lastTimestamp = 0;
+        lastSequence = 0;
+        hostIdentifier = 0;
+    }
 
+    @Override
+    public synchronized LightweightIdentifier generate() {
+        long timestamp = System.currentTimeMillis();
+        if (timestamp > lastTimestamp) {
+            // update the last timestamp and reset sequence counter
+            lastTimestamp = timestamp;
+            lastSequence = 0;
+        } else if (timestamp < lastTimestamp - BACKWARD_TIME_ALLOWANCE) {
+            throw new IllegalStateException("The time has moved back more than " + BACKWARD_TIME_ALLOWANCE
+                    + " milliseconds, possible consistency violation. Current time = " + timestamp + ", last time = "
+                    + lastTimestamp + ", difference is " + (lastTimestamp - timestamp) + ".");
+        } else {
+            // Usually timestamp == lastTimestamp here. But even if the time moved back a few seconds we stay calm
+            // and simply keep lastTimestamp unchanged. We will probably get a few identifiers with increasing sequence
+            // numbers and nothing wrong will happen.
+        }
+        return new LightweightIdentifier(timestamp, hostIdentifier, ++lastSequence);
+    }
 }

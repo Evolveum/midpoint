@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.model;
 
@@ -31,28 +22,36 @@ import org.apache.wicket.model.AbstractPropertyModel;
  *
  */
 public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
-	private static final long serialVersionUID = 1L;
-
-	protected final String expression;
-	protected final LookupTableType lookupTable;
-	protected boolean isStrict = true; // if true, allow only values found in lookupTable, false - allow also input that is not in the lookupTable
-
-    public LookupPropertyModel(Object modelObject, String expression, LookupTableType lookupTable) {
+    /**
+     * @param modelObject
+     */
+    public LookupPropertyModel(Object modelObject) {
         super(modelObject);
-        this.expression = expression;
-        this.lookupTable = lookupTable;
+        // TODO Auto-generated constructor stub
     }
 
-    public LookupPropertyModel(Object modelObject, String expression, LookupTableType lookupTable, boolean isStrict) {
-        super(modelObject);
-        this.expression = expression;
-        this.lookupTable = lookupTable;
-        this.isStrict = isStrict;
-    }
+    private static final long serialVersionUID = 1L;
+
+    protected final String expression = null;
+    protected final LookupTableType lookupTable = null;
+    protected boolean isStrict = true; // if true, allow only values found in lookupTable, false - allow also input that is not in the lookupTable
+
+//    public LookupPropertyModel(Object modelObject, String expression, LookupTableType lookupTable) {
+//        super(modelObject);
+//        this.expression = expression;
+//        this.lookupTable = lookupTable;
+//    }
+//
+//    public LookupPropertyModel(Object modelObject, String expression, LookupTableType lookupTable, boolean isStrict) {
+//        super(modelObject);
+//        this.expression = expression;
+//        this.lookupTable = lookupTable;
+//        this.isStrict = isStrict;
+//    }
 
     public boolean isSupportsDisplayName() {
-		return false;
-	}
+        return false;
+    }
 
     /**
      * @see org.apache.wicket.model.AbstractPropertyModel#propertyExpression()
@@ -69,18 +68,18 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
         final Object target = getInnermostModelOrObject();
         if (target != null) {
 
-        	Object value = null;
-        	if (isSupportsDisplayName()) {
-        		 value = PropertyResolver.getValue("displayName", target);
-        		 if (value != null) {
-        			 return (T) value;
-        		 }
-        	}
+            Object value = null;
+            if (isSupportsDisplayName()) {
+                 value = PropertyResolver.getValue("displayName", target);
+                 if (value != null) {
+                     return (T) value;
+                 }
+            }
 
-        	value = PropertyResolver.getValue(expression, target);
-        	if (value == null) {
-        		return null;
-        	}
+            value = PropertyResolver.getValue(expression, target);
+            if (value == null) {
+                return null;
+            }
             String key = value.toString();
 
             if (lookupTable != null) {
@@ -92,7 +91,7 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
             }
             return (T) key;
         }
-    	return null;
+        return null;
     }
 
     @Override
@@ -113,15 +112,15 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
                     PropertyResolver.setValue(expression, getInnermostModelOrObject(), label, prc);
                 }
                 if (lookupTable != null) {
-	                for (LookupTableRowType row : lookupTable.getRow()) {
-	                    if (label.equals(WebComponentUtil.getOrigStringFromPoly(row.getLabel()))) {
-	                        key = row.getKey();
-	                        PropertyResolver.setValue(expression, getInnermostModelOrObject(), key, prc);
-	                        if (isSupportsDisplayName()) {
-	                        	PropertyResolver.setValue("displayName", getInnermostModelOrObject(), label, prc);
-	                        }
-	                    }
-	                }
+                    for (LookupTableRowType row : lookupTable.getRow()) {
+                        if (label.equals(WebComponentUtil.getOrigStringFromPoly(row.getLabel()))) {
+                            key = row.getKey();
+                            PropertyResolver.setValue(expression, getInnermostModelOrObject(), key, prc);
+                            if (isSupportsDisplayName()) {
+                                PropertyResolver.setValue("displayName", getInnermostModelOrObject(), label, prc);
+                            }
+                        }
+                    }
                 }
             }
         } else if (object == null) {

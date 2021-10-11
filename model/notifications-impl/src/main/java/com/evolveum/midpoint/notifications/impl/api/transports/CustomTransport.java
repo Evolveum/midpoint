@@ -1,26 +1,18 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.notifications.impl.api.transports;
 
+import com.evolveum.midpoint.notifications.impl.TransportRegistry;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -30,8 +22,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -53,9 +47,12 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * TODO clean up
@@ -83,9 +80,11 @@ public class CustomTransport implements Transport {
     @Autowired
     private NotificationManager notificationManager;
 
+    @Autowired private TransportRegistry transportRegistry;
+
     @PostConstruct
     public void init() {
-        notificationManager.registerTransport(NAME, this);
+        transportRegistry.registerTransport(NAME, this);
     }
 
     @Override
@@ -96,7 +95,7 @@ public class CustomTransport implements Transport {
         result.addParam("message subject", message.getSubject());
 
         SystemConfigurationType systemConfiguration = NotificationFunctionsImpl
-				.getSystemConfiguration(cacheRepositoryService, result);
+                .getSystemConfiguration(cacheRepositoryService, result);
         if (systemConfiguration == null || systemConfiguration.getNotificationConfiguration() == null) {
             String msg = "No notifications are configured. Custom notification to " + message.getTo() + " will not be sent.";
             LOGGER.warn(msg) ;
@@ -119,10 +118,40 @@ public class CustomTransport implements Transport {
         if (logToFile != null) {
             TransportUtil.logToFile(logToFile, TransportUtil.formatToFileNew(message, transportName), LOGGER);
         }
+
+        int optionsForFilteringRecipient = TransportUtil.optionsForFilteringRecipient(configuration);
+
+        List<String> allowedRecipientTo = new ArrayList<String>();
+        List<String> forbiddenRecipientTo = new ArrayList<String>();
+        List<String> allowedRecipientCc = new ArrayList<String>();
+        List<String> forbiddenRecipientCc = new ArrayList<String>();
+        List<String> allowedRecipientBcc = new ArrayList<String>();
+        List<String> forbiddenRecipientBcc = new ArrayList<String>();
+
         String file = configuration.getRedirectToFile();
-        if (file != null) {
+        if (optionsForFilteringRecipient != 0) {
+            TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo, message.getTo(), configuration, task, result,
+                    expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+            TransportUtil.validateRecipient(allowedRecipientCc, forbiddenRecipientCc, message.getCc(), configuration, task, result,
+                    expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+            TransportUtil.validateRecipient(allowedRecipientBcc, forbiddenRecipientBcc, message.getBcc(), configuration, task, result,
+                    expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+
+            if (file != null) {
+                if(!forbiddenRecipientTo.isEmpty() || !forbiddenRecipientCc.isEmpty() || !forbiddenRecipientBcc.isEmpty()) {
+                    message.setTo(forbiddenRecipientTo);
+                    message.setCc(forbiddenRecipientCc);
+                    message.setBcc(forbiddenRecipientBcc);
+                    writeToFile(message, file, result);
+                }
+                message.setTo(allowedRecipientTo);
+                message.setCc(allowedRecipientCc);
+                message.setBcc(allowedRecipientBcc);
+            }
+
+        } else if (file != null) {
             writeToFile(message, file, result);
-            return;
+               return;
         }
 
         try {
@@ -154,20 +183,20 @@ public class CustomTransport implements Transport {
 
     // TODO deduplicate
     private void evaluateExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
-    		String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<String> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_STRING);
 
-        Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
+        Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task);
         ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
     }
 
     protected ExpressionVariables getDefaultVariables(Message message, Event event) throws UnsupportedEncodingException {
-    	ExpressionVariables variables = new ExpressionVariables();
-        variables.addVariableDefinition(SchemaConstants.C_MESSAGE, message);
-        variables.addVariableDefinition(SchemaConstants.C_EVENT, event);
+        ExpressionVariables variables = new ExpressionVariables();
+        variables.put(ExpressionConstants.VAR_MESSAGE, message, Message.class);
+        variables.put(ExpressionConstants.VAR_EVENT, event, Event.class);
         return variables;
     }
 

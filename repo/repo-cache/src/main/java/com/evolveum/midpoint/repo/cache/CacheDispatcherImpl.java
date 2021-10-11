@@ -1,30 +1,24 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.cache;
 
+import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.api.CacheListener;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -53,9 +47,11 @@ public class CacheDispatcherImpl implements CacheDispatcher {
     }
 
     @Override
-    public <O extends ObjectType> void dispatch(Class<O> type, String oid) {
+    public <O extends ObjectType> void dispatchInvalidation(Class<O> type, String oid, boolean clusterwide,
+            @Nullable CacheInvalidationContext context) {
         for (CacheListener listener : cacheListeners) {
-            listener.invalidateCache(type, oid);
+            listener.invalidate(type, oid, clusterwide, context);
         }
     }
+
 }

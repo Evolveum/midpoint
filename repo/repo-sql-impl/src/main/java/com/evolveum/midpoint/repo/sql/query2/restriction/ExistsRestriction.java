@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
@@ -45,21 +36,21 @@ public class ExistsRestriction extends ItemRestriction<ExistsFilter> {
                 .resolveItemPath(filter.getFullPath(), filter.getDefinition(), getBaseHqlEntity(), false);
 
         boolean isAll = filter.getFilter() == null || filter.getFilter() instanceof AllFilter;
-		JpaDataNodeDefinition jpaDefinition = dataInstance.getJpaDefinition();
-		if (!isAll) {
-        	if (!(jpaDefinition instanceof JpaEntityDefinition)) {	// partially checked already (for non-null-ness)
-             	throw new QueryException("ExistsRestriction with non-empty subfilter points to non-entity node: " + jpaDefinition);
-        	}
-        	setHqlDataInstance(dataInstance);
-    	    QueryInterpreter2 interpreter = context.getInterpreter();
-			return interpreter.interpretFilter(context, filter.getFilter(), this);
-		} else if (jpaDefinition instanceof JpaPropertyDefinition && (((JpaPropertyDefinition) jpaDefinition).isCount())) {
-			RootHibernateQuery hibernateQuery = context.getHibernateQuery();
-			return hibernateQuery.createSimpleComparisonCondition(dataInstance.getHqlPath(), 0, ">");
-		} else {
-			// TODO support exists also for other properties (single valued or multi valued)
-			throw new UnsupportedOperationException("Exists filter with 'all' subfilter is currently not supported");
-		}
+        JpaDataNodeDefinition jpaDefinition = dataInstance.getJpaDefinition();
+        if (!isAll) {
+            if (!(jpaDefinition instanceof JpaEntityDefinition)) {    // partially checked already (for non-null-ness)
+                 throw new QueryException("ExistsRestriction with non-empty subfilter points to non-entity node: " + jpaDefinition);
+            }
+            setHqlDataInstance(dataInstance);
+            QueryInterpreter2 interpreter = context.getInterpreter();
+            return interpreter.interpretFilter(context, filter.getFilter(), this);
+        } else if (jpaDefinition instanceof JpaPropertyDefinition && (((JpaPropertyDefinition) jpaDefinition).isCount())) {
+            RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+            return hibernateQuery.createSimpleComparisonCondition(dataInstance.getHqlPath(), 0, ">");
+        } else {
+            // TODO support exists also for other properties (single valued or multi valued)
+            throw new UnsupportedOperationException("Exists filter with 'all' subfilter is currently not supported");
+        }
     }
 
     @Override

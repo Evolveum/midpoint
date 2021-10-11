@@ -1,0 +1,37 @@
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+  <!-- Copy of business role from initial-objects -->
+
+<archetype oid="00000000-0000-0000-0000-000000000321"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+    <name>Business Role</name>
+    <description>
+        Archetype for roles that have meaning from the business perspective.
+        Business roles are usually assigned directly to users, often by using
+        request-and-approve processes. Business roles are usually composed from
+        smaller roles.
+    </description>
+    <archetypePolicy>
+        <display>
+            <label>Business Role</label>
+            <pluralLabel>Business Roles</pluralLabel>
+            <icon>
+                <cssClass>fa fa-street-view</cssClass>
+                <color>green</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+    <assignment>
+        <assignmentRelation>
+            <holderType>RoleType</holderType>
+        </assignmentRelation>
+    </assignment>
+</archetype>

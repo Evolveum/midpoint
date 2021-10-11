@@ -1,29 +1,14 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.data.column;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.data.SelectableDataTable;
-import com.evolveum.midpoint.web.component.data.TableHeadersToolbar;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import java.io.Serializable;
+import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -35,16 +20,22 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 
-import java.io.Serializable;
-import java.util.List;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
+import com.evolveum.midpoint.web.component.data.TableHeadersToolbar;
+import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * @author lazyman
  */
 public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn<T> {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(CheckBoxHeaderColumn.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CheckBoxHeaderColumn.class);
 
     public CheckBoxHeaderColumn() {
         super(null);
@@ -59,7 +50,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
 
             @Override
             public void onUpdate(AjaxRequestTarget target) {
-            	DataTable table = findParent(DataTable.class);
+                DataTable table = findParent(DataTable.class);
                 boolean selected = model.getObject() != null ? model.getObject() : false;
 
                 onUpdateHeader(target, selected, table);
@@ -68,10 +59,10 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         panel.setOutputMarkupId(true);
         panel.add(new VisibleEnableBehaviour() {
 
-        	@Override
-        	public boolean isVisible() {
-        		return CheckBoxHeaderColumn.this.isCheckboxVisible();
-        	}
+            @Override
+            public boolean isVisible() {
+                return CheckBoxHeaderColumn.this.isCheckboxVisible();
+            }
 
         });
 
@@ -85,11 +76,11 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
     }
 
     protected boolean isCheckboxVisible(){
-    	return visible;
+        return visible;
     }
 
     public void setCheckboxVisible(boolean visible){
-    	this.visible = visible;
+        this.visible = visible;
     }
 
     /**
@@ -112,23 +103,23 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
             if (object instanceof Selectable) {
                 Selectable selectable = (Selectable) object;
                 selectable.setSelected(selected);
-            } else if (object instanceof ContainerValueWrapper){
-                ContainerValueWrapper valueWrapper = (ContainerValueWrapper) object;
+            } else if (object instanceof PrismContainerValueWrapper){
+                PrismContainerValueWrapper valueWrapper = (PrismContainerValueWrapper) object;
                 valueWrapper.setSelected(selected);
             }
         }
 
         table.visitChildren(SelectableDataTable.SelectableRowItem.class, new IVisitor<SelectableDataTable.SelectableRowItem, Void>() {
 
-			@Override
-			public void component(SelectableDataTable.SelectableRowItem row, IVisit<Void> visit) {
-				if (row.getOutputMarkupId()) {
-	                //we skip rows that doesn't have outputMarkupId set to true (it would fail)
-					target.add(row);
-	            }
-			}
-		});
-        
+            @Override
+            public void component(SelectableDataTable.SelectableRowItem row, IVisit<Void> visit) {
+                if (row.getOutputMarkupId()) {
+                    //we skip rows that doesn't have outputMarkupId set to true (it would fail)
+                    target.add(row);
+                }
+            }
+        });
+
     }
 
     public boolean shouldBeHeaderSelected(DataTable table) {
@@ -151,8 +142,8 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         if (object instanceof Selectable) {
             Selectable selectable = (Selectable) object;
             return selectable.isSelected();
-        } else if (object instanceof ContainerValueWrapper){
-            ContainerValueWrapper valueWrapper = (ContainerValueWrapper) object;
+        } else if (object instanceof PrismContainerValueWrapper){
+            PrismContainerValueWrapper valueWrapper = (PrismContainerValueWrapper) object;
             return valueWrapper.isSelected();
         }
         return false;
@@ -177,12 +168,12 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         WebMarkupContainer topToolbars = table.getTopToolbars();
         TableHeadersToolbar toolbar = topToolbars.visitChildren(TableHeadersToolbar.class, new IVisitor<TableHeadersToolbar, TableHeadersToolbar>() {
 
-			@Override
-			public void component(TableHeadersToolbar object, IVisit<TableHeadersToolbar> visit) {
-				visit.stop(object);
-			}
-		});
-        
+            @Override
+            public void component(TableHeadersToolbar object, IVisit<TableHeadersToolbar> visit) {
+                visit.stop(object);
+            }
+        });
+
         if (toolbar == null) {
             return null;
         }
@@ -192,14 +183,14 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         // because Selectable.F_SELECTED is hardcoded all over the place...
         IsolatedCheckBoxPanel ret = toolbar.visitChildren(IsolatedCheckBoxPanel.class, new IVisitor<IsolatedCheckBoxPanel, IsolatedCheckBoxPanel>() {
 
-			@Override
-			public void component(IsolatedCheckBoxPanel object, IVisit<IsolatedCheckBoxPanel> visit) {
-				if (object.getOutputMarkupId()) {
-					visit.stop(object);
-	            }
-			}
-		});
-        
+            @Override
+            public void component(IsolatedCheckBoxPanel object, IVisit<IsolatedCheckBoxPanel> visit) {
+                if (object.getOutputMarkupId()) {
+                    visit.stop(object);
+                }
+            }
+        });
+
         return ret;
     }
 }

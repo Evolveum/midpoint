@@ -2,17 +2,8 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <html xmlns:wicket="http://wicket.apache.org" lang="en" class="no-js">
@@ -61,7 +52,7 @@
 <body wicket:id="body" class="">
     <div wicket:id="mainPopup"/>
     <div class="wrapper">
-        <header wicket:id="mainHeader" class="main-header">
+        <header wicket:id="mainHeader" class="main-header" style="max-height:550px;">
             <!-- Logo -->
             <a class="custom-logo" wicket:id="customLogo">
                 <i wicket:id="customLogoImgCss"/>
@@ -76,17 +67,17 @@
                 <a wicket:id="menuToggle" role="button" data-toggle="offcanvas" class="sidebar-toggle" href="#">
                     <span class="sr-only"><wicket:message key="PageTemplate.toggleNavigation"/></span>
                 </a>
-                
-                <div class="navbar-title" wicket:id="pageTitleContainer">
-	                <span class="page-title" wicket:id="pageTitle">
-	                    <span wicket:id="deploymentName"/>
-	                    <span wicket:id="pageTitleReal"/>
-	                </span>
-	            </div>
+
+                <div class="navbar-title" wicket:id="pageTitleContainer" style="max-width:94%;">
+                    <span class="page-title" wicket:id="pageTitle">
+                        <span wicket:id="deploymentName"/>
+                        <span wicket:id="pageTitleReal"/>
+                    </span>
+                </div>
                 <div class="navbar-ajax">
                     <img id="ajax_busy" src="img/ajax-loader.gif" style="display: inline; visibility: hidden;"/>
                 </div>
-                
+
                 <!-- Navbar Right Menu -->
                 <div class="navbar-custom-menu">
                     <ol class="breadcrumb">
@@ -97,18 +88,20 @@
                             </a>
                         </li>
                     </ol>
+                    <div class="pull-right">
                         <a wicket:id="cartButton" class="shopping-cart-icon">
                             <i class="fa fa-shopping-cart fa-2x shopping-cart-icon"></i>
                             <span wicket:id="itemsCount" class="badge bg-red"
-                                  style="position: absolute; top: 1px; margin-left: 20px;"></span>
+                                  style="position: absolute; top: 1px; margin-left: -10px;"></span>
                         </a>
-                    <ul class="nav navbar-nav pull-right">
-                        <!-- User Account: style can be found in dropdown.less -->
-                        <li class="dropdown user user-menu" wicket:id="rightMenu"/>
-                        <li>
-                            <div wicket:id="locale"/>
-                        </li>
-                    </ul>
+                        <ul class="nav navbar-nav pull-right">
+                            <!-- User Account: style can be found in dropdown.less -->
+                            <li>
+                                <div wicket:id="locale"/>
+                            </li>
+                            <li class="dropdown user user-menu" wicket:id="rightMenu"/>
+                        </ul>
+                    </div>
                 </div>
             </nav>
         </header>
@@ -138,9 +131,9 @@
         </div>
         <footer wicket:id="footerContainer" class="main-footer">
             <div class="pull-right hidden-xs" wicket:id="version">
-                <b><wicket:message key="PageTemplate.version"/></b> <wicket:message key="pageBase.midPointVersion"/>
+                <b><wicket:message key="PageTemplate.version"/></b> <wicket:message key="midpoint.system.build"/>
             </div>
-            <div wicket:id="copyrightMessage" class="pull-left"><wicket:message key="PageTemplate.copy" /></div>
+            <div wicket:id="copyrightMessage" class="pull-left"><wicket:message key="PageTemplate.copyright" /></div>
             <div wicket:id="subscriptionMessage"/>
         </footer>
     </div>

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.wf.impl.processors.general;
@@ -21,13 +12,15 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -68,7 +61,7 @@ public class GcpExpressionHelper {
         }
 
         ExpressionVariables variables = new ExpressionVariables();
-        variables.addVariableDefinition(new QName(SchemaConstants.NS_C, "context"), context);
+        variables.put(ExpressionConstants.VAR_MODEL_CONTEXT, context, ModelContext.class);
 
         boolean start;
         try {
@@ -84,10 +77,10 @@ public class GcpExpressionHelper {
         PrismContext prismContext = expressionFactory.getPrismContext();
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<Boolean> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN);
-        Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, opContext, taskFromModel, result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, opContext, taskFromModel, result);
+        Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), opContext, taskFromModel, result);
+        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, opContext, taskFromModel);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = ModelExpressionThreadLocalHolder
-				.evaluateExpressionInContext(expression, params, taskFromModel, result);
+                .evaluateExpressionInContext(expression, params, taskFromModel, result);
 
         Collection<PrismPropertyValue<Boolean>> exprResult = exprResultTriple.getZeroSet();
         if (exprResult.size() == 0) {

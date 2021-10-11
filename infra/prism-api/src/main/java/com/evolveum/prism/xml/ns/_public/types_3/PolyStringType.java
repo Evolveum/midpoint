@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 //
@@ -47,6 +38,8 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.JaxbVisitable;
+import com.evolveum.midpoint.prism.JaxbVisitor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -55,11 +48,11 @@ import org.w3c.dom.Element;
 
 /**
  *
- * 				Polymorphic string. String that may have more than one representation at
- * 				the same time. The primary representation is the original version that is
- * 				composed of the full Unicode character set. The other versions may be
- * 				normalized to trim it, normalize character case, normalize spaces,
- * 				remove national characters or even transliterate the string.
+ *                 Polymorphic string. String that may have more than one representation at
+ *                 the same time. The primary representation is the original version that is
+ *                 composed of the full Unicode character set. The other versions may be
+ *                 normalized to trim it, normalize character case, normalize spaces,
+ *                 remove national characters or even transliterate the string.
  *
  * WARNING: THIS IS NOT GENERATED CODE
  * Although it was originally generated, it has local modifications.
@@ -86,31 +79,46 @@ import org.w3c.dom.Element;
 @XmlType(name = "PolyStringType", propOrder = {
     "orig",
     "norm",
+    "translation",
+    "lang",
     "any"
 })
-public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
+public class PolyStringType implements DebugDumpable, Serializable, Cloneable, JaxbVisitable {
+    private static final long serialVersionUID = 1L;
 
-	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "PolyStringType");
+    public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "PolyStringType");
 
     @XmlElement(required = true)
     protected String orig;
+
     protected String norm;
+
+    protected PolyStringTranslationType translation;
+
+    protected PolyStringLangType lang;
+
     @XmlAnyElement(lax = true)
     protected List<Object> any;
 
     public PolyStringType() {
-    	this.orig = null;
-    	this.norm = null;
+        this.orig = null;
+        this.norm = null;
     }
 
     public PolyStringType(String orig) {
-    	this.orig = orig;
-    	this.norm = null;
+        this.orig = orig;
+        this.norm = null;
     }
 
     public PolyStringType(PolyString polyString) {
-    	this.orig = polyString.getOrig();
-    	this.norm = polyString.getNorm();
+        this.orig = polyString.getOrig();
+        this.norm = polyString.getNorm();
+        this.translation = polyString.getTranslation();
+        Map<String, String> polyStringLang = polyString.getLang();
+        if (polyStringLang != null && !polyStringLang.isEmpty()) {
+            this.lang = new PolyStringLangType();
+            this.lang.setLang(new HashMap<>(polyStringLang));
+        }
     }
 
     /**
@@ -161,6 +169,22 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
         this.norm = value;
     }
 
+    public PolyStringTranslationType getTranslation() {
+        return translation;
+    }
+
+    public void setTranslation(PolyStringTranslationType translation) {
+        this.translation = translation;
+    }
+
+    public PolyStringLangType getLang() {
+        return lang;
+    }
+
+    public void setLang(PolyStringLangType lang) {
+        this.lang = lang;
+    }
+
     /**
      * Gets the value of the any property.
      *
@@ -191,31 +215,40 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
     }
 
     public boolean isEmpty() {
-		if (orig == null) {
-			return true;
-		}
-		return orig.isEmpty();
-	}
-    
+        if (orig == null) {
+            return true;
+        }
+        return orig.isEmpty();
+    }
+
+    /**
+     * Returns true if the PolyString form contains only simple string.
+     * I.e. returns true if the polystring can be serialized in a simplified form of a single string.
+     * Returns true in case that there are language mutations, translation, etc.
+     */
+    public boolean isSimple() {
+        return translation == null && lang == null;
+    }
+
     /**
      * Plus method for ease of use of PolyStrings in groovy (mapped from + operator).
      */
     public PolyStringType plus(String operand) {
-    	if (operand == null) {
-    		return this;
-    	}
-    	return new PolyStringType(getOrig() + operand);
+        if (operand == null) {
+            return this;
+        }
+        return new PolyStringType(getOrig() + operand);
     }
 
     public PolyStringType plus(PolyStringType operand) {
-    	if (operand == null) {
-    		return this;
-    	}
-    	return new PolyStringType(getOrig() + operand.getOrig());
+        if (operand == null) {
+            return this;
+        }
+        return new PolyStringType(getOrig() + operand.getOrig());
     }
 
     public PolyString toPolyString() {
-    	return new PolyString(orig, norm);
+        return new PolyString(orig, norm, translation, lang == null ? null : lang.getLang());
     }
 
     /**
@@ -226,36 +259,45 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
      * WARNING: This method was NOT generated. If the code is re-generated then it must be
      * manually re-introduced to the code.
      */
-	@Override
-	public String toString() {
-		return orig;
-	}
+    @Override
+    public String toString() {
+        return orig;
+    }
 
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("PolyStringType(");
+        sb.append(orig);
+        if (norm != null) {
+            sb.append(",");
+            sb.append(norm);
+        }
+        if (translation != null) {
+            sb.append(";translation=");
+            sb.append(translation.getKey());
+        }
+        if (lang != null) {
+            sb.append(";lang=");
+            sb.append(lang.getLang());
+        }
+        sb.append(")");
+        return sb.toString();
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("PolyStringType(");
-		sb.append(orig);
-		if (norm != null) {
-			sb.append(",");
-			sb.append(norm);
-		}
-		sb.append(")");
-		return sb.toString();
-
-	}
+    }
 
     @Override
     public PolyStringType clone() {
         PolyStringType poly = new PolyStringType();
         poly.setNorm(getNorm());
         poly.setOrig(getOrig());
+        if (translation != null) {
+            poly.setTranslation(translation.clone());
+        }
+        if (lang != null) {
+            poly.setLang(lang.clone());
+        }
         copyContent(getAny(), poly.getAny());
 
         return poly;
@@ -497,47 +539,76 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
         return null;
     }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((any == null || any.isEmpty()) ? 0 : any.hashCode());
-		result = prime * result + ((norm == null) ? 0 : norm.hashCode());
-		result = prime * result + ((orig == null) ? 0 : orig.hashCode());
-		return result;
-	}
+    // !!! Do NOT autogenerate this method without preserving custom changes !!!
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((any == null || any.isEmpty()) ? 0 : any.hashCode());
+        result = prime * result + ((lang == null) ? 0 : lang.hashCode());
+        result = prime * result + ((norm == null) ? 0 : norm.hashCode());
+        result = prime * result + ((orig == null) ? 0 : orig.hashCode());
+        result = prime * result + ((translation == null) ? 0 : translation.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		PolyStringType other = (PolyStringType) obj;
-		if (any == null) {
-			if (other.any != null && !other.any.isEmpty())          // because any is instantiated on get (so null and empty should be considered equivalent)
-				return false;
-		} else if (any.isEmpty()) {
-            if (other.any != null && !other.any.isEmpty())
+    // !!! Do NOT autogenerate this method without preserving custom changes !!!
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        PolyStringType other = (PolyStringType) obj;
+        if (any == null || any.isEmpty()) {     // because any is instantiated on get (so null and empty should be considered equivalent)
+            if (other.any != null && !other.any.isEmpty()) {
                 return false;
-        } else if (!any.equals(other.any))
-			return false;
-		if (norm == null) {
-			if (other.norm != null)
-				return false;
-		} else if (!norm.equals(other.norm))
-			return false;
-		if (orig == null) {
-			if (other.orig != null)
-				return false;
-		} else if (!orig.equals(other.orig))
-			return false;
-		return true;
-	}
+            }
+        } else if (!any.equals(other.any)) {
+            return false;
+        }
+        if (lang == null || lang.isEmpty()) {
+            if (other.lang != null && !other.lang.isEmpty()) {
+                return false;
+            }
+        } else if (!lang.equals(other.lang)) {
+            return false;
+        }
+        if (norm == null) {
+            if (other.norm != null) {
+                return false;
+            }
+        } else if (!norm.equals(other.norm)) {
+            return false;
+        }
+        if (orig == null) {
+            if (other.orig != null) {
+                return false;
+            }
+        } else if (!orig.equals(other.orig)) {
+            return false;
+        }
+        if (translation == null) {
+            if (other.translation != null) {
+                return false;
+            }
+        } else if (!translation.equals(other.translation)) {
+            return false;
+        }
+        return true;
+    }
 
-	public static PolyStringType fromOrig(String name) {
-		return name != null ? new PolyStringType(name) : null;
-	}
+    public static PolyStringType fromOrig(String name) {
+        return name != null ? new PolyStringType(name) : null;
+    }
+
+    @Override
+    public void accept(JaxbVisitor visitor) {
+        visitor.visit(this);
+    }
 }

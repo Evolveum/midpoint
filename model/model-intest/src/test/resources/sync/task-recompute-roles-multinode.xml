@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="c8cfe559-3888-4b39-b835-3aead9a46581"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:ext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <name>Recompute: Roles Multinode</name>
+
+    <extension>
+        <ext:objectType>RoleType</ext:objectType>
+        <ext:objectQuery>
+            <q:filter>
+                <q:substring>
+                    <q:path>name</q:path>
+                    <q:value>ry</q:value>
+                    <q:anchorStart>true</q:anchorStart>
+                </q:substring>
+            </q:filter>
+        </ext:objectQuery>
+        <ext:workerThreads>2</ext:workerThreads>
+    </extension>
+
+    <taskIdentifier>c8cfe559-3888-4b39-b835-3aead9a46581</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/workers-creation/handler-3</handlerUri>
+    <workManagement>
+        <taskKind>coordinator</taskKind>
+        <buckets>
+            <stringSegmentation>
+                <discriminator>name</discriminator>
+                <boundaryCharacters>r</boundaryCharacters>
+                <boundaryCharacters>y</boundaryCharacters>
+                <boundaryCharacters>0-9</boundaryCharacters>
+                <boundaryCharacters>0-9</boundaryCharacters>
+                <comparisonMethod>prefix</comparisonMethod>
+            </stringSegmentation>
+        </buckets>
+        <workers>
+            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3</handlerUri>
+            <workersPerNode>
+                <count>2</count>
+            </workersPerNode>
+        </workers>
+    </workManagement>
+    <recurrence>single</recurrence>
+</task>

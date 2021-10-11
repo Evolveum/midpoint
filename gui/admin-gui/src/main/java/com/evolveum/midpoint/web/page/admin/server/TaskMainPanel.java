@@ -1,368 +1,418 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import org.apache.wicket.Component;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.ComponentConstants;
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.ObjectTabVisibleBehavior;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.ItemEditabilityHandler;
+import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.gui.impl.prism.ItemVisibilityHandler;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeMainPanel;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
 
-/**
- * @author semancik
- *
- */
-public class TaskMainPanel extends Panel {
+public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
-	private static final String ID_MAIN_FORM = "mainForm";
-	private static final String ID_TAB_PANEL = "tabPanel";
-	private static final String ID_BUTTON_PANEL = "buttonPanel";
-	private static final String ID_EDIT = "edit";
-	private static final String ID_BACK = "back";
-	private static final String ID_CANCEL_EDITING = "cancelEditing";
-	private static final String ID_SAVE = "save";
-	private static final String ID_SUSPEND = "suspend";
-	private static final String ID_RESUME = "resume";
-	private static final String ID_RUN_NOW = "runNow";
-	private static final String ID_STOP_APPROVAL = "stopApproval";
+    private static final transient Trace LOGGER = TraceManager.getTrace(TaskMainPanel.class);
 
-	private static final Trace LOGGER = TraceManager.getTrace(TaskMainPanel.class);
+    private static final String ID_SAVE_AND_RUN = "saveAndRun";
 
-	private final LoadableModel<ObjectWrapper<TaskType>> objectModel;
-	private final IModel<TaskDto> taskDtoModel;
-	private final IModel<Boolean> showAdvancedFeaturesModel;
-	private final PageTaskEdit parentPage;
+    public TaskMainPanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> objectModel, PageAdminObjectDetails<TaskType> parentPage) {
+        super(id, objectModel, parentPage);
+    }
 
-	public TaskMainPanel(String id, LoadableModel<ObjectWrapper<TaskType>> objectModel, IModel<TaskDto> taskDtoModel,
-			IModel<Boolean> showAdvancedFeaturesModel, PageTaskEdit parentPage) {
-		super(id, objectModel);
-		this.objectModel = objectModel;
-		this.taskDtoModel = taskDtoModel;
-		this.showAdvancedFeaturesModel = showAdvancedFeaturesModel;
-		this.parentPage = parentPage;
-		initLayout();
-	}
+    @Override
+    protected boolean getOptionsPanelVisibility() {
+        return false;
+    }
 
-	private void initLayout() {
-		Form mainForm = new Form<>(ID_MAIN_FORM, true);
-		add(mainForm);
-		initTabPanel(mainForm);
-		initButtons(mainForm);
-	}
+    @Override
+    protected void initLayoutButtons(PageAdminObjectDetails<TaskType> parentPage) {
+        super.initLayoutButtons(parentPage);
+        initLayoutSaveAndRunButton();
+    }
 
-	protected void initTabPanel(Form mainForm) {
-		List<ITab> tabs = createTabs();
-		TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, parentPage, tabs, new TabbedPanel.RightSideItemProvider() {
-			@Override
-			public Component createRightSideItem(String id) {
-				VisibleEnableBehaviour boxEnabled = new VisibleEnableBehaviour() {
-					@Override
-					public boolean isEnabled() {
-						return !parentPage.isEdit();
-					}
-				};
-				TaskShowAdvancedFeaturesPanel advancedFeaturesPanel = new TaskShowAdvancedFeaturesPanel(id, showAdvancedFeaturesModel, boxEnabled) {
-					@Override
-					protected void onAdvancedFeaturesUpdate(AjaxRequestTarget target) {
-						target.add(getTabPanel());
-						target.add(getButtonPanel());
-						// we DO NOT call parentPage.refresh here because in edit mode this would erase any model changes
-						// (well, because - for some strange reasons - even this code erases name and description input fields
-						// occassionally, we hide 'advanced features' checkbox in editing mode)
-					}
-				};
-				advancedFeaturesPanel.add(new VisibleEnableBehaviour() {
-					@Override
-					public boolean isVisible() {
-						return parentPage.getTaskDto().isWorkflow();			// we don't distinguish between basic/advanced features for other task types yet
-					}
-				});
-				return advancedFeaturesPanel;
-			}
-		});
-		mainForm.add(tabPanel);
-	}
+    @Override
+    protected List<ITab> createTabs(PageAdminObjectDetails<TaskType> parentPage) {
+        List<ITab> tabs = new ArrayList<>();
 
-	protected List<ITab> createTabs() {
-		List<ITab> tabs = new ArrayList<>();
-		final TaskTabsVisibility visibility = new TaskTabsVisibility();
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.basic")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskBasicTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
-					}
-					@Override
-					public boolean isVisible() {
-						return visibility.computeBasicVisible(parentPage);
-					}
-				});
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.scheduleTitle")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskSchedulingTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
-					}
-					@Override
-					public boolean isVisible() {
-						return visibility.computeSchedulingVisible(parentPage);
-					}
-				});
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.subtasksAndThreads")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskSubtasksAndThreadsTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
-					}
-					@Override
-					public boolean isVisible() {
-						return visibility.computeSubtasksAndThreadsVisible(parentPage);
-					}
-				});
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.progress")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskProgressTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
-					}
-					@Override
-					public boolean isVisible() {
-						return visibility.computeProgressVisible(parentPage);
-					}
-				});
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.performance")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskPerformanceTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
-					}
-					@Override
-					public boolean isVisible() {
-						return visibility.computeEnvironmentalPerformanceVisible(parentPage);
-					}
-				});
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.approvals")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskApprovalsTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
-					}
-					@Override
-					public boolean isVisible() {
-						return visibility.computeApprovalsVisible(parentPage);
-					}
-				});
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.operation")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskOperationTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
-					}
-					@Override
-					public boolean isVisible() {
-						return visibility.computeOperationVisible(parentPage);
-					}
-				});
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.result")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskResultTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
-					}
-					@Override
-					public boolean isVisible() {
-						return visibility.computeResultVisible(parentPage);
-					}
-				});
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.errors")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskErrorsTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
-					}
-					@Override
-					public boolean isVisible() {
-						return visibility.computeErrorsVisible(parentPage);
-					}
-				});
-		return tabs;
-	}
+        PageTask parentTaskPage = (PageTask) parentPage;
 
-	public Form getMainForm() {
-		return (Form) get(ID_MAIN_FORM);
-	}
+        createBasicPanel(tabs, parentTaskPage);
+        createScheduleTab(tabs, parentTaskPage);
+        createWorkManagementTab(tabs, parentTaskPage);
+//        createCleanupPoliciesTab(tabs, parentTaskPage);
+        createSubtasksTab(tabs, parentTaskPage);
+        createOperationStatisticsPanel(tabs, parentTaskPage);
+        createEnvironmentalPerformanceTab(tabs, parentTaskPage);
+        createOperationTab(tabs, parentTaskPage);
+        createInteranalPerformanceTab(tabs, parentTaskPage);
+        createResultTab(tabs, parentTaskPage);
+        createErrorsTab(tabs, parentTaskPage);
+        return tabs;
+    }
 
-	public TabbedPanel<ITab> getTabPanel() {
-		return (TabbedPanel<ITab>) getMainForm().get(ID_TAB_PANEL);
-	}
+    private void createBasicPanel(List<ITab> tabs, PageTask parentPage) {
+        ObjectTabVisibleBehavior<TaskType> basicTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_BASIC_URL, parentPage){
 
-	public WebMarkupContainer getButtonPanel() {
-		return (WebMarkupContainer) getMainForm().get(ID_BUTTON_PANEL);
-	}
+            private static final long serialVersionUID = 1L;
 
-	private void initButtons(Form mainForm) {
-		WebMarkupContainer buttonPanel = new WebMarkupContainer(ID_BUTTON_PANEL);
-		buttonPanel.setOutputMarkupId(true);
-		mainForm.add(buttonPanel);
+            @Override
+            public boolean isVisible(){
+                return super.isVisible() && parentPage.getTaskTabVisibilty().isBasicVisible();
+            }
+        };
+        tabs.add(new PanelTab(parentPage.createStringResource("pageTask.basic.title"), basicTabVisibility) {
+            private static final long serialVersionUID = 1L;
 
-		final TaskButtonsVisibility visibility = new TaskButtonsVisibility();
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return new TaskBasicTabPanel(panelId, getObjectModel()) {
+                    @Override
+                    protected void updateHandlerPerformed(AjaxRequestTarget target) {
+                        parentPage.refresh(target);
+                    }
+                };
+            }
+        });
+    }
 
-		AjaxButton backButton = new AjaxButton(ID_BACK, parentPage.createStringResource("pageTaskEdit.button.back")) {
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				parentPage.getController().backPerformed(target);
-			}
-		};
-		backButton.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return visibility.computeBackVisible(parentPage);
-			}
-		});
-		buttonPanel.add(backButton);
+    private void createScheduleTab(List<ITab> tabs, PageTask parentPage) {
+        ObjectTabVisibleBehavior<TaskType> scheduleTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_SCHEDULE_URL, parentPage){
 
-		AjaxButton cancelEditingButton = new AjaxButton(ID_CANCEL_EDITING, parentPage.createStringResource("pageTaskEdit.button.cancelEditing")) {
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				parentPage.getController().cancelEditingPerformed(target);
-			}
-		};
-		cancelEditingButton.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return visibility.computeCancelEditVisible(parentPage);
-			}
-		});
-		buttonPanel.add(cancelEditingButton);
+            private static final long serialVersionUID = 1L;
 
-		AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_SAVE, parentPage.createStringResource("pageTaskEdit.button.save")) {
+            @Override
+            public boolean isVisible(){
+                return super.isVisible() && parentPage.getTaskTabVisibilty().isSchedulingVisible();
+            }
+        };
+        tabs.add(new PanelTab(parentPage.createStringResource("pageTask.schedule.title"), scheduleTabVisibility) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected void onSubmit(AjaxRequestTarget target) {
-				parentPage.getController().savePerformed(target);
-			}
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                ItemVisibilityHandler visibilityHandler = wrapper -> ItemVisibility.AUTO;
+                return createContainerPanel(panelId, ScheduleType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_SCHEDULE), visibilityHandler, getTaskEditabilityHandler());
+            }
+        });
+    }
 
-			@Override
-			protected void onError(AjaxRequestTarget target) {
-				target.add(parentPage.getFeedbackPanel());
-			}
+    private void createWorkManagementTab(List<ITab> tabs, PageTask parentPage) {
+        ObjectTabVisibleBehavior<TaskType> workManagementTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_WORK_MANAGEMENT_URL, parentPage){
 
-		};
-		saveButton.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return visibility.computeSaveVisible(parentPage);
-			}
-		});
-		mainForm.setDefaultButton(saveButton);
-		buttonPanel.add(saveButton);
+            private static final long serialVersionUID = 1L;
 
-		AjaxButton editButton = new AjaxButton(ID_EDIT, parentPage.createStringResource("pageTaskEdit.button.edit")) {
+            @Override
+            public boolean isVisible(){
+                return super.isVisible() && parentPage.getTaskTabVisibilty().isWorkManagementVisible(getTask());
+            }
+        };
+        tabs.add(new PanelTab(parentPage.createStringResource("pageTask.workManagement.title"), workManagementTabVisibility) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				parentPage.setEdit(true);
-				parentPage.refresh(target);		// stops refreshing as well
-				target.add(getMainForm());
-			}
-		};
-		editButton.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return visibility.computeEditVisible(parentPage);
-			}
-		});
-		buttonPanel.add(editButton);
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                ItemVisibilityHandler visibilityHandler = wrapper -> getWorkManagementVisibility(wrapper.getPath());
+                return createContainerPanel(panelId, TaskType.COMPLEX_TYPE,
+                        PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_WORK_MANAGEMENT), visibilityHandler, getTaskEditabilityHandler());
+            }
+        });
+    }
 
-		AjaxButton suspend = new AjaxButton(ID_SUSPEND, parentPage.createStringResource("pageTaskEdit.button.suspend")) {
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				parentPage.getController().suspendPerformed(target);
-			}
-		};
-		suspend.add(new VisibleEnableBehaviour() {
+//    private void createCleanupPoliciesTab(List<ITab> tabs, PageTask parentPage) {
+//        ObjectTabVisibleBehavior<TaskType> cleanupPoliciesTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+//                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_CLEANUP_POLICIES_URL, parentPage) {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public boolean isVisible() {
+//                return super.isVisible() && parentPage.getTaskTabVisibilty().isCleanupPolicyVisible();
+//            }
+//        };
+//        tabs.add(new PanelTab(parentPage.createStringResource("pageTask.cleanupPolicies.title"), cleanupPoliciesTabVisibility) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public WebMarkupContainer createPanel(String panelId) {
+//                ItemVisibilityHandler visibilityHandler = wrapper -> ItemVisibility.AUTO;
+//                return createContainerPanel(panelId, TaskType.COMPLEX_TYPE,
+//                        PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES)),
+//                        visibilityHandler, getTaskEditabilityHandler());
+//            }
+//        });
+//
+//    }
 
-			@Override
-			public boolean isVisible() {
-				return visibility.computeSuspendVisible(parentPage);
-			}
-		});
-		buttonPanel.add(suspend);
+    private void createSubtasksTab(List<ITab> tabs, PageTask parentPage) {
+        ObjectTabVisibleBehavior<TaskType> subtasksTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_SUBTASKS_URL, parentPage){
 
-		AjaxButton resume = new AjaxButton(ID_RESUME, parentPage.createStringResource("pageTaskEdit.button.resume")) {
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				parentPage.getController().resumePerformed(target);
-			}
-		};
-		resume.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public boolean isVisible() {
-				return visibility.computeResumeVisible(parentPage);
-			}
-		});
-		buttonPanel.add(resume);
+            @Override
+            public boolean isVisible(){
+                return super.isVisible() && parentPage.getTaskTabVisibilty().isSubtasksAndThreadsVisible(getTask());
+            }
+        };
+        tabs.add(new PanelTab(parentPage.createStringResource("pageTask.subtasks.title"), subtasksTabVisibility) {
+            private static final long serialVersionUID = 1L;
 
-		AjaxButton runNow = new AjaxButton(ID_RUN_NOW, parentPage.createStringResource("pageTaskEdit.button.runNow")) {
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				parentPage.getController().runNowPerformed(target);
-			}
-		};
-		runNow.add(new VisibleEnableBehaviour() {
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return new TaskSubtasksAndThreadsTabPanel(panelId, getObjectModel());
+            }
 
-			@Override
-			public boolean isVisible() {
-				return visibility.computeRunNowVisible(parentPage);
-			}
-		});
-		buttonPanel.add(runNow);
+        });
+    }
 
-		AjaxButton stopApproval = new AjaxButton(ID_STOP_APPROVAL, parentPage.createStringResource("pageTaskEdit.button.stopApprovalProcess")) {
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				parentPage.getController().stopApprovalProcessPerformed(target);
-			}
-		};
-		stopApproval.add(new VisibleEnableBehaviour() {
+    private void createOperationStatisticsPanel(List<ITab> tabs, PageTask parentPage) {
+        ObjectTabVisibleBehavior<TaskType> operationStatsAndInternalPerfTabsVisibility = new ObjectTabVisibleBehavior<TaskType>
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_OPERATION_STATISTICS_URL, parentPage){
 
-			@Override
-			public boolean isVisible() {
-				return visibility.computeStopVisible(parentPage);
-			}
-		});
-		buttonPanel.add(stopApproval);
-	}
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible(){
+                return super.isVisible() && parentPage.getTaskTabVisibilty().isInternalPerformanceVisible();
+            }
+        };
+        tabs.add(new PanelTab(parentPage.createStringResource("pageTask.operationStats.title"), operationStatsAndInternalPerfTabsVisibility) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return new TaskOperationStatisticsPanel(panelId, getObjectModel());
+            }
+
+        });
+    }
+
+    private void createEnvironmentalPerformanceTab(List<ITab> tabs, PageTask parentPage) {
+        ObjectTabVisibleBehavior<TaskType> envPerfTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_ENVIRONMENTAL_PERFORMANCE_URL, parentPage){
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible(){
+                return super.isVisible() && parentPage.getTaskTabVisibilty().isEnvironmentalPerformanceVisible();
+            }
+        };
+        tabs.add(new PanelTab(parentPage.createStringResource("pageTask.environmentalPerformance.title"), envPerfTabVisibility) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return new TaskPerformanceTabPanel(panelId, getObjectModel());
+            }
+
+        });
+    }
+
+    private void createOperationTab(List<ITab> tabs, PageTask parentPage) {
+        ObjectTabVisibleBehavior<TaskType> operationTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_OPERATION_URL, parentPage){
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible(){
+                return super.isVisible() && parentPage.getTaskTabVisibilty().isOperationVisible();
+            }
+        };
+        tabs.add(new PanelTab(parentPage.createStringResource("pageTaskEdit.operation"), operationTabVisibility) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return new TaskOperationTabPanel(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_MODEL_OPERATION_CONTEXT));
+            }
+        });
+    }
+
+    private void createInteranalPerformanceTab(List<ITab> tabs, PageTask parentPage) {
+        ObjectTabVisibleBehavior<TaskType> internalPerfTabsVisibility = new ObjectTabVisibleBehavior<TaskType>
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_INTERNAL_PERFORMANCE_URL, parentPage){
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible(){
+                return super.isVisible() && parentPage.getTaskTabVisibilty().isInternalPerformanceVisible();
+            }
+        };
+        tabs.add(new PanelTab(parentPage.createStringResource("pageTask.internalPerformance.title"), internalPerfTabsVisibility) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return new TaskInternalPerformanceTabPanel(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_OPERATION_STATS));
+            }
+        });
+    }
+
+    private void createResultTab(List<ITab> tabs, PageTask parentPage) {
+        ObjectTabVisibleBehavior<TaskType> resultTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_RESULT_URL, parentPage){
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible(){
+                return super.isVisible() && parentPage.getTaskTabVisibilty().isResultVisible();
+            }
+        };
+        tabs.add(new PanelTab(parentPage.createStringResource("pageTask.result.title"), resultTabVisibility) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return new TaskResultTabPanel(panelId, getObjectModel());
+            }
+        });
+    }
+
+    private void createErrorsTab(List<ITab> tabs, PageTask parentPage) {
+        ObjectTabVisibleBehavior<TaskType> errorsTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_ERRORS_URL, parentPage){
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible(){
+                return super.isVisible() && parentPage.getTaskTabVisibilty().isErrorsVisible();
+            }
+        };
+        tabs.add(new PanelTab(parentPage.createStringResource("pageTask.errors.title"), errorsTabVisibility) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return new TaskErrorsTabPanel(panelId, getObjectModel());
+            }
+        });
+    }
+
+    private ItemVisibility getWorkManagementVisibility(ItemPath path) {
+        TaskType task = getTask();
+        String handler = task.getHandlerUri();
+        if (handler == null) {
+            return ItemVisibility.AUTO;
+        }
+
+        if (ItemPath.create(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_PARTITIONS).equivalent(path)) {
+            if (handler.endsWith("task/workers-creation/handler-3")) {
+                return ItemVisibility.AUTO;
+            } else {
+                return ItemVisibility.HIDDEN;
+            }
+        }
+
+        if (ItemPath.create(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_WORKERS).equivalent(path)) {
+            if (handler.endsWith("task/lightweight-partitioning/handler-3") || handler.endsWith("model/partitioned-focus-validity-scanner/handler-3")
+                || handler.endsWith("model/synchronization/task/partitioned-reconciliation/handler-3") || handler.endsWith("task/generic-partitioning/handler-3")) {
+                return ItemVisibility.AUTO;
+            }
+            return ItemVisibility.HIDDEN;
+        }
+
+        return ItemVisibility.AUTO;
+
+    }
+
+    protected void initLayoutSaveAndRunButton() {
+        AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_SAVE_AND_RUN, getDetailsPage().createStringResource("TaskMainPanel.button.saveAndRun")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                ((PageTask)getDetailsPage()).saveAndRunPerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(getDetailsPage().getFeedbackPanel());
+            }
+        };
+        saveButton.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return !getObjectWrapper().isReadOnly() &&
+                        !getDetailsPage().isForcedPreview();
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return !ItemStatus.NOT_CHANGED.equals(getObjectWrapper().getStatus())
+                        || getObjectWrapper().canModify();
+            }
+        });
+        saveButton.setOutputMarkupId(true);
+        saveButton.setOutputMarkupPlaceholderTag(true);
+        getMainForm().add(saveButton);
+    }
+
+
+    private <C extends Containerable> Panel createContainerPanel(String id, QName typeName, IModel<? extends PrismContainerWrapper<C>> model, ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
+        try {
+            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
+                    .visibilityHandler(visibilityHandler)
+                    .editabilityHandler(editabilityHandler)
+                    .showOnTopLevel(true);
+            return getDetailsPage().initItemPanel(id, typeName, model, builder.build());
+        } catch (SchemaException e) {
+            LOGGER.error("Cannot create panel for {}, {}", typeName, e.getMessage(), e);
+            getSession().error("Cannot create panel for " + typeName); // TODO opertion result? localization?
+        }
+
+        return null;
+    }
+
+    private ItemEditabilityHandler getTaskEditabilityHandler(){
+        return wrapper -> !WebComponentUtil.isRunningTask(getTask());
+    }
+
+    private TaskType getTask() {
+        return getObject().asObjectable();
+    }
 
 }

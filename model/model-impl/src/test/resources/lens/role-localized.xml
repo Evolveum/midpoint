@@ -1,0 +1,30 @@
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="25294519-5e0e-44d4-bebc-ea549d850ed9"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <name>
+        <t:orig>Localized</t:orig>  <!-- intentionally different from US version in properties -->
+        <t:norm>localized</t:norm>
+        <t:translation>
+            <t:key>role.localized</t:key>
+        </t:translation>
+    </name>
+    <assignment>
+        <policyRule>
+            <name>approval</name>
+            <policyConstraints>
+                <assignment>
+                    <operation>add</operation>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <approval/>
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>

@@ -1,64 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!--
-  ~ Copyright (c) 2010-2018 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>midPoint Distribution</name>
+
+    <parent>
+        <artifactId>midpoint</artifactId>
+        <groupId>com.evolveum.midpoint</groupId>
+        <version>4.1.1-SNAPSHOT</version>
+    </parent>
+
     <artifactId>dist</artifactId>
     <packaging>pom</packaging>
-    <parent>
-        <artifactId>parent</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
-        <version>4.0-SNAPSHOT</version>
-        <relativePath>../build-system/pom.xml</relativePath>
-    </parent>
-    <organization>
-        <name>Evolveum</name>
-        <url>http://www.evolveum.com</url>
-    </organization>
-    <licenses>
-        <license>
-            <name>Apache License v2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-    <issueManagement>
-        <system>Atlassian JIRA</system>
-        <url>http://jira.evolveum.com/</url>
-    </issueManagement>
-    <scm>
-        <connection>https://github.com/Evolveum/midpoint.git</connection>
-        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/midPoint</url>
-    </scm>
+
+    <name>midPoint Distribution</name>
+
+    <modules>
+        <module>midpoint-api</module>
+        <module>javadoc</module>
+    </modules>
+
     <dependencies>
-   		<dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.gui</groupId>
             <artifactId>admin-gui</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
             <type>war</type>
             <classifier>executable</classifier>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>ninja</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint</groupId>
+            <artifactId>midpoint-samples</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency><!-- Not used, but required for surefire plugin not to complain -->
             <groupId>org.testng</groupId>
@@ -68,17 +51,17 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>4.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
                 <!-- Used to pull XSD files from the JAR -->
                 <groupId>com.evolveum.midpoint.tools</groupId>
                 <artifactId>schema-dist-maven-plugin</artifactId>
-                <version>4.0-SNAPSHOT</version>
+                <version>4.1.1-SNAPSHOT</version>
                 <executions>
                     <execution>
                         <id>schemadist-prism</id>
@@ -111,27 +94,25 @@
                 </executions>
             </plugin>
             <plugin>
-		        <artifactId>maven-assembly-plugin</artifactId>
-		        <version>2.4</version>
-		        <configuration>
-		          <descriptors>
-		            <descriptor>src/main/assembly/dist.xml</descriptor>
-		          </descriptors>
-		          <finalName>midpoint-${project.version}</finalName>
-		        </configuration>
-		        <executions>
-		          <execution>
-		            <id>make-assembly</id> <!-- this is used for inheritance merges -->
-		            <phase>package</phase> <!-- bind to the packaging phase -->
-		            <goals>
-		              <goal>single</goal>
-		            </goals>
-		          </execution>
-		        </executions>
-	        </plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <inherited>false</inherited>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/main/assembly/dist.xml</descriptor>
+                    </descriptors>
+                    <finalName>midpoint-${project.version}</finalName>
+                    <tarLongFileMode>gnu</tarLongFileMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>dist-assembly</id>
+                        <phase>package</phase> <!-- bind to the packaging phase -->
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
-    <modules>
-        <module>midpoint-api</module>
-    </modules>
 </project>

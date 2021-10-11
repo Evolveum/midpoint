@@ -3,7 +3,7 @@
   "policyItemsDefinition": {
     "policyItemDefinition": [{
       "target": {
-    	"path": "telephoneNumber"
+        "path": "telephoneNumber"
       },
       "valuePolicyRef": {
         "type": "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ValuePolicyType",

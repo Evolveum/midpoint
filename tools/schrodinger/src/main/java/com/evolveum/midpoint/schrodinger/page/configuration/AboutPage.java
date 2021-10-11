@@ -1,18 +1,20 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.schrodinger.page.configuration;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
-import com.evolveum.midpoint.schrodinger.component.common.ConfirmationModal;
-import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
+import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.component.common.table.ReadOnlyTable;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
-import com.evolveum.midpoint.schrodinger.page.LoginPage;
+import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
-
-//import com.evolveum.midpoint.util.logging.Trace;
-//import com.evolveum.midpoint.util.logging.TraceManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,7 +50,7 @@ public class AboutPage extends BasicPage {
     }
 
     public AboutPage cleanupActivitiProcesses() {
-        $(Schrodinger.byDataResourceKey("PageAbout.button.cleanupActivitiProcesses")).click();
+        $(Schrodinger.byDataResourceKey("PageAbout.button.checkWorkflowProcesses")).click();
         return this;
     }
 
@@ -62,7 +64,7 @@ public class AboutPage extends BasicPage {
     }
 
     public String gitDescribe() {
-        return $(Schrodinger.bySchrodingerDataResourceKey("PageAbout.midPointRevision")).parent().getText();
+        return $(Schrodinger.bySchrodingerDataResourceKey("midpoint.system.build")).parent().getText();
     }
 
     public String buildAt() {
@@ -74,7 +76,7 @@ public class AboutPage extends BasicPage {
     public String hibernateDialect() {
         SelenideElement additionalDetailsBox = $(By.cssSelector("div.box.box-danger"));
 
-        return additionalDetailsBox.findElementByXPath("/html/body/div[2]/div/section/div[2]/div[1]/div[2]/div/div[2]/div[2]/table/tbody/tr[4]/td[2]").getText();
+        return additionalDetailsBox.find(By.xpath("/html/body/div[2]/div/section/div[2]/div[1]/div[2]/div/div[2]/div[2]/table/tbody/tr[4]/td[2]")).getText();
     }
 
     public String connIdFrameworkVersion() {
@@ -126,12 +128,12 @@ public class AboutPage extends BasicPage {
     }
 
 
-    public ConfirmationModal<LoginPage> clickSwitchToFactoryDefaults() {
+    public ConfirmationModal<FormLoginPage> clickSwitchToFactoryDefaults() {
         $(Schrodinger.byDataResourceKey("PageAbout.button.factoryDefault")).waitUntil(Condition.visible,MidPoint.TIMEOUT_DEFAULT_2_S).click();
         SelenideElement confirmBox =$(Schrodinger.byElementAttributeValue("div","aria-labelledby","Confirm deletion"))
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
 
-        return new ConfirmationModal<>(new LoginPage(),confirmBox);
+        return new ConfirmationModal<>(new FormLoginPage(),confirmBox);
     }
 
     public String getSystemProperty(String propertyNameUserHome) {

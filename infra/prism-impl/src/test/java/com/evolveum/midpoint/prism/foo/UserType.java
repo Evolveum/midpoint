@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 //
@@ -25,6 +16,7 @@
 package com.evolveum.midpoint.prism.foo;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -74,23 +66,24 @@ import javax.xml.bind.annotation.XmlType;
     "multiActivationCopy",
     "singleConstruction",
     "multiConstruction",
-    "multiConstructionCopy"
+    "multiConstructionCopy",
+    "password"
 })
 public class UserType
     extends ObjectType
     implements Serializable
 {
 
-	// This is NOT GENERATED. It is supplied here manually for the testing.
-	public final static ItemName F_FULL_NAME = new ItemName(NS_FOO, "fullName");
-	public final static ItemName F_GIVEN_NAME = new ItemName(NS_FOO, "givenName");
-	public final static ItemName F_FAMILY_NAME = new ItemName(NS_FOO, "familyName");
-	public final static ItemName F_ADDITIONAL_NAMES = new ItemName(NS_FOO, "additionalNames");
-	public final static ItemName F_POLY_NAME = new ItemName(NS_FOO, "polyName");
-	public final static ItemName F_ACTIVATION = new ItemName(NS_FOO, "activation");
-	public final static ItemName F_ASSIGNMENT = new ItemName(NS_FOO, "assignment");
-	public final static ItemName F_LOCALITY = new ItemName(NS_FOO, "locality");
-	public final static ItemName F_ACCOUNT_REF = new ItemName(NS_FOO, "accountRef");
+    // This is NOT GENERATED. It is supplied here manually for the testing.
+    public final static ItemName F_FULL_NAME = new ItemName(NS_FOO, "fullName");
+    public final static ItemName F_GIVEN_NAME = new ItemName(NS_FOO, "givenName");
+    public final static ItemName F_FAMILY_NAME = new ItemName(NS_FOO, "familyName");
+    public final static ItemName F_ADDITIONAL_NAMES = new ItemName(NS_FOO, "additionalNames");
+    public final static ItemName F_POLY_NAME = new ItemName(NS_FOO, "polyName");
+    public final static ItemName F_ACTIVATION = new ItemName(NS_FOO, "activation");
+    public final static ItemName F_ASSIGNMENT = new ItemName(NS_FOO, "assignment");
+    public final static ItemName F_LOCALITY = new ItemName(NS_FOO, "locality");
+    public final static ItemName F_ACCOUNT_REF = new ItemName(NS_FOO, "accountRef");
     public final static ItemName F_SPECIAL = new ItemName(NS_FOO, "special");
     public final static ItemName F_SINGLE_ACTIVATION = new ItemName(NS_FOO, "singleActivation");
     public final static ItemName F_MULTI_ACTIVATION = new ItemName(NS_FOO, "multiActivation");
@@ -98,6 +91,7 @@ public class UserType
     public final static ItemName F_SINGLE_CONSTRUCTION = new ItemName(NS_FOO, "singleConstruction");
     public final static ItemName F_MULTI_CONSTRUCTION = new ItemName(NS_FOO, "multiConstruction");
     public final static ItemName F_MULTI_CONSTRUCTION_COPY = new ItemName(NS_FOO, "multiConstructionCopy");
+    public final static ItemName F_PASSWORD = new ItemName(NS_FOO, "password");
 
     private final static long serialVersionUID = 201202081233L;
     @XmlElement(required = true)
@@ -116,6 +110,7 @@ public class UserType
     protected AccountConstructionType singleConstruction;
     protected List<AccountConstructionType> multiConstruction;
     protected List<AccountConstructionType> multiConstructionCopy;
+    protected ProtectedStringType password;
 
     @XmlElement(name = "special")
     protected String specialWithInternalizedName;               // internal name here differs from the one in serialized form
@@ -352,5 +347,13 @@ public class UserType
 
     public void setMultiConstructionCopy(List<AccountConstructionType> multiConstructionCopy) {
         this.multiConstructionCopy = multiConstructionCopy;
+    }
+
+    public ProtectedStringType getPassword() {
+        return password;
+    }
+
+    public void setPassword(ProtectedStringType password) {
+        this.password = password;
     }
 }

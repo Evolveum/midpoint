@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
@@ -38,6 +29,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 
@@ -80,29 +72,29 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
                 long started = operationsHelper.recordStart(context, connectorHostTypePrismObject.asObjectable());
                 Throwable exception = null;
                 try {
-					newConnectors = modelService.discoverConnectors(connectorHostTypePrismObject.asObjectable(), context.getTask(), result);
+                    newConnectors = modelService.discoverConnectors(connectorHostTypePrismObject.asObjectable(), context.getTask(), result);
                     operationsHelper.recordEnd(context, connectorHostTypePrismObject.asObjectable(), started, null);
                 } catch (CommunicationException | SecurityViolationException | SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException e) {
                     operationsHelper.recordEnd(context, connectorHostTypePrismObject.asObjectable(), started, e);
-					exception = processActionException(e, NAME, value, context);
-					newConnectors = Collections.emptySet();
-				}
+                    exception = processActionException(e, NAME, value, context);
+                    newConnectors = Collections.emptySet();
+                }
                 context.println((exception != null ? "Attempted to discover " : "Discovered " + newConnectors.size())
-						+ " new connector(s) from " + connectorHostTypePrismObject + exceptionSuffix(exception));
+                        + " new connector(s) from " + connectorHostTypePrismObject + exceptionSuffix(exception));
                 for (ConnectorType connectorType : newConnectors) {
                     output.addValue(connectorType.asPrismObject().getValue(), item.getResult(), item.getVariables());
                 }
                 try {
-					if (rebind) {
-						rebindConnectors(newConnectors, context, result);
-					}
-				} catch (ScriptExecutionException e) {
-					//noinspection ThrowableNotThrown
-					processActionException(e, NAME, value, context);		// TODO better message
-				}
+                    if (rebind) {
+                        rebindConnectors(newConnectors, context, result);
+                    }
+                } catch (ScriptExecutionException e) {
+                    //noinspection ThrowableNotThrown
+                    processActionException(e, NAME, value, context);        // TODO better message
+                }
             } else {
-				//noinspection ThrowableNotThrown
-				processActionException(new ScriptExecutionException("Input item is not a PrismObject<ConnectorHost>"), NAME, value, context);
+                //noinspection ThrowableNotThrown
+                processActionException(new ScriptExecutionException("Input item is not a PrismObject<ConnectorHost>"), NAME, value, context);
             }
             operationsHelper.trimAndCloneResult(result, globalResult, context);
         }
@@ -135,7 +127,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
                     ReferenceDelta refDelta = prismContext.deltaFactory().reference()
                             .createModificationReplace(ResourceType.F_CONNECTOR_REF, resource.getDefinition(), newOid);
                     ObjectDelta<ResourceType> objDelta = prismContext.deltaFactory().object()
-		                    .createModifyDelta(resource.getOid(), refDelta, ResourceType.class
+                            .createModifyDelta(resource.getOid(), refDelta, ResourceType.class
                             );
                     operationsHelper.applyDelta(objDelta, context, result);
                     context.println("Rebound " + msg);
@@ -164,18 +156,16 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
         for (PrismObject<ConnectorType> foundConnector : foundConnectors) {
             ConnectorType foundConnectorType = foundConnector.asObjectable();
             // TODO temporary hack. fix it after MID-3355 is implemented.
-            if (connectorType.getConnectorHost() != null) {
-            	if (foundConnectorType.getConnectorHost() == null) {
-            		connectorType.setConnectorHostRef(ObjectTypeUtil.createObjectRef(connectorType.getConnectorHost().getOid(), ObjectTypes.CONNECTOR_HOST));
-                	connectorType.setConnectorHost(null);
-            	}
-
+            if (connectorType.getConnectorHostRef() != null && connectorType.getConnectorHostRef().asReferenceValue().getObject() != null) {
+                String connectorHostOid = connectorType.getConnectorHostRef().getOid();
+                connectorType.getConnectorHostRef().asReferenceValue().setObject(null);
+                connectorType.getConnectorHostRef().setOid(connectorHostOid);
             }
             if (connectorType.getConnectorHostRef().equals(foundConnectorType.getConnectorHostRef()) &&
                     foundConnectorType.getConnectorVersion() != null &&
                     !foundConnectorType.getConnectorVersion().equals(connectorType.getConnectorVersion())) {
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Found obsolete connector: {}", foundConnectorType.asPrismObject().debugDump());
+                    LOGGER.trace("Found obsolete connector:\n{}", foundConnectorType.asPrismObject().debugDump(1));
                 }
                 rebindMap.put(foundConnectorType.getOid(), connectorType.getOid());
             }

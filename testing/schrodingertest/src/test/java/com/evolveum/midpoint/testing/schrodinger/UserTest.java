@@ -1,32 +1,31 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.testing.schrodinger;
 
+import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
+import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
+import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import static com.codeborne.selenide.Selenide.screenshot;
+import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class UserTest extends TestBase {
+public class UserTest extends AbstractSchrodingerTest {
+
+    private static final String LOCALIZATION_TEST_USER_NAME_ORIG = "localizationTestUserName";
+    private static final String LOCALIZATION_TEST_USER_NAME_DE = "localizationTestUserNameDe";
+    private static final String LOCALIZATION_VALUE = "de";
 
     @Test
     public void createUser() {
@@ -42,6 +41,21 @@ public class UserTest extends TestBase {
                 .and()
             .clickSave();
 
+        ListUsersPage usersPage = basicPage.listUsers();
+        PrismForm<AssignmentHolderBasicTab<UserPage>> userForm = usersPage
+                .table()
+                .search()
+                .byName()
+                .inputValue("jdoe222323")
+                .updateSearch()
+                .and()
+                .clickByName("jdoe222323")
+                .selectTabBasic()
+                .form();
+        Assert.assertTrue(userForm.compareInputAttributeValue("name", "jdoe222323"));
+        Assert.assertTrue(userForm.compareInputAttributeValue("givenName", "john"));
+        Assert.assertTrue(userForm.compareInputAttributeValue("familyName", "doe"));
+
 //        user.selectTabProjections().and()
 //            .selectTabPersonas().and()
 //            .selectTabAssignments().and()
@@ -50,10 +64,42 @@ public class UserTest extends TestBase {
 //            .selectTabDelegatedToMe().and()
         //@formatter:on
 
-        screenshot("create");
-
-        ListUsersPage users = user.listUsers();
-
-        // todo validation
     }
+
+    @Test //covers MID-5845
+    public void isLocalizedPolystringValueDisplayed(){
+        UserPage user = basicPage.newUser();
+
+        Assert.assertTrue(
+                user.selectTabBasic()
+                        .form()
+                        .addAttributeValue("name", LOCALIZATION_TEST_USER_NAME_ORIG)
+                        .setPolyStringLocalizedValue(UserType.F_NAME, LOCALIZATION_VALUE, LOCALIZATION_TEST_USER_NAME_DE)
+                        .and()
+                        .and()
+                        .clickSave()
+                        .feedback()
+                        .isSuccess()
+        );
+
+        basicPage.loggedUser().logout();
+        FormLoginPage loginPage = midPoint.formLogin();
+        loginPage.loginWithReloadLoginPage(getUsername(), getPassword(), LOCALIZATION_VALUE);
+
+        ListUsersPage usersPage = basicPage.listUsers();
+        Assert.assertTrue(
+                usersPage
+                        .table()
+                            .search()
+                            .byName()
+                            .inputValue(LOCALIZATION_TEST_USER_NAME_ORIG)
+                            .updateSearch()
+                        .and()
+                        .clickByName(LOCALIZATION_TEST_USER_NAME_ORIG)
+                            .selectTabBasic()
+                                .form()
+                                .compareInputAttributeValue("name", LOCALIZATION_TEST_USER_NAME_DE)
+        );
+    }
+
 }

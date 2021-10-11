@@ -1,23 +1,15 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.gui.impl.component;
 
 import java.util.Map.Entry;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -53,6 +45,16 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
 
             @Override
             public String getObject() {
+                return " position-relative ";
+            }
+        }));
+
+        add(AttributeAppender.append("class", new IModel<String>() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
                 return !AjaxCompositedIconButton.this.isEnabled() ? "disabled" : "";
             }
         }));
@@ -73,17 +75,26 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
 
         CompositedIcon icon = this.icon;
         if(icon.hasBasicIcon()) {
-        	sb.append("<i class=\"").append(icon.getBasicIcon()).append("\"");
-        	sb.append("></i> ");
+            sb.append("<i class=\"").append(icon.getBasicIcon()).append("\"");
+            if (icon.hasBasicIconHtmlColor()){
+                sb.append(" style=\"color: " + icon.getBasicIconHtmlColor() + ";\"");
+            }
+            sb.append("></i> ");
         }
 
         if(icon.hasLayerIcons()) {
-        	for(String entry : icon.getLayerIcons()) {
-        		if (StringUtils.isNotEmpty(entry)) {
-                    sb.append("<i class=\"").append(entry).append("\"");
+            for(IconType entry : icon.getLayerIcons()) {
+                if (entry == null){
+                    continue;
+                }
+                if (StringUtils.isNotEmpty(entry.getCssClass())) {
+                    sb.append("<i class=\"").append(entry.getCssClass()).append("\"");
+                    if (StringUtils.isNotEmpty(entry.getColor())) {
+                        sb.append(" style=\"color: ").append(entry.getColor()).append(";\"");
+                    }
                     sb.append("></i> ");
                 }
-        	}
+            }
         }
 
         replaceComponentTagBody(markupStream, openTag, sb.toString());

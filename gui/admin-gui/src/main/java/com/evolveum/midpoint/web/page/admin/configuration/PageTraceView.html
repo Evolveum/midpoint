@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+    <form wicket:id="mainForm" class="form-inline" role="form">
+
+        <div class="container-fluid">
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group" style="margin-bottom: 5px; width:100%">
+                        <label for="clockworkExecution" class="col-xs-3"><wicket:message key="PageTraceView.clockworkExecution"/></label>
+                        <div id="clockworkExecution" wicket:id="clockworkExecution"></div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 5px; width:100%">
+                        <label for="clockworkClick" class="col-xs-3"><wicket:message key="PageTraceView.clockworkClick"/></label>
+                        <div id="clockworkClick" wicket:id="clockworkClick"></div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 5px; width:100%">
+                        <label for="mappingEvaluation" class="col-xs-3"><wicket:message key="PageTraceView.mappingEvaluation"/></label>
+                        <div id="mappingEvaluation" wicket:id="mappingEvaluation"></div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 5px; width:100%">
+                        <label for="focusLoad" class="col-xs-3"><wicket:message key="PageTraceView.focusLoad"/></label>
+                        <div id="focusLoad" wicket:id="focusLoad"></div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 5px; width:100%">
+                        <label for="projectionLoad" class="col-xs-3"><wicket:message key="PageTraceView.projectionLoad"/></label>
+                        <div id="projectionLoad" wicket:id="projectionLoad"></div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 5px; width:100%">
+                        <label for="focusChange" class="col-xs-3"><wicket:message key="PageTraceView.focusChange"/></label>
+                        <div id="focusChange" wicket:id="focusChange"></div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 5px; width:100%">
+                        <label for="projectionChange" class="col-xs-3"><wicket:message key="PageTraceView.projectionChange"/></label>
+                        <div id="projectionChange" wicket:id="projectionChange"></div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 5px; width:100%">
+                        <label for="others" class="col-xs-3"><wicket:message key="PageTraceView.others"/></label>
+                        <div id="others" wicket:id="others"></div>
+                    </div>
+                    <div class="main-button-bar">
+                        <a class="btn btn-primary" wicket:id="show"/> &nbsp;&nbsp;<wicket:message key="PageTraceView.note"/>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="col-md-12">
+                        <input wicket:id="showInvocationId" type="checkbox" name="optionsRadios">
+                        <wicket:message key="PageTraceView.showInvocationId"/>
+                    </label>
+                    <label class="col-md-12">
+                        <input wicket:id="showDurationBefore" type="checkbox" name="optionsRadios">
+                        <wicket:message key="PageTraceView.showDurationBefore"/>
+                    </label>
+                    <label class="col-md-12">
+                        <input wicket:id="showDurationAfter" type="checkbox" name="optionsRadios">
+                        <wicket:message key="PageTraceView.showDurationAfter"/>
+                    </label>
+                    <label class="col-md-12">
+                        <input wicket:id="showRepoOpCount" type="checkbox" name="optionsRadios">
+                        <wicket:message key="PageTraceView.showRepoOpCount"/>
+                    </label>
+                    <label class="col-md-12">
+                        <input wicket:id="showConnIdOpCount" type="checkbox" name="optionsRadios">
+                        <wicket:message key="PageTraceView.showConnIdOpCount"/>
+                    </label>
+                    <label class="col-md-12">
+                        <input wicket:id="showRepoOpTime" type="checkbox" name="optionsRadios">
+                        <wicket:message key="PageTraceView.showRepoOpTime"/>
+                    </label>
+                    <label class="col-md-12">
+                        <input wicket:id="showConnIdOpTime" type="checkbox" name="optionsRadios">
+                        <wicket:message key="PageTraceView.showConnIdOpTime"/>
+                    </label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <h3 wicket:id="resultLabel"/>
+                    <textarea wicket:id="resultText"></textarea>
+                    <wicket:message key="PageTraceView.forMoreInformation"/>
+                </div>
+            </div>
+        </div>
+    </form>
+
+</wicket:extend>
+</body>
+</html>

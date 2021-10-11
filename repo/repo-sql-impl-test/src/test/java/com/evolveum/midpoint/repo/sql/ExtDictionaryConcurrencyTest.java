@@ -1,51 +1,39 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import javax.xml.namespace.QName;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ExtDictionaryConcurrencyTest extends BaseSQLRepoTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(ExtDictionaryConcurrencyTest.class);
 
     private static final String NAMESPACE = "http://concurrency";
 
@@ -68,19 +56,16 @@ public class ExtDictionaryConcurrencyTest extends BaseSQLRepoTest {
         }
 
         ExecutorService executors = Executors.newFixedThreadPool(workers.length * 2);
-//        for (int i = 0; i < WORKER_COUNT; i++) {
-//            executors.execute(new SelectWorker(this));
-//        }
 
         for (int i = 1; i <= 300; i++) {
-            List<Future> futures = new ArrayList<>();
+            List<Future<?>> futures = new ArrayList<>();
             for (Worker worker : workers) {
                 worker.setIndex(i);
 
                 futures.add(executors.submit(worker));
             }
 
-            for (Future f : futures) {
+            for (Future<?> f : futures) {
                 f.get();
             }
 
@@ -92,35 +77,7 @@ public class ExtDictionaryConcurrencyTest extends BaseSQLRepoTest {
         executors.shutdownNow();
     }
 
-//    private static class SelectWorker<T extends ObjectType> implements Runnable {
-//
-//        private ExtDictionaryConcurrencyTest test;
-//
-//        public SelectWorker(ExtDictionaryConcurrencyTest test) {
-//            this.test = test;
-//        }
-//
-//        @Override
-//        public void run() {
-//            try {
-//                OperationResult result = new OperationResult("search");
-//
-//                SchemaRegistry registry = test.prismContext.getSchemaRegistry();
-//
-//                ObjectQuery query = ObjectQuery.createObjectQuery(
-//                        SubstringFilter.createSubstring(
-//                                .path(UserType.F_NAME),
-//                                registry.findComplexTypeDefinitionByCompileTimeClass(UserType.class).findPropertyDefinition(UserType.F_NAME),
-//                                test.prismContext, null, "worker", false, false));
-//                List<PrismObject<UserType>> res = test.repositoryService.searchObjects(UserType.class, query, new ArrayList<>(), result);
-//                LOGGER.info("Found {} users", res.size());
-//            } catch (Exception ex) {
-//                LOGGER.error("Search exception", ex);
-//            }
-//        }
-//    }
-
-    private static class Worker<T extends ObjectType> implements Runnable {
+    private class Worker<T extends ObjectType> implements Runnable {
 
         private ExtDictionaryConcurrencyTest test;
 
@@ -130,7 +87,7 @@ public class ExtDictionaryConcurrencyTest extends BaseSQLRepoTest {
         private int index;
 
         public Worker(ExtDictionaryConcurrencyTest test, Class<T> type,
-                      String oid, String attribute) {
+                String oid, String attribute) {
             this.test = test;
             this.type = type;
             this.oid = oid;
@@ -143,14 +100,13 @@ public class ExtDictionaryConcurrencyTest extends BaseSQLRepoTest {
 
         @Override
         public void run() {
-            LOGGER.info("Starting for oid {} index {}", oid, index);
+            logger.info("Starting for oid {} index {}", oid, index);
 
             OperationResult result = new OperationResult("Test: " + attribute + index);
             try {
                 ItemPath path = ItemPath.create(UserType.F_EXTENSION, new QName(NAMESPACE, attribute + index));
-//                ItemPath path = ItemPath.create(UserType.F_DESCRIPTION);
                 ObjectDelta delta = test.prismContext.deltaFactory().object().createModificationAddProperty(type, oid, path,
-		                attribute + index);
+                        attribute + index);
 
                 test.repositoryService.modifyObject(type, oid, delta.getModifications(), result);
 
@@ -158,14 +114,14 @@ public class ExtDictionaryConcurrencyTest extends BaseSQLRepoTest {
                 String ps = (String) obj.getPropertyRealValue(path, String.class);
                 AssertJUnit.assertEquals(attribute + index, ps);
             } catch (Exception ex) {
-                LOGGER.error("Exception", ex);
+                logger.error("Exception", ex);
                 ex.printStackTrace();
                 AssertJUnit.fail(ex.getMessage());
             } finally {
                 result.computeStatus();
             }
 
-            LOGGER.info("Finished for oid {} index {}", oid, index);
+            logger.info("Finished for oid {} index {}", oid, index);
         }
     }
 }

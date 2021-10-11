@@ -1,20 +1,23 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections.map.HashedMap;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Fragment;
+
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -26,18 +29,10 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import org.apache.commons.collections.map.HashedMap;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.panel.Fragment;
-
-import javax.xml.namespace.QName;
-import java.util.*;
 
 /**
  * Created by honchar
@@ -66,9 +61,9 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
         relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, null,
                 getPredefinedRelation() != null ? Arrays.asList(getPredefinedRelation()) : getSupportedRelations(), false));
     }
-    
+
     protected List<QName> getSupportedRelations() {
-    	return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getPageBase());
+        return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getPageBase());
     }
 
     protected QName getPredefinedRelation(){
@@ -112,7 +107,7 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     }
 
     protected boolean isInducement(){
-        ContainerWrapper<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
+        PrismContainerWrapper<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
         if (assignmentWrapper != null && assignmentWrapper.getPath() != null && assignmentWrapper.getPath().containsNameExactly(AbstractRoleType.F_INDUCEMENT)){
             return true;
         }
@@ -120,18 +115,18 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     }
 
     protected <O extends FocusType> PrismObject<O> getTargetedAssignemntObject() {
-        ContainerWrapper<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
+        PrismContainerWrapper<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
         if (assignmentWrapper == null){
             return null;
         }
-        ObjectWrapper<O> w = assignmentWrapper.getObjectWrapper();
+        PrismObjectWrapper<O> w = (PrismObjectWrapper<O>) assignmentWrapper.getParent().getParent();
         if (w == null) {
             return null;
         }
         return w.getObject();
     }
 
-    protected ContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
+    protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
         return null;
     }
 

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql;
@@ -39,6 +30,7 @@ public class DataSourceFactory {
 
     private SqlRepositoryConfiguration configuration;
 
+    private DataSource internalDataSource;
     private DataSource dataSource;
 
     public SqlRepositoryConfiguration getConfiguration() {
@@ -57,24 +49,27 @@ public class DataSourceFactory {
 
         try {
             if (StringUtils.isNotEmpty(configuration.getDataSource())) {
-                LOGGER.info("JDNI datasource present in configuration, looking for '{}'.",
-                        new Object[]{configuration.getDataSource()});
-                return createJNDIDataSource();
+                LOGGER.info("JNDI datasource present in configuration, looking for '{}'.", configuration.getDataSource());
+                dataSource = createJNDIDataSource();
+            } else {
+                LOGGER.info("Constructing default datasource with connection pooling; JDBC URL: {}", configuration.getJdbcUrl());
+                internalDataSource = createDataSourceInternal();
+                dataSource = internalDataSource;
             }
-
-            LOGGER.info("Constructing default datasource with connection pooling; JDBC URL: {}", configuration.getJdbcUrl());
-            dataSource = createDataSourceInternal();
             return dataSource;
         } catch (Exception ex) {
             throw new RepositoryServiceFactoryException("Couldn't initialize datasource, reason: " + ex.getMessage(), ex);
         }
     }
 
+    public DataSource getDataSource() {
+        return dataSource;
+    }
+
     private DataSource createJNDIDataSource() throws IllegalArgumentException, NamingException {
         JndiObjectFactoryBean factory = new JndiObjectFactoryBean();
         factory.setJndiName(configuration.getDataSource());
         factory.afterPropertiesSet();
-
         return (DataSource) factory.getObject();
     }
 
@@ -90,6 +85,14 @@ public class DataSourceFactory {
 
         config.setMinimumIdle(configuration.getMinPoolSize());
         config.setMaximumPoolSize(configuration.getMaxPoolSize());
+
+        if (configuration.getMaxLifetime() != null) {
+            config.setMaxLifetime(configuration.getMaxLifetime());
+        }
+
+        if (configuration.getIdleTimeout() != null) {
+            config.setIdleTimeout(configuration.getIdleTimeout());
+        }
 
         config.setIsolateInternalQueries(true);
 //        config.setAutoCommit(false);
@@ -127,8 +130,8 @@ public class DataSourceFactory {
 
     @PreDestroy
     public void destroy() throws IOException {
-        if (dataSource instanceof Closeable) {
-            ((Closeable) dataSource).close();
+        if (internalDataSource instanceof Closeable) {
+            ((Closeable) internalDataSource).close();
         }
     }
 }

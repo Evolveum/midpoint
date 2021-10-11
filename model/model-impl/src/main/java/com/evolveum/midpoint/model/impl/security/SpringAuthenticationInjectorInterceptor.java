@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.security;
 
@@ -22,6 +13,8 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.binding.soap.SoapMessage;
@@ -37,14 +30,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.model.api.authentication.UserProfileService;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.MidPointPrincipalManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -65,29 +56,27 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseTy
  */
 public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor<SoapMessage> {
 
-	private static final String OPERATION_AUTHORIZATION = SpringAuthenticationInjectorInterceptor.class.getName() + ".authorization";
-	
-	private static final Trace LOGGER = TraceManager.getTrace(SpringAuthenticationInjectorInterceptor.class);
+    private static final String OPERATION_AUTHORIZATION = SpringAuthenticationInjectorInterceptor.class.getName() + ".authorization";
+
+    private static final Trace LOGGER = TraceManager.getTrace(SpringAuthenticationInjectorInterceptor.class);
 
     private String phase;
     private Set<String> before = new HashSet<>();
     private Set<String> after = new HashSet<>();
     private String id;
 
-    private UserProfileService userDetailsService;
+    private GuiProfiledPrincipalManager guiProfiledPrincipalManager;
     private SecurityEnforcer securityEnforcer;
-	private SecurityHelper securityHelper;
-	private ActivationComputer activationComputer;
-	private TaskManager taskManager;
+    private SecurityHelper securityHelper;
+    private TaskManager taskManager;
 
-    public SpringAuthenticationInjectorInterceptor(UserProfileService userDetailsService,
-    		SecurityEnforcer securityEnforcer, SecurityHelper securityHelper, ActivationComputer activationComputer,
-    		TaskManager taskManager) {
+    public SpringAuthenticationInjectorInterceptor(GuiProfiledPrincipalManager guiProfiledPrincipalManager,
+                                                   SecurityEnforcer securityEnforcer, SecurityHelper securityHelper,
+                                                   TaskManager taskManager) {
         super();
-        this.userDetailsService = userDetailsService;
+        this.guiProfiledPrincipalManager = guiProfiledPrincipalManager;
         this.securityEnforcer = securityEnforcer;
         this.securityHelper = securityHelper;
-        this.activationComputer = activationComputer;
         this.taskManager = taskManager;
         id = getClass().getName();
         phase = Phase.PRE_PROTOCOL;
@@ -123,11 +112,11 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
     public void handleMessage(SoapMessage message) throws Fault {
         //Note: in constructor we have specified that we will be called after we have been successfully authenticated the user through WS-Security
         //Now we will only set the Spring Authentication object based on the user found in the header
-    	LOGGER.trace("Intercepted message: {}", message);
+        LOGGER.trace("Intercepted message: {}", message);
         SOAPMessage saajSoapMessage = securityHelper.getSOAPMessage(message);
         if (saajSoapMessage == null) {
-        	LOGGER.error("No soap message in handler");
-        	throw createFault(WSSecurityException.ErrorCode.FAILURE);
+            LOGGER.error("No soap message in handler");
+            throw createFault(WSSecurityException.ErrorCode.FAILURE);
         }
         ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
         String username = null;
@@ -136,98 +125,98 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
             LOGGER.trace("Attempt to authenticate user '{}'", username);
 
             if (StringUtils.isBlank(username)) {
-            	message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-            	securityHelper.auditLoginFailure(username, null, connEnv, "Empty username");
-            	throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
+                message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
+                securityHelper.auditLoginFailure(username, null, connEnv, "Empty username");
+                throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
             }
 
             MidPointPrincipal principal = null;
             try {
-            	principal = userDetailsService.getPrincipal(username);
+                principal = guiProfiledPrincipalManager.getPrincipal(username, UserType.class);
             } catch (SchemaException e) {
-            	handlePrincipalException(message, username, connEnv, "Schema error", e);
-			} catch (CommunicationException e) {
-				handlePrincipalException(message, username, connEnv, "Communication error", e);
-			} catch (ConfigurationException e) {
-				handlePrincipalException(message, username, connEnv, "Configuration error", e);
-			} catch (SecurityViolationException e) {
-				handlePrincipalException(message, username, connEnv, "Security violation", e);
-			} catch (ExpressionEvaluationException e) {
-				handlePrincipalException(message, username, connEnv, "Expression error", e);
-			}
-        	LOGGER.trace("Principal: {}", principal);
-        	if (principal == null) {
-        		message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-        		securityHelper.auditLoginFailure(username, null, connEnv, "No user");
-            	throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
-        	}
+                handlePrincipalException(message, username, connEnv, "Schema error", e);
+            } catch (CommunicationException e) {
+                handlePrincipalException(message, username, connEnv, "Communication error", e);
+            } catch (ConfigurationException e) {
+                handlePrincipalException(message, username, connEnv, "Configuration error", e);
+            } catch (SecurityViolationException e) {
+                handlePrincipalException(message, username, connEnv, "Security violation", e);
+            } catch (ExpressionEvaluationException e) {
+                handlePrincipalException(message, username, connEnv, "Expression error", e);
+            }
+            LOGGER.trace("Principal: {}", principal);
+            if (principal == null) {
+                message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
+                securityHelper.auditLoginFailure(username, null, connEnv, "No user");
+                throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
+            }
 
-        	// Account validity and credentials and all this stuff should be already checked
-        	// in the password callback
+            // Account validity and credentials and all this stuff should be already checked
+            // in the password callback
 
             Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             String operationName;
-			try {
-				operationName = DOMUtil.getFirstChildElement(saajSoapMessage.getSOAPBody()).getLocalName();
-			} catch (SOAPException e) {
-				LOGGER.debug("Access to web service denied for user '{}': SOAP error: {}",
-						username, e.getMessage(), e);
-				message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-				securityHelper.auditLoginFailure(username, principal.getUser(), connEnv, "SOAP error: "+e.getMessage());
-				throw new Fault(e);
-			}
+            try {
+                operationName = DOMUtil.getFirstChildElement(saajSoapMessage.getSOAPBody()).getLocalName();
+            } catch (SOAPException e) {
+                LOGGER.debug("Access to web service denied for user '{}': SOAP error: {}",
+                        username, e.getMessage(), e);
+                message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
+                securityHelper.auditLoginFailure(username, principal.getFocus(), connEnv, "SOAP error: "+e.getMessage());
+                throw new Fault(e);
+            }
 
-			// AUTHORIZATION
-			
-			Task task = taskManager.createTaskInstance(OPERATION_AUTHORIZATION);
-			OperationResult result = task.getResult();
+            // AUTHORIZATION
 
-			boolean isAuthorized;
-			try {
-				isAuthorized = securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_WS_ALL_URL, AuthorizationPhaseType.REQUEST, AuthorizationParameters.EMPTY, null, task, result);
-				LOGGER.trace("Determined authorization for web service access (action: {}): {}", AuthorizationConstants.AUTZ_WS_ALL_URL, isAuthorized);
-			} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-				LOGGER.debug("Access to web service denied for user '{}': internal error: {}",
-						username, e.getMessage(), e);
-				message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-				securityHelper.auditLoginFailure(username, principal.getUser(), connEnv, "Schema error: "+e.getMessage());
-				throw createFault(WSSecurityException.ErrorCode.FAILURE);
-			}
-			if (!isAuthorized) {
-	            String action = QNameUtil.qNameToUri(new QName(AuthorizationConstants.NS_AUTHORIZATION_WS, operationName));
-				try {
-					isAuthorized = securityEnforcer.isAuthorized(action, AuthorizationPhaseType.REQUEST, AuthorizationParameters.EMPTY, null, task, result);
-					LOGGER.trace("Determined authorization for web service operation {} (action: {}): {}", operationName, action, isAuthorized);
-				} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-					LOGGER.debug("Access to web service denied for user '{}': schema error: {}",
-							username, e.getMessage(), e);
-					message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-					securityHelper.auditLoginFailure(username, principal.getUser(), connEnv, "Internal error: "+e.getMessage());
-					throw createFault(WSSecurityException.ErrorCode.FAILURE);
-				}
-			}
+            Task task = taskManager.createTaskInstance(OPERATION_AUTHORIZATION);
+            OperationResult result = task.getResult();
+
+            boolean isAuthorized;
+            try {
+                isAuthorized = securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_WS_ALL_URL, AuthorizationPhaseType.REQUEST, AuthorizationParameters.EMPTY, null, task, result);
+                LOGGER.trace("Determined authorization for web service access (action: {}): {}", AuthorizationConstants.AUTZ_WS_ALL_URL, isAuthorized);
+            } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+                LOGGER.debug("Access to web service denied for user '{}': internal error: {}",
+                        username, e.getMessage(), e);
+                message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
+                securityHelper.auditLoginFailure(username, principal.getFocus(), connEnv, "Schema error: "+e.getMessage());
+                throw createFault(WSSecurityException.ErrorCode.FAILURE);
+            }
             if (!isAuthorized) {
-            	LOGGER.debug("Access to web service denied for user '{}': not authorized", username);
-            	message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-            	securityHelper.auditLoginFailure(username, principal.getUser(), connEnv, "Not authorized");
-            	throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
+                String action = QNameUtil.qNameToUri(new QName(AuthorizationConstants.NS_AUTHORIZATION_WS, operationName));
+                try {
+                    isAuthorized = securityEnforcer.isAuthorized(action, AuthorizationPhaseType.REQUEST, AuthorizationParameters.EMPTY, null, task, result);
+                    LOGGER.trace("Determined authorization for web service operation {} (action: {}): {}", operationName, action, isAuthorized);
+                } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+                    LOGGER.debug("Access to web service denied for user '{}': schema error: {}",
+                            username, e.getMessage(), e);
+                    message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
+                    securityHelper.auditLoginFailure(username, principal.getFocus(), connEnv, "Internal error: "+e.getMessage());
+                    throw createFault(WSSecurityException.ErrorCode.FAILURE);
+                }
+            }
+            if (!isAuthorized) {
+                LOGGER.debug("Access to web service denied for user '{}': not authorized", username);
+                message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
+                securityHelper.auditLoginFailure(username, principal.getFocus(), connEnv, "Not authorized");
+                throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
             }
 
         } catch (WSSecurityException e) {
-        	LOGGER.debug("Access to web service denied for user '{}': security exception: {}",
-					username, e.getMessage(), e);
-        	message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-        	securityHelper.auditLoginFailure(username, null, connEnv, "Security exception: "+e.getMessage());
+            LOGGER.debug("Access to web service denied for user '{}': security exception: {}",
+                    username, e.getMessage(), e);
+            message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
+            securityHelper.auditLoginFailure(username, null, connEnv, "Security exception: "+e.getMessage());
             throw new Fault(e, e.getFaultCode());
         } catch (ObjectNotFoundException e) {
-        	LOGGER.debug("Access to web service denied for user '{}': object not found: {}",
-					username, e.getMessage(), e);
-        	message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-        	securityHelper.auditLoginFailure(username, null, connEnv, "No user");
+            LOGGER.debug("Access to web service denied for user '{}': object not found: {}",
+                    username, e.getMessage(), e);
+            message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
+            securityHelper.auditLoginFailure(username, null, connEnv, "No user");
             throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
-		}
+        }
 
         // Avoid auditing login attempt again if the operation fails on internal authorization
         message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
@@ -236,20 +225,20 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
     }
 
     private void handlePrincipalException(SoapMessage message, String username, ConnectionEnvironment connEnv, String errorDesc, Exception e) {
-    	LOGGER.debug("Access to web service denied for user '{}': {}: {}",
-				username, errorDesc, e.getMessage(), e);
-		message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-		securityHelper.auditLoginFailure(username, null, connEnv, errorDesc + ": " + e.getMessage());
-		throw new Fault(e);
-	}
+        LOGGER.debug("Access to web service denied for user '{}': {}: {}",
+                username, errorDesc, e.getMessage(), e);
+        message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
+        securityHelper.auditLoginFailure(username, null, connEnv, errorDesc + ": " + e.getMessage());
+        throw new Fault(e);
+    }
 
-	private Fault createFault(ErrorCode code) {
-    	return new Fault(new WSSecurityException(code), code.getQName());
-	}
+    private Fault createFault(ErrorCode code) {
+        return new Fault(new WSSecurityException(code), code.getQName());
+    }
 
-	@Override
+    @Override
     public void handleFault(SoapMessage message) {
-    	// Nothing to do
+        // Nothing to do
     }
 
 }

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.search;
@@ -63,8 +54,8 @@ import javax.xml.namespace.QName;
  */
 public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchItem<T>> {
 
-	private static final long serialVersionUID = 1L;
-	
+    private static final long serialVersionUID = 1L;
+
     private static final Trace LOG = TraceManager.getTrace(SearchItemPanel.class);
 
     private static final String ID_MAIN_BUTTON = "mainButton";
@@ -101,9 +92,9 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
     private void initLayout() {
         popoverModel = new LoadableModel<SearchItemPopoverDto<T>>(false) {
 
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             protected SearchItemPopoverDto<T> load() {
                 return loadPopoverItems();
             }
@@ -111,8 +102,8 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 
         AjaxLink<Void> mainButton = new AjaxLink<Void>(ID_MAIN_BUTTON) {
 
-        	private static final long serialVersionUID = 1L;
-        	
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 editPerformed(target);
@@ -128,15 +119,15 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 
            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             public void onClick(AjaxRequestTarget target) {
                 deletePerformed(target);
             }
         };
         mainButton.add(deleteButton);
         deleteButton.add(new VisibleEnableBehaviour() {
-        	
-        	private static final long serialVersionUID = 1L;
+
+            private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -152,7 +143,7 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 
         SearchItem<T> item = getModelObject();
         for (DisplayableValue<T> value : item.getValues()) {
-        	//TODO : what if null reference
+            //TODO : what if null reference
             DisplayableValue<T> itemValue = new SearchValue<T>(value.getValue(), value.getLabel());
             dto.getValues().add(itemValue);
         }
@@ -176,14 +167,14 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         ListView<DisplayableValue<T>> values = new ListView<DisplayableValue<T>>(ID_VALUES,
             new PropertyModel<>(popoverModel, SearchItem.F_VALUES)) {
 
-        	private static final long serialVersionUID = 1L;
-        	
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected void populateItem(final ListItem<DisplayableValue<T>> item) {
                 item.add(AttributeModifier.replace("style", new IModel<String>() {
 
-                	private static final long serialVersionUID = 1L;
-                	
+                    private static final long serialVersionUID = 1L;
+
                     @Override
                     public String getObject() {
                         return item.getIndex() != 0 ? "margin-top: 5px;" : null;
@@ -201,7 +192,7 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 
             private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             protected void onSubmit(AjaxRequestTarget target) {
                 updateItemPerformed(target);
             }
@@ -209,8 +200,8 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         popoverBody.add(update);
 
         AjaxButton close = new AjaxButton(ID_CLOSE, createStringResource("SearchItemPanel.close")) {
-        	
-        	private static final long serialVersionUID = 1L;
+
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -227,25 +218,25 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         IModel<List<DisplayableValue<T>>> choices = null;
 
         switch (item.getType()) {
-        	case REFERENCE:
-        		return (SearchPopupPanel) new ReferencePopupPanel(ID_VALUE, (IModel) data) {
-        			
-        			private static final long serialVersionUID = 1L;
+            case REFERENCE:
+                return (SearchPopupPanel) new ReferencePopupPanel(ID_VALUE, (IModel) data) {
 
-					@Override
-        			protected List<QName> getAllowedRelations() {
-						if (item.getAllowedRelations() != null) {
-							return item.getAllowedRelations();
-						}
-        				return super.getAllowedRelations();
-        			}
-					
-					@Override
-					protected List<QName> getSupportedTargetList() {
-						return WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) item.getDefinition()).getTargetTypeName());
-					}
-        		};
-//        		break;
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected List<QName> getAllowedRelations() {
+                        if (item.getAllowedRelations() != null) {
+                            return item.getAllowedRelations();
+                        }
+                        return super.getAllowedRelations();
+                    }
+
+                    @Override
+                    protected List<QName> getSupportedTargetList() {
+                        return WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) item.getDefinition()).getTargetTypeName());
+                    }
+                };
+//                break;
 //            case BROWSER:
 //                popup = new BrowserPopupPanel(ID_VALUE, data);
 //                break;
@@ -283,12 +274,12 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
     }
 
     private IModel<List<DisplayableValue<Boolean>>> createBooleanChoices() {
-    	
+
         return new IModel<List<DisplayableValue<Boolean>>>() {
 
            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             public List<DisplayableValue<Boolean>> getObject() {
                 List<DisplayableValue<Boolean>> list = new ArrayList<>();
                 list.add(new SearchValue<>(Boolean.TRUE, getString("Boolean.TRUE")));
@@ -302,8 +293,8 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
     private IModel<String> createLabelModel() {
         return new IModel<String>() {
 
-        	private static final long serialVersionUID = 1L;
-        	
+            private static final long serialVersionUID = 1L;
+
             @Override
             public String getObject() {
                 SearchItem<T> item = getModelObject();
@@ -387,13 +378,13 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
     void updatePopupBody(AjaxRequestTarget target) {
         target.add(get(createComponentPath(ID_POPOVER, ID_POPOVER_BODY)));
     }
-    
+
     public boolean isReferenceDefinition() {
-    	SearchItem<T> searchItem = getModelObject();
-    	if (searchItem == null) {
-    		return false;
-    	}
-    	
-    	return searchItem.getDefinition() instanceof PrismReferenceDefinition;
+        SearchItem<T> searchItem = getModelObject();
+        if (searchItem == null) {
+            return false;
+        }
+
+        return searchItem.getDefinition() instanceof PrismReferenceDefinition;
     }
 }

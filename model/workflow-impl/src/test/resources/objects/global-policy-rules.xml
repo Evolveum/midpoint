@@ -1,0 +1,148 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+
+    <globalPolicyRule>
+        <name>all-operations</name>
+        <policyConstraints>
+            <modification/>
+        </policyConstraints>
+        <policyActions>
+            <approval>
+                <name>approve-by-owner</name>
+                <compositionStrategy>
+                    <order>10</order>
+                </compositionStrategy>
+                <approvalSchema>
+                    <stage>
+                        <approverRelation>owner</approverRelation>     <!-- intentionally no namespace -->
+                        <outcomeIfNoApprovers>approve</outcomeIfNoApprovers>
+                    </stage>
+                </approvalSchema>
+            </approval>
+        </policyActions>
+        <focusSelector>
+            <type>RoleType</type>
+        </focusSelector>
+    </globalPolicyRule>
+
+    <globalPolicyRule>
+        <name>all-high-risk-roles-operations</name>
+        <policyConstraints>
+            <modification/>
+        </policyConstraints>
+        <policyActions>
+            <approval>
+                <name>approve-by-administrator</name>
+                <compositionStrategy>
+                    <order>30</order>
+                </compositionStrategy>
+                <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>  <!-- administrator -->
+            </approval>
+        </policyActions>
+        <focusSelector>
+            <type>RoleType</type>
+            <filter>
+                <q:equal>
+                    <q:path>riskLevel</q:path>
+                    <q:value>high</q:value>
+                </q:equal>
+            </filter>
+        </focusSelector>
+    </globalPolicyRule>
+
+    <globalPolicyRule>
+        <name>all-additions</name>
+        <policyConstraints>
+            <modification>
+                <operation>add</operation>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <approval>
+                <compositionStrategy>
+                    <order>20</order>
+                </compositionStrategy>
+                <approverRef oid="9ab1cabd-2455-490e-9844-79dfa3efa849" type="UserType"/>    <!-- jupiter -->
+            </approval>
+        </policyActions>
+        <focusSelector>
+            <type>RoleType</type>
+        </focusSelector>
+    </globalPolicyRule>
+
+    <globalPolicyRule>
+        <name>modification-of-risk-level</name>
+        <policyConstraints>
+            <modification>
+                <presentation>
+                    <shortMessage>
+                        <fallbackMessage>Setting riskLevel</fallbackMessage>
+                    </shortMessage>
+                </presentation>
+                <operation>add</operation>
+                <operation>modify</operation>
+                <item>riskLevel</item>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <approval>
+                <processSpecification>
+                    <deltaFrom>
+                        <item>riskLevel</item>
+                    </deltaFrom>
+                    <includeAction>approve-by-owner</includeAction>
+                    <includeAction>approve-by-administrator</includeAction>
+                </processSpecification>
+                <compositionStrategy>
+                    <order>100</order>
+                </compositionStrategy>
+                <approverRef oid="f96a5e37-dbe4-4882-b536-7c15c74d1dbc" type="UserType"/>    <!-- peter -->
+            </approval>
+        </policyActions>
+        <focusSelector>
+            <type>RoleType</type>
+        </focusSelector>
+    </globalPolicyRule>
+
+    <globalPolicyRule>
+        <name>modification-of-inducements</name>
+        <policyConstraints>
+            <presentation>
+                <shortMessage>
+                    <fallbackMessage>Changing inducement</fallbackMessage>
+                </shortMessage>
+            </presentation>
+            <modification>
+                <operation>add</operation>
+                <operation>modify</operation>
+                <item>inducement</item>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <approval>
+                <processSpecification>
+                    <deltaFrom>
+                        <itemValue>inducement</itemValue>
+                    </deltaFrom>
+                    <includeAction>approve-by-administrator</includeAction>
+                </processSpecification>
+                <compositionStrategy>
+                    <order>100</order>
+                </compositionStrategy>
+                <approverRef oid="44d37c0a-8ec6-4540-b8f1-f022fd5a19ef" type="UserType"/>    <!-- bob -->
+            </approval>
+        </policyActions>
+        <focusSelector>
+            <type>RoleType</type>
+        </focusSelector>
+    </globalPolicyRule>
+
+</systemConfiguration>

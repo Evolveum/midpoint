@@ -1,33 +1,28 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.task.quartzimpl.cluster;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeOperationalStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,7 +36,7 @@ import java.util.List;
  */
 public class ClusterManager {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ClusterManager.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ClusterManager.class);
 
     private static final String CLASS_DOT = ClusterManager.class.getName() + ".";
     private static final String CHECK_SYSTEM_CONFIGURATION_CHANGED = CLASS_DOT + "checkSystemConfigurationChanged";
@@ -53,20 +48,20 @@ public class ClusterManager {
     private ClusterManagerThread clusterManagerThread;
 
     private static boolean updateNodeExecutionLimitations = true;           // turned off when testing
-    
+
     public ClusterManager(TaskManagerQuartzImpl taskManager) {
         this.taskManager = taskManager;
         this.nodeRegistrar = new NodeRegistrar(taskManager, this);
     }
 
-	public static void setUpdateNodeExecutionLimitations(boolean value) {
-		updateNodeExecutionLimitations = value;
-	}
+    public static void setUpdateNodeExecutionLimitations(boolean value) {
+        updateNodeExecutionLimitations = value;
+    }
 
-	/**
+    /**
      * Verifies cluster consistency (currently checks whether there is no other node with the same ID,
-	 * and whether clustered/non-clustered nodes are OK).
-	 *
+     * and whether clustered/non-clustered nodes are OK).
+     *
      * @return Current node record from repository, if everything is OK. Otherwise returns null.
      */
     @Nullable
@@ -109,17 +104,29 @@ public class ClusterManager {
         return nodeRegistrar.verifyNodeObject(result);
     }
 
-    public boolean isUp(NodeType nodeType) {
-        return nodeRegistrar.isUp(nodeType);
+    public boolean isUpAndAlive(NodeType nodeType) {
+        return nodeRegistrar.isUpAndAlive(nodeType);
+    }
+
+    public boolean isCheckingIn(NodeType nodeType) {
+        return nodeRegistrar.isCheckingIn(nodeType);
+    }
+
+    public void registerNodeUp(OperationResult result) {
+        LOGGER.info("Registering the node as started");
+        nodeRegistrar.registerNodeUp(result);
     }
 
     class ClusterManagerThread extends Thread {
 
-        boolean canRun = true;
+        private boolean canRun = true;
 
         @Override
         public void run() {
             LOGGER.info("ClusterManager thread starting.");
+
+            long nodeAlivenessCheckInterval = taskManager.getConfiguration().getNodeAlivenessCheckInterval() * 1000L;
+            long lastNodeAlivenessCheck = 0;
 
             long delay = taskManager.getConfiguration().getNodeRegistrationCycleTime() * 1000L;
             while (canRun) {
@@ -131,8 +138,8 @@ public class ClusterManager {
 
                     // these checks are separate in order to prevent a failure in one method blocking execution of others
                     try {
-                        NodeType node = checkClusterConfiguration(result);         				     // if error, the scheduler will be stopped
-                        if (updateNodeExecutionLimitations) {
+                        NodeType node = checkClusterConfiguration(result);                              // if error, the scheduler will be stopped
+                        if (updateNodeExecutionLimitations && node != null) {
                             taskManager.getExecutionManager().setLocalExecutionLimitations(node);    // we want to set limitations ONLY if the cluster configuration passes (i.e. node object is not inadvertently overwritten)
                         }
                         nodeRegistrar.updateNodeObject(result);    // however, we want to update repo even in that case
@@ -152,6 +159,15 @@ public class ClusterManager {
                         LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception while checking stalled tasks; continuing execution.", t);
                     }
 
+                    if (System.currentTimeMillis() - lastNodeAlivenessCheck >= nodeAlivenessCheckInterval) {
+                        try {
+                            checkNodeAliveness(result);
+                            lastNodeAlivenessCheck = System.currentTimeMillis();
+                        } catch (Throwable t) {
+                            LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception while checking node aliveness; continuing execution.", t);
+                        }
+                    }
+
                 } catch (Throwable t) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception in ClusterManager thread; continuing execution.", t);
                 }
@@ -167,11 +183,52 @@ public class ClusterManager {
             LOGGER.info("ClusterManager thread stopping.");
         }
 
-        void signalShutdown() {
+        private void signalShutdown() {
             canRun = false;
             this.interrupt();
         }
 
+    }
+
+    private void checkNodeAliveness(OperationResult result) throws SchemaException {
+        SearchResultList<PrismObject<NodeType>> nodes = getRepositoryService()
+                .searchObjects(NodeType.class, null, null, result);
+        for (PrismObject<NodeType> nodeObject : nodes) {
+            NodeType node = nodeObject.asObjectable();
+            if (isRemoteNode(node)) {
+                if (shouldBeMarkedAsDown(node)) {
+                    LOGGER.warn("Node {} is down, marking it as such", node);
+                    List<ItemDelta<?, ?>> modifications = taskManager.getPrismContext().deltaFor(NodeType.class)
+                            .item(NodeType.F_RUNNING).replace(false)
+                            .item(NodeType.F_OPERATIONAL_STATUS).replace(NodeOperationalStatusType.DOWN)
+                            .asItemDeltas();
+                    try {
+                        getRepositoryService().modifyObject(NodeType.class, node.getOid(), modifications, result);
+                    } catch (ObjectNotFoundException | ObjectAlreadyExistsException e) {
+                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't mark node {} as down", e, node);
+                    }
+                } else if (startingForTooLong(node)) {
+                    LOGGER.warn("Node {} is starting for too long. Last check-in time = {}", node, node.getLastCheckInTime());
+                    // TODO should we mark this node as down?
+                }
+            }
+        }
+    }
+
+    private boolean isRemoteNode(NodeType node) {
+        return taskManager.getNodeId() == null || !taskManager.getNodeId().equals(node.getNodeIdentifier());
+    }
+
+    private boolean shouldBeMarkedAsDown(NodeType node) {
+        return node.getOperationalStatus() == NodeOperationalStatusType.UP && (node.getLastCheckInTime() == null ||
+                System.currentTimeMillis() - node.getLastCheckInTime().toGregorianCalendar().getTimeInMillis()
+                        > taskManager.getConfiguration().getNodeAlivenessTimeout() * 1000L);
+    }
+
+    private boolean startingForTooLong(NodeType node) {
+        return node.getOperationalStatus() == NodeOperationalStatusType.STARTING && (node.getLastCheckInTime() == null ||
+                System.currentTimeMillis() - node.getLastCheckInTime().toGregorianCalendar().getTimeInMillis()
+                        > taskManager.getConfiguration().getNodeStartupTimeout() * 1000L);
     }
 
     public void stopClusterManagerThread(long waitTime, OperationResult parentResult) {
@@ -226,7 +283,7 @@ public class ClusterManager {
     public PrismObject<NodeType> getNodeById(String nodeIdentifier, OperationResult result) throws ObjectNotFoundException {
         try {
 //            QueryType q = QueryUtil.createNameQuery(nodeIdentifier);        // TODO change to query-by-node-id
-        	ObjectQuery q = ObjectQueryUtil.createNameQuery(NodeType.class, taskManager.getPrismContext(), nodeIdentifier);
+            ObjectQuery q = ObjectQueryUtil.createNameQuery(NodeType.class, taskManager.getPrismContext(), nodeIdentifier);
             List<PrismObject<NodeType>> nodes = taskManager.getRepositoryService().searchObjects(NodeType.class, q, null, result);
             if (nodes.isEmpty()) {
 //                result.recordFatalError("A node with identifier " + nodeIdentifier + " does not exist.");

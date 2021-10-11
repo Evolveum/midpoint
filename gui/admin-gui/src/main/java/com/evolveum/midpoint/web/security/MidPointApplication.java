@@ -1,20 +1,89 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.security;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.MissingResourceException;
+import java.util.Properties;
+import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
+import java.util.Set;
+
+import javax.servlet.ServletContext;
+import javax.xml.datatype.Duration;
+
+import com.evolveum.midpoint.repo.cache.CacheRegistry;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.io.IOUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.ConverterLocator;
+import org.apache.wicket.IConverterLocator;
+import org.apache.wicket.ISessionListener;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.RuntimeConfigurationType;
+import org.apache.wicket.Session;
+import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
+import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
+import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
+import org.apache.wicket.core.request.mapper.MountedMapper;
+import org.apache.wicket.core.util.objects.checker.CheckingObjectOutputStream;
+import org.apache.wicket.core.util.objects.checker.IObjectChecker;
+import org.apache.wicket.core.util.objects.checker.NotDetachedModelChecker;
+import org.apache.wicket.core.util.objects.checker.ObjectSerializationChecker;
+import org.apache.wicket.core.util.resource.locator.IResourceStreamLocator;
+import org.apache.wicket.core.util.resource.locator.caching.CachingResourceStreamLocator;
+import org.apache.wicket.markup.head.PriorityFirstComparator;
+import org.apache.wicket.markup.html.SecurePackageResourceGuard;
+import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.protocol.http.WebApplication;
+import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
+import org.apache.wicket.request.resource.PackageResourceReference;
+import org.apache.wicket.request.resource.SharedResourceReference;
+import org.apache.wicket.resource.loader.IStringResourceLoader;
+import org.apache.wicket.serialize.java.JavaSerializer;
+import org.apache.wicket.settings.ApplicationSettings;
+import org.apache.wicket.settings.ResourceSettings;
+import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
+import org.apache.wicket.util.lang.Bytes;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.env.Environment;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.security.web.csrf.CsrfToken;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -22,12 +91,21 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.MidPointApplicationConfiguration;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.gui.impl.converter.CleanupPoliciesTypeConverter;
+import com.evolveum.midpoint.gui.impl.converter.DurationConverter;
+import com.evolveum.midpoint.gui.impl.converter.PolyStringConverter;
+import com.evolveum.midpoint.gui.impl.converter.QueryTypeConverter;
+import com.evolveum.midpoint.model.api.ModelAuditService;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.TaskService;
+import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
@@ -43,14 +121,17 @@ import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
-import com.evolveum.midpoint.web.page.error.*;
+import com.evolveum.midpoint.web.page.error.PageError;
+import com.evolveum.midpoint.web.page.error.PageError401;
+import com.evolveum.midpoint.web.page.error.PageError403;
+import com.evolveum.midpoint.web.page.error.PageError404;
+import com.evolveum.midpoint.web.page.error.PageError410;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PagePostAuthentication;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
@@ -59,58 +140,17 @@ import com.evolveum.midpoint.web.util.MidPointResourceStreamLocator;
 import com.evolveum.midpoint.web.util.MidPointStringResourceLoader;
 import com.evolveum.midpoint.web.util.SchrodingerComponentInitListener;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.io.IOUtils;
-import org.apache.wicket.*;
-import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
-import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
-import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
-import org.apache.wicket.core.request.mapper.MountedMapper;
-import org.apache.wicket.core.util.resource.locator.IResourceStreamLocator;
-import org.apache.wicket.core.util.resource.locator.caching.CachingResourceStreamLocator;
-import org.apache.wicket.markup.head.PriorityFirstComparator;
-import org.apache.wicket.markup.html.SecurePackageResourceGuard;
-import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.protocol.http.WebApplication;
-import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
-import org.apache.wicket.request.resource.PackageResourceReference;
-import org.apache.wicket.request.resource.SharedResourceReference;
-import org.apache.wicket.resource.loader.IStringResourceLoader;
-import org.apache.wicket.settings.ApplicationSettings;
-import org.apache.wicket.settings.ResourceSettings;
-import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
-import org.apache.wicket.util.lang.Bytes;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.security.web.csrf.CsrfToken;
-
-import java.io.*;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 /**
  * @author lazyman
  */
-public class MidPointApplication extends AuthenticatedWebApplication {
+public class MidPointApplication extends AuthenticatedWebApplication implements ApplicationContextAware {
 
-	/**
+    /**
      * Max. photo size for user/jpegPhoto
      */
     public static final Bytes FOCUS_PHOTO_MAX_FILE_SIZE = Bytes.kilobytes(192);
@@ -124,7 +164,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     private static final String PROP_DEFAULT = ".default";
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointApplication.class);
-    
+
     static {
         SchemaDebugUtil.initialize();
     }
@@ -180,6 +220,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     @Autowired
     transient private RepositoryService repositoryService;            // temporary
     @Autowired
+    transient private CacheRegistry cacheRegistry;
+    @Autowired
     transient private WorkflowService workflowService;
     @Autowired
     transient private WorkflowManager workflowManager;
@@ -207,7 +249,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     private WebApplicationConfiguration webApplicationConfiguration;
 
     private DeploymentInformationType deploymentInfo;
-    
+
     public static final String MOUNT_INTERNAL_SERVER_ERROR = "/error";
     public static final String MOUNT_UNAUTHORIZED_ERROR = "/error/401";
     public static final String MOUNT_FORBIDEN_ERROR = "/error/403";
@@ -216,11 +258,11 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     @Override
     public Class<? extends PageBase> getHomePage() {
-    	if (WebModelServiceUtils.isPostAuthenticationEnabled(getTaskManager(), getModelInteractionService())) {
-    		return PagePostAuthentication.class;
-    	}
-    	
-    	if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+        if (WebModelServiceUtils.isPostAuthenticationEnabled(getTaskManager(), getModelInteractionService())) {
+            return PagePostAuthentication.class;
+        }
+
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
                 AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
             return PageDashboardInfo.class;
         } else {
@@ -236,7 +278,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
                 new PackageResourceReference(MidPointApplication.class,
                         "../../../../../webjars/adminlte/2.3.11/plugins/jQuery/jquery-2.2.3.min.js"));
 
-        getComponentInstantiationListeners().add(new SpringComponentInjector(this));
+        getComponentInstantiationListeners().add(new SpringComponentInjector(this, applicationContext, true));
 
         systemConfigurationChangeDispatcher.registerListener(new DeploymentInformationChangeListener(this));
         SystemConfigurationType config = getSystemConfigurationIfAvailable();
@@ -259,6 +301,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         resourceSettings.setThrowExceptionOnMissingResource(false);
         getMarkupSettings().setStripWicketTags(true);
+        getMarkupSettings().setStripComments(true);
 
         if (RuntimeConfigurationType.DEVELOPMENT.equals(getConfigurationType())) {
             getDebugSettings().setAjaxDebugModeEnabled(true);
@@ -283,7 +326,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         getRequestCycleListeners().add(new LoggingRequestCycleListener(this));
 
-        getAjaxRequestTargetListeners().add(new AjaxRequestTarget.AbstractListener() {
+        getAjaxRequestTargetListeners().add(new AjaxRequestTarget.IListener() {
 
             @Override
             public void updateAjaxAttributes(AbstractDefaultAjaxBehavior behavior, AjaxRequestAttributes attributes) {
@@ -301,25 +344,35 @@ public class MidPointApplication extends AuthenticatedWebApplication {
                 String value = csrfToken.getToken();
 
                 attributes.getExtraParameters().put(parameterName, value);
+
             }
+
+
+
         });
 
         getSessionListeners().add((ISessionListener) asyncWebProcessManager);
 
         //descriptor loader, used for customization
         new DescriptorLoader().loadData(this);
-        
+
         if (applicationContext != null) {
 
-	        Map<String, MidPointApplicationConfiguration> map =
-	                applicationContext.getBeansOfType(MidPointApplicationConfiguration.class);
-	        if (map != null) {
-	            map.forEach((key, value) -> value.init(this));
-	        }
+            Map<String, MidPointApplicationConfiguration> map =
+                    applicationContext.getBeansOfType(MidPointApplicationConfiguration.class);
+            if (map != null) {
+                map.forEach((key, value) -> value.init(this));
+            }
         }
 
         // for schrodinger selenide library
         initializeSchrodinger();
+
+        ServletContext servletContext = getServletContext();
+        if (servletContext != null) {
+            taskManager.setWebContextPath(servletContext.getContextPath());
+        }
+
     }
 
     public DeploymentInformationType getDeploymentInfo() {
@@ -327,16 +380,16 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     }
 
     private void initializeSchrodinger() {
-    	if (applicationContext == null) {
-    		return;
-    	}
+        if (applicationContext == null) {
+            return;
+        }
         Environment environment = applicationContext.getEnvironment();
         if (environment == null) {
-        	return;
+            return;
         }
 
         String value = environment.getProperty(MidpointConfiguration.MIDPOINT_SCHRODINGER_PROPERTY);
-        Boolean enabled = Boolean.parseBoolean(value);
+        boolean enabled = Boolean.parseBoolean(value);
 
         if (enabled) {
             LOGGER.info("Schrodinger plugin enabled");
@@ -408,30 +461,28 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         return locales;
     }
 
-    private URL buildMidpointHomeLocalizationFolderUrl() {
-        String midpointHome = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
+    @Override
+    protected IConverterLocator newConverterLocator() {
+        ConverterLocator locator = new ConverterLocator();
 
-        File file = new File(midpointHome, "localization");
-        try {
-            return file.toURI().toURL();
-        } catch (IOException ex) {
-            throw new SystemException("Couldn't transform localization folder file to url", ex);
-        }
+        locator.set(PolyString.class, new PolyStringConverter());
+        locator.set(Duration.class, new DurationConverter());
+        locator.set(QueryType.class, new QueryTypeConverter(prismContext));
+        locator.set(CleanupPoliciesType.class, new CleanupPoliciesTypeConverter(prismContext));
+        return locator;
     }
 
     private void initializeDevelopmentSerializers() {
-//    	JavaSerializer javaSerializer = new JavaSerializer( getApplicationKey() ) {
-//    	    @Override
-//    	    protected ObjectOutputStream newObjectOutputStream(OutputStream out) throws IOException {
-//    	    	LOGGER.info("XXXXXXX YX Y");
-////    	    	IObjectChecker checker1 = new MidPointObjectChecker();
-//////    	        IObjectChecker checker2 = new NotDetachedModelChecker();
-////    	        IObjectChecker checker3 = new ObjectSerializationChecker();
-////    	        return new CheckingObjectOutputStream(out, checker1, checker3);
-//    	        return new ObjectOutputStream(out);
-//    	    }
-//    	};
-//    	getFrameworkSettings().setSerializer( javaSerializer );
+        JavaSerializer javaSerializer = new JavaSerializer( getApplicationKey() ) {
+            @Override
+            protected ObjectOutputStream newObjectOutputStream(OutputStream out) throws IOException {
+                IObjectChecker checker1 = new MidPointObjectChecker();
+                IObjectChecker checker2 = new NotDetachedModelChecker();
+                IObjectChecker checker3 = new ObjectSerializationChecker();
+                return new CheckingObjectOutputStream(out, checker1, checker3);
+            }
+        };
+        getFrameworkSettings().setSerializer( javaSerializer );
 
     }
 
@@ -475,12 +526,20 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         return taskManager;
     }
 
+    public LocalizationService getLocalizationService(){
+        return localizationService;
+    }
+
     public ModelAuditService getAuditService() {
         return auditService;
     }
 
     public RepositoryService getRepositoryService() {
         return repositoryService;
+    }
+
+    public CacheRegistry getCacheRegistry() {
+        return cacheRegistry;
     }
 
     public TaskService getTaskService() {
@@ -581,7 +640,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         if (user == null) {
             throw new RestartResponseException(PageLogin.class);
         }
-        return WebModelServiceUtils.createSimpleTask(operation, user.getUser().asPrismObject(), getTaskManager());
+        return WebModelServiceUtils.createSimpleTask(operation, user.getFocus().asPrismObject(), getTaskManager());
     }
 
     public AsyncWebProcessManager getAsyncWebProcessManager() {
@@ -651,7 +710,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
                 if (stream != null) {
                     try {
                         // Only this line is changed to make it to read properties files as UTF-8.
-                        bundle = new PropertyResourceBundle(new InputStreamReader(stream, "UTF-8"));
+                        bundle = new PropertyResourceBundle(new InputStreamReader(stream, StandardCharsets.UTF_8));
                     } finally {
                         IOUtils.closeQuietly(stream);
                     }
@@ -675,5 +734,13 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
             return true;
         }
+    }
+
+    /* (non-Javadoc)
+     * @see org.springframework.context.ApplicationContextAware#setApplicationContext(org.springframework.context.ApplicationContext)
+     */
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }

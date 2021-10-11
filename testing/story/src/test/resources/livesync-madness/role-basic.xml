@@ -1,0 +1,23 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role oid="f822d958-0ae9-11ea-aae1-27914635df2c"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+    <name>Basic User</name>
+
+    <inducement>
+        <construction>
+            <!-- dummy (default) resource -->
+            <resourceRef oid="8126d404-0ae3-11ea-a1e8-0bdaaafeca7d" type="ResourceType"/>
+            <kind>account</kind>
+        </construction>
+    </inducement>
+
+</role>

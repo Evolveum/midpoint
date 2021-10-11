@@ -1,50 +1,44 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.init;
+
+import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.MIDPOINT_HOME_PROPERTY;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-
-import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.MIDPOINT_HOME_PROPERTY;
-import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.MIDPOINT_SILENT_PROPERTY;
-
-public class ApplicationHomeSetup {
+class ApplicationHomeSetup {
 
     private static final Trace LOGGER = TraceManager.getTrace(ApplicationHomeSetup.class);
 
-    private boolean silent = false;
+    private final boolean silent;
+    private final Path midPointHomePath;
 
-    public void init() {
-        this.silent = Boolean.getBoolean(MIDPOINT_SILENT_PROPERTY);
+    ApplicationHomeSetup(boolean silent, String midPointHomePath) {
+        this.silent = silent;
+        this.midPointHomePath = Paths.get(midPointHomePath);
+    }
 
-        String midpointHomePath = System.getProperty(MIDPOINT_HOME_PROPERTY);
-
-        String homeMessage = MIDPOINT_HOME_PROPERTY + " = " + midpointHomePath;
-        LOGGER.info(homeMessage);
+    void init() {
+        String homeMessage = MIDPOINT_HOME_PROPERTY + " = " + midPointHomePath;
+        LOGGER.info("{}", homeMessage);
         printToSysout(homeMessage);
 
-        createMidpointHomeDirectories(midpointHomePath);
-        setupMidpointHomeDirectory(midpointHomePath);
+        createMidpointHomeDirectories();
+        setupMidpointHomeDirectory();
     }
 
     private void printToSysout(String message) {
@@ -52,32 +46,30 @@ public class ApplicationHomeSetup {
             System.out.println(message);
         }
     }
-    
+
     /**
      * Creates directory structure under root
      * <p/>
      * Directory information based on: http://wiki.evolveum.com/display/midPoint/midpoint.home+-+directory+structure
      */
-    private void createMidpointHomeDirectories(String midpointHomePath) {
-    	if (!checkDirectoryExistence(midpointHomePath)) {
-            createDir(midpointHomePath);
+    private void createMidpointHomeDirectories() {
+        if (!checkDirectoryExistence(midPointHomePath)) {
+            createDir(midPointHomePath);
         }
 
-        if (!midpointHomePath.endsWith("/")) {
-            midpointHomePath = midpointHomePath + "/";
-        }
-        String[] directories = {
-                midpointHomePath + "icf-connectors",
-                midpointHomePath + "idm-legacy",
-                midpointHomePath + "log",
-                midpointHomePath + "schema",
-                midpointHomePath + "import",
-                midpointHomePath + "export",
-                midpointHomePath + "tmp",
-                midpointHomePath + "lib"
+        Path[] directories = {
+                midPointHomePath.resolve("icf-connectors"),
+                midPointHomePath.resolve("idm-legacy"),
+                midPointHomePath.resolve("log"),
+                midPointHomePath.resolve("schema"),
+                midPointHomePath.resolve("import"),
+                midPointHomePath.resolve("export"),
+                midPointHomePath.resolve("tmp"),
+                midPointHomePath.resolve("lib"),
+                midPointHomePath.resolve("trace")
         };
 
-        for (String directory : directories) {
+        for (Path directory : directories) {
             if (checkDirectoryExistence(directory)) {
                 continue;
             }
@@ -85,18 +77,18 @@ public class ApplicationHomeSetup {
             createDir(directory);
         }
     }
-    
-    private void setupMidpointHomeDirectory(String midpointHomePath) {
-    	try {
-			ClassPathUtil.extractFilesFromClassPath("initial-midpoint-home", midpointHomePath, false);
-		} catch (URISyntaxException | IOException e) {
-			LOGGER.error("Error copying the content of initial-midpoint-home to {}: {}", midpointHomePath, e.getMessage(), e);
-		}
-    	
+
+    private void setupMidpointHomeDirectory() {
+        try {
+            // TODO: only usage is here, why is it in ClassPathUtils? Can we change 2nd arg to Path?
+            ClassPathUtil.extractFilesFromClassPath("initial-midpoint-home", midPointHomePath.toString(), false);
+        } catch (URISyntaxException | IOException e) {
+            LOGGER.error("Error copying the content of initial-midpoint-home to {}: {}", midPointHomePath, e.getMessage(), e);
+        }
     }
 
-    private boolean checkDirectoryExistence(String dir) {
-        File d = new File(dir);
+    private boolean checkDirectoryExistence(Path dir) {
+        File d = dir.toFile();
         if (d.isFile()) {
             LOGGER.error(dir + " is file and NOT a directory.");
             throw new SystemException(dir + " is file and NOT a directory !!!");
@@ -108,11 +100,10 @@ public class ApplicationHomeSetup {
         } else {
             return false;
         }
-
     }
 
-    private void createDir(String dir) {
-        File d = new File(dir);
+    private void createDir(Path dir) {
+        File d = dir.toFile();
         if (!d.exists() || !d.isDirectory()) {
             boolean created = d.mkdirs();
             if (!created) {

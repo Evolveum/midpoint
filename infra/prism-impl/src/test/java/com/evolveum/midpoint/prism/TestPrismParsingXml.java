@@ -1,85 +1,107 @@
+/*
+ * Copyright (c) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.prism;
 
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
-import static org.testng.AssertJUnit.assertNotNull;
-
-import java.io.IOException;
-
+import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.util.DOMUtil;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.foo.UserType;
-import com.evolveum.midpoint.util.DOMUtil;
+import java.io.IOException;
+
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 public class TestPrismParsingXml extends TestPrismParsing {
 
-	@Override
-	protected String getSubdirName() {
-		return "xml";
-	}
+    public static final String USER_JACK_XXE_BASENAME = "user-jack-xxe";
 
-	@Override
-	protected String getFilenameSuffix() {
-		return "xml";
-	}
+    @Override
+    protected String getSubdirName() {
+        return "xml";
+    }
 
-	@Override
-	protected String getOutputFormat() {
-		return PrismContext.LANG_XML;
-	}
+    @Override
+    protected String getFilenameSuffix() {
+        return "xml";
+    }
 
-	@Test
-	public void testPrismParseDom() throws Exception {
-		final String TEST_NAME = "testPrismParseDom";
-		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+    @Override
+    protected String getOutputFormat() {
+        return PrismContext.LANG_XML;
+    }
 
-		// GIVEN
-		Document document = DOMUtil.parseFile(getFile(USER_JACK_FILE_BASENAME));
-		Element userElement = DOMUtil.getFirstChildElement(document);
+    @Test
+    public void testPrismParseDom() throws Exception {
+        // GIVEN
+        Document document = DOMUtil.parseFile(getFile(USER_JACK_FILE_BASENAME));
+        Element userElement = DOMUtil.getFirstChildElement(document);
 
-		PrismContext prismContext = constructInitializedPrismContext();
+        PrismContext prismContext = constructInitializedPrismContext();
 
-		// WHEN
-		PrismObject<UserType> user = prismContext.parserFor(userElement).parse();
+        // WHEN
+        PrismObject<UserType> user = prismContext.parserFor(userElement).parse();
 
-		// THEN
-		System.out.println("User:");
-		System.out.println(user.debugDump());
-		assertNotNull(user);
+        // THEN
+        System.out.println("User:");
+        System.out.println(user.debugDump());
+        assertNotNull(user);
 
-		assertUserJack(user, true);
-	}
+        assertUserJack(user, true, true);
+    }
 
-	@Test
-	public void testPrismParseDomAdhoc() throws Exception {
-		final String TEST_NAME = "testPrismParseDomAdhoc";
-		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+    @Test
+    public void testPrismParseDomAdhoc() throws Exception {
+        // GIVEN
+        Document document = DOMUtil.parseFile(getFile(USER_JACK_ADHOC_BASENAME));
+        Element userElement = DOMUtil.getFirstChildElement(document);
 
-		// GIVEN
-		Document document = DOMUtil.parseFile(getFile(USER_JACK_ADHOC_BASENAME));
-		Element userElement = DOMUtil.getFirstChildElement(document);
+        PrismContext prismContext = constructInitializedPrismContext();
 
-		PrismContext prismContext = constructInitializedPrismContext();
+        // WHEN
+        PrismObject<UserType> user = prismContext.parserFor(userElement).parse();
 
-		// WHEN
-		PrismObject<UserType> user = prismContext.parserFor(userElement).parse();
+        // THEN
+        System.out.println("User:");
+        System.out.println(user.debugDump());
+        assertNotNull(user);
 
-		// THEN
-		System.out.println("User:");
-		System.out.println(user.debugDump());
-		assertNotNull(user);
+        assertUserAdhoc(user, true, false);
+    }
 
-		assertUserAdhoc(user, true);
-	}
+    @Test
+    public void testPrismParseXxe() throws Exception {
+        PrismContext prismContext = constructInitializedPrismContext();
 
-	@Override
-	protected void validateXml(String xmlString, PrismContext prismContext) throws SAXException, IOException {
-//		Document xmlDocument = DOMUtil.parseDocument(xmlString);
-//		Schema javaxSchema = prismContext.getSchemaRegistry().getJavaxSchema();
-//		Validator validator = javaxSchema.newValidator();
-//		validator.setResourceResolver(prismContext.getEntityResolver());
-//		validator.validate(new DOMSource(xmlDocument));
-	}
+        try {
+            // WHEN
+            prismContext.parseObject(getFile(USER_JACK_XXE_BASENAME));
+
+            AssertJUnit.fail("Unexpected success");
+        } catch (IllegalStateException e) {
+            displayExpectedException(e);
+            assertTrue("Unexpected exception message: "+e.getMessage(), e.getMessage().contains("DOCTYPE"));
+        }
+    }
+
+    @Test
+    public void testPrismParseDomXxe() {
+        try {
+            // WHEN
+            DOMUtil.parseFile(getFile(USER_JACK_XXE_BASENAME));
+
+            AssertJUnit.fail("Unexpected success");
+        } catch (IllegalStateException e) {
+            displayExpectedException(e);
+            assertTrue("Unexpected exception message: "+e.getMessage(), e.getMessage().contains("DOCTYPE"));
+        }
+    }
 }

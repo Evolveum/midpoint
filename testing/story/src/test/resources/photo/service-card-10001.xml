@@ -1,0 +1,15 @@
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<service xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         oid="1d936f27-17de-406e-b2e0-1a6069e801de">
+    <name>10001</name>
+    <assignment>
+        <targetRef oid="fe13a7f8-8b3b-4094-8417-1743e78a0acd" type="ArchetypeType" />
+    </assignment>
+    <jpegPhoto>SGVsbG8=</jpegPhoto>
+</service>

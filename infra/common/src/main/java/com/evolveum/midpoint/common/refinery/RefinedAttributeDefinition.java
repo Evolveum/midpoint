@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.common.refinery;
@@ -21,6 +12,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeStorageStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import org.jetbrains.annotations.NotNull;
@@ -34,67 +26,69 @@ import java.util.function.Consumer;
  * @author mederly
  */
 public interface RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T> {
-	boolean isTolerant();
+    boolean isTolerant();
 
-	boolean isSecondaryIdentifier();
+    Boolean isSecondaryIdentifierOverride();
 
-	boolean canAdd(LayerType layer);
+    boolean canAdd(LayerType layer);
 
-	boolean canRead(LayerType layer);
+    boolean canRead(LayerType layer);
 
-	boolean canModify(LayerType layer);
+    boolean canModify(LayerType layer);
 
-	@Deprecated
-	boolean isIgnored(LayerType layer);
-	
-	ItemProcessing getProcessing(LayerType layer);
+    @Deprecated // Remove in 4.2
+    boolean isIgnored(LayerType layer);
 
-	String getDescription();
+    ItemProcessing getProcessing(LayerType layer);
 
-	ResourceAttributeDefinition<T> getAttributeDefinition();
+    String getDescription();
 
-	MappingType getOutboundMappingType();
+    ResourceAttributeDefinition<T> getAttributeDefinition();
 
-	boolean hasOutboundMapping();
+    MappingType getOutboundMappingType();
 
-	List<MappingType> getInboundMappingTypes();
+    boolean hasOutboundMapping();
 
-	int getMaxOccurs(LayerType layer);
+    List<MappingType> getInboundMappingTypes();
 
-	int getMinOccurs(LayerType layer);
+    int getMaxOccurs(LayerType layer);
 
-	boolean isOptional(LayerType layer);
+    int getMinOccurs(LayerType layer);
 
-	boolean isMandatory(LayerType layer);
+    boolean isOptional(LayerType layer);
 
-	boolean isMultiValue(LayerType layer);
+    boolean isMandatory(LayerType layer);
 
-	boolean isSingleValue(LayerType layer);
+    boolean isMultiValue(LayerType layer);
 
-	boolean isExlusiveStrong();
+    boolean isSingleValue(LayerType layer);
 
-	PropertyLimitations getLimitations(LayerType layer);
+    boolean isExlusiveStrong();
 
-	AttributeFetchStrategyType getFetchStrategy();
+    PropertyLimitations getLimitations(LayerType layer);
 
-	List<String> getTolerantValuePattern();
+    AttributeFetchStrategyType getFetchStrategy();
 
-	List<String> getIntolerantValuePattern();
+    AttributeStorageStrategyType getStorageStrategy();
 
-	boolean isVolatilityTrigger();
+    List<String> getTolerantValuePattern();
 
-	@NotNull
-	@Override
-	RefinedAttributeDefinition<T> clone();
+    List<String> getIntolerantValuePattern();
 
-	@Override
-	RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction);
+    boolean isVolatilityTrigger();
 
-	String debugDump(int indent, LayerType layer);
+    @NotNull
+    @Override
+    RefinedAttributeDefinition<T> clone();
 
-	Integer getModificationPriority();
+    @Override
+    RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction);
 
-	Boolean getReadReplaceMode();
+    String debugDump(int indent, LayerType layer);
 
-	boolean isDisplayNameAttribute();
+    Integer getModificationPriority();
+
+    Boolean getReadReplaceMode();
+
+    boolean isDisplayNameAttribute();
 }

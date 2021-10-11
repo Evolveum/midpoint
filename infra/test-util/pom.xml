@@ -1,133 +1,126 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<name>midPoint Infrastructure - testing mock utils</name>
-	<groupId>com.evolveum.midpoint.infra</groupId>
-	<artifactId>test-util</artifactId>
-	<packaging>jar</packaging>
-	<parent>
-		<artifactId>infra</artifactId>
-		<groupId>com.evolveum.midpoint</groupId>
-		<version>4.0-SNAPSHOT</version>
-	</parent>
-    <scm>
-        <connection>https://github.com/Evolveum/midpoint.git</connection>
-        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/midPoint</url>
-    </scm>
-	<repositories>
-		<repository>
-			<!-- We need this for Sleepycat JE -->
-			<id>oracle</id>
-			<name>Oracle</name>
-			<url>http://download.oracle.com/maven/</url>
-		</repository>
-	</repositories>
-	<dependencies>
-		<dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>util</artifactId>
-			<version>4.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>prism-api</artifactId>
-			<version>4.0-SNAPSHOT</version>
-		</dependency>
-		<!--<dependency>-->
-			<!--<groupId>com.evolveum.midpoint.infra</groupId>-->
-			<!--<artifactId>prism-impl</artifactId>-->
-			<!--<version>4.0-SNAPSHOT</version>-->
-		<!--</dependency>-->
-		<dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>schema</artifactId>
-			<version>4.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>stax</groupId>
-			<artifactId>stax-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.forgerock.opendj</groupId>
-			<artifactId>opendj</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-beans</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
-		</dependency>
-		<!-- Do we need this? Why? -->
-		<dependency>
-			<groupId>org.apache.felix</groupId>
-			<artifactId>org.osgi.core</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.sleepycat</groupId>
-			<artifactId>je</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.testng</groupId>
-			<artifactId>testng</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-test</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.derby</groupId>
-			<artifactId>derby</artifactId>
-			<type>jar</type>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.derby</groupId>
-			<artifactId>derbynet</artifactId>
-			<type>jar</type>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.derby</groupId>
-			<artifactId>derbyclient</artifactId>
-			<type>jar</type>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.tools</groupId>
-			<artifactId>test-ng</artifactId>
-			<version>4.0-SNAPSHOT</version>
-		</dependency>
-	</dependencies>
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>infra</artifactId>
+        <groupId>com.evolveum.midpoint.infra</groupId>
+        <version>4.1.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>test-util</artifactId>
+    <packaging>jar</packaging>
+
+    <name>midPoint Infrastructure - testing utils (lvl 2)</name>
+
+    <repositories>
+        <repository>
+            <!-- We need this for Sleepycat JE -->
+            <id>oracle</id>
+            <name>Oracle</name>
+            <url>https://download.oracle.com/maven/</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>util</artifactId>
+            <version>4.1.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>prism-api</artifactId>
+            <version>4.1.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>schema</artifactId>
+            <version>4.1.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+        </dependency>
+
+        <!-- Do we need this? Why? -->
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.osgi.core</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.sleepycat</groupId>
+            <artifactId>je</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.derby</groupId>
+            <artifactId>derby</artifactId>
+            <type>jar</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.derby</groupId>
+            <artifactId>derbynet</artifactId>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.derby</groupId>
+            <artifactId>derbyclient</artifactId>
+            <type>jar</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.tools</groupId>
+            <artifactId>test-ng</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.qpid</groupId>
+            <artifactId>qpid-broker-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rabbitmq</groupId>
+            <artifactId>amqp-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+        </dependency>
+    </dependencies>
 </project>

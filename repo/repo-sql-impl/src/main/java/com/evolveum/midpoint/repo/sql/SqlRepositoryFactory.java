@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql;
@@ -19,13 +10,15 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.h2.tools.Server;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,16 +32,17 @@ import java.util.List;
  */
 public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
-	private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryFactory.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryFactory.class);
     private static final long POOL_CLOSE_WAIT = 500L;
     private static final long H2_CLOSE_WAIT = 2000L;
-	private static final String H2_IMPLICIT_RELATIVE_PATH = "h2.implicitRelativePath";
-	private boolean initialized;
+    private static final String H2_IMPLICIT_RELATIVE_PATH = "h2.implicitRelativePath";
+    private boolean initialized;
     private SqlRepositoryConfiguration sqlConfiguration;
     private Server server;
 
-    private SqlPerformanceMonitor performanceMonitor;
+    private SqlPerformanceMonitorImpl performanceMonitor;
 
+    @NotNull
     public SqlRepositoryConfiguration getSqlConfiguration() {
         Validate.notNull(sqlConfiguration, "Sql repository configuration not available (null).");
         return sqlConfiguration;
@@ -133,7 +127,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             LOGGER.info("Repository is not running in embedded mode.");
         }
 
-        performanceMonitor = new SqlPerformanceMonitor();
+        performanceMonitor = new SqlPerformanceMonitorImpl();
         performanceMonitor.initialize(this);
 
         LOGGER.info("Repository initialization finished.");
@@ -166,9 +160,9 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         } catch (BindException e) {
             throw new RepositoryServiceFactoryException("Configured port (" + port + ") for H2 already in use.", e);
         } catch (IOException e) {
-        	LOGGER.error("Reported IO error, while binding ServerSocket to port "+port+" used to test availability " +
+            LOGGER.error("Reported IO error, while binding ServerSocket to port "+port+" used to test availability " +
                     "of port for H2 Server", e);
-		} finally {
+        } finally {
             try {
                 if (ss != null) {
                     ss.close();
@@ -185,11 +179,11 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         checkPort(config.getPort());
 
         try {
-        	String[] serverArguments = createArguments(config);
-        	if (LOGGER.isTraceEnabled()) {
-        		String stringArgs = StringUtils.join(serverArguments, " ");
-        		LOGGER.trace("Starting H2 server with arguments: {}", stringArgs);
-        	}
+            String[] serverArguments = createArguments(config);
+            if (LOGGER.isTraceEnabled()) {
+                String stringArgs = StringUtils.join(serverArguments, " ");
+                LOGGER.trace("Starting H2 server with arguments: {}", stringArgs);
+            }
             server = Server.createTcpServer(serverArguments);
             server.start();
         } catch (Exception ex) {
@@ -235,7 +229,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             args.add(Integer.toString(config.getPort()));
         }
 
-        return args.toArray(new String[args.size()]);
+        return args.toArray(new String[0]);
     }
 
     private void dropDatabaseIfExists(SqlRepositoryConfiguration config) throws RepositoryServiceFactoryException {
@@ -259,11 +253,11 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             removeFile(traceFile);
 
             File[] tempFiles = file.listFiles((parent, name) -> {
-				if (name.matches("^" + fileName + "\\.[0-9]*\\.temp\\.db$")) {
-					return true;
-				}
-				return false;
-			});
+                if (name.matches("^" + fileName + "\\.[0-9]*\\.temp\\.db$")) {
+                    return true;
+                }
+                return false;
+            });
             if (tempFiles != null) {
                 for (File temp : tempFiles) {
                     removeFile(temp);
@@ -289,7 +283,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         }
     }
 
-    public SqlPerformanceMonitor getPerformanceMonitor() {
+    public SqlPerformanceMonitorImpl getPerformanceMonitor() {
         return performanceMonitor;
     }
 }

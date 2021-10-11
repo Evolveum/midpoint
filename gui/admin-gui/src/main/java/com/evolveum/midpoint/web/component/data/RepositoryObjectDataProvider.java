@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.data;
@@ -27,6 +18,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -72,11 +64,11 @@ public class RepositoryObjectDataProvider
         OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECTS);
         try {
             ObjectPaging paging = createPaging(first, count);
-			ObjectQuery query = getQuery();
-			if (query == null) {
-				query = getPrismContext().queryFactory().createQuery();
-			}
-			query.setPaging(paging);
+            ObjectQuery query = getQuery();
+            if (query == null) {
+                query = getPrismContext().queryFactory().createQuery();
+            }
+            query.setPaging(paging);
 
             Collection<SelectorOptions<GetOperationOptions>> options = getOptions();
             List<PrismObject<? extends ObjectType>> list = getModel().searchObjects((Class) type, query, options,
@@ -85,7 +77,7 @@ public class RepositoryObjectDataProvider
                 getAvailableData().add(createItem(object, result));
             }
         } catch (Exception ex) {
-        	result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString(), ex);
+            result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString(), ex);
         } finally {
             result.computeStatusIfUnknown();
         }
@@ -134,7 +126,7 @@ public class RepositoryObjectDataProvider
 
     private ResourceDescription loadDescription(String oid, OperationResult result) {
         Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
-                .item(ResourceType.F_CONNECTOR).resolve()
+                .item(ResourceType.F_CONNECTOR_REF).resolve()
                 .build();
         OperationResult subResult = result.createSubresult(OPERATION_LOAD_RESOURCE);
         subResult.addParam("oid", oid);
@@ -158,6 +150,9 @@ public class RepositoryObjectDataProvider
             }
 
             subResult.recordSuccess();
+        } catch (ObjectNotFoundException e) {
+            LoggingUtils.logException(LOGGER, "Resource with oid {} not found", e, oid);
+            result.recordPartialError(getPage().createStringResource("ObjectDataProvider.message.loadResourceForAccount.notFound", oid).getString());
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load resource for account", ex);
             result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.loadResourceForAccount.fatalError").getString(), ex);
@@ -177,7 +172,7 @@ public class RepositoryObjectDataProvider
             count = getModel().countObjects(type, getQuery(), getOptions(),
                     getPage().createSimpleTask(OPERATION_COUNT_OBJECTS), result);
         } catch (Exception ex) {
-        	result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);
+            result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);
         } finally {
             result.computeStatusIfUnknown();
         }
@@ -228,5 +223,10 @@ public class RepositoryObjectDataProvider
         public String getType() {
             return type;
         }
+    }
+
+    @Override
+    public boolean isUseCache() {
+        return false;
     }
 }

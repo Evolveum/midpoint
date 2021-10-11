@@ -1,23 +1,25 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.data.audit;
 
+import static com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation.COLUMN_RECORD_ID;
+
+import java.sql.ResultSet;
+import javax.persistence.*;
+
+import org.hibernate.annotations.ForeignKey;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.sql.data.InsertQueryBuilder;
+import com.evolveum.midpoint.repo.sql.data.SingleSqlQuery;
 import com.evolveum.midpoint.repo.sql.data.common.OperationResultFull;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RChangeType;
@@ -34,12 +36,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
-import org.hibernate.annotations.ForeignKey;
-
-import javax.persistence.*;
-
-import static com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation.COLUMN_RECORD_ID;
-
 /**
  * @author lazyman
  */
@@ -47,13 +43,25 @@ import static com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation.CO
 @Entity
 @IdClass(RObjectDeltaOperationId.class)
 @Table(name = RObjectDeltaOperation.TABLE_NAME, indexes = {
-        @Index(name = "iAuditDeltaRecordId", columnList = COLUMN_RECORD_ID)})
+        @Index(name = "iAuditDeltaRecordId", columnList = COLUMN_RECORD_ID) })
 public class RObjectDeltaOperation implements OperationResultFull, EntityState {
 
     private static final long serialVersionUID = -1065600513263271161L;
 
     public static final String TABLE_NAME = "m_audit_delta";
     public static final String COLUMN_RECORD_ID = "record_id";
+
+    private static final String CHECKSUM_COLUMN_NAME = "checksum";
+    private static final String DELTA_COLUMN_NAME = "delta";
+    private static final String DELTA_OID_COLUMN_NAME = "deltaOid";
+    private static final String DELTA_TYPE_COLUMN_NAME = "deltaType";
+    private static final String FULL_RESULT_COLUMN_NAME = "fullResult";
+    private static final String OBJECT_NAME_NORM_COLUMN_NAME = "objectName_norm";
+    private static final String OBJECT_NAME_ORIG_COLUMN_NAME = "objectName_orig";
+    private static final String RESOURCE_NAME_NORM_COLUMN_NAME = "resourceName_norm";
+    private static final String RESOURCE_NAME_ORIG_COLUMN_NAME = "resourceName_orig";
+    private static final String RESOURCE_OID_COLUMN_NAME = "resourceOid";
+    private static final String STATUS_COLUMN_NAME = "status";
 
     private Boolean trans;
 
@@ -74,7 +82,6 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
     private RPolyString objectName;
     private String resourceOid;
     private RPolyString resourceName;
-
 
     @ForeignKey(name = "none")
     @MapsId("record")
@@ -162,9 +169,9 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
     }
 
     public void setRecord(RAuditEventRecord record) {
-    	if (record.getId() != 0) {
-    		this.recordId = record.getId();
-    	}
+        if (record.getId() != 0) {
+            this.recordId = record.getId();
+        }
         this.record = record;
     }
 
@@ -254,7 +261,7 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
     }
 
     public static RObjectDeltaOperation toRepo(RAuditEventRecord record, ObjectDeltaOperation operation,
-                                               PrismContext prismContext) throws DtoTranslationException {
+            PrismContext prismContext) throws DtoTranslationException {
         RObjectDeltaOperation auditDelta = new RObjectDeltaOperation();
         auditDelta.setRecord(record);
 
@@ -283,10 +290,74 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
 
-
         return auditDelta;
     }
 
+    public static SingleSqlQuery toRepo(Long recordId, ObjectDeltaOperation operation,
+            PrismContext prismContext, boolean useZipAudit) throws DtoTranslationException {
+
+        InsertQueryBuilder queryBuilder = new InsertQueryBuilder(TABLE_NAME);
+        queryBuilder.addParameter(COLUMN_RECORD_ID, recordId, true);
+        byte[] deltaData = null;
+        byte[] fullResultData = null;
+        try {
+            if (operation.getObjectDelta() != null) {
+                ObjectDelta delta = operation.getObjectDelta();
+
+                String xmlDelta = DeltaConvertor.toObjectDeltaTypeXml(delta, DeltaConversionOptions.createSerializeReferenceNames());
+                deltaData = RUtil.getByteArrayFromXml(xmlDelta, useZipAudit);
+                queryBuilder.addParameter(DELTA_COLUMN_NAME, deltaData);
+                queryBuilder.addParameter(DELTA_OID_COLUMN_NAME, delta.getOid());
+                queryBuilder.addParameter(DELTA_TYPE_COLUMN_NAME, RUtil.getRepoEnumValue(delta.getChangeType(), RChangeType.class));
+            } else {
+                queryBuilder.addNullParameter(DELTA_COLUMN_NAME);
+                queryBuilder.addNullParameter(DELTA_OID_COLUMN_NAME);
+                queryBuilder.addNullParameter(DELTA_TYPE_COLUMN_NAME);
+            }
+
+            if (operation.getExecutionResult() != null) {
+                OperationResultType jaxb = operation.getExecutionResult().createOperationResultType();
+                if (jaxb == null) {
+                    queryBuilder.addNullParameter(STATUS_COLUMN_NAME);
+                    queryBuilder.addNullParameter(FULL_RESULT_COLUMN_NAME);
+                } else {
+                    queryBuilder.addParameter(STATUS_COLUMN_NAME, RUtil.getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
+                    try {
+                        String full = prismContext.xmlSerializer().serializeRealValue(jaxb, SchemaConstantsGenerated.C_OPERATION_RESULT);
+                        fullResultData = RUtil.getByteArrayFromXml(full, useZipAudit);
+                        queryBuilder.addParameter(FULL_RESULT_COLUMN_NAME, fullResultData);
+                    } catch (Exception ex) {
+                        throw new DtoTranslationException(ex.getMessage(), ex);
+                    }
+                }
+            } else {
+                queryBuilder.addNullParameter(STATUS_COLUMN_NAME);
+                queryBuilder.addNullParameter(FULL_RESULT_COLUMN_NAME);
+            }
+            if (operation.getObjectName() != null) {
+                queryBuilder.addParameter(OBJECT_NAME_ORIG_COLUMN_NAME, operation.getObjectName().getOrig());
+                queryBuilder.addParameter(OBJECT_NAME_NORM_COLUMN_NAME, operation.getObjectName().getNorm());
+            } else {
+                queryBuilder.addNullParameter(OBJECT_NAME_ORIG_COLUMN_NAME);
+                queryBuilder.addNullParameter(OBJECT_NAME_NORM_COLUMN_NAME);
+            }
+            queryBuilder.addParameter(RESOURCE_OID_COLUMN_NAME, operation.getResourceOid());
+            if (operation.getResourceName() != null) {
+                queryBuilder.addParameter(RESOURCE_NAME_ORIG_COLUMN_NAME, operation.getResourceName().getOrig());
+                queryBuilder.addParameter(RESOURCE_NAME_NORM_COLUMN_NAME, operation.getResourceName().getNorm());
+            } else {
+                queryBuilder.addNullParameter(RESOURCE_NAME_ORIG_COLUMN_NAME);
+                queryBuilder.addNullParameter(RESOURCE_NAME_NORM_COLUMN_NAME);
+            }
+            queryBuilder.addParameter(CHECKSUM_COLUMN_NAME, RUtil.computeChecksum(deltaData, fullResultData), true);
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
+
+        return queryBuilder.build();
+    }
+
+    @NotNull
     public static ObjectDeltaOperation fromRepo(RObjectDeltaOperation operation, PrismContext prismContext, boolean useUtf16)
             throws DtoTranslationException {
 
@@ -306,9 +377,43 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
                 OperationResultType resultType = prismContext.parserFor(xmlResult).parseRealValue(OperationResultType.class);
                 odo.setExecutionResult(OperationResult.createOperationResult(resultType));
             }
-            odo.setObjectName(RPolyString.fromRepo(operation.getObjectName()));
+            odo.setObjectName(RPolyString.fromRepo(operation.getObjectName(), prismContext));
             odo.setResourceOid(operation.getResourceOid());
-            odo.setResourceName(RPolyString.fromRepo(operation.getResourceName()));
+            odo.setResourceName(RPolyString.fromRepo(operation.getResourceName(), prismContext));
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
+
+        return odo;
+    }
+
+    @NotNull
+    public static ObjectDeltaOperation fromRepo(ResultSet resultSet, PrismContext prismContext, boolean useUtf16)
+            throws DtoTranslationException {
+
+        ObjectDeltaOperation odo = new ObjectDeltaOperation();
+        try {
+            if (resultSet.getBytes(DELTA_COLUMN_NAME) != null) {
+                byte[] data = resultSet.getBytes(DELTA_COLUMN_NAME);
+                String xmlDelta = RUtil.getXmlFromByteArray(data, true, useUtf16);
+
+                ObjectDeltaType delta = prismContext.parserFor(xmlDelta).parseRealValue(ObjectDeltaType.class);
+                odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, prismContext));
+            }
+            if (resultSet.getBytes(FULL_RESULT_COLUMN_NAME) != null) {
+                byte[] data = resultSet.getBytes(FULL_RESULT_COLUMN_NAME);
+                String xmlResult = RUtil.getXmlFromByteArray(data, true, useUtf16);
+
+                OperationResultType resultType = prismContext.parserFor(xmlResult).parseRealValue(OperationResultType.class);
+                odo.setExecutionResult(OperationResult.createOperationResult(resultType));
+            }
+            if (resultSet.getString(OBJECT_NAME_ORIG_COLUMN_NAME) != null || resultSet.getString(OBJECT_NAME_NORM_COLUMN_NAME) != null) {
+                odo.setObjectName(new PolyString(resultSet.getString(OBJECT_NAME_ORIG_COLUMN_NAME), resultSet.getString(OBJECT_NAME_NORM_COLUMN_NAME)));
+            }
+            odo.setResourceOid(resultSet.getString(RESOURCE_OID_COLUMN_NAME));
+            if (resultSet.getString(RESOURCE_NAME_ORIG_COLUMN_NAME) != null || resultSet.getString(RESOURCE_NAME_NORM_COLUMN_NAME) != null) {
+                odo.setResourceName(new PolyString(resultSet.getString(RESOURCE_NAME_ORIG_COLUMN_NAME), resultSet.getString(RESOURCE_NAME_NORM_COLUMN_NAME)));
+            }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

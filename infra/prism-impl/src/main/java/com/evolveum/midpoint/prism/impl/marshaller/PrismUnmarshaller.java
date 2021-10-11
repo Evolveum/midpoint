@@ -1,29 +1,74 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl.marshaller;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.impl.*;
-import com.evolveum.midpoint.prism.impl.xnode.*;
+import static com.evolveum.midpoint.util.Checks.checkSchema;
+import static com.evolveum.midpoint.util.Checks.checkSchemaNotNull;
+import static com.google.common.base.Preconditions.checkArgument;
+
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ExpressionWrapper;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.ParsingContext;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.SchemaMigration;
+import com.evolveum.midpoint.prism.SchemaMigrationOperation;
+import com.evolveum.midpoint.prism.TypeDefinition;
+import com.evolveum.midpoint.prism.impl.PrismContainerDefinitionImpl;
+import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
+import com.evolveum.midpoint.prism.impl.PrismPropertyDefinitionImpl;
+import com.evolveum.midpoint.prism.impl.PrismPropertyImpl;
+import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
+import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
+import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
+import com.evolveum.midpoint.prism.impl.util.PrismUtilInternal;
+import com.evolveum.midpoint.prism.impl.xnode.IncompleteMarkerXNodeImpl;
+import com.evolveum.midpoint.prism.impl.xnode.ListXNodeImpl;
+import com.evolveum.midpoint.prism.impl.xnode.MapXNodeImpl;
+import com.evolveum.midpoint.prism.impl.xnode.PrimitiveXNodeImpl;
+import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
+import com.evolveum.midpoint.prism.impl.xnode.SchemaXNodeImpl;
+import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.prism.impl.util.PrismUtilInternal;
-import com.evolveum.midpoint.prism.xnode.*;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -31,15 +76,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ReferentialIntegrityType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.Validate;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.google.common.collect.ImmutableSet;
 
-import javax.xml.XMLConstants;
-import javax.xml.namespace.QName;
-import java.util.Map.Entry;
 
 public class PrismUnmarshaller {
 
@@ -47,12 +87,27 @@ public class PrismUnmarshaller {
 
     private static final QName ARTIFICIAL_OBJECT_NAME = new QName(XMLConstants.NULL_NS_URI, "anObject");
 
-    @NotNull
-	private PrismContext prismContext;
+    private static final Set<String> REFERENCE_PROPERTIES = ImmutableSet.of(
+            XNodeImpl.KEY_REFERENCE_OID.getLocalPart(),
+            XNodeImpl.KEY_REFERENCE_TYPE.getLocalPart(),
+            XNodeImpl.KEY_REFERENCE_RELATION.getLocalPart(),
+            XNodeImpl.KEY_REFERENCE_DESCRIPTION.getLocalPart(),
+            XNodeImpl.KEY_REFERENCE_FILTER.getLocalPart(),
+            XNodeImpl.KEY_REFERENCE_RESOLUTION_TIME.getLocalPart(),
+            XNodeImpl.KEY_REFERENCE_TARGET_NAME.getLocalPart(),
+            XNodeImpl.KEY_REFERENCE_OBJECT.getLocalPart(),
+            XNodeImpl.KEY_REFERENCE_REFERENTIAL_INTEGRITY.getLocalPart());
 
-	public PrismUnmarshaller(@NotNull PrismContext prismContext) {
-		this.prismContext = prismContext;
-	}
+    @NotNull private final PrismContext prismContext;
+    @NotNull private final BeanUnmarshaller beanUnmarshaller;
+    @NotNull private final SchemaRegistryImpl schemaRegistry;
+
+    public PrismUnmarshaller(@NotNull PrismContext prismContext, @NotNull BeanUnmarshaller beanUnmarshaller,
+            @NotNull SchemaRegistryImpl schemaRegistry) {
+        this.prismContext = prismContext;
+        this.beanUnmarshaller = beanUnmarshaller;
+        this.schemaRegistry = schemaRegistry;
+    }
 
     //region Public interface ========================================================
 
@@ -66,49 +121,53 @@ public class PrismUnmarshaller {
     @SuppressWarnings("unchecked")
     <O extends Objectable> PrismObject<O> parseObject(@NotNull RootXNodeImpl root, ItemDefinition<?> itemDefinition, QName itemName,
             QName typeName, Class<?> typeClass, @NotNull ParsingContext pc) throws SchemaException {
-        ItemInfo itemInfo = ItemInfo.determine(itemDefinition,
+        checkSchema(itemDefinition == null || itemDefinition instanceof PrismObjectDefinition,
+                "Cannot parse object from element %s, the element does not define an object, it is defined as %s",itemName, itemDefinition);
+        ItemInfo<?> itemInfo = ItemInfo.determine(itemDefinition,
                 root.getRootElementName(), itemName, ARTIFICIAL_OBJECT_NAME,
                 root.getTypeQName(), typeName,
-                typeClass, PrismObjectDefinition.class, pc, getSchemaRegistry());
+                typeClass, PrismObjectDefinition.class, pc, schemaRegistry);
 
         XNodeImpl child = root.getSubnode();
-        if (!(child instanceof MapXNodeImpl)) {
-            throw new IllegalArgumentException("Cannot parse object from " + child.getClass().getSimpleName() + ", we need a map");
-        }
-        return (PrismObject<O>) (Item) parseItemInternal(child, itemInfo.getItemName(), itemInfo.getItemDefinition(), pc);
+        checkArgument(child instanceof MapXNodeImpl,
+                "Cannot parse object from element %s, we need Map", child.getClass());
+        ItemDefinition<?> itemDef = checkSchemaNotNull(itemInfo.getItemDefinition(),
+                "Cannot parse object from element %s, there is no definition for that element", itemInfo.getItemName());
+        checkSchema(itemDef instanceof PrismObjectDefinition,
+                "Cannot parse object from element %s the element does not define an object, it is defined as %s", itemInfo.getItemName(), itemInfo.getItemDefinition());
+        return (PrismObject<O>) parseItemInternal(child, itemInfo.getItemName(), itemDef, pc);
     }
 
     // TODO migrate to parseItem eventually
     @SuppressWarnings("unchecked")
     private <O extends Objectable> PrismObject<O> parseObject(MapXNodeImpl map, PrismObjectDefinition<O> objectDefinition,
             ParsingContext pc) throws SchemaException {
-        ItemInfo itemInfo = ItemInfo.determine(objectDefinition,
+        ItemInfo<?> itemInfo = ItemInfo.determine(objectDefinition,
                 null, null, ARTIFICIAL_OBJECT_NAME,
                 map.getTypeQName(), null,
-                null, PrismObjectDefinition.class, pc, getSchemaRegistry());
-        return (PrismObject<O>) (Item) parseItemInternal(map, itemInfo.getItemName(), itemInfo.getItemDefinition(), pc);
+                null, PrismObjectDefinition.class, pc, schemaRegistry);
+        return (PrismObject<O>) parseItemInternal(map, itemInfo.getItemName(), itemInfo.getItemDefinition(), pc);
     }
 
-    @SuppressWarnings("unchecked")
     Item<?, ?> parseItem(@NotNull RootXNodeImpl root,
             ItemDefinition<?> itemDefinition, QName itemName, QName typeName, Class<?> typeClass,
             @NotNull ParsingContext pc) throws SchemaException {
 
-        ItemInfo itemInfo = ItemInfo.determine(itemDefinition,
+        ItemInfo<?> itemInfo = ItemInfo.determine(itemDefinition,
                 root.getRootElementName(), itemName, ARTIFICIAL_OBJECT_NAME,
                 root.getTypeQName(), typeName,
-                typeClass, ItemDefinition.class, pc, getSchemaRegistry());
-        ItemDefinition realDefinition;
+                typeClass, ItemDefinition.class, pc, schemaRegistry);
+        ItemDefinition<?> realDefinition;
         if (itemInfo.getItemDefinition() == null && itemInfo.getComplexTypeDefinition() != null) {
             // let's create container definition dynamically
             QName actualTypeName = itemInfo.getComplexTypeDefinition().getTypeName();
-            if (getSchemaRegistry().isContainer(actualTypeName)) {      // TODO what about objects?
-                PrismContainerDefinitionImpl def = new PrismContainerDefinitionImpl(itemInfo.getItemName(),
+            if (((SchemaRegistry) schemaRegistry).isContainer(actualTypeName)) {      // TODO what about objects?
+                PrismContainerDefinitionImpl<?> def = new PrismContainerDefinitionImpl<>(itemInfo.getItemName(),
                         itemInfo.getComplexTypeDefinition(), prismContext);
                 def.setDynamic(true);
                 realDefinition = def;
             } else {
-                PrismPropertyDefinitionImpl def = new PrismPropertyDefinitionImpl(itemInfo.getItemName(), actualTypeName, prismContext);
+                PrismPropertyDefinitionImpl<?> def = new PrismPropertyDefinitionImpl<>(itemInfo.getItemName(), actualTypeName, prismContext);
                 def.setDynamic(true);
                 realDefinition = def;
             }
@@ -122,19 +181,17 @@ public class PrismUnmarshaller {
         // is the type name explicitly specified? (if not, guess that we have a string)
         QName typeName = root.getTypeQName();
         if (typeName != null) {
-            ItemDefinition itemDefinition = getSchemaRegistry().findItemDefinitionByType(typeName);
+            ItemDefinition<?> itemDefinition = schemaRegistry.findItemDefinitionByType(typeName);
             if (itemDefinition != null) {
                 return parseItem(root, itemDefinition, null, null, null, pc);
             } else {
-                return getBeanUnmarshaller().unmarshal(root, getSchemaRegistry().determineCompileTimeClass(typeName), pc);
+                return beanUnmarshaller.unmarshal(root, ((SchemaRegistry) schemaRegistry).determineCompileTimeClass(typeName), pc);
             }
         } else {
             // if type name is not known, we have to derive it from the element name
             QName itemName = root.getRootElementName();
-            ItemDefinition itemDefinition = getSchemaRegistry().findItemDefinitionByElementName(itemName);
-            if (itemDefinition == null) {
-                throw new SchemaException("Couldn't parse general object with no type name and unknown element name: " + itemName);
-            }
+            ItemDefinition<?> itemDefinition = checkSchemaNotNull(schemaRegistry.findItemDefinitionByElementName(itemName),
+                    "Couldn't parse general object with no type name and unknown element name: %s", itemName);
             return parseItem(root, itemDefinition, itemName, null, null, pc);
         }
     }
@@ -147,15 +204,14 @@ public class PrismUnmarshaller {
     // try to look for missing definitions here.
     //
     // So the caller is responsible for extracting information from node.typeQName - providing a definition if possible.
-    @SuppressWarnings("unchecked")
     @NotNull
     private Item<?, ?> parseItemInternal(@NotNull XNodeImpl node,
-            @NotNull QName itemName, ItemDefinition itemDefinition, @NotNull ParsingContext pc) throws SchemaException {
+            @NotNull QName itemName, ItemDefinition<?> itemDefinition, @NotNull ParsingContext pc) throws SchemaException {
         Validate.isTrue(!(node instanceof RootXNode));
 
         // TODO execute this only if in checked mode
         if (itemDefinition == null && node.getTypeQName() != null) {
-            PrismContainerDefinition<?> pcd = getSchemaRegistry().findContainerDefinitionByType(node.getTypeQName());
+            PrismContainerDefinition<?> pcd = schemaRegistry.findContainerDefinitionByType(node.getTypeQName());
             if (pcd != null) {
                 throw new IllegalStateException("Node has an explicit type corresponding to container (" + pcd
                         + ") but parseItemInternal was called without definition: " + node.debugDump());
@@ -163,7 +219,7 @@ public class PrismUnmarshaller {
         }
 
         if (itemDefinition == null || itemDefinition instanceof PrismPropertyDefinition) {
-            return parseProperty(node, itemName, (PrismPropertyDefinition) itemDefinition, pc);
+            return parseProperty(node, itemName, (PrismPropertyDefinition<?>) itemDefinition, pc);
         } else if (itemDefinition instanceof PrismContainerDefinition) {    // also objects go here
             return parseContainer(node, itemName, (PrismContainerDefinition<?>) itemDefinition, pc);
         } else if (itemDefinition instanceof PrismReferenceDefinition) {
@@ -195,12 +251,16 @@ public class PrismUnmarshaller {
 
     private <C extends Containerable> void parseContainerValueToContainer(PrismContainer<C> container, XNodeImpl node,
             @NotNull ParsingContext pc) throws SchemaException {
-        container.add(parseContainerValue(node, container.getDefinition(), pc));
-        if (node instanceof MapXNodeImpl && container instanceof PrismObject) {
-            MapXNodeImpl map = (MapXNodeImpl) node;
-            PrismObject object = (PrismObject) container;
-            object.setOid(getOid(map));
-            object.setVersion(getVersion(map));
+        if (node instanceof IncompleteMarkerXNodeImpl) {
+            container.setIncomplete(true);
+        } else {
+            container.add(parseContainerValue(node, container.getDefinition(), pc));
+            if (node instanceof MapXNodeImpl && container instanceof PrismObject) {
+                MapXNodeImpl map = (MapXNodeImpl) node;
+                PrismObject<?> object = (PrismObject<?>) container;
+                object.setOid(getOid(map));
+                object.setVersion(getVersion(map));
+            }
         }
     }
 
@@ -234,32 +294,47 @@ public class PrismUnmarshaller {
         }
     }
 
+    @NotNull
     private <C extends Containerable> PrismContainerValue<C> parseContainerValueFromMap(@NotNull MapXNodeImpl map,
             @NotNull PrismContainerDefinition<C> containerDef, @NotNull ParsingContext pc) throws SchemaException {
         Long id = getContainerId(map);
 
-        ComplexTypeDefinition complexTypeDefinition = containerDef.getComplexTypeDefinition();
+        ComplexTypeDefinition containerTypeDef = containerDef.getComplexTypeDefinition();
 
         PrismContainerValue<C> cval;
         if (containerDef instanceof PrismObjectDefinition) {
+            //noinspection unchecked
             cval = ((PrismObjectDefinition) containerDef).createValue();
         } else {
             // override container definition, if explicit type is specified
             if (map.getTypeQName() != null) {
-                ComplexTypeDefinition specificDef = getSchemaRegistry().findComplexTypeDefinitionByType(map.getTypeQName());
-                if (specificDef != null) {
-                    complexTypeDefinition = specificDef;
+                ComplexTypeDefinition explicitTypeDef = schemaRegistry.findComplexTypeDefinitionByType(map.getTypeQName());
+                if (explicitTypeDef != null) {
+                    if (containerTypeDef != null && explicitTypeDef.isAssignableFrom(containerTypeDef, schemaRegistry)) {
+                        // Existing definition (CTD for PCD) is equal or more specific than the explicitly provided one.
+                        // Let's then keep using the existing definition. It is not quite clean solution
+                        // but there seem to exist serialized objects with generic xsi:type="c:ExtensionType" (MID-6474)
+                        // or xsi:type="c:ShadowAttributesType" (MID-6394). Such abstract definitions could lead to
+                        // parsing failures because of undefined items.
+                        LOGGER.trace("Ignoring explicit type definition {} because equal or even more specific one is present: {}",
+                                explicitTypeDef, containerTypeDef);
+                    } else {
+                        containerTypeDef = explicitTypeDef;
+                    }
                 } else {
                     pc.warnOrThrow(LOGGER, "Unknown type " + map.getTypeQName() + " in " + map);
                 }
             }
-            cval = new PrismContainerValueImpl<>(null, null, null, id, complexTypeDefinition, prismContext);
+            cval = new PrismContainerValueImpl<>(null, null, null, id, containerTypeDef, prismContext);
         }
+        parseContainerChildren(cval, map, containerDef, containerTypeDef, pc);
+        return cval;
+    }
+
+    private void parseContainerChildren(PrismContainerValue<?> cval, MapXNodeImpl map, PrismContainerDefinition<?> containerDef, ComplexTypeDefinition complexTypeDefinition, ParsingContext pc) throws SchemaException {
         for (Entry<QName, XNodeImpl> entry : map.entrySet()) {
-            QName itemName = entry.getKey();
-            if (itemName == null) {
-                throw new IllegalArgumentException("Null item name while parsing " + map.debugDump());
-            }
+            final QName itemName = entry.getKey();
+            checkArgument(itemName != null, "Null item name while parsing %s", map.debugDumpLazily());
             if (QNameUtil.match(itemName, XNodeImpl.KEY_CONTAINER_ID)) {
                 continue;
             }
@@ -267,29 +342,16 @@ public class PrismUnmarshaller {
                     (QNameUtil.match(itemName, XNodeImpl.KEY_OID) || QNameUtil.match(itemName, XNodeImpl.KEY_VERSION))) {
                 continue;
             }
-            ItemDefinition itemDef = locateItemDefinition(itemName, complexTypeDefinition, entry.getValue());
 
+            ItemDefinition<?> itemDef = locateItemDefinition(itemName, complexTypeDefinition, entry.getValue());
             if (itemDef == null) {
-                if (complexTypeDefinition == null || complexTypeDefinition.isXsdAnyMarker() || complexTypeDefinition.isRuntimeSchema()) {
-                    PrismSchema itemSchema = getSchemaRegistry().findSchemaByNamespace(itemName.getNamespaceURI());
-                    if (itemSchema != null) {
-                        // If we already have schema for this namespace then a missing element is
-                        // an error. We positively know that it is not in the schema.
-                        pc.warnOrThrow(LOGGER, "Item " + itemName + " has no definition (schema present, in container "
-                                + containerDef + ")" + "while parsing " + map.debugDump());
-                        // we can go along this item (at least show it in repository pages) - MID-3249
-                        // TODO make this configurable
-                    } else {
-                        // No definition for item, but the schema is runtime. the definition may come later.
-                        // Null is OK here. The item will be parsed as "raw"
-                    }
-                } else {    // complex type definition is static
-                    pc.warnOrThrow(LOGGER, "Item " + itemName + " has no definition (in container value "
-                            + complexTypeDefinition + ")" + "while parsing " + map.debugDump());
-                    continue;   // don't even attempt to parse it
+                boolean shouldContinue = handleMissingDefinition(itemName, containerDef, complexTypeDefinition, pc, map);
+                if(shouldContinue) {
+                    continue;
                 }
+
             }
-            Item<?, ?> item;
+            final Item<?, ?> item;
             if (entry.getValue() == null) {
                 if (itemDef != null) {
                     item = itemDef.instantiate();       // TODO or skip the creation altogether?
@@ -305,7 +367,63 @@ public class PrismUnmarshaller {
                 cval.merge(item);
             }
         }
-        return cval;
+    }
+
+    private boolean handleMissingDefinition(QName itemName, ItemDefinition<?> containerDef, TypeDefinition typeDefinition, ParsingContext pc, DebugDumpable object) throws SchemaException {
+        SchemaMigration migration = determineSchemaMigration(typeDefinition, itemName);
+        if (migration != null && pc.isCompat()) {
+            if (migration.getOperation() == SchemaMigrationOperation.REMOVED) {
+                String msg = "Item "+itemName+" was removed from the schema, skipped processing of that item";
+                pc.warn(LOGGER, msg);
+                return true;
+            } else {
+                pc.warnOrThrow(LOGGER, "Unsupported migration operation " + migration.getOperation() + " for item " + itemName + " (in "
+                        + containerDef + ")" + "while parsing " + object.debugDump());
+            }
+        }
+        boolean anyXsd = typeDefinition instanceof ComplexTypeDefinition && ((ComplexTypeDefinition) typeDefinition).isXsdAnyMarker();
+        if (typeDefinition == null || typeDefinition.isRuntimeSchema() || anyXsd) {
+            PrismSchema itemSchema = schemaRegistry.findSchemaByNamespace(itemName.getNamespaceURI());
+            if (itemSchema != null) {
+                // If we already have schema for this namespace then a missing element is
+                // an error. We positively know that it is not in the schema.
+                pc.warnOrThrow(LOGGER, "Item " + itemName + " has no definition (schema present, in "
+                        + containerDef + ")" + "while parsing " + object.debugDump());
+                // we can go along this item (at least show it in repository pages) - MID-3249
+                // TODO make this configurable
+            } else {
+                // No definition for item, but the schema is runtime. the definition may come later.
+                // Null is OK here. The item will be parsed as "raw"
+            }
+        } else {    // complex type definition is static
+            pc.warnOrThrow(LOGGER, "Item " + itemName + " has no definition (in value "
+                    + typeDefinition + ")" + "while parsing " + object.debugDump());
+            return true;   // don't even attempt to parse it
+        }
+        return false;
+    }
+
+    private SchemaMigration determineSchemaMigration(TypeDefinition typeDefinition, QName itemName) {
+        if (typeDefinition == null) {
+            return null;
+        }
+        List<SchemaMigration> schemaMigrations = typeDefinition.getSchemaMigrations();
+        if (schemaMigrations != null) {
+            for (SchemaMigration schemaMigration : schemaMigrations) {
+                if (QNameUtil.match(schemaMigration.getElementQName(), itemName)) {
+                    return schemaMigration;
+                }
+            }
+        }
+        QName superTypeQName = typeDefinition.getSuperType();
+        if (superTypeQName == null) {
+            return null;
+        }
+        TypeDefinition superTypeDef = prismContext.getSchemaRegistry().findTypeDefinitionByType(superTypeQName);
+        if (superTypeDef == null) {
+            return null;
+        }
+        return determineSchemaMigration(superTypeDef, itemName);
     }
 
     @NotNull
@@ -319,50 +437,64 @@ public class PrismUnmarshaller {
 
         if (node instanceof ListXNodeImpl && !node.isHeterogeneousList()) {
             ListXNodeImpl listNode = (ListXNodeImpl) node;
-            if (itemDefinition != null && !itemDefinition.isMultiValue() && listNode.size() > 1) {
-                throw new SchemaException("Attempt to store multiple values in single-valued property " + itemName);
-            }
+            checkSchema(itemDefinition == null || itemDefinition.isMultiValue() || listNode.size() <= 1,
+                    "Attempt to store multiple values in single-valued property %s", itemName);
             for (XNodeImpl subNode : listNode) {
-                PrismPropertyValue<T> pval = parsePropertyValue(subNode, itemDefinition, pc);
-                addItemValueIfPossible(property, pval, pc);
+                if (subNode instanceof IncompleteMarkerXNodeImpl) {
+                    property.setIncomplete(true);
+                } else {
+                    PrismPropertyValue<T> pval = parsePropertyValue(subNode, itemDefinition, pc);
+                    addItemValueIfPossible(property, pval, pc);
+                }
             }
         } else if (node instanceof MapXNodeImpl || node instanceof PrimitiveXNodeImpl || node.isHeterogeneousList()) {
             PrismPropertyValue<T> pval = parsePropertyValue(node, itemDefinition, pc);
             if (pval != null) {
-                property.add(pval);
+                try {
+                    property.add(pval);
+                } catch (SchemaException e) {
+                    if (pc.isCompat()) {
+                        // Most probably the "apply definition" call while adding the value failed. This occurs for raw
+                        // values with (somewhat) incorrect definitions being added. Overall, this is more a hack than serious
+                        // solution, because we sometimes want to add static-schema-less property values. TODO investigate this.
+                        ((PrismPropertyImpl<T>) property).addForced(pval);
+                    } else {
+                        throw e;
+                    }
+                }
             }
         } else if (node instanceof SchemaXNodeImpl) {
-            SchemaDefinitionType schemaDefType = getBeanUnmarshaller().unmarshalSchemaDefinitionType((SchemaXNodeImpl) node);
+            SchemaDefinitionType schemaDefType = beanUnmarshaller.unmarshalSchemaDefinitionType((SchemaXNodeImpl) node);
             @SuppressWarnings("unchecked")
-            PrismPropertyValue<T> val = new PrismPropertyValueImpl(schemaDefType);
-			addItemValueIfPossible(property, val, pc);
+            PrismPropertyValue<T> val = (PrismPropertyValue<T>) new PrismPropertyValueImpl<>(schemaDefType);
+            addItemValueIfPossible(property, val, pc);
+        } else if (node instanceof IncompleteMarkerXNodeImpl) {
+            property.setIncomplete(true);
         } else {
             throw new IllegalArgumentException("Cannot parse property from " + node);
         }
         return property;
     }
 
-	private <V extends PrismValue, D extends ItemDefinition> void addItemValueIfPossible(Item<V, D> item, V value, ParsingContext pc) throws SchemaException {
-		if (value != null) {
-			try {
-				item.add(value);
-			} catch (SchemaException e) {
-				pc.warnOrThrow(LOGGER, "Couldn't add a value of " + value + " to the containing item: " + e.getMessage(), e);
-			}
-		}
-	}
+    private <V extends PrismValue, D extends ItemDefinition<?>> void addItemValueIfPossible(Item<V, D> item, V value, ParsingContext pc) throws SchemaException {
+        if (value != null) {
+            try {
+                item.add(value);
+            } catch (SchemaException e) {
+                pc.warnOrThrow(LOGGER, "Couldn't add a value of " + value + " to the containing item: " + e.getMessage(), e);
+            }
+        }
+    }
 
-	// if definition == null or any AND node has type defined, this type must be non-containerable (fit into PPV)
+    // if definition == null or any AND node has type defined, this type must be non-containerable (fit into PPV)
     private <T> PrismPropertyValue<T> parsePropertyValue(@NotNull XNodeImpl node,
             @Nullable PrismPropertyDefinition<T> definition, @NotNull ParsingContext pc) throws SchemaException {
         QName typeFromDefinition = definition != null && !definition.isAnyType() ? definition.getTypeName() : null;
-        QName typeName =
-                getSchemaRegistry().areComparable(typeFromDefinition, node.getTypeQName()) ?
-                        getSchemaRegistry().selectMoreSpecific(typeFromDefinition, node.getTypeQName()) : null;
+        QName typeName = ((SchemaRegistry) schemaRegistry).selectMoreSpecific(typeFromDefinition, node.getTypeQName());
         if (typeName == null) {
-			return createRawPrismPropertyValue(node);
-        } else if (getBeanUnmarshaller().canProcess(typeName)) {
-            T realValue = getBeanUnmarshaller().unmarshal(node, typeName, pc);
+            return createRawPrismPropertyValue(node);
+        } else if (beanUnmarshaller.canProcess(typeName)) {
+            T realValue = beanUnmarshaller.unmarshal(node, typeName, pc);
             // Postprocessing after returning from unmarshaller. It speaks bean language (e.g. PolyStringType, not PolyString).
             // It also doesn't know about prism-specific things like allowed values, etc.
             if (realValue instanceof PolyStringType) {
@@ -376,52 +508,45 @@ public class PrismUnmarshaller {
                 return null;
             }
             if (realValue == null) {
-            	// Be careful here. Expression element can be legal sub-element of complex properties.
-            	// Therefore parse expression only if there is no legal value.
-            	ExpressionWrapper expression = PrismUtilInternal.parseExpression(node, prismContext);
-            	if (expression != null) {
-            		PrismPropertyValue<T> ppv = new PrismPropertyValueImpl<>(null, prismContext, null, null, expression);
-            		return ppv;
-            	} else {
+                // Be careful here. Expression element can be legal sub-element of complex properties.
+                // Therefore parse expression only if there is no legal value.
+                ExpressionWrapper expression = PrismUtilInternal.parseExpression(node, prismContext);
+                if (expression != null) {
+                    return new PrismPropertyValueImpl<>(null, prismContext, null, null, expression);
+                } else {
                     // There's no point in returning PPV(null) as it would soon fail on internal PP check.
-            	    // We are probably recovering from an error in COMPAT mode here, so let's just skip this value.
-            	    return null;
+                    // We are probably recovering from an error in COMPAT mode here, so let's just skip this value.
+                    return null;
                 }
             }
-            PrismPropertyValue<T> ppv = new PrismPropertyValueImpl<>(realValue);
+            PrismPropertyValueImpl<T> ppv = new PrismPropertyValueImpl<>(realValue);
             ppv.setPrismContext(prismContext);
             return ppv;
         } else {
-        	pc.warnOrThrow(LOGGER, "Cannot parse as " + typeName + " because bean unmarshaller cannot process it (generated bean classes are missing?): " + node.debugDump());
-			return createRawPrismPropertyValue(node);
+            pc.warnOrThrow(LOGGER, "Cannot parse as " + typeName + " because bean unmarshaller cannot process it (generated bean classes are missing?): " + node.debugDump());
+            return createRawPrismPropertyValue(node);
         }
     }
 
-	@NotNull
-	private <T> PrismPropertyValue<T> createRawPrismPropertyValue(@NotNull XNodeImpl node) {
-		return prismContext.itemFactory().createPropertyValue(node);
-	}
+    @NotNull
+    private <T> PrismPropertyValue<T> createRawPrismPropertyValue(@NotNull XNodeImpl node) {
+        return prismContext.itemFactory().createPropertyValue(node);
+    }
 
-	private <T> boolean isValueAllowed(T realValue, PrismPropertyDefinition<T> definition) throws SchemaException {
-        if (definition == null || CollectionUtils.isEmpty(definition.getAllowedValues())) {
-            return true;
-        }
-        if (realValue == null) {
-            return true;        // TODO: ok?
-        }
-        String serializedForm;
+    @Contract("_, null -> true")
+    private <T> boolean isValueAllowed(T realValue, PrismPropertyDefinition<T> definition) {
         if (realValue instanceof Enum) {
-            PrimitiveXNodeImpl<String> prim = (PrimitiveXNodeImpl<String>) getBeanMarshaller().marshall(realValue);
-            serializedForm = prim.getValue();
+            // Statically-defined enums have been already treated. Unless someone overrides the static schema,
+            // reducing the set of allowed values. But let's declared this feature as "not supported yet")
+            return true;
+        } else if (definition == null || CollectionUtils.isEmpty(definition.getAllowedValues())) {
+            return true;
+        } else if (realValue == null) {
+            return true; // TODO: ok?
         } else {
-            serializedForm = null;
+            return definition.getAllowedValues().stream()
+                    .anyMatch(displayableValue -> realValue.equals(displayableValue.getValue()));
         }
-
-        return definition.getAllowedValues().stream()
-                .anyMatch(displayableValue ->
-                        realValue.equals(displayableValue.getValue())
-                        || serializedForm != null && serializedForm.equals(displayableValue.getValue())
-                );
     }
 
     @NotNull
@@ -429,17 +554,19 @@ public class PrismUnmarshaller {
             @NotNull PrismReferenceDefinition definition, @NotNull ParsingContext pc) throws SchemaException {
         PrismReference ref = definition.instantiate();
         if (node instanceof ListXNodeImpl) {
-            ListXNodeImpl listNode = (ListXNodeImpl) node;
-            if (!definition.isMultiValue() && listNode.size() > 1) {
-                throw new SchemaException("Attempt to store multiple values in single-valued reference " + itemName);
-            }
-            for (XNodeImpl subNode : listNode) {
-                ref.add(parseReferenceValueFromXNode(subNode, definition, itemName, pc));
+            for (XNodeImpl subNode : (ListXNodeImpl) node) {
+                if (subNode instanceof IncompleteMarkerXNodeImpl) {
+                    ref.setIncomplete(true);
+                } else {
+                    ref.add(parseReferenceValueFromXNode(subNode, definition, itemName, pc));
+                }
             }
         } else if (node instanceof MapXNodeImpl) {
             ref.add(parseReferenceValueFromXNode(node, definition, itemName, pc));
         } else if (node instanceof PrimitiveXNodeImpl) {
             // empty
+        } else if (node instanceof IncompleteMarkerXNodeImpl) {
+            ref.setIncomplete(true);
         } else {
             throw new IllegalArgumentException("Cannot parse reference from " + node);
         }
@@ -457,12 +584,11 @@ public class PrismUnmarshaller {
         boolean isComposite;
         if (node.getTypeQName() != null) {
             QName typeName = node.getTypeQName();
-            ItemDefinition contentDefinition = getSchemaRegistry().findItemDefinitionByType(typeName);
+            ItemDefinition<?> contentDefinition = schemaRegistry.findItemDefinitionByType(typeName);
             isComposite = contentDefinition instanceof PrismObjectDefinition;
         } else {
-            isComposite = !QNameUtil.match(itemName, definition.getName());
+            isComposite = !QNameUtil.match(itemName, definition.getItemName());
         }
-
 
         if (isComposite) {
             return parseReferenceValueAsCompositeObject(node, definition, pc);  // This is a composite object (complete object stored inside reference)
@@ -470,49 +596,40 @@ public class PrismUnmarshaller {
             // TODO fix this hack: for delta values of ObjectReferenceType we will not
             // insist on having reference type (because the target definition could be such that it won't require it)
             boolean allowMissingRefTypesOverride = node.isExplicitTypeDeclaration();
-            return parseReferenceValueAsReference(node, definition, pc, allowMissingRefTypesOverride);   // This is "real" reference (oid,  and nothing more)
+            return parseReferenceValueAsReference(itemName, node, definition, pc, allowMissingRefTypesOverride);   // This is "real" reference (oid,  and nothing more)
         }
     }
 
-    private PrismReferenceValue parseReferenceValueAsReference(@NotNull XNodeImpl xnode, @NotNull PrismReferenceDefinition definition,
+    private PrismReferenceValue parseReferenceValueAsReference(QName name, @NotNull XNodeImpl xnode, @NotNull PrismReferenceDefinition definition,
             @NotNull ParsingContext pc, boolean allowMissingRefTypesOverride) throws SchemaException {
-        if (!(xnode instanceof MapXNodeImpl)) {
-            throw new IllegalArgumentException("Cannot parse reference from " + xnode);
-        }
+        checkArgument(xnode instanceof MapXNodeImpl, "Cannot parse reference from %s", xnode);
         MapXNodeImpl map = (MapXNodeImpl) xnode;
-
+        TypeDefinition typeDefinition = schemaRegistry.findTypeDefinitionByType(definition.getTypeName());
         String oid = map.getParsedPrimitiveValue(XNodeImpl.KEY_REFERENCE_OID, DOMUtil.XSD_STRING);
         PrismReferenceValue refVal = new PrismReferenceValueImpl(oid);
 
-        QName type = map.getParsedPrimitiveValue(XNodeImpl.KEY_REFERENCE_TYPE, DOMUtil.XSD_QNAME);
-        if (type == null) {
-			if (!pc.isAllowMissingRefTypes() && !allowMissingRefTypesOverride) {
-				type = definition.getTargetTypeName();
-				if (type == null) {
-					throw new SchemaException("Target type in reference " + definition.getName() +
-							" not specified in reference nor in the schema");
-				}
-			}
+        QName targetType = map.getParsedPrimitiveValue(XNodeImpl.KEY_REFERENCE_TYPE, DOMUtil.XSD_QNAME);
+        if (targetType == null) {
+            if (!pc.isAllowMissingRefTypes() && !allowMissingRefTypesOverride) {
+                targetType = checkSchemaNotNull(definition.getTargetTypeName(),
+                        "Target type in reference %s not specified in reference nor in the schema", definition.getItemName());
+            }
         } else {
-            if (QNameUtil.noNamespace(type)) {
-                type = getSchemaRegistry().resolveUnqualifiedTypeName(type);
+            if (QNameUtil.noNamespace(targetType)) {
+                targetType = ((SchemaRegistry) schemaRegistry).resolveUnqualifiedTypeName(targetType);
             }
             QName defTargetType = definition.getTargetTypeName();
             if (defTargetType != null) {
-                if (!(prismContext.getSchemaRegistry().isAssignableFrom(defTargetType, type))) {
-                    throw new SchemaException("Target type specified in reference " + definition.getName() +
-                    		" (" + type + ") does not match target type in schema (" + defTargetType + ")");
-                }
+                checkSchema(prismContext.getSchemaRegistry().isAssignableFrom(defTargetType, targetType),
+                        "Target type specified in reference %s (%s) does not match target type in schema (%s)", definition.getItemName(), targetType, defTargetType);
             }
         }
-		PrismObjectDefinition<Objectable> objectDefinition = null;
-		if (type != null) {
-			objectDefinition = getSchemaRegistry().findObjectDefinitionByType(type);
-			if (objectDefinition == null) {
-				throw new SchemaException("No definition for type " + type + " in reference");
-			}
-			refVal.setTargetType(type);
-		}
+        PrismObjectDefinition<Objectable> objectDefinition = null;
+        if (targetType != null) {
+            objectDefinition = checkSchemaNotNull(schemaRegistry.findObjectDefinitionByType(targetType),
+                    "No definition for type %s in reference",targetType);
+            refVal.setTargetType(targetType);
+        }
 
         QName relationAttribute = map.getParsedPrimitiveValue(XNodeImpl.KEY_REFERENCE_RELATION, DOMUtil.XSD_QNAME);
         refVal.setRelation(relationAttribute);
@@ -523,29 +640,61 @@ public class PrismUnmarshaller {
 
         String resolutionTimeString = map.getParsedPrimitiveValue(XNodeImpl.KEY_REFERENCE_RESOLUTION_TIME, DOMUtil.XSD_STRING);
         if (resolutionTimeString != null) {
-        	EvaluationTimeType resolutionTime = EvaluationTimeType.fromValue(resolutionTimeString);
-        	refVal.setResolutionTime(resolutionTime);
+            EvaluationTimeType resolutionTime = EvaluationTimeType.fromValue(resolutionTimeString);
+            refVal.setResolutionTime(resolutionTime);
+        }
+
+        String referentialIntegrityString = map.getParsedPrimitiveValue(XNodeImpl.KEY_REFERENCE_REFERENTIAL_INTEGRITY,
+                DOMUtil.XSD_STRING);
+        if (referentialIntegrityString != null) {
+            refVal.setReferentialIntegrity(ReferentialIntegrityType.fromValue(referentialIntegrityString));
         }
 
         XNodeImpl xnodeForTargetName = map.get(XNodeImpl.KEY_REFERENCE_TARGET_NAME);
         if (xnodeForTargetName != null) {
-            PolyStringType targetName = getBeanUnmarshaller().unmarshal(xnodeForTargetName, PolyStringType.class, pc);
+            PolyStringType targetName = beanUnmarshaller.unmarshal(xnodeForTargetName, PolyStringType.class, pc);
             refVal.setTargetName(targetName);
         }
 
         XNodeImpl xrefObject = map.get(XNodeImpl.KEY_REFERENCE_OBJECT);
         if (xrefObject != null) {
-            if (!(xrefObject instanceof MapXNodeImpl)) {
-                throw new SchemaException("Cannot parse object from " + xrefObject);
-            }
-			if (type == null) {
-				throw new SchemaException("Cannot parse object from " + xrefObject + " without knowing its type");
-			}
-            PrismObject<Objectable> object = parseObject((MapXNodeImpl) xrefObject, objectDefinition, pc);
+            MapXNodeImpl objectMapNode = toObjectMapNode(xrefObject);
+            checkSchemaNotNull(targetType, "Cannot parse object from %s without knowing its type", xrefObject);
+            PrismObject<Objectable> object = parseObject(objectMapNode, objectDefinition, pc);
             setReferenceObject(refVal, object);
+        }
+        for (Entry<QName, XNodeImpl> entry : map.entrySet()) {
+            QName itemName = entry.getKey();
+            if (!isDefinedProperty(itemName, name.getNamespaceURI(), REFERENCE_PROPERTIES)) {
+                handleMissingDefinition(itemName, definition, typeDefinition, pc, map);
+            }
         }
 
         return refVal;
+    }
+
+    @SuppressWarnings({ "unused", "SameParameterValue" })
+    private boolean isDefinedProperty(QName itemName, String parentNamespace, Set<String> properties) {
+        // TODO: Namespace awarness is disabled, because some calls from parseItem use ItemDefinition.itemName
+        // instead of used itemName
+        /*
+        String ns = itemName.getNamespaceURI();
+        if(Strings.isNullOrEmpty(ns) || Objects.equals(parentNamespace,ns)) {
+            return properties.contains(itemName.getLocalPart());
+        }
+        */
+        return properties.contains(itemName.getLocalPart());
+    }
+
+    private MapXNodeImpl toObjectMapNode(XNodeImpl xNode) throws SchemaException {
+        if (xNode instanceof MapXNodeImpl) {
+            return (MapXNodeImpl) xNode;
+        } else if (xNode instanceof PrimitiveXNode && xNode.isEmpty()) {
+            return new MapXNodeImpl();
+        } else {
+            // TODO ...or warn
+            throw new SchemaException("Cannot parse object from " + xNode);
+        }
     }
 
     private void setReferenceObject(PrismReferenceValue refVal, PrismObject<Objectable> object) throws SchemaException {
@@ -554,40 +703,33 @@ public class PrismUnmarshaller {
             if (refVal.getOid() == null) {
                 refVal.setOid(object.getOid());
             } else {
-                if (!refVal.getOid().equals(object.getOid())) {
-                    throw new SchemaException("OID in reference (" + refVal.getOid() + ") does not match OID in composite object (" + object.getOid() + ")");
-                }
+                checkSchema(refVal.getOid().equals(object.getOid()),
+                        "OID in reference (%s) does not match OID in composite object (%s)", refVal.getOid(), object.getOid());
             }
         }
         QName objectTypeName = object.getDefinition().getTypeName();
         if (refVal.getTargetType() == null) {
             refVal.setTargetType(objectTypeName);
         } else {
-            if (!refVal.getTargetType().equals(objectTypeName)) {
-                throw new SchemaException("Target type in reference (" + refVal.getTargetType() + ") does not match type in composite object (" + objectTypeName + ")");
-            }
+            checkSchema(refVal.getTargetType().equals(objectTypeName),
+                    "Target type in reference (%s) does not match type in composite object (%s)", refVal.getTargetType(), objectTypeName);
         }
     }
 
     private PrismReferenceValue parseReferenceValueAsCompositeObject(XNodeImpl node,
             PrismReferenceDefinition definition, ParsingContext pc) throws SchemaException {
-        if (!(node instanceof MapXNodeImpl)) {
-            throw new IllegalArgumentException("Cannot parse reference composite object from " + node);
-        }
+        checkArgument(node instanceof MapXNodeImpl, "Cannot parse reference composite object from %s", node);
         MapXNodeImpl map = (MapXNodeImpl) node;
         QName targetTypeName = definition.getTargetTypeName();
         PrismObjectDefinition<Objectable> objectDefinition = null;
         if (map.getTypeQName() != null) {
-            objectDefinition = getSchemaRegistry().findObjectDefinitionByType(map.getTypeQName());
+            objectDefinition = schemaRegistry.findObjectDefinitionByType(map.getTypeQName());
         }
         if (objectDefinition == null && targetTypeName != null) {
-            objectDefinition = getSchemaRegistry().findObjectDefinitionByType(targetTypeName);
+            objectDefinition = schemaRegistry.findObjectDefinitionByType(targetTypeName);
         }
-        if (objectDefinition == null) {
-            throw new SchemaException("No object definition for composite object in reference element "
-                    + definition.getCompositeObjectElementName());
-        }
-
+        checkSchemaNotNull(objectDefinition,
+                "No object definition for composite object in reference element %s", definition.getCompositeObjectElementName());
         PrismObject<Objectable> compositeObject;
         try {
             compositeObject = parseObject(map, objectDefinition, pc);
@@ -598,7 +740,6 @@ public class PrismUnmarshaller {
 
         PrismReferenceValue refVal = new PrismReferenceValueImpl();
         setReferenceObject(refVal, compositeObject);
-        ((PrismReferenceDefinitionImpl) definition).setComposite(true);             // TODO why do we modify the definition? is that safe?
         return refVal;
     }
 
@@ -612,13 +753,12 @@ public class PrismUnmarshaller {
         return SearchFilterType.createFromParsedXNode(xnode, pc, prismContext);
     }
 
-    private ItemDefinition locateItemDefinition(@NotNull QName itemName, @Nullable ComplexTypeDefinition complexTypeDefinition,
-            XNode xnode) throws SchemaException {
-        return getSchemaRegistry()
-                .locateItemDefinition(itemName, complexTypeDefinition, qName -> createDynamicItemDefinition(qName, xnode));
+    private ItemDefinition<?> locateItemDefinition(@NotNull QName itemName, @Nullable ComplexTypeDefinition complexTypeDefinition,
+            XNode xnode) {
+        return schemaRegistry.locateItemDefinition(itemName, complexTypeDefinition, qName -> createDynamicItemDefinition(qName, xnode));
     }
 
-    private ItemDefinition createDynamicItemDefinition(QName itemName, XNode node)  {
+    private ItemDefinition<?> createDynamicItemDefinition(QName itemName, XNode node)  {
         if (node == null) {
             return null;
         }
@@ -627,7 +767,7 @@ public class PrismUnmarshaller {
             if (node instanceof ListXNodeImpl) {
                 // there may be type definitions in individual list members
                 for (XNodeImpl subNode : ((ListXNodeImpl) node)) {
-                    ItemDefinition subdef = createDynamicItemDefinition(itemName, subNode);
+                    ItemDefinition<?> subdef = createDynamicItemDefinition(itemName, subNode);
                     // TODO: make this smarter, e.g. detect conflicting type definitions
                     if (subdef != null) {
                         return subdef;
@@ -639,7 +779,7 @@ public class PrismUnmarshaller {
             return null;
         }
 
-        PrismPropertyDefinitionImpl propDef = new PrismPropertyDefinitionImpl(itemName, typeName, prismContext);
+        PrismPropertyDefinitionImpl <?> propDef = new PrismPropertyDefinitionImpl<>(itemName, typeName, prismContext);
         Integer maxOccurs = node.getMaxOccurs();
         if (maxOccurs != null) {
             propDef.setMaxOccurs(maxOccurs);
@@ -653,26 +793,10 @@ public class PrismUnmarshaller {
 
     //endregion
 
-
-    //endregion
-    private BeanUnmarshaller getBeanUnmarshaller() {
-        return ((PrismContextImpl) prismContext).getBeanUnmarshaller();
-    }
-
-    private BeanMarshaller getBeanMarshaller() {
-        return ((PrismContextImpl) prismContext).getBeanMarshaller();
-    }
-
-    private SchemaRegistry getSchemaRegistry() {
-		return prismContext.getSchemaRegistry();
-	}
-
-	//TODO
-    public <T extends Containerable> ItemDefinition locateItemDefinition(
+    //TODO
+    public <T extends Containerable> ItemDefinition<?> locateItemDefinition(
             @NotNull PrismContainerDefinition<T> containerDefinition, @NotNull QName itemName, @Nullable XNode xnode)
             throws SchemaException {
         return locateItemDefinition(itemName, containerDefinition.getComplexTypeDefinition(), xnode);
     }
-
-
 }

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.schrodinger.component.common;
@@ -22,12 +13,16 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
 
 import javax.xml.namespace.QName;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -35,6 +30,8 @@ import static com.codeborne.selenide.Selenide.$;
  * Created by Viliam Repan (lazyman).
  */
 public class PrismForm<T> extends Component<T> {
+
+    private static final String CARET_DOWN_ICON_STYLE = "fa-caret-down";
 
     public PrismForm(T parent, SelenideElement parentElement) {
         super(parent, parentElement);
@@ -56,6 +53,12 @@ public class PrismForm<T> extends Component<T> {
 
     public PrismForm<T> addProtectedAttributeValue(String protectedAttributeName, String value) {
         SelenideElement property = findProperty(protectedAttributeName);
+
+        boolean existValue = $(Schrodinger.byDataId("changePasswordLink")).exists();
+        if (existValue) {
+            $(Schrodinger.byDataId("changePasswordLink")).click();
+        }
+
         ElementsCollection values = property.$$(By.xpath(".//input[contains(@class,\"form-control\")]"));
         for (SelenideElement valueElemen : values) {
             valueElemen.setValue(value).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
@@ -70,13 +73,13 @@ public class PrismForm<T> extends Component<T> {
     }
 
     public PrismForm<T> changeAttributeValue(String name, String oldValue, String newValue) {
-        SelenideElement property = findProperty(name);
+        SelenideElement property = $(Schrodinger.byDataResourceKey(name));
 
         $(By.className("prism-properties")).waitUntil(Condition.appears,MidPoint.TIMEOUT_MEDIUM_6_S);
 
         ElementsCollection values = property.$$(By.className("prism-property-value"));
         if (values.size() == 1) {
-            values.first().$(By.className("form-control")).setValue(newValue);
+            values.first().$(By.className("form-control")).waitUntil(Condition.appears,MidPoint.TIMEOUT_MEDIUM_6_S).setValue(newValue);
         }
 
         // todo implement
@@ -85,8 +88,7 @@ public class PrismForm<T> extends Component<T> {
 
 
     public PrismForm<T> setFileForUploadAsAttributeValue(String name, File file) {
-        SelenideElement property = findProperty(name);
-        property.$(By.cssSelector("input.form-object-value-binary-file-input")).uploadFile(file);
+        $(By.cssSelector("input.form-object-value-binary-file-input")).uploadFile(file);
 
         return this;
     }
@@ -107,21 +109,50 @@ public class PrismForm<T> extends Component<T> {
 
     public Boolean compareInputAttributeValue(String name, String expectedValue) {
         SelenideElement property = findProperty(name);
-        SelenideElement value = property.$(By.xpath(".//input[contains(@class,\"form-control\")]"));
+        SelenideElement value = property.parent().$(By.xpath(".//input[contains(@class,\"form-control\")]"));
         String valueElement = value.getValue();
 
         if (!valueElement.isEmpty()) {
-
             return valueElement.equals(expectedValue);
-
-        } else if (!expectedValue.isEmpty()) {
-
-            return false;
-
         } else {
+            return expectedValue.isEmpty();
+        }
 
-            return true;
+    }
 
+    public Boolean compareInputAttributeValues(String name, String... expectedValues) {
+        return compareInputAttributeValues(name, Arrays.asList(expectedValues));
+    }
+
+    public Boolean containsInputAttributeValues(String name, String... expectedValues) {
+        return containsInputAttributeValues(name, Arrays.asList(expectedValues));
+    }
+
+    public Boolean compareInputAttributeValues(String name, List<String> expectedValues) {
+        return compareInputAttributeValues(name, expectedValues, true);
+    }
+
+    public Boolean containsInputAttributeValues(String name, List<String> expectedValues) {
+        return compareInputAttributeValues(name, expectedValues, false);
+    }
+
+    private Boolean compareInputAttributeValues(String name, List<String> expectedValues, boolean strictSameValues) {
+        SelenideElement property = findProperty(name);
+        ElementsCollection valuesElements = property.parent().$$(By.xpath(".//input[contains(@class,\"form-control\")]"));
+        List<String> values = new ArrayList<String>();
+        for (SelenideElement valueElement : valuesElements) {
+            String value = valueElement.getValue();
+            if (!value.isEmpty()) {
+                return values.add(value);
+            }
+        }
+        if (!values.isEmpty()) {
+            if (strictSameValues) {
+                return values.equals(expectedValues);
+            }
+            return values.containsAll(expectedValues);
+        } else {
+            return expectedValues.isEmpty();
         }
 
     }
@@ -132,17 +163,9 @@ public class PrismForm<T> extends Component<T> {
         String selectedOptionText = value.getSelectedText();
 
         if (!selectedOptionText.isEmpty()) {
-
             return selectedOptionText.equals(expectedValue);
-
-        } else if (!expectedValue.isEmpty()) {
-
-            return false;
-
         } else {
-
-            return true;
-
+            return expectedValue.isEmpty();
         }
 
     }
@@ -168,6 +191,55 @@ public class PrismForm<T> extends Component<T> {
                 passwordInputs.forEach(inputElement -> inputElement.setValue(value));
             }
         }
+        return this;
+    }
+
+    public PrismForm<T> setPolyStringLocalizedValue(QName name, String locale, String value) {
+        SelenideElement property = findProperty(name);
+
+        property
+                .$(By.className("fa-language"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .click();
+        SelenideElement localeInput =
+                property
+                        .$(Schrodinger.byDataId("fullDataContainer"))
+                        .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                        .$(Schrodinger.byElementAttributeValue("input", "value", locale));
+        boolean localeInputExists = localeInput.exists();
+        if (!localeInputExists){
+            SelenideElement localeDropDown =
+                    property
+                    .$(Schrodinger.byDataId("languagesList"))
+                            .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                    .$(By.tagName("select"))
+                            .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+            if (localeDropDown != null){
+                localeDropDown.selectOption(locale);
+
+                property
+                        .$(Schrodinger.byDataId("languageEditor"))
+                        .$(By.className("fa-plus-circle"))
+                        .shouldBe(Condition.visible)
+                        .click();
+            }
+
+            localeInput =
+                    property
+                            .$(Schrodinger.byDataId("fullDataContainer"))
+                            .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                            .$(Schrodinger.byElementAttributeValue("input", "value", locale))
+                            .shouldBe(Condition.visible);
+        }
+
+        localeInput
+                .parent()
+                .parent()
+                .$(Schrodinger.byDataId("translation"))
+                .shouldBe(Condition.visible)
+                .$(By.className("form-control"))
+                .setValue(value);
+
         return this;
     }
 
@@ -214,11 +286,15 @@ public class PrismForm<T> extends Component<T> {
         return this;
     }
 
-    private SelenideElement findProperValueContainer() {
-        return null;
+    private SelenideElement findPropertyValueInput(String name) {
+        Selenide.sleep(5000);
+
+        return  $(Schrodinger.byElementAttributeValue("div", "contains",
+                Schrodinger.DATA_S_QNAME, "#" + name)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+
     }
 
-    private SelenideElement findProperty(String name) {
+    public SelenideElement findProperty(String name) {
 
         Selenide.sleep(5000);
 
@@ -254,4 +330,101 @@ public class PrismForm<T> extends Component<T> {
         return this;
     }
 
+    public PrismForm<T> expandContainerPropertiesPanel(String containerHeaderKey){
+        SelenideElement panelHeader = $(Schrodinger.byElementAttributeValue("a", "data-s-resource-key", containerHeaderKey))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .parent()
+                .parent();
+
+        SelenideElement headerChevron = panelHeader.$(By.tagName("i"));
+        if (headerChevron.getAttribute("class") != null && !headerChevron.getAttribute("class").contains(CARET_DOWN_ICON_STYLE)) {
+            headerChevron.click();
+            panelHeader
+                    .$(Schrodinger.byElementAttributeValue("i", "class","fa fa-caret-down fa-lg"))
+                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+        }
+        panelHeader
+                .parent()
+                .$(By.className("prism-properties"))
+                .shouldBe(Condition.visible);
+        return this;
+    }
+
+    public PrismForm<T> addNewContainerValue(String containerHeaderKey, String newContainerHeaderKey){
+        SelenideElement panelHeader = $(By.linkText(containerHeaderKey))
+                .parent()
+                .parent();
+        panelHeader.scrollTo();
+        panelHeader.find(By.className("fa-plus-circle"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .click();
+
+        panelHeader
+                .parent()
+                .parent()
+                .$(By.linkText(newContainerHeaderKey))
+                .shouldBe(Condition.visible)
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        return this;
+    }
+
+    public SelenideElement getPrismPropertiesPanel(String containerHeaderKey){
+        expandContainerPropertiesPanel(containerHeaderKey);
+
+        SelenideElement containerHeaderPanel = $(Schrodinger.byDataResourceKey("a", containerHeaderKey));
+        return containerHeaderPanel
+                .parent()
+                .parent()
+                .parent()
+                .find(By.className("prism-properties"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+
+    }
+
+    public PrismForm<T> collapseAllChildrenContainers(String parentContainerHeraderKey){
+        SelenideElement parentContainerPanel = null;
+        if  ($(Schrodinger.byElementAttributeValue("a", "data-s-resource-key", parentContainerHeraderKey))
+                .is(Condition.exist)) {
+            parentContainerPanel = $(Schrodinger.byElementAttributeValue("a", "data-s-resource-key", parentContainerHeraderKey))
+                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+        } else {
+            parentContainerPanel = $(By.linkText(parentContainerHeraderKey))
+                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+        }
+        if (parentContainerPanel == null){
+            return this;
+        }
+        parentContainerPanel = parentContainerPanel
+                .parent()
+                .parent()
+                .parent()
+                .parent()
+                .$(By.className("container-wrapper"))
+                .shouldBe(Condition.visible);
+
+        while (parentContainerPanel.findAll(By.className(CARET_DOWN_ICON_STYLE)) != null &&
+                        parentContainerPanel.findAll(By.className(CARET_DOWN_ICON_STYLE)).size() > 0){
+            SelenideElement childContainerHeaderIcon = parentContainerPanel.find(By.className(CARET_DOWN_ICON_STYLE));
+            childContainerHeaderIcon
+                    .shouldBe(Condition.visible)
+                    .click();
+            childContainerHeaderIcon
+                    .is(Condition.not(Condition.exist));
+        }
+        return this;
+    }
+
+    public ObjectBrowserModal<PrismForm<T>> editRefValue(String attributeName) {
+        SelenideElement property = findProperty(attributeName);
+        property.$x(".//button[@" + Schrodinger.DATA_S_ID + "='edit']")
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+
+        SelenideElement modalWindow = $(By.className("wicket-modal"))
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        ObjectBrowserModal objectBrowserModal = new ObjectBrowserModal<>(this, modalWindow);
+
+        return objectBrowserModal;
+    }
 }

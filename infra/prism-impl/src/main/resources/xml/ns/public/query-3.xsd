@@ -1,19 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum and contributors
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <xsd:schema targetNamespace="http://prism.evolveum.com/xml/ns/public/query-3"
@@ -30,8 +21,8 @@
     <xsd:annotation>
         <xsd:documentation>
             TODO
-            
-            Version: 3.3
+
+            Version: 4.0
             Recommended namespace prefix: q
         </xsd:documentation>
     </xsd:annotation>
@@ -44,7 +35,7 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:import>
-    
+
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"
                 schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3">
         <xsd:annotation>
@@ -53,7 +44,7 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:import>
-    
+
     <!-- Filters & queries -->
 
     <xsd:complexType name="QueryType">
@@ -115,7 +106,7 @@
                     <xsd:documentation>
                         The maximum number of entries returned. The
                         operation may return specified number of number of
-                        entries or less. If not specified, unlimited maximum 
+                        entries or less. If not specified, unlimited maximum
                         size is assumed.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -159,16 +150,16 @@
     </xsd:simpleType>
 
     <xsd:complexType name="SearchFilterType">
-    	<xsd:sequence>
-    		<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-			<xsd:element ref="tns:filterClause" minOccurs="1" maxOccurs="1">
-			    <xsd:annotation>
-			        <xsd:appinfo>
-			        	<jaxb:dom/>                 <!-- this is necessary for the model-client -->
-			        </xsd:appinfo>
-			    </xsd:annotation>
-			</xsd:element>
-    	</xsd:sequence>
+        <xsd:sequence>
+            <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:filterClause" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:dom/>                 <!-- this is necessary for the model-client -->
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="filter" type="tns:SearchFilterType"/>
 
@@ -249,12 +240,12 @@
                             </xsd:annotation>
                         </xsd:element>
                         <xsd:any namespace="##other" processContents="strict">
-                        	<xsd:annotation>
-                        		<xsd:documentation>
-                        			Extensibility point for various expression languages and other
-                        			"value derivation" mechanisms.
-                        		</xsd:documentation>
-                        	</xsd:annotation>
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Extensibility point for various expression languages and other
+                                    "value derivation" mechanisms.
+                                </xsd:documentation>
+                            </xsd:annotation>
                         </xsd:any>
                     </xsd:choice>
                 </xsd:sequence>
@@ -291,12 +282,12 @@
                             </xsd:annotation>
                         </xsd:element>
                         <xsd:any namespace="##other" processContents="strict">
-                        	<xsd:annotation>
-                        		<xsd:documentation>
-                        			Extensibility point for various expression languages and other
-                        			"value derivation" mechanisms.
-                        		</xsd:documentation>
-                        	</xsd:annotation>
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Extensibility point for various expression languages and other
+                                    "value derivation" mechanisms.
+                                </xsd:documentation>
+                            </xsd:annotation>
                         </xsd:any>
                     </xsd:choice>
                 </xsd:sequence>

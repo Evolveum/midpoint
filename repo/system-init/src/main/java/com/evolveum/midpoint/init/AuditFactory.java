@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.init;
@@ -24,8 +15,10 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.configuration.*;
+import org.apache.commons.configuration2.*;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -50,14 +43,12 @@ public class AuditFactory implements ApplicationContextAware, RuntimeConfigurati
 
     public void init() {
         Configuration config = getCurrentConfiguration();
-        //TODO FIX CONFIGURATION, CLEANUP REALLY NEEDED
-        List<SubnodeConfiguration> auditServices = ((XMLConfiguration) ((CompositeConfiguration)
-                ((SubsetConfiguration) config).getParent()).getConfiguration(0))
-                .configurationsAt(MidpointConfiguration.AUDIT_CONFIGURATION + "." + CONF_AUDIT_SERVICE);
-
-        for (SubnodeConfiguration serviceConfig : auditServices) {
+        List<HierarchicalConfiguration<ImmutableNode>> auditServices =
+                ((BaseHierarchicalConfiguration) config).configurationsAt(CONF_AUDIT_SERVICE);
+        for (Configuration serviceConfig : auditServices) {
             try {
                 String factoryClass = getFactoryClassName(serviceConfig);
+                //noinspection unchecked
                 Class<AuditServiceFactory> clazz = (Class<AuditServiceFactory>) Class.forName(factoryClass);
                 AuditServiceFactory factory = getFactory(clazz);
                 factory.init(serviceConfig);
@@ -118,7 +109,7 @@ public class AuditFactory implements ApplicationContextAware, RuntimeConfigurati
     }
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    public void setApplicationContext(@NotNull ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
 

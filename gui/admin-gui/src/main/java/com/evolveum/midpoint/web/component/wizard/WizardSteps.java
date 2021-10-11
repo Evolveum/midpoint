@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.wizard;
@@ -48,7 +39,7 @@ public class WizardSteps extends BasePanel<List<WizardStepDto>> {
 
     public WizardSteps(String id, IModel<List<WizardStepDto>> model) {
         super(id, model);
-		initLayout();
+        initLayout();
     }
 
     protected void initLayout() {
@@ -66,20 +57,20 @@ public class WizardSteps extends BasePanel<List<WizardStepDto>> {
                         changeStepPerformed(target, dto);
                     }
 
-					@Override
-					protected void onError(AjaxRequestTarget target) {
-						target.add(getPageBase().getFeedbackPanel());
-					}
-				};
+                    @Override
+                    protected void onError(AjaxRequestTarget target) {
+                        target.add(getPageBase().getFeedbackPanel());
+                    }
+                };
                 item.add(button);
 
                 button.add(new VisibleEnableBehaviour() {
 
                     @Override
                     public boolean isEnabled() {
-						final boolean enabled = ((PageResourceWizard) getPageBase()).isCurrentStepComplete();
-//						System.out.println(dto.getName() + " enabled = " + enabled);
-						return enabled;
+                        final boolean enabled = ((PageResourceWizard) getPageBase()).isCurrentStepComplete();
+//                        System.out.println(dto.getName() + " enabled = " + enabled);
+                        return enabled;
                     }
 
                     @Override
@@ -91,18 +82,18 @@ public class WizardSteps extends BasePanel<List<WizardStepDto>> {
                 button.add(AttributeModifier.replace("class", new IModel<String>() {
                     @Override
                     public String getObject() {
-						return dto.getWizardStep() == getActiveStep() ? "current" : null;
+                        return dto.getWizardStep() == getActiveStep() ? "current" : null;
                     }
                 }));
 
-				button.add(AttributeModifier.replace("style", new IModel<String>() {
-					@Override
-					public String getObject() {
-						final boolean enabled = ((PageResourceWizard) getPageBase()).isCurrentStepComplete();
-//						System.out.println(dto.getName() + " enabled2 = " + enabled);
-						return enabled ? null : "color: #FFF;";		// TODO respect color scheme (and find a better style for disabled anyway...)
-					}
-				}));
+                button.add(AttributeModifier.replace("style", new IModel<String>() {
+                    @Override
+                    public String getObject() {
+                        final boolean enabled = ((PageResourceWizard) getPageBase()).isCurrentStepComplete();
+//                        System.out.println(dto.getName() + " enabled2 = " + enabled);
+                        return enabled ? null : "color: #FFF;";        // TODO respect color scheme (and find a better style for disabled anyway...)
+                    }
+                }));
 
                 Label label = new Label(ID_LABEL, createLabelModel(dto.getName()));
                 button.add(label);
@@ -110,11 +101,12 @@ public class WizardSteps extends BasePanel<List<WizardStepDto>> {
         };
         add(linkContainer);
 
-        AjaxLink help = new AjaxLink(ID_BUTTON_HELP) {
-
+        AjaxLink<Void> help = new AjaxLink<Void>(ID_BUTTON_HELP) {
+            private static final long serialVersionUID = 1L;
             @Override
             public void onClick(AjaxRequestTarget target) {
                 showHelpPerformed(target);
+                updateModal();
             }
         };
         add(help);
@@ -130,7 +122,7 @@ public class WizardSteps extends BasePanel<List<WizardStepDto>> {
     public void updateModal(){
         WizardHelpDialog window = (WizardHelpDialog)get(ID_HELP_MODAL);
 
-        if(window != null){
+        if(window != null && getRequestCycle().find(AjaxRequestTarget.class).isPresent()){
             AjaxRequestTarget target = getRequestCycle().find(AjaxRequestTarget.class).get();
             window.updateModal(target ,getActiveStep());
         }
@@ -141,7 +133,7 @@ public class WizardSteps extends BasePanel<List<WizardStepDto>> {
 
             @Override
             public String getObject() {
-            	return PageBase.createStringResourceStatic(getPage(), key).getString();
+                return PageBase.createStringResourceStatic(getPage(), key).getString();
 //                return new StringResourceModel(key, getPage(), null, key).getString();
             }
         };

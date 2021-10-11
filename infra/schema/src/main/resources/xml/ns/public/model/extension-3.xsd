@@ -1,19 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum and contributors
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
@@ -23,6 +14,7 @@
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
             elementFormDefault="qualified">
 
     <xsd:annotation>
@@ -31,8 +23,11 @@
         </xsd:documentation>
     </xsd:annotation>
 
-    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
-    			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
+            schemaLocation="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"/>
 
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"
                 schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3">
@@ -42,7 +37,7 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:import>
-    
+
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"
                 schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3">
         <xsd:annotation>
@@ -52,49 +47,136 @@
         </xsd:annotation>
     </xsd:import>
 
+    <xsd:complexType name="TaskExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:TaskType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:freshnessInterval" minOccurs="0"/>
+            <xsd:element ref="tns:dryRun" minOccurs="0"/>
+            <xsd:element ref="tns:retryLiveSyncErrors" minOccurs="0"/>
+            <xsd:element ref="tns:updateLiveSyncTokenInDryRun" minOccurs="0"/>
+            <xsd:element ref="tns:finishOperationsOnly" minOccurs="0"/>
+            <xsd:element ref="tns:lastScanTimestamp" minOccurs="0"/>
+            <xsd:element ref="tns:objectQuery" minOccurs="0"/>
+            <xsd:element ref="tns:searchOptions" minOccurs="0"/>
+            <xsd:element ref="tns:useRepositoryDirectly" minOccurs="0"/>
+            <xsd:element ref="tns:objectType" minOccurs="0"/>
+            <xsd:element ref="tns:iterationMethod" minOccurs="0"/>
+            <xsd:element ref="tns:objectDelta" minOccurs="0"/>
+            <xsd:element ref="tns:objectDeltas" minOccurs="0"/>
+            <xsd:element ref="tns:executeOptions" minOccurs="0"/>
+            <xsd:element ref="tns:modelExecuteOptions" minOccurs="0"/>
+            <xsd:element ref="tns:workerThreads" minOccurs="0"/>
+            <xsd:element ref="tns:objectclass" minOccurs="0"/>
+            <xsd:element ref="tns:kind" minOccurs="0"/>
+            <xsd:element ref="tns:intent" minOccurs="0"/>
+            <xsd:element ref="tns:filename" minOccurs="0"/>
+            <xsd:element ref="tns:endpoint" minOccurs="0"/>
+            <xsd:element ref="tns:optionRaw" minOccurs="0"/>
+            <xsd:element ref="tns:diagnose" minOccurs="0"/>
+            <xsd:element ref="tns:fix" minOccurs="0"/>
+            <xsd:element ref="tns:duplicateShadowsResolver" minOccurs="0"/>
+            <xsd:element ref="tns:checkDuplicatesOnPrimaryIdentifiersOnly" minOccurs="0"/>
+            <xsd:element ref="tns:cleanupPolicies" minOccurs="0"/>
+            <xsd:element ref="tns:profilingInterval" minOccurs="0"/>
+            <xsd:element ref="tns:tracingInterval" minOccurs="0"/>
+            <xsd:element ref="tns:tracingProfile" minOccurs="0"/>
+            <xsd:element ref="tns:tracingRoot" minOccurs="0"/>
+            <xsd:element ref="tns:tracing" minOccurs="0"/>
+            <xsd:element ref="tns:notUpdatedShadowsDuration" minOccurs="0"/>
+            <xsd:element ref="s:executeScript" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:element name="freshnessInterval" type="xsd:long">
         <xsd:annotation>
             <xsd:documentation>
-                Interval in which the shadow will be considered fresh. It is conted from the last synchronization
+                Interval in which the shadow will be considered fresh. It is counted from the last synchronization
                 of the shadow (any kind of synchronization). It is in milliseconds.
                 If no value is specified then a default value will be used.
                 If a negative value is specified then the shadow will never be considered fresh and it will be
                 synchronized every time (may be inefficient).
             </xsd:documentation>
             <xsd:appinfo>
-            	<a:maxOccurs>1</a:maxOccurs>
+                <a:displayName>TaskExtension.freshnessInterval</a:displayName>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
-    
+
     <!--  TODO deprecated -->
     <xsd:element name="dryRun" type="xsd:boolean">
         <xsd:annotation>
             <xsd:documentation>
-               Indicates if the reconciliation runs in default mode or as a dry run. If set to true, it means that 
-               the reconciliation will not perform any action, but it will only compare the resource and repository state. 
+               Indicates if the reconciliation runs in default mode or as a dry run. If set to true, it means that
+               the reconciliation will not perform any action, but it will only compare the resource and repository state.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:displayName>Dry run</a:displayName>
+                <a:displayName>TaskExtension.dryRun</a:displayName>
                 <a:displayOrder>800</a:displayOrder>
-           	 	<a:minOccurs>0</a:minOccurs>
-            	<a:maxOccurs>1</a:maxOccurs>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="retryLiveSyncErrors" type="xsd:boolean">
         <xsd:annotation>
             <xsd:documentation>
                Indicates if the LiveSync retries non-handled errors in the next run. Handled-errors are always treated as success and never retried.
-               Retry is implemented by not refreshing LiveSync token to the new value. If set to false, sync token is always refreshed to the last processed entry. 
+               Retry is implemented by not refreshing LiveSync token to the new value. If set to false, sync token is always refreshed to the last processed entry.
                This is true by default.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:displayName>Retry LiveSync Errors</a:displayName>
+                <a:displayName>TaskExtension.retryLiveSyncErrors</a:displayName>
                 <a:displayOrder>801</a:displayOrder>
-           	 	<a:minOccurs>0</a:minOccurs>
-            	<a:maxOccurs>1</a:maxOccurs>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="updateLiveSyncTokenInDryRun" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                Indicates if the LiveSync token should be updated when running in dry run mode. If false (the default) then
+                LiveSync will not update token to a new value so it will process objects fetched on the next run (either dry
+                or normal). If true, it will update the token, and therefore marks objects as processed.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>TaskExtension.updateLiveSyncTokenInDryRun</a:displayName>
+                <a:displayOrder>801</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:since>4.0.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <!-- we might consider making this part of resource configuration -->
+    <xsd:element name="liveSyncBatchSize" type="xsd:int">
+        <xsd:annotation>
+            <xsd:documentation>
+                Batch size for live sync operations: if specified as N > 0, live synchronization fetches at most N records during
+                each provisioning.synchronize() method execution - i.e. during any live sync task run. (Currently, it leaves
+                unprocessed changes for the next live sync task run. This may change in the future.)
+
+                USE WITH CARE. This feature assumes that the connector provides LiveSync capability with preciseTokenValue = true,
+                i.e. that it assigns sync tokens to individual changes "incrementally" so it can resume live sync operation on
+                each individual change. This can be the case of SQL connectors, but e.g. not for CSV or LDAP ones.
+
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>TaskExtension.liveSyncBatchSize</a:displayName>
+                <a:displayOrder>802</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:experimental>true</a:experimental>
+                <a:since>4.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -107,8 +189,9 @@
             <xsd:appinfo>
                 <!--<a:displayName>Dry run</a:displayName>-->
                 <!--<a:displayOrder>800</a:displayOrder>-->
-           	 	<a:minOccurs>0</a:minOccurs>
-            	<a:maxOccurs>1</a:maxOccurs>
+                <a:displayName>TaskExtension.finishOperationsOnly</a:displayName>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -119,8 +202,9 @@
                TODO
             </xsd:documentation>
             <xsd:appinfo>
-           	 	<a:minOccurs>0</a:minOccurs>
-            	<a:maxOccurs>1</a:maxOccurs>
+                <a:displayName>TaskExtension.lastScanTimestamp</a:displayName>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -134,21 +218,21 @@
                 in case of handlers that by default provide a non-empty query).
             </xsd:documentation>
             <xsd:appinfo>
-                <a:displayName>Object query</a:displayName>
+                <a:displayName>TaskExtension.objectQuery</a:displayName>
                 <a:displayOrder>120</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="searchOptions" type="c:SelectorQualifiedGetOptionsType">
         <xsd:annotation>
             <xsd:documentation>
                 Options to be used for object search (if supported by particular task handler).
             </xsd:documentation>
             <xsd:appinfo>
-                <a:displayName>Search options</a:displayName>
+                <a:displayName>TaskExtension.searchOptions</a:displayName>
                 <!--<a:displayOrder>120</a:displayOrder>-->
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
@@ -162,7 +246,17 @@
                 Whether to use repository directly when searching for objects.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:displayName>Use repository directly</a:displayName>
+                <a:displayName>TaskExtension.useRepositoryDirectly</a:displayName>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="notUpdatedShadowsDuration" type="xsd:duration">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:displayName>TaskExtension.notUpdatedShadowsDuration</a:displayName>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
@@ -175,20 +269,21 @@
                 Object type to use for search queries or other operations (e.g. UserType, ShadowType)
             </xsd:documentation>
             <xsd:appinfo>
-                <a:displayName>Object type</a:displayName>
+                <a:displayName>TaskExtension.objectType</a:displayName>
                 <a:displayOrder>110</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="iterationMethod" type="c:IterationMethodType">
         <xsd:annotation>
             <xsd:documentation>
                 How to iterate through objects. Should be used only when really needed.
             </xsd:documentation>
             <xsd:appinfo>
+                <a:displayName>TaskExtension.iterationMethod</a:displayName>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
@@ -201,7 +296,8 @@
                 TODO
             </xsd:documentation>
             <xsd:appinfo>
-            	<a:maxOccurs>1</a:maxOccurs>
+                <a:displayName>TaskExtension.objectDelta</a:displayName>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -212,7 +308,8 @@
                 TODO
             </xsd:documentation>
             <xsd:appinfo>
-            	<a:maxOccurs>unbounded</a:maxOccurs>
+                <a:displayName>TaskExtension.objectDeltas</a:displayName>
+                <a:maxOccurs>unbounded</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -223,8 +320,21 @@
                 TODO
             </xsd:documentation>
             <xsd:appinfo>
+                <a:displayName>TaskExtension.executeOptions</a:displayName>
                 <a:maxOccurs>1</a:maxOccurs>
                 <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="modelExecuteOptions" type="c:ModelExecuteOptionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>TaskExtension.modelExecuteOptions</a:displayName>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -239,6 +349,7 @@
                 (not really useful for production).
             </xsd:documentation>
             <xsd:appinfo>
+                <a:displayName>TaskExtension.workerThreads</a:displayName>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
@@ -252,23 +363,26 @@
                 E.g. during import from resource.
             </xsd:documentation>
             <xsd:appinfo>
-            	<a:maxOccurs>1</a:maxOccurs>
+                <a:displayName>TaskExtension.objectclass</a:displayName>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="kind" type="c:ShadowKindType">
         <xsd:annotation>
             <xsd:appinfo>
-            	<a:maxOccurs>1</a:maxOccurs>
+                <a:displayName>TaskExtension.kind</a:displayName>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="intent" type="xsd:string">
         <xsd:annotation>
             <xsd:appinfo>
-            	<a:maxOccurs>1</a:maxOccurs>
+                <a:displayName>TaskExtension.intent</a:displayName>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -279,7 +393,8 @@
                 Name of file (on the server) to process.
             </xsd:documentation>
             <xsd:appinfo>
-            	<a:maxOccurs>1</a:maxOccurs>
+                <a:displayName>TaskExtension.filename</a:displayName>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -291,6 +406,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:maxOccurs>1</a:maxOccurs>
+                <a:ignore>true</a:ignore>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -302,6 +418,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:maxOccurs>-1</a:maxOccurs>
+                <a:ignore>true</a:ignore>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -312,6 +429,7 @@
                 Raw option for some operations (e.g. bulk delete task)
             </xsd:documentation>
             <xsd:appinfo>
+                <a:displayName>TaskExtension.optionRaw</a:displayName>
                 <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
@@ -326,7 +444,7 @@
                 EXPERIMENTAL
             </xsd:documentation>
             <xsd:appinfo>
-                <a:displayName>Diagnose</a:displayName>
+                <a:displayName>TaskExtension.diagnose</a:displayName>
                 <a:displayOrder>200</a:displayOrder>
                 <a:maxOccurs>-1</a:maxOccurs>
             </xsd:appinfo>
@@ -342,7 +460,7 @@
                 EXPERIMENTAL
             </xsd:documentation>
             <xsd:appinfo>
-                <a:displayName>Fix</a:displayName>
+                <a:displayName>TaskExtension.fix</a:displayName>
                 <a:displayOrder>210</a:displayOrder>
                 <a:maxOccurs>-1</a:maxOccurs>
             </xsd:appinfo>
@@ -356,7 +474,7 @@
                 If not specified, a default implementation is used.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:displayName>Duplicate shadows resolver</a:displayName>
+                <a:displayName>TaskExtension.duplicateShadowsResolver</a:displayName>
                 <a:displayOrder>400</a:displayOrder>
                 <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
@@ -369,7 +487,7 @@
                 Should ShadowIntegrityCheck task handler check duplicates only for primary identifiers?
             </xsd:documentation>
             <xsd:appinfo>
-                <a:displayName>Check duplicates on primary identifiers only</a:displayName>
+                <a:displayName>TaskExtension.checkDuplicatesOnPrimaryIdentifiersOnly</a:displayName>
                 <a:displayOrder>500</a:displayOrder>
                 <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
@@ -383,53 +501,133 @@
                 Used e.g. to cleanup all currently closed tasks.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:displayName>Task-specific cleanup policies</a:displayName>
+                <a:displayName>TaskExtension.cleanupPolicies</a:displayName>
                 <a:displayOrder>100</a:displayOrder>
                 <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 
-	<!-- Elements to be stored in task trigger extension (used for workflows) -->
-	<xsd:element name="workItemActions" type="c:WorkItemActionsType">
-		<xsd:annotation>
-			<xsd:appinfo>
-				<a:minOccurs>0</a:minOccurs>
-				<a:maxOccurs>1</a:maxOccurs>
-				<a:since>3.6</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-	</xsd:element>
+    <!-- Elements to be stored in trigger extension (used for workflows) -->
+    <xsd:element name="workItemActions" type="c:WorkItemActionsType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
-	<xsd:element name="workItemAction" type="c:AbstractWorkItemActionType">
-		<xsd:annotation>
-			<xsd:appinfo>
-				<a:minOccurs>0</a:minOccurs>
-				<a:maxOccurs>1</a:maxOccurs>
-				<a:since>3.6</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-	</xsd:element>
+    <xsd:element name="workItemAction" type="c:AbstractWorkItemActionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
-	<xsd:element name="workItemId" type="xsd:string">
-		<xsd:annotation>
-			<xsd:appinfo>
-				<a:minOccurs>0</a:minOccurs>
-				<a:maxOccurs>1</a:maxOccurs>
-				<a:since>3.6</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-	</xsd:element>
+    <xsd:element name="workItemId" type="xsd:long">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
-	<xsd:element name="timeBeforeAction" type="xsd:duration">
-		<xsd:annotation>
-			<xsd:appinfo>
-				<a:minOccurs>0</a:minOccurs>
-				<a:maxOccurs>1</a:maxOccurs>
-				<a:since>3.6</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-	</xsd:element>
+    <xsd:element name="timeBeforeAction" type="xsd:duration">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="profilingInterval" type="xsd:int">
+        <xsd:annotation>
+            <xsd:documentation>
+                Profiles processing of each N-th object.
+                Requires that dynamic profiling is configured.
+                TEMPORARY. EXPERIMENTAL. Will be replaced by a more serious configuration mechanism.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>TaskExtension.profilingInterval</a:displayName>
+                <a:displayOrder>850</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="tracingInterval" type="xsd:int">
+        <xsd:annotation>
+            <xsd:documentation>
+                Traces processing of each N-th object.
+                TEMPORARY. EXPERIMENTAL. Will be replaced by a more serious configuration mechanism.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>TaskExtension.tracingInterval</a:displayName>
+                <a:displayOrder>851</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="tracingProfile" type="c:TracingProfileType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Tracing profile to be used.
+                TEMPORARY. EXPERIMENTAL. Will be replaced by a more serious configuration mechanism.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>TaskExtension.tracingProfile</a:displayName>
+                <a:displayOrder>852</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="tracingRoot" type="c:TracingRootType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Point(s) to be traced.
+                TEMPORARY. EXPERIMENTAL. Will be replaced by a more serious configuration mechanism.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>TaskExtension.tracingRoot</a:displayName>
+                <a:displayOrder>853</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>unbounded</a:maxOccurs>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="tracing" type="c:ProcessTracingConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies when and how should be task execution traced. Contains tracing interval (i.e. how often a trace
+                should be recorded), tracing profile to be used and tracing points (roots) where the tracing should be done.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>TaskExtension.tracing</a:displayName>
+                <a:displayOrder>854</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>        <!-- will be unbounded, eventually -->
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
 </xsd:schema>
 

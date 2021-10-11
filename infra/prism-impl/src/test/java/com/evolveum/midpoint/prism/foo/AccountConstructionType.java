@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 //
@@ -40,9 +31,9 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  *
- *     			Account construction type is NOT a container. It is a complex-type property.
- *     			This tests the ability to deal with complex type properties and also with
- *     			dateTime fields in them.
+ *                 Account construction type is NOT a container. It is a complex-type property.
+ *                 This tests the ability to deal with complex type properties and also with
+ *                 dateTime fields in them.
  *
  *
  * <p>Java class for AccountConstructionType complex type.
@@ -137,35 +128,35 @@ public class AccountConstructionType
         this.when = value;
     }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((howto == null) ? 0 : howto.hashCode());
-		result = prime * result + ((when == null) ? 0 : when.hashCode());
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((howto == null) ? 0 : howto.hashCode());
+        result = prime * result + ((when == null) ? 0 : when.hashCode());
         result = prime * result + ((value == null) ? 0 : value.hashCode());
         return result;
-	}
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		AccountConstructionType other = (AccountConstructionType) obj;
-		if (howto == null) {
-			if (other.howto != null)
-				return false;
-		} else if (!howto.equals(other.howto))
-			return false;
-		if (when == null) {
-			if (other.when != null)
-				return false;
-		} else if (!when.equals(other.when))
-			return false;
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        AccountConstructionType other = (AccountConstructionType) obj;
+        if (howto == null) {
+            if (other.howto != null)
+                return false;
+        } else if (!howto.equals(other.howto))
+            return false;
+        if (when == null) {
+            if (other.when != null)
+                return false;
+        } else if (!when.equals(other.when))
+            return false;
         if (value == null || value.isEmpty()) {
             return other.value == null || other.value.isEmpty();
         } else if (other.value == null || other.value.isEmpty()) {
@@ -174,7 +165,7 @@ public class AccountConstructionType
             return false;
         }
         return true;
-	}
+    }
 
     public AccountConstructionType clone() {
         AccountConstructionType clone = new AccountConstructionType();

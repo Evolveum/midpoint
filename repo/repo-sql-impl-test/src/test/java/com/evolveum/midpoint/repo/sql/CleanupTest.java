@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql;
@@ -19,13 +10,11 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
-import com.evolveum.midpoint.repo.sql.util.SimpleTaskAdapter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -45,14 +34,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-/**
- * @author lazyman
- */
 @ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CleanupTest extends BaseSQLRepoTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(CleanupTest.class);
 
     private Calendar create_2013_07_12_12_00_Calendar() {
         Calendar calendar = Calendar.getInstance();
@@ -81,18 +65,17 @@ public class CleanupTest extends BaseSQLRepoTest {
         return policy;
     }
 
-    private CleanupPolicyType createPolicy(int maxRecords) throws Exception {
+    private CleanupPolicyType createPolicy(int maxRecords) {
         CleanupPolicyType policy = new CleanupPolicyType();
 
-        policy.setMaxRecords(Integer.valueOf(maxRecords));
+        policy.setMaxRecords(maxRecords);
 
         return policy;
     }
 
     @AfterMethod
     public void cleanup() {
-        Session session = getFactory().openSession();
-        try {
+        try (Session session = getFactory().openSession()) {
             session.beginTransaction();
             session.createQuery("delete from RObjectDeltaOperation").executeUpdate();
             session.createQuery("delete from RAuditPropertyValue").executeUpdate();
@@ -104,8 +87,6 @@ public class CleanupTest extends BaseSQLRepoTest {
 
             AssertJUnit.assertEquals(0L, (long) count);
             session.getTransaction().commit();
-        } finally {
-            session.close();
         }
     }
 
@@ -141,14 +122,13 @@ public class CleanupTest extends BaseSQLRepoTest {
     @Test
     public void testAuditCleanupMaxRecords() throws Exception {
         //GIVEN
-    	prepareAuditEventRecords();
+        prepareAuditEventRecords();
 
         //WHEN
         Calendar calendar = create_2013_07_12_12_00_Calendar();
         calendar.add(Calendar.HOUR_OF_DAY, 1);
         calendar.add(Calendar.MINUTE, 1);
 
-        final long NOW = System.currentTimeMillis();
         CleanupPolicyType policy = createPolicy(1);
 
         OperationResult result = new OperationResult("Cleanup audit");
@@ -156,12 +136,11 @@ public class CleanupTest extends BaseSQLRepoTest {
         result.recomputeStatus();
 
         //THEN
-       RAuditEventRecord record = assertAndReturnAuditEventRecord(result);
-
+        assertAndReturnAuditEventRecord(result);
     }
 
     private RAuditEventRecord assertAndReturnAuditEventRecord(OperationResult result) {
-    	 AssertJUnit.assertTrue(result.isSuccess());
+         AssertJUnit.assertTrue(result.isSuccess());
 
          Session session = getFactory().openSession();
          try {
@@ -177,10 +156,10 @@ public class CleanupTest extends BaseSQLRepoTest {
              session.close();
          }
 
-	}
+    }
 
-	private void prepareAuditEventRecords() throws Exception {
-    	 Calendar calendar = create_2013_07_12_12_00_Calendar();
+    private void prepareAuditEventRecords() throws Exception {
+         Calendar calendar = create_2013_07_12_12_00_Calendar();
          for (int i = 0; i < 3; i++) {
              long timestamp = calendar.getTimeInMillis();
              AuditEventRecord record = new AuditEventRecord();
@@ -188,9 +167,9 @@ public class CleanupTest extends BaseSQLRepoTest {
              record.setTimestamp(timestamp);
              record.addPropertyValue("prop1", "val1");
              record.addReferenceValue("ref1", ObjectTypeUtil.createObjectRef("oid1", ObjectTypes.USER).asReferenceValue());
-             LOGGER.info("Adding audit record with timestamp {}", new Object[]{new Date(timestamp)});
+             logger.info("Adding audit record with timestamp {}", new Object[]{new Date(timestamp)});
 
-             auditService.audit(record, new SimpleTaskAdapter());
+             auditService.audit(record, new NullTaskImpl());
              calendar.add(Calendar.HOUR_OF_DAY, 1);
          }
 
@@ -206,9 +185,9 @@ public class CleanupTest extends BaseSQLRepoTest {
          } finally {
              session.close();
          }
-	}
+    }
 
-	private ObjectDeltaOperation createObjectDeltaOperation(int i) throws Exception {
+    private ObjectDeltaOperation createObjectDeltaOperation(int i) throws Exception {
         ObjectDeltaOperation delta = new ObjectDeltaOperation();
         delta.setExecutionResult(new OperationResult("asdf"));
         UserType user = new UserType();

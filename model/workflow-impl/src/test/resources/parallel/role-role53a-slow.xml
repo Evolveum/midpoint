@@ -1,0 +1,37 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="00000001-d34d-b33f-f00d-00000000053a">
+    <name>Role53a-slow</name>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <source>
+                    <path>description</path>
+                </source>
+                <expression>
+                    <script>
+                        <code>import com.evolveum.midpoint.wf.impl.other.TestParallelApprovals
+
+                        if (TestParallelApprovals.doSleep) {
+                            System.out.println('Sleeping for 1 second (53a)...')
+                            Thread.sleep(1000)
+                            System.out.println('Sleeping done (53a)...')
+                            return description
+                        }
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>description</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+    <!-- approved by administrator (assigned at test startup) -->
+</role>

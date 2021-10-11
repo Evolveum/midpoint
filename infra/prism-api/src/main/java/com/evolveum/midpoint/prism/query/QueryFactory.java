@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism.query;
@@ -34,162 +25,185 @@ import java.util.List;
  */
 public interface QueryFactory {
 
-	AllFilter createAll();
+    AllFilter createAll();
 
-	NoneFilter createNone();
+    NoneFilter createNone();
 
-	ObjectFilter createUndefined();
+    ObjectFilter createUndefined();
 
-	@NotNull
-	<T> EqualFilter<T> createEqual(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
-			@Nullable QName matchingRule);
+    @Deprecated // please use QueryBuilder instead
+    @NotNull
+    <T> EqualFilter<T> createEqual(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
+            @Nullable QName matchingRule);
 
-	// values
-	@NotNull
-	<T> EqualFilter<T> createEqual(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
-			@Nullable QName matchingRule, @NotNull PrismContext prismContext, Object... values);
+    // values
+    @Deprecated // please use QueryBuilder instead
+    @NotNull
+    <T> EqualFilter<T> createEqual(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
+            @Nullable QName matchingRule, @NotNull PrismContext prismContext, Object... values);
 
-	// expression-related
-	@NotNull
-	<T> EqualFilter<T> createEqual(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
-			@Nullable QName matchingRule, @NotNull ExpressionWrapper expression);
+    // expression-related
+    @Deprecated // please use QueryBuilder instead
+    @NotNull
+    <T> EqualFilter<T> createEqual(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
+            @Nullable QName matchingRule, @NotNull ExpressionWrapper expression);
 
-	// right-side-related; right side can be supplied later (therefore it's nullable)
-	@NotNull
-	<T> EqualFilter<T> createEqual(@NotNull ItemPath path, PrismPropertyDefinition<T> definition,
-			QName matchingRule, @NotNull ItemPath rightSidePath, ItemDefinition rightSideDefinition);
+    // right-side-related; right side can be supplied later (therefore it's nullable)
+    @Deprecated // please use QueryBuilder instead
+    @NotNull
+    <T> EqualFilter<T> createEqual(@NotNull ItemPath path, PrismPropertyDefinition<T> definition,
+            QName matchingRule, @NotNull ItemPath rightSidePath, ItemDefinition rightSideDefinition);
 
-	@NotNull
-	RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition,
-			Collection<PrismReferenceValue> values);
+    @NotNull
+    @Deprecated // please use QueryBuilder instead
+    RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition,
+            Collection<PrismReferenceValue> values);
 
-	@NotNull
-	RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, ExpressionWrapper expression);
+    @NotNull
+    @Deprecated // please use QueryBuilder instead
+    RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, ExpressionWrapper expression);
 
-	// empty (can be filled-in later)
-	@NotNull
-	<T> GreaterFilter<T> createGreater(@NotNull ItemPath path, PrismPropertyDefinition<T> definition, boolean equals);
+    // empty (can be filled-in later)
+    @NotNull
+    @Deprecated // please use QueryBuilder instead
+    <T> GreaterFilter<T> createGreater(@NotNull ItemPath path, PrismPropertyDefinition<T> definition, boolean equals);
 
-	// value
-	@NotNull
-	<T> GreaterFilter<T> createGreater(@NotNull ItemPath path, PrismPropertyDefinition<T> definition,
-			QName matchingRule, Object value, boolean equals, @NotNull PrismContext prismContext);
+    // value
+    @NotNull
+    @Deprecated // please use QueryBuilder instead
+    <T> GreaterFilter<T> createGreater(@NotNull ItemPath path, PrismPropertyDefinition<T> definition,
+            QName matchingRule, Object value, boolean equals, @NotNull PrismContext prismContext);
 
-	// expression-related
-	@NotNull
-	<T> GreaterFilter<T> createGreater(@NotNull ItemPath path, PrismPropertyDefinition<T> definition, QName matchingRule,
-			@NotNull ExpressionWrapper wrapper, boolean equals);
+    // expression-related
+    @NotNull
+    @Deprecated // please use QueryBuilder instead
+    <T> GreaterFilter<T> createGreater(@NotNull ItemPath path, PrismPropertyDefinition<T> definition, QName matchingRule,
+            @NotNull ExpressionWrapper wrapper, boolean equals);
 
-	// right-side-related
-	@NotNull
-	<T> GreaterFilter<T> createGreater(@NotNull ItemPath path, PrismPropertyDefinition<T> definition, QName matchingRule,
-			@NotNull ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals);
+    // right-side-related
+    @NotNull
+    @Deprecated // please use QueryBuilder instead
+    <T> GreaterFilter<T> createGreater(@NotNull ItemPath path, PrismPropertyDefinition<T> definition, QName matchingRule,
+            @NotNull ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals);
 
-	// empty (can be filled-in later)
-	@NotNull
-	<T> LessFilter<T> createLess(@NotNull ItemPath path, PrismPropertyDefinition<T> definition, boolean equals);
+    // empty (can be filled-in later)
+    @NotNull
+    @Deprecated // please use QueryBuilder instead
+    <T> LessFilter<T> createLess(@NotNull ItemPath path, PrismPropertyDefinition<T> definition, boolean equals);
 
-	// value
-	@NotNull
-	<T> LessFilter<T> createLess(@NotNull ItemPath path, PrismPropertyDefinition<T> definition,
-			QName matchingRule, Object value, boolean equals, @NotNull PrismContext prismContext);
+    // value
+    @NotNull
+    @Deprecated // please use QueryBuilder instead
+    <T> LessFilter<T> createLess(@NotNull ItemPath path, PrismPropertyDefinition<T> definition,
+            QName matchingRule, Object value, boolean equals, @NotNull PrismContext prismContext);
 
-	// expression-related
-	@NotNull
-	<T> LessFilter<T> createLess(@NotNull ItemPath path, PrismPropertyDefinition<T> definition, QName matchingRule,
-			@NotNull ExpressionWrapper expressionWrapper, boolean equals);
+    // expression-related
+    @NotNull
+    @Deprecated // please use QueryBuilder instead
+    <T> LessFilter<T> createLess(@NotNull ItemPath path, PrismPropertyDefinition<T> definition, QName matchingRule,
+            @NotNull ExpressionWrapper expressionWrapper, boolean equals);
 
-	// right-side-related
-	@NotNull
-	<T> LessFilter<T> createLess(@NotNull ItemPath path, PrismPropertyDefinition<T> definition,
-			QName matchingRule, @NotNull ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals);
+    // right-side-related
+    @NotNull
+    @Deprecated // please use QueryBuilder instead
+    <T> LessFilter<T> createLess(@NotNull ItemPath path, PrismPropertyDefinition<T> definition,
+            QName matchingRule, @NotNull ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals);
 
-	@NotNull
-	AndFilter createAnd(ObjectFilter... conditions);
+    @NotNull
+    AndFilter createAnd(ObjectFilter... conditions);
 
-	@NotNull
-	AndFilter createAnd(List<ObjectFilter> conditions);
+    @NotNull
+    AndFilter createAnd(List<ObjectFilter> conditions);
 
-	@NotNull
-	OrFilter createOr(ObjectFilter... conditions);
+    @NotNull
+    OrFilter createOr(ObjectFilter... conditions);
 
-	@NotNull
-	OrFilter createOr(List<ObjectFilter> conditions);
+    @NotNull
+    OrFilter createOr(List<ObjectFilter> conditions);
 
-	@NotNull
-	NotFilter createNot(ObjectFilter inner);
+    @NotNull
+    NotFilter createNot(ObjectFilter inner);
 
-	<C extends Containerable> ExistsFilter createExists(ItemName path, Class<C> containerType, PrismContext prismContext, ObjectFilter inner);
+    @Deprecated // please use QueryBuilder instead
+    <C extends Containerable> ExistsFilter createExists(ItemName path, Class<C> containerType, PrismContext prismContext, ObjectFilter inner);
 
-	@NotNull
-	InOidFilter createInOid(Collection<String> oids);
+    @NotNull
+    @Deprecated // please use QueryBuilder instead
+    InOidFilter createInOid(Collection<String> oids);
 
-	@NotNull
-	InOidFilter createInOid(String... oids);
+    @NotNull
+    @Deprecated // please use QueryBuilder instead
+    InOidFilter createInOid(String... oids);
 
-	@NotNull
-	InOidFilter createOwnerHasOidIn(Collection<String> oids);
+    @NotNull
+    @Deprecated // please use QueryBuilder instead
+    InOidFilter createOwnerHasOidIn(Collection<String> oids);
 
-	@NotNull
-	InOidFilter createOwnerHasOidIn(String... oids);
+    @NotNull
+    @Deprecated // please use QueryBuilder instead
+    InOidFilter createOwnerHasOidIn(String... oids);
 
-	@NotNull
-	OrgFilter createOrg(PrismReferenceValue baseOrgRef, OrgFilter.Scope scope);
+    @NotNull
+    @Deprecated // please use QueryBuilder instead
+    OrgFilter createOrg(PrismReferenceValue baseOrgRef, OrgFilter.Scope scope);
 
-	@NotNull
-	OrgFilter createOrg(String baseOrgOid, OrgFilter.Scope scope);
+    @NotNull
+    @Deprecated // please use QueryBuilder instead
+    OrgFilter createOrg(String baseOrgOid, OrgFilter.Scope scope);
 
-	@NotNull
-	OrgFilter createRootOrg();
+    @NotNull
+    @Deprecated // please use QueryBuilder instead
+    OrgFilter createRootOrg();
 
-	@NotNull
-	TypeFilter createType(QName type, ObjectFilter filter);
+    @NotNull
+    @Deprecated // please use QueryBuilder instead
+    TypeFilter createType(QName type, ObjectFilter filter);
 
-	@NotNull
-	ObjectOrdering createOrdering(ItemPath orderBy, OrderDirection direction);
+    @NotNull
+    ObjectOrdering createOrdering(ItemPath orderBy, OrderDirection direction);
 
-	@NotNull
-	ObjectPaging createPaging(Integer offset, Integer maxSize);
+    @NotNull
+    ObjectPaging createPaging(Integer offset, Integer maxSize);
 
-	@NotNull
-	ObjectPaging createPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction);
+    @NotNull
+    ObjectPaging createPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction);
 
-	@NotNull
-	ObjectPaging createPaging(Integer offset, Integer maxSize, ItemPath groupBy);
+    @NotNull
+    ObjectPaging createPaging(Integer offset, Integer maxSize, ItemPath groupBy);
 
-	@NotNull
-	ObjectPaging createPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction, ItemPath groupBy);
+    @NotNull
+    ObjectPaging createPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction, ItemPath groupBy);
 
-	@NotNull
-	ObjectPaging createPaging(Integer offset, Integer maxSize, List<ObjectOrdering> orderings);
+    @NotNull
+    ObjectPaging createPaging(Integer offset, Integer maxSize, List<ObjectOrdering> orderings);
 
-	@NotNull
-	ObjectPaging createPaging(Integer offset, Integer maxSize, List<ObjectOrdering> orderings, List<ObjectGrouping> groupings);
+    @NotNull
+    ObjectPaging createPaging(Integer offset, Integer maxSize, List<ObjectOrdering> orderings, List<ObjectGrouping> groupings);
 
-	@NotNull
-	ObjectPaging createPaging(ItemPath orderBy, OrderDirection direction);
+    @NotNull
+    ObjectPaging createPaging(ItemPath orderBy, OrderDirection direction);
 
-	@NotNull
-	ObjectPaging createPaging(ItemPath orderBy, OrderDirection direction, ItemPath groupBy);
+    @NotNull
+    ObjectPaging createPaging(ItemPath orderBy, OrderDirection direction, ItemPath groupBy);
 
-	@NotNull
-	ObjectPaging createPaging(ItemPath groupBy);
+    @NotNull
+    ObjectPaging createPaging(ItemPath groupBy);
 
-	@NotNull
-	ObjectPaging createPaging();
+    @NotNull
+    ObjectPaging createPaging();
 
-	@NotNull
-	ObjectQuery createQuery();
+    @NotNull
+    ObjectQuery createQuery();
 
-	@NotNull
-	ObjectQuery createQuery(ObjectFilter filter);
+    @NotNull
+    ObjectQuery createQuery(ObjectFilter filter);
 
-	@NotNull
-	ObjectQuery createQuery(XNode condition, ObjectFilter filter);
+    @NotNull
+    ObjectQuery createQuery(XNode condition, ObjectFilter filter);
 
-	@NotNull
-	ObjectQuery createQuery(ObjectPaging paging);
+    @NotNull
+    ObjectQuery createQuery(ObjectPaging paging);
 
-	@NotNull
-	ObjectQuery createQuery(ObjectFilter filter, ObjectPaging paging);
+    @NotNull
+    ObjectQuery createQuery(ObjectFilter filter, ObjectPaging paging);
 }

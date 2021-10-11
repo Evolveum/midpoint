@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.helpers.modify;
@@ -23,6 +14,7 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAExtBase;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
 import com.evolveum.midpoint.repo.sql.data.common.any.ROExtBase;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
@@ -30,7 +22,9 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
 import com.evolveum.midpoint.util.exception.SystemException;
+import org.hibernate.Session;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -200,61 +194,42 @@ public class DeltaUpdaterUtils {
         }
     }
 
-    public static void clearExtension(RAssignmentExtension extension) {
-        clearExtensionCollection(extension.getBooleans());
-        clearExtensionCollection(extension.getDates());
-        clearExtensionCollection(extension.getLongs());
-        clearExtensionCollection(extension.getPolys());
-        clearExtensionCollection(extension.getReferences());
-        clearExtensionCollection(extension.getStrings());
-
-        updateExtensionCounts(extension);
+    public static void clearExtension(RAssignmentExtension extension, Session session) {
+        clearExtensionCollection(extension.getBooleans(), session);
+        clearExtensionCollection(extension.getDates(), session);
+        clearExtensionCollection(extension.getLongs(), session);
+        clearExtensionCollection(extension.getPolys(), session);
+        clearExtensionCollection(extension.getReferences(), session);
+        clearExtensionCollection(extension.getStrings(), session);
     }
 
-    public static void clearExtension(RObject obj, RObjectExtensionType extType) {
-        clearExtensionCollection(obj.getBooleans(), extType);
-        clearExtensionCollection(obj.getDates(), extType);
-        clearExtensionCollection(obj.getLongs(), extType);
-        clearExtensionCollection(obj.getPolys(), extType);
-        clearExtensionCollection(obj.getReferences(), extType);
-        clearExtensionCollection(obj.getStrings(), extType);
-
-        updateExtensionCounts(obj);
+    public static void clearExtension(RObject<?> obj, RObjectExtensionType extType, Session session) {
+        clearExtensionCollection(obj.getBooleans(), extType, session);
+        clearExtensionCollection(obj.getDates(), extType, session);
+        clearExtensionCollection(obj.getLongs(), extType, session);
+        clearExtensionCollection(obj.getPolys(), extType, session);
+        clearExtensionCollection(obj.getReferences(), extType, session);
+        clearExtensionCollection(obj.getStrings(), extType, session);
     }
 
-    private static void clearExtensionCollection(Collection<? extends RAExtBase> collection) {
-        Iterator<? extends RAExtBase> iterator = collection.iterator();
+    private static void clearExtensionCollection(Collection<? extends RAExtBase<?>> dbCollection, Session session) {
+        Iterator<? extends RAExtBase> iterator = dbCollection.iterator();
         while (iterator.hasNext()) {
-            RAExtBase base = iterator.next();
+            RAExtBase dbValue = iterator.next();
+            // we cannot filter on assignmentExtensionType because it is not present in database (yet)
             iterator.remove();
         }
     }
 
-    private static void clearExtensionCollection(Collection<? extends ROExtBase> collection, RObjectExtensionType extType) {
-        Iterator<? extends ROExtBase> iterator = collection.iterator();
+    private static void clearExtensionCollection(Collection<? extends ROExtBase<?>> dbCollection, RObjectExtensionType typeToDelete,
+            Session session) {
+        Iterator<? extends ROExtBase> iterator = dbCollection.iterator();
+        //noinspection Java8CollectionRemoveIf
         while (iterator.hasNext()) {
-            ROExtBase base = iterator.next();
-            if (extType.equals(base.getOwnerType())) {
+            ROExtBase dbValue = iterator.next();
+            if (typeToDelete.equals(dbValue.getOwnerType())) {
                 iterator.remove();
             }
         }
-    }
-
-    public static void updateExtensionCounts(RAssignmentExtension extension) {
-        extension.setStringsCount((short) extension.getStrings().size());
-        extension.setDatesCount((short) extension.getDates().size());
-        extension.setPolysCount((short) extension.getPolys().size());
-        extension.setReferencesCount((short) extension.getReferences().size());
-        extension.setLongsCount((short) extension.getLongs().size());
-        extension.setBooleansCount((short) extension.getBooleans().size());
-    }
-
-    public static void updateExtensionCounts(RObject object) {
-        object.setStringsCount((short) object.getStrings().size());
-        object.setDatesCount((short) object.getDates().size());
-        object.setPolysCount((short) object.getPolys().size());
-        object.setReferencesCount((short) object.getReferences().size());
-        object.setLongsCount((short) object.getLongs().size());
-        object.setBooleansCount((short) object.getBooleans().size());
     }
 }

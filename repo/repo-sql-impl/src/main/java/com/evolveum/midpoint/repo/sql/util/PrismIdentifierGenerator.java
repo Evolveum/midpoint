@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql.util;
 
@@ -31,21 +22,21 @@ import java.util.*;
  * @author lazyman
  */
 public class PrismIdentifierGenerator<O extends ObjectType> implements DebugDumpable {
-	
-	private static final Trace LOGGER = TraceManager.getTrace(PrismIdentifierGenerator.class);
+
+    private static final Trace LOGGER = TraceManager.getTrace(PrismIdentifierGenerator.class);
 
     public enum Operation {ADD, ADD_WITH_OVERWRITE, MODIFY}
-    
+
     private final Operation operation;
     private Long lastId = null;
     private Set<Long> usedIds = new HashSet<>();
-    
-    public PrismIdentifierGenerator(@NotNull Operation operation) {
-		super();
-		this.operation = operation;
-	}
 
-	/**
+    public PrismIdentifierGenerator(@NotNull Operation operation) {
+        super();
+        this.operation = operation;
+    }
+
+    /**
      * Method inserts id for prism container values, which didn't have ids,
      * also returns all container values which has generated id
      */
@@ -65,7 +56,7 @@ public class PrismIdentifierGenerator<O extends ObjectType> implements DebugDump
 
         return result;
     }
-    
+
     public IdGeneratorResult generate(Containerable containerable) {
         IdGeneratorResult result = new IdGeneratorResult();
         if (!(containerable instanceof AccessCertificationCaseType)) {
@@ -91,7 +82,7 @@ public class PrismIdentifierGenerator<O extends ObjectType> implements DebugDump
                 return;
             }
 
-            PrismContainer container = (PrismContainer) visitable;
+            PrismContainer<?> container = (PrismContainer) visitable;
             PrismContainerDefinition def = container.getDefinition();
             if (def.isSingleValue()) {
                 return;
@@ -102,11 +93,11 @@ public class PrismIdentifierGenerator<O extends ObjectType> implements DebugDump
 
         return values;
     }
-    
+
     public void collectUsedIds(@NotNull PrismObject<O> object) {
-    	collectUsedIds(listAllPrismContainers(object));
+        collectUsedIds(listAllPrismContainers(object));
     }
-    
+
     private void collectUsedIds(List<PrismContainer<?>> containers) {
         for (PrismContainer<?> c : containers) {
             for (PrismContainerValue<?> val : c.getValues()) {
@@ -118,7 +109,7 @@ public class PrismIdentifierGenerator<O extends ObjectType> implements DebugDump
     }
 
     private void generateContainerIds(List<PrismContainer<?>> containers, IdGeneratorResult result) {
-    	collectUsedIds(containers);
+        collectUsedIds(containers);
         Long nextId = null;
         for (PrismContainer<?> c : containers) {
             for (PrismContainerValue<?> val : c.getValues()) {
@@ -135,29 +126,29 @@ public class PrismIdentifierGenerator<O extends ObjectType> implements DebugDump
             }
         }
     }
-    
+
     public long nextId() {
-    	if (lastId == null) {
-    		lastId = getStartId();
-    	}
-    	lastId++;
-    	return lastId;
-    }
-    
-    private long getStartId() {
-    	if (usedIds.isEmpty()) {
-    		return 0L;
-    	}
-    	return Collections.max(usedIds);
+        if (lastId == null) {
+            lastId = getStartId();
+        }
+        lastId++;
+        return lastId;
     }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = DebugUtil.createTitleStringBuilder(PrismIdentifierGenerator.class, indent);
-		DebugUtil.debugDumpWithLabelToStringLn(sb, "operation", operation, indent + 1);
-		DebugUtil.debugDumpWithLabelToStringLn(sb, "lastId", lastId, indent + 1);
-		DebugUtil.debugDumpWithLabel(sb, "usedIds", usedIds, indent + 1);
-		return sb.toString();
-	}
+    private long getStartId() {
+        if (usedIds.isEmpty()) {
+            return 0L;
+        }
+        return Collections.max(usedIds);
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createTitleStringBuilder(PrismIdentifierGenerator.class, indent);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "operation", operation, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "lastId", lastId, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "usedIds", usedIds, indent + 1);
+        return sb.toString();
+    }
 
 }

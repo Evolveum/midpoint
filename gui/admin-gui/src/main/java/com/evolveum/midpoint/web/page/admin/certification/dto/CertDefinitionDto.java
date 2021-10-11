@@ -1,22 +1,14 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -51,6 +43,7 @@ import java.util.List;
 public class CertDefinitionDto implements Serializable {
 
     public static final String F_PRISM_OBJECT = "prismObject";
+    public static final String F_DEFINITION = "definition";
     public static final String F_NAME = "name";
     public static final String F_DESCRIPTION = "description";
     public static final String F_NUMBER_OF_STAGES = "numberOfStages";
@@ -81,16 +74,16 @@ public class CertDefinitionDto implements Serializable {
     //private List<AccessCertificationResponseType> stopReviewOn, advanceToNextStageOn;
     private ObjectViewDto<UserType> owner;
 
-    public CertDefinitionDto(AccessCertificationDefinitionType definition, PageBase page, PrismContext prismContext)
+    public CertDefinitionDto(AccessCertificationDefinitionType definition, ModelServiceLocator modelServiceLocator)
             throws SchemaException {
         this.oldDefinition = definition.clone();
         this.definition = definition;
         owner = loadOwnerReference(definition.getOwnerRef());
 
-        definitionScopeDto = createDefinitionScopeDto(definition.getScopeDefinition(), page.getPrismContext());
+        definitionScopeDto = createDefinitionScopeDto(definition.getScopeDefinition(), modelServiceLocator.getPrismContext());
         stageDefinition = new ArrayList<>();
         for (AccessCertificationStageDefinitionType stageDef : definition.getStageDefinition()) {
-            stageDefinition.add(createStageDefinitionDto(stageDef, prismContext));
+            stageDefinition.add(createStageDefinitionDto(stageDef, modelServiceLocator));
         }
         stageDefinition.sort(Comparator.comparing(StageDefinitionDto::getNumber));
         if (definition.getRemediationDefinition() != null) {
@@ -134,17 +127,17 @@ public class CertDefinitionDto implements Serializable {
     }
 
     public String getXml() {
-		try {
-			PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
-			return prismContext.xmlSerializer().serialize(getUpdatedDefinition(prismContext).asPrismObject());
-		} catch (SchemaException|RuntimeException e) {
-			return "Couldn't serialize campaign definition to XML: " + e.getMessage();
-		}
-	}
+        try {
+            PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
+            return prismContext.xmlSerializer().serialize(getUpdatedDefinition(prismContext).asPrismObject());
+        } catch (SchemaException|RuntimeException e) {
+            return "Couldn't serialize campaign definition to XML: " + e.getMessage();
+        }
+    }
 
-	public void setXml(String s) {
-		// ignore
-	}
+    public void setXml(String s) {
+        // ignore
+    }
 
     public String getName() {
         return WebComponentUtil.getName(definition);
@@ -282,6 +275,7 @@ public class CertDefinitionDto implements Serializable {
         dto.setIncludeRoles(true);
         dto.setIncludeOrgs(true);
         dto.setIncludeServices(true);
+        dto.setIncludeUsers(true);
         dto.setEnabledItemsOnly(true);
 
         if (scopeTypeObj != null) {
@@ -313,9 +307,9 @@ public class CertDefinitionDto implements Serializable {
     }
 
     private StageDefinitionDto createStageDefinitionDto(AccessCertificationStageDefinitionType stageDefObj,
-            PrismContext prismContext)
+                                                        ModelServiceLocator serviceLocator)
             throws SchemaException {
-        StageDefinitionDto dto = new StageDefinitionDto(stageDefObj, prismContext);
+        StageDefinitionDto dto = new StageDefinitionDto(stageDefObj, serviceLocator);
         return dto;
     }
 
@@ -368,9 +362,9 @@ public class CertDefinitionDto implements Serializable {
 
     public void updateStageDefinition(PrismContext prismContext) throws SchemaException {
         definition.getStageDefinition().clear();
-		for (StageDefinitionDto stageDefinitionDto : stageDefinition) {
+        for (StageDefinitionDto stageDefinitionDto : stageDefinition) {
             definition.getStageDefinition().add(createStageDefinitionType(stageDefinitionDto, prismContext));
-		}
+        }
     }
 
     private AccessCertificationStageDefinitionType createStageDefinitionType(StageDefinitionDto stageDefDto, PrismContext prismContext)
@@ -410,10 +404,11 @@ public class CertDefinitionDto implements Serializable {
             reviewerObject.setUseObjectOwner(Boolean.TRUE.equals(reviewerDto.isUseObjectOwner()));
             reviewerObject.setUseObjectApprover(Boolean.TRUE.equals(reviewerDto.isUseObjectApprover()));
             if (reviewerDto.isUseObjectManagerPresent()) {
-				reviewerObject.setUseObjectManager(createManagerSearchType(reviewerDto.getUseObjectManager()));
-			}
-			reviewerObject.getReviewerExpression().addAll(CloneUtil.cloneCollectionMembers(reviewerDto.getReviewerExpressionList()));
+                reviewerObject.setUseObjectManager(createManagerSearchType(reviewerDto.getUseObjectManager()));
+            }
+            reviewerObject.getReviewerExpression().addAll(CloneUtil.cloneCollectionMembers(reviewerDto.getReviewerExpressionList()));
             reviewerObject.getDefaultReviewerRef().clear();
+
             reviewerObject.getDefaultReviewerRef().addAll(reviewerDto.getDefaultReviewersAsObjectReferenceList(prismContext));
             reviewerObject.getAdditionalReviewerRef().clear();
             reviewerObject.getAdditionalReviewerRef().addAll(reviewerDto.getAdditionalReviewersAsObjectReferenceList(prismContext));
@@ -479,7 +474,7 @@ public class CertDefinitionDto implements Serializable {
         return CertCampaignTypeUtil.getOutcomesToStopOn(strategy.getStopReviewOn(), strategy.getAdvanceToNextStageOn());
     }
 
-	public PrismObject<AccessCertificationDefinitionType> getPrismObject() {
-		return definition.asPrismObject();
-	}
+    public PrismObject<AccessCertificationDefinitionType> getPrismObject() {
+        return definition.asPrismObject();
+    }
 }

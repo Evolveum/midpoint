@@ -1,28 +1,27 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest;
 
-import static org.testng.AssertJUnit.assertTrue;
-import static com.evolveum.midpoint.test.IntegrationTestTools.*;
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.cast;
+import static com.evolveum.midpoint.test.IntegrationTestTools.LOGGER;
 
 import java.util.Collection;
+import java.util.Iterator;
 
-import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
-
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
+import ch.qos.logback.core.rolling.RollingFileAppender;
+import ch.qos.logback.core.rolling.RollingPolicy;
+import ch.qos.logback.core.rolling.TimeBasedRollingPolicy;
+import org.slf4j.LoggerFactory;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -32,7 +31,9 @@ import com.evolveum.icf.dummy.connector.DummyConnector;
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -41,457 +42,469 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.LogfileTestTailer;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SubSystemLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLoggingConfiguration extends AbstractConfiguredModelIntegrationTest {
 
-	final String JUL_LOGGER_NAME = "com.exmple.jul.logger";
+    private static final String JUL_LOGGER_NAME = "com.example.jul.logger";
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		InternalsConfig.setAvoidLoggingChange(false);
-		// DO NOT call super.initSystem() as this will install system config. We do not want that here.
-		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
-		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
-		login(userAdministrator);
-	}
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        InternalsConfig.setAvoidLoggingChange(false);
+        // DO NOT call super.initSystem() as this will install system config. We do not want that here.
+        userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
+        repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
+        login(userAdministrator);
+    }
 
-	@Test
-	public void test001CreateSystemConfiguration() throws Exception {
-		final String TEST_NAME = "test001CreateSystemConfiguration";
-		TestUtil.displayTestTitle(TEST_NAME);
+    @Test
+    public void test001CreateSystemConfiguration() throws Exception {
+        // GIVEN
+        LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
-		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
+        PrismObject<SystemConfigurationType> systemConfiguration = PrismTestUtil.parseObject(SYSTEM_CONFIGURATION_FILE);
+        Task task = createPlainTask();
+        OperationResult result = task.getResult();
+        ObjectDelta<SystemConfigurationType> systemConfigurationAddDelta = DeltaFactory.Object.createAddDelta(systemConfiguration);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigurationAddDelta);
 
-		PrismObject<SystemConfigurationType> systemConfiguration = PrismTestUtil.parseObject(SYSTEM_CONFIGURATION_FILE);
-		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
-		OperationResult result = task.getResult();
-		ObjectDelta<SystemConfigurationType> systemConfigurationAddDelta = DeltaFactory.Object.createAddDelta(systemConfiguration);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigurationAddDelta);
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
 
-		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+        // THEN
+        tailer.logAndTail();
 
-		// THEN
-		tailer.logAndTail();
+        assertBasicLogging(tailer);
+        // TODO: more asserts
 
-		assertBasicLogging(tailer);
-		// TODO: more asserts
+        tailer.close();
 
-		tailer.close();
+    }
 
-	}
+    @Test
+    public void test002InitialConfiguration() throws Exception {
+        // GIVEN
+        LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
+        Task task = createPlainTask();
+        OperationResult result = task.getResult();
 
-	@Test
-	public void test002InitialConfiguration() throws Exception {
-		final String TEST_NAME = "test002InitialConfiguration";
-		TestUtil.displayTestTitle(TEST_NAME);
+        PrismObject<SystemConfigurationType> systemConfiguration = PrismTestUtil.parseObject(SYSTEM_CONFIGURATION_FILE);
+        LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 
-		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
+        applyTestLoggingConfig(logging);
 
-		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
-		OperationResult result = task.getResult();
+        SubSystemLoggerConfigurationType modelSubSystemLogger = new SubSystemLoggerConfigurationType();
+        modelSubSystemLogger.setComponent(LoggingComponentType.PROVISIONING);
+        modelSubSystemLogger.setLevel(LoggingLevelType.TRACE);
+        logging.getSubSystemLogger().add(modelSubSystemLogger);
 
-		PrismObject<SystemConfigurationType> systemConfiguration = PrismTestUtil.parseObject(SYSTEM_CONFIGURATION_FILE);
-		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
+        Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFor(SystemConfigurationType.class)
+                .item(SystemConfigurationType.F_LOGGING)
+                .replace(logging.asPrismContainerValue().clone())
+                .asItemDeltas();
 
-		applyTestLoggingConfig(logging);
+        // Modify directly in repository, so the logging code in model will not notice the change
+        plainRepositoryService.modifyObject(SystemConfigurationType.class, AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID,
+                modifications, result);
 
-		SubSystemLoggerConfigurationType modelSubSystemLogger = new SubSystemLoggerConfigurationType();
-		modelSubSystemLogger.setComponent(LoggingComponentType.PROVISIONING);
-		modelSubSystemLogger.setLevel(LoggingLevelType.TRACE);
-		logging.getSubSystemLogger().add(modelSubSystemLogger);
+        // precondition
+        tailer.logAndTail();
+        assertBasicLogging(tailer);
+        tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.PROVISIONING.name());
 
-		PrismObjectDefinition<SystemConfigurationType> systemConfigurationTypeDefinition =
-			prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);
-		Collection<? extends ItemDelta> modifications =	prismContext.deltaFactory().container().createModificationReplaceContainerCollection(SystemConfigurationType.F_LOGGING,
-					systemConfigurationTypeDefinition, logging.asPrismContainerValue().clone());
-		
-		// Modify directly in repository, so the logging code in model will not notice the change
-		repositoryService.modifyObject(SystemConfigurationType.class, AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID,
-				modifications, result);
+        // WHEN
+        repositoryService.postInit(result);
+        modelService.postInit(result);
 
-		// precondition
-		tailer.logAndTail();
-		assertBasicLogging(tailer);
-		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.PROVISIONING.name());
+        // THEN
+        tailer.logAndTail();
 
-		// WHEN
-		repositoryService.postInit(result);
-		modelService.postInit(result);
+        assertBasicLogging(tailer);
 
-		// THEN
-		tailer.logAndTail();
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.PROVISIONING.name());
 
-		assertBasicLogging(tailer);
+        tailer.close();
 
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.PROVISIONING.name());
+    }
 
-		tailer.close();
+    /**
+     * Overwrite initial system configuration by itself. Check that everything
+     * still works.
+     */
+    @Test
+    public void test004OverwriteInitialConfiguration() throws Exception {
+        // GIVEN
+        LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
-	}
+        Task task = createPlainTask();
+        OperationResult result = task.getResult();
 
-	/**
-	 * Overwrite initial system configuration by itself. Check that everything
-	 * still works.
-	 */
-	@Test
-	public void test004OverwriteInitialConfiguration() throws Exception {
-		final String TEST_NAME = "test004OverwriteInitialConfiguration";
-		TestUtil.displayTestTitle(TEST_NAME);
+        PrismObject<SystemConfigurationType> systemConfiguration = getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value());
+        String previousVersion = systemConfiguration.getVersion();
+        systemConfiguration.setVersion(null);
 
-		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
+        // precondition
+        tailer.logAndTail();
+        assertBasicLogging(tailer);
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.PROVISIONING.name());
 
-		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
-		OperationResult result = task.getResult();
+        ObjectDelta<SystemConfigurationType> delta = DeltaFactory.Object.createAddDelta(systemConfiguration);
+        ModelExecuteOptions options = ModelExecuteOptions.createOverwrite();
 
-		PrismObject<SystemConfigurationType> systemConfiguration = getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value());
-		String previousVersion = systemConfiguration.getVersion();
-		systemConfiguration.setVersion(null);
+        // WHEN
+        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), options, task, result);
 
-		// precondition
-		tailer.logAndTail();
-		assertBasicLogging(tailer);
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.PROVISIONING.name());
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
 
-		ObjectDelta<SystemConfigurationType> delta = DeltaFactory.Object.createAddDelta(systemConfiguration);
-		ModelExecuteOptions options = ModelExecuteOptions.createOverwrite();
+        tailer.logAndTail();
 
-		// WHEN
-		modelService.executeChanges(MiscSchemaUtil.createCollection(delta), options, task, result);
+        assertBasicLogging(tailer);
 
-		// THEN
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.PROVISIONING.name());
 
-		tailer.logAndTail();
+        tailer.close();
 
-		assertBasicLogging(tailer);
+        PrismObject<SystemConfigurationType> systemConfigurationNew = getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value());
+        String newVersion = systemConfigurationNew.getVersion();
+        assertTrue("Versions do not follow: " + previousVersion + " -> " + newVersion,
+                Integer.parseInt(previousVersion) < Integer.parseInt(newVersion));
 
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.PROVISIONING.name());
+    }
 
-		tailer.close();
+    @Test
+    public void test010AddModelSubsystemLogger() throws Exception {
+        // GIVEN
+        LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
-		PrismObject<SystemConfigurationType> systemConfigurationNew = getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value());
-		String newVersion = systemConfigurationNew.getVersion();
-		assertTrue("Versions do not follow: "+previousVersion+" -> "+newVersion,
-				Integer.parseInt(previousVersion) < Integer.parseInt(newVersion));
+        Task task = createPlainTask();
+        OperationResult result = task.getResult();
 
-	}
+        // Precondition
+        tailer.logAndTail();
 
-	@Test
-	public void test010AddModelSubsystemLogger() throws Exception {
-		final String TEST_NAME = "test010AddModelSubsystemLogger";
-		TestUtil.displayTestTitle(TEST_NAME);
+        assertBasicLogging(tailer);
 
-		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
+        tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_DEBUG, ProfilingDataManager.Subsystem.MODEL.name());
+        tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.MODEL.name());
 
-		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
-		OperationResult result = task.getResult();
+        // Setup
+        PrismObject<SystemConfigurationType> systemConfiguration =
+                PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
+        LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 
-		// Precondition
-		tailer.logAndTail();
+        applyTestLoggingConfig(logging);
 
-		assertBasicLogging(tailer);
+        SubSystemLoggerConfigurationType modelSubSystemLogger = new SubSystemLoggerConfigurationType();
+        modelSubSystemLogger.setComponent(LoggingComponentType.MODEL);
+        modelSubSystemLogger.setLevel(LoggingLevelType.DEBUG);
+        logging.getSubSystemLogger().add(modelSubSystemLogger);
 
-		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_DEBUG, ProfilingDataManager.Subsystem.MODEL.name());
-		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.MODEL.name());
+        ObjectDelta<SystemConfigurationType> systemConfigDelta = prismContext.deltaFactory().object().createModificationReplaceContainer(SystemConfigurationType.class,
+                AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING,
+                logging.clone());
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigDelta);
 
-		// Setup
-		PrismObject<SystemConfigurationType> systemConfiguration =
-			PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
-		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
 
-		applyTestLoggingConfig(logging);
+        // THEN
+        tailer.logAndTail();
 
-		SubSystemLoggerConfigurationType modelSubSystemLogger = new SubSystemLoggerConfigurationType();
-		modelSubSystemLogger.setComponent(LoggingComponentType.MODEL);
-		modelSubSystemLogger.setLevel(LoggingLevelType.DEBUG);
-		logging.getSubSystemLogger().add(modelSubSystemLogger);
+        assertBasicLogging(tailer);
 
-		ObjectDelta<SystemConfigurationType> systemConfigDelta = prismContext.deltaFactory().object().createModificationReplaceContainer(SystemConfigurationType.class,
-				AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING,
-				logging.clone());
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigDelta);
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_DEBUG, ProfilingDataManager.Subsystem.MODEL.name());
+        tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.MODEL.name());
 
-		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+        // Test that the class logger for this test messages works
+        // GIVEN
+        tailer.setExpecteMessage("This is THE MESSage");
 
-		// THEN
-		tailer.logAndTail();
+        // WHEN
+        display("This is THE MESSage");
 
-		assertBasicLogging(tailer);
+        // THEN
+        tailer.tail();
+        tailer.assertExpectedMessage();
 
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_DEBUG, ProfilingDataManager.Subsystem.MODEL.name());
-		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.MODEL.name());
+        tailer.close();
 
-		// Test that the class logger for this test messages works
-		// GIVEN
-		tailer.setExpecteMessage("This is THE MESSage");
+    }
 
-		// WHEN
-		display("This is THE MESSage");
+    @Test
+    public void test020JulLoggingDisabled() throws Exception {
+        // GIVEN
+        LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
-		// THEN
-		tailer.tail();
-		tailer.assertExpectedMessage();
+        java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger(JUL_LOGGER_NAME);
 
-		tailer.close();
+        // WHEN
+        julLogger.severe(LogfileTestTailer.MARKER + " JULsevere");
+        julLogger.warning(LogfileTestTailer.MARKER + " JULwarning");
+        julLogger.info(LogfileTestTailer.MARKER + " JULinfo");
+        julLogger.fine(LogfileTestTailer.MARKER + " JULfine");
+        julLogger.finer(LogfileTestTailer.MARKER + " JULfiner");
+        julLogger.finest(LogfileTestTailer.MARKER + " JULfinest");
 
-	}
+        tailer.tail();
 
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_ERROR, "JULsevere");
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_WARN, "JULwarning");
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_INFO, "JULinfo");
+        tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_DEBUG, "JULfine");
+        tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_DEBUG, "JULfiner");
+        tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, "JULfinest");
 
-	@Test
-	public void test020JulLoggingDisabled() throws Exception {
-		final String TEST_NAME = "test020JulLoggingDisabled";
-		TestUtil.displayTestTitle(TEST_NAME);
+        tailer.close();
 
-		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
+    }
 
-		java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger(JUL_LOGGER_NAME);
+    @Test
+    public void test021JulLoggingEnabled() throws Exception {
+        // GIVEN
+        LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
-		// WHEN
-		julLogger.severe(LogfileTestTailer.MARKER + " JULsevere");
-		julLogger.warning(LogfileTestTailer.MARKER + " JULwarning");
-		julLogger.info(LogfileTestTailer.MARKER + " JULinfo");
-		julLogger.fine(LogfileTestTailer.MARKER + " JULfine");
-		julLogger.finer(LogfileTestTailer.MARKER + " JULfiner");
-		julLogger.finest(LogfileTestTailer.MARKER + " JULfinest");
+        java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger(JUL_LOGGER_NAME);
 
-		tailer.tail();
+        Task task = createPlainTask();
+        OperationResult result = task.getResult();
 
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_ERROR, "JULsevere");
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_WARN, "JULwarning");
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_INFO, "JULinfo");
-		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_DEBUG, "JULfine");
-		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_DEBUG, "JULfiner");
-		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, "JULfinest");
+        // Setup
+        PrismObject<SystemConfigurationType> systemConfiguration =
+                PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
+        LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 
-		tailer.close();
+        applyTestLoggingConfig(logging);
 
-	}
+        ClassLoggerConfigurationType classLoggerConfig = new ClassLoggerConfigurationType();
+        classLoggerConfig.setPackage(JUL_LOGGER_NAME);
+        classLoggerConfig.setLevel(LoggingLevelType.ALL);
+        logging.getClassLogger().add(classLoggerConfig);
 
-	@Test
-	public void test021JulLoggingEnabled() throws Exception {
-		final String TEST_NAME = "test021JulLoggingEnabled";
-		TestUtil.displayTestTitle(TEST_NAME);
+        ObjectDelta<SystemConfigurationType> systemConfigDelta = prismContext.deltaFactory().object().createModificationReplaceContainer(SystemConfigurationType.class,
+                AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING,
+                logging.clone());
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigDelta);
 
-		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
+        modelService.executeChanges(deltas, null, task, result);
 
-		java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger(JUL_LOGGER_NAME);
+        // WHEN
+        julLogger.severe(LogfileTestTailer.MARKER + " JULsevere");
+        julLogger.warning(LogfileTestTailer.MARKER + " JULwarning");
+        julLogger.info(LogfileTestTailer.MARKER + " JULinfo");
+        julLogger.fine(LogfileTestTailer.MARKER + " JULfine");
+        julLogger.finer(LogfileTestTailer.MARKER + " JULfiner");
+        julLogger.finest(LogfileTestTailer.MARKER + " JULfinest");
 
-		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
-		OperationResult result = task.getResult();
+        tailer.tail();
 
-		// Setup
-		PrismObject<SystemConfigurationType> systemConfiguration =
-			PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
-		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_ERROR, "JULsevere");
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_WARN, "JULwarning");
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_INFO, "JULinfo");
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_DEBUG, "JULfine");
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_DEBUG, "JULfiner");
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, "JULfinest");
 
-		applyTestLoggingConfig(logging);
+        tailer.close();
 
-		ClassLoggerConfigurationType classLogerCongif = new ClassLoggerConfigurationType();
-		classLogerCongif.setPackage(JUL_LOGGER_NAME);
-		classLogerCongif.setLevel(LoggingLevelType.ALL);
-		logging.getClassLogger().add(classLogerCongif );
+    }
 
-		ObjectDelta<SystemConfigurationType> systemConfigDelta = prismContext.deltaFactory().object().createModificationReplaceContainer(SystemConfigurationType.class,
-				AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING,
-				logging.clone());
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigDelta);
+    /**
+     * Test if connectors log properly. The dummy connector logs on all levels when the
+     * "test" operation is invoked. So let's try it.
+     */
+    @Test
+    public void test030ConnectorLogging() throws Exception {
+        // GIVEN
+        LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
+        // ICF logging is prefixing the messages;
+        tailer.setAllowPrefix(true);
 
-		modelService.executeChanges(deltas, null, task, result);
+        Task task = createPlainTask();
+        OperationResult result = task.getResult();
 
-		// WHEN
-		julLogger.severe(LogfileTestTailer.MARKER + " JULsevere");
-		julLogger.warning(LogfileTestTailer.MARKER + " JULwarning");
-		julLogger.info(LogfileTestTailer.MARKER + " JULinfo");
-		julLogger.fine(LogfileTestTailer.MARKER + " JULfine");
-		julLogger.finer(LogfileTestTailer.MARKER + " JULfiner");
-		julLogger.finest(LogfileTestTailer.MARKER + " JULfinest");
+        importObjectFromFile(RESOURCE_DUMMY_FILE, result);
 
-		tailer.tail();
+        // Setup
+        PrismObject<SystemConfigurationType> systemConfiguration =
+                PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
+        LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_ERROR, "JULsevere");
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_WARN, "JULwarning");
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_INFO, "JULinfo");
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_DEBUG, "JULfine");
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_DEBUG, "JULfiner");
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, "JULfinest");
+        applyTestLoggingConfig(logging);
 
-		tailer.close();
+        ClassLoggerConfigurationType classLoggerConfig = new ClassLoggerConfigurationType();
+        classLoggerConfig.setPackage(DummyConnector.class.getPackage().getName());
+        classLoggerConfig.setLevel(LoggingLevelType.ALL);
+        logging.getClassLogger().add(classLoggerConfig);
 
-	}
+        ObjectDelta<SystemConfigurationType> systemConfigDelta = prismContext.deltaFactory().object().createModificationReplaceContainer(SystemConfigurationType.class,
+                AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING,
+                logging.clone());
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigDelta);
 
-	/**
-	 * Test if connectors log properly. The dummy connector logs on all levels when the
-	 * "test" operation is invoked. So let's try it.
-	 */
-	@Test
-	public void test030ConnectorLogging() throws Exception {
-		final String TEST_NAME = "test030ConnectorLogging";
-		TestUtil.displayTestTitle(TEST_NAME);
+        modelService.executeChanges(deltas, null, task, result);
 
-		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
-		// ICF logging is prefixing the messages;
-		tailer.setAllowPrefix(true);
+        // INFO part
 
-		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
-		OperationResult result = task.getResult();
+        java.util.logging.Logger dummyConnectorJulLogger =
+                java.util.logging.Logger.getLogger(DummyConnector.class.getName());
+        LOGGER.info("Dummy connector JUL logger as seen by the test: {}; classloader {}",
+                dummyConnectorJulLogger, dummyConnectorJulLogger.getClass().getClassLoader());
 
-		importObjectFromFile(RESOURCE_DUMMY_FILE, result);
+        // WHEN
+        modelService.testResource(RESOURCE_DUMMY_OID, task);
 
-		// Setup
-		PrismObject<SystemConfigurationType> systemConfiguration =
-			PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
-		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
+        // THEN
+        tailer.tail();
 
-		applyTestLoggingConfig(logging);
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_ERROR, "DummyConnectorIcfError");
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_WARN, "DummyConnectorIcfWarn");
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_DEBUG, "DummyConnectorIcfInfo");
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, "DummyConnectorIcfOk");
 
-		ClassLoggerConfigurationType classLogerCongif = new ClassLoggerConfigurationType();
-		classLogerCongif.setPackage(DummyConnector.class.getPackage().getName());
-		classLogerCongif.setLevel(LoggingLevelType.ALL);
-		logging.getClassLogger().add(classLogerCongif );
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_ERROR, "DummyConnectorJULsevere");
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_WARN, "DummyConnectorJULwarning");
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_INFO, "DummyConnectorJULinfo");
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_DEBUG, "DummyConnectorJULfine");
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_DEBUG, "DummyConnectorJULfiner");
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, "DummyConnectorJULfinest");
 
-		ObjectDelta<SystemConfigurationType> systemConfigDelta = prismContext.deltaFactory().object().createModificationReplaceContainer(SystemConfigurationType.class,
-				AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING,
-				logging.clone());
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigDelta);
+        tailer.close();
 
-		modelService.executeChanges(deltas, null, task, result);
+    }
 
-		// INFO part
+    @Test
+    public void test101EnableBasicAudit() throws Exception {
+        // GIVEN
+        LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
-		java.util.logging.Logger dummyConnctorJulLogger = java.util.logging.Logger.getLogger(DummyConnector.class.getName());
-		LOGGER.info("Dummy connector JUL logger as seen by the test: {}; classloader {}",
-				dummyConnctorJulLogger, dummyConnctorJulLogger.getClass().getClassLoader());
+        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName() + ".test101EnableBasicAudit");
+        OperationResult result = task.getResult();
 
-		// WHEN
-		modelService.testResource(RESOURCE_DUMMY_OID, task);
+        // Precondition
+        tailer.tail();
+        tailer.assertNoAudit();
 
-		// THEN
-		tailer.tail();
+        // Setup
+        PrismObject<SystemConfigurationType> systemConfiguration =
+                PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
+        LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_ERROR, "DummyConnectorIcfError");
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_WARN, "DummyConnectorIcfWarn");
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_DEBUG, "DummyConnectorIcfInfo");
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, "DummyConnectorIcfOk");
+        applyTestLoggingConfig(logging);
 
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_ERROR, "DummyConnectorJULsevere");
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_WARN, "DummyConnectorJULwarning");
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_INFO, "DummyConnectorJULinfo");
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_DEBUG, "DummyConnectorJULfine");
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_DEBUG, "DummyConnectorJULfiner");
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, "DummyConnectorJULfinest");
+        AuditingConfigurationType auditingConfigurationType = logging.getAuditing();
+        if (auditingConfigurationType == null) {
+            auditingConfigurationType = new AuditingConfigurationType();
+            logging.setAuditing(auditingConfigurationType);
+        }
+        auditingConfigurationType.setEnabled(true);
+        auditingConfigurationType.setDetails(false);
 
-		tailer.close();
+        ObjectDelta<SystemConfigurationType> systemConfigDelta = prismContext.deltaFactory().object().createModificationReplaceContainer(SystemConfigurationType.class,
+                AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING,
+                logging.clone());
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigDelta);
 
-	}
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
 
+        // Make sure that the (optional) audit message from the above change will not get into the way
+        tailer.tail();
+        tailer.reset();
 
-	@Test
-	public void test101EnableBasicAudit() throws Exception {
-		TestUtil.displayTestTitle("test101EnableBasicAudit");
+        // This message will appear in the log and will help diagnose problems
+        display("TEST: Applied audit config, going to execute test change");
 
-		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
+        // try do execute some change (add user object), it should be audited
+        PrismObject<UserType> user = PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.USER_JACK_FILE);
+        deltas = MiscSchemaUtil.createCollection(DeltaFactory.Object.createAddDelta(user));
 
-		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+".test101EnableBasicAudit");
-		OperationResult result = task.getResult();
+        modelService.executeChanges(deltas, null, task, result);
 
-		// Precondition
-		tailer.tail();
-		tailer.assertNoAudit();
+        // This message will appear in the log and will help diagnose problems
+        display("TEST: Executed test change");
 
-		// Setup
-		PrismObject<SystemConfigurationType> systemConfiguration =
-			PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
-		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
+        // THEN
 
-		applyTestLoggingConfig(logging);
+        tailer.tail();
+        tailer.assertAudit(2);
+        tailer.assertAuditRequest();
+        tailer.assertAuditExecution();
 
-		AuditingConfigurationType auditingConfigurationType = logging.getAuditing();
-		if (auditingConfigurationType == null) {
-			auditingConfigurationType = new AuditingConfigurationType();
-			logging.setAuditing(auditingConfigurationType);
-		}
-		auditingConfigurationType.setEnabled(true);
-		auditingConfigurationType.setDetails(false);
+        tailer.close();
 
-		ObjectDelta<SystemConfigurationType> systemConfigDelta = prismContext.deltaFactory().object().createModificationReplaceContainer(SystemConfigurationType.class,
-				AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING,
-				logging.clone());
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigDelta);
+    }
 
-		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+    // MID-5674
+    @Test
+    public void test110SetMaxHistory() throws Exception {
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName() + ".test101EnableBasicAudit");
+        OperationResult result = task.getResult();
 
-		// Make sure that the (optional) audit message from the above change will not get into the way
-		tailer.tail();
-		tailer.reset();
+        // Setup
+        PrismObject<SystemConfigurationType> systemConfiguration =
+                PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
+        LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 
-		// This message will appear in the log and will help diagnose problems
-		display("TEST: Applied audit config, going to execute test change");
+        applyTestLoggingConfig(logging);
 
-		// try do execute some change (add user object), it should be audited
-		PrismObject<UserType> user = PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.USER_JACK_FILE);
-		deltas = MiscSchemaUtil.createCollection(DeltaFactory.Object.createAddDelta(user));
+        ((FileAppenderConfigurationType) logging.getAppender().get(0)).setMaxHistory(100);
 
-		modelService.executeChanges(deltas, null, task, result);
+        Collection<ObjectDelta<? extends ObjectType>> deltas =
+                cast(prismContext.deltaFor(SystemConfigurationType.class)
+                        .item(SystemConfigurationType.F_LOGGING)
+                        .replace(logging.asPrismContainerValue().clone())
+                        .asObjectDeltas(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID));
 
-		// This message will appear in the log and will help diagnose problems
-		display("TEST: Executed test change");
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
 
-		// THEN
+        LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+        Logger logger = context.getLogger(Logger.ROOT_LOGGER_NAME);
+        assertNotNull("No logger", logger);
+        Iterator<Appender<ILoggingEvent>> appenderIterator = logger.iteratorForAppenders();
+        RollingFileAppender<ILoggingEvent> fileAppender = null;
+        while (appenderIterator.hasNext()) {
+            Appender<ILoggingEvent> appender = appenderIterator.next();
+            System.out.println("Appender: " + appender);
+            if (appender instanceof RollingFileAppender) {
+                fileAppender = (RollingFileAppender<ILoggingEvent>) appender;
+                break;
+            }
+        }
+        assertNotNull("No file appender", fileAppender);
+        RollingPolicy rollingPolicy = fileAppender.getRollingPolicy();
+        System.out.println("Rolling policy = " + rollingPolicy);
+        assertTrue("Wrong type of rolling policy", rollingPolicy instanceof TimeBasedRollingPolicy);
+        TimeBasedRollingPolicy<?> timeBasedRollingPolicy = (TimeBasedRollingPolicy<?>) rollingPolicy;
+        assertEquals("Wrong maxHistory", 100, timeBasedRollingPolicy.getMaxHistory());
+    }
 
-		tailer.tail();
-		tailer.assertAudit(2);
-		tailer.assertAuditRequest();
-		tailer.assertAuditExecution();
+    private void applyTestLoggingConfig(LoggingConfigurationType logging) {
+        // Make sure that this class has a special entry in the config so we will see the messages from this test code
+        ClassLoggerConfigurationType testClassLogger = new ClassLoggerConfigurationType();
+        testClassLogger.setPackage(TestLoggingConfiguration.class.getName());
+        testClassLogger.setLevel(LoggingLevelType.TRACE);
+        logging.getClassLogger().add(testClassLogger);
 
-		tailer.close();
+        ClassLoggerConfigurationType integrationTestToolsLogger = new ClassLoggerConfigurationType();
+        integrationTestToolsLogger.setPackage(IntegrationTestTools.class.getName());
+        integrationTestToolsLogger.setLevel(LoggingLevelType.TRACE);
+        logging.getClassLogger().add(integrationTestToolsLogger);
+    }
 
-	}
-
-	private void applyTestLoggingConfig(LoggingConfigurationType logging) {
-		// Make sure that this class has a special entry in the config so we will see the messages from this test code
-		ClassLoggerConfigurationType testClassLogger = new ClassLoggerConfigurationType();
-		testClassLogger.setPackage(TestLoggingConfiguration.class.getName());
-		testClassLogger.setLevel(LoggingLevelType.TRACE);
-		logging.getClassLogger().add(testClassLogger);
-
-		ClassLoggerConfigurationType integrationTestToolsLogger = new ClassLoggerConfigurationType();
-		integrationTestToolsLogger.setPackage(IntegrationTestTools.class.getName());
-		integrationTestToolsLogger.setLevel(LoggingLevelType.TRACE);
-		logging.getClassLogger().add(integrationTestToolsLogger);
-	}
-
-	private void assertBasicLogging(LogfileTestTailer tailer) {
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_ERROR, ProfilingDataManager.Subsystem.MODEL.name());
-		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.REPOSITORY.name());
-	}
+    private void assertBasicLogging(LogfileTestTailer tailer) {
+        tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_ERROR, ProfilingDataManager.Subsystem.MODEL.name());
+        tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.REPOSITORY.name());
+    }
 
 }

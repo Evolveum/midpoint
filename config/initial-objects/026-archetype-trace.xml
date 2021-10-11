@@ -1,0 +1,26 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!-- experimental -->
+<archetype oid="00000000-0000-0000-0000-000000000343"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+    <name>Trace</name>
+    <description>
+        Archetype for execution trace, as a special case of report output.
+    </description>
+    <archetypePolicy>
+        <display>
+            <label>Trace</label>
+            <pluralLabel>Traces</pluralLabel>
+            <icon>
+                <cssClass>fa fa-stethoscope</cssClass>
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>

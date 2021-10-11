@@ -1,22 +1,17 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardReportEngineConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperReportEngineConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportEngineSelectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.BooleanUtils;
@@ -38,6 +33,7 @@ public class ReportDto implements Serializable {
     public static final String F_VIRTUALIZER_KICKON = "virtualizerKickOn";
     public static final String F_MAXPAGES = "maxPages";
     public static final String F_TIMEOUT = "timeout";
+    public static final String F_DASHBOARD_REF = "dashboardRef";
 
     private boolean parent;
     private String oid;
@@ -52,6 +48,8 @@ public class ReportDto implements Serializable {
     private Integer virtualizerKickOn;
     private Integer maxPages;
     private Integer timeout;
+    private ReportEngineSelectionType reportEngineType;
+    private ObjectReferenceType dashboardRef;
 
 //    private PrismObject<ReportType> object;
     private ReportType reportType;
@@ -66,18 +64,39 @@ public class ReportDto implements Serializable {
     public ReportDto(ReportType reportType, boolean onlyForPromptingParams) {
         this.oid = reportType.getOid();
         this.name = reportType.getName().getOrig();
-        this.exportType = reportType.getExport();
-        this.searchOnResource = false;
         this.description = reportType.getDescription();
-//    	this.xml = new String(Base64.decodeBase64(reportType.getTemplate()));
-        this.jasperReportDto = new JasperReportDto(reportType.getTemplate(), onlyForPromptingParams);
-        this.templateStyle = reportType.getTemplateStyle();
-        this.parent = !BooleanUtils.isFalse(reportType.isParent());
-        this.virtualizer = reportType.getVirtualizer();
-        this.virtualizerKickOn = reportType.getVirtualizerKickOn();
-        this.maxPages = reportType.getMaxPages();
-        this.timeout = reportType.getTimeout();
         this.reportType = reportType;
+        this.searchOnResource = false;
+        this.reportEngineType = reportType.getReportEngine();
+        if(ReportEngineSelectionType.DASHBOARD.equals(reportEngineType)) {
+            DashboardReportEngineConfigurationType dashboardConfig = reportType.getDashboard();
+            if(dashboardConfig != null) {
+                dashboardRef = dashboardConfig.getDashboardRef();
+            }
+        } else {
+            JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
+            if (jasperConfig == null) {
+                this.exportType = reportType.getExport();
+        //        this.xml = new String(Base64.decodeBase64(reportType.getTemplate()));
+                this.jasperReportDto = new JasperReportDto(reportType.getTemplate(), onlyForPromptingParams);
+                this.templateStyle = reportType.getTemplateStyle();
+                this.parent = !BooleanUtils.isFalse(reportType.isParent());
+                this.virtualizer = reportType.getVirtualizer();
+                this.virtualizerKickOn = reportType.getVirtualizerKickOn();
+                this.maxPages = reportType.getMaxPages();
+                this.timeout = reportType.getTimeout();
+            } else {
+                this.exportType = jasperConfig.getExport();
+        //        this.xml = new String(Base64.decodeBase64(reportType.getTemplate()));
+                this.jasperReportDto = new JasperReportDto(jasperConfig.getTemplate(), onlyForPromptingParams);
+                this.templateStyle = jasperConfig.getTemplateStyle();
+                this.parent = !BooleanUtils.isFalse(jasperConfig.isParent());
+                this.virtualizer = jasperConfig.getVirtualizer();
+                this.virtualizerKickOn = jasperConfig.getVirtualizerKickOn();
+                this.maxPages = jasperConfig.getMaxPages();
+                this.timeout = jasperConfig.getTimeout();
+            }
+        }
     }
 
     public ReportDto(ReportType reportType) {
@@ -110,14 +129,23 @@ public class ReportDto implements Serializable {
             reportType = new ReportType();
         }
         reportType.setName(new PolyStringType(name));
-        reportType.setExport(exportType);
-        reportType.setTemplate(jasperReportDto.getTemplate());
-        reportType.setTemplateStyle(templateStyle);
         reportType.setDescription(description);
-        reportType.setVirtualizer(virtualizer);
-        reportType.setVirtualizerKickOn(virtualizerKickOn);
-        reportType.setMaxPages(maxPages);
-        reportType.setTimeout(timeout);
+        reportType.setReportEngine(reportEngineType);
+        if(ReportEngineSelectionType.DASHBOARD.equals(reportEngineType)) {
+            DashboardReportEngineConfigurationType dashboardEngine = new DashboardReportEngineConfigurationType();
+            dashboardEngine.setDashboardRef(dashboardRef);
+            reportType.setDashboard(dashboardEngine);
+        } else {
+            JasperReportEngineConfigurationType jasperConfig = new JasperReportEngineConfigurationType();
+            jasperConfig.setExport(exportType);
+            jasperConfig.setTemplate(jasperReportDto.getTemplate());
+            jasperConfig.setTemplateStyle(templateStyle);
+            jasperConfig.setVirtualizer(virtualizer);
+            jasperConfig.setVirtualizerKickOn(virtualizerKickOn);
+            jasperConfig.setMaxPages(maxPages);
+            jasperConfig.setTimeout(timeout);
+            reportType.setJasper(jasperConfig);
+        }
 
         return reportType.asPrismObject();
     }
@@ -132,6 +160,14 @@ public class ReportDto implements Serializable {
 
     public void setOid(String oid) {
         this.oid = oid;
+    }
+
+    public ReportEngineSelectionType getReportEngineType() {
+        return reportEngineType;
+    }
+
+    public void setReportEngineType(ReportEngineSelectionType reportEngineType) {
+        this.reportEngineType = reportEngineType;
     }
 
 //    public String getXml() {
@@ -199,5 +235,13 @@ public class ReportDto implements Serializable {
 
     public void setTimeout(Integer timeout) {
         this.timeout = timeout;
+    }
+
+    public ObjectReferenceType getDashboardRef() {
+        return dashboardRef;
+    }
+
+    public void setDashboardRef(ObjectReferenceType dashboardRef) {
+        this.dashboardRef = dashboardRef;
     }
 }

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.page.admin.reports.dto;
@@ -24,10 +15,12 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
+import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil.Channel;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
@@ -40,142 +33,182 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public class AuditSearchDto implements Serializable {
 
-	public static final String F_FROM = "from";
-	public static final String F_TO = "to";
-	public static final String F_INITIATOR_NAME = "initiatorName";
-	public static final String F_CHANNEL = "channel";
-	public static final String F_HOST_IDENTIFIER = "hostIdentifier";
-	public static final String F_TARGET_NAME = "targetName";
-	public static final String F_TARGET_NAMES_OBJECTS = "targetNamesObjects";
-	public static final String F_TARGET_OWNER_NAME = "targetOwnerName";
-	public static final String F_EVENT_TYPE = "eventType";
-	public static final String F_EVENT_STAGE = "eventStage";
-	public static final String F_OUTCOME = "outcome";
-	public static final String F_CHANGED_ITEM = "changedItem";
-	public static final String F_VALUE_REF_TARGET_NAME = "valueRefTargetNames";
+    public static final String F_FROM = "from";
+    public static final String F_TO = "to";
+    public static final String F_INITIATOR_NAME = "initiatorName";
+    public static final String F_CHANNEL = "channel";
+    public static final String F_HOST_IDENTIFIER = "hostIdentifier";
+    public static final String F_REQUEST_IDENTIFIER = "requestIdentifier";
+    public static final String F_TARGET_NAME = "targetName";
+    public static final String F_TARGET_NAMES_OBJECTS = "targetNamesObjects";
+    public static final String F_TARGET_OWNER_NAME = "targetOwnerName";
+    public static final String F_EVENT_TYPE = "eventType";
+    public static final String F_EVENT_STAGE = "eventStage";
+    public static final String F_OUTCOME = "outcome";
+    public static final String F_CHANGED_ITEM = "changedItem";
+    public static final String F_VALUE_REF_TARGET_NAME = "valueRefTargetNames";
+    public static final String F_COLLECTION = "collection";
+    public static final String F_RESOURCE_OID = "resourceOid";
 
-	private XMLGregorianCalendar from;
-	private XMLGregorianCalendar to;
-	private ObjectReferenceType initiatorName;
-	private Channel channel;
-	private String hostIdentifier;
-	private List<ObjectReferenceType> targetNames = new ArrayList<>();
-	private List<ObjectType> targetNamesObjects = new ArrayList<>();
-	private ObjectReferenceType targetOwnerName;
-	private AuditEventTypeType eventType;
-	private AuditEventStageType eventStage;
-	private OperationResultStatusType outcome;
-	private ItemPathDto changedItem;
-	private List<ObjectType> valueRefTargetNames;
+    private XMLGregorianCalendar from;
+    private XMLGregorianCalendar to;
+    private ObjectReferenceType initiatorName;
+    private Channel channel;
+    private String hostIdentifier;
+    private String requestIdentifier;
+    private List<ObjectReferenceType> targetNames = new ArrayList<>();
+    private List<ObjectType> targetNamesObjects = new ArrayList<>();
+    private ObjectReferenceType targetOwnerName;
+    private AuditEventTypeType eventType;
+    private AuditEventStageType eventStage;
+    private OperationResultStatusType outcome;
+    private ItemPathDto changedItem;
+    private List<ObjectType> valueRefTargetNames;
+    private ObjectCollectionType collection;
+    private String resourceOid;
 
-	public AuditSearchDto() {
-	}
+    private ItemPathPanel.ItemPathPanelMode changedItemPanelMode = ItemPathPanel.ItemPathPanelMode.NAMESPACE_MODE;
 
-	public XMLGregorianCalendar getFrom() {
-		return from;
-	}
+    public AuditSearchDto() {
+    }
 
-	public void setFrom(XMLGregorianCalendar from) {
-		this.from = from;
-	}
+    public XMLGregorianCalendar getFrom() {
+        return from;
+    }
 
-	public XMLGregorianCalendar getTo() {
-		return to;
-	}
+    public void setFrom(XMLGregorianCalendar from) {
+        this.from = from;
+    }
 
-	public void setTo(XMLGregorianCalendar to) {
-		this.to = to;
-	}
+    public XMLGregorianCalendar getTo() {
+        return to;
+    }
 
-	public ObjectReferenceType getInitiatorName() {
-		return initiatorName;
-	}
+    public void setTo(XMLGregorianCalendar to) {
+        this.to = to;
+    }
 
-	public void setInitiatorName(ObjectReferenceType initiatorName) {
-		this.initiatorName = initiatorName;
-	}
+    public ObjectReferenceType getInitiatorName() {
+        return initiatorName;
+    }
 
-	public Channel getChannel() {
-		return channel;
-	}
+    public void setInitiatorName(ObjectReferenceType initiatorName) {
+        this.initiatorName = initiatorName;
+    }
 
-	public void setChannel(Channel channel) {
-		this.channel = channel;
-	}
+    public Channel getChannel() {
+        return channel;
+    }
 
-	public String getHostIdentifier() {
-		return hostIdentifier;
-	}
+    public void setChannel(Channel channel) {
+        this.channel = channel;
+    }
 
-	public void setHostIdentifier(String hostIdentifier) {
-		this.hostIdentifier = hostIdentifier;
-	}
+    public String getHostIdentifier() {
+        return hostIdentifier;
+    }
 
-	public List<ObjectReferenceType> getTargetNames() {
-		return targetNames;
-	}
+    public void setHostIdentifier(String hostIdentifier) {
+        this.hostIdentifier = hostIdentifier;
+    }
 
-	public void setTargetNames(List<ObjectReferenceType> targetNameList) {
-		this.targetNames = targetNameList;
-	}
+    public String getRequestIdentifier() {
+        return requestIdentifier;
+    }
 
-	public ObjectReferenceType getTargetOwnerName() {
-		return targetOwnerName;
-	}
+    public void setRequestIdentifier(String requestIdentifier) {
+        this.requestIdentifier = requestIdentifier;
+    }
 
-	public void setTargetOwnerName(ObjectReferenceType targetOwnerName) {
-		this.targetOwnerName = targetOwnerName;
-	}
+    public List<ObjectReferenceType> getTargetNames() {
+        return targetNames;
+    }
 
-	public AuditEventTypeType getEventType() {
-		return eventType;
-	}
+    public void setTargetNames(List<ObjectReferenceType> targetNameList) {
+        this.targetNames = targetNameList;
+    }
 
-	public void setEventType(AuditEventTypeType eventType) {
-		this.eventType = eventType;
-	}
+    public ObjectReferenceType getTargetOwnerName() {
+        return targetOwnerName;
+    }
 
-	public AuditEventStageType getEventStage() {
-		return eventStage;
-	}
+    public void setTargetOwnerName(ObjectReferenceType targetOwnerName) {
+        this.targetOwnerName = targetOwnerName;
+    }
 
-	public void setEventStage(AuditEventStageType eventStage) {
-		this.eventStage = eventStage;
-	}
+    public AuditEventTypeType getEventType() {
+        return eventType;
+    }
 
-	public OperationResultStatusType getOutcome() {
-		return outcome;
-	}
+    public void setEventType(AuditEventTypeType eventType) {
+        this.eventType = eventType;
+    }
 
-	public void setOutcome(OperationResultStatusType outcome) {
-		this.outcome = outcome;
-	}
+    public AuditEventStageType getEventStage() {
+        return eventStage;
+    }
 
-	public ItemPathDto getChangedItem() {
-		if (changedItem == null) {
-			changedItem = new ItemPathDto();
-//			changedItem.setObjectType(UserType.COMPLEX_TYPE);
-		}
-		return changedItem;
-	}
+    public void setEventStage(AuditEventStageType eventStage) {
+        this.eventStage = eventStage;
+    }
 
-	public void setChangedItem(ItemPathDto changedItem) {
-		this.changedItem = changedItem;
-	}
+    public OperationResultStatusType getOutcome() {
+        return outcome;
+    }
 
-	public List<ObjectType> getvalueRefTargetNames() {
-		return valueRefTargetNames;
-	}
+    public void setOutcome(OperationResultStatusType outcome) {
+        this.outcome = outcome;
+    }
 
-	public void setvalueRefTargetNames(List<ObjectType> valueRefTargetNames) {
-		this.valueRefTargetNames = valueRefTargetNames;
-	}
+    public ItemPathDto getChangedItem() {
+        if (changedItem == null) {
+            changedItem = new ItemPathDto();
+//            changedItem.setObjectType(UserType.COMPLEX_TYPE);
+        }
+        return changedItem;
+    }
 
-	public List<ObjectType> getTargetNamesObjects() {
-		return targetNamesObjects;
-	}
+    public void setChangedItem(ItemPathDto changedItem) {
+        this.changedItem = changedItem;
+    }
 
-	public void setTargetNamesObjects(List<ObjectType> targetNamesObjects) {
-		this.targetNamesObjects = targetNamesObjects;
-	}
+    public List<ObjectType> getvalueRefTargetNames() {
+        return valueRefTargetNames;
+    }
+
+    public void setvalueRefTargetNames(List<ObjectType> valueRefTargetNames) {
+        this.valueRefTargetNames = valueRefTargetNames;
+    }
+
+    public List<ObjectType> getTargetNamesObjects() {
+        return targetNamesObjects;
+    }
+
+    public void setTargetNamesObjects(List<ObjectType> targetNamesObjects) {
+        this.targetNamesObjects = targetNamesObjects;
+    }
+
+    public ObjectCollectionType getCollection() {
+        return collection;
+    }
+
+    public void setCollection(ObjectCollectionType collection) {
+        this.collection = collection;
+    }
+
+    public String getResourceOid() {
+        return resourceOid;
+    }
+
+    public void setResourceOid(String resourceOid) {
+        this.resourceOid = resourceOid;
+    }
+
+    public ItemPathPanel.ItemPathPanelMode getChangedItemPanelMode() {
+        return changedItemPanelMode;
+    }
+
+    public void setChangedItemPanelMode(ItemPathPanel.ItemPathPanelMode changedItemPanelMode) {
+        this.changedItemPanelMode = changedItemPanelMode;
+    }
 }

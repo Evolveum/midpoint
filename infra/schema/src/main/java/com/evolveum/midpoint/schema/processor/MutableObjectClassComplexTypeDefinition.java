@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.schema.processor;
@@ -19,6 +10,7 @@ package com.evolveum.midpoint.schema.processor;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.MutableComplexTypeDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.google.common.annotations.VisibleForTesting;
 
 import javax.xml.namespace.QName;
 
@@ -26,35 +18,39 @@ import javax.xml.namespace.QName;
  *
  */
 public interface MutableObjectClassComplexTypeDefinition extends ObjectClassComplexTypeDefinition, MutableComplexTypeDefinition {
-	void add(ItemDefinition<?> definition);
 
-	void addPrimaryIdentifier(ResourceAttributeDefinition<?> identifier);
+    void add(ItemDefinition<?> definition);
 
-	void addSecondaryIdentifier(ResourceAttributeDefinition<?> identifier);
+    void addPrimaryIdentifier(ResourceAttributeDefinition<?> identifier);
 
-	void setDescriptionAttribute(ResourceAttributeDefinition<?> descriptionAttribute);
+    void addSecondaryIdentifier(ResourceAttributeDefinition<?> identifier);
 
-	void setNamingAttribute(ResourceAttributeDefinition<?> namingAttribute);
+    void setDescriptionAttribute(ResourceAttributeDefinition<?> descriptionAttribute);
 
-	void setNamingAttribute(QName namingAttribute);
+    void setNamingAttribute(ResourceAttributeDefinition<?> namingAttribute);
 
-	void setNativeObjectClass(String nativeObjectClass);
+    void setNamingAttribute(QName namingAttribute);
 
-	void setAuxiliary(boolean auxiliary);
+    void setNativeObjectClass(String nativeObjectClass);
 
-	void setKind(ShadowKindType kind);
+    void setAuxiliary(boolean auxiliary);
 
-	void setDefaultInAKind(boolean defaultAccountType);
+    void setKind(ShadowKindType kind);
 
-	void setIntent(String intent);
+    void setDefaultInAKind(boolean defaultAccountType);
 
-	void setDisplayNameAttribute(ResourceAttributeDefinition<?> displayName);
+    void setIntent(String intent);
 
-	void setDisplayNameAttribute(QName displayName);
+    void setDisplayNameAttribute(ResourceAttributeDefinition<?> displayName);
 
-	<X> ResourceAttributeDefinitionImpl<X> createAttributeDefinition(QName name, QName typeName);
+    void setDisplayNameAttribute(QName displayName);
 
-	<X> ResourceAttributeDefinitionImpl<X> createAttributeDefinition(String localName, QName typeName);
+    @VisibleForTesting
+    <X> ResourceAttributeDefinitionImpl<X> createAttributeDefinition(QName name, QName typeName);
 
-	<X> ResourceAttributeDefinition<X> createAttributeDefinition(String localName, String localTypeName);
+    @VisibleForTesting
+    <X> ResourceAttributeDefinitionImpl<X> createAttributeDefinition(String localName, QName typeName);
+
+    @VisibleForTesting
+    <X> ResourceAttributeDefinition<X> createAttributeDefinition(String localName, String localTypeName);
 }

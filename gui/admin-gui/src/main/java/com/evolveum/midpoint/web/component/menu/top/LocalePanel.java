@@ -1,92 +1,106 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.menu.top;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
 import com.evolveum.midpoint.web.security.LocaleDescriptor;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.form.select.IOptionRenderer;
 import org.apache.wicket.extensions.markup.html.form.select.Select;
 import org.apache.wicket.extensions.markup.html.form.select.SelectOption;
 import org.apache.wicket.extensions.markup.html.form.select.SelectOptions;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.util.ListModel;
 
+import java.util.ArrayList;
 import java.util.Locale;
 
 /**
  * @author lazyman
  */
 public class LocalePanel extends Panel {
+    private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(LocalePanel.class);
 
-    private static final String ID_SELECT = "select";
-    private static final String ID_OPTIONS = "options";
+    private static final String ID_LOCALES = "locales";
+    private static final String ID_LOCALE_ICON = "localeIcon";
+    private static final String ID_LOCALE_LINK = "localeLink";
+    private static final String ID_LOCALE_ITEM_ICON = "localeItemIcon";
 
     public LocalePanel(String id) {
         super(id);
 
         setRenderBodyOnly(true);
 
-        final IModel<LocaleDescriptor> model = new Model(getSelectedLocaleDescriptor());
-        Select<LocaleDescriptor> select = new Select<>(ID_SELECT, model);
-        select.add(new AjaxFormComponentUpdatingBehavior("change") {
+        Label image = new Label(ID_LOCALE_ICON);
+        image.add(AttributeModifier.replace("class", new IModel<String>(){
+            private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                changeLocale(target, model.getObject());
+            public String getObject(){
+                StringBuilder sb = new StringBuilder("flag-");
+                sb.append(getSelectedLocaleDescriptor() != null ?
+                        getSelectedLocaleDescriptor().getFlag() : "");
+                return sb.toString();
             }
-        });
-        select.setOutputMarkupId(true);
-        add(select);
-        SelectOptions<LocaleDescriptor> options = new SelectOptions<LocaleDescriptor>(ID_OPTIONS,
-                MidPointApplication.AVAILABLE_LOCALES,
-                new IOptionRenderer<LocaleDescriptor>() {
+        }));
+        image.setOutputMarkupId(true);
+        add(image);
 
-                    @Override
-                    public String getDisplayValue(LocaleDescriptor object) {
-                        return object.getName();
-                    }
+        ListView<LocaleDescriptor> locales = new ListView<LocaleDescriptor>(ID_LOCALES,
+                Model.ofList(MidPointApplication.AVAILABLE_LOCALES)) {
 
-                    @Override
-                    public IModel<LocaleDescriptor> getModel(LocaleDescriptor value) {
-                        return new Model<>(value);
-                    }
-                }) {
-
-
+            private static final long serialVersionUID = 1L;
 
             @Override
-            protected SelectOption<LocaleDescriptor> newOption(String text, IModel<LocaleDescriptor> model) {
-                SelectOption option = super.newOption("&nbsp;" + text, model);
-                option.add(new AttributeModifier("data-icon", "flag-" + model.getObject().getFlag()));
+            protected void populateItem(final ListItem<LocaleDescriptor> item) {
+                final Label image = new Label(ID_LOCALE_ITEM_ICON);
+                image.add(AttributeModifier.append("class", "flag-" + item.getModelObject().getFlag()));
+                image.setOutputMarkupId(true);
+                item.add(image);
 
-                return option;
+                final AjaxLink<String> localeLink = new AjaxLink<String>(ID_LOCALE_LINK) {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public IModel<String> getBody() {
+                        return Model.of(item.getModelObject().getName());
+                    }
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        changeLocale(target, item.getModelObject());
+                    }
+
+
+                };
+                localeLink.setOutputMarkupId(true);
+                item.add(localeLink);
             }
         };
-        select.add(options);
+        locales.setOutputMarkupId(true);
+        add(locales);
     }
 
     private LocaleDescriptor getSelectedLocaleDescriptor() {
@@ -113,7 +127,7 @@ public class LocalePanel extends Panel {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
-        String selectId = get(ID_SELECT).getMarkupId();
+        String selectId = get(ID_LOCALE_ICON).getMarkupId();
         response.render(OnDomReadyHeaderItem.forScript("$('#" + selectId + "').selectpicker({});"));
     }
 

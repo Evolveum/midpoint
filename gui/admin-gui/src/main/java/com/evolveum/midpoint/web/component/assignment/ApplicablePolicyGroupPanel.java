@@ -1,35 +1,13 @@
-/**
- * Copyright (c) 2015-2018 Evolveum
+/*
+ * Copyright (c) 2015-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.List;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -37,9 +15,25 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Created by honchar.
@@ -47,7 +41,6 @@ import java.util.List;
 public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
     private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(ApplicablePolicyGroupPanel.class);
     private static final String DOT_CLASS = ApplicablePolicyGroupPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_POLICY_GROUP_MEMBERS = DOT_CLASS + "loadPolicyGroupMembers";
     private static final String OPERATION_LOAD_POLICY_GROUP_NAME = DOT_CLASS + "loadPolicyGroupName";
@@ -56,9 +49,9 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
     private static final String ID_POLICIES_CONTAINER = "policiesContainer";
     private static final String ID_POLICY_CHECK_BOX = "policyCheckBox";
     private LoadableModel<List<PrismObject<AbstractRoleType>>> policiesListModel;
-    IModel<ContainerWrapper<AssignmentType>> assignmentsModel;
+    IModel<PrismContainerWrapper<AssignmentType>> assignmentsModel;
 
-    public ApplicablePolicyGroupPanel(String id, IModel<ObjectReferenceType> model, IModel<ContainerWrapper<AssignmentType>> assignmentsModel){
+    public ApplicablePolicyGroupPanel(String id, IModel<ObjectReferenceType> model, IModel<PrismContainerWrapper<AssignmentType>> assignmentsModel){
         super(id, model);
         this.assignmentsModel = assignmentsModel;
     }
@@ -81,13 +74,10 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
                         .isChildOf(policyGroupObject.getOid())
                         .build();
                 List<PrismObject<AbstractRoleType>> policiesList = WebModelServiceUtils.searchObjects(AbstractRoleType.class, membersQuery, result, getPageBase());
-                Collections.sort(policiesList, new Comparator<PrismObject<AbstractRoleType>>() {
-                    @Override
-                    public int compare(PrismObject<AbstractRoleType> o1, PrismObject<AbstractRoleType> o2) {
-                        String displayName1 = WebComponentUtil.getDisplayNameOrName(o1);
-                        String displayName2 = WebComponentUtil.getDisplayNameOrName(o2);
-                        return String.CASE_INSENSITIVE_ORDER.compare(displayName1, displayName2);
-                    }
+                policiesList.sort((o1, o2) -> {
+                    String displayName1 = WebComponentUtil.getDisplayNameOrName(o1);
+                    String displayName2 = WebComponentUtil.getDisplayNameOrName(o2);
+                    return String.CASE_INSENSITIVE_ORDER.compare(displayName1, displayName2);
                 });
                 return policiesList;
             }
@@ -104,13 +94,12 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
 
             @Override
             protected void populateItem(ListItem<PrismObject<AbstractRoleType>> listItem) {
-            	PrismObject<AbstractRoleType> abstractRole = listItem.getModelObject();
-            	CheckBoxPanel policyCheckBox = new CheckBoxPanel(ID_POLICY_CHECK_BOX,
-            			getCheckboxModel(abstractRole),
-            			null, // visibility
-            			Model.of(WebComponentUtil.getDisplayNameOrName(abstractRole)), // label
-            			null // tooltip
-            			) {
+                PrismObject<AbstractRoleType> abstractRole = listItem.getModelObject();
+                CheckBoxPanel policyCheckBox = new CheckBoxPanel(ID_POLICY_CHECK_BOX,
+                        getCheckboxModel(abstractRole),
+                        Model.of(WebComponentUtil.getDisplayNameOrName(abstractRole)), // label
+                        null // tooltip
+                        ) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -127,13 +116,13 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
     }
 
     private IModel<Boolean> getCheckboxModel(PrismObject<AbstractRoleType> abstractRole) {
-    	return Model.of(isAssignmentAlreadyInList(abstractRole.getOid()) &&
+        return Model.of(isAssignmentAlreadyInList(abstractRole.getOid()) &&
                 !ValueStatus.DELETED.equals(getExistingAssignmentStatus(abstractRole.getOid())));
     }
 
     private boolean isAssignmentAlreadyInList(String policyRoleOid){
-        for (ContainerValueWrapper<AssignmentType> assignment : assignmentsModel.getObject().getValues()){
-            ObjectReferenceType targetRef = assignment.getContainerValue().getValue().getTargetRef();
+        for (PrismContainerValueWrapper<AssignmentType> assignment : assignmentsModel.getObject().getValues()){
+            ObjectReferenceType targetRef = assignment.getRealValue().getTargetRef();
             if (targetRef != null && targetRef.getOid().equals(policyRoleOid)){
                 return true;
             }
@@ -142,8 +131,8 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
     }
 
     private ValueStatus getExistingAssignmentStatus(String policyRoleOid){
-        for (ContainerValueWrapper<AssignmentType> assignment : assignmentsModel.getObject().getValues()){
-            ObjectReferenceType targetRef = assignment.getContainerValue().getValue().getTargetRef();
+        for (PrismContainerValueWrapper<AssignmentType> assignment : assignmentsModel.getObject().getValues()){
+            ObjectReferenceType targetRef = assignment.getRealValue().getTargetRef();
             if (targetRef != null && targetRef.getOid().equals(policyRoleOid)){
                 return assignment.getStatus();
             }
@@ -153,9 +142,9 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
 
     private void onPolicyAddedOrRemoved(PrismObject<AbstractRoleType> assignmentTargetObject, boolean added){
         if (isAssignmentAlreadyInList(assignmentTargetObject.getOid())){
-            ContainerValueWrapper<AssignmentType> assignmentToRemove = null;
-            for (ContainerValueWrapper<AssignmentType> assignment : assignmentsModel.getObject().getValues()){
-                ObjectReferenceType targetRef = assignment.getContainerValue().getValue().getTargetRef();
+            PrismContainerValueWrapper<AssignmentType> assignmentToRemove = null;
+            for (PrismContainerValueWrapper<AssignmentType> assignment : assignmentsModel.getObject().getValues()){
+                ObjectReferenceType targetRef = assignment.getRealValue().getTargetRef();
                 if (targetRef != null && targetRef.getOid().equals(assignmentTargetObject.getOid())){
                     if (added && assignment.getStatus() == ValueStatus.DELETED){
                         assignment.setStatus(ValueStatus.NOT_CHANGED);
@@ -169,17 +158,24 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
             assignmentsModel.getObject().getValues().remove(assignmentToRemove);
         } else {
             if (added){
-            	//TODO: not sure if this is correct way of creating new value.. this value is added directly to the origin object... what about deltas??
+                //TODO: not sure if this is correct way of creating new value.. this value is added directly to the origin object... what about deltas??
                 PrismContainerValue<AssignmentType> newAssignment = assignmentsModel.getObject().getItem().createNewValue();
                 ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(assignmentTargetObject, getPageBase().getPrismContext());
                 AssignmentType assignmentType = newAssignment.asContainerable();
                 assignmentType.setTargetRef(ref);
                 Task task = getPageBase().createSimpleTask("Creating new applicable policy");
-                ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
-                ContainerValueWrapper<AssignmentType> valueWrapper = factory.createContainerValueWrapper(assignmentsModel.getObject(), newAssignment,
-                        assignmentsModel.getObject().getObjectStatus(), ValueStatus.ADDED, assignmentsModel.getObject().getPath(), task);
-                valueWrapper.setShowEmpty(true, false);
-                assignmentsModel.getObject().getValues().add(valueWrapper);
+
+                WrapperContext context = new WrapperContext(task, null);
+                PrismContainerValueWrapper<AssignmentType> valueWrapper;
+                try {
+                    valueWrapper = (PrismContainerValueWrapper<AssignmentType>) getPageBase().createValueWrapper(assignmentsModel.getObject(), newAssignment, ValueStatus.ADDED, context);
+                    assignmentsModel.getObject().getValues().add(valueWrapper);
+                } catch (SchemaException e) {
+                    //TOTO error handling
+                }
+//
+//                valueWrapper.setShowEmpty(true, false);
+
             }
         }
     }

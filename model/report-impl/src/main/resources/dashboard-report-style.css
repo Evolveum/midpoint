@@ -1,0 +1,108 @@
+.box {
+  position: relative;
+  border-radius: 3px;
+  background: #ffffff;
+  border-top: 3px solid #d2d6de;
+  margin-bottom: 20px;
+  width: 100%;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+  font-family: 'Source Sans Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.42857143;
+  color: #333;
+  display: block;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
+.box-body {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 3px;
+  border-bottom-left-radius: 3px;
+}
+
+.box-header:before,
+.box-body:before,
+.box-footer:before,
+.box-header:after,
+.box-body:after,
+.box-footer:after {
+  content: " ";
+  display: table;
+}
+
+*:before,
+*:after {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.boxed-table table {
+  table-layout: fixed;
+}
+.table-bordered {
+  border: 1px solid #f4f4f4;
+}
+.table {
+  width: 100%;
+  max-width: 100%;
+}
+table {
+  display: table;
+  background-color: #00000000;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+* {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+.table > thead > tr > th,
+.table > tbody > tr > th,
+.table > tfoot > tr > th,
+.table > thead > tr > td,
+.table > tbody > tr > td,
+.table > tfoot > tr > td {
+  padding: 8px;
+  line-height: 1.42857143;
+  vertical-align: top;
+  border-top: 1px solid #ddd;
+}
+.table-bordered > thead > tr > th,
+.table-bordered > tbody > tr > th,
+.table-bordered > tfoot > tr > th,
+.table-bordered > thead > tr > td,
+.table-bordered > tbody > tr > td,
+.table-bordered > tfoot > tr > td {
+  border: 1px solid #f4f4f4;
+}
+th {
+  text-align: left;
+}
+.table-hover > tbody > tr:hover {
+  background-color: #f5f5f5;
+}
+tbody > tr > th {
+  font-weight: normal;
+}
+a {
+  color: #3c8dbc;
+  text-decoration: none;
+  background-color: transparent;
+}
+.table-striped > tbody > tr:nth-of-type(odd) {
+  background-color: #f9f9f9;
+}
+h1 {
+  padding-left:15px;
+}
+p {
+  padding-left:15px;
+}
+
+.table-smaller-font table {
+  font-size:smaller;
+}

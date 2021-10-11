@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="de0c9c11-eb2e-4b6a-9200-a4306a5c8d6c">
+    <name>simple</name>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <name>title -> honorificPrefix</name>
+                <source>
+                    <path>title</path>
+                </source>
+                <target>
+                    <path>honorificPrefix</path>
+                </target>
+            </mapping>
+            <mapping>
+                <name>description -> title</name>
+                <source>
+                    <path>description</path>
+                </source>
+                <target>
+                    <path>title</path>
+                </target>
+            </mapping>
+            <mapping>
+                <name>fullName -> description</name>
+                <source>
+                    <path>fullName</path>
+                </source>
+                <target>
+                    <path>description</path>
+                </target>
+            </mapping>
+            <mapping>
+                <name>name -> fullName</name>
+                <source>
+                    <path>name</path>
+                </source>
+                <target>
+                    <path>fullName</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+</role>

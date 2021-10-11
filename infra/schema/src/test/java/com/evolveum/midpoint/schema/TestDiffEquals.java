@@ -1,76 +1,58 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.schema;
+
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.LITERAL;
+import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.NOT_LITERAL;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
+import com.evolveum.midpoint.prism.impl.xnode.PrimitiveXNodeImpl;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-
-import static org.testng.AssertJUnit.*;
 
 /**
  * @author lazyman
  */
-public class TestDiffEquals {
+public class TestDiffEquals extends AbstractSchemaTest {
 
-	public static final File TEST_DIR = new File("src/test/resources/diff");
-	private static final File ROLE_COMPARE_FILE = new File(TEST_DIR, "role-compare.xml");
+    public static final File TEST_DIR = new File("src/test/resources/diff");
+    private static final File ROLE_COMPARE_FILE = new File(TEST_DIR, "role-compare.xml");
 
-	private static final File ROLE_1 = new File(TEST_DIR, "role-1.xml");
+    private static final File ROLE_1 = new File(TEST_DIR, "role-1.xml");
     private static final File ROLE_2 = new File(TEST_DIR, "role-2.xml");
 
     private static final String NS_TEST_RI = "http://midpoint.evolveum.com/xml/ns/test/ri-1";
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestDiffEquals.class);
-
-	@BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
-
     @Test
     public void testUserSimplePropertyDiff() throws SchemaException {
-    	System.out.println("\n\n===[ testUserSimplePropertyDiff ]===\n");
         UserType userType1 = new UserType();
         userType1.setName(PrismTestUtil.createPolyStringType("test name"));
         UserType userType2 = new UserType();
@@ -91,7 +73,6 @@ public class TestDiffEquals {
 
     @Test
     public void testUserListSimpleDiff() throws SchemaException {
-    	System.out.println("\n\n===[ testUserListSimpleDiff ]===\n");
         UserType u1 = new UserType();
         u1.setName(PrismTestUtil.createPolyStringType("test name"));
         UserType u2 = new UserType();
@@ -112,8 +93,7 @@ public class TestDiffEquals {
 
     @Test
     public void testAssignmentEquals1() throws Exception {
-    	System.out.println("\n\n===[ testAssignmentEquals1 ]===\n");
-    	PrismContext prismContext = PrismTestUtil.getPrismContext();
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         AssignmentType a1a = new AssignmentType();
         prismContext.adopt(a1a);
@@ -132,9 +112,9 @@ public class TestDiffEquals {
         a1m.setDescription("descr1");
         MetadataType metadata1m = new MetadataType();
         metadata1m.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
-		a1m.setMetadata(metadata1m);
+        a1m.setMetadata(metadata1m);
 
-		AssignmentType a1e = new AssignmentType();
+        AssignmentType a1e = new AssignmentType();
         prismContext.adopt(a1e);
         a1e.setDescription("descr1");
         ActivationType activation1e = new ActivationType();
@@ -171,16 +151,15 @@ public class TestDiffEquals {
         assertTrue(a1e.equals(a1m));
     }
 
-    @Test(enabled=false) // MID-3966
+    @Test(enabled = false) // MID-3966
     public void testAssignmentEquals2() throws Exception {
-    	System.out.println("\n\n===[ testAssignmentEquals2 ]===\n");
-    	PrismContext prismContext = PrismTestUtil.getPrismContext();
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
 
-    	PrismObject<RoleType> roleCompare = prismContext.parseObject(ROLE_COMPARE_FILE);
-    	PrismContainer<AssignmentType> inducementContainer = roleCompare.findContainer(RoleType.F_INDUCEMENT);
-    	AssignmentType a1 = inducementContainer.findValue(1L).asContainerable();
-    	AssignmentType a2 = inducementContainer.findValue(2L).asContainerable();
-    	AssignmentType a3 = inducementContainer.findValue(3L).asContainerable();
+        PrismObject<RoleType> roleCompare = prismContext.parseObject(ROLE_COMPARE_FILE);
+        PrismContainer<AssignmentType> inducementContainer = roleCompare.findContainer(RoleType.F_INDUCEMENT);
+        AssignmentType a1 = inducementContainer.findValue(1L).asContainerable();
+        AssignmentType a2 = inducementContainer.findValue(2L).asContainerable();
+        AssignmentType a3 = inducementContainer.findValue(3L).asContainerable();
 
         // WHEN
         assertFalse(a1.equals(a3));
@@ -194,32 +173,30 @@ public class TestDiffEquals {
     }
 
     @Test
-    public void testAssignmentEquivalent() throws Exception {
-    	System.out.println("\n\n===[ testAssignmentEquivalent ]===\n");
-    	PrismContext prismContext = PrismTestUtil.getPrismContext();
+    public void testAssignmentEquivalent() {
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         AssignmentType a1 = new AssignmentType(prismContext);
         ActivationType a1a = new ActivationType(prismContext);
         a1a.setValidFrom(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
         a1a.setEffectiveStatus(ActivationStatusType.ENABLED);
-		a1.setActivation(a1a);
+        a1.setActivation(a1a);
 
         AssignmentType a2 = new AssignmentType(prismContext);
-		ActivationType a2a = new ActivationType(prismContext);
-		a2a.setEffectiveStatus(ActivationStatusType.ENABLED);
-		a2.setActivation(a2a);
+        ActivationType a2a = new ActivationType(prismContext);
+        a2a.setEffectiveStatus(ActivationStatusType.ENABLED);
+        a2.setActivation(a2a);
 
         // WHEN
         assertFalse(a1.equals(a2));
-        assertFalse(a1.asPrismContainerValue().equivalent(a2.asPrismContainerValue()));			// a bit redundant
+        assertFalse(a1.asPrismContainerValue().equivalent(a2.asPrismContainerValue()));            // a bit redundant
 
-		assertFalse(a2.equals(a1));
-		assertFalse(a2.asPrismContainerValue().equivalent(a1.asPrismContainerValue()));			// a bit redundant
+        assertFalse(a2.equals(a1));
+        assertFalse(a2.asPrismContainerValue().equivalent(a1.asPrismContainerValue()));            // a bit redundant
     }
 
     @Test
     public void testContextlessAssignmentEquals() throws Exception {
-    	System.out.println("\n\n===[ testContextlessAssignmentEquals ]===\n");
         AssignmentType a1 = new AssignmentType();            // no prismContext here
         a1.setDescription("descr1");
 
@@ -242,8 +219,6 @@ public class TestDiffEquals {
 
     @Test
     public void testContextlessAssignmentEquals2() throws Exception {
-    	System.out.println("\n\n===[ testContextlessAssignmentEquals2 ]===\n");
-
         // (1) user without prismContext - the functionality is reduced
 
         UserType user = new UserType();
@@ -288,9 +263,7 @@ public class TestDiffEquals {
 
     @Test
     public void testAssignmentHashcode() throws Exception {
-    	LOGGER.info("\n\n===[ testAssignmentHashcode ]===\n");
-    	System.out.println("\n\n===[ testAssignmentHashcode ]===\n");
-    	PrismContext prismContext = PrismTestUtil.getPrismContext();
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         AssignmentType a1a = new AssignmentType();
         prismContext.adopt(a1a);
@@ -309,9 +282,9 @@ public class TestDiffEquals {
         a1m.setDescription("descr1");
         MetadataType metadata1m = new MetadataType();
         metadata1m.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
-		a1m.setMetadata(metadata1m);
+        a1m.setMetadata(metadata1m);
 
-		AssignmentType a1e = new AssignmentType();
+        AssignmentType a1e = new AssignmentType();
         prismContext.adopt(a1e);
         a1e.setDescription("descr1");
         ActivationType activation1e = new ActivationType();
@@ -351,24 +324,22 @@ public class TestDiffEquals {
     // MID-4251
     @Test
     public void testAssignmentHashcode2() {
-    	LOGGER.info("\n\n===[ testAssignmentHashcode2 ]===\n");
-    	System.out.println("\n\n===[ testAssignmentHashcode2 ]===\n");
-    	PrismContext prismContext = PrismTestUtil.getPrismContext();
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         AssignmentType a1a = new AssignmentType(prismContext).id(6L)
-		        .beginMetadata()
-		            .createApprovalComment("hi")
-		        .<AssignmentType>end()
-		        .targetRef(new ObjectReferenceType().oid("target").type(OrgType.COMPLEX_TYPE).relation(SchemaConstants.ORG_DEFAULT))
-		        .beginActivation()
-		            .effectiveStatus(ActivationStatusType.ENABLED)
-		            .validTo("2018-01-01T00:00:00.000+01:00")
-		        .end();
+                .beginMetadata()
+                .createApprovalComment("hi")
+                .<AssignmentType>end()
+                .targetRef(new ObjectReferenceType().oid("target").type(OrgType.COMPLEX_TYPE).relation(SchemaConstants.ORG_DEFAULT))
+                .beginActivation()
+                .effectiveStatus(ActivationStatusType.ENABLED)
+                .validTo("2018-01-01T00:00:00.000+01:00")
+                .end();
         AssignmentType a1b = new AssignmentType(prismContext)
-		        .targetRef(new ObjectReferenceType().oid("target").type(OrgType.COMPLEX_TYPE))
-		        .beginActivation()
-			        .validTo("2018-01-01T00:00:00.000+01:00")
-		        .end();
+                .targetRef(new ObjectReferenceType().oid("target").type(OrgType.COMPLEX_TYPE))
+                .beginActivation()
+                .validTo("2018-01-01T00:00:00.000+01:00")
+                .end();
 
         // WHEN
         assertEquals("Wrong hashCode", a1a.hashCode(), a1b.hashCode());
@@ -376,131 +347,124 @@ public class TestDiffEquals {
 
     // MID-4251
     @Test
-    public void testAssignmentHashcode3() throws SchemaException {
-    	LOGGER.info("\n\n===[ testAssignmentHashcode3 ]===\n");
-    	System.out.println("\n\n===[ testAssignmentHashcode3 ]===\n");
-    	PrismContext prismContext = PrismTestUtil.getPrismContext();
+    public void testAssignmentHashcode3() {
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
 
-	    AssignmentType a1a = new AssignmentType(prismContext)
-			    .beginActivation()
-			        .validTo("2018-01-01T00:00:00.000+01:00")
-			    .end();
+        AssignmentType a1a = new AssignmentType(prismContext)
+                .beginActivation()
+                .validTo("2018-01-01T00:00:00.000+01:00")
+                .end();
         AssignmentType a1b = a1a.clone();
 
         // use unqualified item name for validTo
-	    a1b.getActivation().asPrismContainerValue()
-			    .findItem(ActivationType.F_VALID_TO)
-			    .setElementName(new QName("validTo"));
+        a1b.getActivation().asPrismContainerValue()
+                .findItem(ActivationType.F_VALID_TO)
+                .setElementName(new QName("validTo"));
 
-	    System.out.println("a1a = " + a1a.asPrismContainerValue().debugDump());
-	    System.out.println("a1b = " + a1b.asPrismContainerValue().debugDump());
+        System.out.println("a1a = " + a1a.asPrismContainerValue().debugDump());
+        System.out.println("a1b = " + a1b.asPrismContainerValue().debugDump());
 
-	    // WHEN
+        // WHEN
         assertEquals("Wrong hashCode", a1a.hashCode(), a1b.hashCode());
     }
 
     @Test
     public void testDiffShadow() throws Exception {
-    	System.out.println("\n\n===[ testDiffShadow ]===\n");
-    	PrismContext prismContext = PrismTestUtil.getPrismContext();
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
 
-    	PrismObject<ShadowType> shadow1 = prismContext.getSchemaRegistry()
-    			.findObjectDefinitionByCompileTimeClass(ShadowType.class).instantiate();
-    	ShadowType shadow1Type = shadow1.asObjectable();
-    	shadow1Type.setName(new PolyStringType("Whatever"));
-    	shadow1Type.setFailedOperationType(FailedOperationTypeType.ADD);
-    	shadow1Type.getAuxiliaryObjectClass().add(new QName(NS_TEST_RI, "foo"));
-    	PrismContainer<Containerable> shadow1Attrs = shadow1.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
+        PrismObject<ShadowType> shadow1 = prismContext.getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(ShadowType.class).instantiate();
+        ShadowType shadow1Type = shadow1.asObjectable();
+        shadow1Type.setName(new PolyStringType("Whatever"));
+        shadow1Type.getAuxiliaryObjectClass().add(new QName(NS_TEST_RI, "foo"));
+        PrismContainer<Containerable> shadow1Attrs = shadow1.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
 
-    	ShadowType shadow2Type = new ShadowType();
-    	PrismObject<ShadowType> shadow2 = shadow2Type.asPrismObject();
-    	prismContext.adopt(shadow2Type);
-    	shadow2Type.setName(new PolyStringType("Whatever"));
-    	shadow2Type.getAuxiliaryObjectClass().add(new QName(NS_TEST_RI, "foo"));
-    	shadow2Type.getAuxiliaryObjectClass().add(new QName(NS_TEST_RI, "bar"));
-    	PrismContainer<Containerable> shadow2Attrs = shadow2.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
+        ShadowType shadow2Type = new ShadowType();
+        PrismObject<ShadowType> shadow2 = shadow2Type.asPrismObject();
+        prismContext.adopt(shadow2Type);
+        shadow2Type.setName(new PolyStringType("Whatever"));
+        shadow2Type.getAuxiliaryObjectClass().add(new QName(NS_TEST_RI, "foo"));
+        shadow2Type.getAuxiliaryObjectClass().add(new QName(NS_TEST_RI, "bar"));
+        PrismContainer<Containerable> shadow2Attrs = shadow2.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
 
-    	PrismProperty<String> attrEntryUuid = prismContext.itemFactory().createProperty(new QName(NS_TEST_RI, "entryUuid"));
-    	PrismPropertyDefinition<String> attrEntryUuidDef = prismContext.definitionFactory().createPropertyDefinition(new QName(NS_TEST_RI, "entryUuid"),
-    			DOMUtil.XSD_STRING);
-    	attrEntryUuid.setDefinition(attrEntryUuidDef);
-		shadow2Attrs.add(attrEntryUuid);
-		attrEntryUuid.addRealValue("1234-5678-8765-4321");
+        PrismProperty<String> attrEntryUuid = prismContext.itemFactory().createProperty(new QName(NS_TEST_RI, "entryUuid"));
+        PrismPropertyDefinition<String> attrEntryUuidDef = prismContext.definitionFactory().createPropertyDefinition(new QName(NS_TEST_RI, "entryUuid"),
+                DOMUtil.XSD_STRING);
+        attrEntryUuid.setDefinition(attrEntryUuidDef);
+        shadow2Attrs.add(attrEntryUuid);
+        attrEntryUuid.addRealValue("1234-5678-8765-4321");
 
-		PrismProperty<String> attrDn = prismContext.itemFactory().createProperty(new QName(NS_TEST_RI, "dn"));
-		PrismPropertyDefinition<String> attrDnDef = prismContext.definitionFactory().createPropertyDefinition(new QName(NS_TEST_RI, "dn"),
-    			DOMUtil.XSD_STRING);
-		attrDn.setDefinition(attrDnDef);
-		shadow2Attrs.add(attrDn);
-		attrDn.addRealValue("uid=foo,o=bar");
+        PrismProperty<String> attrDn = prismContext.itemFactory().createProperty(new QName(NS_TEST_RI, "dn"));
+        PrismPropertyDefinition<String> attrDnDef = prismContext.definitionFactory().createPropertyDefinition(new QName(NS_TEST_RI, "dn"),
+                DOMUtil.XSD_STRING);
+        attrDn.setDefinition(attrDnDef);
+        shadow2Attrs.add(attrDn);
+        attrDn.addRealValue("uid=foo,o=bar");
 
-		System.out.println("Shadow 1");
-    	System.out.println(shadow1.debugDump(1));
-    	System.out.println("Shadow 2");
-    	System.out.println(shadow2.debugDump(1));
+        System.out.println("Shadow 1");
+        System.out.println(shadow1.debugDump(1));
+        System.out.println("Shadow 2");
+        System.out.println(shadow2.debugDump(1));
 
-    	// WHEN
-    	ObjectDelta<ShadowType> delta = shadow1.diff(shadow2);
+        // WHEN
+        ObjectDelta<ShadowType> delta = shadow1.diff(shadow2);
 
-    	// THEN
-    	assertNotNull("No delta", delta);
-    	System.out.println("Delta");
-    	System.out.println(delta.debugDump(1));
+        // THEN
+        assertNotNull("No delta", delta);
+        System.out.println("Delta");
+        System.out.println(delta.debugDump(1));
 
-    	PrismAsserts.assertIsModify(delta);
-    	PrismAsserts.assertPropertyDelete(delta, ShadowType.F_FAILED_OPERATION_TYPE, FailedOperationTypeType.ADD);
-    	PrismAsserts.assertPropertyAdd(delta, ShadowType.F_AUXILIARY_OBJECT_CLASS, new QName(NS_TEST_RI, "bar"));
-    	PrismAsserts.assertContainerAdd(delta, ShadowType.F_ATTRIBUTES, shadow2Attrs.getValue().clone());
-    	PrismAsserts.assertModifications(delta, 3);
+        PrismAsserts.assertIsModify(delta);
+        PrismAsserts.assertPropertyAdd(delta, ShadowType.F_AUXILIARY_OBJECT_CLASS, new QName(NS_TEST_RI, "bar"));
+        PrismAsserts.assertContainerAdd(delta, ShadowType.F_ATTRIBUTES, shadow2Attrs.getValue().clone());
+        PrismAsserts.assertModifications(delta, 2);
     }
 
-	@Test
-	public void testTriggerCollectionsEqual() throws Exception {
-		EvaluatedPolicyRuleTriggerType trigger1 = new EvaluatedPolicyRuleTriggerType()
-				.triggerId(100)
-				.directOwnerDisplayName("owner100")
-				.ruleName("rule100");
-		EvaluatedPolicyRuleTriggerType trigger2 = new EvaluatedPolicyRuleTriggerType()
-				.triggerId(200)
-				.directOwnerDisplayName("owner200")
-				.ruleName("rule200");
-		EvaluatedPolicyRuleType sourceRule1 = new EvaluatedPolicyRuleType()
-				.trigger(trigger1);
-		EvaluatedPolicyRuleType sourceRule2 = new EvaluatedPolicyRuleType()
-				.trigger(trigger2);
-		List<EvaluatedPolicyRuleTriggerType> triggerListA = Arrays.asList(
-				new EvaluatedSituationTriggerType()
-						.triggerId(1)
-						.directOwnerDisplayName("owner1")
-						.sourceRule(sourceRule1)
-						.sourceRule(sourceRule2),
-				trigger1,
-				trigger2);
-		List<EvaluatedPolicyRuleTriggerType> triggerListB = Arrays.asList(
-				trigger1,
-				trigger2,
-				new EvaluatedSituationTriggerType()
-						.triggerId(1)
-						.directOwnerDisplayName("owner1")
-						.sourceRule(sourceRule2)
-						.sourceRule(sourceRule1)
-				);
-		List<EvaluatedPolicyRuleTriggerType> triggerListC = Arrays.asList(
-				trigger1,
-				trigger2,
-				new EvaluatedSituationTriggerType()
-						.triggerId(1)
-						.directOwnerDisplayName("owner123")
-						.sourceRule(sourceRule2)
-						.sourceRule(sourceRule1)
-				);
+    @Test
+    public void testTriggerCollectionsEqual() {
+        EvaluatedPolicyRuleTriggerType trigger1 = new EvaluatedPolicyRuleTriggerType()
+                .triggerId(100)
+                .ruleName("rule100");
+        EvaluatedPolicyRuleTriggerType trigger2 = new EvaluatedPolicyRuleTriggerType()
+                .triggerId(200)
+                .ruleName("rule200");
+        EvaluatedPolicyRuleType sourceRule1 = new EvaluatedPolicyRuleType()
+                .trigger(trigger1);
+        EvaluatedPolicyRuleType sourceRule2 = new EvaluatedPolicyRuleType()
+                .trigger(trigger2);
+        List<EvaluatedPolicyRuleTriggerType> triggerListA = Arrays.asList(
+                new EvaluatedSituationTriggerType()
+                        .triggerId(1)
+                        .ruleName("rule1")
+                        .sourceRule(sourceRule1)
+                        .sourceRule(sourceRule2),
+                trigger1,
+                trigger2);
+        List<EvaluatedPolicyRuleTriggerType> triggerListB = Arrays.asList(
+                trigger1,
+                trigger2,
+                new EvaluatedSituationTriggerType()
+                        .triggerId(1)
+                        .ruleName("rule1")
+                        .sourceRule(sourceRule2)
+                        .sourceRule(sourceRule1)
+        );
+        List<EvaluatedPolicyRuleTriggerType> triggerListC = Arrays.asList(
+                trigger1,
+                trigger2,
+                new EvaluatedSituationTriggerType()
+                        .triggerId(1)
+                        .ruleName("rule123")
+                        .sourceRule(sourceRule2)
+                        .sourceRule(sourceRule1)
+        );
 
-		assertEquals("Wrong comparison A-A", true, PolicyRuleTypeUtil.triggerCollectionsEqual(triggerListA, triggerListA));
-		assertEquals("Wrong comparison A-B", true, PolicyRuleTypeUtil.triggerCollectionsEqual(triggerListA, triggerListB));
-		assertEquals("Wrong comparison B-A", true, PolicyRuleTypeUtil.triggerCollectionsEqual(triggerListB, triggerListA));
-		assertEquals("Wrong comparison A-C", false, PolicyRuleTypeUtil.triggerCollectionsEqual(triggerListA, triggerListC));
-		assertEquals("Wrong comparison B-C", false, PolicyRuleTypeUtil.triggerCollectionsEqual(triggerListB, triggerListC));
-	}
+        assertEquals("Wrong comparison A-A", true, PolicyRuleTypeUtil.triggerCollectionsEqual(triggerListA, triggerListA));
+        assertEquals("Wrong comparison A-B", true, PolicyRuleTypeUtil.triggerCollectionsEqual(triggerListA, triggerListB));
+        assertEquals("Wrong comparison B-A", true, PolicyRuleTypeUtil.triggerCollectionsEqual(triggerListB, triggerListA));
+        assertEquals("Wrong comparison A-C", false, PolicyRuleTypeUtil.triggerCollectionsEqual(triggerListA, triggerListC));
+        assertEquals("Wrong comparison B-C", false, PolicyRuleTypeUtil.triggerCollectionsEqual(triggerListB, triggerListC));
+    }
 
     @Test
     public void diffRoles() throws Exception {
@@ -511,45 +475,92 @@ public class TestDiffEquals {
         assertFalse(delta.isEmpty());
     }
 
-	@Test(enabled = false)      // MID-4688
-	public void testDiffWithMetadata() {
-		System.out.println("\n\n===[ testDiffWithMetadata ]===\n");
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+    @Test      // MID-4688
+    public void testDiffWithMetadata() {
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
 
-		ProtectedStringType value = new ProtectedStringType();
-		value.setClearValue("abc");
+        ProtectedStringType value = new ProtectedStringType();
+        value.setClearValue("abc");
 
-		PrismObject<UserType> user1 = new UserType(prismContext)
-				.beginCredentials()
-					.beginPassword()
-						.value(value.clone())
-						.beginMetadata()
-							.requestorComment("hi")
-						.<PasswordType>end()
-					.<CredentialsType>end()
-				.<UserType>end()
-				.asPrismObject();
-		PrismObject<UserType> user2 = new UserType(prismContext)
-				.beginCredentials()
-					.beginPassword()
-						.value(value.clone())
-						.beginMetadata()
-						.<PasswordType>end()
-					.<CredentialsType>end()
-				.<UserType>end()
-				.asPrismObject();
+        PrismObject<UserType> user1 = new UserType(prismContext)
+                .beginCredentials()
+                .beginPassword()
+                .value(value.clone())
+                .beginMetadata()
+                .requestorComment("hi")
+                .<PasswordType>end()
+                .<CredentialsType>end()
+                .<UserType>end()
+                .asPrismObject();
+        PrismObject<UserType> user2 = new UserType(prismContext)
+                .beginCredentials()
+                .beginPassword()
+                .value(value.clone())
+                .beginMetadata()
+                .<PasswordType>end()
+                .<CredentialsType>end()
+                .<UserType>end()
+                .asPrismObject();
 
-		ObjectDelta<UserType> diffIgnoreMetadataNotLiteral = user1.diff(user2, EquivalenceStrategy.IGNORE_METADATA);
-		ObjectDelta<UserType> diffWithMetadataAndLiteral = user1.diff(user2, EquivalenceStrategy.LITERAL);
-		ObjectDelta<UserType> diffWithMetadataNotLiteral = user1.diff(user2, EquivalenceStrategy.NOT_LITERAL);
+        ObjectDelta<UserType> diffIgnoreMetadataNotLiteral = user1.diff(user2, EquivalenceStrategy.IGNORE_METADATA);
+        ObjectDelta<UserType> diffWithMetadataAndLiteral = user1.diff(user2, EquivalenceStrategy.LITERAL);
+        ObjectDelta<UserType> diffWithMetadataNotLiteral = user1.diff(user2, EquivalenceStrategy.NOT_LITERAL);
 
-		assertTrue("Diff ignoring metadata is not empty:\n" + diffIgnoreMetadataNotLiteral.debugDump(),
-				diffIgnoreMetadataNotLiteral.isEmpty());
-		assertFalse("Diff not ignoring metadata (literal) is empty:\n" + diffWithMetadataAndLiteral.debugDump(),
-				diffWithMetadataAndLiteral.isEmpty());
-		assertFalse("Diff not ignoring metadata (non-literal) is empty:\n" + diffWithMetadataNotLiteral.debugDump(),
-				diffWithMetadataNotLiteral.isEmpty());
-	}
+        assertTrue("Diff ignoring metadata is not empty:\n" + diffIgnoreMetadataNotLiteral.debugDump(),
+                diffIgnoreMetadataNotLiteral.isEmpty());
+        assertFalse("Diff not ignoring metadata (literal) is empty:\n" + diffWithMetadataAndLiteral.debugDump(),
+                diffWithMetadataAndLiteral.isEmpty());
+        assertFalse("Diff not ignoring metadata (non-literal) is empty:\n" + diffWithMetadataNotLiteral.debugDump(),
+                diffWithMetadataNotLiteral.isEmpty());
+    }
 
+    // MID-5851
+    @Test
+    public void testRawValuesHashCode() throws SchemaException {
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
 
+        QName extensionPropertyName = new QName(NS_TEST_RI, "extensionProperty");
+
+        MutablePrismPropertyDefinition<String> extensionPropertyDef = prismContext.definitionFactory()
+                .createPropertyDefinition(extensionPropertyName, DOMUtil.XSD_STRING);
+        extensionPropertyDef.setRuntimeSchema(true);
+
+        PrismProperty<String> propertyParsed = extensionPropertyDef.instantiate();
+        PrismProperty<String> propertyRaw = extensionPropertyDef.instantiate();
+        propertyParsed.setRealValue("value");
+        propertyRaw.setValue(prismContext.itemFactory().createPropertyValue(new PrimitiveXNodeImpl<>("value")));
+
+        PrismObject<UserType> userParsed = new UserType(prismContext)
+                .name("user")
+                .asPrismObject();
+        userParsed.getOrCreateExtension().add(propertyParsed);
+
+        PrismObject<UserType> userRaw = new UserType(prismContext)
+                .name("user")
+                .asPrismObject();
+        userRaw.getOrCreateExtension().add(propertyRaw);
+
+        assertHashAndEquals(userParsed, userRaw, null);
+        assertHashAndEquals(userParsed, userRaw, LITERAL);
+        assertHashAndEquals(userParsed, userRaw, NOT_LITERAL);
+    }
+
+    private void assertHashAndEquals(PrismObject<UserType> user1, PrismObject<UserType> user2,
+            ParameterizedEquivalenceStrategy strategy) {
+        int hash1, hash2;
+        if (strategy == null) {
+            if (!user1.equals(user2)) {
+                fail("Objects are not equal. Diff:\n" + DebugUtil.debugDump(user1.diff(user2)));
+            }
+            hash1 = user1.hashCode();
+            hash2 = user2.hashCode();
+        } else {
+            if (!user1.equals(user2, strategy)) {
+                fail("Objects are not equal under " + strategy + ". Diff:\n" + DebugUtil.debugDump(user1.diff(user2, strategy)));
+            }
+            hash1 = user1.hashCode(strategy);
+            hash2 = user2.hashCode(strategy);
+        }
+        assertEquals("Hashcodes are not equal (strategy=" + strategy + ")", hash1, hash2);
+    }
 }

@@ -1,23 +1,15 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism.query.builder;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.query.RefFilter;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
@@ -27,7 +19,7 @@ import java.util.Collection;
  */
 public interface S_ConditionEntry {
     S_MatchingRuleEntry eq(Object... values);
-    <T> S_MatchingRuleEntry eq(PrismProperty<T> property);			// TODO implement something like itemAs(property) to copy the property definition, path, and values into filter
+    <T> S_MatchingRuleEntry eq(PrismProperty<T> property);            // TODO implement something like itemAs(property) to copy the property definition, path, and values into filter
     S_RightHandItemEntry eq();
     S_MatchingRuleEntry eqPoly(String orig, String norm);
     S_MatchingRuleEntry eqPoly(String orig);
@@ -39,21 +31,24 @@ public interface S_ConditionEntry {
     S_RightHandItemEntry lt();
     S_MatchingRuleEntry le(Object value);
     S_RightHandItemEntry le();
-	S_MatchingRuleEntry startsWith(Object value);
-	S_MatchingRuleEntry startsWithPoly(String orig, String norm);
-	S_MatchingRuleEntry startsWithPoly(String orig);
-	S_MatchingRuleEntry endsWith(Object value);
-	S_MatchingRuleEntry endsWithPoly(String orig, String norm);
-	S_MatchingRuleEntry endsWithPoly(String orig);
-	S_MatchingRuleEntry contains(Object value);
-	S_MatchingRuleEntry containsPoly(String orig, String norm);
-	S_MatchingRuleEntry containsPoly(String orig);
-	S_AtomicFilterExit ref(QName... relations);                 // TODO is this supported by repo query interpreter?
+    S_MatchingRuleEntry startsWith(Object value);
+    S_MatchingRuleEntry startsWithPoly(String orig, String norm);
+    S_MatchingRuleEntry startsWithPoly(String orig);
+    S_MatchingRuleEntry endsWith(Object value);
+    S_MatchingRuleEntry endsWithPoly(String orig, String norm);
+    S_MatchingRuleEntry endsWithPoly(String orig);
+    S_MatchingRuleEntry contains(Object value);
+    S_MatchingRuleEntry containsPoly(String orig, String norm);
+    S_MatchingRuleEntry containsPoly(String orig);
+    S_AtomicFilterExit refRelation(QName... relations);
+    S_AtomicFilterExit refType(QName... targetTypeName);
     S_AtomicFilterExit ref(PrismReferenceValue... value);
     S_AtomicFilterExit ref(Collection<PrismReferenceValue> values);
-    S_AtomicFilterExit ref(Collection<PrismReferenceValue> values, boolean nullTypeAsAny);      // beware, 'nullTypeAsAny' is supported only by built-in match(..) method
-    S_AtomicFilterExit ref(String... oid);
-    S_AtomicFilterExit ref(String oid, QName targetTypeName);
+    S_AtomicFilterExit ref(Collection<PrismReferenceValue> values, boolean nullTypeAsAny);                          // beware, nullTypeAsAny=false is supported only by built-in match(..) method
+    S_AtomicFilterExit ref(Collection<PrismReferenceValue> values, boolean nullOidAsAny, boolean nullTypeAsAny);    // beware, nullTypeAsAny=false and nullOidAsAny=false are supported only by built-in match(..) method
+    S_AtomicFilterExit ref(RefFilter filter);
+    S_AtomicFilterExit ref(String... oid);          // TODO define semantics for oid == null
+    S_AtomicFilterExit ref(String oid, QName targetTypeName);       // TODO define semantics for oid == null
     S_AtomicFilterExit isNull();
 
 }

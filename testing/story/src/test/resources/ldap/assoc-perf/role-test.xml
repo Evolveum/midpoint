@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      oid="f2ba978d-ef70-436b-83e6-2ca53bdc8cf2">
+    <name>role-test</name>
+    <assignment id="1">
+        <targetRef oid="d723af35-857f-4931-adac-07cc66c4c235" relation="org:default" type="c:RoleType">
+            <!-- role-meta -->
+        </targetRef>
+    </assignment>
+</role>

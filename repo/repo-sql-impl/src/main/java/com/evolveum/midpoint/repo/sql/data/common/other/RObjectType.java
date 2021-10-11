@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sql.data.common.other;
 
 import com.evolveum.midpoint.repo.sql.data.common.*;
@@ -39,7 +45,8 @@ public enum RObjectType {
     CASE(RCase.class, CaseType.class),
     FUNCTION_LIBRARY(RFunctionLibrary.class, FunctionLibraryType.class),
     OBJECT_COLLECTION(RObjectCollection.class, ObjectCollectionType.class),
-    ARCHETYPE(RArchetype.class, ArchetypeType.class);
+    ARCHETYPE(RArchetype.class, ArchetypeType.class),
+    DASHBOARD(RDashboard.class, DashboardType.class);
 
     private Class<? extends RObject> clazz;
     private Class<? extends ObjectType> jaxbClass;

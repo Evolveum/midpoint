@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.model.impl.dataModel.dot;
@@ -28,50 +19,50 @@ import org.apache.commons.lang.StringUtils;
  */
 public class DotRepositoryDataItem implements DotDataItem {
 
-	private static final String COLOR_USER = "darkred";
-	private static final String COLOR_ROLE = "darkgreen";
-	private static final String COLOR_ORG = "darkorange";
-	private static final String COLOR_DEFAULT = "black";
-	private static final String COLOR_FILL = "grey92";
+    private static final String COLOR_USER = "darkred";
+    private static final String COLOR_ROLE = "darkgreen";
+    private static final String COLOR_ORG = "darkorange";
+    private static final String COLOR_DEFAULT = "black";
+    private static final String COLOR_FILL = "grey92";
 
-	RepositoryDataItem dataItem;
+    private RepositoryDataItem dataItem;
 
-	public DotRepositoryDataItem(RepositoryDataItem dataItem) {
-		this.dataItem = dataItem;
-	}
+    public DotRepositoryDataItem(RepositoryDataItem dataItem) {
+        this.dataItem = dataItem;
+    }
 
-	@Override
-	public String getNodeName() {
-		return "\"" + dataItem.getTypeName().getLocalPart() + "." + dataItem.getItemPath() + "\"";
-	}
+    @Override
+    public String getNodeName() {
+        return "\"" + dataItem.getTypeName().getLocalPart() + "." + dataItem.getItemPath() + "\"";
+    }
 
-	@Override
-	public String getNodeLabel() {
-		String entity = StringUtils.removeEnd(dataItem.getTypeName().getLocalPart(), "Type");
-		String pathString = dataItem.getItemPath().toString();
-		final String EXT = "extension/";
-		if (pathString.startsWith(EXT)) {
-			entity += " extension";
-			pathString = pathString.substring(EXT.length());
-		}
-		return entity + "&#10;" + pathString;
-	}
+    @Override
+    public String getNodeLabel() {
+        String entity = StringUtils.removeEnd(dataItem.getTypeName().getLocalPart(), "Type");
+        String pathString = dataItem.getItemPath().toString();
+        final String ext = "extension/";
+        if (pathString.startsWith(ext)) {
+            entity += " extension";
+            pathString = pathString.substring(ext.length());
+        }
+        return entity + "&#10;" + pathString;
+    }
 
-	@Override
-	public String getNodeStyleAttributes() {
-		return "style=filled, fillcolor=" + COLOR_FILL + ", color=" + getBorderColor();
-	}
+    @Override
+    public String getNodeStyleAttributes() {
+        return "style=filled, fillcolor=" + COLOR_FILL + ", color=" + getBorderColor();
+    }
 
-	private String getBorderColor() {
-		if (QNameUtil.match(UserType.COMPLEX_TYPE, dataItem.getTypeName())) {
-			return COLOR_USER;
-		} else if (QNameUtil.match(RoleType.COMPLEX_TYPE, dataItem.getTypeName())) {
-			return COLOR_ROLE;
-		} else if (QNameUtil.match(OrgType.COMPLEX_TYPE, dataItem.getTypeName())) {
-			return COLOR_ORG;
-		} else {
-			return COLOR_DEFAULT;
-		}
-	}
+    private String getBorderColor() {
+        if (QNameUtil.match(UserType.COMPLEX_TYPE, dataItem.getTypeName())) {
+            return COLOR_USER;
+        } else if (QNameUtil.match(RoleType.COMPLEX_TYPE, dataItem.getTypeName())) {
+            return COLOR_ROLE;
+        } else if (QNameUtil.match(OrgType.COMPLEX_TYPE, dataItem.getTypeName())) {
+            return COLOR_ORG;
+        } else {
+            return COLOR_DEFAULT;
+        }
+    }
 
 }

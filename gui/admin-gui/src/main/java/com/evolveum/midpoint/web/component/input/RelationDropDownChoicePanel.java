@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.input;
 
@@ -19,6 +10,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -73,13 +65,21 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
     protected void onInitialize(){
         super.onInitialize();
 
-        
+
         if (!allowNull && defaultRelation == null) {
-        	defaultRelation = supportedRelations.size() > 0 ? supportedRelations.get(0) : PrismConstants.Q_ANY;
+            defaultRelation = supportedRelations.size() > 0 ? supportedRelations.get(0) : PrismConstants.Q_ANY;
         }
-        DropDownFormGroup<QName> input = new DropDownFormGroup<QName>(ID_INPUT, Model.of(defaultRelation), new ListModel<>(supportedRelations), getRenderer(), 
-        		createStringResource("relationDropDownChoicePanel.relation"), "relationDropDownChoicePanel.tooltip.relation", true, "col-md-4", "col-md-8", !allowNull);
-        
+        DropDownFormGroup<QName> input = new DropDownFormGroup<QName>(ID_INPUT, Model.of(defaultRelation), new ListModel<>(supportedRelations), getRenderer(),
+                getRelationLabelModel(), "relationDropDownChoicePanel.tooltip.relation", true, "col-md-4",
+                getRelationLabelModel() == null || StringUtils.isEmpty(getRelationLabelModel().getObject()) ? "" : "col-md-8", !allowNull){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String getNullValidDisplayValue(){
+                return RelationDropDownChoicePanel.this.getNullValidDisplayValue();
+            }
+        };
+        input.getInput().add(new EnableBehaviour(() -> isRelationDropDownEnabled()));
         input.getInput().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         input.getInput().add(new OnChangeAjaxBehavior() {
             private static final long serialVersionUID = 1L;
@@ -130,15 +130,27 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
         };
     }
 
+    protected boolean isRelationDropDownEnabled(){
+        return true;
+    }
+
+    protected IModel<String> getRelationLabelModel(){
+        return createStringResource("relationDropDownChoicePanel.relation");
+    }
+
    protected void onValueChanged(AjaxRequestTarget target){
     }
 
     public QName getRelationValue() {
         QName relationValue = ((DropDownFormGroup<QName>) get(ID_INPUT)).getModelObject();
         if (relationValue == null){
-			return PrismConstants.Q_ANY;
-		} else {
-			return relationValue;
-		}
+            return PrismConstants.Q_ANY;
+        } else {
+            return relationValue;
+        }
+    }
+
+    protected String getNullValidDisplayValue(){
+        return getString("DropDownChoicePanel.empty");
     }
 }

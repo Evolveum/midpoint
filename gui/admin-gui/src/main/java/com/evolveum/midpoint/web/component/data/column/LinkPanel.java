@@ -1,22 +1,19 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
@@ -27,18 +24,18 @@ import org.apache.wicket.model.IModel;
  * @author lazyman
  */
 public class LinkPanel extends Panel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String ID_LINK = "link";
+    private static final String ID_LINK = "link";
     private static final String ID_LABEL = "label";
 
-    public LinkPanel(String id, IModel<String> labelModel) {
+    public LinkPanel(String id, IModel labelModel) {
         super(id);
 
         AjaxLink<String> link = new AjaxLink<String>(ID_LINK) {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             public void onClick(AjaxRequestTarget target) {
                 LinkPanel.this.onClick(target);
             }
@@ -53,9 +50,21 @@ public class LinkPanel extends Panel {
 //                return null;
 //            }
         };
-        link.add(new Label(ID_LABEL, labelModel));
+        Label label;
+        if(labelModel.getObject() instanceof QName) {
+            label = new Label(ID_LABEL, new IModel<String>() {
+
+                @Override
+                public String getObject() {
+                    return ((QName) labelModel.getObject()).getLocalPart();
+                }
+            });
+        } else {
+            label = new Label(ID_LABEL, labelModel);
+        }
+        link.add(label);
         link.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isEnabled() {

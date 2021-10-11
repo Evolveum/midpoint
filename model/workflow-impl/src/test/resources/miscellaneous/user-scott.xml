@@ -1,0 +1,29 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user oid="929c49ed-0100-4068-b8e4-137bd8ebd6b2"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>scott</name>
+    <assignment> <!-- approver -->
+        <targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>
+    </assignment>
+    <assignment> <!-- sailor -->
+        <targetRef oid="3ccc0a00-6a3b-4ae0-94a3-d45fc457f63f" type="RoleType" relation="approver"/>
+    </assignment>
+    <assignment> <!-- captain -->
+        <targetRef oid="15a99cf1-5886-44d4-8aaf-7e1f46ccec36" type="RoleType" relation="approver"/>
+    </assignment>
+    <assignment> <!-- gold -->
+        <targetRef oid="0b3ad53e-7c1d-41d0-a447-ce94cd25c46a" type="RoleType" relation="approver"/>
+    </assignment>
+    <assignment> <!-- silver -->
+        <targetRef oid="ee5206f8-930a-4c85-bfee-c16e4462df23" type="RoleType" relation="approver"/>
+    </assignment>
+    <assignment> <!-- bronze -->
+        <targetRef oid="f16f4dd7-2830-4d0a-b6ed-9fbf253dbaf3" type="RoleType" relation="approver"/>
+    </assignment>
+</user>

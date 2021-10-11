@@ -1,19 +1,9 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -48,7 +38,7 @@ public class BasePanel<T> extends Panel {
     private IModel<T> model;
 
     public BasePanel(String id) {
-        this(id, null);
+        super(id);
     }
 
     public BasePanel(String id, IModel<T> model) {
@@ -72,48 +62,53 @@ public class BasePanel<T> extends Panel {
         return createStringResource(resourceKey, objects).getString();
     }
 
-    public String getString(Enum e) {
+    public String getString(Enum<?> e) {
         return createStringResource(e).getString();
+    }
+
+    public StringResourceModel createStringResource(String resourceKey, IModel<?> model, Object... objects) {
+        return new StringResourceModel(resourceKey, this).setModel(model)
+                .setDefaultValue(resourceKey)
+                .setParameters(objects);
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
         return new StringResourceModel(resourceKey, this).setModel(null)
                 .setDefaultValue(resourceKey)
                 .setParameters(objects);
-//    	return StringResourceModelMigration.of(resourceKey, this, null, resourceKey, objects);
     }
 
     public StringResourceModel createStringResource(PolyString polystringKey, Object... objects) {
-    	String resourceKey = null;
-    	if (polystringKey != null) {
-    		// TODO later: use polystringKey.getKey()
-    		resourceKey = polystringKey.getOrig();
-    	}
+        String resourceKey = null;
+        if (polystringKey != null) {
+            // TODO later: use polystringKey.getKey()
+            resourceKey = polystringKey.getOrig();
+        }
         return new StringResourceModel(resourceKey, this).setModel(null)
                 .setDefaultValue(resourceKey)
                 .setParameters(objects);
     }
 
     public StringResourceModel createStringResource(PolyStringType polystringKey, Object... objects) {
-    	String resourceKey = null;
-    	if (polystringKey != null) {
-    		// TODO later: use polystringKey.getKey()
-    		resourceKey = polystringKey.getOrig();
-    	}
+        String resourceKey = null;
+        if (polystringKey != null) {
+            // TODO later: use polystringKey.getKey()
+            resourceKey = polystringKey.getOrig();
+        }
         return new StringResourceModel(resourceKey, this).setModel(null)
                 .setDefaultValue(resourceKey)
                 .setParameters(objects);
     }
 
-    public StringResourceModel createStringResource(Enum e) {
+    public StringResourceModel createStringResource(Enum<?> e) {
         return createStringResource(e, null);
     }
 
-    public StringResourceModel createStringResource(Enum e, String prefix) {
+    public StringResourceModel createStringResource(Enum<?> e, String prefix) {
         return createStringResource(e, prefix, null);
     }
 
-    public StringResourceModel createStringResource(Enum e, String prefix, String nullKey) {
+    public StringResourceModel createStringResource(Enum<?> e, String prefix, String nullKey) {
         StringBuilder sb = new StringBuilder();
         if (StringUtils.isNotEmpty(prefix)) {
             sb.append(prefix).append('.');
@@ -151,7 +146,7 @@ public class BasePanel<T> extends Panel {
     }
 
     public WebApplicationConfiguration getWebApplicationConfiguration() {
-        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+        MidPointApplication application = MidPointApplication.get();
         return application.getWebApplicationConfiguration();
     }
 

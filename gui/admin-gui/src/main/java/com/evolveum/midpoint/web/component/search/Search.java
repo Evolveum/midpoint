@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.search;
@@ -108,16 +99,16 @@ public class Search implements Serializable, DebugDumpable {
     }
 
     public List<ItemDefinition> getAllDefinitions() {
-    	List<ItemDefinition> allDefs = new ArrayList<>();
-    	allDefinitions.stream().forEach(searchItemDef -> allDefs.add(searchItemDef.getDef()));
+        List<ItemDefinition> allDefs = new ArrayList<>();
+        allDefinitions.stream().forEach(searchItemDef -> allDefs.add(searchItemDef.getDef()));
         return allDefs;
     }
 
     public SearchItem addItem(ItemDefinition def) {
         boolean isPresent = false;
         for (ItemDefinition itemDefinition : availableDefinitions){
-            if (itemDefinition.getName() != null &&
-                    itemDefinition.getName().equals(def.getName())){
+            if (itemDefinition.getItemName() != null &&
+                    itemDefinition.getItemName().equals(def.getItemName())){
                 isPresent = true;
                 break;
             }
@@ -128,7 +119,7 @@ public class Search implements Serializable, DebugDumpable {
 
         SearchItemDefinition itemToRemove = null;
         for (SearchItemDefinition entry : allDefinitions) {
-            if (entry.getDef().getName().equals(def.getName())) {
+            if (entry.getDef().getItemName().equals(def.getItemName())) {
                 itemToRemove = entry;
                 break;
             }
@@ -140,19 +131,19 @@ public class Search implements Serializable, DebugDumpable {
 
         SearchItem item = new SearchItem(this, itemToRemove.getPath(), def, itemToRemove.getAllowedValues());
         if (def instanceof PrismReferenceDefinition) {
-        	ObjectReferenceType ref = new ObjectReferenceType();
-        	List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) def).getTargetTypeName());
-        	if (supportedTargets.size() == 1) {
-        		ref.setType(supportedTargets.iterator().next());
-        	}
-        	if (itemToRemove.getAllowedValues() != null && itemToRemove.getAllowedValues().size() == 1) {
-        		ref.setRelation((QName) itemToRemove.getAllowedValues().iterator().next());
-        	}
-        	
-        	item.getValues().add(new SearchValue<>(ref));
-		} else {
-			item.getValues().add(new SearchValue<>());
-		}
+            ObjectReferenceType ref = new ObjectReferenceType();
+            List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) def).getTargetTypeName());
+            if (supportedTargets.size() == 1) {
+                ref.setType(supportedTargets.iterator().next());
+            }
+            if (itemToRemove.getAllowedValues() != null && itemToRemove.getAllowedValues().size() == 1) {
+                ref.setRelation((QName) itemToRemove.getAllowedValues().iterator().next());
+            }
+
+            item.getValues().add(new SearchValue<>(ref));
+        } else {
+            item.getValues().add(new SearchValue<>());
+        }
 
         items.add(item);
         if (itemToRemove != null) {
@@ -242,10 +233,10 @@ public class Search implements Serializable, DebugDumpable {
         ItemPath path = item.getPath();
 
         if (definition instanceof PrismReferenceDefinition) {
-        	PrismReferenceValue refValue = ((ObjectReferenceType)searchValue.getValue()).asReferenceValue();
-        	if (refValue.isEmpty()) {
-        		return null;
-        	}
+            PrismReferenceValue refValue = ((ObjectReferenceType)searchValue.getValue()).asReferenceValue();
+            if (refValue.isEmpty()) {
+                return null;
+            }
             RefFilter refFilter =  (RefFilter) ctx.queryFor(ObjectType.class)
                     .item(path, definition).ref(refValue.clone())
                     .buildFilter();
@@ -288,24 +279,24 @@ public class Search implements Serializable, DebugDumpable {
             String value = normalizer.normalize(text);
             return ctx.queryFor(ObjectType.class)
                     .item(path, propDef).contains(text).matchingNorm().buildFilter();
+        } else if (propDef.getValueEnumerationRef() != null){
+            String value = (String) searchValue.getValue();
+            return ctx.queryFor(ObjectType.class)
+                    .item(path, propDef).contains(value).matchingCaseIgnore().buildFilter();
         }
 
         //we don't know how to create filter from search item, should not happen, ha ha ha :)
         //at least we try to cleanup field
 
         if (searchValue instanceof SearchValue) {
-            ((SearchValue) searchValue).clear();
+//            ((SearchValue) searchValue).clear();
         }
 
         return null;
     }
 
     public boolean isShowAdvanced() {
-        return showAdvanced;
-    }
-
-    public void setShowAdvanced(boolean showAdvanced) {
-        this.showAdvanced = showAdvanced;
+        return SearchBoxModeType.ADVANCED.equals(searchType);
     }
 
     public String getAdvancedQuery() {
@@ -413,23 +404,23 @@ public class Search implements Serializable, DebugDumpable {
                 .toString();
     }
 
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("Search\n");
-		DebugUtil.debugDumpWithLabelLn(sb, "showAdvanced", showAdvanced, indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "advancedQuery", advancedQuery, indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "advancedError", advancedError, indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "type", type, indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "allDefinitions", allDefinitions, indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "availableDefinitions", availableDefinitions, indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "items", items, indent+1);
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("Search\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "showAdvanced", showAdvanced, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "advancedQuery", advancedQuery, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "advancedError", advancedError, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "type", type, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "allDefinitions", allDefinitions, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "availableDefinitions", availableDefinitions, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "items", items, indent+1);
+        return sb.toString();
+    }
 }

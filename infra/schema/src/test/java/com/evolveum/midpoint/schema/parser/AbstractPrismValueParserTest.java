@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.schema.parser;
@@ -38,140 +29,146 @@ import static org.testng.AssertJUnit.*;
  */
 public abstract class AbstractPrismValueParserTest<T extends PrismValue> extends AbstractParserTest {
 
-	protected void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
-			int maxOccurs) {
-		ItemName propItemName = new ItemName(SchemaConstantsGenerated.NS_COMMON, propName);
-		PrismAsserts.assertPropertyDefinition(container, propItemName, xsdType, minOccurs, maxOccurs);
-	}
+    protected void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
+            int maxOccurs) {
+        ItemName propItemName = new ItemName(SchemaConstantsGenerated.NS_COMMON, propName);
+        PrismAsserts.assertPropertyDefinition(container, propItemName, xsdType, minOccurs, maxOccurs);
+    }
 
-	protected void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
-		ItemName propItemName = new ItemName(SchemaConstantsGenerated.NS_COMMON, propName);
-		PrismAsserts.assertPropertyValue(container, propItemName, propValue);
-	}
+    protected void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
+        ItemName propItemName = new ItemName(SchemaConstantsGenerated.NS_COMMON, propName);
+        PrismAsserts.assertPropertyValue(container, propItemName, propValue);
+    }
 
-	protected <T> void assertPropertyValues(PrismContainer<?> container, String propName, T... expectedValues) {
-		ItemName propItemName = new ItemName(SchemaConstantsGenerated.NS_COMMON, propName);
-		PrismAsserts.assertPropertyValue(container, propItemName, expectedValues);
-	}
+    protected <T> void assertPropertyValues(PrismContainer<?> container, String propName, T... expectedValues) {
+        ItemName propItemName = new ItemName(SchemaConstantsGenerated.NS_COMMON, propName);
+        PrismAsserts.assertPropertyValue(container, propItemName, expectedValues);
+    }
 
-	protected void assertContainerDefinition(PrismContainer container, String contName, QName xsdType, int minOccurs,
-			int maxOccurs) {
-		ItemName qName = new ItemName(SchemaConstantsGenerated.NS_COMMON, contName);
-		PrismAsserts.assertDefinition(container.getDefinition(), qName, xsdType, minOccurs, maxOccurs);
-	}
+    protected void assertContainerDefinition(PrismContainer container, String contName, QName xsdType, int minOccurs,
+            int maxOccurs) {
+        ItemName qName = new ItemName(SchemaConstantsGenerated.NS_COMMON, contName);
+        PrismAsserts.assertDefinition(container.getDefinition(), qName, xsdType, minOccurs, maxOccurs);
+    }
 
-	// partly covers the same functionality as item.assertDefinitions (TODO clean this)
-	protected void assertDefinitions(Visitable value) {
-		value.accept(v -> {
-			if (v instanceof Item) {
-				Item item = (Item) v;
-				String label = item.getPath() + ": " + v;
-				//System.out.println("Checking " + label);
-				if (item.getDefinition() == null) {
-					assertTrue("No definition in " + label, isDynamic(item.getPath()));
-				} else {
-					assertNotNull("No prism context in definition of " + label, item.getDefinition().getPrismContext());
-				}
-			} else if (v instanceof PrismContainerValue) {
-				PrismContainerValue pcv = (PrismContainerValue) v;
-				String label = pcv.getPath() + ": " + v;
-				//System.out.println("Checking " + label);
-				if (pcv.getComplexTypeDefinition() == null) {
-					fail("No complex type definition in " + label);
-				} else {
-					assertNotNull("No prism context in definition of " + label, pcv.getComplexTypeDefinition().getPrismContext());
-				}
-			}
-		});
-	}
+    // partly covers the same functionality as item.assertDefinitions (TODO clean this)
+    protected void assertDefinitions(Visitable value) {
+        value.accept(v -> {
+            if (v instanceof Item) {
+                Item item = (Item) v;
+                String label = item.getPath() + ": " + v;
+                //System.out.println("Checking " + label);
+                if (item.getDefinition() == null) {
+                    assertTrue("No definition in " + label, isDynamic(item.getPath()));
+                } else {
+                    assertNotNull("No prism context in definition of " + label, item.getDefinition().getPrismContext());
+                }
+            } else if (v instanceof PrismContainerValue) {
+                PrismContainerValue pcv = (PrismContainerValue) v;
+                String label = pcv.getPath() + ": " + v;
+                //System.out.println("Checking " + label);
+                if (pcv.getComplexTypeDefinition() == null) {
+                    fail("No complex type definition in " + label);
+                } else {
+                    assertNotNull("No prism context in definition of " + label, pcv.getComplexTypeDefinition().getPrismContext());
+                }
+            }
+        });
+    }
 
-	protected void assertResolvableRawValues(Visitable value) {
-		value.accept(v -> {
-			// TODO in RawTypes in beans?
-			if (v instanceof PrismPropertyValue) {
-				PrismPropertyValue ppv = (PrismPropertyValue) v;
-				XNode raw = ppv.getRawElement();
-				if (raw != null && raw.getTypeQName() != null) {
-					String label = ppv.getPath() + ": " + v;
-					fail("Resolvable raw value of " + raw + " in " + label + " (type: " + raw.getTypeQName() + ")");
-				}
-			}
-		});
-	}
+    protected void assertResolvableRawValues(Visitable value) {
+        value.accept(v -> {
+            // TODO in RawTypes in beans?
+            if (v instanceof PrismPropertyValue) {
+                PrismPropertyValue ppv = (PrismPropertyValue) v;
+                XNode raw = ppv.getRawElement();
+                if (raw != null && raw.getTypeQName() != null) {
+                    String label = ppv.getPath() + ": " + v;
+                    fail("Resolvable raw value of " + raw + " in " + label + " (type: " + raw.getTypeQName() + ")");
+                }
+            }
+        });
+    }
 
-	protected void assertPrismContext(Visitable value) {
-		value.accept(v -> {
-			if (v instanceof Item) {
-				Item item = (Item) v;
-				String label = item.getPath() + ": " + v;
-				assertNotNull("No prism context in " + label, item.getPrismContextLocal());
-			} else if (v instanceof PrismContainerValue) {
-				PrismContainerValue pcv = (PrismContainerValue) v;
-				String label = pcv.getPath() + ": " + v;
-				assertNotNull("No prism context in " + label, pcv.getPrismContextLocal());
-			}
-		});
-	}
+    protected void assertPrismContext(Visitable value) {
+        value.accept(v -> {
+            if (v instanceof Item) {
+                Item item = (Item) v;
+                String label = item.getPath() + ": " + v;
+                assertNotNull("No prism context in " + label, item.getPrismContextLocal());
+            } else if (v instanceof PrismContainerValue) {
+                PrismContainerValue pcv = (PrismContainerValue) v;
+                String label = pcv.getPath() + ": " + v;
+                assertNotNull("No prism context in " + label, pcv.getPrismContextLocal());
+            }
+        });
+    }
 
-	private boolean isDynamic(ItemPath path) {
-		for (Object segment : path.getSegments()) {
-			if (ItemPath.isName(segment)) {
-				QName name = ItemPath.toName(segment);
-				if (QNameUtil.match(name, ShadowType.F_ATTRIBUTES) || QNameUtil.match(name, ObjectType.F_EXTENSION)) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
+    private boolean isDynamic(ItemPath path) {
+        for (Object segment : path.getSegments()) {
+            if (ItemPath.isName(segment)) {
+                QName name = ItemPath.toName(segment);
+                if (QNameUtil.match(name, ShadowType.F_ATTRIBUTES) || QNameUtil.match(name, ObjectType.F_EXTENSION)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
-	@FunctionalInterface
-	public interface ParsingFunction<V> {
-		V apply(PrismParser prismParser) throws Exception;
-	}
+    @FunctionalInterface
+    public interface ParsingFunction<V> {
+        V apply(PrismParser prismParser) throws Exception;
+    }
 
-	@FunctionalInterface
-	public interface SerializingFunction<V> {
-		String apply(V value) throws Exception;
-	}
+    @FunctionalInterface
+    public interface SerializingFunction<V> {
+        String apply(V value) throws Exception;
+    }
 
-	protected void process(String desc, ParsingFunction<T> parser, SerializingFunction<T> serializer, String serId) throws Exception {
-		PrismContext prismContext = getPrismContext();
+    protected void process(String desc, ParsingFunction<T> parser, SerializingFunction<T> serializer, String serId) throws Exception {
+        PrismContext prismContext = getPrismContext();
 
-		System.out.println("================== Starting test for '" + desc + "' (serializer: " + serId + ") ==================");
+        System.out.println("================== Starting test for '" + desc + "' (serializer: " + serId + ") ==================");
 
-		T value = parser.apply(prismContext.parserFor(getFile()));
-		assertResolvableRawValues(value);		// should be right here, before any getValue is called (TODO reconsider)
+        try {
 
-		System.out.println("Parsed value: " + desc);
-		System.out.println(value.debugDump());
+        T value = parser.apply(prismContext.parserFor(getFile()));
+        assertResolvableRawValues(value);        // should be right here, before any getValue is called (TODO reconsider)
 
-		assertPrismValue(value);
+        System.out.println("Parsed value: " + desc);
+        System.out.println(value.debugDump());
 
-		if (serializer != null) {
+        assertPrismValue(value);
 
-			String serialized = serializer.apply(value);
-			System.out.println("Serialized:\n" + serialized);
+        if (serializer != null) {
 
-			T reparsed = parser.apply(prismContext.parserFor(serialized));
-			assertResolvableRawValues(reparsed);		// should be right here, before any getValue is called (TODO reconsider)
+            String serialized = serializer.apply(value);
+            System.out.println("Serialized:\n" + serialized);
 
-			System.out.println("Reparsed: " + desc);
-			System.out.println(reparsed.debugDump());
+            T reparsed = parser.apply(prismContext.parserFor(serialized));
+            assertResolvableRawValues(reparsed);        // should be right here, before any getValue is called (TODO reconsider)
 
-			assertPrismValue(reparsed);
+            System.out.println("Reparsed: " + desc);
+            System.out.println(reparsed.debugDump());
 
-			Collection<? extends ItemDelta> deltas = value.diff(reparsed);
-			assertTrue("Deltas not empty", deltas.isEmpty());
+            assertPrismValue(reparsed);
 
-			assertTrue("Values not equal", value.equals(reparsed, EquivalenceStrategy.NOT_LITERAL));
-		}
-	}
+            Collection<? extends ItemDelta> deltas = value.diff(reparsed);
+            assertTrue("Deltas not empty", deltas.isEmpty());
 
-	protected abstract void assertPrismValue(T value) throws SchemaException;
+            assertTrue("Values not equal", value.equals(reparsed, EquivalenceStrategy.NOT_LITERAL));
+        }
 
-	protected boolean isContainer() {
-		return false;
-	}
+        } catch (SchemaException e) {
+            throw new SchemaException("Error processing file "+getFile().getPath()+": " + e.getMessage(), e);
+        }
+    }
+
+    protected abstract void assertPrismValue(T value) throws SchemaException;
+
+    protected boolean isContainer() {
+        return false;
+    }
 
 }

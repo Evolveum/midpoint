@@ -1,23 +1,15 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,11 +22,11 @@ public class SqlBaseService {
     private static final Trace LOGGER = TraceManager.getTrace(SqlBaseService.class);
     // how many times we want to repeat operation after lock acquisition,
     // pessimistic, optimistic exception
-	public static final int LOCKING_MAX_RETRIES = 40;
+    public static final int LOCKING_MAX_RETRIES = 40;
 
     // timeout will be a random number between 0 and LOCKING_DELAY_INTERVAL_BASE * 2^exp where exp is either real attempt # minus 1, or LOCKING_EXP_THRESHOLD (whatever is lesser)
     public static final long LOCKING_DELAY_INTERVAL_BASE = 50;
-	public static final int LOCKING_EXP_THRESHOLD = 7;       // i.e. up to 6400 msec wait time
+    public static final int LOCKING_EXP_THRESHOLD = 7;       // i.e. up to 6400 msec wait time
 
     @Autowired
     private PrismContext prismContext;
@@ -51,7 +43,7 @@ public class SqlBaseService {
         return repositoryFactory.getSqlConfiguration();
     }
 
-    public SqlPerformanceMonitor getPerformanceMonitor() {
+    public SqlPerformanceMonitorImpl getPerformanceMonitor() {
         return repositoryFactory.getPerformanceMonitor();
     }
 

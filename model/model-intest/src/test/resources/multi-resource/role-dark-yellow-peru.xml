@@ -1,0 +1,26 @@
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="95213bbc-3357-11e8-aeb8-439c6ddc0fa0"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>Dark Yellow Peru</name>
+    <description>Dark yellow account + dark peru account</description>
+    <inducement>
+        <construction>
+            <resourceRef oid="33da1afe-3efb-11e8-a5e3-4fed83f61ae7" type="c:ResourceType"/> <!-- Dark yellow -->
+            <kind>account</kind>
+        </construction>
+    </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="f5253596-333d-11e8-8894-37a2f88e7609" type="c:ResourceType"/> <!-- Dark peru -->
+            <kind>account</kind>
+        </construction>
+    </inducement>
+</role>

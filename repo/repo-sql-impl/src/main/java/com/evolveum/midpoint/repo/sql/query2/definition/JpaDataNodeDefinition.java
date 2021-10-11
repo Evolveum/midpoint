@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
@@ -88,25 +79,20 @@ public abstract class JpaDataNodeDefinition implements DebugDumpable, Visitable 
      *
      * @param path A path to be resolved. Always non-null and non-empty. Should produce at least one transition.
      * @param itemDefinition Item definition for the item being sought. Needed only for "any" items.
-	 * @return
+     * @return
      * - Normally it returns the search result containing next item definition (entity, collection, ...) in the chain
      *   and the unresolved remainder of the path. The transition may be empty ("self") e.g. for metadata or construction.
      * - If the search was not successful, returns null.
      *
      */
     public abstract DataSearchResult<?> nextLinkDefinition(ItemPath path, ItemDefinition<?> itemDefinition,
-			PrismContext prismContext) throws QueryException;
+            PrismContext prismContext) throws QueryException;
 
     public String toString() {
         return getShortInfo();
     }
 
     protected abstract String getDebugDumpClassName();
-
-    @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
 
     public String getShortInfo() {
         StringBuilder sb = new StringBuilder();

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import java.io.File;
@@ -18,6 +24,6 @@ public class ScenariosCommons {
     protected static final String TEST_USER_PROTECTED_NAME= "chief";
     protected static final String TEST_USER_RAPHAEL_NAME = "raphael";
 
-    protected static final String CSV_RESOURCE_ATTR_FILE_PATH= "File path";
+    public static final String CSV_RESOURCE_ATTR_FILE_PATH= "File path";
 
 }

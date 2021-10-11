@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism.maven;
@@ -31,10 +22,17 @@ import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.Execute;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.jetbrains.annotations.NotNull;
@@ -42,12 +40,8 @@ import org.xml.sax.SAXException;
 
 import java.io.*;
 
-/**
- * @goal schemadoc
- * @requiresDependencyResolution compile
- * @phase package
- */
-//@Mojo(name="schemadoc")
+@Mojo(name="schemadoc", requiresDependencyResolution = ResolutionScope.COMPILE)
+@Execute(goal="schemadoc", phase = LifecyclePhase.PACKAGE)
 public class SchemaDocMojo extends AbstractMojo {
 
     private static final String VELOCITY_CONTEXT_VAR_PRISM_CONTEXT = "prismContext";
@@ -62,51 +56,37 @@ public class SchemaDocMojo extends AbstractMojo {
     private static final String TEMPLATE_OBJECT_DEFINITION_NAME = "object-definition.vm";
     private static final String TEMPLATE_COMPLEX_TYPE_DEFINITION_NAME = "complex-type-definition.vm";
 
-    /**
-	 * @parameter
-	 */
-	private File[] schemaFiles;
+    @Parameter
+    private File[] schemaFiles;
 
-	/**
-	 * @parameter
-     */
+    @Parameter
     private File[] catalogFiles;
 
-    /**
-     * @parameter default-value="${project.build.directory}" required=true
-     */
+    @Parameter(defaultValue="${project.build.directory}", required=true)
     private File buildDir;
 
-	/**
-	 * @parameter default-value="${project.build.directory}/schemadoc" required=true
-	 */
+    @Parameter(defaultValue="${project.build.directory}/schemadoc", required=true)
     private File destDir;
 
-    /**
-     * @parameter default-value="src/main/schemadoc/templates" required=true
-     */
+    @Parameter(defaultValue="src/main/schemadoc/templates", required=true)
     private File templateDir;
 
-    /**
-     * @parameter default-value="src/main/schemadoc/resources"
-     */
+    @Parameter(defaultValue="src/main/schemadoc/resources")
     private File resourcesDir;
 
-    /** @parameter default-value="${project}" */
+    @Parameter(defaultValue="${project}")
     private org.apache.maven.project.MavenProject project;
 
-    /** @parameter */
+    @Parameter
     private MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
 
-    /** @parameter default-value="${project.build.finalName}" */
+    @Parameter(defaultValue="${project.build.finalName}")
     private String finalName;
 
-    /**
-     * @component
-     */
+    @Component
     private MavenProjectHelper projectHelper;
 
-    /** @component role="org.codehaus.plexus.archiver.Archiver" roleHint="zip" */
+    @Component(role=Archiver.class, hint="zip")
     private ZipArchiver zipArchiver;
 
     private String getTemplateDirName() {
@@ -114,7 +94,7 @@ public class SchemaDocMojo extends AbstractMojo {
     }
 
     public void execute() throws MojoExecutionException, MojoFailureException {
-        getLog().info( "SchemaDoc plugin started" );
+        getLog().debug( "SchemaDoc plugin started" );
 
         PrismContext prismContext = createInitializedPrismContext();
 
@@ -153,11 +133,11 @@ public class SchemaDocMojo extends AbstractMojo {
         }
         projectHelper.attachArtifact(project, "zip", "schemadoc", archiveFile);
 
-        getLog().info( "SchemaDoc plugin finished" );
+        getLog().debug( "SchemaDoc plugin finished" );
     }
 
     private void renderSchemaIndex(SchemaRegistry schemaRegistry, PrismContext prismContext, VelocityEngine velocityEngine, PathGenerator pathGenerator) throws IOException {
-        getLog().info("Rendering schema index");
+        getLog().debug("Rendering schema index");
         VelocityContext velocityContext = new VelocityContext();
         populateVelocityContextBase(velocityContext, prismContext, pathGenerator, null, ".");
         velocityContext.put(VELOCITY_CONTEXT_VAR_SCHEMA_REGISTRY, schemaRegistry);
@@ -170,7 +150,7 @@ public class SchemaDocMojo extends AbstractMojo {
     }
 
     private void renderSchema(PrismSchema schema, PrismContext prismContext, VelocityEngine velocityEngine, PathGenerator pathGenerator) throws IOException {
-        getLog().info("Processing schema: "+schema);
+        getLog().debug("Processing schema: "+schema);
         VelocityContext velocityContext = new VelocityContext();
         populateVelocityContextBase(velocityContext, prismContext, pathGenerator, schema, "..");
 
@@ -193,7 +173,7 @@ public class SchemaDocMojo extends AbstractMojo {
     }
 
     private void renderObjectDefinition(PrismObjectDefinition objectDefinition, PrismSchema schema, PrismContext prismContext, VelocityEngine velocityEngine, PathGenerator pathGenerator) throws IOException {
-        getLog().info("  Processing object definition: "+objectDefinition);
+        getLog().debug("  Processing object definition: "+objectDefinition);
 
         VelocityContext velocityContext = new VelocityContext();
         populateVelocityContextBase(velocityContext, prismContext, pathGenerator, schema, "../..");
@@ -207,7 +187,7 @@ public class SchemaDocMojo extends AbstractMojo {
     }
 
     private void renderComplexTypeDefinition(ComplexTypeDefinition typeDefinition, PrismSchema schema, PrismContext prismContext, VelocityEngine velocityEngine, PathGenerator pathGenerator) throws IOException {
-        getLog().info("  Processing complex type definition: "+typeDefinition);
+        getLog().debug("  Processing complex type definition: "+typeDefinition);
 
         VelocityContext velocityContext = new VelocityContext();
         populateVelocityContextBase(velocityContext, prismContext, pathGenerator, schema, "../..");
@@ -231,7 +211,7 @@ public class SchemaDocMojo extends AbstractMojo {
     }
 
     private File initializeOutDir() throws MojoFailureException {
-        getLog().info("Output dir: "+destDir);
+        getLog().debug("Output dir: "+destDir);
         if ( destDir.exists() && !destDir.isDirectory() ) {
             throw new MojoFailureException("Destination directory is not a directory: "+destDir);
         }
@@ -247,7 +227,7 @@ public class SchemaDocMojo extends AbstractMojo {
             SchemaRegistryImpl schemaRegistry = createSchemaRegistry();
 
             for (File schemaFile: schemaFiles) {
-                getLog().info("SchemaDoc: registering schema file: "+schemaFile);
+                getLog().debug("SchemaDoc: registering schema file: "+schemaFile);
                 if (!schemaFile.exists()) {
                     throw new MojoFailureException("Schema file "+schemaFile+" does not exist");
                 }
@@ -256,7 +236,7 @@ public class SchemaDocMojo extends AbstractMojo {
 
             if (catalogFiles != null && catalogFiles.length > 0) {
                 for (File catalogFile : catalogFiles) {
-                    getLog().info("SchemaDoc: using catalog file: " + catalogFile);
+                    getLog().debug("SchemaDoc: using catalog file: " + catalogFile);
                     if (!catalogFile.exists()) {
                         throw new IOException("Catalog file '" + catalogFile + "' does not exist.");
                     }
@@ -271,35 +251,35 @@ public class SchemaDocMojo extends AbstractMojo {
             return context;
 
         } catch (SchemaException e) {
-        	handleFailure(e);
-        	// never reached
-        	return null;
+            handleFailure(e);
+            // never reached
+            return null;
         } catch (FileNotFoundException e) {
-        	handleFailure(e);
-        	// never reached
-        	return null;
+            handleFailure(e);
+            // never reached
+            return null;
         } catch (SAXException e) {
-        	handleFailure(e);
-        	// never reached
-        	return null;
+            handleFailure(e);
+            // never reached
+            return null;
         } catch (IOException e) {
-        	handleFailure(e);
-        	// never reached
-        	return null;
+            handleFailure(e);
+            // never reached
+            return null;
         }
     }
 
     private void handleFailure(Exception e) throws MojoFailureException {
-    	e.printStackTrace();
-    	throw new MojoFailureException(e.getMessage());
-	}
+        e.printStackTrace();
+        throw new MojoFailureException(e.getMessage());
+    }
 
-	@NotNull
-	private SchemaRegistryImpl createSchemaRegistry() throws SchemaException {
-		SchemaRegistryImpl schemaRegistry = new SchemaRegistryImpl();
-		schemaRegistry.setNamespacePrefixMapper(new GlobalDynamicNamespacePrefixMapper());
-		return schemaRegistry;
-	}
+    @NotNull
+    private SchemaRegistryImpl createSchemaRegistry() throws SchemaException {
+        SchemaRegistryImpl schemaRegistry = new SchemaRegistryImpl();
+        schemaRegistry.setNamespacePrefixMapper(new GlobalDynamicNamespacePrefixMapper());
+        return schemaRegistry;
+    }
 
     private VelocityEngine createVelocityEngine() {
         VelocityEngine ve = new VelocityEngine();

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component;
@@ -30,9 +21,9 @@ import java.util.Map;
 
 public class AceEditor extends TextArea<String> {
 
-	public static final String MODE_XML = "ace/mode/xml";
-	public static final String MODE_JSON = "ace/mode/json";
-	public static final String MODE_YAML = "ace/mode/yaml";
+    public static final String MODE_XML = "ace/mode/xml";
+    public static final String MODE_JSON = "ace/mode/json";
+    public static final String MODE_YAML = "ace/mode/yaml";
 
     public static final Map<String,String> MODES = new HashMap<>();
 
@@ -49,7 +40,7 @@ public class AceEditor extends TextArea<String> {
 
     private int minHeight = 200;
     private int height = minHeight;
-	private String mode = MODE_XML;
+    private String mode = MODE_XML;
 
     public AceEditor(String id, IModel<String> model) {
         super(id, model);
@@ -63,9 +54,9 @@ public class AceEditor extends TextArea<String> {
         StringBuilder sb = new StringBuilder();
         sb.append("initEditor('").append(getMarkupId());
         sb.append("',").append(readonly.getObject());
-        sb.append(",").append(resizeToMaxHeight);
-        sb.append(",").append(height);
-        sb.append(",").append(minHeight);
+        sb.append(",").append(isResizeToMaxHeight());
+        sb.append(",").append(getHeight());
+        sb.append(",").append(getMinHeight());
         sb.append(",").append(mode != null ? "'"+mode+"'" : "null");
         sb.append(");");
 
@@ -96,13 +87,13 @@ public class AceEditor extends TextArea<String> {
         this.height = height;
     }
 
-	public String getMode() {
-		return mode;
-	}
+    public String getMode() {
+        return mode;
+    }
 
-	public void setMode(String mode) {
-		this.mode = mode;
-	}
+    public void setMode(String mode) {
+        this.mode = mode;
+    }
 
     public void setModeForDataLanguage(@Nullable String dataLanguage) {
         setMode(MODES.get(dataLanguage));

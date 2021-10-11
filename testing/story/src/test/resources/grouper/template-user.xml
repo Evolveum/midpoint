@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" oid="8098b124-c20c-4965-8adf-e528abedf7a4">
+    <name>User Template</name>
+    <mapping>
+        <strength>strong</strength>
+        <source>
+            <path>name</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                    import com.evolveum.midpoint.schema.constants.*
+                    import com.evolveum.midpoint.schema.*
+                    import javax.xml.namespace.*
+                    import com.evolveum.midpoint.util.*
+                    import com.evolveum.midpoint.prism.path.*
+
+                    GROUPER_RESOURCE_OID = '1eff65de-5bb6-483d-9edf-8cc2c2ee0233'
+                    MEMBER_NAME = new QName(MidPointConstants.NS_RI, 'members')
+
+                    memberDef = prismContext.definitionFactory().createPropertyDefinition(MEMBER_NAME, DOMUtil.XSD_STRING)
+                    memberDef.setMaxOccurs(-1)
+
+                    shadowQuery = prismContext.queryFor(ShadowType.class)
+                        .item(ShadowType.F_RESOURCE_REF).ref(GROUPER_RESOURCE_OID)
+                        .and().item(ShadowType.F_SYNCHRONIZATION_SITUATION).eq(SynchronizationSituationType.LINKED)
+                        .and().item(ShadowType.F_KIND).eq(ShadowKindType.ENTITLEMENT)
+                        .and().item(ShadowType.F_INTENT).eq('group')
+                        .and().block().item(ShadowType.F_DEAD).isNull().or().item(ShadowType.F_DEAD).eq(false).endBlock()
+                        .and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, MEMBER_NAME), memberDef).eq(basic.stringify(name))
+                        .build()
+
+                    //log.info('shadowQuery = {}\n{}', shadowQuery, shadowQuery.debugDump())
+                    options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch())
+                    shadows = midpoint.searchObjects(ShadowType.class, shadowQuery, options)
+                    //log.info('shadows found for {}: {}', name, shadows)
+
+                    orgNames = shadows.collect { basic.stringify(it.name) }            // todo - use attributes
+                    log.info('org names = {}', orgNames)
+
+                    if (!orgNames.isEmpty()) {
+                        orgQueryBuilder = prismContext.queryFor(OrgType.class)
+
+                        first = true
+                        for (orgName in orgNames) {
+                            if (first) {
+                                first = false
+                            } else {
+                                orgQueryBuilder = orgQueryBuilder.or()
+                            }
+                            orgQueryBuilder = orgQueryBuilder.item(ItemPath.create(OrgType.F_EXTENSION, 'grouperName')).eq(orgName)
+                        }
+
+                        orgQuery = orgQueryBuilder.build()
+                        //log.info('org query:\n', orgQuery.debugDump())
+
+                        orgs = midpoint.searchObjects(OrgType.class, orgQuery, null)
+                        log.info('orgs found: {}', orgs)
+
+                        orgs.collect {
+                            new AssignmentType(prismContext)
+                                .subtype('grouper-group')
+                                .targetRef(it.oid, OrgType.COMPLEX_TYPE)
+                        }
+                    } else {
+                        null
+                    }
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>assignment</path>
+            <set>
+                <condition>
+                    <script>
+                        <code>
+                            assignment?.subtype.contains('grouper-group')
+                        </code>
+                    </script>
+                </condition>
+            </set>
+        </target>
+    </mapping>
+</objectTemplate>

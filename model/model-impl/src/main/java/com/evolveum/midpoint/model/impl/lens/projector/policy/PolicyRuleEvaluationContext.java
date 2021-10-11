@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
@@ -23,56 +14,55 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
 /**
- * @author mederly
+ * Evaluation context for a policy rule.
  */
 public abstract class PolicyRuleEvaluationContext<AH extends AssignmentHolderType> implements Cloneable {
 
-	@NotNull public final EvaluatedPolicyRule policyRule;
-	@NotNull public final LensContext<AH> lensContext;
-	@NotNull public final LensFocusContext<AH> focusContext;
-	@NotNull public final Task task;
-	@NotNull public final ObjectState state;
-	@NotNull public final RulesEvaluationContext globalCtx;
+    @NotNull public final EvaluatedPolicyRule policyRule;
+    @NotNull public final LensContext<AH> lensContext;
+    @NotNull public final LensFocusContext<AH> focusContext;
+    @NotNull public final Task task;
+    @NotNull public final ObjectState state;
+    @NotNull final RulesEvaluationContext globalCtx;
 
-	protected PolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, @NotNull LensContext<AH> context,
-			@NotNull Task task, @NotNull RulesEvaluationContext globalCtx, @NotNull ObjectState state) {
-		this.policyRule = policyRule;
-		this.lensContext = context;
-		this.focusContext = context.getFocusContext();
-		this.task = task;
-		this.globalCtx = globalCtx;
-		if (focusContext == null) {
-			throw new IllegalStateException("No focus context");
-		}
-		this.state = state;
-	}
+    protected PolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, @NotNull LensContext<AH> context,
+            @NotNull Task task, @NotNull RulesEvaluationContext globalCtx, @NotNull ObjectState state) {
+        this.policyRule = policyRule;
+        this.lensContext = context;
+        this.focusContext = context.getFocusContext();
+        this.task = task;
+        this.globalCtx = globalCtx;
+        if (focusContext == null) {
+            throw new IllegalStateException("No focus context");
+        }
+        this.state = state;
+    }
 
-	public abstract PolicyRuleEvaluationContext<AH> cloneWithStateConstraints(ObjectState state);
+    public abstract PolicyRuleEvaluationContext<AH> cloneWithStateConstraints(ObjectState state);
 
-	public abstract void triggerRule(Collection<EvaluatedPolicyRuleTrigger<?>> triggers);
+    public abstract void triggerRule(Collection<EvaluatedPolicyRuleTrigger<?>> triggers);
 
-	public PrismObject<AH> getObject() {
-		if (state == ObjectState.BEFORE) {
-			return focusContext.getObjectOld();
-		} else {
-			return focusContext.getObjectNew();
-		}
-	}
+    public PrismObject<AH> getObject() {
+        if (state == ObjectState.BEFORE) {
+            return focusContext.getObjectOld();
+        } else {
+            return focusContext.getObjectNew();
+        }
+    }
 
-	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
-	public boolean isApplicableToState() {
-		return getObject() != null;
-	}
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public boolean isApplicableToState() {
+        return getObject() != null;
+    }
 
-	public abstract String getShortDescription();
+    public abstract String getShortDescription();
 
-	public void record() {
-		globalCtx.rulesToRecord.add(policyRule);
-	}
+    public void record() {
+        globalCtx.rulesToRecord.add(policyRule);
+    }
 }

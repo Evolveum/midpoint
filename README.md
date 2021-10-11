@@ -1,9 +1,5 @@
-Status: [![Build Status](https://travis-ci.org/Evolveum/midpoint.svg?branch=master)](https://travis-ci.org/Evolveum/midpoint)
-
-Gitter: [![Gitter](https://badges.gitter.im/JoinChat.svg)](https://gitter.im/Evolveum/midpoint)
-
-MidPoint 4.0 development branch
-------------------------------------
+MidPoint 4.1 Support Branch
+---------------------------
 
 General information:
 
@@ -14,12 +10,12 @@ The most important features of midPoint are:
 - Security auditing and reporting
 - Organizational structure management
 - Credential Management
-- Workflow
-- Entitlement Management 
+- Request approval
+- Entitlement Management
 
 Read more about these features at https://evolveum.com/midpoint/about-midpoint/
 
-Other features: 
+Other features:
 
 - User provisioning and deprovisioning
 - Administration GUI
@@ -32,7 +28,8 @@ Other features:
 - Password policies
 - Password reset
 - Entitlements
-- Support for ConnId and OpenICF connectors
+- Archetypes
+- Support for ConnId connectors
 - Provisioning consistency and error handling
 - Data protection (experimental)
 - Reporting
@@ -41,20 +38,19 @@ Other features:
 - High availability (HA) support
 
 For more information about midPoint identity manager please go to:
-http://midpoint.evolveum.com/
+https://midpoint.evolveum.com/
 
 For bugtracking system please go to:
-http://jira.evolveum.com/
+https://jira.evolveum.com/
 
 MidPoint source code is maintained on github:
-https://github.com/Evolveum/midpoint 
+https://github.com/Evolveum/midpoint
 
-Latest source code can be obtained from our Git repository using one of the 
+Latest source code can be obtained from our Git repository using one of the
 following repository locations:
 https://github.com/Evolveum/midpoint.git
 
 git@github.com:Evolveum/midpoint.git
 
-This project is developed under Apache license (version 2.0) You may get copy
-of licence in LICENSE file. Please also see NOTICE file for additional
-copyright statements.
+This project is dual-licensed under Apache License 2.0
+and European Union Public License. See LICENSE file for details.

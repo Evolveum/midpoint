@@ -1,22 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
                      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                     xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+                     xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
                      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>SystemConfiguration</name>
     <!--         <globalAccountSynchronizationSettings> -->
@@ -116,6 +109,67 @@
             <maxAge>P1M</maxAge>
         </closedTasks>
     </cleanupPolicy>
+    <internals>
+        <tracing>
+            <profile>
+                <name>performance</name>
+                <displayName>Performance tracing</displayName>
+                <visible>true</visible>
+                <default>true</default>
+                <fileNamePattern>performance-trace %{timestamp} %{focusName} %{milliseconds}</fileNamePattern>
+                <createRepoObject>true</createRepoObject>
+                <compressOutput>true</compressOutput>
+            </profile>
+            <profile>
+                <name>functional</name>
+                <displayName>Functional tracing</displayName>
+                <visible>true</visible>
+                <fileNamePattern>functional-trace %{timestamp} %{focusName}</fileNamePattern>
+                <createRepoObject>true</createRepoObject>
+                <compressOutput>true</compressOutput>
+                <collectLogEntries>true</collectLogEntries>
+                <tracingTypeProfile>
+                    <level>normal</level>
+                </tracingTypeProfile>
+            </profile>
+            <profile>
+                <name>functional-model-logging</name>
+                <displayName>Functional tracing (with model logging)</displayName>
+                <visible>true</visible>
+                <fileNamePattern>functional-trace %{timestamp} %{focusName}</fileNamePattern>
+                <createRepoObject>true</createRepoObject>
+                <compressOutput>true</compressOutput>
+                <collectLogEntries>true</collectLogEntries>
+                <loggingOverride>
+                    <levelOverride>
+                        <logger>com.evolveum.midpoint.model</logger>
+                        <level>TRACE</level>
+                    </levelOverride>
+                </loggingOverride>
+                <tracingTypeProfile>
+                    <level>normal</level>
+                </tracingTypeProfile>
+            </profile>
+            <profile>
+                <name>functional-sql-logging</name>
+                <displayName>Functional tracing (with SQL logging)</displayName>
+                <visible>true</visible>
+                <fileNamePattern>functional-trace %{timestamp} %{focusName}</fileNamePattern>
+                <createRepoObject>true</createRepoObject>
+                <compressOutput>true</compressOutput>
+                <collectLogEntries>true</collectLogEntries>
+                <loggingOverride>
+                    <levelOverride>
+                        <logger>org.hibernate.SQL</logger>
+                        <level>TRACE</level>
+                    </levelOverride>
+                </loggingOverride>
+                <tracingTypeProfile>
+                    <level>normal</level>
+                </tracingTypeProfile>
+            </profile>
+        </tracing>
+    </internals>
     <adminGuiConfiguration>
         <userDashboardLink>
             <targetUrl>/self/profile</targetUrl>
@@ -157,9 +211,495 @@
             <color>purple</color>
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resources</authorization>
         </userDashboardLink>
-		<enableExperimentalFeatures>true</enableExperimentalFeatures>
+        <objectCollectionViews>
+            <objectCollectionView>
+                <identifier>my-cases</identifier>
+                <display>
+                    <label>My cases</label>
+                    <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
+                    <pluralLabel>My cases</pluralLabel>
+                    <singularLabel>My case</singularLabel>
+                    <icon>
+                        <cssClass>fe fe-case-object</cssClass>
+                    </icon>
+                </display>
+                <displayOrder>1000</displayOrder>
+                <type>CaseType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000344" relation="org:default" type="c:ObjectCollectionType">
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>manual-case-view</identifier>
+                <display>
+                    <label>Manual cases</label> <!-- "Manual provisioning cases" is too long for the menu -->
+                    <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
+                    <pluralLabel>All manual cases</pluralLabel>
+                    <singularLabel>Manual case</singularLabel>
+                    <tooltip>Manual provisioning cases</tooltip>
+                </display>
+                <displayOrder>1010</displayOrder>
+                <type>CaseType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000340" relation="org:default" type="c:ArchetypeType">
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>operation-request-case-view</identifier>
+                <display>
+                    <label>Requests</label> <!-- "Operation requests" is too long for the menu -->
+                    <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
+                    <pluralLabel>All requests</pluralLabel>
+                    <singularLabel>Request</singularLabel>
+                    <tooltip>Operation requests</tooltip>
+                </display>
+                <displayOrder>1020</displayOrder>
+                <type>CaseType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000341" relation="org:default" type="c:ArchetypeType">
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>approval-case-view</identifier>
+                <display>
+                    <label>Approvals</label> <!-- "Approval cases" is too long for the menu -->
+                    <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
+                    <pluralLabel>All approvals</pluralLabel>
+                    <singularLabel>Approval</singularLabel>
+                    <tooltip>Approval cases</tooltip>
+                </display>
+                <displayOrder>1030</displayOrder>
+                <type>CaseType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000342" relation="org:default" type="c:ArchetypeType">
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>reconciliation-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000501" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>recomputation-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000502" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>import-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000503" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>live-sync-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000504" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>async-update-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000505" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>cleanup-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000506" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>report-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000507" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>single-bulk-action-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000508" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>iterative-bulk-action-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000509" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>certification-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000520" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>approval-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000521" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>utility-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000528" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>system-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000529" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+        </objectCollectionViews>
+        <objectDetails>
+            <objectDetailsPage>
+                <type>c:TaskType</type>
+                <container>
+                    <displayOrder>150</displayOrder>
+                    <display>
+                        <label>Advanced options</label>
+                    </display>
+                    <item>
+                        <c:path>cleanupAfterCompletion</c:path>
+                    </item>
+                    <item>
+                        <c:path>threadStopAction</c:path>
+                    </item>
+                    <item>
+                        <c:path>binding</c:path>
+                    </item>
+                    <item>
+                        <c:path>dependent</c:path>
+                    </item>
+                </container>
+                <container>
+                    <displayOrder>900</displayOrder>
+                    <display>
+                        <label>Operational attributes (state)</label>
+                    </display>
+                    <item>
+                        <c:path>executionStatus</c:path>
+                    </item>
+                    <item>
+                        <c:path>node</c:path>
+                    </item>
+                    <item>
+                        <c:path>nodeAsObserved</c:path>
+                    </item>
+                    <item>
+                        <c:path>resultStatus</c:path>
+                    </item>
+                    <item>
+                        <c:path>result</c:path>
+                    </item>
+                    <item>
+                        <c:path>nextRunStartTimestamp</c:path>
+                    </item>
+                    <item>
+                        <c:path>nextRetryTimestamp</c:path>
+                    </item>
+                    <item>
+                        <c:path>unpauseAction</c:path>
+                    </item>
+                    <item>
+                        <c:path>taskIdentifier</c:path>
+                    </item>
+                    <item>
+                        <c:path>parent</c:path>
+                    </item>
+                    <item>
+                        <c:path>waitingReason</c:path>
+                    </item>
+                    <item>
+                        <c:path>stateBeforeSuspend</c:path>
+                    </item>
+                    <item>
+                        <c:path>category</c:path>
+                    </item>
+                    <item>
+                        <c:path>otherHandlersUriStack</c:path>
+                    </item>
+                    <item>
+                        <c:path>channel</c:path>
+                    </item>
+                    <item>
+                        <c:path>subtaskRef</c:path>
+                    </item>
+                    <item>
+                        <c:path>dependentTaskRef</c:path>
+                    </item>
+                    <item>
+                        <c:path>lastRunStartTimestamp</c:path>
+                    </item>
+                    <item>
+                        <c:path>lastRunFinishTimestamp</c:path>
+                    </item>
+                    <item>
+                        <c:path>completionTimestamp</c:path>
+                    </item>
+                </container>
+                <container>
+                    <displayOrder>910</displayOrder>
+                    <visibility>hidden</visibility>
+                    <display>
+                        <label>Operational attributes (progress)</label>
+                    </display>
+                    <item>
+                        <c:path>progress</c:path>
+                    </item>
+                    <item>
+                        <c:path>expectedTotal</c:path>
+                    </item>
+                    <item>
+                        <c:path>stalledSince</c:path>
+                    </item>
+                </container>
+
+            </objectDetailsPage>
+        </objectDetails>
     </adminGuiConfiguration>
-	<internals>
-      <enableExperimentalCode>true</enableExperimentalCode>
-   </internals>
+
+    <expressions>
+        <expressionProfile>
+            <identifier>safe</identifier>
+            <description>
+                "Safe" expression profile. It is supposed to contain only operations that are "safe",
+                i.e. operations that have very little risk to harm the system, circumvent midPoint security
+                and so on. Use of those operations should be reasonably safe in all expressions.
+                However, there are limitations. This profile may incomplete or it may even be not completely secure.
+                Proper security testing of this profile was not yet conducted. It is provided here "AS IS",
+                without any guarantees. Use at your own risk.
+            </description>
+            <decision>deny</decision> <!-- default decision of those evaluators that are not explicitly enumerated. -->
+            <evaluator>
+                <type>asIs</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>path</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>value</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>const</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>script</type>
+                <decision>deny</decision> <!-- default decision of those script languages that are not explicitly enumerated. -->
+                <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                    <decision>allow</decision>
+                    <typeChecking>true</typeChecking>
+                    <permissionProfile>script-safe</permissionProfile>
+                </script>
+            </evaluator>
+        </expressionProfile>
+        <permissionProfile>
+            <identifier>script-safe</identifier>
+            <decision>deny</decision> <!-- Default decision for those classes that are not explicitly enumerated. -->
+            <package>
+                <name>com.evolveum.midpoint.xml.ns._public.common.common_3</name>
+                <description>MidPoint common schema - generated bean classes</description>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>com.evolveum.prism.xml.ns._public.types_3</name>
+                <description>Prism schema - bean classes</description>
+                <decision>allow</decision>
+            </package>
+            <class>
+                <name>java.lang.Integer</name>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>java.lang.Object</name>
+                    <description>Basic Java operations.</description>
+                    <decision>deny</decision>
+                    <method>
+                        <name>equals</name>
+                        <decision>allow</decision>
+                    </method><method>
+                        <name>hashCode</name>
+                        <decision>allow</decision>
+                    </method>
+            </class>
+            <class>
+                <name>java.lang.String</name>
+                    <description>String operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
+                    <decision>allow</decision> <!-- Default decision for those methods that are not explicitly enumerated. -->
+                    <method>
+                        <name>execute</name>
+                        <decision>deny</decision>
+                    </method>
+            </class>
+            <class>
+                <name>java.lang.CharSequence</name>
+                    <decision>allow</decision>
+            </class>
+            <class>
+                <name>java.lang.Enum</name>
+                    <decision>allow</decision>
+            </class>
+            <class>
+                <name>java.util.List</name>
+                    <description>List operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
+                    <decision>allow</decision>
+                    <method>
+                        <name>execute</name>
+                        <decision>deny</decision>
+                    </method>
+            </class>
+            <class>
+                <name>java.util.ArrayList</name>
+                    <description>List operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
+                    <decision>allow</decision>
+                    <method>
+                        <name>execute</name>
+                        <decision>deny</decision>
+                    </method>
+            </class>
+            <class>
+                <name>java.util.Map</name>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>java.util.HashMap</name>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>java.util.Date</name>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>javax.xml.namespace.QName</name>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>javax.xml.datatype.XMLGregorianCalendar</name>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>java.lang.System</name>
+                <description>Just a few methods of System are safe enough.</description>
+                <decision>deny</decision>
+                <method>
+                    <name>currentTimeMillis</name>
+                    <decision>allow</decision>
+                </method>
+            </class>
+            <class>
+                <name>java.lang.IllegalStateException</name>
+                <description>Basic Java exception. Also used in test.</description>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>java.lang.IllegalArgumentException</name>
+                <description>Basic Java exception.</description>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions</name>
+                <description>MidPoint basic functions library</description>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions</name>
+                <description>MidPoint logging functions library</description>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>com.evolveum.midpoint.report.impl.ReportFunctions</name>
+                <description>MidPoint report functions library</description>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>org.apache.commons.lang.StringUtils</name>
+                <description>Apache Commons: Strings</description>
+                <decision>allow</decision>
+            </class>
+
+            <!-- Following may be needed for audit reports. But they may not be completely safe.
+                 Therefore the following section is commented out. Please closely evaluate those rules
+                 before using them. -->
+            <!--  <class>
+                <name>com.evolveum.midpoint.schema.expression.VariablesMap</name>
+                <description>Expression variables map.</description>
+                <decision>deny</decision>
+                <method>
+                    <name>get</name>
+                    <decision>allow</decision>
+                </method>
+                <method>
+                    <name>remove</name>
+                    <decision>allow</decision>
+                </method>
+            </class>
+            <class>
+                <name>com.evolveum.midpoint.schema.expression.TypedValue</name>
+                <description>Typed values, holding expression variables. Read-only access.</description>
+                <decision>deny</decision>
+                <method>
+                    <name>getValue</name>
+                    <decision>allow</decision>
+                </method>
+            </class>
+            <class>
+                <name>com.evolveum.midpoint.report.impl.ReportUtils</name>
+                <decision>deny</decision>
+                <method>
+                    <name>convertDateTime</name>
+                    <decision>allow</decision>
+                </method>
+                <method>
+                    <name>getPropertyString</name>
+                    <decision>allow</decision>
+                </method>
+                <method>
+                    <name>printDelta</name>
+                    <decision>allow</decision>
+                </method>
+            </class>
+            <class>
+                <name>com.evolveum.midpoint.prism.PrismReferenceValue</name>
+                <decision>allow</decision>
+            </class> -->
+        </permissionProfile>
+    </expressions>
+
 </systemConfiguration>

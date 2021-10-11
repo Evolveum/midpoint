@@ -1,21 +1,13 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtBase;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 
 import java.io.Serializable;
@@ -26,48 +18,54 @@ import java.util.Objects;
  */
 public class ROExtBaseId implements Serializable {
 
-	protected String ownerOid;
-	protected RObjectExtensionType ownerType;
-	protected Integer itemId;
+    protected String ownerOid;
+    protected RObjectExtensionType ownerType;
+    protected Integer itemId;
 
-	public String getOwnerOid() {
-		return ownerOid;
-	}
+    void fillInFromValue(ROExtBase value) {
+        ownerOid = value.getOwnerOid();
+        ownerType = value.getOwnerType();
+        itemId = value.getItemId();
+    }
 
-	public void setOwnerOid(String ownerOid) {
-		this.ownerOid = ownerOid;
-	}
+    public String getOwnerOid() {
+        return ownerOid;
+    }
 
-	public RObjectExtensionType getOwnerType() {
-		return ownerType;
-	}
+    public void setOwnerOid(String ownerOid) {
+        this.ownerOid = ownerOid;
+    }
 
-	public void setOwnerType(RObjectExtensionType ownerType) {
-		this.ownerType = ownerType;
-	}
+    public RObjectExtensionType getOwnerType() {
+        return ownerType;
+    }
 
-	public Integer getItemId() {
-		return itemId;
-	}
+    public void setOwnerType(RObjectExtensionType ownerType) {
+        this.ownerType = ownerType;
+    }
 
-	public void setItemId(Integer itemId) {
-		this.itemId = itemId;
-	}
+    public Integer getItemId() {
+        return itemId;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (!(o instanceof ROExtBaseId))
-			return false;
-		ROExtBaseId that = (ROExtBaseId) o;
-		return itemId.equals(that.itemId) &&
-				Objects.equals(ownerOid, that.ownerOid) &&
-				ownerType == that.ownerType;
-	}
+    public void setItemId(Integer itemId) {
+        this.itemId = itemId;
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(ownerOid, ownerType, itemId);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof ROExtBaseId))
+            return false;
+        ROExtBaseId that = (ROExtBaseId) o;
+        return itemId.equals(that.itemId) &&
+                Objects.equals(ownerOid, that.ownerOid) &&
+                ownerType == that.ownerType;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ownerOid, ownerType, itemId);
+    }
 }

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="aa662e3c-ddd9-11e9-afe9-ab216a2d304b" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Add user</name>
+<!-- ***** GUI ***** -->
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#users</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#user</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#userDetails</action>
+    </authorization>
+
+<!-- ***** Model ***** -->
+
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>UserType</type>
+        </object>
+    </authorization>
+
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+        <object>
+            <type>UserType</type>
+        </object>
+    </authorization>
+
+</role>

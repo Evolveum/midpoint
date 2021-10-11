@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.wf;
@@ -19,6 +10,9 @@ package com.evolveum.midpoint.web.component.wf;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -38,23 +32,24 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
  * @author mederly
  */
 public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String ID_DECISIONS_TABLE = "decisionsTable";
+    private static final String ID_DECISIONS_TABLE = "decisionsTable";
 
     // todo options to select which columns will be shown
     public DecisionsPanel(String id, IModel<List<DecisionDto>> model, UserProfileStorage.TableId tableId, int pageSize) {
         super(id, model);
-		initLayout(tableId, pageSize);
+        initLayout(tableId, pageSize);
     }
 
     protected void initLayout(UserProfileStorage.TableId tableId, int pageSize) {
         List<IColumn<DecisionDto, String>> columns = new ArrayList<>();
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.user"), DecisionDto.F_USER));
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.attorney"), DecisionDto.F_ATTORNEY));
-        columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.originalActor"), DecisionDto.F_ORIGINAL_ACTOR));
+        columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.originalAssignee"), DecisionDto.F_ORIGINAL_ASSIGNEE));
+        columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.assigneeChange"), DecisionDto.F_ASSIGNEE_CHANGE));
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.stage"), DecisionDto.F_STAGE));
-		columns.add(createOutcomeColumn());
+        columns.add(createOutcomeColumn());
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.comment"), DecisionDto.F_COMMENT));
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.when"), DecisionDto.F_TIME));
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.escalation"), DecisionDto.F_ESCALATION_LEVEL_NUMBER));
@@ -64,52 +59,41 @@ public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
         add(decisionsTable);
     }
 
-	@NotNull
-	private IconColumn<DecisionDto> createOutcomeColumn() {
-		return new IconColumn<DecisionDto>(createStringResource("DecisionsPanel.result")) {
-			private static final long serialVersionUID = 1L;
+    @NotNull
+    private IconColumn<DecisionDto> createOutcomeColumn() {
+        return new IconColumn<DecisionDto>(createStringResource("DecisionsPanel.result")) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected IModel<String> createIconModel(final IModel<DecisionDto> rowModel) {
-				return new IModel<String>() {
-					private static final long serialVersionUID = 1L;
+            @Override
+            protected DisplayType getIconDisplayType(final IModel<DecisionDto> rowModel) {
+                return WebComponentUtil.createDisplayType(choose(rowModel,
+                        ApprovalOutcomeIcon.IN_PROGRESS.getIcon(), ApprovalOutcomeIcon.FORWARDED.getIcon(),
+                        ApprovalOutcomeIcon.APPROVED.getIcon(), ApprovalOutcomeIcon.REJECTED.getIcon()),
+                        "",
+                        choose(rowModel,
+                                createStringResource("MyRequestsPanel.inProgress").getString(),
+                                createStringResource("MyRequestsPanel.forwarded").getString(),
+                                createStringResource("MyRequestsPanel.approved").getString(),
+                                createStringResource("MyRequestsPanel.rejected").getString()));
+            }
 
-					@Override
-					public String getObject() {
-						return choose(rowModel, ApprovalOutcomeIcon.IN_PROGRESS.getIcon(), ApprovalOutcomeIcon.APPROVED.getIcon(), ApprovalOutcomeIcon.REJECTED.getIcon());
-					}
-				};
-			}
-			
-			@Override
-		    public String getCssClass() {
-		        return "shrink";
-		    }
+            @Override
+            public String getCssClass() {
+                return "shrink";
+            }
 
-			@Override
-			protected IModel<String> createTitleModel(final IModel<DecisionDto> rowModel) {
-				return new IModel<String>() {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						return choose(rowModel,
-								createStringResource("MyRequestsPanel.inProgress").getString(),
-								createStringResource("MyRequestsPanel.approved").getString(),
-								createStringResource("MyRequestsPanel.rejected").getString());
-					}
-				};
-			}
-
-			private String choose(IModel<DecisionDto> rowModel, String inProgress, String approved, String rejected) {
-				DecisionDto dto = rowModel.getObject();
-				if (dto.getOutcome() == null) {
-					return inProgress;
-				} else {
-					return dto.getOutcome() ? approved : rejected;
-				}
-			}
-		};
-	}
+            private String choose(IModel<DecisionDto> rowModel, String inProgress, String forwarded, String approved, String rejected) {
+                DecisionDto dto = rowModel.getObject();
+                if (StringUtils.isNotEmpty(dto.getAssigneeChange())){
+                    return forwarded;
+                }
+                if (dto.getOutcome() == null) {
+                    return inProgress;
+                } else {
+                    return dto.getOutcome() ? approved : rejected;
+                }
+            }
+        };
+    }
 
 }

@@ -1,21 +1,13 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -56,33 +48,33 @@ public class StageDefinitionDto implements Serializable {
     private List<AccessCertificationResponseType> advanceToNextStageOnRaw;
     private List<WorkItemTimedActionsType> timedActionsTypes;
 
-	public StageDefinitionDto(AccessCertificationStageDefinitionType stageDefObj, PrismContext prismContext) throws SchemaException {
-		if (stageDefObj != null) {
-			setNumber(stageDefObj.getNumber());
-			setName(stageDefObj.getName());
-			setDescription(stageDefObj.getDescription());
-			if (stageDefObj.getDuration() != null) {
-				setDuration(stageDefObj.getDuration().toString());
-			}
-			setDeadlineRounding(stageDefObj.getDeadlineRounding());
-			setNotifyBeforeDeadline(convertDurationListToString(stageDefObj.getNotifyBeforeDeadline()));
-			setNotifyOnlyWhenNoDecision(Boolean.TRUE.equals(stageDefObj.isNotifyOnlyWhenNoDecision()));
-			setReviewerDto(new AccessCertificationReviewerDto(stageDefObj.getReviewerSpecification(), prismContext));
-			setOutcomeStrategy(stageDefObj.getOutcomeStrategy());
-			setOutcomeIfNoReviewers(stageDefObj.getOutcomeIfNoReviewers());
-			setStopReviewOnRaw(new ArrayList<>(stageDefObj.getStopReviewOn()));
-			setAdvanceToNextStageOnRaw(new ArrayList<>(stageDefObj.getAdvanceToNextStageOn()));
-			setTimedActionsTypes(new ArrayList<>(stageDefObj.getTimedActions()));
-		} else {
-			setReviewerDto(new AccessCertificationReviewerDto(null, prismContext));
-		}
-	}
+    public StageDefinitionDto(AccessCertificationStageDefinitionType stageDefObj, ModelServiceLocator modelServiceLocator) throws SchemaException {
+        if (stageDefObj != null) {
+            setNumber(stageDefObj.getNumber());
+            setName(stageDefObj.getName());
+            setDescription(stageDefObj.getDescription());
+            if (stageDefObj.getDuration() != null) {
+                setDuration(stageDefObj.getDuration().toString());
+            }
+            setDeadlineRounding(stageDefObj.getDeadlineRounding());
+            setNotifyBeforeDeadline(convertDurationListToString(stageDefObj.getNotifyBeforeDeadline()));
+            setNotifyOnlyWhenNoDecision(Boolean.TRUE.equals(stageDefObj.isNotifyOnlyWhenNoDecision()));
+            setReviewerDto(new AccessCertificationReviewerDto(stageDefObj.getReviewerSpecification(), modelServiceLocator));
+            setOutcomeStrategy(stageDefObj.getOutcomeStrategy());
+            setOutcomeIfNoReviewers(stageDefObj.getOutcomeIfNoReviewers());
+            setStopReviewOnRaw(new ArrayList<>(stageDefObj.getStopReviewOn()));
+            setAdvanceToNextStageOnRaw(new ArrayList<>(stageDefObj.getAdvanceToNextStageOn()));
+            setTimedActionsTypes(new ArrayList<>(stageDefObj.getTimedActions()));
+        } else {
+            setReviewerDto(new AccessCertificationReviewerDto(null, modelServiceLocator));
+        }
+    }
 
-	private String convertDurationListToString(List<Duration> list){
-		return StringUtils.join(list, ", ");
-	}
+    private String convertDurationListToString(List<Duration> list){
+        return StringUtils.join(list, ", ");
+    }
 
-	public int getNumber() {
+    public int getNumber() {
         return number;
     }
 
@@ -114,15 +106,15 @@ public class StageDefinitionDto implements Serializable {
         this.duration = duration;
     }
 
-	public DeadlineRoundingType getDeadlineRounding() {
-		return deadlineRounding;
-	}
+    public DeadlineRoundingType getDeadlineRounding() {
+        return deadlineRounding;
+    }
 
-	public void setDeadlineRounding(DeadlineRoundingType deadlineRounding) {
-		this.deadlineRounding = deadlineRounding;
-	}
+    public void setDeadlineRounding(DeadlineRoundingType deadlineRounding) {
+        this.deadlineRounding = deadlineRounding;
+    }
 
-	public String getNotifyBeforeDeadline() {
+    public String getNotifyBeforeDeadline() {
         return notifyBeforeDeadline;
     }
 
@@ -185,11 +177,11 @@ public class StageDefinitionDto implements Serializable {
         this.advanceToNextStageOnRaw = advanceToNextStageOnRaw;
     }
 
-	public List<WorkItemTimedActionsType> getTimedActionsTypes() {
-		return timedActionsTypes;
-	}
+    public List<WorkItemTimedActionsType> getTimedActionsTypes() {
+        return timedActionsTypes;
+    }
 
-	public void setTimedActionsTypes(List<WorkItemTimedActionsType> timedActionsTypes) {
-		this.timedActionsTypes = timedActionsTypes;
-	}
+    public void setTimedActionsTypes(List<WorkItemTimedActionsType> timedActionsTypes) {
+        this.timedActionsTypes = timedActionsTypes;
+    }
 }

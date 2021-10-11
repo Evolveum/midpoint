@@ -7,7 +7,7 @@ https://wiki.evolveum.com/display/midPoint/midPoint+Development+Snapshot
 
 1. Pre-requisities:
 
-    1. Java (JDK) 8
+    1. Java (JDK) 11
     2. Apache Maven 3
     3. midPoint source code retrieved via Git
 

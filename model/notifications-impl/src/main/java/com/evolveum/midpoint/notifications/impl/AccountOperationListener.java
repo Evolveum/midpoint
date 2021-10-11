@@ -1,33 +1,34 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.notifications.impl;
 
+import javax.annotation.PostConstruct;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.OperationStatus;
-import com.evolveum.midpoint.notifications.api.events.ResourceObjectEvent;
+import com.evolveum.midpoint.notifications.impl.events.ResourceObjectEventImpl;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -35,14 +36,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-
 /**
- * @author mederly
+ * Converts provisioning events into notification events.
  */
 @Component
 public class AccountOperationListener implements ResourceOperationListener {
@@ -51,28 +46,17 @@ public class AccountOperationListener implements ResourceOperationListener {
 
     private static final String DOT_CLASS = AccountOperationListener.class.getName() + ".";
 
-    @Autowired
-    private LightweightIdentifierGenerator lightweightIdentifierGenerator;
-
-    @Autowired
-    private ChangeNotificationDispatcher provisioningNotificationDispatcher;
-
-    @Autowired
-    private NotificationManager notificationManager;
-
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private transient RepositoryService cacheRepositoryService;
-
-    @Autowired
-    private NotificationFunctionsImpl notificationsUtil;
+    @Autowired private PrismContext prismContext;
+    @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
+    @Autowired private ChangeNotificationDispatcher provisioningNotificationDispatcher;
+    @Autowired private NotificationManager notificationManager;
+    @Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
+    @Autowired private NotificationFunctionsImpl notificationsUtil;
 
     @PostConstruct
     public void init() {
         provisioningNotificationDispatcher.registerNotificationListener(this);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Registered account operation notification listener.");
-        }
+        LOGGER.trace("Registered account operation notification listener.");
     }
 
     @Override
@@ -153,23 +137,22 @@ public class AccountOperationListener implements ResourceOperationListener {
             return;
         }
 
-        ResourceObjectEvent request = createRequest(status, operationDescription, task, result);
+        ResourceObjectEventImpl request = createRequest(status, operationDescription, task, result);
         notificationManager.processEvent(request, task, result);
     }
 
-    private ResourceObjectEvent createRequest(OperationStatus status,
-                                              ResourceOperationDescription operationDescription,
-                                              Task task,
-                                              OperationResult result) {
+    @NotNull
+    private ResourceObjectEventImpl createRequest(OperationStatus status,
+            ResourceOperationDescription operationDescription,
+            Task task,
+            OperationResult result) {
 
-        ResourceObjectEvent event = new ResourceObjectEvent(lightweightIdentifierGenerator);
-        event.setAccountOperationDescription(operationDescription);
-        event.setOperationStatus(status);
-        event.setChangeType(operationDescription.getObjectDelta().getChangeType());       // fortunately there's 1:1 mapping
+        ResourceObjectEventImpl event = new ResourceObjectEventImpl(lightweightIdentifierGenerator,
+                operationDescription, status);
 
         String accountOid = operationDescription.getObjectDelta().getOid();
 
-        PrismObject<UserType> user = findRequestee(accountOid, task, result, operationDescription.getObjectDelta().isDelete());
+        PrismObject<UserType> user = findRequestee(accountOid, task, result);
         if (user != null) {
             event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, user.asObjectable()));
         }   // otherwise, appropriate messages were already logged
@@ -189,67 +172,29 @@ public class AccountOperationListener implements ResourceOperationListener {
         return event;
     }
 
-//    private boolean isRequestApplicable(ResourceObjectEvent request, NotificationConfigurationEntryType entry) {
-//
-//        ResourceOperationDescription opDescr = request.getAccountOperationDescription();
-//        OperationStatus status = request.getOperationStatus();
-//        ChangeType type = opDescr.getObjectDelta().getChangeType();
-//        return typeMatches(type, entry.getSituation(), opDescr) && statusMatches(status, entry.getSituation());
-//    }
-
-    private PrismObject<UserType> findRequestee(String accountOid, Task task, OperationResult result, boolean isDelete) {
-        PrismObject<UserType> user;
-
-        if (accountOid != null) {
+    private PrismObject<UserType> findRequestee(String shadowOid, Task task, OperationResult result) {
+        // This is (still) a temporary solution. We need to rework it eventually.
+        if (task != null && task.getRequestee() != null) {
+            return task.getRequestee();
+        } else if (shadowOid != null) {
             try {
-                user = cacheRepositoryService.listAccountShadowOwner(accountOid, result);
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("listAccountShadowOwner for account {} yields {}",accountOid, user);
-                }
-            } catch (ObjectNotFoundException e) {
-                LOGGER.trace("There's a problem finding account " + accountOid, e);
+                ObjectQuery query = prismContext.queryFor(UserType.class)
+                        .item(UserType.F_LINK_REF)
+                        .ref(shadowOid)
+                        .build();
+                SearchResultList<PrismObject<UserType>> prismObjects =
+                        cacheRepositoryService.searchObjects(UserType.class, query, null, result);
+                PrismObject<UserType> user = MiscUtil.extractSingleton(prismObjects);
+
+                LOGGER.trace("listAccountShadowOwner for shadow {} yields {}", shadowOid, user);
+                return user;
+            } catch (SchemaException e) {
+                LOGGER.trace("There's a problem finding account {}", shadowOid, e);
                 return null;
             }
-
-            if (user != null) {
-                return user;
-            }
-        }
-
-        PrismObject<UserType> requestee = task != null ? task.getRequestee() : null;
-        if (requestee == null) {
-            LOGGER.debug("There is no owner of account {} (in repo nor in task).", accountOid);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Task = {}", (task != null ? task.debugDump() : null));
-            }
-            return null;
-        }
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Requestee = {} for account {}", requestee, accountOid);
-        }
-        if (requestee.getOid() == null) {
-            return requestee;
-        }
-
-        // let's try to get current value of requestee ... if it exists (it will NOT exist in case of delete operation)
-        try {
-            return cacheRepositoryService.getObject(UserType.class, requestee.getOid(), null, result);
-        } catch (ObjectNotFoundException e) {
-            if (isDelete) {
-                result.removeLastSubresult();           // get rid of this error - it's not an error
-            }
-            return requestee;           // returning last known value
-//            if (!isDelete) {
-//                LoggingUtils.logException(LOGGER, "Cannot find owner of account " + accountOid, e);
-//            } else {
-//                LOGGER.info("Owner of account " + accountOid + " (user oid " + userOid + ") was probably already deleted.");
-//                result.removeLastSubresult();       // to suppress the error message (in GUI + in tests)
-//            }
-//            return null;
-        } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Cannot find owner of account " + accountOid, e);
+        } else {
+            LOGGER.debug("There is no owner of account {} (in repo nor in task).", shadowOid);
             return null;
         }
     }
-
 }

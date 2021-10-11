@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
@@ -48,125 +39,125 @@ import javax.xml.namespace.QName;
  */
 public class ShadowConstraintsChecker<F extends FocusType> {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ShadowConstraintsChecker.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowConstraintsChecker.class);
 
-	private LensProjectionContext projectionContext;
-	private LensContext<F> context;
-	private PrismContext prismContext;
-	private ProvisioningService provisioningService;
-	private boolean satisfiesConstraints;
-	private ConstraintsCheckingResult constraintsCheckingResult;
+    private LensProjectionContext projectionContext;
+    private LensContext<F> context;
+    private PrismContext prismContext;
+    private ProvisioningService provisioningService;
+    private boolean satisfiesConstraints;
+    private ConstraintsCheckingResult constraintsCheckingResult;
 
-	public ShadowConstraintsChecker(LensProjectionContext accountContext) {
-		this.projectionContext = accountContext;
-	}
+    public ShadowConstraintsChecker(LensProjectionContext accountContext) {
+        this.projectionContext = accountContext;
+    }
 
-	public LensProjectionContext getAccountContext() {
-		return projectionContext;
-	}
+    public LensProjectionContext getAccountContext() {
+        return projectionContext;
+    }
 
-	public void setAccountContext(LensProjectionContext accountContext) {
-		this.projectionContext = accountContext;
-	}
+    public void setAccountContext(LensProjectionContext accountContext) {
+        this.projectionContext = accountContext;
+    }
 
-	public PrismContext getPrismContext() {
-		return prismContext;
-	}
+    public PrismContext getPrismContext() {
+        return prismContext;
+    }
 
-	public void setPrismContext(PrismContext prismContext) {
-		this.prismContext = prismContext;
-	}
+    public void setPrismContext(PrismContext prismContext) {
+        this.prismContext = prismContext;
+    }
 
-	public ProvisioningService getProvisioningService() {
-		return provisioningService;
-	}
+    public ProvisioningService getProvisioningService() {
+        return provisioningService;
+    }
 
-	public void setProvisioningService(ProvisioningService provisioningService) {
-		this.provisioningService = provisioningService;
-	}
+    public void setProvisioningService(ProvisioningService provisioningService) {
+        this.provisioningService = provisioningService;
+    }
 
-	public LensContext<F> getContext() {
-		return context;
-	}
+    public LensContext<F> getContext() {
+        return context;
+    }
 
-	public void setContext(LensContext<F> context) {
-		this.context = context;
-	}
+    public void setContext(LensContext<F> context) {
+        this.context = context;
+    }
 
-	public boolean isSatisfiesConstraints() {
-		return satisfiesConstraints;
-	}
+    public boolean isSatisfiesConstraints() {
+        return satisfiesConstraints;
+    }
 
-	public String getMessages() {
-		return constraintsCheckingResult.getMessages();
-	}
+    public String getMessages() {
+        return constraintsCheckingResult.getMessages();
+    }
 
-	public PrismObject getConflictingShadow() {
-		return constraintsCheckingResult.getConflictingShadow();
-	}
+    public PrismObject getConflictingShadow() {
+        return constraintsCheckingResult.getConflictingShadow();
+    }
 
-	public void check(Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public void check(Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-		RefinedObjectClassDefinition projOcDef = projectionContext.getCompositeObjectClassDefinition();
-		PrismObject<ShadowType> projectionNew = projectionContext.getObjectNew();
-		if (projectionNew == null) {
-			// This must be delete
-			LOGGER.trace("No new object in projection context. Current shadow satisfy constraints");
-			satisfiesConstraints = true;
-			return;
-		}
+        RefinedObjectClassDefinition projOcDef = projectionContext.getCompositeObjectClassDefinition();
+        PrismObject<ShadowType> projectionNew = projectionContext.getObjectNew();
+        if (projectionNew == null) {
+            // This must be delete
+            LOGGER.trace("No new object in projection context. Current shadow satisfy constraints");
+            satisfiesConstraints = true;
+            return;
+        }
 
-		PrismContainer<?> attributesContainer = projectionNew.findContainer(ShadowType.F_ATTRIBUTES);
-		if (attributesContainer == null) {
-			// No attributes no constraint violations
-			LOGGER.trace("Current shadow does not contain attributes, skipping checking uniqueness.");
-			satisfiesConstraints = true;
-			return;
-		}
+        PrismContainer<?> attributesContainer = projectionNew.findContainer(ShadowType.F_ATTRIBUTES);
+        if (attributesContainer == null) {
+            // No attributes no constraint violations
+            LOGGER.trace("Current shadow does not contain attributes, skipping checking uniqueness.");
+            satisfiesConstraints = true;
+            return;
+        }
 
-		ConstraintViolationConfirmer confirmer = (conflictingShadowCandidate) -> {
-				boolean violation = true;
-				LensProjectionContext foundContext = context.findProjectionContextByOid(conflictingShadowCandidate.getOid());
-				if (foundContext != null) {
-					if (foundContext.getResourceShadowDiscriminator() != null) {
-						if (foundContext.getResourceShadowDiscriminator().isTombstone()) {
-							violation = false;
-						}
-						LOGGER.trace("Comparing with account in other context resulted to violation confirmation of {}", violation);
-					}
-				}
-				return violation;
-			};
+        ConstraintViolationConfirmer confirmer = (conflictingShadowCandidate) -> {
+                boolean violation = true;
+                LensProjectionContext foundContext = context.findProjectionContextByOid(conflictingShadowCandidate.getOid());
+                if (foundContext != null) {
+                    if (foundContext.getResourceShadowDiscriminator() != null) {
+                        if (foundContext.getResourceShadowDiscriminator().isTombstone()) {
+                            violation = false;
+                        }
+                        LOGGER.trace("Comparing with account in other context resulted to violation confirmation of {}", violation);
+                    }
+                }
+                return violation;
+            };
 
-		constraintsCheckingResult = provisioningService.checkConstraints(projOcDef, projectionNew,
-				projectionContext.getResource(), projectionContext.getOid(), projectionContext.getResourceShadowDiscriminator(),
-				confirmer, task, result);
+        constraintsCheckingResult = provisioningService.checkConstraints(projOcDef, projectionNew, projectionContext.getObjectOld(),
+                projectionContext.getResource(), projectionContext.getOid(), projectionContext.getResourceShadowDiscriminator(),
+                confirmer, context.getProjectionConstraintsCheckingStrategy(), task, result);
 
-		if (constraintsCheckingResult.isSatisfiesConstraints()) {
-			satisfiesConstraints = true;
-			return;
-		}
-		for (QName checkedAttributeName: constraintsCheckingResult.getCheckedAttributes()) {
-			if (constraintsCheckingResult.getConflictingAttributes().contains(checkedAttributeName)) {
-				if (isInDelta(checkedAttributeName, projectionContext.getPrimaryDelta())) {
-					throw new ObjectAlreadyExistsException("Attribute "+checkedAttributeName+" conflicts with existing object (and it is present in primary "+
-							"account delta therefore no iteration is performed)");
-				}
-			}
-		}
-		if (projectionContext.getResourceShadowDiscriminator() != null && projectionContext.getResourceShadowDiscriminator().isTombstone()) {
-			satisfiesConstraints = true;
-		} else {
-			satisfiesConstraints = false;
-		}
-	}
+        if (constraintsCheckingResult.isSatisfiesConstraints()) {
+            satisfiesConstraints = true;
+            return;
+        }
+        for (QName checkedAttributeName: constraintsCheckingResult.getCheckedAttributes()) {
+            if (constraintsCheckingResult.getConflictingAttributes().contains(checkedAttributeName)) {
+                if (isInDelta(checkedAttributeName, projectionContext.getPrimaryDelta())) {
+                    throw new ObjectAlreadyExistsException("Attribute "+checkedAttributeName+" conflicts with existing object (and it is present in primary "+
+                            "account delta therefore no iteration is performed)");
+                }
+            }
+        }
+        if (projectionContext.getResourceShadowDiscriminator() != null && projectionContext.getResourceShadowDiscriminator().isTombstone()) {
+            satisfiesConstraints = true;
+        } else {
+            satisfiesConstraints = false;
+        }
+    }
 
 
-	private boolean isInDelta(QName attrName, ObjectDelta<ShadowType> delta) {
-		if (delta == null) {
-			return false;
-		}
-		return delta.hasItemDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, attrName));
-	}
+    private boolean isInDelta(QName attrName, ObjectDelta<ShadowType> delta) {
+        if (delta == null) {
+            return false;
+        }
+        return delta.hasItemDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, attrName));
+    }
 
 }

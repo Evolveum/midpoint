@@ -1,137 +1,100 @@
-/**
- * Copyright (c) 2018 Evolveum
+/*
+ * Copyright (c) 2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.test.asserter;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.asserter.AbstractAsserter;
-import com.evolveum.midpoint.test.asserter.ObjectDeltaAsserter;
-import com.evolveum.midpoint.test.asserter.PrismObjectAsserter;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
+import com.evolveum.midpoint.test.asserter.prism.ObjectDeltaAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * @author semancik
- *
  */
-public class ProjectionContextAsserter<RA> extends AbstractAsserter<RA> {
-	
-	final private ModelProjectionContext projectionContext;
+public class ProjectionContextAsserter<RA> extends ElementContextAsserter<ModelProjectionContext,ShadowType,RA> {
 
-	public ProjectionContextAsserter(ModelProjectionContext projectionContext) {
-		super();
-		this.projectionContext = projectionContext;
-	}
-	
-	public ProjectionContextAsserter(ModelProjectionContext projectionContext, String detail) {
-		super(detail);
-		this.projectionContext = projectionContext;
-	}
-	
-	public ProjectionContextAsserter(ModelProjectionContext projectionContext, RA returnAsserter, String detail) {
-		super(returnAsserter, detail);
-		this.projectionContext = projectionContext;
-	}
-	
-	public ModelProjectionContext getProjectionContext() {
-		return projectionContext;
-	}
 
-	public ShadowAsserter<ProjectionContextAsserter<RA>> objectOld() {
-		ShadowAsserter<ProjectionContextAsserter<RA>> shadowAsserter = new ShadowAsserter<ProjectionContextAsserter<RA>>(
-				projectionContext.getObjectOld(), this, "object old in "+desc());
-		copySetupTo(shadowAsserter);
-		return shadowAsserter;
-	}
-	
-	public ShadowAsserter<ProjectionContextAsserter<RA>> objectCurrent() {
-		ShadowAsserter<ProjectionContextAsserter<RA>> shadowAsserter = new ShadowAsserter<ProjectionContextAsserter<RA>>(
-				projectionContext.getObjectCurrent(), this, "object current in "+desc());
-		copySetupTo(shadowAsserter);
-		return shadowAsserter;
-	}
-	
-	public ShadowAsserter<ProjectionContextAsserter<RA>> objectNew() {
-		ShadowAsserter<ProjectionContextAsserter<RA>> shadowAsserter = new ShadowAsserter<ProjectionContextAsserter<RA>>(
-				projectionContext.getObjectNew(), this, "object new in "+desc());
-		copySetupTo(shadowAsserter);
-		return shadowAsserter;
-	}
-	
-	public ObjectDeltaAsserter<ShadowType, ProjectionContextAsserter<RA>> primaryDelta() {
-		ObjectDeltaAsserter<ShadowType, ProjectionContextAsserter<RA>> deltaAsserter = new ObjectDeltaAsserter<>(
-				projectionContext.getPrimaryDelta(), this, "primary delta in "+desc());
-		copySetupTo(deltaAsserter);
-		return deltaAsserter;
-	}
-	
-	public ProjectionContextAsserter<RA> assertNoPrimaryDelta() {
-		assertNull("Unexpected primary delta in "+desc(), projectionContext.getPrimaryDelta());
-		return this;
-	}
-	
-	public ObjectDeltaAsserter<ShadowType, ProjectionContextAsserter<RA>> secondaryDelta() {
-		ObjectDeltaAsserter<ShadowType, ProjectionContextAsserter<RA>> deltaAsserter = new ObjectDeltaAsserter<>(
-				projectionContext.getSecondaryDelta(), this, "secondary delta in "+desc());
-		copySetupTo(deltaAsserter);
-		return deltaAsserter;
-	}
+    public ProjectionContextAsserter(ModelProjectionContext projectionContext) {
+        super(projectionContext);
+    }
 
-	public ProjectionContextAsserter<RA> assertNoSecondaryDelta() {
-		assertNull("Unexpected secondary delta in "+desc(), projectionContext.getSecondaryDelta());
-		return this;
-	}
+    public ProjectionContextAsserter(ModelProjectionContext projectionContext, String detail) {
+        super(projectionContext, detail);
+    }
 
-	protected String desc() {
-		// TODO: better desc
-		return descWithDetails(projectionContext);
-	}
-	
-	public ProjectionContextAsserter<RA> display() {
-		display(desc());
-		return this;
-	}
-	
-	public ProjectionContextAsserter<RA> display(String message) {
-		IntegrationTestTools.display(message, projectionContext);
-		return this;
-	}	
+    public ProjectionContextAsserter(ModelProjectionContext projectionContext, RA returnAsserter, String detail) {
+        super(projectionContext, returnAsserter, detail);
+    }
+
+    public ModelProjectionContext getProjectionContext() {
+        return getElementContext();
+    }
+
+    @Override
+    public ShadowAsserter<ProjectionContextAsserter<RA>> objectOld() {
+        ShadowAsserter<ProjectionContextAsserter<RA>> shadowAsserter = new ShadowAsserter<ProjectionContextAsserter<RA>>(
+                getProjectionContext().getObjectOld(), this, "object old in "+desc());
+        copySetupTo(shadowAsserter);
+        return shadowAsserter;
+    }
+
+    @Override
+    public ShadowAsserter<ProjectionContextAsserter<RA>> objectCurrent() {
+        ShadowAsserter<ProjectionContextAsserter<RA>> shadowAsserter = new ShadowAsserter<ProjectionContextAsserter<RA>>(
+                getProjectionContext().getObjectCurrent(), this, "object current in "+desc());
+        copySetupTo(shadowAsserter);
+        return shadowAsserter;
+    }
+
+    @Override
+    public ShadowAsserter<ProjectionContextAsserter<RA>> objectNew() {
+        ShadowAsserter<ProjectionContextAsserter<RA>> shadowAsserter = new ShadowAsserter<ProjectionContextAsserter<RA>>(
+                getProjectionContext().getObjectNew(), this, "object new in "+desc());
+        copySetupTo(shadowAsserter);
+        return shadowAsserter;
+    }
+
+    @Override
+    public ObjectDeltaAsserter<ShadowType, ProjectionContextAsserter<RA>> primaryDelta() {
+        return (ObjectDeltaAsserter<ShadowType, ProjectionContextAsserter<RA>>) super.primaryDelta();
+    }
+
+    @Override
+    public ProjectionContextAsserter<RA> assertNoPrimaryDelta() {
+        super.assertNoPrimaryDelta();
+        return this;
+    }
+
+    @Override
+    public ObjectDeltaAsserter<ShadowType, ProjectionContextAsserter<RA>> secondaryDelta() {
+        return (ObjectDeltaAsserter<ShadowType, ProjectionContextAsserter<RA>>) super.secondaryDelta();
+    }
+
+    @Override
+    public ProjectionContextAsserter<RA> assertNoSecondaryDelta() {
+        super.assertNoSecondaryDelta();
+        return this;
+    }
+
+    @Override
+    protected String desc() {
+        // TODO: better desc
+        return descWithDetails(getProjectionContext());
+    }
+
+    @Override
+    public ProjectionContextAsserter<RA> display() {
+        display(desc());
+        return this;
+    }
+
+    @Override
+    public ProjectionContextAsserter<RA> display(String message) {
+        PrismTestUtil.display(message, getProjectionContext());
+        return this;
+    }
 }

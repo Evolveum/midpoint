@@ -1,0 +1,77 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/ldap/ext"
+                oid="f86c9851-5724-4c6a-a7e8-59e25a6d4fd1">
+    <name>User Template</name>
+
+    <mapping>
+        <name>Resource role assignment</name>
+        <strength>strong</strength>
+        <source>
+            <path>extension/memberOf</path>
+        </source>
+        <target>
+            <path>assignment</path>
+        </target>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>RoleType</targetType>
+                <oid>f0649e42-122c-401c-8983-7dfbae8d0cd0</oid>
+                <!-- role-ldap -->
+            </assignmentTargetSearch>
+        </expression>
+        <condition>
+            <script>
+                <code>
+                    memberOf != null
+                </code>
+            </script>
+        </condition>
+    </mapping>
+
+    <mapping>
+        <name>Specific role assignment</name>
+        <strength>strong</strength>
+         <source>
+            <path>extension/memberOf</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>RoleType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>name</q:path>
+                        <expression>
+                            <script>
+                                <code>
+                                    memberOf
+                                </code>
+                            </script>
+                        </expression>
+                    </q:equal>
+                </filter>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <code>
+                    memberOf != null
+                </code>
+            </script>
+        </condition>
+    </mapping>
+
+</objectTemplate>

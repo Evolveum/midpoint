@@ -1,17 +1,8 @@
-/**
- * Copyright (c) 2015-2017 Evolveum
+/*
+ * Copyright (c) 2015-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.testing.conntest.ad;
 
@@ -28,41 +19,48 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-conntest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-conntest-test-main.xml" })
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestAdLdapChimeraRunAs extends AbstractAdLdapMultidomainRunAsTest {
 
-	@Override
-	protected String getResourceOid() {
-		return "eced6d24-73e3-11e5-8457-93eff15a6b85";
-	}
+    @Override
+    protected File getResourceFile() {
+        return new File(getBaseDir(), "resource-chimera-runas.xml");
+    }
 
-	@Override
-	protected File getResourceFile() {
-		return new File(getBaseDir(), "resource-chimera-runas.xml");
-	}
+    protected String getResourceOid() {
+        return "eced6d24-73e3-11e5-8457-93eff15a6b85";
+    }
 
-	@Override
-	protected String getLdapServerHost() {
-		return "chimera.ad.evolveum.com";
-	}
+    @Override
+    protected String getLdapServerHost() {
+        return "chimera.ad.evolveum.com";
+    }
 
-	@Override
-	protected int getLdapServerPort() {
-		return 636;
-	}
+    @Override
+    protected int getLdapServerPort() {
+        return 636;
+    }
 
-	@Override
-	protected void assertAccountDisabled(PrismObject<ShadowType> shadow) {
-		assertAdministrativeStatus(shadow, ActivationStatusType.DISABLED);
-	}
+    @Override
+    protected File getReconciliationTaskFile() {
+        return new File(getBaseDir(), "task-reconcile-chimera-users.xml");
+    }
 
-	@Override
-	protected void assertAccountEnabled(PrismObject<ShadowType> shadow) {
-		assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
-	}
+    @Override
+    protected String getReconciliationTaskOid() {
+        return "6e2689dc-88fa-11e9-a382-0baf927677fd";
+    }
 
+    @Override
+    protected void assertAccountDisabled(PrismObject<ShadowType> shadow) {
+        assertAdministrativeStatus(shadow, ActivationStatusType.DISABLED);
+    }
+
+    @Override
+    protected void assertAccountEnabled(PrismObject<ShadowType> shadow) {
+        assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
+    }
 }

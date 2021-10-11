@@ -1,45 +1,29 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManagerConfigurationException;
 import com.evolveum.midpoint.task.api.UseThreadInterrupt;
-import com.evolveum.midpoint.task.quartzimpl.cluster.NodeRegistrar;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionLimitationsType;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
-import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.*;
+import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
 
 /**
  * Task Manager configuration, derived from "taskManager" section of midPoint config,
@@ -51,10 +35,14 @@ import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.*;
  *
  * @author Pavol Mederly
  */
+@SuppressWarnings("DeprecatedIsStillUsed")
 @Component
 public class TaskManagerConfiguration {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TaskManagerConfiguration.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TaskManagerConfiguration.class);
+
+    @Autowired private RepositoryService repositoryService;
+    @Autowired private PrismContext prismContext;
 
     private static final String STOP_ON_INITIALIZATION_FAILURE_CONFIG_ENTRY = "stopOnInitializationFailure";
     private static final String THREADS_CONFIG_ENTRY = "threads";
@@ -65,16 +53,27 @@ public class TaskManagerConfiguration {
     private static final String JDBC_USER_CONFIG_ENTRY = "jdbcUser";
     private static final String JDBC_PASSWORD_CONFIG_ENTRY = "jdbcPassword";
     private static final String DATA_SOURCE_CONFIG_ENTRY = "dataSource";
+    private static final String USE_REPOSITORY_CONNECTION_PROVIDER_CONFIG_ENTRY = "useRepositoryConnectionProvider";     // experimental
+
     private static final String SQL_SCHEMA_FILE_CONFIG_ENTRY = "sqlSchemaFile";
     private static final String CREATE_QUARTZ_TABLES_CONFIG_ENTRY = "createQuartzTables";
     private static final String JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY = "jdbcDriverDelegateClass";
     private static final String USE_THREAD_INTERRUPT_CONFIG_ENTRY = "useThreadInterrupt";
-    private static final String JMX_CONNECT_TIMEOUT_CONFIG_ENTRY = "jmxConnectTimeout";
-    private static final String QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "quartzNodeRegistrationInterval";
+    @Deprecated private static final String JMX_CONNECT_TIMEOUT_CONFIG_ENTRY = "jmxConnectTimeout";
+    private static final String QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "quartzNodeRegistrationInterval";  // unused
+    private static final String QUARTZ_CLUSTER_CHECKIN_INTERVAL_CONFIG_ENTRY = "quartzClusterCheckinInterval";
+    private static final String QUARTZ_CLUSTER_CHECKIN_GRACE_PERIOD_CONFIG_ENTRY = "quartzClusterCheckinGracePeriod";
     private static final String NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "nodeRegistrationInterval";
+    private static final String NODE_ALIVENESS_CHECK_INTERVAL_CONFIG_ENTRY = "nodeAlivenessCheckInterval";
+    private static final String NODE_ALIVENESS_TIMEOUT_CONFIG_ENTRY = "nodeAlivenessTimeout";
+    private static final String NODE_STARTUP_TIMEOUT_CONFIG_ENTRY = "nodeStartupTimeout";
     private static final String NODE_TIMEOUT_CONFIG_ENTRY = "nodeTimeout";
-    private static final String JMX_USERNAME_CONFIG_ENTRY = "jmxUsername";
-    private static final String JMX_PASSWORD_CONFIG_ENTRY = "jmxPassword";
+    private static final String NODE_STARTUP_DELAY_CONFIG_ENTRY = "nodeStartupDelay";
+
+    private static final String CHECK_FOR_TASK_CONCURRENT_EXECUTION_CONFIG_ENTRY = "checkForTaskConcurrentExecution";
+    private static final String USE_JMX_CONFIG_ENTRY = "useJmx";
+    @Deprecated private static final String JMX_USERNAME_CONFIG_ENTRY = "jmxUsername";
+    @Deprecated private static final String JMX_PASSWORD_CONFIG_ENTRY = "jmxPassword";
     private static final String TEST_MODE_CONFIG_ENTRY = "testMode";
     private static final String WAITING_TASKS_CHECK_INTERVAL_CONFIG_ENTRY = "waitingTasksCheckInterval";
     private static final String STALLED_TASKS_CHECK_INTERVAL_CONFIG_ENTRY = "stalledTasksCheckInterval";
@@ -92,22 +91,30 @@ public class TaskManagerConfiguration {
     private static final String WORK_ALLOCATION_INITIAL_DELAY_ENTRY = "workAllocationInitialDelay";
     private static final String WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY = "workAllocationDefaultFreeBucketWaitInterval";
 
-    private static final String JMX_PORT_PROPERTY = "com.sun.management.jmxremote.port";
+    private static final String TASK_EXECUTION_LIMITATIONS_CONFIG_ENTRY = "taskExecutionLimitations";
+
+    @Deprecated private static final String JMX_PORT_PROPERTY = "com.sun.management.jmxremote.port";
     private static final String SUREFIRE_PRESENCE_PROPERTY = "surefire.real.class.path";
 
     private static final boolean STOP_ON_INITIALIZATION_FAILURE_DEFAULT = true;
     private static final int THREADS_DEFAULT = 10;
     private static final boolean CLUSTERED_DEFAULT = false;             // do not change this value!
     private static final boolean CREATE_QUARTZ_TABLES_DEFAULT = true;
-    private static final String NODE_ID_DEFAULT = "DefaultNode";
-    private static final int JMX_PORT_DEFAULT = 20001;
-    private static final int JMX_CONNECT_TIMEOUT_DEFAULT = 5;
+    @Deprecated private static final int JMX_PORT_DEFAULT = 20001;
+    @Deprecated private static final int JMX_CONNECT_TIMEOUT_DEFAULT = 5;
     private static final String USE_THREAD_INTERRUPT_DEFAULT = "whenNecessary";
-    private static final int QUARTZ_NODE_REGISTRATION_CYCLE_TIME_DEFAULT = 10;
     private static final int NODE_REGISTRATION_CYCLE_TIME_DEFAULT = 10;
+    private static final int NODE_ALIVENESS_CHECK_INTERVAL_DEFAULT = 120;
+    private static final int NODE_ALIVENESS_TIMEOUT_DEFAULT = 900;              // node should be down for 900 seconds before declaring as dead in the repository
+    private static final int NODE_STARTUP_TIMEOUT_DEFAULT = 900;              // node should be not checking in for 900 seconds before reporting it as starting too long
     private static final int NODE_TIMEOUT_DEFAULT = 30;
-    private static final String JMX_USERNAME_DEFAULT = "midpoint";
-    private static final String JMX_PASSWORD_DEFAULT = "secret";
+    private static final int NODE_STARTUP_DELAY_DEFAULT = 0;
+    private static final long QUARTZ_CLUSTER_CHECKIN_INTERVAL_DEFAULT = 7500;
+    private static final long QUARTZ_CLUSTER_CHECKIN_GRACE_PERIOD_DEFAULT = 7500;
+    private static final boolean CHECK_FOR_TASK_CONCURRENT_EXECUTION_DEFAULT = false;
+    private static final boolean USE_JMX_DEFAULT = false;
+    @Deprecated private static final String JMX_USERNAME_DEFAULT = "midpoint";
+    @Deprecated private static final String JMX_PASSWORD_DEFAULT = "secret";
     private static final int WAITING_TASKS_CHECK_INTERVAL_DEFAULT = 600;
     private static final int STALLED_TASKS_CHECK_INTERVAL_DEFAULT = 600;
     private static final int STALLED_TASKS_THRESHOLD_DEFAULT = 600;             // if a task does not advance its progress for 10 minutes, it is considered stalled
@@ -116,23 +123,31 @@ public class TaskManagerConfiguration {
 
     private static final int WORK_ALLOCATION_MAX_RETRIES_DEFAULT = 40;
     private static final long WORK_ALLOCATION_RETRY_INTERVAL_DEFAULT = 1000L;
-	private static final int WORK_ALLOCATION_RETRY_EXPONENTIAL_THRESHOLD_DEFAULT = 7;
+    private static final int WORK_ALLOCATION_RETRY_EXPONENTIAL_THRESHOLD_DEFAULT = 7;
     private static final long WORK_ALLOCATION_INITIAL_DELAY_DEFAULT = 5000L;
     private static final long WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_DEFAULT = 20000L;
-
-    private static final String NODE_ID_SOURCE_RANDOM = "random";
-    private static final String NODE_ID_SOURCE_HOSTNAME = "hostname";
 
     private boolean stopOnInitializationFailure;
     private int threads;
     private boolean jdbcJobStore;
     private boolean clustered;
     private String nodeId;
-    private String jmxHostName;
-    private int jmxPort;
-    private int jmxConnectTimeout;
-    private int quartzNodeRegistrationCycleTime;            // UNUSED (currently) !
-    private int nodeRegistrationCycleTime, nodeTimeout;
+    private String url;
+    private String hostName;
+    private Integer httpPort;
+
+    @Deprecated private String jmxHostName;
+    @Deprecated private int jmxPort;
+    @Deprecated private int jmxConnectTimeout;
+    private int nodeRegistrationCycleTime;                  // How often should node register itself in repository
+    private int nodeTimeout;                                // After what time should be node considered (temporarily) down.
+    private int nodeAlivenessTimeout;                       // After what time should be node considered (permanently) down and recorded as such in the repository.
+    private int nodeStartupTimeout;                         // After what time the node start-up is considered to be "too long".
+    private int nodeAlivenessCheckInterval;                 // How often to check for down nodes.
+    private int nodeStartupDelay;                           // # of seconds after which we declare the node as started and announce it as a part of the cluster
+    private long quartzClusterCheckinInterval;               // How often Quartz node registers itself in Quartz database (in milliseconds)
+    private long quartzClusterCheckinGracePeriod;            // How long can be Quartz node "unresponsive" (not checking in) (in milliseconds)
+    private boolean checkForTaskConcurrentExecution;
     private UseThreadInterrupt useThreadInterrupt;
     private int waitingTasksCheckInterval;
     private int stalledTasksCheckInterval;
@@ -149,9 +164,12 @@ public class TaskManagerConfiguration {
     private long workAllocationInitialDelay;
     private long workAllocationDefaultFreeBucketWaitInterval;
 
+    private TaskExecutionLimitationsType taskExecutionLimitations;
+
+    private boolean useJmx;
     // JMX credentials for connecting to remote nodes
-    private String jmxUsername;
-    private String jmxPassword;
+    @Deprecated private String jmxUsername;
+    @Deprecated private String jmxPassword;
 
     // quartz jdbc job store specific information
     private String sqlSchemaFile;
@@ -161,6 +179,7 @@ public class TaskManagerConfiguration {
     private String jdbcUser;
     private String jdbcPassword;
     private String dataSource;
+    private boolean useRepositoryConnectionProvider;
     private boolean createQuartzTables;
 
     private Database database;
@@ -184,7 +203,7 @@ public class TaskManagerConfiguration {
     private boolean midPointTestMode = false;
 
     private static final List<String> KNOWN_KEYS = Arrays.asList(
-            "midpoint.home",
+            MidpointConfiguration.MIDPOINT_HOME_PROPERTY,            // probably can be removed from this list
             STOP_ON_INITIALIZATION_FAILURE_CONFIG_ENTRY,
             THREADS_CONFIG_ENTRY,
             CLUSTERED_CONFIG_ENTRY,
@@ -194,14 +213,17 @@ public class TaskManagerConfiguration {
             JDBC_USER_CONFIG_ENTRY,
             JDBC_PASSWORD_CONFIG_ENTRY,
             DATA_SOURCE_CONFIG_ENTRY,
+            USE_REPOSITORY_CONNECTION_PROVIDER_CONFIG_ENTRY,
             SQL_SCHEMA_FILE_CONFIG_ENTRY,
             CREATE_QUARTZ_TABLES_CONFIG_ENTRY,
             JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY,
             USE_THREAD_INTERRUPT_CONFIG_ENTRY,
             JMX_CONNECT_TIMEOUT_CONFIG_ENTRY,
-            QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY,
+            QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY,     // unused
+            QUARTZ_CLUSTER_CHECKIN_INTERVAL_CONFIG_ENTRY, QUARTZ_CLUSTER_CHECKIN_GRACE_PERIOD_CONFIG_ENTRY,
             NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY,
             NODE_TIMEOUT_CONFIG_ENTRY,
+            USE_JMX_CONFIG_ENTRY,
             JMX_USERNAME_CONFIG_ENTRY,
             JMX_PASSWORD_CONFIG_ENTRY,
             TEST_MODE_CONFIG_ENTRY,
@@ -210,14 +232,20 @@ public class TaskManagerConfiguration {
             STALLED_TASKS_THRESHOLD_CONFIG_ENTRY,
             STALLED_TASKS_REPEATED_NOTIFICATION_INTERVAL_CONFIG_ENTRY,
             RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_CONFIG_ENTRY,
-			SCHEDULER_INITIALLY_STOPPED_CONFIG_ENTRY,
-		    LOCAL_NODE_CLUSTERING_ENABLED_CONFIG_ENTRY,
-		    WORK_ALLOCATION_MAX_RETRIES_ENTRY,
+            SCHEDULER_INITIALLY_STOPPED_CONFIG_ENTRY,
+            LOCAL_NODE_CLUSTERING_ENABLED_CONFIG_ENTRY,
+            WORK_ALLOCATION_MAX_RETRIES_ENTRY,
             WORK_ALLOCATION_RETRY_INTERVAL_BASE_ENTRY,
             WORK_ALLOCATION_RETRY_INTERVAL_LIMIT_ENTRY,
             WORK_ALLOCATION_INITIAL_DELAY_ENTRY,
             WORK_ALLOCATION_RETRY_EXPONENTIAL_THRESHOLD_ENTRY,
-            WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY
+            WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY,
+            TASK_EXECUTION_LIMITATIONS_CONFIG_ENTRY,
+            CHECK_FOR_TASK_CONCURRENT_EXECUTION_CONFIG_ENTRY,
+            NODE_ALIVENESS_TIMEOUT_CONFIG_ENTRY,
+            NODE_STARTUP_TIMEOUT_CONFIG_ENTRY,
+            NODE_STARTUP_DELAY_CONFIG_ENTRY,
+            NODE_ALIVENESS_CHECK_INTERVAL_CONFIG_ENTRY
     );
 
     void checkAllowedKeys(MidpointConfiguration masterConfig) throws TaskManagerConfigurationException {
@@ -229,7 +257,6 @@ public class TaskManagerConfiguration {
     private void checkAllowedKeys(Configuration c) throws TaskManagerConfigurationException {
         Set<String> knownKeysSet = new HashSet<>(TaskManagerConfiguration.KNOWN_KEYS);
 
-        //noinspection unchecked
         Iterator<String> keyIterator = c.getKeys();
         while (keyIterator.hasNext())  {
             String keyName = keyIterator.next();
@@ -245,7 +272,7 @@ public class TaskManagerConfiguration {
         }
     }
 
-    void setBasicInformation(MidpointConfiguration masterConfig) throws TaskManagerConfigurationException {
+    void setBasicInformation(MidpointConfiguration masterConfig, OperationResult result) throws TaskManagerConfigurationException {
         Configuration root = masterConfig.getConfiguration();
         Configuration c = masterConfig.getConfiguration(MidpointConfiguration.TASK_MANAGER_CONFIGURATION);
 
@@ -255,29 +282,23 @@ public class TaskManagerConfiguration {
         clustered = c.getBoolean(CLUSTERED_CONFIG_ENTRY, CLUSTERED_DEFAULT);
         jdbcJobStore = c.getBoolean(JDBC_JOB_STORE_CONFIG_ENTRY, clustered);
 
-        nodeId = root.getString(MidpointConfiguration.MIDPOINT_NODE_ID_PROPERTY, null);
-        if (StringUtils.isEmpty(nodeId)) {
-            String source = root.getString(MidpointConfiguration.MIDPOINT_NODE_ID_SOURCE_PROPERTY, null);
-            if (StringUtils.isEmpty(source)) {
-                nodeId = clustered ? null : NODE_ID_DEFAULT;
-            } else {
-                nodeId = provideNodeId(source);
-                LOGGER.info("Using node ID of '{}' as determined by the '{}' source", nodeId, source);
-            }
-        }
+        nodeId = new NodeIdComputer(prismContext, repositoryService).determineNodeId(root, clustered, result);
 
-        jmxHostName = System.getProperty(MidpointConfiguration.MIDPOINT_JMX_HOST_NAME_PROPERTY);
+        hostName = root.getString(MidpointConfiguration.MIDPOINT_HOST_NAME_PROPERTY, null);
+        jmxHostName = root.getString(MidpointConfiguration.MIDPOINT_JMX_HOST_NAME_PROPERTY, null);
 
-        String portString = System.getProperty(JMX_PORT_PROPERTY);
-        if (StringUtils.isEmpty(portString)) {
+        String jmxPortString = System.getProperty(JMX_PORT_PROPERTY);
+        if (StringUtils.isEmpty(jmxPortString)) {
             jmxPort = JMX_PORT_DEFAULT;
         } else {
             try {
-                jmxPort = Integer.parseInt(portString);
-            } catch(NumberFormatException nfe) {
-                throw new TaskManagerConfigurationException("Cannot get JMX management port - invalid integer value of " + portString, nfe);
+                jmxPort = Integer.parseInt(jmxPortString);
+            } catch (NumberFormatException e) {
+                throw new TaskManagerConfigurationException("Cannot get JMX management port - invalid integer value of " + jmxPortString, e);
             }
         }
+        httpPort = root.getInteger(MidpointConfiguration.MIDPOINT_HTTP_PORT_PROPERTY, null);
+        url = root.getString(MidpointConfiguration.MIDPOINT_URL_PROPERTY, null);
 
         jmxConnectTimeout = c.getInt(JMX_CONNECT_TIMEOUT_CONFIG_ENTRY, JMX_CONNECT_TIMEOUT_DEFAULT);
 
@@ -303,10 +324,19 @@ public class TaskManagerConfiguration {
             throw new TaskManagerConfigurationException("Illegal value for " + USE_THREAD_INTERRUPT_CONFIG_ENTRY + ": " + useTI, e);
         }
 
-        quartzNodeRegistrationCycleTime = c.getInt(QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY, QUARTZ_NODE_REGISTRATION_CYCLE_TIME_DEFAULT);
         nodeRegistrationCycleTime = c.getInt(NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY, NODE_REGISTRATION_CYCLE_TIME_DEFAULT);
+        nodeAlivenessCheckInterval = c.getInt(NODE_ALIVENESS_CHECK_INTERVAL_CONFIG_ENTRY, NODE_ALIVENESS_CHECK_INTERVAL_DEFAULT);
+        nodeAlivenessTimeout = c.getInt(NODE_ALIVENESS_TIMEOUT_CONFIG_ENTRY, NODE_ALIVENESS_TIMEOUT_DEFAULT);
+        nodeStartupTimeout = c.getInt(NODE_STARTUP_TIMEOUT_CONFIG_ENTRY, NODE_STARTUP_TIMEOUT_DEFAULT);
         nodeTimeout = c.getInt(NODE_TIMEOUT_CONFIG_ENTRY, NODE_TIMEOUT_DEFAULT);
+        nodeStartupDelay = c.getInt(NODE_STARTUP_DELAY_CONFIG_ENTRY, NODE_STARTUP_DELAY_DEFAULT);
 
+        quartzClusterCheckinInterval = c.getLong(QUARTZ_CLUSTER_CHECKIN_INTERVAL_CONFIG_ENTRY, QUARTZ_CLUSTER_CHECKIN_INTERVAL_DEFAULT);
+        quartzClusterCheckinGracePeriod = c.getLong(QUARTZ_CLUSTER_CHECKIN_GRACE_PERIOD_CONFIG_ENTRY, QUARTZ_CLUSTER_CHECKIN_GRACE_PERIOD_DEFAULT);
+
+        checkForTaskConcurrentExecution = c.getBoolean(CHECK_FOR_TASK_CONCURRENT_EXECUTION_CONFIG_ENTRY, CHECK_FOR_TASK_CONCURRENT_EXECUTION_DEFAULT);
+
+        useJmx = c.getBoolean(USE_JMX_CONFIG_ENTRY, USE_JMX_DEFAULT);
         jmxUsername = c.getString(JMX_USERNAME_CONFIG_ENTRY, JMX_USERNAME_DEFAULT);
         jmxPassword = c.getString(JMX_PASSWORD_CONFIG_ENTRY, JMX_PASSWORD_DEFAULT);
 
@@ -325,36 +355,58 @@ public class TaskManagerConfiguration {
         workAllocationInitialDelay = c.getLong(WORK_ALLOCATION_INITIAL_DELAY_ENTRY, WORK_ALLOCATION_INITIAL_DELAY_DEFAULT);
         workAllocationDefaultFreeBucketWaitInterval = c.getLong(WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY,
                 WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_DEFAULT);
-    }
 
-    private String provideNodeId(@NotNull String source) {
-        switch (source) {
-            case NODE_ID_SOURCE_RANDOM:
-                return "node-" + Math.round(Math.random() * 1000000000.0);
-            case NODE_ID_SOURCE_HOSTNAME:
-                try {
-                    String hostName = NodeRegistrar.getLocalHostNameFromOperatingSystem();
-                    if (hostName != null) {
-                        return hostName;
-                    } else {
-                        LOGGER.error("Couldn't determine nodeId as host name couldn't be obtained from the operating system");
-                        throw new SystemException(
-                                "Couldn't determine nodeId as host name couldn't be obtained from the operating system");
-                    }
-                } catch (UnknownHostException e) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine nodeId as host name couldn't be obtained from the operating system", e);
-                }
-            default:
-                throw new IllegalArgumentException("Unsupported node ID source: " + source);
+        if (c.containsKey(TASK_EXECUTION_LIMITATIONS_CONFIG_ENTRY)) {
+            taskExecutionLimitations = parseExecutionLimitations(c.getString(TASK_EXECUTION_LIMITATIONS_CONFIG_ENTRY));
         }
     }
 
-    private static final Map<Database, String> schemas = new HashMap<>();
-    private static final Map<Database, String> delegates = new HashMap<>();
+    // Examples:
+    //  - admin-node:2,sync-jobs:4      (2 threads for admin-node, 4 threads for sync-jobs, and the usual default settings)
+    //  - admin-node,sync-jobs          (unlimited threads for admin-node and sync-jobs; and the usual default settings)
+    //  - #,_,*:0                       (these are default settings: unlimited for the current node (marked as #) and for unlabeled tasks (marked as _), 0 for other tasks)
+    //  - admin-node:2,sync-jobs:4,#:0,_:0 (2 for admin-node, 4 for sync-jobs, and default settings are overridden - nothing for current node name, nothing for unlabeled tasks)
+    //
+    // We assume that no group name contains ':' or ',' characters.
+    //
+    // package-visible and static because of testing needs
+    static TaskExecutionLimitationsType parseExecutionLimitations(String limitations) throws TaskManagerConfigurationException {
+        if (limitations == null) {
+            return null;
+        } else {
+            TaskExecutionLimitationsType rv = new TaskExecutionLimitationsType();
+            for (String limitation : StringUtils.splitPreserveAllTokens(limitations.trim(), ',')) {
+                String[] limitationParts = limitation.trim().split(":");
+                String groupName;
+                Integer groupLimit;
+                if (limitationParts.length == 1) {
+                    groupName = limitationParts[0].trim();
+                    groupLimit = null;
+                } else if (limitationParts.length == 2) {
+                    groupName = limitationParts[0].trim();
+                    try {
+                        String limitValue = limitationParts[1].trim();
+                        groupLimit = "*".equals(limitValue) ? null : Integer.parseInt(limitValue);
+                    } catch (NumberFormatException e) {
+                        throw new TaskManagerConfigurationException("Couldn't parse limitation '" + limitation + "' in limitations specification '" + limitations, e);
+                    }
+                } else {
+                    throw new TaskManagerConfigurationException("Couldn't parse limitation '" + limitation + "' in limitations specification '" + limitations);
+                }
+                rv.beginGroupLimitation()
+                        .groupName(groupName)
+                        .limit(groupLimit);
+            }
+            return rv;
+        }
+    }
+
+    private static final Map<Database, String> SCHEMAS = new HashMap<>();
+    private static final Map<Database, String> DELEGATES = new HashMap<>();
 
     private static void addDbInfo(Database database, String schema, String delegate) {
-        schemas.put(database, schema);
-        delegates.put(database, delegate);
+        SCHEMAS.put(database, schema);
+        DELEGATES.put(database, delegate);
     }
 
     static {
@@ -370,46 +422,54 @@ public class TaskManagerConfiguration {
 
         Configuration c = masterConfig.getConfiguration(MidpointConfiguration.TASK_MANAGER_CONFIGURATION);
 
-        jdbcDriver = c.getString(JDBC_DRIVER_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getDriverClassName() : null);
-
-        String explicitJdbcUrl = c.getString(JDBC_URL_CONFIG_ENTRY, null);
-        if (explicitJdbcUrl == null) {
-            if (sqlConfig != null) {
-                if (sqlConfig.isEmbedded()) {
-                    jdbcUrl = defaultJdbcUrlPrefix + "-quartz;MVCC=TRUE;DB_CLOSE_ON_EXIT=FALSE";
-                } else {
-                    jdbcUrl = sqlConfig.getJdbcUrl();
-                }
-            } else {
-                jdbcUrl = null;
-            }
-        } else {
-            jdbcUrl = explicitJdbcUrl;
-        }
-        dataSource = c.getString(DATA_SOURCE_CONFIG_ENTRY, null);
-        if (dataSource == null && explicitJdbcUrl == null && sqlConfig != null) {
-            dataSource = sqlConfig.getDataSource();             // we want to use quartz-specific JDBC if there is one (i.e. we do not want to inherit data source from repo in such a case)
-        }
-
-        if (dataSource != null) {
-            LOGGER.info("Quartz database is at {} (a data source)", dataSource);
-        } else {
-            LOGGER.info("Quartz database is at {} (a JDBC URL)", jdbcUrl);
-        }
-
-        jdbcUser = c.getString(JDBC_USER_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getJdbcUsername() : null);
-        jdbcPassword = c.getString(JDBC_PASSWORD_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getJdbcPassword() : null);
-
         database = sqlConfig != null ? sqlConfig.getDatabase() : null;
 
-        String defaultSqlSchemaFile = schemas.get(database);
-        String defaultDriverDelegate = delegates.get(database);
+        String defaultSqlSchemaFile = SCHEMAS.get(database);
+        String defaultDriverDelegate = DELEGATES.get(database);
 
         sqlSchemaFile = c.getString(SQL_SCHEMA_FILE_CONFIG_ENTRY, defaultSqlSchemaFile);
         jdbcDriverDelegateClass = c.getString(JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY, defaultDriverDelegate);
 
         createQuartzTables = c.getBoolean(CREATE_QUARTZ_TABLES_CONFIG_ENTRY, CREATE_QUARTZ_TABLES_DEFAULT);
         databaseIsEmbedded = sqlConfig != null && sqlConfig.isEmbedded();
+
+        useRepositoryConnectionProvider = c.getBoolean(USE_REPOSITORY_CONNECTION_PROVIDER_CONFIG_ENTRY, false);
+        if (useRepositoryConnectionProvider) {
+            LOGGER.info("Using connection provider from repository (ignoring all the other database-related configuration)");
+            if (sqlConfig != null && sqlConfig.isUsingH2()) {
+                LOGGER.warn("This option is not supported for H2! Please change the task manager configuration.");
+            }
+        } else {
+            jdbcDriver = c.getString(JDBC_DRIVER_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getDriverClassName() : null);
+
+            String explicitJdbcUrl = c.getString(JDBC_URL_CONFIG_ENTRY, null);
+            if (explicitJdbcUrl == null) {
+                if (sqlConfig != null) {
+                    if (sqlConfig.isEmbedded()) {
+                        jdbcUrl = defaultJdbcUrlPrefix + "-quartz;MVCC=TRUE;DB_CLOSE_ON_EXIT=FALSE";
+                    } else {
+                        jdbcUrl = sqlConfig.getJdbcUrl();
+                    }
+                } else {
+                    jdbcUrl = null;
+                }
+            } else {
+                jdbcUrl = explicitJdbcUrl;
+            }
+            dataSource = c.getString(DATA_SOURCE_CONFIG_ENTRY, null);
+            if (dataSource == null && explicitJdbcUrl == null && sqlConfig != null) {
+                dataSource = sqlConfig.getDataSource();             // we want to use quartz-specific JDBC if there is one (i.e. we do not want to inherit data source from repo in such a case)
+            }
+
+            if (dataSource != null) {
+                LOGGER.info("Quartz database is at {} (a data source)", dataSource);
+            } else {
+                LOGGER.info("Quartz database is at {} (a JDBC URL)", jdbcUrl);
+            }
+
+            jdbcUser = c.getString(JDBC_USER_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getJdbcUsername() : null);
+            jdbcPassword = c.getString(JDBC_PASSWORD_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getJdbcPassword() : null);
+        }
     }
 
     /**
@@ -426,17 +486,14 @@ public class TaskManagerConfiguration {
             mustBeTrue(jdbcJobStore, "Clustered task manager requires JDBC Quartz job store.");
         }
 
-        notEmpty(nodeId, "Node identifier must be set when run in clustered mode.");
-        mustBeFalse(clustered && jmxPort == 0, "JMX port number must be known when run in clustered mode.");
+        notEmpty(nodeId, "Node identifier must be set.");
 
-        mustBeTrue(quartzNodeRegistrationCycleTime > 1 && quartzNodeRegistrationCycleTime <= 600, "Quartz node registration cycle time must be between 1 and 600 seconds");
         mustBeTrue(nodeRegistrationCycleTime > 1 && nodeRegistrationCycleTime <= 600, "Node registration cycle time must be between 1 and 600 seconds");
-        mustBeTrue(nodeTimeout > 5 && nodeTimeout <= 3600, "Node timeout must be between 5 and 3600 seconds");
+        mustBeTrue(nodeTimeout > 5, "Node timeout must be at least 5 seconds");
     }
 
     void validateJdbcJobStoreInformation() throws TaskManagerConfigurationException {
-
-        if (StringUtils.isEmpty(dataSource)) {
+        if (!useRepositoryConnectionProvider && StringUtils.isEmpty(dataSource)) {
             notEmpty(jdbcDriver, "JDBC driver must be specified (either explicitly or via data source; in task manager or in SQL repository configuration)");
             notEmpty(jdbcUrl, "JDBC URL must be specified (either explicitly or via data source; in task manager or in SQL repository configuration)");
             notNull(jdbcUser, "JDBC user name must be specified (either explicitly or via data source; in task manager or in SQL repository configuration)");
@@ -445,7 +502,7 @@ public class TaskManagerConfiguration {
         if (StringUtils.isEmpty(jdbcDriverDelegateClass)) {
             throw new TaskManagerConfigurationException("JDBC driver delegate class must be specified (either explicitly or "
                     + "through specifying a database type). It seems that the currently specified database ("
-                    + database + ") is not among supported ones (" + delegates.keySet() + "). "
+                    + database + ") is not among supported ones (" + DELEGATES.keySet() + "). "
                     + "Please check your repository configuration or specify driver delegate explicitly.");
         }
         notEmpty(sqlSchemaFile, "SQL schema file must be specified (either explicitly or through one of supported Hibernate dialects).");
@@ -465,13 +522,6 @@ public class TaskManagerConfiguration {
 
     private void mustBeTrue(boolean condition, String message) throws TaskManagerConfigurationException {
         if (!condition) {
-            throw new TaskManagerConfigurationException(message);
-        }
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private void mustBeFalse(boolean condition, String message) throws TaskManagerConfigurationException {
-        if (condition) {
             throw new TaskManagerConfigurationException(message);
         }
     }
@@ -546,13 +596,52 @@ public class TaskManagerConfiguration {
         return nodeTimeout;
     }
 
+    public int getNodeAlivenessTimeout() {
+        return nodeAlivenessTimeout;
+    }
+
+    public int getNodeStartupTimeout() {
+        return nodeStartupTimeout;
+    }
+
     public int getNodeRegistrationCycleTime() {
         return nodeRegistrationCycleTime;
     }
 
-    @SuppressWarnings("unused")
-    public int getQuartzNodeRegistrationCycleTime() {
-        return quartzNodeRegistrationCycleTime;
+    int getNodeStartupDelay() {
+        return nodeStartupDelay;
+    }
+
+    public long getQuartzClusterCheckinInterval() {
+        return quartzClusterCheckinInterval;
+    }
+
+    public long getQuartzClusterCheckinGracePeriod() {
+        return quartzClusterCheckinGracePeriod;
+    }
+
+    public int getNodeAlivenessCheckInterval() {
+        return nodeAlivenessCheckInterval;
+    }
+
+    public boolean isCheckForTaskConcurrentExecution() {
+        return checkForTaskConcurrentExecution;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public Integer getHttpPort() {
+        return httpPort;
+    }
+
+    public String getHostName() {
+        return hostName;
+    }
+
+    public boolean isUseJmx() {
+        return useJmx;
     }
 
     public String getJmxUsername() {
@@ -596,14 +685,18 @@ public class TaskManagerConfiguration {
         this.createQuartzTables = createQuartzTables;
     }
 
+    public boolean isUseRepositoryConnectionProvider() {
+        return useRepositoryConnectionProvider;
+    }
+
     public String getDataSource() {
         return dataSource;
     }
 
-	@SuppressWarnings("WeakerAccess")
+    @SuppressWarnings("WeakerAccess")
     public boolean isSchedulerInitiallyStopped() {
-		return schedulerInitiallyStopped;
-	}
+        return schedulerInitiallyStopped;
+    }
 
     @SuppressWarnings("WeakerAccess")
     public boolean isLocalNodeClusteringEnabled() {
@@ -623,14 +716,18 @@ public class TaskManagerConfiguration {
     }
 
     public int getWorkAllocationRetryExponentialThreshold() {
-		return workAllocationRetryExponentialThreshold;
-	}
+        return workAllocationRetryExponentialThreshold;
+    }
 
-	public long getWorkAllocationInitialDelay() {
+    public long getWorkAllocationInitialDelay() {
         return workAllocationInitialDelay;
     }
 
     public long getWorkAllocationDefaultFreeBucketWaitInterval() {
         return workAllocationDefaultFreeBucketWaitInterval;
+    }
+
+    public TaskExecutionLimitationsType getTaskExecutionLimitations() {
+        return taskExecutionLimitations;
     }
 }

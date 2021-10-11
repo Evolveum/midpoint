@@ -1,45 +1,23 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/**
- *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest.manual;
-
-import java.io.File;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.internals.InternalCounters;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import java.io.File;
 
 /**
  * MID-4347
- * 
+ *
  * @author Radovan Semancik
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
@@ -47,49 +25,49 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestManualGrouping extends AbstractGroupingManualResourceTest {
 
-	@Override
-	protected String getResourceOid() {
-		return RESOURCE_MANUAL_GROUPING_OID;
-	}
+    @Override
+    protected String getResourceOid() {
+        return RESOURCE_MANUAL_GROUPING_OID;
+    }
 
-	@Override
-	protected File getResourceFile() {
-		return RESOURCE_MANUAL_GROUPING_FILE;
-	}
+    @Override
+    protected File getResourceFile() {
+        return RESOURCE_MANUAL_GROUPING_FILE;
+    }
 
-	@Override
-	protected String getRoleOneOid() {
-		return ROLE_ONE_MANUAL_GROUPING_OID;
-	}
+    @Override
+    protected String getRoleOneOid() {
+        return ROLE_ONE_MANUAL_GROUPING_OID;
+    }
 
-	@Override
-	protected File getRoleOneFile() {
-		return ROLE_ONE_MANUAL_GROUPING_FILE;
-	}
+    @Override
+    protected File getRoleOneFile() {
+        return ROLE_ONE_MANUAL_GROUPING_FILE;
+    }
 
-	@Override
-	protected String getRoleTwoOid() {
-		return ROLE_TWO_MANUAL_GROUPING_OID;
-	}
+    @Override
+    protected String getRoleTwoOid() {
+        return ROLE_TWO_MANUAL_GROUPING_OID;
+    }
 
-	@Override
-	protected File getRoleTwoFile() {
-		return ROLE_TWO_MANUAL_GROUPING_FILE;
-	}
+    @Override
+    protected File getRoleTwoFile() {
+        return ROLE_TWO_MANUAL_GROUPING_FILE;
+    }
 
-	@Override
-	protected String getPropagationTaskOid() {
-		return TASK_PROPAGATION_MANUAL_GROUPING_OID;
-	}
+    @Override
+    protected String getPropagationTaskOid() {
+        return TASK_PROPAGATION_MANUAL_GROUPING_OID;
+    }
 
-	@Override
-	protected File getPropagationTaskFile() {
-		return TASK_PROPAGATION_MANUAL_GROUPING_FILE;
-	}
+    @Override
+    protected File getPropagationTaskFile() {
+        return TASK_PROPAGATION_MANUAL_GROUPING_FILE;
+    }
 
-	@Override
-	protected void assertResourceSchemaBeforeTest(Element resourceXsdSchemaElementBefore) {
-		AssertJUnit.assertNotNull("No schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
-	}
-	
+    @Override
+    protected void assertResourceSchemaBeforeTest(Element resourceXsdSchemaElementBefore) {
+        AssertJUnit.assertNotNull("No schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
+    }
+
 }

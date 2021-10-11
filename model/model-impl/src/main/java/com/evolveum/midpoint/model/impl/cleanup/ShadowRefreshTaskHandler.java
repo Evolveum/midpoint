@@ -1,21 +1,15 @@
 /*
- * Copyright (c) 2017 Evolveum
+ * Copyright (c) 2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.cleanup;
 
 import javax.annotation.PostConstruct;
+
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -36,6 +30,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 /**
  * Scanner that looks for pending operations in the shadows and updates the status.
@@ -45,73 +40,75 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @Component
 public class ShadowRefreshTaskHandler extends AbstractScannerTaskHandler<ShadowType, AbstractScannerResultHandler<ShadowType>> {
 
-	// WARNING! This task handler is efficiently singleton!
-	// It is a spring bean and it is supposed to handle all search task instances
-	// Therefore it must not have task-specific fields. It can only contain fields specific to
-	// all tasks of a specified type
+    // WARNING! This task handler is efficiently singleton!
+    // It is a spring bean and it is supposed to handle all search task instances
+    // Therefore it must not have task-specific fields. It can only contain fields specific to
+    // all tasks of a specified type
 
-	public static final String HANDLER_URI = ModelPublicConstants.SHADOW_REFRESH_TASK_HANDLER_URI;
+    public static final String HANDLER_URI = ModelPublicConstants.SHADOW_REFRESH_TASK_HANDLER_URI;
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(ShadowRefreshTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowRefreshTaskHandler.class);
 
-	@Autowired(required = true)
+    @Autowired
     protected ProvisioningService provisioningService;
 
-	public ShadowRefreshTaskHandler() {
+    public ShadowRefreshTaskHandler() {
         super(ShadowType.class, "Shadow refresh", OperationConstants.SHADOW_REFRESH);
     }
 
-	@PostConstruct
-	private void initialize() {
-		taskManager.registerHandler(HANDLER_URI, this);
-	}
+    @PostConstruct
+    private void initialize() {
+        taskManager.registerHandler(HANDLER_URI, this);
+    }
 
-	@Override
-	protected Class<ShadowType> getType(Task task) {
-		return ShadowType.class;
-	}
+    @Override
+    protected Class<ShadowType> getType(Task task) {
+        return ShadowType.class;
+    }
 
-	@Override
-	protected boolean requiresDirectRepositoryAccess(AbstractScannerResultHandler<ShadowType> resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
+    @Override
+    protected boolean requiresDirectRepositoryAccess(AbstractScannerResultHandler<ShadowType> resultHandler,
+            TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
         return true;
     }
 
-	@Override
-	protected ObjectQuery createQuery(AbstractScannerResultHandler<ShadowType> handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
+    @Override
+    protected ObjectQuery createQuery(AbstractScannerResultHandler<ShadowType> handler, TaskRunResult runResult,
+            Task coordinatorTask, OperationResult opResult) throws SchemaException {
+        ObjectQuery query = createQueryFromTask(handler, runResult, coordinatorTask, opResult);
 
-		ObjectQuery query = getPrismContext().queryFactory().createQuery();
-		ObjectFilter filter = prismContext.queryFor(ShadowType.class)
-				.exists(ShadowType.F_PENDING_OPERATION)
-			.buildFilter();
+        if (query.getFilter() == null) {
+            ObjectFilter filter = prismContext.queryFor(ShadowType.class)
+                    .exists(ShadowType.F_PENDING_OPERATION)
+                .buildFilter();
+            query.setFilter(filter);
+        }
 
-		query.setFilter(filter);
-		return query;
-	}
+        return query;
+    }
 
-	@Override
-	protected void finish(AbstractScannerResultHandler<ShadowType> handler, TaskRunResult runResult, Task task, OperationResult opResult)
-			throws SchemaException {
-		super.finish(handler, runResult, task, opResult);
-	}
+    @Override
+    protected AbstractScannerResultHandler<ShadowType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
+            OperationResult opResult) {
 
-	@Override
-	protected AbstractScannerResultHandler<ShadowType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
-			OperationResult opResult) {
+        AbstractScannerResultHandler<ShadowType> handler = new AbstractScannerResultHandler<ShadowType>(
+                coordinatorTask, ShadowRefreshTaskHandler.class.getName(), "shadowRefresh", "shadow refresh task", taskManager) {
+            @Override
+            protected boolean handleObject(PrismObject<ShadowType> object, RunningTask workerTask, OperationResult result) throws CommonException {
+                LOGGER.trace("Refreshing {}", object);
 
-		AbstractScannerResultHandler<ShadowType> handler = new AbstractScannerResultHandler<ShadowType>(
-				coordinatorTask, ShadowRefreshTaskHandler.class.getName(), "shadowRefresh", "shadow refresh task", taskManager) {
-			@Override
-			protected boolean handleObject(PrismObject<ShadowType> object, Task workerTask, OperationResult result) throws CommonException {
-				LOGGER.trace("Refreshing {}", object);
+                provisioningService.refreshShadow(object, null, workerTask, result);
 
-				provisioningService.refreshShadow(object, null, workerTask, result);
-
-				LOGGER.trace("Refreshed {}", object);
-				return true;
-			}
-		};
+                LOGGER.trace("Refreshed {}", object);
+                return true;
+            }
+        };
         handler.setStopOnError(false);
         return handler;
-	}
+    }
 
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
+    }
 }

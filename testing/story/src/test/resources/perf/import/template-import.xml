@@ -1,0 +1,81 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<objectTemplate
+    oid="e84d7b5a-4634-4b75-a17c-df0b8b49b593"
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+
+    <name>template-import</name>
+
+    <mapping>
+        <name>People Org. Assignment</name>
+        <source>
+            <name>loginName</name>
+            <path>$focus/name</path>
+        </source>
+        <expression>
+            <value>
+                <targetRef oid="2c8fdf1e-929e-45bf-a750-7822f5cc6de4" type="c:OrgType" />
+            </value>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <code>!basic.isEmpty(loginName)</code>
+            </script>
+        </condition>
+    </mapping>
+
+    <mapping>
+        <name>Check uniqueness of ID Number</name>
+        <source>
+            <c:path>$user/employeeNumber</c:path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    import com.evolveum.midpoint.util.exception.SchemaException;
+
+                    if (!midpoint.isUniquePropertyValue(user, "employeeNumber", employeeNumber))
+                    {
+                        throw new SchemaException("ID Number ["+ employeeNumber + "] is already in in use.");
+                    }
+                </code>
+            </script>
+        </expression>
+        <condition>
+            <script>
+                <code>
+                    employeeNumber != null
+                </code>
+            </script>
+        </condition>
+    </mapping>
+
+    <mapping>
+        <name>Formulate full name</name>
+        <source>
+            <c:path>$user/givenName</c:path>
+        </source>
+        <source>
+            <c:path>$user/familyName</c:path>
+        </source>
+        <expression>
+            <script>
+                <code>((givenName == null || givenName == '') ? '' : givenName + ' ') + (familyName == null ? '' : familyName)</code>
+            </script>
+        </expression>
+        <target>
+            <c:path>fullName</c:path>
+        </target>
+    </mapping>
+</objectTemplate>

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.importer;
 
@@ -32,6 +23,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -40,6 +32,8 @@ import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -88,7 +82,7 @@ public class ObjectImporter {
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repository;
     @Autowired private ModelService modelService;
     @Autowired private Clock clock;
-	@Autowired private Migrator migrator;
+    @Autowired private Migrator migrator;
 
     // this method is responsible for computing the operation result!
     public void importObjects(InputStream input, String language, ImportOptionsType options, Task task, OperationResult parentResult) {
@@ -97,307 +91,347 @@ public class ObjectImporter {
 
     private void importObjectsInternal(InputStream input, String language, ImportOptionsType options, Task task, OperationResult parentResult) {
 
-    	if (options != null) {
-		    if (isTrue(options.isSummarizeErrors())) {
-			    parentResult.setSummarizeErrors(true);
-		    }
-		    if (isTrue(options.isSummarizeSucceses())) {
-			    parentResult.setSummarizeSuccesses(true);
-		    }
-	    }
+        if (options != null) {
+            if (isTrue(options.isSummarizeErrors())) {
+                parentResult.setSummarizeErrors(true);
+            }
+            if (isTrue(options.isSummarizeSucceses())) {
+                parentResult.setSummarizeSuccesses(true);
+            }
+        }
 
-	    int stopAfterErrors = options != null && options.getStopAfterErrors() != null ?
-			    options.getStopAfterErrors() : 0;
+        int stopAfterErrors = options != null && options.getStopAfterErrors() != null ?
+                options.getStopAfterErrors() : 0;
 
-	    if (!PrismContext.LANG_XML.equals(language)) {
-		    AtomicInteger index = new AtomicInteger(0);
-		    AtomicInteger errors = new AtomicInteger(0);
-		    AtomicInteger successes = new AtomicInteger(0);
-		    PrismParser.ObjectHandler handler = new PrismParser.ObjectHandler() {
-			    @Override
-			    public boolean handleData(PrismObject<?> object) {
-				    OperationResult objectResult = parentResult.createSubresult(OperationConstants.IMPORT_OBJECT);
-				    objectResult.addContext("objectNumber", index.incrementAndGet());
-				    importParsedObject(object, objectResult, options, task);
-				    objectResult.computeStatusIfUnknown();
-					objectResult.cleanupResult();
-					parentResult.summarize();
+        if (!PrismContext.LANG_XML.equals(language)) {
+            AtomicInteger index = new AtomicInteger(0);
+            AtomicInteger errors = new AtomicInteger(0);
+            AtomicInteger successes = new AtomicInteger(0);
+            PrismParser.ObjectHandler handler = new PrismParser.ObjectHandler() {
+                @Override
+                public boolean handleData(PrismObject<?> object) {
+                    OperationResult objectResult = parentResult.createSubresult(OperationConstants.IMPORT_OBJECT);
+                    objectResult.addContext("objectNumber", index.incrementAndGet());
+                    importParsedObject(object, objectResult, options, task);
+                    objectResult.computeStatusIfUnknown();
+                    objectResult.cleanupResult();
+                    parentResult.summarize();
 
-				    if (objectResult.isAcceptable()) {
-				    	successes.incrementAndGet();
-				    } else {
-				    	errors.incrementAndGet();
-				    }
-				    return stopAfterErrors == 0 || errors.get() < stopAfterErrors;
-			    }
+                    if (objectResult.isAcceptable()) {
+                        successes.incrementAndGet();
+                    } else {
+                        errors.incrementAndGet();
+                    }
+                    return stopAfterErrors == 0 || errors.get() < stopAfterErrors;
+                }
 
-			    @Override
-			    public boolean handleError(Throwable t) {
-				    OperationResult objectResult = parentResult.createSubresult(OperationConstants.IMPORT_OBJECT);
-				    objectResult.addContext("objectNumber", index.incrementAndGet());
-				    objectResult.recordFatalError("Couldn't parse object", t);
-				    parentResult.summarize();
+                @Override
+                public boolean handleError(Throwable t) {
+                    OperationResult objectResult = parentResult.createSubresult(OperationConstants.IMPORT_OBJECT);
+                    objectResult.addContext("objectNumber", index.incrementAndGet());
+                    objectResult.recordFatalError("Couldn't parse object", t);
+                    parentResult.summarize();
 
-			    	errors.incrementAndGet();
-			    	return stopAfterErrors == 0 || errors.get() < stopAfterErrors;
-			    }
-		    };
-		    try {
-			    prismContext.parserFor(input).language(language).parseObjectsIteratively(handler);
-		    } catch (SchemaException|IOException e) {
-			    parentResult.recordFatalError("Couldn't parse objects to be imported: " + e.getMessage(), e);
-			    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse objects to be imported", e);
-			    return;
-		    }
-		    parentResult.computeStatus(errors.get() + " errors, " + successes.get() + " passed");
-	    } else {
-		    EventHandler handler = new EventHandler() {
+                    errors.incrementAndGet();
+                    return stopAfterErrors == 0 || errors.get() < stopAfterErrors;
+                }
+            };
+            PrismParser parser = prismContext.parserFor(input).language(language);
+            if (options != null && options.isCompatMode() != null && options.isCompatMode()) {
+                parser = parser.compat();
+            }
+            try {
+                parser.parseObjectsIteratively(handler);
+            } catch (SchemaException|IOException e) {
+                parentResult.recordFatalError("Couldn't parse objects to be imported: " + e.getMessage(), e);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse objects to be imported", e);
+                return;
+            }
+            parentResult.computeStatus(errors.get() + " errors, " + successes.get() + " passed");
+        } else {
+            EventHandler handler = new EventHandler() {
 
-			    @Override
-			    public EventResult preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult) {
-				    return EventResult.cont();
-			    }
+                @Override
+                public EventResult preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult) {
+                    return EventResult.cont();
+                }
 
-			    @Override
-			    public <T extends Objectable> EventResult postMarshall(PrismObject<T> prismObjectObjectable,
-					    Element objectElement, OperationResult objectResult) {
-				    return importParsedObject(prismObjectObjectable, objectResult, options, task);
-			    }
+                @Override
+                public <T extends Objectable> EventResult postMarshall(PrismObject<T> prismObjectObjectable,
+                        Element objectElement, OperationResult objectResult) {
+                    return importParsedObject(prismObjectObjectable, objectResult, options, task);
+                }
 
-			    @Override
-			    public void handleGlobalError(OperationResult currentResult) {
-				    // No reaction
-			    }
-		    };
+                @Override
+                public void handleGlobalError(OperationResult currentResult) {
+                    // No reaction
+                }
+            };
 
-		    LegacyValidator validator = new LegacyValidator(prismContext, handler);
-		    validator.setVerbose(true);
-		    if (options != null) {
-			    validator.setValidateSchema(isTrue(options.isValidateStaticSchema()));
-			    if (options.getModelExecutionOptions() != null && isFalse(options.getModelExecutionOptions().isRaw())) {
-			    	// model will take care of this
-				    validator.setValidateName(false);
-			    }
-		    }
-		    validator.setStopAfterErrors(stopAfterErrors);
-		    validator.validate(input, parentResult, OperationConstants.IMPORT_OBJECT);
-	    }
+            LegacyValidator validator = new LegacyValidator(prismContext, handler);
+            validator.setVerbose(true);
+            if (options != null) {
+                validator.setValidateSchema(isTrue(options.isValidateStaticSchema()));
+                if (options.getModelExecutionOptions() != null && isFalse(options.getModelExecutionOptions().isRaw())) {
+                    // model will take care of this
+                    validator.setValidateName(false);
+                }
+            }
+            validator.setStopAfterErrors(stopAfterErrors);
+            if (options != null && options.isCompatMode() != null && options.isCompatMode()) {
+                validator.setCompatMode(true);
+            }
+            validator.validate(input, parentResult, OperationConstants.IMPORT_OBJECT);
+        }
     }
 
-	@NotNull
-	private <T extends Objectable> EventResult importParsedObject(PrismObject<T> prismObjectObjectable,
-			OperationResult objectResult, ImportOptionsType options, Task task) {
-		LOGGER.debug("Importing object {}", prismObjectObjectable);
+    @NotNull
+    private <T extends Objectable> EventResult importParsedObject(PrismObject<T> prismObjectObjectable,
+            OperationResult objectResult, ImportOptionsType options, Task task) {
+        LOGGER.debug("Importing object {}", prismObjectObjectable);
 
-		T objectable = prismObjectObjectable.asObjectable();
-		if (!(objectable instanceof ObjectType)) {
-			String message = "Cannot process type "+objectable.getClass()+" as it is not a subtype of "+ObjectType.class;
-			objectResult.recordFatalError(message);
-		    LOGGER.error("Import of object {} failed: {}",
-		            new Object[]{prismObjectObjectable, message});
-		    return EventResult.skipObject(message);
-		}
-		//noinspection unchecked
-		PrismObject<? extends ObjectType> object = (PrismObject<? extends ObjectType>) prismObjectObjectable;
+        T objectable = prismObjectObjectable.asObjectable();
+        if (!(objectable instanceof ObjectType)) {
+            String message = "Cannot process type "+objectable.getClass()+" as it is not a subtype of "+ObjectType.class;
+            objectResult.recordFatalError(message);
+            LOGGER.error("Import of object {} failed: {}",
+                    new Object[]{prismObjectObjectable, message});
+            return EventResult.skipObject(message);
+        }
+        //noinspection unchecked
+        PrismObject<? extends ObjectType> object = (PrismObject<? extends ObjectType>) prismObjectObjectable;
 
-		LOGGER.trace("IMPORTING object:\n{}", object.debugDumpLazily());
+        LOGGER.trace("IMPORTING object:\n{}", object.debugDumpLazily());
 
-		object = migrator.migrate(object);
+        object = migrator.migrate(object);
 
-		ModelImplUtils.resolveReferences(object, repository,
-				(options == null || options.isReferentialIntegrity() == null) ? false : options.isReferentialIntegrity(),
-		        false, EvaluationTimeType.IMPORT, false, prismContext, objectResult);
+        ModelImplUtils.resolveReferences(object, repository,
+                (options == null || options.isReferentialIntegrity() == null) ? false : options.isReferentialIntegrity(),
+                false, EvaluationTimeType.IMPORT, false, prismContext, objectResult);
 
-		objectResult.computeStatus();
-		if (!objectResult.isAcceptable()) {
-			return EventResult.skipObject(objectResult.getMessage());
-		}
+        objectResult.computeStatus();
+        if (!objectResult.isAcceptable()) {
+            return EventResult.skipObject(objectResult.getMessage());
+        }
 
-		generateIdentifiers(object, repository,  objectResult);
+        generateIdentifiers(object, repository,  objectResult);
 
-		objectResult.computeStatus();
-		if (!objectResult.isAcceptable()) {
-			return EventResult.skipObject(objectResult.getMessage());
-		}
+        objectResult.computeStatus();
+        if (!objectResult.isAcceptable()) {
+            return EventResult.skipObject(objectResult.getMessage());
+        }
 
-		if (options != null && isTrue(options.isValidateDynamicSchema())) {
-		    validateWithDynamicSchemas(object, repository, objectResult);
-		}
+        if (options != null && isTrue(options.isValidateDynamicSchema())) {
+            validateWithDynamicSchemas(object, repository, objectResult);
+        }
 
-		objectResult.computeStatus();
-		if (!objectResult.isAcceptable()) {
-			return EventResult.skipObject(objectResult.getMessage());
-		}
+        objectResult.computeStatus();
+        if (!objectResult.isAcceptable()) {
+            return EventResult.skipObject(objectResult.getMessage());
+        }
 
-		if (options != null && isTrue(options.isEncryptProtectedValues())) {
-			OperationResult opResult = objectResult.createMinorSubresult(ObjectImporter.class.getName()+".encryptValues");
-			try {
-				CryptoUtil.encryptValues(protector, object);
-				opResult.recordSuccess();
-			} catch (EncryptionException e) {
-				opResult.recordFatalError(e);
-			}
-		}
+        if (options != null && isTrue(options.isEncryptProtectedValues())) {
+            OperationResult opResult = objectResult.createMinorSubresult(ObjectImporter.class.getName()+".encryptValues");
+            try {
+                CryptoUtil.encryptValues(protector, object);
+                opResult.recordSuccess();
+            } catch (EncryptionException e) {
+                opResult.recordFatalError(e);
+            }
+        }
 
-		if (options == null || !isTrue(options.isKeepMetadata())) {
-			MetadataType metaData = new MetadataType();
-				String channel = SchemaConstants.CHANNEL_OBJECT_IMPORT_URI;
-				metaData.setCreateChannel(channel);
-				metaData.setCreateTimestamp(clock.currentTimeXMLGregorianCalendar());
-				if (task.getOwner() != null) {
-					metaData.setCreatorRef(ObjectTypeUtil.createObjectRef(task.getOwner(), prismContext));
-				}
-				object.asObjectable().setMetadata(metaData);
-		}
+        if (options == null || !isTrue(options.isKeepMetadata())) {
+            MetadataType metaData = new MetadataType();
+                String channel = SchemaConstants.CHANNEL_OBJECT_IMPORT_URI;
+                metaData.setCreateChannel(channel);
+                metaData.setCreateTimestamp(clock.currentTimeXMLGregorianCalendar());
+                if (task.getOwner() != null) {
+                    metaData.setCreatorRef(ObjectTypeUtil.createObjectRef(task.getOwner(), prismContext));
+                }
+                object.asObjectable().setMetadata(metaData);
+        }
 
-		objectResult.computeStatus();
-		if (!objectResult.isAcceptable()) {
-			return EventResult.skipObject(objectResult.getMessage());
-		}
+        objectResult.computeStatus();
+        if (!objectResult.isAcceptable()) {
+            return EventResult.skipObject(objectResult.getMessage());
+        }
 
-		// TODO do reporting more seriously e.g. using localized messages
-		try {
-			importObjectToRepository(object, options, task, objectResult);
-		    LOGGER.info("Imported object {}", object);
-		} catch (SchemaException e) {
-			recordError(objectResult, object, "Schema violation", e);
-		} catch (ObjectAlreadyExistsException e) {
-			recordError(objectResult, object, "Object already exists", e);
-		} catch (RuntimeException e) {
-			recordError(objectResult, object, "Unexpected problem", e);
-		} catch (ObjectNotFoundException e) {
-			recordError(objectResult, object, "Referred object not found", e);
-		} catch (ExpressionEvaluationException e) {
-			recordError(objectResult, object, "Expression evaluation error", e);
-		} catch (CommunicationException e) {
-			recordError(objectResult, object, "Communication error", e);
-		} catch (ConfigurationException e) {
-			recordError(objectResult, object, "Configuration error", e);
-		} catch (PolicyViolationException e) {
-			recordError(objectResult, object, "Policy violation", e);
-		} catch (SecurityViolationException e) {
-			recordError(objectResult, object, "Security violation", e);
-		}
+        // TODO do reporting more seriously e.g. using localized messages
+        try {
+            importObjectToRepository(object, options, task, objectResult);
+            LOGGER.info("Imported object {}", object);
+        } catch (SchemaException e) {
+            recordError(objectResult, object, "Schema violation", e);
+        } catch (ObjectAlreadyExistsException e) {
+            recordError(objectResult, object, "Object already exists", e);
+        } catch (RuntimeException e) {
+            recordError(objectResult, object, "Unexpected problem", e);
+        } catch (ObjectNotFoundException e) {
+            recordError(objectResult, object, "Referred object not found", e);
+        } catch (ExpressionEvaluationException e) {
+            recordError(objectResult, object, "Expression evaluation error", e);
+        } catch (CommunicationException e) {
+            recordError(objectResult, object, "Communication error", e);
+        } catch (ConfigurationException e) {
+            recordError(objectResult, object, "Configuration error", e);
+        } catch (PolicyViolationException e) {
+            recordError(objectResult, object, "Policy violation", e);
+        } catch (SecurityViolationException e) {
+            recordError(objectResult, object, "Security violation", e);
+        }
 
-		objectResult.recordSuccessIfUnknown();
-		if (objectResult.isAcceptable()) {
-		    // Continue import
-		    return EventResult.cont();
-		} else {
-		    return EventResult.skipObject(objectResult.getMessage());
-		}
-	}
+        objectResult.recordSuccessIfUnknown();
+        if (objectResult.isAcceptable()) {
+            // Continue import
+            return EventResult.cont();
+        } else {
+            return EventResult.skipObject(objectResult.getMessage());
+        }
+    }
 
-	private void recordError(OperationResult objectResult, PrismObject<? extends ObjectType> object, String errorLabel, Exception e) {
-		String objectLabel = object != null && object.getName() != null
-				? object.asObjectable().getClass().getSimpleName() + " \"" + object.getName().getOrig() + "\""
-				: "object";
-		// We intentionally do NOT record the exception here, because it could override our message with the localizable
-		// one it (potentially) carries. And we really want to show the following message as it contains the name of the object
-		// that couldn't be imported. We hope the exception is recorded in some inner result.
-		objectResult.recordFatalError("Import of " + objectLabel + " failed: " + errorLabel + ": " + e.getMessage());
-		LOGGER.error("Import of object {} failed: {}: {}", object, errorLabel, e.getMessage(), e);
-	}
+    private void recordError(OperationResult objectResult, PrismObject<? extends ObjectType> object, String errorLabel, Exception e) {
+        String objectLabel = object != null && object.getName() != null
+                ? object.asObjectable().getClass().getSimpleName() + " \"" + object.getName().getOrig() + "\""
+                : "object";
+        // We intentionally do NOT record the exception here, because it could override our message with the localizable
+        // one it (potentially) carries. And we really want to show the following message as it contains the name of the object
+        // that couldn't be imported. We hope the exception is recorded in some inner result.
+        objectResult.recordFatalError("Import of " + objectLabel + " failed: " + errorLabel + ": " + e.getMessage());
+        LOGGER.error("Import of object {} failed: {}: {}", object, errorLabel, e.getMessage(), e);
+    }
 
-	private <T extends ObjectType> void importObjectToRepository(PrismObject<T> object, ImportOptionsType options, Task task,
-			OperationResult objectResult) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-			ConfigurationException, PolicyViolationException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException {
+    private <T extends ObjectType> void importObjectToRepository(PrismObject<T> object, ImportOptionsType options, Task task,
+            OperationResult objectResult) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, PolicyViolationException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException {
 
         OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".importObjectToRepository");
 
         if (options == null) {
-        	options = new ImportOptionsType();
+            options = new ImportOptionsType();
         }
 
         if (isTrue(options.isKeepOid()) && object.getOid() == null) {
-			// Try to check if there is existing object with the same type and name
-        	ObjectQuery query = ObjectQueryUtil.createNameQuery(object);
-        	List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, null, result);
-        	if (foundObjects.size() == 1) {
-        		String oid = foundObjects.iterator().next().getOid();
-        		object.setOid(oid);
-        	}
+            // Try to check if there is existing object with the same type and name
+            ObjectQuery query = ObjectQueryUtil.createNameQuery(object);
+            List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, null, result);
+            if (foundObjects.size() == 1) {
+                String oid = foundObjects.iterator().next().getOid();
+                object.setOid(oid);
+            }
         }
 
         try {
-			String oid = addObject(object, isTrue(options.isOverwrite()), options, task, result);
-
-            if (object.canRepresent(TaskType.class)) {
-            	taskManager.onTaskCreate(oid, result);
-            }
+            addObject(object, isTrue(options.isOverwrite()), options, task, result);
             result.recordSuccess();
 
         } catch (ObjectAlreadyExistsException e) {
-        	if (isTrue(options.isOverwrite()) && isNotTrue(options.isKeepOid()) && object.getOid() == null) {
-     	 	 	// This is overwrite, without keep oid, therefore we do not have conflict on OID
-        		// this has to be conflict on name. So try to delete the conflicting object and create new one (with a new OID).
-        		result.muteLastSubresultError();
-        		ObjectQuery query = ObjectQueryUtil.createNameQuery(object);
-            	List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, null, result);
-            	if (foundObjects.size() == 1) {
-            		PrismObject<T> foundObject = foundObjects.iterator().next();
-            		String deletedOid = deleteObject(foundObject, repository, result);
-         	 	 	if (deletedOid != null) {
-         	 	 		if (object.canRepresent(TaskType.class)) {
-         	 	 			taskManager.onTaskDelete(deletedOid, result);
-         	 	 		}
-         	 	 		if (isTrue(options.isKeepOid())) {
-         	 	 			object.setOid(deletedOid);
-         	 	 		}
-         	 	 		addObject(object, false, options, task, result);
-	         	 	 	if (object.canRepresent(TaskType.class)) {
-	         	 	 		taskManager.onTaskCreate(object.getOid(), result);
-	         	 	 	}
-	         	 	 	result.recordSuccess();
-         	 	 	} else {
-         	 	 		// cannot delete, throw original exception
-                        result.recordFatalError("Object already exists, cannot overwrite", e);
-                        throw e;
-         	 	 	}
-            	} else {
-            		// Cannot locate conflicting object
-            		String message = "Conflicting object already exists but it was not possible to precisely locate it, "+foundObjects.size()+" objects with same name exist";
-            		result.recordFatalError(message, e);
-                 	throw new ObjectAlreadyExistsException(message, e);
-            	}
-        	} else {
-        		result.recordFatalError(e);
-             	throw e;
-        	}
+            if (isTrue(options.isOverwrite()) && isNotTrue(options.isKeepOid())) {
+                   // This is overwrite, without keep oid, therefore we do not have conflict on OID
+                // this has to be conflict on name. So try to delete the conflicting object and create new one (with a new OID).
+                result.muteLastSubresultError();
+                PrismObject<T> foundObject;
+                if (object.getOid() == null) {
+                    ObjectQuery query = ObjectQueryUtil.createNameQuery(object);
+                    List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, null, result);
+                    if (foundObjects.size() != 1) {
+                        // Cannot locate conflicting object
+                        String message = "Conflicting object already exists but it was not possible to precisely locate it, "+foundObjects.size()+" objects with same name exist";
+                        result.recordFatalError(message, e);
+                        throw new ObjectAlreadyExistsException(message, e);
+                    }
+                    foundObject = foundObjects.iterator().next();
+                } else {
+                    ObjectQuery queryByName = ObjectQueryUtil.createNameQuery(object);
+                    List<PrismObject<T>> foundObjectsByName = repository.searchObjects(object.getCompileTimeClass(), queryByName, null, result);
+                    ObjectQuery queryByOid = ObjectQueryUtil.createOidQuery(object);
+                    List<PrismObject<T>> foundObjectsByOid = repository.searchObjects(object.getCompileTimeClass(), queryByOid, null, result);
+                    if (foundObjectsByName.size() == 1 && foundObjectsByOid.isEmpty()) {
+                        foundObject = foundObjectsByName.iterator().next();
+                    } else if (foundObjectsByName.isEmpty() && foundObjectsByOid.size() == 1) {
+                        foundObject = foundObjectsByOid.iterator().next();
+                    } else if (foundObjectsByName.size() == 1 && foundObjectsByOid.size() == 1) {
+                        PrismObject<T> foundObjectByName = foundObjectsByName.iterator().next();
+                        PrismObject<T> foundObjectByOid = foundObjectsByOid.iterator().next();
+                        if (foundObjectByName.getOid().equals(foundObjectByOid.getOid())) {
+                            foundObject = foundObjectByName;
+                        } else {
+                            String message = "Conflicting object already exists but it was not possible to precisely locate it, found object by name "+foundObjectByName.getName().getOrig()+
+                                    "(oid:"+foundObjectByName.getOid()+") and found object by oid "+foundObjectByOid.getName().getOrig()+"(oid:"+foundObjectByOid.getOid()+") not same";
+                            result.recordFatalError(message, e);
+                            throw new ObjectAlreadyExistsException(message, e);
+                        }
+                    } else {
+                        String message = "Conflicting object already exists but it was not possible to precisely locate it, "+foundObjectsByName.size()+" objects with same name exist and "+
+                                foundObjectsByOid.size()+" objects with same oid exist";
+                        result.recordFatalError(message, e);
+                        throw new ObjectAlreadyExistsException(message, e);
+                    }
+                }
+
+                String deletedOid = deleteObject(foundObject, repository, result);
+                if (deletedOid != null) {
+                    if (object.canRepresent(TaskType.class)) {
+                        taskManager.onTaskDelete(deletedOid, result);
+                    }
+                    if (isTrue(options.isKeepOid())) {
+                        object.setOid(deletedOid);
+                    }
+                    addObject(object, false, options, task, result);
+                    result.recordSuccess();
+                    // cannot delete, throw original exception
+
+                } else {
+                    result.recordFatalError("Object already exists, cannot overwrite", e);
+                    throw e;
+                }
+            } else {
+                result.recordFatalError(e);
+                 throw e;
+            }
         } catch (ObjectNotFoundException | ExpressionEvaluationException | CommunicationException
-				| ConfigurationException | PolicyViolationException | SecurityViolationException | SchemaException e) {
-        	result.recordFatalError("Cannot import " + object + ": "+e.getMessage(), e);
-        	throw e;
+                | ConfigurationException | PolicyViolationException | SecurityViolationException | SchemaException e) {
+            result.recordFatalError("Cannot import " + object + ": "+e.getMessage(), e);
+            throw e;
         } catch (RuntimeException ex){
-        	result.recordFatalError("Couldn't import object: " + object +". Reason: " + ex.getMessage(), ex);
-        	throw ex;
+            result.recordFatalError("Couldn't import object: " + object +". Reason: " + ex.getMessage(), ex);
+            throw ex;
         }
     }
 
-    private <T extends ObjectType> String addObject(PrismObject<T> object, boolean overwrite, ImportOptionsType importOptions,
-		    Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    private <T extends ObjectType> void addObject(PrismObject<T> object, boolean overwrite, ImportOptionsType importOptions,
+            Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 
-    	ObjectDelta<T> delta = DeltaFactory.Object.createAddDelta(object);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
-		ModelExecuteOptions modelOptions;
-	    if (importOptions.getModelExecutionOptions() != null) {
-		    modelOptions = ModelExecuteOptions.fromModelExecutionOptionsType(importOptions.getModelExecutionOptions());
-	    } else {
-		    modelOptions = new ModelExecuteOptions();
-	    }
-	    if (modelOptions.getRaw() == null) {
-		    modelOptions.setRaw(true);
-	    }
-		if (modelOptions.getOverwrite() == null) {
-			modelOptions.setOverwrite(overwrite);
-		}
-		if (isFalse(importOptions.isEncryptProtectedValues()) && modelOptions.getNoCrypt() == null) {
-			modelOptions.setNoCrypt(true);
-		}
+        ObjectDelta<T> delta = DeltaFactory.Object.createAddDelta(object);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+        ModelExecuteOptions modelOptions;
+        if (importOptions.getModelExecutionOptions() != null) {
+            modelOptions = ModelExecuteOptions.fromModelExecutionOptionsType(importOptions.getModelExecutionOptions());
+        } else {
+            modelOptions = new ModelExecuteOptions();
+        }
+        if (modelOptions.getRaw() == null) {
+            modelOptions.setRaw(true);
+        }
+        if (modelOptions.getOverwrite() == null) {
+            modelOptions.setOverwrite(overwrite);
+        }
+        if (isFalse(importOptions.isEncryptProtectedValues()) && modelOptions.getNoCrypt() == null) {
+            modelOptions.setNoCrypt(true);
+        }
 
-		modelService.executeChanges(deltas, modelOptions, task, parentResult);
-
-		return deltas.iterator().next().getOid();
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = modelService
+                .executeChanges(deltas, modelOptions, task, parentResult);
+        String oidOfAddedObject = ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas);
+        if (oidOfAddedObject == null) {
+            LOGGER.warn("No OID of added object. Executed deltas:\n{}", DebugUtil.debugDump(executedDeltas));
+        } else {
+            if (object.canRepresent(TaskType.class)) {
+                taskManager.onTaskCreate(oidOfAddedObject, parentResult);
+            }
+            if (object.canRepresent(ResourceType.COMPLEX_TYPE) && isTrue(importOptions.isFetchResourceSchema())) {
+                modelService.testResource(oidOfAddedObject, task);
+            }
+        }
     }
 
     /**
@@ -415,10 +449,10 @@ public class ObjectImporter {
     }
 
     private <T extends ObjectType> void validateWithDynamicSchemas(PrismObject<T> object, RepositoryService repository,
-		    OperationResult objectResult) {
+            OperationResult objectResult) {
 
         // TODO: check extension schema (later)
-    	OperationResult result = objectResult.createSubresult(OPERATION_VALIDATE_DYN_SCHEMA);
+        OperationResult result = objectResult.createSubresult(OPERATION_VALIDATE_DYN_SCHEMA);
         if (object.canRepresent(ConnectorType.class)) {
             ConnectorType connector = (ConnectorType) object.asObjectable();
             checkSchema(connector.getSchema(), "connector", result);
@@ -430,8 +464,8 @@ public class ObjectImporter {
 
             // Only two object types have XML snippets that conform to the dynamic schema
 
-	        //noinspection unchecked
-	        PrismObject<ResourceType> resource = (PrismObject<ResourceType>)object;
+            //noinspection unchecked
+            PrismObject<ResourceType> resource = (PrismObject<ResourceType>)object;
             ResourceType resourceType = resource.asObjectable();
             PrismContainer<ConnectorConfigurationType> configurationContainer = ResourceTypeUtil.getConfigurationContainer(resource);
             if (configurationContainer == null || configurationContainer.isEmpty()) {
@@ -462,37 +496,37 @@ public class ObjectImporter {
                 // Mark the error ... there is nothing more to do
                 result.recordPartialError("Connector (OID:" + connectorOid + ") referenced from the resource has schema problems: " + e.getMessage(), e);
                 LOGGER.error("Connector (OID:{}) referenced from the imported resource \"{}\" has schema problems: {}",
-		                connectorOid, resourceType.getName(), e.getMessage(), e);
+                        connectorOid, resourceType.getName(), e.getMessage(), e);
                 return;
             }
 
             Element connectorSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(connector);
             MutablePrismSchema connectorSchema;
             if (connectorSchemaElement == null) {
-            	// No schema to validate with
-            	result.recordSuccessIfUnknown();
-            	return;
-            }
-			try {
-				connectorSchema = prismContext.schemaFactory().createPrismSchema();
-				connectorSchema.parseThis(connectorSchemaElement, true, "schema for " + connector, prismContext);
-			} catch (SchemaException e) {
-				result.recordFatalError("Error parsing connector schema for " + connector + ": "+e.getMessage(), e);
-				return;
-			}
-            QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
-    		PrismContainerDefinition<ConnectorConfigurationType> configContainerDef = connectorSchema.findContainerDefinitionByElementName(configContainerQName);
-    		if (configContainerDef == null) {
-    			result.recordFatalError("Definition of configuration container " + configContainerQName + " not found in the schema of of " + connector);
+                // No schema to validate with
+                result.recordSuccessIfUnknown();
                 return;
-    		}
+            }
+            try {
+                connectorSchema = prismContext.schemaFactory().createPrismSchema(DOMUtil.getSchemaTargetNamespace(connectorSchemaElement));
+                connectorSchema.parseThis(connectorSchemaElement, true, "schema for " + connector, prismContext);
+            } catch (SchemaException e) {
+                result.recordFatalError("Error parsing connector schema for " + connector + ": "+e.getMessage(), e);
+                return;
+            }
+            QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
+            PrismContainerDefinition<ConnectorConfigurationType> configContainerDef = connectorSchema.findContainerDefinitionByElementName(configContainerQName);
+            if (configContainerDef == null) {
+                result.recordFatalError("Definition of configuration container " + configContainerQName + " not found in the schema of of " + connector);
+                return;
+            }
 
             try {
-				configurationContainer.applyDefinition(configContainerDef);
-			} catch (SchemaException e) {
-				result.recordFatalError("Configuration error in " + resource + ": "+e.getMessage(), e);
+                configurationContainer.applyDefinition(configContainerDef);
+            } catch (SchemaException e) {
+                result.recordFatalError("Configuration error in " + resource + ": "+e.getMessage(), e);
                 return;
-			}
+            }
 
             // now we check for raw data - their presence means e.g. that there is a connector property that is unknown in connector schema (applyDefinition does not scream in such a case!)
             try {
@@ -532,7 +566,7 @@ public class ObjectImporter {
         }
 
         try {
-        	prismContext.schemaFactory().createPrismSchema()
+            prismContext.schemaFactory().createPrismSchema(DOMUtil.getSchemaTargetNamespace(xsdElement))
                     .parseThis(xsdElement, true, schemaName, prismContext);
         } catch (SchemaException e) {
             result.recordFatalError("Error during " + schemaName + " schema integrity check: " + e.getMessage(), e);
@@ -555,8 +589,8 @@ public class ObjectImporter {
 //
 //        Element xsdElement = ObjectTypeUtil.findXsdElement(dynamicSchema);
 //        if (xsdElement == null) {
-//        	result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No "+schemaName+" schema present");
-//        	return null;
+//            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No "+schemaName+" schema present");
+//            return null;
 //        }
 //
 //        com.evolveum.midpoint.prism.schema.PrismSchema schema;
@@ -574,18 +608,18 @@ public class ObjectImporter {
 //
 //        result.recordSuccess();
 //        return propertyContainer;
-	    return null;
+        return null;
     }
 
     private <T extends ObjectType> void generateIdentifiers(PrismObject<T> object, RepositoryService repository,
-			OperationResult objectResult) {
-		if (object.canRepresent(TaskType.class)) {
-			TaskType task = (TaskType)object.asObjectable();
-			if (task.getTaskIdentifier() == null || task.getTaskIdentifier().isEmpty()) {
-				task.setTaskIdentifier(lightweightIdentifierGenerator.generate().toString());
-			}
-		}
-	}
+            OperationResult objectResult) {
+        if (object.canRepresent(TaskType.class)) {
+            TaskType task = (TaskType)object.asObjectable();
+            if (task.getTaskIdentifier() == null || task.getTaskIdentifier().isEmpty()) {
+                task.setTaskIdentifier(lightweightIdentifierGenerator.generate().toString());
+            }
+        }
+    }
 
 }
 

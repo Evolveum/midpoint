@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism.impl.schema;
@@ -54,108 +45,116 @@ import java.util.List;
  */
 class DomToSchemaProcessor {
 
-	private static final Trace LOGGER = TraceManager.getTrace(DomToSchemaProcessor.class);
+    private static final Trace LOGGER = TraceManager.getTrace(DomToSchemaProcessor.class);
 
-	private EntityResolver entityResolver;
-	private final PrismContext prismContext;
-	private String shortDescription;
+    private static final Object SCHEMA_PARSING = new Object();
 
-	DomToSchemaProcessor(EntityResolver entityResolver, PrismContext prismContext) {
-		this.entityResolver = entityResolver;
-		this.prismContext = prismContext;
-	}
+    private EntityResolver entityResolver;
+    private final PrismContext prismContext;
+    private String shortDescription;
 
-	/**
-	 * Parses single schema.
-	 */
-	void parseSchema(@NotNull PrismSchemaImpl prismSchema, @NotNull Element xsdSchema, boolean isRuntime,
-			boolean allowDelayedItemDefinitions, String shortDescription) throws SchemaException {
-		this.shortDescription = shortDescription;
-		XSSchemaSet xsSchemaSet = parseSchema(xsdSchema);
-		if (xsSchemaSet == null) {
-			return;
-		}
-		DomToSchemaPostProcessor postProcessor = new DomToSchemaPostProcessor(xsSchemaSet, prismContext);
-		postProcessor.postprocessSchema(prismSchema, isRuntime, allowDelayedItemDefinitions, shortDescription);
-	}
+    DomToSchemaProcessor(EntityResolver entityResolver, PrismContext prismContext) {
+        this.entityResolver = entityResolver;
+        this.prismContext = prismContext;
+    }
 
-	/**
-	 * Parses several schemas, referenced by a wrapper schema.
-	 * Provided to allow circular references (e.g. common-3 -> scripting-3 -> common-3).
-	 */
-	void parseSchemas(List<SchemaDescription> schemaDescriptions, Element wrapper,
-			boolean allowDelayedItemDefinitions, String shortDescription) throws SchemaException {
-		this.shortDescription = shortDescription;
-		XSSchemaSet xsSchemaSet = parseSchema(wrapper);
-		if (xsSchemaSet == null) {
-			return;
-		}
-		for (SchemaDescription schemaDescription : schemaDescriptions) {
-			DomToSchemaPostProcessor postProcessor = new DomToSchemaPostProcessor(xsSchemaSet, prismContext);
-			PrismSchemaImpl prismSchema = (PrismSchemaImpl) schemaDescription.getSchema();
-			boolean isRuntime = schemaDescription.getCompileTimeClassesPackage() == null;
-			String schemaShortDescription = schemaDescription.getSourceDescription() + " in " + shortDescription;
-			postProcessor.postprocessSchema(prismSchema, isRuntime, allowDelayedItemDefinitions, schemaShortDescription);
-		}
-	}
+    /**
+     * Parses single schema.
+     */
+    void parseSchema(@NotNull PrismSchemaImpl prismSchema, @NotNull Element xsdSchema, boolean isRuntime,
+            boolean allowDelayedItemDefinitions, String shortDescription) throws SchemaException {
+        this.shortDescription = shortDescription;
+        XSSchemaSet xsSchemaSet = parseSchema(xsdSchema);
+        if (xsSchemaSet == null) {
+            return;
+        }
+        DomToSchemaPostProcessor postProcessor = new DomToSchemaPostProcessor(xsSchemaSet, prismContext);
+        postProcessor.postprocessSchema(prismSchema, isRuntime, allowDelayedItemDefinitions, shortDescription);
+    }
 
-	private XSSchemaSet parseSchema(Element schema) throws SchemaException {
-		// Make sure that the schema parser sees all the namespace declarations
-		DOMUtil.fixNamespaceDeclarations(schema);
-		try {
-			TransformerFactory transfac = TransformerFactory.newInstance();
-			Transformer trans = transfac.newTransformer();
-			trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-			trans.setOutputProperty(OutputKeys.INDENT, "yes");
+    /**
+     * Parses several schemas, referenced by a wrapper schema.
+     * Provided to allow circular references (e.g. common-3 -> scripting-3 -> common-3).
+     */
+    void parseSchemas(List<SchemaDescription> schemaDescriptions, Element wrapper,
+            boolean allowDelayedItemDefinitions, String shortDescription) throws SchemaException {
+        this.shortDescription = shortDescription;
+        XSSchemaSet xsSchemaSet = parseSchema(wrapper);
+        if (xsSchemaSet == null) {
+            return;
+        }
+        for (SchemaDescription schemaDescription : schemaDescriptions) {
+            DomToSchemaPostProcessor postProcessor = new DomToSchemaPostProcessor(xsSchemaSet, prismContext);
+            PrismSchemaImpl prismSchema = (PrismSchemaImpl) schemaDescription.getSchema();
+            boolean isRuntime = schemaDescription.getCompileTimeClassesPackage() == null;
+            String schemaShortDescription = schemaDescription.getSourceDescription() + " in " + shortDescription;
+            postProcessor.postprocessSchema(prismSchema, isRuntime, allowDelayedItemDefinitions, schemaShortDescription);
+        }
+    }
 
-			DOMSource source = new DOMSource(schema);
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			StreamResult result = new StreamResult(out);
+    private XSSchemaSet parseSchema(Element schema) throws SchemaException {
+        // Synchronization here is a brutal workaround for MID-5648. We need to synchronize on parsing schemas globally, because
+        // it looks like there are many fragments (referenced schemas) that get resolved during parsing.
+        //
+        // Unfortunately, this is not sufficient by itself -- there is a pre-processing that must be synchronized as well.
+        synchronized (SCHEMA_PARSING) {
+            // Make sure that the schema parser sees all the namespace declarations
+            DOMUtil.fixNamespaceDeclarations(schema);
+            try {
+                TransformerFactory transfac = DOMUtil.setupTransformerFactory();
+                Transformer trans = transfac.newTransformer();
+                trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+                trans.setOutputProperty(OutputKeys.INDENT, "yes");
 
-			trans.transform(source, result);
+                DOMSource source = new DOMSource(schema);
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                StreamResult result = new StreamResult(out);
 
-			XSOMParser parser = createSchemaParser();
-			InputSource inSource = new InputSource(new ByteArrayInputStream(out.toByteArray()));
-			// XXX: hack: it's here to make entity resolver work...
-			inSource.setSystemId("SystemId");
-			// XXX: end hack
-			inSource.setEncoding("utf-8");
+                trans.transform(source, result);
 
-			parser.parse(inSource);
-			return parser.getResult();
+                XSOMParser parser = createSchemaParser();
+                InputSource inSource = new InputSource(new ByteArrayInputStream(out.toByteArray()));
+                // XXX: hack: it's here to make entity resolver work...
+                inSource.setSystemId("SystemId");
+                // XXX: end hack
+                inSource.setEncoding("utf-8");
 
-		} catch (SAXException e) {
-			throw new SchemaException("XML error during XSD schema parsing: " + e.getMessage()
-					+ "(embedded exception " + e.getException() + ") in " + shortDescription, e);
-		} catch (TransformerException e) {
-			throw new SchemaException("XML transformer error during XSD schema parsing: " + e.getMessage()
-					+ "(locator: " + e.getLocator() + ", embedded exception:" + e.getException() + ") in "
-					+ shortDescription, e);
-		} catch (RuntimeException e) {
-			// This sometimes happens, e.g. NPEs in Saxon
-			if (LOGGER.isErrorEnabled()) {
-				LOGGER.error("Unexpected error {} during parsing of schema:\n{}", e.getMessage(),
-						DOMUtil.serializeDOMToString(schema));
-			}
-			throw new SchemaException(
-					"XML error during XSD schema parsing: " + e.getMessage() + " in " + shortDescription, e);
-		}
-	}
+                parser.parse(inSource);
+                return parser.getResult();
 
-	private XSOMParser createSchemaParser() {
-		XSOMParser parser = new XSOMParser();
-		if (entityResolver == null) {
-			entityResolver = ((PrismContextImpl) prismContext).getEntityResolver();
-			if (entityResolver == null) {
-				throw new IllegalStateException(
-						"Entity resolver is not set (even tried to pull it from prism context)");
-			}
-		}
-		SchemaHandler errorHandler = new SchemaHandler(entityResolver);
-		parser.setErrorHandler(errorHandler);
-		parser.setAnnotationParser(new DomAnnotationParserFactory());
-		parser.setEntityResolver(errorHandler);
+            } catch (SAXException e) {
+                throw new SchemaException("XML error during XSD schema parsing: " + e.getMessage()
+                        + "(embedded exception " + e.getException() + ") in " + shortDescription, e);
+            } catch (TransformerException e) {
+                throw new SchemaException("XML transformer error during XSD schema parsing: " + e.getMessage()
+                        + "(locator: " + e.getLocator() + ", embedded exception:" + e.getException() + ") in "
+                        + shortDescription, e);
+            } catch (RuntimeException e) {
+                // This sometimes happens, e.g. NPEs in Saxon
+                if (LOGGER.isErrorEnabled()) {
+                    LOGGER.error("Unexpected error {} during parsing of schema:\n{}", e.getMessage(),
+                            DOMUtil.serializeDOMToString(schema));
+                }
+                throw new SchemaException(
+                        "XML error during XSD schema parsing: " + e.getMessage() + " in " + shortDescription, e);
+            }
+        }
+    }
 
-		return parser;
-	}
+    private XSOMParser createSchemaParser() {
+        XSOMParser parser = new XSOMParser();
+        if (entityResolver == null) {
+            entityResolver = ((PrismContextImpl) prismContext).getEntityResolver();
+            if (entityResolver == null) {
+                throw new IllegalStateException(
+                        "Entity resolver is not set (even tried to pull it from prism context)");
+            }
+        }
+        SchemaHandler errorHandler = new SchemaHandler(entityResolver);
+        parser.setErrorHandler(errorHandler);
+        parser.setAnnotationParser(new DomAnnotationParserFactory());
+        parser.setEntityResolver(errorHandler);
+
+        return parser;
+    }
 }

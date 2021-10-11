@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<shadow oid="a0c010c0-d34d-b33f-f00d-111111111222"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <name>uid=guybrush,ou=People,dc=example,dc=com</name>
+    <resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
+    <objectClass>ri:inetOrgPerson</objectClass>
+    <kind>account</kind>
+    <intent>internal</intent>
+    <attributes>
+        <ri:dn>uid=guybrush,ou=People,dc=example,dc=com</ri:dn>
+        <ri:entryUUID>f1f2f3f4-0987-6543-1234-hjk345j8j090</ri:entryUUID>
+    </attributes>
+</shadow>

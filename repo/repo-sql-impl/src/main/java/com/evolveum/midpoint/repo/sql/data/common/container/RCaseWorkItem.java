@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
@@ -20,6 +11,7 @@ import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RCase;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCaseWorkItemId;
+import com.evolveum.midpoint.repo.sql.data.common.other.RCaseWorkItemReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
 import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -27,11 +19,11 @@ import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Persister;
+import org.hibernate.annotations.*;
 
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.HashSet;
@@ -64,8 +56,10 @@ public class RCaseWorkItem implements Container<RCase> {
     private Integer stageNumber;
     private REmbeddedReference originalAssigneeRef;
     private Set<RCaseWorkItemReference> assigneeRef = new HashSet<>();
+    private Set<RCaseWorkItemReference> candidateRef = new HashSet<>();
     private REmbeddedReference performerRef;
     private String outcome;
+    private XMLGregorianCalendar createTimestamp;
     private XMLGregorianCalendar closeTimestamp;
     private XMLGregorianCalendar deadline;
 
@@ -129,6 +123,7 @@ public class RCaseWorkItem implements Container<RCase> {
         this.originalAssigneeRef = originalAssigneeRef;
     }
 
+    @Where(clause = RCaseWorkItemReference.REFERENCE_TYPE + "= 0")
     @JaxbName(localPart = "assigneeRef")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
@@ -139,6 +134,19 @@ public class RCaseWorkItem implements Container<RCase> {
 
     public void setAssigneeRef(Set<RCaseWorkItemReference> assigneeRef) {
         this.assigneeRef = assigneeRef;
+    }
+
+    @Where(clause = RCaseWorkItemReference.REFERENCE_TYPE + "= 1")
+    @JaxbName(localPart = "candidateRef")
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RCaseWorkItemReference> getCandidateRef() {
+        return candidateRef;
+    }
+
+    public void setCandidateRef(Set<RCaseWorkItemReference> candidateRef) {
+        this.candidateRef = candidateRef;
     }
 
     @Column
@@ -170,6 +178,15 @@ public class RCaseWorkItem implements Container<RCase> {
     }
 
     @Column
+    public XMLGregorianCalendar getCreateTimestamp() {
+        return createTimestamp;
+    }
+
+    public void setCreateTimestamp(XMLGregorianCalendar createTimestamp) {
+        this.createTimestamp = createTimestamp;
+    }
+
+    @Column
     public XMLGregorianCalendar getDeadline() {
         return deadline;
     }
@@ -192,13 +209,14 @@ public class RCaseWorkItem implements Container<RCase> {
                 Objects.equals(performerRef, that.performerRef) &&
                 Objects.equals(outcome, that.outcome) &&
                 Objects.equals(closeTimestamp, that.closeTimestamp) &&
+                Objects.equals(createTimestamp, that.createTimestamp) &&
                 Objects.equals(deadline, that.deadline);
     }
 
     @Override
     public int hashCode() {
         return Objects
-                .hash(ownerOid, id, stageNumber, assigneeRef, performerRef, outcome, closeTimestamp, deadline);
+                .hash(ownerOid, id, stageNumber, assigneeRef, performerRef, outcome, closeTimestamp, createTimestamp, deadline);
     }
 
     @Transient
@@ -232,10 +250,13 @@ public class RCaseWorkItem implements Container<RCase> {
         rWorkItem.setStageNumber(workItem.getStageNumber());
         rWorkItem.setOriginalAssigneeRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getOriginalAssigneeRef(), context.relationRegistry));
         rWorkItem.getAssigneeRef().addAll(RCaseWorkItemReference.safeListReferenceToSet(
-                workItem.getAssigneeRef(), rWorkItem, context.relationRegistry));
+                workItem.getAssigneeRef(), rWorkItem, context.relationRegistry, RCaseWorkItemReferenceOwner.ASSIGNEE));
+        rWorkItem.getCandidateRef().addAll(RCaseWorkItemReference.safeListReferenceToSet(
+                workItem.getCandidateRef(), rWorkItem, context.relationRegistry, RCaseWorkItemReferenceOwner.CANDIDATE));
         rWorkItem.setPerformerRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getPerformerRef(), context.relationRegistry));
         rWorkItem.setOutcome(WorkItemTypeUtil.getOutcome(workItem));
         rWorkItem.setCloseTimestamp(workItem.getCloseTimestamp());
+        rWorkItem.setCreateTimestamp(workItem.getCreateTimestamp());
         rWorkItem.setDeadline(workItem.getDeadline());
     }
 }

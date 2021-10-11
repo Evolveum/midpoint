@@ -1,21 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/**
- *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
@@ -47,8 +34,6 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -57,254 +42,221 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * resource for speed and flexibility.
  *
  * @author Radovan Semancik
- *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestDummySecurity extends AbstractDummyTest {
 
-	private static final Trace LOGGER = TraceManager.getTrace(TestDummySecurity.class);
-	private String willIcfUid;
+    private String willIcfUid;
 
-	@Test
-	public void test100AddAccountDrink() throws Exception {
-		final String TEST_NAME = "test100AddAccountDrink";
-		TestUtil.displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task syncTask = taskManager.createTaskInstance(TestDummySecurity.class.getName()
-				+ "." + TEST_NAME);
-		OperationResult result = new OperationResult(TestDummySecurity.class.getName()
-				+ "." + TEST_NAME);
-		syncServiceMock.reset();
+    @Test
+    public void test100AddAccountDrink() throws Exception {
+        // GIVEN
+        Task syncTask = getTestTask();
+        OperationResult result = getTestOperationResult();
+        syncServiceMock.reset();
 
-		PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_WILL_FILE);
-		account.checkConsistence();
+        PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_WILL_FILE);
+        account.checkConsistence();
 
-		setAttribute(account, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "water");
+        setAttribute(account, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "water");
 
-		display("Adding shadow", account);
+        display("Adding shadow", account);
 
-		try {
-			// WHEN
-			provisioningService.addObject(account, null, null, syncTask, result);
+        try {
+            // WHEN
+            provisioningService.addObject(account, null, null, syncTask, result);
 
-			AssertJUnit.fail("Unexpected success");
+            AssertJUnit.fail("Unexpected success");
+        } catch (SecurityViolationException e) {
+            displayExpectedException(e);
+        }
+    }
 
-		} catch (SecurityViolationException e) {
-			// This is expected
-			display("Expected exception", e);
-		}
-
-	}
-
-	private <T> void setAttribute(PrismObject<ShadowType> account, String attrName, T val) throws SchemaException {
-		PrismContainer<Containerable> attrsCont = account.findContainer(ShadowType.F_ATTRIBUTES);
-		ResourceAttribute<T> attr = ObjectFactory.createResourceAttribute(
+    private <T> void setAttribute(PrismObject<ShadowType> account, String attrName, T val) throws SchemaException {
+        PrismContainer<Containerable> attrsCont = account.findContainer(ShadowType.F_ATTRIBUTES);
+        ResourceAttribute<T> attr = ObjectFactory.createResourceAttribute(
             dummyResourceCtl.getAttributeQName(attrName), null, prismContext);
-		attr.setRealValue(val);
-		attrsCont.add(attr);
-	}
+        attr.setRealValue(val);
+        attrsCont.add(attr);
+    }
 
-	@Test
-	public void test199AddAccount() throws Exception {
-		final String TEST_NAME = "test199AddAccount";
-		TestUtil.displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task syncTask = taskManager.createTaskInstance(TestDummySecurity.class.getName()
-				+ "." + TEST_NAME);
-		OperationResult result = new OperationResult(TestDummySecurity.class.getName()
-				+ "." + TEST_NAME);
-		syncServiceMock.reset();
+    @Test
+    public void test199AddAccount() throws Exception {
+        // GIVEN
+        Task syncTask = getTestTask();
+        OperationResult result = getTestOperationResult();
+        syncServiceMock.reset();
 
-		PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_WILL_FILE);
-		account.checkConsistence();
+        PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_WILL_FILE);
+        account.checkConsistence();
 
-		setAttribute(account, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "At the moment?");
-		setAttribute(account, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Eunuch");
+        setAttribute(account, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "At the moment?");
+        setAttribute(account, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Eunuch");
 
-		display("Adding shadow", account);
+        display("Adding shadow", account);
 
-		// WHEN
-		provisioningService.addObject(account, null, null, syncTask, result);
+        // WHEN
+        provisioningService.addObject(account, null, null, syncTask, result);
 
-		// THEN
-		PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_WILL_OID, null, syncTask, result);
-		display("Account provisioning", accountProvisioning);
-		willIcfUid = getIcfUid(accountProvisioning);
+        // THEN
+        PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
+                ACCOUNT_WILL_OID, null, syncTask, result);
+        display("Account provisioning", accountProvisioning);
+        willIcfUid = getIcfUid(accountProvisioning);
 
-	}
+    }
 
-	@Test
-	public void test200ModifyAccountDrink() throws Exception {
-		final String TEST_NAME = "test200ModifyAccountDrink";
-		TestUtil.displayTestTitle(TEST_NAME);
+    @Test
+    public void test200ModifyAccountDrink() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
-		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ "." + TEST_NAME);
-		OperationResult result = task.getResult();
+        syncServiceMock.reset();
 
-		syncServiceMock.reset();
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+                ACCOUNT_WILL_OID,
+                dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME),
+                "RUM");
+        displayDumpable("ObjectDelta", delta);
+        delta.checkConsistence();
 
-		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID,
-				dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME),
-				"RUM");
-		display("ObjectDelta", delta);
-		delta.checkConsistence();
+        // WHEN
+        provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+                new OperationProvisioningScriptsType(), null, task, result);
 
-		// WHEN
-		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
-				new OperationProvisioningScriptsType(), null, task, result);
+        // THEN
+        result.computeStatus();
+        display("modifyObject result", result);
+        TestUtil.assertSuccess(result);
 
-		// THEN
-		result.computeStatus();
-		display("modifyObject result", result);
-		TestUtil.assertSuccess(result);
+        delta.checkConsistence();
+        assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "RUM");
 
-		delta.checkConsistence();
-		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
-				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "RUM");
+        syncServiceMock.assertNotifySuccessOnly();
+    }
 
-		syncServiceMock.assertNotifySuccessOnly();
-	}
+    @Test
+    public void test201ModifyAccountGossip() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
-	@Test
-	public void test201ModifyAccountGossip() throws Exception {
-		final String TEST_NAME = "test201ModifyAccountGossip";
-		TestUtil.displayTestTitle(TEST_NAME);
+        syncServiceMock.reset();
 
-		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ "." + TEST_NAME);
-		OperationResult result = task.getResult();
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+                ACCOUNT_WILL_OID,
+                dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME),
+                "pirate");
+        displayDumpable("ObjectDelta", delta);
+        delta.checkConsistence();
 
-		syncServiceMock.reset();
+        // WHEN
+        provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+                new OperationProvisioningScriptsType(), null, task, result);
 
-		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID,
-				dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME),
-				"pirate");
-		display("ObjectDelta", delta);
-		delta.checkConsistence();
+        // THEN
+        result.computeStatus();
+        display("modifyObject result", result);
+        TestUtil.assertSuccess(result);
 
-		// WHEN
-		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
-				new OperationProvisioningScriptsType(), null, task, result);
+        delta.checkConsistence();
+        assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "pirate");
 
-		// THEN
-		result.computeStatus();
-		display("modifyObject result", result);
-		TestUtil.assertSuccess(result);
+        syncServiceMock.assertNotifySuccessOnly();
+    }
 
-		delta.checkConsistence();
-		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
-				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "pirate");
+    @Test
+    public void test210ModifyAccountQuote() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
-		syncServiceMock.assertNotifySuccessOnly();
-	}
+        syncServiceMock.reset();
 
-	@Test
-	public void test210ModifyAccountQuote() throws Exception {
-		final String TEST_NAME = "test210ModifyAccountQuote";
-		TestUtil.displayTestTitle(TEST_NAME);
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+                ACCOUNT_WILL_OID,
+                dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
+                "eh?");
+        displayDumpable("ObjectDelta", delta);
+        delta.checkConsistence();
 
-		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ "." + TEST_NAME);
-		OperationResult result = task.getResult();
+        try {
+            // WHEN
+            provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+                    new OperationProvisioningScriptsType(), null, task, result);
 
-		syncServiceMock.reset();
+            AssertJUnit.fail("Unexpected success");
+        } catch (SecurityViolationException e) {
+            displayExpectedException(e);
+        }
+    }
 
-		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID,
-				dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
-				"eh?");
-		display("ObjectDelta", delta);
-		delta.checkConsistence();
+    @Test
+    public void test300GetAccount() throws Exception {
+        // GIVEN
+        OperationResult result = createOperationResult();
 
-		try {
-			// WHEN
-			provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
-					new OperationProvisioningScriptsType(), null, task, result);
+        // WHEN
+        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, result);
 
-			AssertJUnit.fail("Unexpected success");
+        // THEN
+        result.computeStatus();
+        display("getObject result", result);
+        TestUtil.assertSuccess(result);
 
-		} catch (SecurityViolationException e) {
-			// This is expected
-			display("Expected exception", e);
-		}
-	}
+        display("Retrieved account shadow", shadow);
 
-	@Test
-	public void test300GetAccount() throws Exception {
-		final String TEST_NAME = "test300GetAccount";
-		TestUtil.displayTestTitle(TEST_NAME);
-		// GIVEN
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ "." + TEST_NAME);
+        assertNotNull("No dummy account", shadow);
 
-		// WHEN
-		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, result);
+        checkAccountWill(shadow);
 
-		// THEN
-		result.computeStatus();
-		display("getObject result", result);
-		TestUtil.assertSuccess(result);
+        checkUniqueness(shadow);
+    }
 
-		display("Retrieved account shadow", shadow);
+    @Test
+    public void test310SearchAllShadows() throws Exception {
+        // GIVEN
+        OperationResult result = createOperationResult();
+        ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
+                SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
+        displayDumpable("All shadows query", query);
 
-		assertNotNull("No dummy account", shadow);
+        // WHEN
+        List<PrismObject<ShadowType>> allShadows = provisioningService.searchObjects(ShadowType.class,
+                query, null, null, result);
 
-		checkAccountWill(shadow, result);
+        // THEN
+        result.computeStatus();
+        display("searchObjects result", result);
+        TestUtil.assertSuccess(result);
 
-		checkUniqueness(shadow);
-	}
+        display("Found " + allShadows.size() + " shadows");
 
-	@Test
-	public void test310SearchAllShadows() throws Exception {
-		final String TEST_NAME = "test310SearchAllShadows";
-		TestUtil.displayTestTitle(TEST_NAME);
-		// GIVEN
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ "." + TEST_NAME);
-		ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
-				SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
-		display("All shadows query", query);
+        assertFalse("No shadows found", allShadows.isEmpty());
 
-		// WHEN
-		List<PrismObject<ShadowType>> allShadows = provisioningService.searchObjects(ShadowType.class,
-				query, null, null, result);
+        checkUniqueness(allShadows);
 
-		// THEN
-		result.computeStatus();
-		display("searchObjects result", result);
-		TestUtil.assertSuccess(result);
+        for (PrismObject<ShadowType> shadow: allShadows) {
+            assertNoAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME);
+            assertNoAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME);
+        }
 
-		display("Found " + allShadows.size() + " shadows");
+        assertEquals("Wrong number of results", 2, allShadows.size());
+    }
 
-		assertFalse("No shadows found", allShadows.isEmpty());
+    // TODO: search
 
-		checkUniqueness(allShadows);
-
-		for (PrismObject<ShadowType> shadow: allShadows) {
-			assertNoAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME);
-			assertNoAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME);
-		}
-
-		assertEquals("Wrong number of results", 2, allShadows.size());
-	}
-
-	// TODO: search
-
-	private void checkAccountWill(PrismObject<ShadowType> shadow, OperationResult result) {
-		Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
-		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
-		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
-		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
-		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "RUM");
-		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "At the moment?");
-		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Will Turner");
-		assertNoAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME);
-		assertNoAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME);
-		assertEquals("Unexpected number of attributes", 8, attributes.size());
-	}
+    private void checkAccountWill(PrismObject<ShadowType> shadow) {
+        Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
+        assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
+        assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
+        assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+        assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "RUM");
+        assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "At the moment?");
+        assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Will Turner");
+        assertNoAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME);
+        assertNoAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME);
+        assertEquals("Unexpected number of attributes", 8, attributes.size());
+    }
 }

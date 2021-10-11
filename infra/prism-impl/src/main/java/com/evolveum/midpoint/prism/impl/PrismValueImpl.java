@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl;
 
@@ -36,46 +27,47 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  * @author semancik
  *
  */
-public abstract class PrismValueImpl implements PrismValue {
+public abstract class PrismValueImpl extends AbstractFreezable implements PrismValue {
 
-	private OriginType originType;
+    private OriginType originType;
     private Objectable originObject;
     private Itemable parent;
     private transient Map<String,Object> userData = new HashMap<>();
-	protected boolean immutable;
-	protected EquivalenceStrategy defaultEquivalenceStrategy;
 
-	transient protected PrismContext prismContext;
+    // FIXME: allways null
+    protected EquivalenceStrategy defaultEquivalenceStrategy;
 
-	PrismValueImpl() {
-	}
+    transient protected PrismContext prismContext;
 
-	PrismValueImpl(PrismContext prismContext) {
-		this.prismContext = prismContext;
-	}
+    PrismValueImpl() {
+    }
+
+    PrismValueImpl(PrismContext prismContext) {
+        this.prismContext = prismContext;
+    }
 
     PrismValueImpl(OriginType type, Objectable source) {
-		this(null, type, source);
-	}
+        this(null, type, source);
+    }
 
     PrismValueImpl(PrismContext prismContext, OriginType type, Objectable source) {
-		this.prismContext = prismContext;
-		this.originType = type;
-		this.originObject = source;
-	}
+        this.prismContext = prismContext;
+        this.originType = type;
+        this.originObject = source;
+    }
 
     PrismValueImpl(PrismContext prismContext, OriginType type, Objectable source, Itemable parent) {
-		this.prismContext = prismContext;
-		this.originType = type;
-		this.originObject = source;
-		this.parent = parent;
-	}
+        this.prismContext = prismContext;
+        this.originType = type;
+        this.originObject = source;
+        this.parent = parent;
+    }
 
-	public void setPrismContext(PrismContext prismContext) {
-		this.prismContext = prismContext;
-	}
+    public void setPrismContext(PrismContext prismContext) {
+        this.prismContext = prismContext;
+    }
 
-	public void setOriginObject(Objectable source) {
+    public void setOriginObject(Objectable source) {
         this.originObject = source;
     }
 
@@ -84,12 +76,12 @@ public abstract class PrismValueImpl implements PrismValue {
     }
 
     @Override
-	public OriginType getOriginType() {
+    public OriginType getOriginType() {
         return originType;
     }
 
     @Override
-	public Objectable getOriginObject() {
+    public Objectable getOriginObject() {
         return originObject;
     }
 
@@ -98,135 +90,142 @@ public abstract class PrismValueImpl implements PrismValue {
     }
 
     @Override
-	public Object getUserData(@NotNull String key) {
+    public Object getUserData(@NotNull String key) {
         return userData.get(key);
     }
 
     @Override
-	public void setUserData(@NotNull String key, Object value) {
+    public void setUserData(@NotNull String key, Object value) {
         userData.put(key, value);
     }
 
     @Override
-	public Itemable getParent() {
-		return parent;
-	}
-
-	@Override
-	public void setParent(Itemable parent) {
-		if (this.parent != null && parent != null && this.parent != parent) {
-			throw new IllegalStateException("Attempt to reset value parent from "+this.parent+" to "+parent);
-		}
-		this.parent = parent;
-	}
-
-	@NotNull
-	@Override
-	public ItemPath getPath() {
-		Itemable parent = getParent();
-		if (parent == null) {
-			throw new IllegalStateException("No parent, cannot create value path for "+this);
-		}
-		return parent.getPath();
-	}
-
-	protected Object getPathComponent() {
-		return null;
-	}
-
-	/**
-	 * Used when we are removing the value from the previous parent.
-	 * Or when we know that the previous parent will be discarded and we
-	 * want to avoid unnecessary cloning.
-	 */
-	@Override
-	public void clearParent() {
-		parent = null;
-	}
-
-	@Override
-	public PrismContext getPrismContext() {
-		if (prismContext != null) {
-			return prismContext;
-		}
-		if (parent != null) {
-			prismContext = parent.getPrismContext();
-			return prismContext;
-		}
-		return null;
-	}
-
-	protected ItemDefinition getDefinition() {
-		Itemable parent = getParent();
-    	if (parent == null) {
-    		return null;
-    	}
-    	return parent.getDefinition();
+    public Itemable getParent() {
+        return parent;
     }
 
-	@Override
-	public void applyDefinition(ItemDefinition definition) throws SchemaException {
-		checkMutability();		// TODO reconsider
-		applyDefinition(definition, true);
-	}
+    @Override
+    public void setParent(Itemable parent) {
+        if (this.parent != null && parent != null && this.parent != parent) {
+            throw new IllegalStateException("Attempt to reset value parent from "+this.parent+" to "+parent);
+        }
+        this.parent = parent;
+    }
 
-	@Override
-	public void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException {
-		checkMutability();		// TODO reconsider
-		// Do nothing by default
-	}
+    @NotNull
+    @Override
+    public ItemPath getPath() {
+        Itemable parent = getParent();
+        if (parent == null) {
+            throw new IllegalStateException("No parent, cannot create value path for "+this);
+        }
+        return parent.getPath();
+    }
 
-	public void revive(PrismContext prismContext) throws SchemaException {
-		if (this.prismContext == null) {
-			this.prismContext = prismContext;
-		}
-		if (!immutable) {
-			recompute(prismContext);
-		}
-	}
+    protected Object getPathComponent() {
+        return null;
+    }
 
-	/**
-	 * Recompute the value or otherwise "initialize" it before adding it to a prism tree.
-	 * This may as well do nothing if no recomputing or initialization is needed.
-	 */
-	@Override
-	public void recompute() {
-		recompute(getPrismContext());
-	}
+    /**
+     * Used when we are removing the value from the previous parent.
+     * Or when we know that the previous parent will be discarded and we
+     * want to avoid unnecessary cloning.
+     */
+    @Override
+    public void clearParent() {
+        parent = null;
+    }
 
-	public abstract void recompute(PrismContext prismContext);
+    @Override
+    public PrismContext getPrismContext() {
+        if (prismContext != null) {
+            return prismContext;
+        }
+        if (parent != null) {
+            prismContext = parent.getPrismContext();
+            return prismContext;
+        }
+        return null;
+    }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    protected ItemDefinition getDefinition() {
+        Itemable parent = getParent();
+        if (parent == null) {
+            return null;
+        }
+        return parent.getDefinition();
+    }
 
-	@Override
-	public void accept(Visitor visitor, ItemPath path, boolean recursive) {
-		// This implementation is supposed to only work for non-hierarchical values, such as properties and references.
-		// hierarchical values must override it.
-		if (recursive) {
-			accept(visitor);
-		} else {
-			visitor.visit(this);
-		}
-	}
+    @Override
+    public void applyDefinition(ItemDefinition definition) throws SchemaException {
+        checkMutable();        // TODO reconsider
+        applyDefinition(definition, true);
+    }
+
+    @Override
+    public void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException {
+        checkMutable();        // TODO reconsider
+        // Do nothing by default
+    }
+
+    public void revive(PrismContext prismContext) throws SchemaException {
+        if (this.prismContext == null) {
+            this.prismContext = prismContext;
+        }
+        if (isMutable()) {
+            recompute(prismContext);
+        }
+    }
+
+    /**
+     * Recompute the value or otherwise "initialize" it before adding it to a prism tree.
+     * This may as well do nothing if no recomputing or initialization is needed.
+     */
+    @Override
+    public void recompute() {
+        recompute(getPrismContext());
+    }
+
+    public abstract void recompute(PrismContext prismContext);
+
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
+
+    @Override
+    public void accept(Visitor visitor, ItemPath path, boolean recursive) {
+        // This implementation is supposed to only work for non-hierarchical values, such as properties and references.
+        // hierarchical values must override it.
+        if (recursive) {
+            accept(visitor);
+        } else {
+            visitor.visit(this);
+        }
+    }
 
     public abstract void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope);
 
-	public boolean representsSameValue(PrismValue other, boolean lax) {
-		return false;
-	}
+    public boolean representsSameValue(PrismValue other, boolean lax) {
+        return false;
+    }
 
-	@Override
-	public void normalize() {
-		// do nothing by default
-	}
+    @Override
+    public void normalize() {
+        // do nothing by default
+    }
 
-	/**
+    /**
      * Literal clone.
      */
     public abstract PrismValue clone();
+
+    @Override
+    public PrismValue createImmutableClone() {
+        PrismValue clone = clone();
+        clone.freeze();
+        return clone;
+    }
 
     /**
      * Complex clone with different cloning strategies.
@@ -234,162 +233,147 @@ public abstract class PrismValueImpl implements PrismValue {
      */
     public abstract PrismValue cloneComplex(CloneStrategy strategy);
 
-	protected void copyValues(CloneStrategy strategy, PrismValueImpl clone) {
-		clone.originType = this.originType;
-		clone.originObject = this.originObject;
-		// Do not clone parent. The clone will most likely go to a different prism
-		// and setting the parent will make it difficult to add it there.
-		clone.parent = null;
-		// Do not clone immutable flag.
-		if (clone.prismContext == null) {
-			clone.prismContext = this.prismContext;
-		}
-	}
+    protected void copyValues(CloneStrategy strategy, PrismValueImpl clone) {
+        clone.originType = this.originType;
+        clone.originObject = this.originObject;
+        // Do not clone parent. The clone will most likely go to a different prism
+        // and setting the parent will make it difficult to add it there.
+        clone.parent = null;
+        // Do not clone immutable flag.
+        if (clone.prismContext == null) {
+            clone.prismContext = this.prismContext;
+        }
+    }
 
-	protected EquivalenceStrategy getEqualsHashCodeStrategy() {
-		return defaultIfNull(defaultEquivalenceStrategy, EquivalenceStrategy.NOT_LITERAL);
-	}
+    protected EquivalenceStrategy getEqualsHashCodeStrategy() {
+        return defaultIfNull(defaultEquivalenceStrategy, EquivalenceStrategy.NOT_LITERAL);
+    }
 
-	@Override
-	public int hashCode() {
-		return hashCode(getEqualsHashCodeStrategy());
-	}
+    @Override
+    public int hashCode() {
+        return hashCode(getEqualsHashCodeStrategy());
+    }
 
-	@Override
-	public int hashCode(@NotNull ParameterizedEquivalenceStrategy equivalenceStrategy) {
-		return 0;
-	}
+    @Override
+    public int hashCode(@NotNull ParameterizedEquivalenceStrategy equivalenceStrategy) {
+        return 0;
+    }
 
-	@Override
-	public int hashCode(@NotNull EquivalenceStrategy equivalenceStrategy) {
-		return equivalenceStrategy.hashCode(this);
-	}
+    @Override
+    public int hashCode(@NotNull EquivalenceStrategy equivalenceStrategy) {
+        return equivalenceStrategy.hashCode(this);
+    }
 
-	@Override
-	public boolean equals(PrismValue otherValue, @NotNull EquivalenceStrategy equivalenceStrategy) {
-		if (equivalenceStrategy instanceof ParameterizedEquivalenceStrategy) {   // todo or skip this check?
-			return equals(otherValue, (ParameterizedEquivalenceStrategy) equivalenceStrategy);
-		} else {
-			return equivalenceStrategy.equals(this, otherValue);
-		}
-	}
+    @Override
+    public boolean equals(PrismValue otherValue, @NotNull EquivalenceStrategy equivalenceStrategy) {
+        if (equivalenceStrategy instanceof ParameterizedEquivalenceStrategy) {   // todo or skip this check?
+            return equals(otherValue, (ParameterizedEquivalenceStrategy) equivalenceStrategy);
+        } else {
+            return equivalenceStrategy.equals(this, otherValue);
+        }
+    }
 
-	public boolean equals(PrismValue other, @NotNull ParameterizedEquivalenceStrategy strategy) {
-		// parent is not considered at all. it is not relevant.
-		// neither the immutable flag
-		return !strategy.isConsideringValueOrigin() ||
-				Objects.equals(originObject, other.getOriginObject()) && originType == other.getOriginType();
-	}
+    public boolean equals(PrismValue other, @NotNull ParameterizedEquivalenceStrategy strategy) {
+        // parent is not considered at all. it is not relevant.
+        // neither the immutable flag
+        // neither the value origin
+        return true;
+    }
 
-	// original equals was "isLiteral = false"!
-	public boolean equals(Object other) {
-		return this == other ||
-				(other == null || other instanceof PrismValue) &&
-				equals((PrismValue) other, getEqualsHashCodeStrategy());
-	}
+    // original equals was "isLiteral = false"!
+    public boolean equals(Object other) {
+        return this == other ||
+                (other == null || other instanceof PrismValue) &&
+                equals((PrismValue) other, getEqualsHashCodeStrategy());
+    }
 
-	public boolean equals(PrismValue thisValue, PrismValue otherValue) {
-		if (thisValue == otherValue) {
-			return true;
-		}
-		if (thisValue == null || otherValue == null) {
-			return false;
-		}
-		return thisValue.equals(otherValue, getEqualsHashCodeStrategy());
-	}
+    public boolean equals(PrismValue thisValue, PrismValue otherValue) {
+        if (thisValue == otherValue) {
+            return true;
+        }
+        if (thisValue == null || otherValue == null) {
+            return false;
+        }
+        return thisValue.equals(otherValue, getEqualsHashCodeStrategy());
+    }
 
-	/**
-	 * Assumes matching representations. I.e. it assumes that both this and otherValue represent the same instance of item.
-	 * E.g. the container with the same ID.
-	 */
-	@Override
-	public Collection<? extends ItemDelta> diff(PrismValue otherValue) {
-		return diff(otherValue, EquivalenceStrategy.IGNORE_METADATA);
-	}
+    /**
+     * Assumes matching representations. I.e. it assumes that both this and otherValue represent the same instance of item.
+     * E.g. the container with the same ID.
+     */
+    @Override
+    public Collection<? extends ItemDelta> diff(PrismValue otherValue) {
+        return diff(otherValue, EquivalenceStrategy.IGNORE_METADATA);
+    }
 
-	/**
-	 * Assumes matching representations. I.e. it assumes that both this and otherValue represent the same instance of item.
-	 * E.g. the container with the same ID.
-	 */
-	@Override
-	public Collection<? extends ItemDelta> diff(PrismValue otherValue, ParameterizedEquivalenceStrategy strategy) {
-		Collection<? extends ItemDelta> itemDeltas = new ArrayList<>();
-		diffMatchingRepresentation(otherValue, itemDeltas, strategy);
-		return itemDeltas;
-	}
+    /**
+     * Assumes matching representations. I.e. it assumes that both this and otherValue represent the same instance of item.
+     * E.g. the container with the same ID.
+     */
+    @Override
+    public Collection<? extends ItemDelta> diff(PrismValue otherValue, ParameterizedEquivalenceStrategy strategy) {
+        Collection<? extends ItemDelta> itemDeltas = new ArrayList<>();
+        diffMatchingRepresentation(otherValue, itemDeltas, strategy);
+        return itemDeltas;
+    }
 
-	public void diffMatchingRepresentation(PrismValue otherValue,
-			Collection<? extends ItemDelta> deltas, ParameterizedEquivalenceStrategy strategy) {
-		// Nothing to do by default
-	}
+    public void diffMatchingRepresentation(PrismValue otherValue,
+            Collection<? extends ItemDelta> deltas, ParameterizedEquivalenceStrategy strategy) {
+        // Nothing to do by default
+    }
 
-	protected void appendOriginDump(StringBuilder builder) {
-		if (DebugUtil.isDetailedDebugDump()) {
-	        if (getOriginType() != null || getOriginObject() != null) {
-		        builder.append(", origin: ");
-		        builder.append(getOriginType());
-		        builder.append(":");
-		        builder.append(getOriginObject());
-	        }
-		}
-	}
+    protected void appendOriginDump(StringBuilder builder) {
+        if (DebugUtil.isDetailedDebugDump()) {
+            if (getOriginType() != null || getOriginObject() != null) {
+                builder.append(", origin: ");
+                builder.append(getOriginType());
+                builder.append(":");
+                builder.append(getOriginObject());
+            }
+        }
+    }
 
-	@Override
-	public boolean isImmutable() {
-		return immutable;
-	}
+    public abstract String toHumanReadableString();
 
-	public void setImmutable(boolean immutable) {
-		this.immutable = immutable;
-	}
+    @Nullable
+    abstract public Class<?> getRealClass();
 
-	protected void checkMutability() {
-		if (immutable) {
-			throw new IllegalStateException("An attempt to modify an immutable value of " + toHumanReadableString());
-		}
-	}
+    @Nullable
+    abstract public <T> T getRealValue();
 
-	public abstract String toHumanReadableString();
+    // Returns a root of PrismValue tree. For example, if we have a AccessCertificationWorkItemType that has a parent (owner)
+    // of AccessCertificationCaseType, which has a parent of AccessCertificationCampaignType, this method returns the PCV
+    // of AccessCertificationCampaignType.
+    //
+    // Generally, this method returns either "this" (PrismValue) or a PrismContainerValue.
+    public PrismValue getRootValue() {
+        PrismValue current = this;
+        for (;;) {
+            PrismContainerValue<?> parent = PrismValueUtil.getParentContainerValue(current);
+            if (parent == null) {
+                return current;
+            }
+            current = parent;
+        }
+    }
 
-	@Nullable
-	abstract public Class<?> getRealClass();
+    public PrismContainerValue<?> getParentContainerValue() {
+        return PrismValueUtil.getParentContainerValue(this);
+    }
 
-	@Nullable
-	abstract public <T> T getRealValue();
+    public QName getTypeName() {
+        ItemDefinition definition = getDefinition();
+        return definition != null ? definition.getTypeName() : null;
+    }
 
-	// Returns a root of PrismValue tree. For example, if we have a AccessCertificationWorkItemType that has a parent (owner)
-	// of AccessCertificationCaseType, which has a parent of AccessCertificationCampaignType, this method returns the PCV
-	// of AccessCertificationCampaignType.
-	//
-	// Generally, this method returns either "this" (PrismValue) or a PrismContainerValue.
-	public PrismValue getRootValue() {
-		PrismValue current = this;
-		for (;;) {
-			PrismContainerValue<?> parent = PrismValueUtil.getParentContainerValue(current);
-			if (parent == null) {
-				return current;
-			}
-			current = parent;
-		}
-	}
-
-	public PrismContainerValue<?> getParentContainerValue() {
-		return PrismValueUtil.getParentContainerValue(this);
-	}
-
-	public QName getTypeName() {
-		ItemDefinition definition = getDefinition();
-		return definition != null ? definition.getTypeName() : null;
-	}
-
-	// Path may contain ambiguous segments (e.g. assignment/targetRef when there are more assignments)
-	// Note that the path can contain name segments only (at least for now)
-	@NotNull
-	public Collection<PrismValue> getAllValues(ItemPath path) {
-		if (path.isEmpty()) {
-			return singleton(this);
-		} else {
-			return emptySet();
-		}
-	}
+    // Path may contain ambiguous segments (e.g. assignment/targetRef when there are more assignments)
+    // Note that the path can contain name segments only (at least for now)
+    @NotNull
+    public Collection<PrismValue> getAllValues(ItemPath path) {
+        if (path.isEmpty()) {
+            return singleton(this);
+        } else {
+            return emptySet();
+        }
+    }
 }

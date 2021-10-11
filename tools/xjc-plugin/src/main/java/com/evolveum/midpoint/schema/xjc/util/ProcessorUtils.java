@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.schema.xjc.util;
@@ -83,13 +74,13 @@ public final class ProcessorUtils {
     }
 
     public static void createQName(Outline outline, JDefinedClass targetClass, String targetField, QName qname, JFieldVar namespaceField, boolean namespaceFieldIsLocal, boolean createPath) {
-	    JExpression namespaceArgument;
+        JExpression namespaceArgument;
         if (namespaceField != null) {
             if (namespaceFieldIsLocal) {
-            	namespaceArgument = namespaceField;
+                namespaceArgument = namespaceField;
             } else {
-	            JClass schemaClass = outline.getModel().codeModel._getClass(StepSchemaConstants.SCHEMA_CONSTANTS_GENERATED_CLASS_NAME);
-	            namespaceArgument = schemaClass.staticRef(namespaceField);
+                JClass schemaClass = outline.getModel().codeModel._getClass(StepSchemaConstants.SCHEMA_CONSTANTS_GENERATED_CLASS_NAME);
+                namespaceArgument = schemaClass.staticRef(namespaceField);
             }
         } else {
             namespaceArgument = JExpr.lit(qname.getNamespaceURI());
@@ -98,9 +89,9 @@ public final class ProcessorUtils {
     }
 
     private static void createNameConstruction(Outline outline, JDefinedClass definedClass, String fieldName,
-		    QName reference, JExpression namespaceArgument, Class<?> nameClass) {
+            QName reference, JExpression namespaceArgument, Class<?> nameClass) {
         JClass clazz = (JClass) outline.getModel().codeModel._ref(nameClass);
-	    JInvocation invocation = JExpr._new(clazz);
+        JInvocation invocation = JExpr._new(clazz);
         invocation.arg(namespaceArgument);
         invocation.arg(reference.getLocalPart());
         definedClass.field(JMod.PUBLIC | JMod.STATIC | JMod.FINAL, nameClass, fieldName, invocation);
@@ -125,20 +116,20 @@ public final class ProcessorUtils {
     }
 
     public static String getFluentSetterMethodName(ClassOutline classOutline, JFieldVar field) {
-		return classOutline.target.getProperty(field.name()).getName(false);
+        return classOutline.target.getProperty(field.name()).getName(false);
     }
 
     public static String getMethodName(ClassOutline classOutline, JFieldVar field, String prefix) {
         CPropertyInfo prop = classOutline.target.getProperty(field.name());
         if (prop == null) {
-			throw new IllegalStateException("No property info for classOutline=" + classOutline.target.fullName() + ", field=" + field.name()+" of " + field.type());
-		}
+            throw new IllegalStateException("No property info for classOutline=" + classOutline.target.fullName() + ", field=" + field.name()+" of " + field.type());
+        }
         return prefix + prop.getName(true);
     }
 
     public static JMethod recreateMethod(JMethod method, JDefinedClass definedClass) {
-    	return recreateMethod(method, definedClass, null);
-	}
+        return recreateMethod(method, definedClass, null);
+    }
 
     public static JMethod recreateMethod(JMethod method, JDefinedClass definedClass, JType overrideReturnType) {
         Iterator<JMethod> methods = definedClass.methods().iterator();
@@ -322,10 +313,10 @@ public final class ProcessorUtils {
     }
 
     public static String normalizeFieldName(String fieldName) {
-		if (fieldName.startsWith("_")) {
-			return fieldName.substring(1);
-		} else {
-			return fieldName;
-		}
-	}
+        if (fieldName.startsWith("_")) {
+            return fieldName.substring(1);
+        } else {
+            return fieldName;
+        }
+    }
 }

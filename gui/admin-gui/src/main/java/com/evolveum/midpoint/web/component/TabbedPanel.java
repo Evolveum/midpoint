@@ -1,22 +1,15 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
+import java.io.Serializable;
+import java.util.List;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.WicketRuntimeException;
@@ -37,10 +30,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.CountModelProvider;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * @author lazyman
  * @author Igor Vaynberg (ivaynberg)
@@ -56,9 +45,9 @@ public class TabbedPanel<T extends ITab> extends Panel {
     public static final String RIGHT_SIDE_TAB_ITEM_ID = "rightSideTabItem";
     public static final String RIGHT_SIDE_TAB_ID = "rightSideTab";
 
-	protected static final String ID_TITLE = "title";
-	protected static final String ID_COUNT = "count";
-	protected static final String ID_LINK = "link";
+    protected static final String ID_TITLE = "title";
+    protected static final String ID_COUNT = "count";
+    protected static final String ID_LINK = "link";
 
     private final IModel<List<T>> tabs;
     /**
@@ -71,9 +60,9 @@ public class TabbedPanel<T extends ITab> extends Panel {
         this(id, tabs, null);
     }
 
-	public TabbedPanel(final String id, final List<T> tabs, @Nullable RightSideItemProvider rightSideItemProvider) {
-		this(id, tabs, null, rightSideItemProvider);
-	}
+    public TabbedPanel(final String id, final List<T> tabs, @Nullable RightSideItemProvider rightSideItemProvider) {
+        this(id, tabs, null, rightSideItemProvider);
+    }
 
     public TabbedPanel(final String id, final List<T> tabs, IModel<Integer> model, @Nullable RightSideItemProvider rightSideItemProvider) {
         this(id, new Model((Serializable) tabs), model, rightSideItemProvider);
@@ -111,10 +100,12 @@ public class TabbedPanel<T extends ITab> extends Panel {
         };
 
         WebMarkupContainer tabsContainer = newTabsContainer(ID_TABS_CONTAINER);
+        tabsContainer.setOutputMarkupId(true);
+        tabsContainer.setOutputMarkupPlaceholderTag(true);
         add(tabsContainer);
 
         // add the loop used to generate tab names
-        tabsContainer.add(new Loop(ID_TABS, tabCount) {
+        Loop loop = new Loop(ID_TABS, tabCount) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -125,33 +116,36 @@ public class TabbedPanel<T extends ITab> extends Panel {
                 final WebMarkupContainer titleLink = newLink(ID_LINK, index);
 
                 titleLink.add(newTitle(ID_TITLE, tab.getTitle(), index));
+                titleLink.setOutputMarkupPlaceholderTag(true);
+                titleLink.setOutputMarkupId(true);
                 item.add(titleLink);
 
                 final IModel<String> countModel;
                 if (tab instanceof CountModelProvider) {
-                	countModel = ((CountModelProvider)tab).getCountModel();
+                    countModel = ((CountModelProvider)tab).getCountModel();
                 } else {
-                	countModel = null;
+                    countModel = null;
                 }
-				Label countLabel = new Label(ID_COUNT, countModel);
-				countLabel.setVisible(countModel != null);
-				countLabel.setOutputMarkupId(true);
-				countLabel.add(AttributeModifier.append("class", new IModel<String>() {
-					private static final long serialVersionUID = 1L;
+                Label countLabel = new Label(ID_COUNT, countModel);
+                countLabel.setVisible(countModel != null);
+                countLabel.setOutputMarkupId(true);
+                countLabel.setOutputMarkupPlaceholderTag(true);
+                countLabel.add(AttributeModifier.append("class", new IModel<String>() {
+                    private static final long serialVersionUID = 1L;
 
-					@Override
-					public String getObject() {
-						if (countModel == null) {
-							return GuiStyleConstants.CLASS_BADGE_PASSIVE;
-						}
-						String count = countModel.getObject();
-						if ("0".equals(count)) {
-							return GuiStyleConstants.CLASS_BADGE_PASSIVE;
-						} else {
-							return GuiStyleConstants.CLASS_BADGE_ACTIVE;
-						}
-					}
-				}));
+                    @Override
+                    public String getObject() {
+                        if (countModel == null) {
+                            return GuiStyleConstants.CLASS_BADGE_PASSIVE;
+                        }
+                        String count = countModel.getObject();
+                        if ("0".equals(count)) {
+                            return GuiStyleConstants.CLASS_BADGE_PASSIVE;
+                        } else {
+                            return GuiStyleConstants.CLASS_BADGE_ACTIVE;
+                        }
+                    }
+                }));
                 titleLink.add(countLabel);
             }
 
@@ -159,16 +153,22 @@ public class TabbedPanel<T extends ITab> extends Panel {
             protected LoopItem newItem(final int iteration) {
                 return newTabContainer(iteration);
             }
-        });
+        };
 
-		WebMarkupContainer rightSideTabItem = new WebMarkupContainer(RIGHT_SIDE_TAB_ITEM_ID);
-		Component rightSideTabPanel = rightSideItemProvider != null ? rightSideItemProvider.createRightSideItem(RIGHT_SIDE_TAB_ID) : null;
-		if (rightSideTabPanel != null) {
-			rightSideTabItem.add(rightSideTabPanel);
-		} else {
-			rightSideTabItem.setVisible(false);
-		}
-		tabsContainer.add(rightSideTabItem);
+        loop.setOutputMarkupId(true);
+        loop.setOutputMarkupPlaceholderTag(true);
+
+
+        tabsContainer.add(loop);
+
+        WebMarkupContainer rightSideTabItem = new WebMarkupContainer(RIGHT_SIDE_TAB_ITEM_ID);
+        Component rightSideTabPanel = rightSideItemProvider != null ? rightSideItemProvider.createRightSideItem(RIGHT_SIDE_TAB_ID) : null;
+        if (rightSideTabPanel != null) {
+            rightSideTabItem.add(rightSideTabPanel);
+        } else {
+            rightSideTabItem.setVisible(false);
+        }
+        tabsContainer.add(rightSideTabItem);
 
         add(newPanel());
     }
@@ -194,6 +194,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
     protected WebMarkupContainer newTabsContainer(final String id) {
         WebMarkupContainer tabs = new WebMarkupContainer(id);
         tabs.setOutputMarkupId(true);
+        tabs.setOutputMarkupPlaceholderTag(true);
         return tabs;
     }
 
@@ -239,7 +240,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
     protected void onBeforeRender() {
         int index = getSelectedTab();
 
-        if (index == -1 || getVisiblityCache().isVisible(index) == false) {
+        if (index == -1 || !getVisiblityCache().isVisible(index)) {
             // find first visible tab
             index = -1;
             for (int i = 0; i < tabs.getObject().size(); i++) {
@@ -322,13 +323,13 @@ public class TabbedPanel<T extends ITab> extends Panel {
      * <pre>
      * protected WebMarkupContainer newLink(String linkId, final int index)
      * {
-     * 	return new Link(linkId)
+     *     return new Link(linkId)
      *    {
-     * 		private static final long serialVersionUID = 1L;
+     *         private static final long serialVersionUID = 1L;
      *
-     * 		public void onClick()
+     *         public void onClick()
      *        {
-     * 			setSelectedTab(index);
+     *             setSelectedTab(index);
      *        }
      *    };
      * }
@@ -401,6 +402,8 @@ public class TabbedPanel<T extends ITab> extends Panel {
                             "]. You must always return a panel with id equal to the provided panelId parameter. TabbedPanel [" +
                             getPath() + "] ITab index [" + currentTab + "]");
         }
+        component.setOutputMarkupPlaceholderTag(true);
+        component.setOutputMarkupId(true);
 
         addOrReplace(component);
     }
@@ -473,6 +476,9 @@ public class TabbedPanel<T extends ITab> extends Panel {
                 Boolean visible = visibilities[index];
                 if (visible == null) {
                     List<T> tabsList = tabs.getObject();
+                    if (tabsList.size() <= index) {
+                        return false;
+                    }
                     T tab = tabsList == null || tabsList.size() == 0 ? null :  tabs.getObject().get(index);
                     visible = tab != null && tab.isVisible();
                     if (tab != null) {
@@ -493,12 +499,12 @@ public class TabbedPanel<T extends ITab> extends Panel {
      */
     protected void onTabChange(int index) {}
 
-	@FunctionalInterface
+    @FunctionalInterface
     public interface RightSideItemProvider extends Serializable {
-		Component createRightSideItem(String id);
-	}
+        Component createRightSideItem(String id);
+    }
 
-	public void reloadCountLabels(AjaxRequestTarget target){
+    public void reloadCountLabels(AjaxRequestTarget target){
         Loop tabbedPanel = ((Loop)get(ID_TABS_CONTAINER).get(ID_TABS));
         int tabsCount = tabbedPanel.getIterations();
         for (int i = 0; i < tabsCount; i++){

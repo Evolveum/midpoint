@@ -1,0 +1,41 @@
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<objectCollection oid="9276c3a6-5790-11e9-a931-efe1b34f25f6"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+    <name>Active Users</name>
+
+    <type>UserType</type>
+    <filter>
+        <q:equal>
+            <q:path>activation/effectiveStatus</q:path>
+            <q:value>enabled</q:value>
+        </q:equal>
+    </filter>
+
+    <domain>
+        <!-- Domain: all users -->
+    </domain>
+
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <collectionStats/>
+            </policyConstraints>
+            <policyThreshold>
+                <highWaterMark>
+                    <percentage>90</percentage>
+                </highWaterMark>
+            </policyThreshold>
+            <policySituation>http://foo.example.com/policy#tooManyInactiveUsers</policySituation>
+        </policyRule>
+    </assignment>
+
+</objectCollection>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:ext="http://example.com/p"
+        oid="6a39f871-4e8c-4c24-bfc1-abebc4a66ee6">
+    <name>rumcajs</name>
+    <extension>
+        <ext:hidden1>h1.1</ext:hidden1>
+        <ext:hidden1>h1.2</ext:hidden1>
+        <ext:hidden1>h1.3</ext:hidden1>
+        <ext:hidden3>h3.1</ext:hidden3>
+        <ext:visible>v1</ext:visible>
+        <ext:visible>v2</ext:visible>
+        <ext:visible>v3</ext:visible>
+    </extension>
+</user>

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.gui.api;
@@ -45,6 +36,21 @@ public class ComponentConstants {
     public static final QName UI_FOCUS_TAB_POLICY_RULES = new QName(NS_COMPONENTS_PREFIX, "focusTabPolicyRules");
     public static final String UI_FOCUS_TAB_POLICY_RULES_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_POLICY_RULES);
 
+    public static final QName UI_CASE_TAB_WORKITEMS = new QName(NS_COMPONENTS_PREFIX, "caseTabWorkitems");
+    public static final String UI_CASE_TAB_WORKITEMS_URL = QNameUtil.qNameToUri(UI_CASE_TAB_WORKITEMS);
+
+    public static final QName UI_CASE_TAB_CHILD_CASES = new QName(NS_COMPONENTS_PREFIX, "caseTabChildCases");
+    public static final String UI_CASE_TAB_CHILD_CASES_URL = QNameUtil.qNameToUri(UI_CASE_TAB_CHILD_CASES);
+
+    public static final QName UI_CASE_TAB_APPROVAL = new QName(NS_COMPONENTS_PREFIX, "caseTabApproval");
+    public static final String UI_CASE_TAB_APPROVAL_URL = QNameUtil.qNameToUri(UI_CASE_TAB_WORKITEMS);
+
+    public static final QName UI_CASE_TAB_MANUAL_OPERATION_DETAILS = new QName(NS_COMPONENTS_PREFIX, "caseTabManualOperationDetails");
+    public static final String UI_CASE_TAB_MANUAL_OPERATION_DETAILS_URL = QNameUtil.qNameToUri(UI_CASE_TAB_MANUAL_OPERATION_DETAILS);
+
+    public static final QName UI_CASE_TAB_EVENTS = new QName(NS_COMPONENTS_PREFIX, "caseTabEvents");
+    public static final String UI_CASE_TAB_EVENTS_URL = QNameUtil.qNameToUri(UI_CASE_TAB_EVENTS);
+
     public static final QName UI_FOCUS_TAB_APPLICABLE_POLICIES = new QName(NS_COMPONENTS_PREFIX, "focusTabApplicablePolicies");
     public static final String UI_FOCUS_TAB_APPLICABLE_POLICIES_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_APPLICABLE_POLICIES);
 
@@ -77,5 +83,50 @@ public class ComponentConstants {
 
     public static final QName UI_FOCUS_TAB_MEMBERS = new QName(NS_COMPONENTS_PREFIX, "focusTabMembers");
     public static final String UI_FOCUS_TAB_MEMBERS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_MEMBERS);
+
+    public static final QName UI_ARCHETYPE_TAB_ARCHETYPE_POLICY = new QName(NS_COMPONENTS_PREFIX, "archetypeTabArchetypePolicy");
+    public static final String UI_ARCHTYPE_TAB_ARCHETYPE_POLICY_URL = QNameUtil.qNameToUri(UI_ARCHETYPE_TAB_ARCHETYPE_POLICY);
+
+    public static final QName UI_CASE_TAB_OVERVIEW_MANUAL = new QName(NS_COMPONENTS_PREFIX, "caseTabOverviewManual");
+    public static final String UI_CASE_TAB_OVERVIEW_MANUAL_URL = QNameUtil.qNameToUri(UI_CASE_TAB_OVERVIEW_MANUAL);
+
+    public static final QName UI_CASE_TAB_OVERVIEW_REQUEST = new QName(NS_COMPONENTS_PREFIX, "caseTabOverviewRequest");
+    public static final String UI_CASE_TAB_OVERVIEW_REQUEST_URL = QNameUtil.qNameToUri(UI_CASE_TAB_OVERVIEW_REQUEST);
+
+    public static final QName UI_CASE_TAB_OVERVIEW_APPROVAL = new QName(NS_COMPONENTS_PREFIX, "caseTabOverviewApproval");
+    public static final String UI_CASE_TAB_OVERVIEW_APPROVAL_URL = QNameUtil.qNameToUri(UI_CASE_TAB_OVERVIEW_APPROVAL);
+
+    public static final QName UI_TASK_TAB_BASIC = new QName(NS_COMPONENTS_PREFIX, "taskTabBasic");
+    public static final String UI_TASK_TAB_BASIC_URL = QNameUtil.qNameToUri(UI_TASK_TAB_BASIC);
+
+    public static final QName UI_TASK_TAB_SCHEDULE = new QName(NS_COMPONENTS_PREFIX, "taskTabSchedule");
+    public static final String UI_TASK_TAB_SCHEDULE_URL = QNameUtil.qNameToUri(UI_TASK_TAB_SCHEDULE);
+
+    public static final QName UI_TASK_TAB_WORK_MANAGEMENT = new QName(NS_COMPONENTS_PREFIX, "taskTabWorkManagement");
+    public static final String UI_TASK_TAB_WORK_MANAGEMENT_URL = QNameUtil.qNameToUri(UI_TASK_TAB_WORK_MANAGEMENT);
+
+    public static final QName UI_TASK_TAB_CLEANUP_POLICIES = new QName(NS_COMPONENTS_PREFIX, "taskTabCleanupPolicies");
+    public static final String UI_TASK_TAB_CLEANUP_POLICIES_URL = QNameUtil.qNameToUri(UI_TASK_TAB_CLEANUP_POLICIES);
+
+    public static final QName UI_TASK_TAB_SUBTASKS = new QName(NS_COMPONENTS_PREFIX, "taskTabSubtasks");
+    public static final String UI_TASK_TAB_SUBTASKS_URL = QNameUtil.qNameToUri(UI_TASK_TAB_SUBTASKS);
+
+    public static final QName UI_TASK_TAB_OPERATION_STATISTICS = new QName(NS_COMPONENTS_PREFIX, "taskTabOperationStatistics");
+    public static final String UI_TASK_TAB_OPERATION_STATISTICS_URL = QNameUtil.qNameToUri(UI_TASK_TAB_OPERATION_STATISTICS);
+
+    public static final QName UI_TASK_TAB_ENVIRONMENTAL_PERFORMANCE = new QName(NS_COMPONENTS_PREFIX, "taskTabEnvironmentalPerformance");
+    public static final String UI_TASK_TAB_ENVIRONMENTAL_PERFORMANCE_URL = QNameUtil.qNameToUri(UI_TASK_TAB_ENVIRONMENTAL_PERFORMANCE);
+
+    public static final QName UI_TASK_TAB_OPERATION = new QName(NS_COMPONENTS_PREFIX, "taskTabOperation");
+    public static final String UI_TASK_TAB_OPERATION_URL = QNameUtil.qNameToUri(UI_TASK_TAB_OPERATION);
+
+    public static final QName UI_TASK_TAB_INTERNAL_PERFORMANCE = new QName(NS_COMPONENTS_PREFIX, "taskTabInternalPerformance");
+    public static final String UI_TASK_TAB_INTERNAL_PERFORMANCE_URL = QNameUtil.qNameToUri(UI_TASK_TAB_INTERNAL_PERFORMANCE);
+
+    public static final QName UI_TASK_TAB_RESULT = new QName(NS_COMPONENTS_PREFIX, "taskTabResult");
+    public static final String UI_TASK_TAB_RESULT_URL = QNameUtil.qNameToUri(UI_TASK_TAB_RESULT);
+
+    public static final QName UI_TASK_TAB_ERRORS = new QName(NS_COMPONENTS_PREFIX, "taskTabErrors");
+    public static final String UI_TASK_TAB_ERRORS_URL = QNameUtil.qNameToUri(UI_TASK_TAB_ERRORS);
 
 }

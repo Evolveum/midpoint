@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="786919b7-23c9-4a38-90e7-5a1efd0ab853">
+    <name>frodo</name>
+    <assignment>
+        <targetRef oid="8e56a98a-bcb9-4178-94f2-5488da473132" type="RoleType"/>        <!-- propagator -->
+    </assignment>
+</user>

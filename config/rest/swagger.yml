@@ -11,7 +11,7 @@ info:
     url: "http://www.apache.org/licenses/LICENSE-2.0.html"
 basePath: "/midpoint/ws/rest"
 securityDefinitions:
-  m_basic: 
+  m_basic:
     type: "basic"
 security:
 - m_basic: []
@@ -52,8 +52,8 @@ paths:
             type: "object"
         201:
           description: "If started sucessfully with asynchronous=true."
-          headers: 
-            Location: 
+          headers:
+            Location:
               description: "Location for the newly created task"
               type: "string"
         404:
@@ -61,7 +61,7 @@ paths:
           schema:
             type: "object"
             description: "see OperationResultType"
-        503: 
+        503:
           description: "Communication problem while provisioning"
           schema:
             type: "object"
@@ -119,7 +119,7 @@ paths:
           schema:
             type: "object"
             description: "see OperationResultType"
-        503: 
+        503:
           description: "Communication problem while provisioning"
           schema:
             type: "object"
@@ -190,7 +190,7 @@ paths:
           schema:
             type: "object"
             description: "see OperationResultType"
-        503: 
+        503:
           description: "Communication problem while provisioning"
           schema:
             type: "object"
@@ -258,7 +258,7 @@ paths:
           schema:
             type: "object"
             description: "see OperationResultType"
-        503: 
+        503:
           description: "Communication problem while provisioning"
           schema:
             type: "object"
@@ -314,7 +314,7 @@ paths:
           schema:
             type: "object"
             description: "see OperationResultType"
-        503: 
+        503:
           description: "Communication problem while provisioning"
           schema:
             type: "object"
@@ -377,7 +377,7 @@ paths:
         201:
           description: "Object successfully created"
           headers:
-            Location: 
+            Location:
               description: "Oid of the newly created object"
               type: "string"
         404:
@@ -385,7 +385,7 @@ paths:
           schema:
             type: "object"
             description: "see OperationResultType"
-        503: 
+        503:
           description: "Communication problem while provisioning"
           schema:
             type: "object"
@@ -452,7 +452,7 @@ paths:
         201:
           description: "Object successfully created"
           headers:
-            Location: 
+            Location:
               description: "Oid of the newly created object"
               type: "string"
         404:
@@ -460,7 +460,7 @@ paths:
           schema:
             type: "object"
             description: "see OperationResultType"
-        503: 
+        503:
           description: "Communication problem while provisioning"
           schema:
             type: "object"
@@ -542,7 +542,7 @@ paths:
           schema:
             type: "object"
             description: "see OperationResultType"
-        503: 
+        503:
           description: "Communication problem while provisioning"
           schema:
             type: "object"
@@ -621,7 +621,7 @@ paths:
           schema:
             type: "object"
             description: "see OperationResultType"
-        503: 
+        503:
           description: "Communication problem while provisioning"
           schema:
             type: "object"
@@ -651,7 +651,7 @@ paths:
           schema:
             type: "object"
             description: "see OperationResultType"
-          
+
     post:
       summary: "Modify operation"
       description: "Modify an object with {id} of a specified {type}"
@@ -697,7 +697,7 @@ paths:
           schema:
             type: "object"
             description: "see OperationResultType"
-        503: 
+        503:
           description: "Communication problem while provisioning"
           schema:
             type: "object"
@@ -772,7 +772,7 @@ paths:
           schema:
             type: "object"
             description: "see OperationResultType"
-        503: 
+        503:
           description: "Communication problem while provisioning"
           schema:
             type: "object"
@@ -816,7 +816,7 @@ paths:
       - "application/xml"
       - "application/yaml"
       parameters:
-      - in: "body" 
+      - in: "body"
         name: "body"
         required: true
         schema:
@@ -830,7 +830,7 @@ paths:
           schema:
             type: "object"
             description: "see OperationResultType"
-        503: 
+        503:
           description: "Communication problem while provisioning"
           schema:
             type: "object"
@@ -886,7 +886,7 @@ paths:
           schema:
             type: "object"
             description: "see OperationResultType"
-        503: 
+        503:
           description: "Communication problem while provisioning"
           schema:
             type: "object"
@@ -974,7 +974,7 @@ paths:
           schema:
             type: "object"
             description: "see OperationResultType"
-        503: 
+        503:
           description: "Communication problem while provisioning"
           schema:
             type: "object"
@@ -1028,7 +1028,7 @@ paths:
         303:
           description: "Import task was created succesfully"
           headers:
-            Location: 
+            Location:
               description: "Oid of the created task"
               type: "string"
         404:
@@ -1036,7 +1036,7 @@ paths:
           schema:
             type: "object"
             description: "see OperationResultType"
-        503: 
+        503:
           description: "Communication problem while provisioning"
           schema:
             type: "object"
@@ -1092,7 +1092,7 @@ paths:
           schema:
             type: "object"
             description: "see OperationResultType"
-        503: 
+        503:
           description: "Communication problem while provisioning"
           schema:
             type: "object"
@@ -1149,7 +1149,7 @@ paths:
           description: "Any unknown error, mostly runtuime/unchecked exceptions"
           schema:
             type: "object"
-            description: "see OperationResultType"  
+            description: "see OperationResultType"
   /tasks/{oid}/resume:
     post:
       summary: "Resume task"
@@ -1189,7 +1189,7 @@ paths:
           description: "Any unknown error, mostly runtuime/unchecked exceptions"
           schema:
             type: "object"
-            description: "see OperationResultType" 
+            description: "see OperationResultType"
   /tasks/{oid}/run:
     post:
       summary: "Run task now"

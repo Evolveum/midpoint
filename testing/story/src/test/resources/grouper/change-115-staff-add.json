@@ -1,0 +1,15 @@
+{
+  "encrypted": false,
+  "esbEvent": [
+    {
+      "displayName": "ref:affiliation:staff",
+      "changeOccurred": false,
+      "createdOnMicros": 1551884850500000,
+      "parentStemId": "9a7ce40af6c546148b41eec81b8ca18d",
+      "id": "9789654960496542staff",
+      "sequenceNumber": "115",
+      "eventType": "GROUP_ADD",
+      "name": "ref:affiliation:staff"
+    }
+  ]
+}

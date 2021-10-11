@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<user oid="c0c010c0-d34d-b33f-f00d-111111145118"
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+        xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+    <name>willTurner</name>
+    <!-- No full name -->
+    <givenName>Will</givenName>
+    <familyName>Turner</familyName>
+    <assignment>
+        <targetRef oid="12345678-d34d-b33f-f00d-555555556666" relation="default" type="c:RoleType"/>
+    </assignment>
+    <assignment>
+        <targetRef oid="12345678-d34d-b33f-f00d-555555556666" relation="owner" type="c:RoleType"/>
+    </assignment>
+    <assignment>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+        </construction>
+    </assignment>
+    <activation>
+        <validFrom>1777-05-30T14:15:00Z</validFrom>
+        <validTo>2222-02-22T08:30:42Z</validTo>
+    </activation>
+     <credentials>
+        <password>
+            <value>
+                <clearValue>orlando123</clearValue>
+            </value>
+        </password>
+    </credentials>
+
+</user>

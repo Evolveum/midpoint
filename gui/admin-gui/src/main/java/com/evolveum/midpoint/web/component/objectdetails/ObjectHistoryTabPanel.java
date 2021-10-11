@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
@@ -19,9 +10,6 @@ import static java.util.Arrays.asList;
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -30,7 +18,9 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -41,11 +31,11 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
 import com.evolveum.midpoint.web.page.admin.users.PageXmlDataReview;
@@ -67,15 +57,23 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
     private static final String DOT_CLASS = ObjectHistoryTabPanel.class.getName() + ".";
     private static final String OPERATION_RESTRUCT_OBJECT = DOT_CLASS + "restructObject";
 
-    public ObjectHistoryTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusWrapperModel,
-                                 PageAdminObjectDetails<F> parentPage) {
-        super(id, mainForm, focusWrapperModel, parentPage);
-        parentPage.getSessionStorage().setUserHistoryAuditLog(new AuditLogStorage());
-        initLayout(focusWrapperModel, parentPage);
+    public ObjectHistoryTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel) {
+        super(id, mainForm, focusWrapperModel);
+
     }
 
-    private void initLayout(final LoadableModel<ObjectWrapper<F>> focusWrapperModel, final PageAdminObjectDetails<F> page) {
-        AuditSearchDto auditSearchDto = createAuditSearchDto(focusWrapperModel.getObject().getObject().asObjectable());
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+        //TODO seriously???
+        getPageBase().getSessionStorage().setUserHistoryAuditLog(new AuditLogStorage());
+
+        initLayout();
+    }
+
+    private void initLayout() {
+        AuditSearchDto auditSearchDto = createAuditSearchDto(getObjectWrapper().getObject().asObjectable());
         AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL, Model.of(auditSearchDto), true) {
             private static final long serialVersionUID = 1L;
 
@@ -103,20 +101,20 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
                                     case 0:
                                         btn = buildDefaultButton(componentId, new Model<>("fa fa-circle-o"),
                                                 createStringResource("ObjectHistoryTabPanel.viewHistoricalObjectDataTitle"),
-                                                new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO),
+                                                new Model<>("btn btn-sm " + DoubleButtonColumn.ButtonColorClass.INFO),
                                                 target ->
-                                                        currentStateButtonClicked(target, getReconstructedObject(focusWrapperModel.getObject().getOid(),
-                                                                model.getObject().getEventIdentifier(), page.getCompileTimeClass()),
+                                                        currentStateButtonClicked(target, getReconstructedObject(getObjectWrapper().getOid(),
+                                                                model.getObject().getEventIdentifier(), getObjectWrapper().getCompileTimeClass()),
                                                                 WebComponentUtil.getLocalizedDate(model.getObject().getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE)));
                                         break;
                                     case 1:
                                         btn = buildDefaultButton(componentId, new Model<>(GuiStyleConstants.CLASS_FILE_TEXT),
                                                 createStringResource("ObjectHistoryTabPanel.viewHistoricalObjectXmlTitle"),
-                                                new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS),
+                                                new Model<>("btn btn-sm " + DoubleButtonColumn.ButtonColorClass.SUCCESS),
                                                 target ->
-                                                        viewObjectXmlButtonClicked(focusWrapperModel.getObject().getOid(),
+                                                        viewObjectXmlButtonClicked(getObjectWrapper().getOid(),
                                                                 model.getObject().getEventIdentifier(),
-                                                                page.getCompileTimeClass(),
+                                                                getObjectWrapper().getCompileTimeClass(),
                                                                 WebComponentUtil.getLocalizedDate(model.getObject().getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE)));
                                         break;
                                 }
@@ -133,6 +131,11 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
             }
 
             @Override
+            protected AuditLogStorage getAuditLogStorage(){
+                return getPageBase().getSessionStorage().getUserHistoryAuditLog();
+            }
+
+            @Override
             protected void updateAuditSearchStorage(AuditSearchDto searchDto) {
                 getPageBase().getSessionStorage().getUserHistoryAuditLog().setSearchDto(searchDto);
                 getPageBase().getSessionStorage().getUserHistoryAuditLog().setPageNumber(0);
@@ -142,7 +145,7 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
 
             @Override
             protected void resetAuditSearchStorage() {
-                getPageBase().getSessionStorage().getUserHistoryAuditLog().setSearchDto(createAuditSearchDto(focusWrapperModel.getObject().getObject().asObjectable()));
+                getPageBase().getSessionStorage().getUserHistoryAuditLog().setSearchDto(createAuditSearchDto(getObjectWrapper().getObject().asObjectable()));
 
             }
 
@@ -180,7 +183,7 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
             PrismObject<F> object = WebModelServiceUtils.reconstructObject(type, oid, eventIdentifier, task, result);
             return object;
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't restruct object.", ex);
+            result.recordFatalError(getPageBase().createStringResource("ObjectHistoryTabPanel.message.getReconstructedObject.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't restruct object", ex);
         }
         return null;
@@ -199,7 +202,7 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
                         PrismContext context = getPageBase().getPrismContext();
                         String xml = "";
                         try {
-                            xml = context.serializerFor(PrismContext.LANG_XML).serialize(object);
+                            xml = context.xmlSerializer().serialize(object);
                         } catch (Exception ex) {
                             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't serialize object", ex);
                         }

@@ -1,274 +1,208 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.testing.rest;
 
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-
 import javax.ws.rs.core.Response;
 
-import org.apache.cxf.endpoint.Server;
-import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
 import org.apache.cxf.jaxrs.client.ClientConfiguration;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.transport.local.LocalConduit;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
+import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
+import com.evolveum.midpoint.common.rest.MidpointJsonProvider;
+import com.evolveum.midpoint.common.rest.MidpointXmlProvider;
+import com.evolveum.midpoint.common.rest.MidpointYamlProvider;
+import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.impl.rest.MidpointAbstractProvider;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
-import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.DummyAuditService;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.web.AbstractGuiIntegrationTest;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ActiveProfiles("test")
+@SpringBootTest(classes = TestMidPointSpringApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestPropertySource(properties = "server.port=18088")
+public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest {
 
-@ContextConfiguration(locations = { "classpath:ctx-rest-test-main.xml" })
-@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public abstract class RestServiceInitializer {
+    protected static final File BASE_REPO_DIR = new File("src/test/resources/repo/");
 
-	private static final Trace LOGGER = TraceManager.getTrace(RestServiceInitializer.class);
+    public static final File USER_ADMINISTRATOR_FILE = new File(BASE_REPO_DIR, "user-administrator.xml");
+    public static final String USER_ADMINISTRATOR_USERNAME = "administrator";
+    public static final String USER_ADMINISTRATOR_PASSWORD = "5ecr3t";
 
-	protected static final File BASE_REPO_DIR = new File("src/test/resources/repo/");
+    // No authorization
+    public static final File USER_NOBODY_FILE = new File(BASE_REPO_DIR, "user-nobody.xml");
+    public static final String USER_NOBODY_OID = "ffb9729c-d48b-11e4-9720-001e8c717e5b";
+    public static final String USER_NOBODY_USERNAME = "nobody";
+    public static final String USER_NOBODY_PASSWORD = "nopassword";
 
-	public static final File USER_ADMINISTRATOR_FILE = new File(BASE_REPO_DIR, "user-administrator.xml");
-	public static final String USER_ADMINISTRATOR_USERNAME = "administrator";
-	public static final String USER_ADMINISTRATOR_PASSWORD = "5ecr3t";
+    // REST authorization only
+    public static final File USER_CYCLOPS_FILE = new File(BASE_REPO_DIR, "user-cyclops.xml");
+    public static final String USER_CYCLOPS_OID = "6020bb52-d48e-11e4-9eaf-001e8c717e5b";
+    public static final String USER_CYCLOPS_USERNAME = "cyclops";
+    public static final String USER_CYCLOPS_PASSWORD = "cyclopassword";
 
-	// No authorization
-	public static final File USER_NOBODY_FILE = new File(BASE_REPO_DIR, "user-nobody.xml");
-	public static final String USER_NOBODY_OID = "ffb9729c-d48b-11e4-9720-001e8c717e5b";
-	public static final String USER_NOBODY_USERNAME = "nobody";
-	public static final String USER_NOBODY_PASSWORD = "nopassword";
+    // REST and reader authorization
+    public static final File USER_SOMEBODY_FILE = new File(BASE_REPO_DIR, "user-somebody.xml");
+    public static final String USER_SOMEBODY_OID = "a5f3e3c8-d48b-11e4-8d88-001e8c717e5b";
+    public static final String USER_SOMEBODY_USERNAME = "somebody";
+    public static final String USER_SOMEBODY_PASSWORD = "somepassword";
 
-	// REST authorization only
-	public static final File USER_CYCLOPS_FILE = new File(BASE_REPO_DIR, "user-cyclops.xml");
-	public static final String USER_CYCLOPS_OID = "6020bb52-d48e-11e4-9eaf-001e8c717e5b";
-	public static final String USER_CYCLOPS_USERNAME = "cyclops";
-	public static final String USER_CYCLOPS_PASSWORD = "cyclopassword";
+    // other
+    public static final File USER_JACK_FILE = new File(BASE_REPO_DIR, "user-jack.xml");
+    public static final String USER_JACK_OID = "229487cb-59b6-490b-879d-7a6d925dd08c";
 
-	// REST and reader authorization
-	public static final File USER_SOMEBODY_FILE = new File(BASE_REPO_DIR, "user-somebody.xml");
-	public static final String USER_SOMEBODY_OID = "a5f3e3c8-d48b-11e4-8d88-001e8c717e5b";
-	public static final String USER_SOMEBODY_USERNAME = "somebody";
-	public static final String USER_SOMEBODY_PASSWORD = "somepassword";
+    public static final File ROLE_SUPERUSER_FILE = new File(BASE_REPO_DIR, "role-superuser.xml");
+    public static final File ROLE_ENDUSER_FILE = new File(BASE_REPO_DIR, "role-enduser.xml");
+    public static final File ROLE_REST_FILE = new File(BASE_REPO_DIR, "role-rest.xml");
+    public static final File ROLE_READER_FILE = new File(BASE_REPO_DIR, "role-reader.xml");
 
-	// other
-	public static final File USER_JACK_FILE = new File(BASE_REPO_DIR, "user-jack.xml");
-	public static final String USER_JACK_OID = "229487cb-59b6-490b-879d-7a6d925dd08c";
+    public static final File SYSTEM_CONFIGURATION_FILE = new File(BASE_REPO_DIR, "system-configuration.xml");
 
-	public static final File ROLE_SUPERUSER_FILE = new File(BASE_REPO_DIR, "role-superuser.xml");
-	public static final File ROLE_ENDUSER_FILE = new File(BASE_REPO_DIR, "role-enduser.xml");
-	public static final File ROLE_REST_FILE = new File(BASE_REPO_DIR, "role-rest.xml");
-	public static final File ROLE_READER_FILE = new File(BASE_REPO_DIR, "role-reader.xml");
+    public static final File VALUE_POLICY_GENERAL = new File(BASE_REPO_DIR, "value-policy-general.xml");
+    public static final File VALUE_POLICY_NUMERIC = new File(BASE_REPO_DIR, "value-policy-numeric.xml");
+    public static final File VALUE_POLICY_SIMPLE = new File(BASE_REPO_DIR, "value-policy-simple.xml");
+    public static final File VALUE_POLICY_SECURITY_ANSWER = new File(BASE_REPO_DIR, "value-policy-security-answer.xml");
+    public static final File SECURITY_POLICY = new File(BASE_REPO_DIR, "security-policy.xml");
+    public static final File SECURITY_POLICY_NO_HISTORY = new File(BASE_REPO_DIR, "security-policy-no-history.xml");
 
-	public static final File SYSTEM_CONFIGURATION_FILE = new File(BASE_REPO_DIR, "system-configuration.xml");
+    @Autowired
+    private ProvisioningService provisioning;
 
-	public static final File VALUE_POLICY_GENERAL = new File(BASE_REPO_DIR, "value-policy-general.xml");
-	public static final File VALUE_POLICY_NUMERIC = new File(BASE_REPO_DIR, "value-policy-numeric.xml");
-	public static final File VALUE_POLICY_SIMPLE = new File(BASE_REPO_DIR, "value-policy-simple.xml");
-	public static final File SECURITY_POLICY = new File(BASE_REPO_DIR, "security-policy.xml");
-	public static final File SECURITY_POLICY_NO_HISTORY = new File(BASE_REPO_DIR, "security-policy-no-history.xml");
+    @Autowired
+    protected MidpointXmlProvider xmlProvider;
 
-	ApplicationContext applicationContext = null;
+    @Autowired
+    protected MidpointJsonProvider jsonProvider;
 
-	private PrismContext prismContext;
-	private TaskManager taskManager;
-	private ModelService modelService;
+    @Autowired
+    protected MidpointYamlProvider yamlProvider;
 
-	private Server server;
+    protected abstract String getAcceptHeader();
+    protected abstract String getContentType();
+    protected abstract MidpointAbstractProvider getProvider();
 
-	protected RepositoryService repositoryService;
-	private ProvisioningService provisioning;
-	protected DummyAuditService dummyAuditService;
+    protected String ENDPOINT_ADDRESS = "http://localhost:" + TestMidPointSpringApplication.DEFAULT_PORT + "/ws/rest";
 
-	protected TestXmlProvider xmlProvider;
-	protected TestJsonProvider jsonProvider;
-	protected TestYamlProvider yamlProvider;
+    @Override
+    public void initSystem(Task initTask, OperationResult result) throws Exception {
+        super.initSystem(initTask, result);
+        logger.trace("initSystem");
 
-	protected abstract String getAcceptHeader();
-	protected abstract String getContentType();
-	protected abstract MidpointAbstractProvider getProvider();
+        InternalsConfig.encryptionChecks = false;
 
-	protected final static String ENDPOINT_ADDRESS = "http://localhost:18080/rest";
+        PrismObject<RoleType> superRole = parseObject(ROLE_SUPERUSER_FILE);
+        addObject(superRole, ModelExecuteOptions.createOverwrite(), initTask, result);
+        PrismObject<RoleType> endRole = parseObject(ROLE_ENDUSER_FILE);
+        addObject(endRole, ModelExecuteOptions.createOverwrite(), initTask, result);
+        addObject(ROLE_REST_FILE, initTask, result);
+        addObject(ROLE_READER_FILE, initTask, result);
+        PrismObject<UserType> adminUser = parseObject(USER_ADMINISTRATOR_FILE);
+        addObject(adminUser, ModelExecuteOptions.createOverwrite(), initTask, result);
+        addObject(USER_NOBODY_FILE, initTask, result);
+        addObject(USER_CYCLOPS_FILE, initTask, result);
+        addObject(USER_SOMEBODY_FILE, initTask, result);
+        addObject(USER_JACK_FILE, initTask, result);
+        addObject(VALUE_POLICY_GENERAL, initTask, result);
+        addObject(VALUE_POLICY_NUMERIC, initTask, result);
+        addObject(VALUE_POLICY_SIMPLE, initTask, result);
+        addObject(VALUE_POLICY_SECURITY_ANSWER, initTask, result);
+        addObject(SECURITY_POLICY, initTask, result);
+        PrismObject<SystemConfigurationType> systemConfig = parseObject(SYSTEM_CONFIGURATION_FILE);
+        addObject(systemConfig, ModelExecuteOptions.createOverwrite(), initTask, result);
 
-	@BeforeClass
-	public void initialize() throws Exception {
-		startServer();
-	}
+        // TODO remove in 2021 - this should be covered in super.super.initSystem(...)
+//        dummyAuditService = DummyAuditService.getInstance();
 
-	@AfterClass
-	public void shutDown() {
-		((ClassPathXmlApplicationContext) applicationContext).close();
-	}
+        InternalMonitor.reset();
 
-	public void startServer() throws Exception {
-		applicationContext = new ClassPathXmlApplicationContext("ctx-rest-test-main.xml");
-		LOGGER.info("Spring context initialized.");
+        getModelService().postInit(result);
 
-		JAXRSServerFactoryBean sf = (JAXRSServerFactoryBean) applicationContext.getBean("restService");
+        result.computeStatus();
+    }
 
-		sf.setAddress(ENDPOINT_ADDRESS);
+    protected WebClient prepareClient(String username, String password) {
 
-		server = sf.create();
+        WebClient client = WebClient.create(ENDPOINT_ADDRESS, Arrays.asList(getProvider()));
+        ClientConfiguration clientConfig = WebClient.getConfig(client);
 
-		repositoryService = (SqlRepositoryServiceImpl) applicationContext.getBean("repositoryService");
-		provisioning = (ProvisioningServiceImpl) applicationContext.getBean("provisioningService");
-		taskManager = (TaskManager) applicationContext.getBean("taskManager");
-		modelService = (ModelService) applicationContext.getBean("modelController");
-		xmlProvider = (TestXmlProvider) applicationContext.getBean("testXmlProvider");
-		jsonProvider = (TestJsonProvider) applicationContext.getBean("testJsonProvider");
-		yamlProvider = (TestYamlProvider) applicationContext.getBean("testYamlProvider");
+        clientConfig.getRequestContext().put(LocalConduit.DIRECT_DISPATCH, Boolean.TRUE);
 
-		InternalsConfig.encryptionChecks = false;
+        client.accept(getAcceptHeader());
+        client.type(getContentType());
 
-		prismContext = (PrismContext) applicationContext.getBean("prismContext");
+        createAuthorizationHeader(client, username, password);
+        return client;
 
-		Task initTask = getTaskManager().createTaskInstance(TestAbstractRestService.class.getName() + ".startServer");
-		OperationResult result = initTask.getResult();
+    }
 
-		addObject(ROLE_SUPERUSER_FILE, result);
-		addObject(ROLE_ENDUSER_FILE, result);
-		addObject(ROLE_REST_FILE, result);
-		addObject(ROLE_READER_FILE, result);
-		addObject(USER_ADMINISTRATOR_FILE, result);
-		addObject(USER_NOBODY_FILE, result);
-		addObject(USER_CYCLOPS_FILE, result);
-		addObject(USER_SOMEBODY_FILE, result);
-		addObject(USER_JACK_FILE, result);
-		addObject(VALUE_POLICY_GENERAL, result);
-		addObject(VALUE_POLICY_NUMERIC, result);
-		addObject(VALUE_POLICY_SIMPLE, result);
-		addObject(SECURITY_POLICY, result);
-		addObject(SYSTEM_CONFIGURATION_FILE, result);
+    protected void createAuthorizationHeader(WebClient client, String username, String password) {
+        if (username != null) {
+            String authorizationHeader = "Basic " + org.apache.cxf.common.util.Base64Utility
+                    .encode((username + ":" + (password == null ? "" : password)).getBytes());
+            client.header("Authorization", authorizationHeader);
+        }
+    }
 
-		dummyAuditService = getDummyAuditService().getInstance();
+    protected void assertStatus(Response response, int expStatus) {
+        assertEquals("Expected " + expStatus + " but got " + response.getStatus(), expStatus,
+                response.getStatus());
+    }
 
-		InternalMonitor.reset();
+    public PrismContext getPrismContext() {
+        return prismContext;
+    }
 
-		getModelService().postInit(result);
+    public ModelService getModelService() {
+        return modelService;
+    }
 
-		result.computeStatus();
-		TestUtil.assertSuccessOrWarning("startServer failed (result)", result, 1);
+    public RepositoryService getRepositoryService() {
+        return repositoryService;
+    }
 
-	}
+    public ProvisioningService getProvisioning() {
+        return provisioning;
+    }
 
-	protected <O extends ObjectType> PrismObject<O> addObject(File file, OperationResult result) throws SchemaException, IOException, ObjectAlreadyExistsException {
-		return addObject(file, null, result);
-	}
-	
-	protected <O extends ObjectType> PrismObject<O> addObject(File file, RepoAddOptions options, OperationResult result) throws SchemaException, IOException, ObjectAlreadyExistsException {
-		PrismObject<O> object = getPrismContext().parseObject(file);
-		String oid = getRepositoryService().addObject(object, options, result);
-		object.setOid(oid);
-		return object;
-	}
+    public DummyAuditService getDummyAuditService() {
+        return dummyAuditService;
+    }
 
-	protected WebClient prepareClient(String username, String password) {
+    public MidpointXmlProvider getXmlProvider() {
+        return xmlProvider;
+    }
 
-		WebClient client = WebClient.create(ENDPOINT_ADDRESS, Arrays.asList(getProvider()));// ,
-																			// provider);
-		ClientConfiguration clientConfig = WebClient.getConfig(client);
+    public MidpointJsonProvider getJsonProvider() {
+        return jsonProvider;
+    }
 
-		clientConfig.getRequestContext().put(LocalConduit.DIRECT_DISPATCH, Boolean.TRUE);
-
-		client.accept(getAcceptHeader());
-		client.type(getContentType());
-
-		createAuthorizationHeader(client, username, password);
-		return client;
-
-	}
-
-	protected void createAuthorizationHeader(WebClient client, String username, String password) {
-		if (username != null) {
-			String authorizationHeader = "Basic " + org.apache.cxf.common.util.Base64Utility
-					.encode((username + ":" + (password == null ? "" : password)).getBytes());
-			client.header("Authorization", authorizationHeader);
-		}
-	}
-
-	protected void assertStatus(Response response, int expStatus) {
-		assertEquals("Expected " + expStatus + " but got " + response.getStatus(), expStatus,
-				response.getStatus());
-	}
-
-	public PrismContext getPrismContext() {
-		return prismContext;
-	}
-
-	public TaskManager getTaskManager() {
-		return taskManager;
-	}
-
-	public ModelService getModelService() {
-		return modelService;
-	}
-
-	public Server getServer() {
-		return server;
-	}
-
-	public RepositoryService getRepositoryService() {
-		return repositoryService;
-	}
-
-	public ProvisioningService getProvisioning() {
-		return provisioning;
-	}
-
-	public DummyAuditService getDummyAuditService() {
-		return dummyAuditService;
-	}
-
-	public TestXmlProvider getXmlProvider() {
-		return xmlProvider;
-	}
-
-	public TestJsonProvider getJsonProvider() {
-		return jsonProvider;
-	}
-
-	public TestYamlProvider getYamlProvider() {
-		return yamlProvider;
-	}
+    public MidpointYamlProvider getYamlProvider() {
+        return yamlProvider;
+    }
 
 }

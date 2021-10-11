@@ -1,0 +1,48 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      oid="d723af35-857f-4931-adac-07cc66c4c235">
+    <name>role-meta</name>
+    <inducement id="1">
+        <description>Construction</description>
+        <construction>
+            <description>LDAP group construction</description>
+            <resourceRef oid="aeff994e-381a-4fb3-af3b-f0f5dcdc9653" type="c:ResourceType"/>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+        </construction>
+    </inducement>
+    <inducement id="2">
+        <description>LDAP group association</description>
+        <construction>
+            <resourceRef oid="aeff994e-381a-4fb3-af3b-f0f5dcdc9653" type="c:ResourceType"/>
+            <kind>account</kind>
+            <intent>default</intent>
+            <association>
+                <c:ref>ri:group</c:ref>
+                <outbound>
+                    <strength>normal</strength>
+                    <expression>
+                        <associationFromLink>
+                            <projectionDiscriminator>
+                                <kind>entitlement</kind>
+                                <intent>group</intent>
+                            </projectionDiscriminator>
+                        </associationFromLink>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+        <order>2</order>
+    </inducement>
+</role>

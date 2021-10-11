@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.util;
 
@@ -23,58 +14,63 @@ package com.evolveum.midpoint.util;
  */
 public class Holder<T> {
 
-	private T value;
+    private T value;
 
-	public Holder() {
-		super();
-		this.value = null;
-	}
+    public Holder() {
+        super();
+        this.value = null;
+    }
 
-	public Holder(T value) {
-		super();
-		this.value = value;
-	}
+    public Holder(T value) {
+        super();
+        this.value = value;
+    }
 
-	public T getValue() {
-		return value;
-	}
+    public T getValue() {
+        return value;
+    }
 
-	public void setValue(T value) {
-		this.value = value;
-	}
+    public void setValue(T value) {
+        this.value = value;
+    }
 
-	public boolean isEmpty() {
-		return value == null;
-	}
+    public boolean isEmpty() {
+        return value == null;
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((value == null) ? 0 : value.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((value == null) ? 0 : value.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Holder other = (Holder) obj;
-		if (value == null) {
-			if (other.value != null)
-				return false;
-		} else if (!value.equals(other.value))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        Holder other = (Holder) obj;
+        if (value == null) {
+            if (other.value != null) {
+                return false;
+            }
+        } else if (!value.equals(other.value)) {
+            return false;
+        }
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "Holder(" + value + ")";
-	}
+    @Override
+    public String toString() {
+        return "Holder(" + value + ")";
+    }
 
 }

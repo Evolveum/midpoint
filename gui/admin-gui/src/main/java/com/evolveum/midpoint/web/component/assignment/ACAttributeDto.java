@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.assignment;
@@ -102,7 +93,7 @@ public class ACAttributeDto implements Serializable {
 
     public String getName() {
         String name = definition.getDisplayName();
-        return StringUtils.isNotEmpty(name) ? name : definition.getName().getLocalPart();
+        return StringUtils.isNotEmpty(name) ? name : definition.getItemName().getLocalPart();
     }
 
     public boolean isEmpty() {
@@ -129,7 +120,7 @@ public class ACAttributeDto implements Serializable {
         if (construction != null && construction.getRef() != null) {
             attrConstruction.setRef(construction.getRef());         // preserves original ref (including xmlns prefix!) - in order to avoid false deltas when comparing old and new values
         } else {
-            attrConstruction.setRef(new ItemPathType(definition.getName()));
+            attrConstruction.setRef(new ItemPathType(definition.getItemName()));
         }
         MappingType outbound;
         if (construction != null && construction.getOutbound() != null) {

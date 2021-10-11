@@ -1,23 +1,19 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.progress;
 
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
+
+import java.util.Collection;
 
 /**
  * A page that supports progress reporting, e.g. page for editing users, orgs, roles.
@@ -31,7 +27,7 @@ public interface ProgressReportingAwarePage {
 
     void startProcessing(AjaxRequestTarget target, OperationResult result);
 
-    void finishProcessing(AjaxRequestTarget target, OperationResult result, boolean returningFromAsync);
+    void finishProcessing(AjaxRequestTarget target, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, boolean returningFromAsync, OperationResult result);
 
     void continueEditing(AjaxRequestTarget target);
 }

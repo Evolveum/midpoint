@@ -10,10 +10,10 @@
         "type" : "http://www.w3.org/2001/XMLSchema#string"
       } ],
       "returnType" : "http://prism.evolveum.com/xml/ns/public/types-3#PolyStringType",
-	  "script" : [ {
-	      "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
-	      "code" : "\n                if (!value) {\n                  return null;\n                };\n\n                return \"Hello \" + value;"
-	   } ]
+      "script" : [ {
+          "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
+          "code" : "\n                if (!value) {\n                  return null;\n                };\n\n                return \"Hello \" + value;"
+       } ]
     }
   }
 }

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.model.common.expression.evaluator.caching;
@@ -21,15 +12,15 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.util.caching.AbstractCache;
+import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSearchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Cache for search expression-based evaluators.
@@ -46,7 +37,8 @@ import java.util.Map;
  *
  * @author Pavol Mederly
  */
-public abstract class AbstractSearchExpressionEvaluatorCache<V extends PrismValue, RV extends PrismObject, QK extends QueryKey, QR extends QueryResult> extends AbstractCache {
+public abstract class AbstractSearchExpressionEvaluatorCache<V extends PrismValue, RV extends PrismObject, QK extends QueryKey, QR extends QueryResult> extends
+        AbstractThreadLocalCache {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractSearchExpressionEvaluatorCache.class);
 
@@ -62,7 +54,9 @@ public abstract class AbstractSearchExpressionEvaluatorCache<V extends PrismValu
         this.clientContextInformation = clientContextInformation;
     }
 
-    protected Map<QK, QR> queries = new HashMap<>();
+    // We need thread-safety here e.g. because of size determination, see getSize() method.
+    // Also probably because of MID-5355, although it's a bit unclear.
+    Map<QK, QR> queries = new ConcurrentHashMap<>();
 
     public List<V> getQueryResult(Class<? extends ObjectType> type, ObjectQuery query, ObjectSearchStrategyType searchStrategy, ExpressionEvaluationContext params, PrismContext prismContext) {
         QK queryKey = createQueryKey(type, query, searchStrategy, params, prismContext);
@@ -93,5 +87,10 @@ public abstract class AbstractSearchExpressionEvaluatorCache<V extends PrismValu
     @Override
     public String description() {
         return "Q:"+queries.size();
+    }
+
+    @Override
+    protected int getSize() {
+        return queries.size();
     }
 }

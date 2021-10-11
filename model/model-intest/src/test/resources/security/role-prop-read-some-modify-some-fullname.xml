@@ -1,0 +1,103 @@
+<!--
+  ~ Copyright (c) 2014-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="f9e8a432-af7e-11e9-b338-9336f46ab95d"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <name>Prop Read Some Modify Some fullName</name>
+    <description>
+        Role specially crafted to check for execution autz for modification and for read autz in preview deltas.
+        FullName is computed in user template. It is not readable, therefore it should not be present in the preview deltas.
+        But it is modifiable (execution). Therefore the real modify operation should pass.
+        Mostly based on role-prop-read-some-modify-some-*
+        MID-5595
+    </description>
+    <authorization>
+        <name>read-some-fullname-user-req</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <phase>request</phase>
+        <object>
+            <type>UserType</type>
+        </object>
+        <item>c:name</item>
+        <item>givenName</item>
+        <!-- fullName is NOT here. MID-5595 -->
+        <item>c:activation/c:administrativeStatus</item>
+        <item>c:assignment</item>
+        <item>c:familyName</item> <!-- Not in exec autz -->
+    </authorization>
+    <authorization>
+        <name>read-some-fullname-user-exec</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <phase>execution</phase>
+        <object>
+            <type>UserType</type>
+        </object>
+        <item>c:name</item>
+        <item>givenName</item>
+        <item>c:fullName</item> <!-- fullName IS here. -->
+        <item>c:additionalName</item> <!-- Not in request autz -->
+        <item>c:activation/c:administrativeStatus</item>
+        <item>c:assignment</item>
+        <item>activation/validTo</item> <!-- Not in request autz -->
+    </authorization>
+    <authorization>
+        <name>modify-some-fullname-user-req</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <phase>request</phase>
+        <object>
+            <type>UserType</type>
+        </object>
+        <item>givenName</item>
+        <!-- fullName is NOT here. MID-5595 -->
+        <item>c:additionalName</item>
+        <item>c:description</item>
+        <item>c:costCenter</item> <!-- Not in exec autz -->
+        <item>activation/validFrom</item>
+    </authorization>
+    <authorization>
+        <name>modify-some-fullname-user-exec</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <phase>execution</phase>
+        <object>
+            <type>UserType</type>
+        </object>
+        <item>givenName</item>
+        <item>c:fullName</item> <!-- fullName IS here. -->
+        <item>c:additionalName</item>
+        <item>c:description</item>
+        <item>c:organization</item> <!-- Not in request autz -->
+        <item>activation/validFrom</item>
+        <item>activation/validTo</item> <!-- Not in request autz -->
+        <item>activation/effectiveStatus</item> <!-- Not in request autz -->
+    </authorization>
+    <authorization>
+        <name>read-some-fullname-shadow</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>ShadowType</type>
+        </object>
+        <item>name</item>
+        <item>objectClass</item>
+        <item>kind</item>
+        <item>intent</item>
+        <item>resourceRef</item>
+        <!-- attributes is NOT here. MID-5595 -->
+        <item>activation</item>
+    </authorization>
+    <authorization>
+        <name>modify-some-fullname-shadow-exec</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <phase>execution</phase>
+        <object>
+            <type>ShadowType</type>
+        </object>
+        <item>attributes</item>
+        <item>activation</item>
+        <item>credentials</item>
+    </authorization>
+</role>

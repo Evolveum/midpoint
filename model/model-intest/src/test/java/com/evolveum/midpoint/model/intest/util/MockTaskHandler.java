@@ -1,23 +1,15 @@
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest.util;
 
-import java.util.List;
-
 import javax.annotation.PostConstruct;
+
+import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,14 +18,10 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 /**
  * This task handler does nothing. Used in the tests.
@@ -44,47 +32,52 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Component
 public class MockTaskHandler implements TaskHandler {
 
-	public static final String HANDLER_URI = SchemaConstants.NS_MODEL + "/mock/handler-3";
+    public static final String HANDLER_URI = SchemaConstants.NS_MODEL + "/mock/handler-3";
 
-	@Autowired private TaskManager taskManager;
+    @Autowired private TaskManager taskManager;
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(MockTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MockTaskHandler.class);
 
-	@PostConstruct
-	private void initialize() {
-		taskManager.registerHandler(HANDLER_URI, this);
-	}
+    @PostConstruct
+    private void initialize() {
+        taskManager.registerHandler(HANDLER_URI, this);
+    }
 
-	@Override
-	public TaskRunResult run(Task task) {
-		LOGGER.trace("MockTaskHandler.run starting");
+    @Override
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+        LOGGER.trace("MockTaskHandler.run starting");
 
-		OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION);
-		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
-		TaskRunResult runResult = new TaskRunResult();
-		runResult.setOperationResult(opResult);
+        OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION);
+        opResult.setStatus(OperationResultStatus.IN_PROGRESS);
+        TaskRunResult runResult = new TaskRunResult();
+        runResult.setOperationResult(opResult);
 
-		opResult.recordSuccess();
-		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-		runResult.setProgress(1L);
+        opResult.recordSuccess();
+        runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
+        runResult.setProgress(1L);
 
-		LOGGER.trace("MockTaskHandler.run ending");
+        LOGGER.trace("MockTaskHandler.run ending");
 
-		return runResult;
-	}
+        return runResult;
+    }
 
-	@Override
-	public Long heartbeat(Task task) {
-		return 0L;
-	}
+    @Override
+    public Long heartbeat(Task task) {
+        return null;
+    }
 
-	@Override
-	public void refreshStatus(Task task) {
-		// Do nothing. Everything is fresh already.
-	}
+    @Override
+    public void refreshStatus(Task task) {
+        // Do nothing. Everything is fresh already.
+    }
 
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.SYSTEM;
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value();
     }
 }

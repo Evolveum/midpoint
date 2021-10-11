@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism.impl.query;
@@ -56,9 +47,9 @@ public class TypeFilterImpl extends ObjectFilterImpl implements TypeFilter {
     }
 
     public void setFilter(ObjectFilter filter) {
-    	if (filter == this) {
-    		throw new IllegalArgumentException("Type filte has itself as a subfilter");
-    	}
+        if (filter == this) {
+            throw new IllegalArgumentException("Type filte has itself as a subfilter");
+        }
         this.filter = filter;
     }
 
@@ -73,11 +64,11 @@ public class TypeFilterImpl extends ObjectFilterImpl implements TypeFilter {
         return new TypeFilterImpl(type, f);
     }
 
-	public TypeFilter cloneEmpty() {
-		return new TypeFilterImpl(type, null);
-	}
+    public TypeFilter cloneEmpty() {
+        return new TypeFilterImpl(type, null);
+    }
 
-	// untested; TODO test this method
+    // untested; TODO test this method
     @Override
     public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
         if (value == null) {
@@ -89,7 +80,7 @@ public class TypeFilterImpl extends ObjectFilterImpl implements TypeFilter {
                 LOGGER.trace("Parent of {} is not a PrismContainer, returning false; it is {}", value, value.getParent());
                 return false;
             }
-            PrismContainer container = (PrismContainer) value.getParent();
+            PrismContainer<?> container = (PrismContainer<?>) value.getParent();
             PrismContainerDefinition pcd = container.getDefinition();
             if (pcd == null) {
                 LOGGER.trace("Parent of {} has no definition, returning false", value);
@@ -109,19 +100,14 @@ public class TypeFilterImpl extends ObjectFilterImpl implements TypeFilter {
     }
 
     @Override
-	public void checkConsistence(boolean requireDefinitions) {
-		if (type == null) {
-			throw new IllegalArgumentException("Null type in "+this);
-		}
-		// null subfilter is legal. It means "ALL".
-		if (filter != null) {
-			filter.checkConsistence(requireDefinitions);
-		}
-	}
-
-    @Override
-    public String debugDump() {
-        return debugDump(0);
+    public void checkConsistence(boolean requireDefinitions) {
+        if (type == null) {
+            throw new IllegalArgumentException("Null type in "+this);
+        }
+        // null subfilter is legal. It means "ALL".
+        if (filter != null) {
+            filter.checkConsistence(requireDefinitions);
+        }
     }
 
     @Override
@@ -151,6 +137,12 @@ public class TypeFilterImpl extends ObjectFilterImpl implements TypeFilter {
         return true;
     }
 
+    // Just to make checkstyle happy
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
+    }
+
     @Override
     public int hashCode() {
         return type.hashCode();
@@ -158,13 +150,13 @@ public class TypeFilterImpl extends ObjectFilterImpl implements TypeFilter {
 
     @Override
     public String toString() {
-    	StringBuilder sb = new StringBuilder();
-		sb.append("TYPE(");
-		sb.append(PrettyPrinter.prettyPrint(type));
-		sb.append(",");
-		sb.append(filter);
-		sb.append(")");
-		return sb.toString();
+        StringBuilder sb = new StringBuilder();
+        sb.append("TYPE(");
+        sb.append(PrettyPrinter.prettyPrint(type));
+        sb.append(",");
+        sb.append(filter);
+        sb.append(")");
+        return sb.toString();
     }
 
     @Override

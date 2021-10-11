@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.model.impl.visualizer.output;
@@ -24,59 +15,59 @@ import com.evolveum.midpoint.prism.PrismValue;
  */
 public class SceneItemValueImpl implements SceneItemValue {
 
-	private final String text;
-	private final String additionalText;
-	private PrismValue sourceValue;
+    private final String text;
+    private final String additionalText;
+    private PrismValue sourceValue;
 
-	public SceneItemValueImpl(String text) {
-		this.text = text;
-		this.additionalText = null;
-	}
+    public SceneItemValueImpl(String text) {
+        this.text = text;
+        this.additionalText = null;
+    }
 
-	public SceneItemValueImpl(String text, String additionalText) {
-		this.text = text;
-		this.additionalText = additionalText;
-	}
+    public SceneItemValueImpl(String text, String additionalText) {
+        this.text = text;
+        this.additionalText = additionalText;
+    }
 
-	@Override
-	public String getText() {
-		return text;
-	}
+    @Override
+    public String getText() {
+        return text;
+    }
 
-	public String getAdditionalText() {
-		return additionalText;
-	}
+    public String getAdditionalText() {
+        return additionalText;
+    }
 
-	@Override
-	public PrismValue getSourceValue() {
-		return sourceValue;
-	}
+    @Override
+    public PrismValue getSourceValue() {
+        return sourceValue;
+    }
 
-	public void setSourceValue(PrismValue sourceValue) {
-		this.sourceValue = sourceValue;
-	}
+    public void setSourceValue(PrismValue sourceValue) {
+        this.sourceValue = sourceValue;
+    }
 
-	@Override
-	public String toString() {
-		return "'" + text + "'" + (sourceValue != null ? "*" : "");
-	}
+    @Override
+    public String toString() {
+        return "'" + text + "'" + (sourceValue != null ? "*" : "");
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-		SceneItemValueImpl that = (SceneItemValueImpl) o;
+        SceneItemValueImpl that = (SceneItemValueImpl) o;
 
-		if (text != null ? !text.equals(that.text) : that.text != null) return false;
-		return !(sourceValue != null ? !sourceValue.equals(that.sourceValue) : that.sourceValue != null);
+        if (text != null ? !text.equals(that.text) : that.text != null) return false;
+        return !(sourceValue != null ? !sourceValue.equals(that.sourceValue) : that.sourceValue != null);
 
-	}
+    }
 
-	@Override
-	public int hashCode() {
-		int result = text != null ? text.hashCode() : 0;
-		result = 31 * result + (sourceValue != null ? sourceValue.hashCode() : 0);
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        int result = text != null ? text.hashCode() : 0;
+        result = 31 * result + (sourceValue != null ? sourceValue.hashCode() : 0);
+        return result;
+    }
 }

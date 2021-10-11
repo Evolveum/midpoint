@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+    <c:resource oid="10000000-9999-9999-0000-a000ff000003">
+        <c:name>CSV-2 (Canteen Ordering System)</c:name>
+        <connectorRef type="ConnectorType">
+            <filter>
+                <q:equal>
+                    <q:path>c:connectorType</q:path>
+                    <q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
+                </q:equal>
+            </filter>
+        </connectorRef>
+        <c:connectorConfiguration>
+            <icfc:configurationProperties xmlns:icfcsv="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
+                <icfcsv:filePath>/opt/training/midpoint-labs/flatfiles/csv-2.csv</icfcsv:filePath>
+                <icfcsv:encoding>utf-8</icfcsv:encoding>
+                <icfcsv:quoteMode>ALL</icfcsv:quoteMode>
+                <icfcsv:quote>"</icfcsv:quote>
+                <icfcsv:fieldDelimiter>,</icfcsv:fieldDelimiter>
+                <!--                <icfcsv:multivalueDelimiter>;</icfcsv:multivalueDelimiter>-->
+                <icfcsv:uniqueAttribute>login</icfcsv:uniqueAttribute>
+                <icfcsv:passwordAttribute>password</icfcsv:passwordAttribute>
+            </icfc:configurationProperties>
+        </c:connectorConfiguration>
+        <schemaHandling>
+            <objectType>
+                <kind>account</kind>
+                <intent>default</intent>
+                <displayName>Default Account</displayName>
+                <default>true</default>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <attribute>
+                    <ref>ri:login</ref>
+                    <displayName>Login</displayName>
+                    <limitations>
+                        <minOccurs>0</minOccurs>
+                    </limitations>
+                    <outbound>
+                        <source>
+                            <path>givenName</path>
+                        </source>
+                        <source>
+                            <path>familyName</path>
+                        </source>
+                        <expression>
+                            <script>
+                                <code>
+
+                                    tmpGivenNameInitial = basic.stringify(givenName)?.size() &gt; 0 ? (basic.stringify(givenName)).substring(0,1) : ''
+                                    tmpFamilyName = basic.norm(basic.stringify(familyName))?.replace(' ', '')
+
+                                    <!-- BONUS LAB, part 1 of 2: uncomment all commented parts below -->
+                                    <!--if (iteration == 0) { -->
+                                    if (basic.stringify(tmpFamilyName).size() &lt; 7) {
+                                    basic.norm(basic.stringify(tmpGivenNameInitial + tmpFamilyName))
+                                    }
+                                    else {
+                                    basic.norm(basic.stringify(tmpGivenNameInitial) + basic.stringify(tmpFamilyName)?.substring(0, 7))
+                                    }
+                                    <!--
+                                    }
+                                    else {
+                                        if (basic.stringify(tmpFamilyName).size() &lt; 6) {
+                                            basic.norm(basic.stringify(tmpGivenNameInitial + tmpFamilyName)) + iterationToken
+                                        }
+                                        else {
+                                            basic.norm(basic.stringify(tmpGivenNameInitial + basic.stringify(tmpFamilyName)?.substring(0, 6))) + iterationToken
+
+                                        }
+                                    }
+                                    -->
+                                    <!-- BONUS LAB, part 1 of 2: end of comment -->
+                                </code>
+                            </script>
+                        </expression>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:pin</ref>
+                    <displayName>Meal Card PIN</displayName>
+                    <description>Definition of Meal Card PIN attribute handling.</description>
+                    <limitations>
+                        <!--<minOccurs>1</minOccurs>-->
+                        <maxOccurs>1</maxOccurs>
+                    </limitations>
+                    <outbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <generate>
+                                <valuePolicyRef oid="10000000-9999-9999-0000-a000f2000001"/>
+                            </generate>
+                        </expression>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:empnumber</ref>
+                    <displayName>Employee Number</displayName>
+                    <description>Definition of Employee Number attribute handling.</description>
+                    <outbound>
+                        <source>
+                            <path>employeeNumber</path>
+                        </source>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:firstname</ref>
+                    <displayName>First name</displayName>
+                    <description>Definition of Firstname attribute handling.</description>
+                    <outbound>
+                        <source>
+                            <path>givenName</path>
+                        </source>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:lastname</ref>
+                    <displayName>Last name</displayName>
+                    <description>Definition of Lastname attribute handling.</description>
+                    <outbound>
+                        <source>
+                            <path>familyName</path>
+                        </source>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:department</ref>
+                    <displayName>Department</displayName>
+                    <description>Definition of Department attribute handling.</description>
+                    <outbound>
+                        <source>
+                            <path>organizationalUnit</path>
+                        </source>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:cardNumber</ref>
+                    <displayName>Meal Card Number</displayName>
+                    <description>This attribute is not used in this training. Hide it.</description>
+                    <limitations>
+                        <layer>presentation</layer>
+                        <ignore>true</ignore>
+                    </limitations>
+                </attribute>
+                <!-- BONUS LAB, part 2 of 2: uncomment the following section -->
+                <!--
+                <iteration>
+                    <maxIterations>5</maxIterations>
+                </iteration>
+-->
+                <!-- BONUS LAB, part 2 of 2: end of comment -->
+                <activation>
+                    <!-- MID-101, LAB 5-5, part 1 of 2: Uncomment the section to use disable instead of delete -->
+                    <!--
+                <existence>
+                    <outbound>
+                        <expression>
+                            <path>$focusExists</path>
+                        </expression>
+                    </outbound>
+                </existence>
+-->
+                    <!-- MID-101, LAB 5-5, part 1 of 2: end of comment -->
+                    <administrativeStatus>
+                        <outbound>
+                            <!-- MID-101, LAB 5-5, part 2 of 2: Uncomment the section to use disable instead of delete -->
+                            <!--
+                        <expression>
+                            <script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    if (legal &amp;&amp; assigned) {
+                                        input;
+                                    } else {
+                                        ActivationStatusType.DISABLED;
+                                    }
+                                </code>
+                            </script>
+                        </expression>
+-->
+                            <!-- MID-101, LAB 5-5, part 2 of 2: end of comment -->
+                        </outbound>
+                    </administrativeStatus>
+                </activation>
+                <credentials>
+                    <password>
+                        <outbound/>
+                        <!--<passwordPolicyRef oid="81818181-76e0-59e2-8888-3d4f02d3ffff" type="c:ValuePolicyType"/>-->
+                    </password>
+                </credentials>
+            </objectType>
+        </schemaHandling>
+        <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+            <configured>
+                <cap:activation>
+                    <cap:status>
+                        <cap:attribute>ri:disabled</cap:attribute>
+                        <cap:enableValue>false</cap:enableValue>
+                        <cap:disableValue>true</cap:disableValue>
+                    </cap:status>
+                </cap:activation>
+                <cap:countObjects>
+                    <cap:simulate>sequentialSearch</cap:simulate>
+                </cap:countObjects>
+            </configured>
+        </capabilities>
+        <synchronization>
+            <objectSynchronization>
+                <name>Default account</name>
+                <kind>account</kind>
+                <intent>default</intent>
+                <enabled>true</enabled>
+                <correlation>
+                    <q:description>
+                        Correlation expression is a search query.
+                        Following search queury will look for users that have "employeeNumber"
+                        equal to the "empnumber" attribute of the account.
+                        The condition will ensure that "empnumber" is not
+                        empty, otherwise it would match any midPoint user
+                        with empty "employeeNumber" attribute, such as "administrator".
+                        The correlation rule always looks for users, so it will not match
+                        any other object type.
+                    </q:description>
+                    <q:equal>
+                        <q:path>c:employeeNumber</q:path>
+                        <expression>
+                            <path>$projection/attributes/ri:empnumber</path>
+                        </expression>
+                    </q:equal>
+                    <condition>
+                        <script>
+                            <code>basic.getAttributeValue(projection, 'empnumber') != null</code>
+                        </script>
+                    </condition>
+                </correlation>
+                <reaction>
+                    <situation>linked</situation>
+                    <synchronize>true</synchronize>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <synchronize>true</synchronize>
+                    <action>
+                        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                    </action>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <synchronize>true</synchronize>
+                    <action>
+                        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                    </action>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                </reaction>
+            </objectSynchronization>
+        </synchronization>
+    </c:resource>
+</c:objects>

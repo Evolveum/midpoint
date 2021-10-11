@@ -1,18 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2014-2015 Evolveum
+  ~ Copyright (c) 2014-2015 Evolveum and contributors
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate oid="3e62558c-ca0f-11e3-ba83-001e8c717e5b"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
@@ -22,65 +13,65 @@
    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
    xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
     <name>Org Template</name>
-    
+
     <item>
-    	<ref>assignment</ref>
-    	<mapping>
-			<authoritative>true</authoritative>
-			<strength>strong</strength>			<!-- there's already an assignment, so normal mappings are skipped on object add -->
-	    	<source>
-	    		<path>orgType</path>
-	    	</source>
-    		<expression>
-				<assignmentTargetSearch>
-					<targetType>c:OrgType</targetType>
-					<filter>
-						<q:equal>
-							<q:path>name</q:path>
-							<q:value>F0006</q:value>
-						</q:equal>
-					</filter>
-				</assignmentTargetSearch>
-				<!-- parentOrgRef cannot exist without assignment, so we have to create one (instead of parentRefOrg alone) -->
-	            <!--<referenceSearch>-->
-					<!--<targetType>c:OrgType</targetType>-->
-					<!--<filter>-->
-						<!--<q:equal>-->
-							<!--<q:path>name</q:path>-->
-							<!--<q:value>F0006</q:value>-->
-						<!--</q:equal>-->
-					<!--</filter>-->
-				<!--</referenceSearch>    	-->
-	    	</expression>
-    		<condition>
-	    		<script>
-	    			<code>orgType == 'fictional'</code>
-	    		</script>
-	    	</condition>
-    	</mapping>
+        <ref>assignment</ref>
+        <mapping>
+            <authoritative>true</authoritative>
+            <strength>strong</strength>            <!-- there's already an assignment, so normal mappings are skipped on object add -->
+            <source>
+                <path>orgType</path>
+            </source>
+            <expression>
+                <assignmentTargetSearch>
+                    <targetType>c:OrgType</targetType>
+                    <filter>
+                        <q:equal>
+                            <q:path>name</q:path>
+                            <q:value>F0006</q:value>
+                        </q:equal>
+                    </filter>
+                </assignmentTargetSearch>
+                <!-- parentOrgRef cannot exist without assignment, so we have to create one (instead of parentRefOrg alone) -->
+                <!--<referenceSearch>-->
+                    <!--<targetType>c:OrgType</targetType>-->
+                    <!--<filter>-->
+                        <!--<q:equal>-->
+                            <!--<q:path>name</q:path>-->
+                            <!--<q:value>F0006</q:value>-->
+                        <!--</q:equal>-->
+                    <!--</filter>-->
+                <!--</referenceSearch>        -->
+            </expression>
+            <condition>
+                <script>
+                    <code>orgType == 'fictional'</code>
+                </script>
+            </condition>
+        </mapping>
     </item>
-    
+
     <mapping>
-    	<name>Org functional metarole assignment</name>
-    	<authoritative>true</authoritative>
-		<strength>strong</strength>			<!-- there's already an assignment, so normal mappings are skipped on object add -->
-    	<source>
-    		<path>orgType</path>
-    	</source>
-    	<expression>
+        <name>Org functional metarole assignment</name>
+        <authoritative>true</authoritative>
+        <strength>strong</strength>            <!-- there's already an assignment, so normal mappings are skipped on object add -->
+        <source>
+            <path>orgType</path>
+        </source>
+        <expression>
             <assignmentTargetSearch>
-            	<targetType>c:RoleType</targetType>
-        		<oid>74aac2c8-ca0f-11e3-bb29-001e8c717e5b</oid>
-            </assignmentTargetSearch>    	
-    	</expression>
-    	<target>
-    		<path>assignment</path>
-    	</target>
-    	<condition>
-    		<script>
-    			<code>orgType == 'functional'</code>
-    		</script>
-    	</condition>
+                <targetType>c:RoleType</targetType>
+                <oid>74aac2c8-ca0f-11e3-bb29-001e8c717e5b</oid>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <code>orgType == 'functional'</code>
+            </script>
+        </condition>
     </mapping>
-    
+
 </objectTemplate>

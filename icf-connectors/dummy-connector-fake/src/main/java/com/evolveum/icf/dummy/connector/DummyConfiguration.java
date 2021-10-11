@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.icf.dummy.connector;
 
@@ -26,13 +17,13 @@ import org.identityconnectors.framework.spi.ConfigurationProperty;
  */
 public class DummyConfiguration extends AbstractConfiguration {
 
-    private static final Log log = Log.getLog(DummyConfiguration.class);
+    private static final Log LOG = Log.getLog(DummyConfiguration.class);
 
     private String instanceId;
     private String fakeName;
 
     @ConfigurationProperty(displayMessageKey = "UI_INSTANCE_ID",
-    		helpMessageKey = "UI_INSTANCE_ID_HELP")
+            helpMessageKey = "UI_INSTANCE_ID_HELP")
     public String getInstanceId() {
         return instanceId;
     }
@@ -42,7 +33,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     }
 
     @ConfigurationProperty(displayMessageKey = "UI_FAKE_NAME",
-    		helpMessageKey = "UI_FAKE_NAME_HELP")
+            helpMessageKey = "UI_FAKE_NAME_HELP")
     public String getFakeName() {
         return fakeName;
     }
@@ -51,16 +42,16 @@ public class DummyConfiguration extends AbstractConfiguration {
         this.fakeName = config;
     }
 
-	/**
+    /**
      * {@inheritDoc}
      */
     @Override
     public void validate() {
-        log.info("begin");
+        LOG.info("begin");
 
         //TODO: validate configuration
 
-        log.info("end");
+        LOG.info("end");
     }
 
 

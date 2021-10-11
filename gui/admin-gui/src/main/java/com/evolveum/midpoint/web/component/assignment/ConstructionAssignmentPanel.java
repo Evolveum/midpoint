@@ -1,29 +1,31 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.web.component.assignment;
 
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Created by honchar.
@@ -31,20 +33,14 @@ import java.util.List;
 public class ConstructionAssignmentPanel extends AssignmentPanel {
     private static final long serialVersionUID = 1L;
 
-    public ConstructionAssignmentPanel(String id, IModel<ContainerWrapper<AssignmentType>> assignmentContainerWrapperModel){
+    public ConstructionAssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel){
         super(id, assignmentContainerWrapperModel);
     }
 
     @Override
     protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
-        List<SearchItemDefinition> defs = new ArrayList<>();
-
+        List<SearchItemDefinition> defs = super.createSearchableItems(containerDef);
         SearchFactory.addSearchRefDef(containerDef, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
-        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
-        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
-
-        defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
-
         return defs;
     }
 
@@ -54,42 +50,11 @@ public class ConstructionAssignmentPanel extends AssignmentPanel {
     }
 
     @Override
-    protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
-        List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
+    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
+        List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
-        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(
-                createStringResource("ConstructionType.kind")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
-                AssignmentType assignment = assignmentModel.getObject().getContainerValue().asContainerable();
-                String kindValue = "";
-                if (assignment.getConstruction() != null){
-                    ConstructionType construction = assignment.getConstruction();
-                    kindValue = construction.getKind() != null && !StringUtils.isEmpty(construction.getKind().value()) ?
-                            construction.getKind().value() : createStringResource("AssignmentEditorPanel.undefined").getString();
-                }
-                item.add(new Label(componentId, kindValue));
-            }
-        });
-        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(
-                createStringResource("ConstructionType.intent")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
-                AssignmentType assignment = assignmentModel.getObject().getContainerValue().asContainerable();
-                String intentValue = "";
-                if (assignment.getConstruction() != null){
-                    ConstructionType construction = assignment.getConstruction();
-                    intentValue = !StringUtils.isEmpty(construction.getIntent()) ? construction.getIntent()
-                            : createStringResource("AssignmentEditorPanel.undefined").getString();
-                }
-                item.add(new Label(componentId, intentValue));
-            }
-        });
-
+        columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND), ColumnType.STRING, getPageBase()));
+        columns.add(new PrismPropertyWrapperColumn<>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT), ColumnType.STRING, getPageBase()));
         return columns;
     }
 
@@ -101,32 +66,41 @@ public class ConstructionAssignmentPanel extends AssignmentPanel {
     }
 
     @Override
-    protected IModel<ContainerWrapper> getSpecificContainerModel(ContainerValueWrapper<AssignmentType> modelObject) {
-        if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
-            ContainerWrapper<ConstructionType> constructionWrapper = modelObject.findContainerWrapper(ItemPath.create(modelObject.getPath(),
-                    AssignmentType.F_CONSTRUCTION));
-
-            return Model.of(constructionWrapper);
+    protected ItemVisibility getTypedContainerVisibility(ItemWrapper<?, ?, ?, ?> wrapper) {
+        if (QNameUtil.match(AssignmentType.F_TARGET_REF, wrapper.getItemName())) {
+            return ItemVisibility.HIDDEN;
         }
 
-        if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
-            //TODO is it correct? findContainerWrapper by path F_PERSONA_CONSTRUCTION will return PersonaConstructionType
-            //but not PolicyRuleType
-            ContainerWrapper<PolicyRuleType> personasWrapper = modelObject.findContainerWrapper(ItemPath.create(modelObject.getPath(),
-                    AssignmentType.F_PERSONA_CONSTRUCTION));
-
-            return Model.of(personasWrapper);
+        if (QNameUtil.match(AssignmentType.F_TENANT_REF, wrapper.getItemName())) {
+            return ItemVisibility.HIDDEN;
         }
-        return Model.of();
+
+        if (QNameUtil.match(AssignmentType.F_ORG_REF, wrapper.getItemName())) {
+            return ItemVisibility.HIDDEN;
+        }
+
+        if (QNameUtil.match(PolicyRuleType.COMPLEX_TYPE, wrapper.getTypeName())){
+            return ItemVisibility.HIDDEN;
+        }
+
+        if (QNameUtil.match(PersonaConstructionType.COMPLEX_TYPE, wrapper.getTypeName())){
+            return ItemVisibility.HIDDEN;
+        }
+
+        return ItemVisibility.AUTO;
     }
 
     @Override
-    protected ItemVisibility getAssignmentBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath, ItemPath assignmentPath, PrismContainerValue<AssignmentType> prismContainerValue) {
-        if (itemWrapper.getPath().containsNameExactly(AssignmentType.F_CONSTRUCTION)) {
-            return ItemVisibility.AUTO;
-        } else {
-            return super.getAssignmentBasicTabVisibity(itemWrapper, parentAssignmentPath, assignmentPath, prismContainerValue);
+    protected boolean getContainerReadability(ItemWrapper<?, ?, ?, ?> wrapper) {
+
+        if (QNameUtil.match(ConstructionType.F_KIND, wrapper.getItemName())) {
+            return false;
         }
 
+        if (QNameUtil.match(ConstructionType.F_INTENT, wrapper.getItemName())) {
+            return false;
+        }
+
+        return true;
     }
 }

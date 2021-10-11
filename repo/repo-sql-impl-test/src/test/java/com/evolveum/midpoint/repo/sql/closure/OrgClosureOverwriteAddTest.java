@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.closure;
@@ -19,8 +10,6 @@ package com.evolveum.midpoint.repo.sql.closure;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -36,8 +25,6 @@ import static org.testng.AssertJUnit.assertFalse;
 @ContextConfiguration(locations = {"../../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class OrgClosureOverwriteAddTest extends AbstractOrgClosureTest {
-
-	private static final Trace LOGGER = TraceManager.getTrace(OrgClosureOverwriteAddTest.class);
 
     private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 1  };
     private static final int[] USER_CHILDREN_IN_LEVEL = null;
@@ -67,11 +54,11 @@ public class OrgClosureOverwriteAddTest extends AbstractOrgClosureTest {
         PrismObject<OrgType> childOrg = repositoryService.getObject(OrgType.class, childOid, null, opResult);
         childOrg.asObjectable().getParentOrgRef().clear();
 
-        LOGGER.info("+++ adding object with 'overwrite' option +++");
+        logger.info("+++ adding object with 'overwrite' option +++");
         repositoryService.addObject(childOrg, RepoAddOptions.createOverwrite(), opResult);
 
-	    orgGraph.removeEdge(childOid, parentOid);
-	    checkOrgGraph();
+        orgGraph.removeEdge(childOid, parentOid);
+        checkOrgGraph();
         boolean problem = checkClosureMatrix();
         assertFalse("Closure problem was detected", problem);
     }

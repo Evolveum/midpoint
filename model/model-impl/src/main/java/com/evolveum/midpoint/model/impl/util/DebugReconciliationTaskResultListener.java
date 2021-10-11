@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2013-2018 Evolveum
+ * Copyright (c) 2013-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.model.impl.util;
@@ -35,47 +26,47 @@ import com.evolveum.midpoint.util.DebugUtil;
  *
  */
 public class DebugReconciliationTaskResultListener implements
-		ReconciliationTaskResultListener, DebugDumpable {
+        ReconciliationTaskResultListener, DebugDumpable {
 
-	private List<ReconciliationTaskResult> results = Collections.synchronizedList(new ArrayList<ReconciliationTaskResult>());
+    private List<ReconciliationTaskResult> results = Collections.synchronizedList(new ArrayList<ReconciliationTaskResult>());
 
-	@Override
-	public void process(ReconciliationTaskResult reconResult) {
-		results.add(reconResult);
-	}
+    @Override
+    public void process(ReconciliationTaskResult reconResult) {
+        results.add(reconResult);
+    }
 
-	public void clear() {
-		results.clear();
-	}
+    public void clear() {
+        results.clear();
+    }
 
-	public void assertResult(String resourceOid, long expectedUnOpsCount, long expectedResourceReconCount, long expectedResourceReconErrors,
-			long expectedShadowReconCount) {
-		ReconciliationTaskResult result = findResult(resourceOid);
-		assert result != null : "No recon result for resource "+resourceOid;
-		PrismAsserts.assertEquals("Wrong upOpsCount in recon result for resource "+resourceOid,
-				expectedUnOpsCount, result.getUnOpsCount());
-		PrismAsserts.assertEquals("Wrong resourceReconCount in recon result for resource "+resourceOid,
-				expectedResourceReconCount, result.getResourceReconCount());
-		PrismAsserts.assertEquals("Wrong resourceReconErrors in recon result for resource "+resourceOid,
-				expectedResourceReconErrors, result.getResourceReconErrors());
-		PrismAsserts.assertEquals("Wrong shadowReconCount in recon result for resource "+resourceOid,
-				expectedShadowReconCount, result.getShadowReconCount());
-	}
+    public void assertResult(String resourceOid, long expectedUnOpsCount, long expectedResourceReconCount, long expectedResourceReconErrors,
+            long expectedShadowReconCount) {
+        ReconciliationTaskResult result = findResult(resourceOid);
+        assert result != null : "No recon result for resource "+resourceOid;
+        PrismAsserts.assertEquals("Wrong unOpsCount in recon result for resource "+resourceOid,
+                expectedUnOpsCount, result.getUnOpsCount());
+        PrismAsserts.assertEquals("Wrong resourceReconCount in recon result for resource "+resourceOid,
+                expectedResourceReconCount, result.getResourceReconCount());
+        PrismAsserts.assertEquals("Wrong resourceReconErrors in recon result for resource "+resourceOid,
+                expectedResourceReconErrors, result.getResourceReconErrors());
+        PrismAsserts.assertEquals("Wrong shadowReconCount in recon result for resource "+resourceOid,
+                expectedShadowReconCount, result.getShadowReconCount());
+    }
 
-	private ReconciliationTaskResult findResult(String resourceOid) {
-		for (ReconciliationTaskResult result: results) {
-			if (resourceOid.equals(result.getResource().getOid())) {
-				return result;
-			}
-		}
-		return null;
-	}
+    private ReconciliationTaskResult findResult(String resourceOid) {
+        for (ReconciliationTaskResult result: results) {
+            if (resourceOid.equals(result.getResource().getOid())) {
+                return result;
+            }
+        }
+        return null;
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(DebugReconciliationTaskResultListener.class, indent);
-		DebugUtil.debugDumpWithLabel(sb, "results", results, indent + 1);
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(DebugReconciliationTaskResultListener.class, indent);
+        DebugUtil.debugDumpWithLabel(sb, "results", results, indent + 1);
+        return sb.toString();
+    }
 
 }

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism.impl.marshaller;
@@ -32,60 +23,60 @@ import java.util.List;
  */
 public class PrismParserImplIO extends PrismParserImpl {
 
-	public PrismParserImplIO(ParserSource source, String language, ParsingContext context, PrismContextImpl prismContext,
-			ItemDefinition<?> itemDefinition, QName itemName, QName typeName, Class<?> typeClass) {
-		super(source, language, context, prismContext, itemDefinition, itemName, typeName, typeClass);
-	}
+    public PrismParserImplIO(ParserSource source, String language, ParsingContext context, PrismContextImpl prismContext,
+            ItemDefinition<?> itemDefinition, QName itemName, QName typeName, Class<?> typeClass) {
+        super(source, language, context, prismContext, itemDefinition, itemName, typeName, typeClass);
+    }
 
-	@NotNull
-	@Override
-	public <O extends Objectable> PrismObject<O> parse() throws SchemaException, IOException {
-		return doParse();
-	}
+    @NotNull
+    @Override
+    public <O extends Objectable> PrismObject<O> parse() throws SchemaException, IOException {
+        return doParse();
+    }
 
-	@Override
-	public <IV extends PrismValue, ID extends ItemDefinition> Item<IV, ID> parseItem() throws SchemaException, IOException {
-		return doParseItem();
-	}
+    @Override
+    public <IV extends PrismValue, ID extends ItemDefinition> Item<IV, ID> parseItem() throws SchemaException, IOException {
+        return doParseItem();
+    }
 
-	@Override
-	public <IV extends PrismValue> IV parseItemValue() throws SchemaException, IOException {
-		return doParseItemValue();
-	}
+    @Override
+    public <IV extends PrismValue> IV parseItemValue() throws SchemaException, IOException {
+        return doParseItemValue();
+    }
 
-	@Override
-	public <T> T parseRealValue(Class<T> clazz) throws IOException, SchemaException {
-		return doParseRealValue(clazz);
-	}
+    @Override
+    public <T> T parseRealValue(Class<T> clazz) throws IOException, SchemaException {
+        return doParseRealValue(clazz);
+    }
 
-	@Override
-	public <T> T parseRealValue() throws IOException, SchemaException {
-		return doParseRealValue();
-	}
+    @Override
+    public <T> T parseRealValue() throws IOException, SchemaException {
+        return doParseRealValue();
+    }
 
-	@Override
-	public <T> JAXBElement<T> parseRealValueToJaxbElement() throws IOException, SchemaException {
-		return doParseAnyValueAsJAXBElement();
-	}
+    @Override
+    public <T> JAXBElement<T> parseRealValueToJaxbElement() throws IOException, SchemaException {
+        return doParseAnyValueAsJAXBElement();
+    }
 
-	@Override
-	public RootXNodeImpl parseToXNode() throws IOException, SchemaException {
-		return doParseToXNode();
-	}
+    @Override
+    public RootXNodeImpl parseToXNode() throws IOException, SchemaException {
+        return doParseToXNode();
+    }
 
-	@NotNull
-	@Override
-	public List<PrismObject<? extends Objectable>> parseObjects() throws SchemaException, IOException {
-		return doParseObjects();
-	}
+    @NotNull
+    @Override
+    public List<PrismObject<? extends Objectable>> parseObjects() throws SchemaException, IOException {
+        return doParseObjects();
+    }
 
-	@Override
-	public void parseObjectsIteratively(@NotNull ObjectHandler handler) throws SchemaException, IOException {
-		doParseObjectsIteratively(handler);
-	}
+    @Override
+    public void parseObjectsIteratively(@NotNull ObjectHandler handler) throws SchemaException, IOException {
+        doParseObjectsIteratively(handler);
+    }
 
-	@Override
-	public Object parseItemOrRealValue() throws IOException, SchemaException {
-		return doParseItemOrRealValue();
-	}
+    @Override
+    public Object parseItemOrRealValue() throws IOException, SchemaException {
+        return doParseItemOrRealValue();
+    }
 }

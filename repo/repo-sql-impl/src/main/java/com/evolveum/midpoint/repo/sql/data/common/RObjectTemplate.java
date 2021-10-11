@@ -1,26 +1,17 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RObjectTemplateType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
+import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -49,7 +40,6 @@ import java.util.Set;
 public class RObjectTemplate extends RObject<ObjectTemplateType> {
 
     private RPolyString nameCopy;
-    private RObjectTemplateType type;
     private Set<RObjectReference<RObjectTemplate>> includeRef;
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 7")
@@ -63,21 +53,13 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
         return includeRef;
     }
 
-    @Enumerated(EnumType.ORDINAL)
-    public RObjectTemplateType getType() {
-        return type;
-    }
-
-    public void setType(RObjectTemplateType type) {
-        this.type = type;
-    }
-
     @JaxbName(localPart = "name")
     @AttributeOverrides({
             @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
             @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
     })
     @Embedded
+    @NeverNull
     public RPolyString getNameCopy() {
         return nameCopy;
     }
@@ -99,11 +81,8 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
         RObjectTemplate that = (RObjectTemplate) o;
 
         if (nameCopy != null ? !nameCopy.equals(that.nameCopy) : that.nameCopy != null) return false;
-        if (type != null ? !type.equals(that.type) : that.type != null)
-            return false;
         if (includeRef != null ? !includeRef.equals(that.includeRef) : that.includeRef != null)
             return false;
-
 
         return true;
     }
@@ -112,7 +91,6 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
-        result = 31 * result + (type != null ? type.hashCode() : 0);
         return result;
     }
 
@@ -121,7 +99,6 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
-        repo.setType(RUtil.getRepoEnumValue(jaxb.asPrismObject().getElementName(), RObjectTemplateType.class));
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
 
         repo.getIncludeRef().addAll(RUtil.safeListReferenceToSet(

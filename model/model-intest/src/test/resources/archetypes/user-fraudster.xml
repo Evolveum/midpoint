@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user oid="99b36382-078e-11ea-b9a9-b393552ec165"
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+        xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+    <name>fraudster</name>
+    <assignment>
+        <targetRef oid="3911cac2-78a6-11e9-8b5e-4b5bdb0c81d5" type="ArchetypeType"/> <!-- Contractor -->
+    </assignment>
+    <!-- Those do not match with assignment: MID-5909 -->
+    <archetypeRef oid="a8df34a8-f6f0-11e8-b98e-eb03652d943f"/>
+    <roleMembershipRef oid="a8df34a8-f6f0-11e8-b98e-eb03652d943f"/>
+    <fullName>Fraudster</fullName>
+</user>

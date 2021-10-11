@@ -1,24 +1,16 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.data.common.dictionary;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.repo.sql.SerializationRelatedException;
-import com.evolveum.midpoint.repo.sql.SqlPerformanceMonitor;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.RestartOperationRequestedException;
+import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
@@ -51,6 +43,12 @@ public class ExtItemDictionary {
     private Map<Integer, RExtItem> itemsById;
     private Map<RExtItem.Key, RExtItem> itemsByKey;
 
+    @PostConstruct
+    public synchronized void initialize() {
+        itemsByKey = null;
+        itemsById = null;
+    }
+
     private boolean fetchItemsIfNeeded() {
         if (itemsByKey != null) {
             return false;
@@ -61,7 +59,7 @@ public class ExtItemDictionary {
     }
 
     private void fetchItems() {
-        executeAttempts("fetchExtItems", "fetch ext items", () -> fetchItemsAttempt());
+        executeAttempts(RepositoryService.OP_FETCH_EXT_ITEMS, RExtItem.class, "fetch ext items", () -> fetchItemsAttempt());
     }
 
     private void fetchItemsAttempt() {
@@ -91,21 +89,18 @@ public class ExtItemDictionary {
         }
     }
 
-    // TODO add "synchronized" before 4.0 release
     @NotNull
-    public RExtItem createOrFindItemDefinition(@NotNull ItemDefinition<?> definition, boolean throwExceptionAfterCreate) {
+    public synchronized RExtItem createOrFindItemDefinition(@NotNull ItemDefinition<?> definition, boolean throwExceptionAfterCreate) {
         return createOrFindItemByDefinitionInternal(definition, true, throwExceptionAfterCreate);
     }
 
-    // TODO add "synchronized" before 4.0 release
     @NotNull
-    public RExtItem createOrFindItemDefinition(@NotNull ItemDefinition<?> definition) {
+    public synchronized RExtItem createOrFindItemDefinition(@NotNull ItemDefinition<?> definition) {
         return createOrFindItemByDefinitionInternal(definition, true, true);
     }
 
-    // TODO add "synchronized" before 4.0 release
     @Nullable
-    public RExtItem findItemByDefinition(@NotNull ItemDefinition<?> definition) {
+    public synchronized RExtItem findItemByDefinition(@NotNull ItemDefinition<?> definition) {
         return createOrFindItemByDefinitionInternal(definition, false, true);
     }
 
@@ -131,17 +126,11 @@ public class ExtItemDictionary {
             addExtItemAttempt(item);
 
             if (throwExceptionAfterCreate) {
-                throw new SerializationRelatedException("Restarting parent operation");
+                throw new RestartOperationRequestedException("Restarting parent operation because an extension item was created");
             }
         }
 
         return item;
-    }
-
-    @PostConstruct
-    public synchronized void initialize() {
-        itemsByKey = null;
-        itemsById = null;
     }
 
     private void addExtItemAttempt(RExtItem item) {
@@ -157,9 +146,9 @@ public class ExtItemDictionary {
         }
     }
 
-    private void executeAttempts(String operationName, String operationVerb, Runnable runnable) {
-        SqlPerformanceMonitor pm = repositoryService.getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(operationName);
+    private void executeAttempts(String operationName, Class<?> type, String operationVerb, Runnable runnable) {
+        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(operationName, type);
         int attempt = 1;
         try {
             while (true) {
@@ -176,8 +165,7 @@ public class ExtItemDictionary {
         }
     }
 
-    // TODO add "synchronized" before 4.0 release
-    public RExtItem getItemById(Integer extItemId) {
+    public synchronized RExtItem getItemById(Integer extItemId) {
         boolean fresh = fetchItemsIfNeeded();
         RExtItem extItem = itemsById.get(extItemId);
         if (extItem != null || fresh) {

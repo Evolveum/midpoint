@@ -1,131 +1,106 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism.lex;
 
-import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import org.testng.annotations.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.displayTestTitle;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 
-/**
- * @author mederly
- */
+import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
+import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 @SuppressWarnings("Duplicates")
 public abstract class AbstractJsonLexicalProcessorTest extends AbstractLexicalProcessorTest {
 
-	private static final String OBJECTS_2_WRONG = "objects-2-wrong";
-	private static final String OBJECTS_2_WRONG_2 = "objects-2-wrong-2";
-	private static final String OBJECTS_9_LIST_SINGLE = "objects-9-list-single";
-	private static final String OBJECTS_10_LIST_OF_LISTS = "objects-10-list-of-lists";
+    private static final String OBJECTS_2_WRONG = "objects-2-wrong";
+    private static final String OBJECTS_2_WRONG_2 = "objects-2-wrong-2";
+    private static final String OBJECTS_9_LIST_SINGLE = "objects-9-list-single";
+    private static final String OBJECTS_10_LIST_OF_LISTS = "objects-10-list-of-lists";
 
-	@Test
-	public void testParseObjectsIteratively_2_Wrong() throws Exception {
-		final String TEST_NAME = "testParseObjectsIteratively_2_Wrong";
+    @Test
+    public void testParseObjectsIteratively_2_Wrong() throws Exception {
+        // GIVEN
+        LexicalProcessor<String> lexicalProcessor = createParser();
 
-		displayTestTitle(TEST_NAME);
+        // WHEN (parse to xnode)
+        List<RootXNodeImpl> nodes = new ArrayList<>();
+        try {
+            lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_2_WRONG), PrismTestUtil.createDefaultParsingContext(),
+                    node -> {
+                        nodes.add(node);
+                        return true;
+                    });
+            fail("unexpected success");
+        } catch (SchemaException e) {
+            System.out.println("Got expected exception: " + e);
+        }
 
-		// GIVEN
-		LexicalProcessor<String> lexicalProcessor = createParser();
+        // THEN
+        System.out.println("Parsed objects (iteratively):");
+        System.out.println(DebugUtil.debugDump(nodes));
 
-		// WHEN (parse to xnode)
-		List<RootXNodeImpl> nodes = new ArrayList<>();
-		try {
-			lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_2_WRONG), PrismTestUtil.createDefaultParsingContext(),
-					node -> {
-						nodes.add(node);
-						return true;
-					});
-			fail("unexpected success");
-		} catch (SchemaException e) {
-			System.out.println("Got expected exception: " + e);
-		}
+        assertEquals("Wrong # of nodes read", 3, nodes.size());
 
-		// THEN
-		System.out.println("Parsed objects (iteratively):");
-		System.out.println(DebugUtil.debugDump(nodes));
+        nodes.forEach(n -> assertEquals("Wrong namespace", "", n.getRootElementName().getNamespaceURI()));
+        assertEquals("Wrong namespace for node 1", "", getFirstElementNS(nodes, 0));
+        assertEquals("Wrong namespace for node 2", "", getFirstElementNS(nodes, 1));
+        assertEquals("Wrong namespace for node 3", "", getFirstElementNS(nodes, 2));
 
-		assertEquals("Wrong # of nodes read", 3, nodes.size());
+        // WHEN+THEN (parse in standard way)
+        List<RootXNodeImpl> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_2_WRONG), PrismTestUtil
+                .createDefaultParsingContext());
 
-		nodes.forEach(n -> assertEquals("Wrong namespace", "", n.getRootElementName().getNamespaceURI()));
-		assertEquals("Wrong namespace for node 1", "", getFirstElementNS(nodes, 0));
-		assertEquals("Wrong namespace for node 2", "", getFirstElementNS(nodes, 1));
-		assertEquals("Wrong namespace for node 3", "", getFirstElementNS(nodes, 2));
+        System.out.println("Parsed objects (standard way):");
+        System.out.println(DebugUtil.debugDump(nodesStandard));
 
-		// WHEN+THEN (parse in standard way)
-		List<RootXNodeImpl> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_2_WRONG), PrismTestUtil
-				.createDefaultParsingContext());
+        assertThat(nodesStandard).withFailMessage("Nodes are not different")
+                .isNotEqualTo(nodes);
+    }
 
-		System.out.println("Parsed objects (standard way):");
-		System.out.println(DebugUtil.debugDump(nodesStandard));
+    @Test
+    public void testParseObjectsIteratively_2_Wrong_2() throws Exception {
+        // GIVEN
+        LexicalProcessor<String> lexicalProcessor = createParser();
 
-		assertFalse("Nodes are not different", nodesStandard.equals(nodes));
-	}
+        // WHEN (parse to xnode)
+        List<RootXNodeImpl> nodes = new ArrayList<>();
+        try {
+            lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_2_WRONG_2), PrismTestUtil.createDefaultParsingContext(),
+                    node -> {
+                        nodes.add(node);
+                        return true;
+                    });
+            fail("unexpected success");
+        } catch (SchemaException e) {
+            System.out.println("Got expected exception: " + e);
+        }
 
-	@Test
-	public void testParseObjectsIteratively_2_Wrong_2() throws Exception {
-		final String TEST_NAME = "testParseObjectsIteratively_2_Wrong_2";
+        // THEN
+        System.out.println("Parsed objects (iteratively):");
+        System.out.println(DebugUtil.debugDump(nodes));
 
-		displayTestTitle(TEST_NAME);
+        assertEquals("Wrong # of nodes read", 3, nodes.size());
+    }
 
-		// GIVEN
-		LexicalProcessor<String> lexicalProcessor = createParser();
+    @Test
+    public void testParseObjectsIteratively_9_listSingle() throws Exception {
+        standardTest(OBJECTS_9_LIST_SINGLE, 1);
+    }
 
-		// WHEN (parse to xnode)
-		List<RootXNodeImpl> nodes = new ArrayList<>();
-		try {
-			lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_2_WRONG_2), PrismTestUtil.createDefaultParsingContext(),
-					node -> {
-						nodes.add(node);
-						return true;
-					});
-			fail("unexpected success");
-		} catch (SchemaException e) {
-			System.out.println("Got expected exception: " + e);
-		}
-
-		// THEN
-		System.out.println("Parsed objects (iteratively):");
-		System.out.println(DebugUtil.debugDump(nodes));
-
-		assertEquals("Wrong # of nodes read", 3, nodes.size());
-	}
-
-	@Test
-	public void testParseObjectsIteratively_9_listSingle() throws Exception {
-		final String TEST_NAME = "testParseObjectsIteratively_9_listSingle";
-
-		standardTest(TEST_NAME, OBJECTS_9_LIST_SINGLE, 1);
-	}
-
-	@Test
-	public void testParseObjectsIteratively_10_listOfLists() throws Exception {
-		final String TEST_NAME = "testParseObjectsIteratively_10_listOfLists";
-
-		standardTest(TEST_NAME, OBJECTS_10_LIST_OF_LISTS, 3);
-	}
-
+    @Test
+    public void testParseObjectsIteratively_10_listOfLists() throws Exception {
+        standardTest(OBJECTS_10_LIST_OF_LISTS, 3);
+    }
 }

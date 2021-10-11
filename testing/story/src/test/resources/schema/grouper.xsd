@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<xsd:schema elementFormDefault="qualified"
+  targetNamespace="http://grouper-demo.tier.internet2.edu"
+  xmlns:tns="http://grouper-demo.tier.internet2.edu"
+  xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+  <xsd:complexType name="UserExtensionType">
+    <xsd:annotation>
+      <xsd:appinfo>
+        <a:extension ref="c:UserType"/>
+      </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:sequence>
+    <!-- nothing here for now -->
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="OrgExtensionType">
+    <xsd:annotation>
+      <xsd:appinfo>
+        <a:extension ref="c:OrgType"/>
+      </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:sequence>
+        <xsd:element name="grouperName" type="xsd:string" minOccurs="0"/>
+        <xsd:element name="ldapDn" type="xsd:string" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="ArchetypeExtensionType">
+    <xsd:annotation>
+      <xsd:appinfo>
+        <a:extension ref="c:ArchetypeType"/>
+      </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:sequence>
+        <xsd:element name="grouperNamePrefix" type="xsd:string" minOccurs="0"/>        <!-- e.g. ref:affiliation: -->
+        <xsd:element name="ldapRootDn" type="xsd:string" minOccurs="0"/>        <!-- e.g. ou=Affiliations,ou=Groups,dc=example,dc=com -->
+        <xsd:element name="midPointNamePrefix" type="xsd:string" minOccurs="0"/>        <!-- e.g. affiliation_ -->
+        <xsd:element name="midPointDisplayNamePrefix" type="xsd:string" minOccurs="0"/>        <!-- e.g. Affiliation: -->
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>
+

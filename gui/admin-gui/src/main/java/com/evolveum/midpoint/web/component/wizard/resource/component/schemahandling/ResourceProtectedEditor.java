@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
@@ -65,16 +56,16 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
 
     public ResourceProtectedEditor(String id, IModel<List<ResourceObjectPatternType>> model, PageResourceWizard parentPage) {
         super(id, model);
-		initLayout(parentPage);
-		if (model.getObject() == null) {		// shouldn't occur, actually
-			model.setObject(new ArrayList<>());
-		} else {
-			for (ResourceObjectPatternType pattern : model.getObject()) {
-				if (pattern.getFilter() == null) {
-					pattern.setFilter(new SearchFilterType());			// in order for SearchFilterPanel work correctly; is normalized before saving resource
-				}
-			}
-		}
+        initLayout(parentPage);
+        if (model.getObject() == null) {        // shouldn't occur, actually
+            model.setObject(new ArrayList<>());
+        } else {
+            for (ResourceObjectPatternType pattern : model.getObject()) {
+                if (pattern.getFilter() == null) {
+                    pattern.setFilter(new SearchFilterType());            // in order for SearchFilterPanel work correctly; is normalized before saving resource
+                }
+            }
+        }
     }
 
     protected void initLayout(final PageResourceWizard parentPage) {
@@ -98,28 +89,21 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
                         StringBuilder sb = new StringBuilder();
                         ResourceObjectPatternType account = item.getModelObject();
                         sb.append("#").append(item.getIndex()+1).append(" - ");
-
-						if (account.getUid() != null) {
-							sb.append(account.getUid()).append(":");
-						}
-
-						if (account.getName() != null) {
-							sb.append(account.getName());
-						}
-
                         return sb.toString();
                     }
                 });
                 linkCont.add(accountLabel);
 
-                AjaxLink delete = new AjaxLink(ID_BUTTON_DELETE) {
+                AjaxLink<Void> delete = new AjaxLink<Void>(ID_BUTTON_DELETE) {
+
+                    private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         deleteProtectedAccountPerformed(target, item);
                     }
                 };
-				parentPage.addEditingVisibleBehavior(delete);
+                parentPage.addEditingVisibleBehavior(delete);
                 linkCont.add(delete);
 
                 WebMarkupContainer accountBody = new WebMarkupContainer(ID_ACCOUNT_BODY);
@@ -147,13 +131,13 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
                 //TODO - maybe add some validator and auto-complete functionality?
                 TextField name = new TextField<>(ID_NAME, new PropertyModel<String>(item.getModel(), "name"));
                 name.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-				parentPage.addEditingEnabledBehavior(name);
-				accountBody.add(name);
+                parentPage.addEditingEnabledBehavior(name);
+                accountBody.add(name);
 
                 //TODO - maybe add some validator and auto-complete functionality?
                 TextField uid = new TextField<>(ID_UID, new PropertyModel<String>(item.getModel(), "uid"));
                 uid.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-				parentPage.addEditingEnabledBehavior(uid);
+                parentPage.addEditingEnabledBehavior(uid);
                 accountBody.add(uid);
 
                 SearchFilterPanel searchFilterPanel = new SearchFilterPanel<>(ID_FILTER_EDITOR,
@@ -176,15 +160,16 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
         repeater.setOutputMarkupId(true);
         container.add(repeater);
 
-        AjaxLink add = new AjaxLink(ID_BUTTON_ADD) {
+        AjaxLink<Void> add = new AjaxLink<Void>(ID_BUTTON_ADD) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 addProtectedAccountPerformed(target);
             }
         };
-		parentPage.addEditingVisibleBehavior(add);
-		add(add);
+        parentPage.addEditingVisibleBehavior(add);
+        add(add);
     }
 
     private WebMarkupContainer getMainContainer(){
@@ -211,7 +196,7 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
 
     private void addProtectedAccountPerformed(AjaxRequestTarget target){
         ResourceObjectPatternType account = new ResourceObjectPatternType();
-		account.setFilter(new SearchFilterType());
+        account.setFilter(new SearchFilterType());
         changeState = ChangeState.LAST;
         getModel().getObject().add(account);
         target.add(getMainContainer());

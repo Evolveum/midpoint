@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.model.impl.controller;
@@ -31,6 +22,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -54,57 +47,61 @@ public class ExecuteDeltasTaskHandler implements TaskHandler {
 
     @Autowired private TaskManager taskManager;
     @Autowired private PrismContext prismContext;
-	@Autowired private ModelService modelService;
+    @Autowired private ModelService modelService;
 
-	@Override
-	public TaskRunResult run(Task task) {
+    @Override
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+        OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
+        TaskRunResult runResult = new TaskRunResult();
 
-		OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
-		TaskRunResult runResult = new TaskRunResult();
+        Collection<ObjectDeltaType> deltas;
+        PrismProperty<ObjectDeltaType> deltasProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTAS);
+        if (deltasProperty == null || deltasProperty.isEmpty()) {
+            PrismProperty<ObjectDeltaType> deltaProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
+            if (deltaProperty == null || deltaProperty.isEmpty()) {
+                throw new IllegalArgumentException("No deltas to execute");
+            } else {
+                deltas = deltaProperty.getRealValues();
+            }
+        } else {
+            deltas = deltasProperty.getRealValues();
+        }
+        PrismProperty<ModelExecuteOptionsType> optionsProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
+        ModelExecuteOptions options = optionsProperty != null ?
+                ModelExecuteOptions.fromModelExecutionOptionsType(optionsProperty.getRealValue()) : null;
 
-		Collection<ObjectDeltaType> deltas;
-		PrismProperty<ObjectDeltaType> deltasProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTAS);
-		if (deltasProperty == null || deltasProperty.isEmpty()) {
-			PrismProperty<ObjectDeltaType> deltaProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
-			if (deltaProperty == null || deltaProperty.isEmpty()) {
-				throw new IllegalArgumentException("No deltas to execute");
-			} else {
-				deltas = deltaProperty.getRealValues();
-			}
-		} else {
-			deltas = deltasProperty.getRealValues();
-		}
-		PrismProperty<ModelExecuteOptionsType> optionsProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
-		ModelExecuteOptions options = optionsProperty != null ?
-				ModelExecuteOptions.fromModelExecutionOptionsType(optionsProperty.getRealValue()) : null;
-
-		try {
-			Collection<ObjectDelta<?>> objectDeltas = new ArrayList<>();
-			for (ObjectDeltaType deltaBean : deltas) {
-				objectDeltas.add(DeltaConvertor.createObjectDelta(deltaBean, prismContext));
-			}
-			//noinspection unchecked
-			modelService.executeChanges((Collection) objectDeltas, options, task, result);
-			result.computeStatusIfUnknown();
-			runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
-		} catch (CommonException | RuntimeException e) {
-			String message = "An exception occurred when executing changes, in task " + task;
-			LoggingUtils.logUnexpectedException(LOGGER, message, e);
-			result.recordFatalError(message, e);
-			runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR);
-		}
+        try {
+            Collection<ObjectDelta<?>> objectDeltas = new ArrayList<>();
+            for (ObjectDeltaType deltaBean : deltas) {
+                objectDeltas.add(DeltaConvertor.createObjectDelta(deltaBean, prismContext));
+            }
+            //noinspection unchecked
+            modelService.executeChanges((Collection) objectDeltas, options, task, result);
+            result.computeStatusIfUnknown();
+            runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
+        } catch (CommonException | RuntimeException e) {
+            String message = "An exception occurred when executing changes, in task " + task;
+            LoggingUtils.logUnexpectedException(LOGGER, message, e);
+            result.recordFatalError(message, e);
+            runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR);
+        }
         task.getResult().recomputeStatus();
-		runResult.setOperationResult(task.getResult());
-		return runResult;
-	}
+        runResult.setOperationResult(task.getResult());
+        return runResult;
+    }
 
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.UTIL;
     }
 
-	@PostConstruct
-	private void initialize() {
-		taskManager.registerHandler(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI, this);
-	}
+    @PostConstruct
+    private void initialize() {
+        taskManager.registerHandler(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI, this);
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(); // todo reconsider
+    }
 }

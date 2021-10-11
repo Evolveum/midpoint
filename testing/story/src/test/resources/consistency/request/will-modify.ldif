@@ -1,5 +1,0 @@
-dn: uid=wturner,ou=People,dc=example,dc=com
-changetype: modify
-replace: givenName
-givenName: asdf
--

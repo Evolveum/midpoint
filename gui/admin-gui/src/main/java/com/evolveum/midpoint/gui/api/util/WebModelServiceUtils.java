@@ -1,74 +1,73 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.gui.api.util;
+
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 
 import java.util.*;
 
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
-import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
-import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.page.error.PageError;
-import com.evolveum.midpoint.web.page.login.PageLogin;
-import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
-
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.LocaleUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.Session;
+import org.apache.wicket.ThreadContext;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.AuthorizationException;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.Session;
-import org.apache.wicket.ThreadContext;
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
+import javax.xml.namespace.QName;
 
 /**
  * Utility class that contains methods that interact with ModelService and other
@@ -87,28 +86,41 @@ public class WebModelServiceUtils {
     private static final String OPERATION_SAVE_OBJECT = DOT_CLASS + "saveObject";
     private static final String OPERATION_LOAD_OBJECT_REFS = DOT_CLASS + "loadObjectReferences";
     private static final String OPERATION_COUNT_OBJECT = DOT_CLASS + "countObjects";
-	private static final String OPERATION_ASSUME_POWER_OF_ATTORNEY = DOT_CLASS + "assumePowerOfAttorney";
-	private static final String OPERATION_DROP_POWER_OF_ATTORNEY = DOT_CLASS + "dropPowerOfAttorney";
-	private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
+    private static final String OPERATION_ASSUME_POWER_OF_ATTORNEY = DOT_CLASS + "assumePowerOfAttorney";
+    private static final String OPERATION_DROP_POWER_OF_ATTORNEY = DOT_CLASS + "dropPowerOfAttorney";
+    private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
+    private static final String OPERATION_LOAD_FLOW_POLICY = DOT_CLASS + "loadFlowPolicy";
 
-	public static String resolveReferenceName(ObjectReferenceType ref, PageBase page) {
-		Task task = page.createSimpleTask(WebModelServiceUtils.class.getName() + ".resolveReferenceName");
-		return resolveReferenceName(ref, page, task, task.getResult());
-	}
+    public static String resolveReferenceName(ObjectReferenceType ref, PageBase page) {
+        return resolveReferenceName(ref, page, false);
+    }
 
-	public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, Task task, OperationResult result) {
-		if (ref == null) {
-			return null;
-		}
-		if (ref.getTargetName() != null) {
-			return ref.getTargetName().getOrig();
-		}
+    public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, boolean translate) {
+        Task task = page.createSimpleTask(WebModelServiceUtils.class.getName() + ".resolveReferenceName");
+        return resolveReferenceName(ref, page, task, task.getResult(), translate);
+    }
+
+    public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, Task task, OperationResult result) {
+        return resolveReferenceName(ref, page, task, result, false);
+    }
+
+    public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, Task task, OperationResult result, boolean translate) {
+        if (ref == null) {
+            return null;
+        }
+        if (ref.getTargetName() != null) {
+            return translate ? page.getLocalizationService().translate(ref.getTargetName().toPolyString(), page.getLocale(), true)
+                    : ref.getTargetName().getOrig();
+        }
+        if (StringUtils.isEmpty(ref.getOid()) || ref.getType() == null){
+            return null;
+        }
         PrismObject<ObjectType> object = resolveReferenceNoFetch(ref, page, task, result);
         if (object == null) {
             return ref.getOid();
         } else {
-			ref.asReferenceValue().setObject(object);
-            return WebComponentUtil.getName(object);
+            ref.asReferenceValue().setObject(object);
+            return WebComponentUtil.getName(object, translate);
         }
     }
 
@@ -130,38 +142,36 @@ public class WebModelServiceUtils {
             return null;
         }
         if (reference.getOid() == null) {
-        	if (reference.getResolutionTime() == EvaluationTimeType.RUN) {
-        		// Runtime reference resolution. Ignore it for now. Later we maybe would want to resolve it here.
-        		// But it may resolve to several objects ....
-        		return null;
-        	} else {
-        		LOGGER.error("Null OID in reference {}", reference);
-        		// Throw an exception instead? Maybe not. We want GUI to be robust.
-        		return null;
-        	}
+            if (reference.getResolutionTime() == EvaluationTimeType.RUN) {
+                // Runtime reference resolution. Ignore it for now. Later we maybe would want to resolve it here.
+                // But it may resolve to several objects ....
+                return null;
+            } else {
+                LOGGER.error("Null OID in reference {}", reference);
+                // Throw an exception instead? Maybe not. We want GUI to be robust.
+                return null;
+            }
         }
         return loadObject(definition.getCompileTimeClass(), reference.getOid(), createNoFetchCollection(), page, task, result);
     }
 
     public static <O extends ObjectType> List<ObjectReferenceType> createObjectReferenceList(Class<O> type, PageBase page, Map<String, String> referenceMap){
-		referenceMap.clear();
+        referenceMap.clear();
 
         OperationResult result = new OperationResult(OPERATION_LOAD_OBJECT_REFS);
 //        Task task = page.createSimpleTask(OPERATION_LOAD_PASSWORD_POLICIES);
 
-        try{
+        try {
             List<PrismObject<O>> objects = searchObjects(type, null, result, page);
-        	result.recomputeStatus();
-        	if(objects != null){
-        		List<ObjectReferenceType> references = new ArrayList<>();
+            result.recomputeStatus();
+            List<ObjectReferenceType> references = new ArrayList<>();
 
-                for(PrismObject<O> object: objects){
-                	referenceMap.put(object.getOid(), WebComponentUtil.getName(object));
-                    references.add(ObjectTypeUtil.createObjectRef(object, page.getPrismContext()));
+            for(PrismObject<O> object: objects){
+                referenceMap.put(object.getOid(), WebComponentUtil.getName(object));
+                references.add(ObjectTypeUtil.createObjectRef(object, page.getPrismContext()));
 
-                }
-                return references;
             }
+            return references;
         } catch (Exception e){
             result.recordFatalError(page.createStringResource("WebModelUtils.couldntLoadPasswordPolicies").getString(), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load password policies", e);
@@ -173,83 +183,99 @@ public class WebModelServiceUtils {
         // }
 
         return null;
-
     }
 
-    public static String runTask(TaskType taskToRun, Task operationalTask, OperationResult parentResult, PageBase pageBase){
-    	try {
-			ObjectDelta<TaskType> delta = DeltaFactory.Object.createAddDelta(taskToRun.asPrismObject());
-			pageBase.getPrismContext().adopt(delta);
-			pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null,
-					operationalTask, parentResult);
-			parentResult.recordInProgress();
-			parentResult.setBackgroundTaskOid(delta.getOid());
-			pageBase.showResult(parentResult);
-	    	return delta.getOid();
-		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-				| ExpressionEvaluationException | CommunicationException | ConfigurationException
-				| PolicyViolationException | SecurityViolationException e) {
-			// TODO Auto-generated catch block
-//			error(pageBase.getString("pageUsers.message.nothingSelected") + e.getMessage());
-			parentResult.recordFatalError(pageBase.createStringResource("WebModelUtils.couldntRunTask", e.getMessage()).getString(), e);
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't run task " + e.getMessage(), e);
-			return null;
-		}
+    public static <O extends ObjectType> String runTask(TaskType taskToRun, Task operationalTask, OperationResult parentResult, PageBase pageBase){
+        try {
+            ObjectDelta<TaskType> delta = DeltaFactory.Object.createAddDelta(taskToRun.asPrismObject());
+            pageBase.getPrismContext().adopt(delta);
+            Collection<ObjectDeltaOperation<?>> deltaOperationRes = pageBase.getModelService().executeChanges(MiscUtil.createCollection(delta), null,
+                    operationalTask, parentResult);
+            if (StringUtils.isEmpty(delta.getOid()) && deltaOperationRes != null && !deltaOperationRes.isEmpty()){
+                ObjectDeltaOperation deltaOperation = deltaOperationRes.iterator().next();
+                delta.setOid(deltaOperation.getObjectDelta().getOid());
+            }
+            parentResult.recordInProgress();
+            parentResult.setBackgroundTaskOid(delta.getOid());
+            return delta.getOid();
+        } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
+                | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                | PolicyViolationException | SecurityViolationException e) {
+            // TODO Auto-generated catch block
+//            error(pageBase.getString("pageUsers.message.nothingSelected") + e.getMessage());
+            parentResult.recordFatalError(pageBase.createStringResource("WebModelUtils.couldntRunTask", e.getMessage()).getString(), e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't run task " + e.getMessage(), e);
+            return null;
+        }
 
     }
 
     public static void runTask(Collection<TaskType> tasksToRun, Task operationalTask, OperationResult parentResult, PageBase pageBase){
-//    	try {
+//        try {
 
-    		for (TaskType taskToRun : tasksToRun){
-    			runTask(tasksToRun, operationalTask, parentResult, pageBase);
-    		}
+            for (TaskType taskToRun : tasksToRun){
+                runTask(tasksToRun, operationalTask, parentResult, pageBase);
+            }
 
-//    		}
-//			ObjectDelta<TaskType> delta = ObjectDelta.createAddDelta(taskToRun.asPrismObject());
-//			pageBase.getPrismContext().adopt(delta);
-//			pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null,
-//					operationalTask, parentResult);
-//			parentResult.recordInProgress();
-//			parentResult.setBackgroundTaskOid(delta.getOid());
-//			pageBase.showResult(parentResult);
-//	    	return delta.getOid();
-//		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-//				| ExpressionEvaluationException | CommunicationException | ConfigurationException
-//				| PolicyViolationException | SecurityViolationException e) {
-//			// TODO Auto-generated catch block
-////			error(pageBase.getString("pageUsers.message.nothingSelected") + e.getMessage());
-//			parentResult.recordFatalError(pageBase.createStringResource("WebModelUtils.couldntRunTask", e.getMessage()).getString(), e);
-//			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't run task " + e.getMessage(), e);
-//			return null;
-//		}
+//            }
+//            ObjectDelta<TaskType> delta = ObjectDelta.createAddDelta(taskToRun.asPrismObject());
+//            pageBase.getPrismContext().adopt(delta);
+//            pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null,
+//                    operationalTask, parentResult);
+//            parentResult.recordInProgress();
+//            parentResult.setBackgroundTaskOid(delta.getOid());
+//            pageBase.showResult(parentResult);
+//            return delta.getOid();
+//        } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
+//                | ExpressionEvaluationException | CommunicationException | ConfigurationException
+//                | PolicyViolationException | SecurityViolationException e) {
+//            // TODO Auto-generated catch block
+////            error(pageBase.getString("pageUsers.message.nothingSelected") + e.getMessage());
+//            parentResult.recordFatalError(pageBase.createStringResource("WebModelUtils.couldntRunTask", e.getMessage()).getString(), e);
+//            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't run task " + e.getMessage(), e);
+//            return null;
+//        }
 
     }
 
-	@Nullable
+    public static <O extends ObjectType> PrismObject<O> loadObject(PrismReferenceValue objectRef, QName expectedTargetType, PageBase pageBase, Task task, OperationResult result) {
+        if (objectRef == null) {
+            return null;
+        }
+
+        if (QNameUtil.match(expectedTargetType, objectRef.getTargetType())) {
+            Class<O> type = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(objectRef.getTargetType());
+            PrismObject<O> resourceType = WebModelServiceUtils.loadObject(type, objectRef.getOid(), GetOperationOptions.createNoFetchCollection(), pageBase, task, result);
+            return resourceType;
+        }
+
+        return null;
+    }
+
+    @Nullable
     public static <T extends ObjectType> PrismObject<T> loadObject(ObjectReferenceType objectReference,
-			PageBase page, Task task, OperationResult result) {
-		Class<T> type = page.getPrismContext().getSchemaRegistry().determineClassForType(objectReference.getType());
+            PageBase page, Task task, OperationResult result) {
+        Class<T> type = page.getPrismContext().getSchemaRegistry().determineClassForType(objectReference.getType());
         return loadObject(type, objectReference.getOid(), null, page, task, result);
     }
 
-	@Nullable
+    @Nullable
     public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
-			PageBase page, Task task, OperationResult result) {
+            PageBase page, Task task, OperationResult result) {
         return loadObject(type, oid, null, page, task, result);
     }
 
-	@Nullable
-	public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
-			Collection<SelectorOptions<GetOperationOptions>> options,
-			PageBase page, Task task, OperationResult result) {
-    	return loadObject(type, oid, options, true, page, task, result);
-	}
-	
-	@Nullable
-	public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
-			Collection<SelectorOptions<GetOperationOptions>> options, boolean allowNotFound,
-			PageBase page, Task task, OperationResult result) {
+    @Nullable
+    public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            PageBase page, Task task, OperationResult result) {
+        return loadObject(type, oid, options, true, page, task, result);
+    }
+
+    @Nullable
+    public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
+            Collection<SelectorOptions<GetOperationOptions>> options, boolean allowNotFound,
+            PageBase page, Task task, OperationResult result) {
         LOGGER.debug("Loading {} with oid {}, options {}", type.getSimpleName(), oid, options);
 
         OperationResult subResult;
@@ -260,42 +286,42 @@ public class WebModelServiceUtils {
         }
         PrismObject<T> object = null;
         try {
-        	if (options == null) {
-        		options = SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
-        	} else {
-        		GetOperationOptions getOpts = SelectorOptions.findRootOptions(options);
-        		if (getOpts == null) {
-        			options.add(new SelectorOptions<>(GetOperationOptions.createResolveNames()));
-        		} else {
-        			getOpts.setResolveNames(Boolean.TRUE);
-        		}
-        	}
+            if (options == null) {
+                options = SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
+            } else {
+                GetOperationOptions getOpts = SelectorOptions.findRootOptions(options);
+                if (getOpts == null) {
+                    options.add(new SelectorOptions<>(GetOperationOptions.createResolveNames()));
+                } else {
+                    getOpts.setResolveNames(Boolean.TRUE);
+                }
+            }
             object = page.getModelService().getObject(type, oid, options, task, subResult);
         } catch (AuthorizationException e) {
-        	// Not authorized to access the object. This is probably caused by a reference that
-        	// point to an object that the current user cannot read. This is no big deal.
-        	// Just do not display that object.
-        	subResult.recordHandledError(e);
-        	LOGGER.debug("User {} is not authorized to read {} {}",
+            // Not authorized to access the object. This is probably caused by a reference that
+            // point to an object that the current user cannot read. This is no big deal.
+            // Just do not display that object.
+            subResult.recordHandledError(e);
+            LOGGER.debug("User {} is not authorized to read {} {}",
                     task.getOwner() != null ? task.getOwner().getName() : null, type.getSimpleName(), oid);
-        	return null;
+            return null;
         } catch (ObjectNotFoundException e) {
-        	if (allowNotFound) {
-				// Object does not exist. It was deleted in the meanwhile, or not created yet. This could happen quite often.
-				subResult.recordHandledError(e);
-				LOGGER.debug("{} {} does not exist", type.getSimpleName(), oid, e);
-				return null;
-			} else {
-				subResult.recordFatalError("WebModelUtils.couldntLoadObject", e);
-				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", e);
-			}
+            if (allowNotFound) {
+                // Object does not exist. It was deleted in the meanwhile, or not created yet. This could happen quite often.
+                subResult.recordHandledError(e);
+                LOGGER.debug("{} {} does not exist", type.getSimpleName(), oid, e);
+                return null;
+            } else {
+                subResult.recordFatalError(page.createStringResource("WebModelUtils.couldntLoadObject").getString(), e);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", e);
+            }
         } catch (Exception ex) {
-            subResult.recordFatalError("WebModelUtils.couldntLoadObject", ex);
+            subResult.recordFatalError(page.createStringResource("WebModelUtils.couldntLoadObject").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
         } finally {
             subResult.computeStatus();
         }
-		// TODO reconsider this part: until recently, the condition was always 'false'
+        // TODO reconsider this part: until recently, the condition was always 'false'
         if (WebComponentUtil.showResultInPage(subResult)) {
             page.showResult(subResult);
         }
@@ -304,16 +330,16 @@ public class WebModelServiceUtils {
 
         return object;
     }
-	
-	//TODO consider using modelServiceLocator instead of PageBase in other methods.. Do we even need it? What about showResult? Should it be 
-	// here or directly in the page? Consider usability and readabiltiy
-	@Nullable
+
+    //TODO consider using modelServiceLocator instead of PageBase in other methods.. Do we even need it? What about showResult? Should it be
+    // here or directly in the page? Consider usability and readabiltiy
+    @Nullable
     public static <T extends ObjectType> PrismObject<T> loadObject(ObjectReferenceType objectReference,
-    		ModelServiceLocator page, Task task, OperationResult result) {
-		Class<T> type = page.getPrismContext().getSchemaRegistry().determineClassForType(objectReference.getType());
-		String oid = objectReference.getOid();
-		Collection<SelectorOptions<GetOperationOptions>> options = null;
-		LOGGER.debug("Loading {} with oid {}, options {}", type.getSimpleName(), oid, options);
+            ModelServiceLocator page, Task task, OperationResult result) {
+        Class<T> type = page.getPrismContext().getSchemaRegistry().determineClassForType(objectReference.getType());
+        String oid = objectReference.getOid();
+        Collection<SelectorOptions<GetOperationOptions>> options = null;
+        LOGGER.debug("Loading {} with oid {}, options {}", type.getSimpleName(), oid, options);
 
         OperationResult subResult;
         if (result != null) {
@@ -323,42 +349,42 @@ public class WebModelServiceUtils {
         }
         PrismObject<T> object = null;
         try {
-        	if (options == null) {
-        		options = SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
-        	} else {
-        		GetOperationOptions getOpts = SelectorOptions.findRootOptions(options);
-        		if (getOpts == null) {
-        			options.add(new SelectorOptions<>(GetOperationOptions.createResolveNames()));
-        		} else {
-        			getOpts.setResolveNames(Boolean.TRUE);
-        		}
-        	}
+            if (options == null) {
+                options = SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
+            } else {
+                GetOperationOptions getOpts = SelectorOptions.findRootOptions(options);
+                if (getOpts == null) {
+                    options.add(new SelectorOptions<>(GetOperationOptions.createResolveNames()));
+                } else {
+                    getOpts.setResolveNames(Boolean.TRUE);
+                }
+            }
             object = page.getModelService().getObject(type, oid, options, task, subResult);
         } catch (AuthorizationException e) {
-        	// Not authorized to access the object. This is probably caused by a reference that
-        	// point to an object that the current user cannot read. This is no big deal.
-        	// Just do not display that object.
-        	subResult.recordHandledError(e);
-        	LOGGER.debug("User {} is not authorized to read {} {}",
+            // Not authorized to access the object. This is probably caused by a reference that
+            // point to an object that the current user cannot read. This is no big deal.
+            // Just do not display that object.
+            subResult.recordHandledError(e);
+            LOGGER.debug("User {} is not authorized to read {} {}",
                     task.getOwner() != null ? task.getOwner().getName() : null, type.getSimpleName(), oid);
-        	return null;
+            return null;
         } catch (ObjectNotFoundException e) {
-        		// Object does not exist. It was deleted in the meanwhile, or not created yet. This could happen quite often.
-				subResult.recordHandledError(e);
-				LOGGER.debug("{} {} does not exist", type.getSimpleName(), oid, e);
-				return null;
-			
+                // Object does not exist. It was deleted in the meanwhile, or not created yet. This could happen quite often.
+                subResult.recordHandledError(e);
+                LOGGER.debug("{} {} does not exist", type.getSimpleName(), oid, e);
+                return null;
+
         } catch (Exception ex) {
             subResult.recordFatalError("WebModelUtils.couldntLoadObject", ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
         } finally {
             subResult.computeStatus();
         }
-		// TODO reconsider this part: until recently, the condition was always 'false'
+        // TODO reconsider this part: until recently, the condition was always 'false'
         if (WebComponentUtil.showResultInPage(subResult)) {
-        	if (page instanceof PageBase) {
-        		((PageBase)page).showResult(subResult);
-        	}
+            if (page instanceof PageBase) {
+                ((PageBase)page).showResult(subResult);
+            }
         }
 
         LOGGER.debug("Loaded {} with result {}", object, subResult);
@@ -367,32 +393,34 @@ public class WebModelServiceUtils {
     }
 
     public static boolean isNoFetch(Collection<SelectorOptions<GetOperationOptions>> options) {
-    	if (options == null) {
-    		return false;
-    	}
-    	GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-    	if (rootOptions == null) {
-    		return false;
-    	}
-    	return GetOperationOptions.isNoFetch(rootOptions);
+        if (options == null) {
+            return false;
+        }
+        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+        if (rootOptions == null) {
+            return false;
+        }
+        return GetOperationOptions.isNoFetch(rootOptions);
     }
 
-    public static <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-                                                                            OperationResult result, PageBase page) {
+    @NotNull
+    public static <T extends ObjectType> List<PrismObject<T>> searchObjects(
+            Class<T> type, ObjectQuery query, OperationResult result, PageBase page) {
         return searchObjects(type, query, null, result, page, null);
     }
 
+    @NotNull
     public static <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult result, PageBase page) {
-    	return searchObjects(type, query, options, result, page, null);
+        return searchObjects(type, query, options, result, page, null);
     }
 
-    public static <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-                                                                            Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                            OperationResult result, PageBase page,
-                                                                            PrismObject<UserType> principal) {
-        LOGGER.debug("Searching {} with oid {}, options {}", new Object[]{type.getSimpleName(), query, options});
+    @NotNull
+    public static <T extends ObjectType> List<PrismObject<T>> searchObjects(
+            Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult result, PageBase page, PrismObject<UserType> principal) {
+        LOGGER.debug("Searching {} with oid {}, options {}", type.getSimpleName(), query, options);
 
         OperationResult subResult;
         if (result != null) {
@@ -408,7 +436,7 @@ public class WebModelServiceUtils {
                 objects.addAll(list);
             }
         } catch (Exception ex) {
-            subResult.recordFatalError("WebModelUtils.couldntSearchObjects", ex);
+            subResult.recordFatalError(page.createStringResource("WebModelUtils.couldntSearchObjects").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't search objects", ex);
         } finally {
             subResult.computeStatus();
@@ -418,25 +446,25 @@ public class WebModelServiceUtils {
             page.showResult(subResult);
         }
 
-        LOGGER.debug("Loaded ({}) with result {}", new Object[]{objects.size(), subResult});
+        LOGGER.debug("Loaded ({}) with result {}", objects.size(), subResult);
 
         return objects;
     }
 
     public static <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, PageBase page) {
-    	LOGGER.debug("Count object: type => {}, query => {}", type, query);
-    	Task task = page.createSimpleTask(OPERATION_COUNT_OBJECT);
-    	OperationResult parentResult = new OperationResult(OPERATION_COUNT_OBJECT);
-    	int count = 0;
-    	try {
-			count = page.getModelService().countObjects(type, query, null, task, parentResult);
-		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-				| ConfigurationException | CommunicationException | ExpressionEvaluationException ex) {
-			parentResult.recordFatalError("WebModelUtils.couldntCountObjects", ex);
+        LOGGER.debug("Count object: type => {}, query => {}", type, query);
+        Task task = page.createSimpleTask(OPERATION_COUNT_OBJECT);
+        OperationResult parentResult = new OperationResult(OPERATION_COUNT_OBJECT);
+        int count = 0;
+        try {
+            count = page.getModelService().countObjects(type, query, null, task, parentResult);
+        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
+                | ConfigurationException | CommunicationException | ExpressionEvaluationException ex) {
+            parentResult.recordFatalError(page.createStringResource("WebModelUtils.couldntCountObjects").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
-		}
+        }
 
-         LOGGER.debug("Count objects with result {}", new Object[]{parentResult});
+         LOGGER.debug("Count objects with result {}", parentResult);
          return count;
     }
 
@@ -453,7 +481,7 @@ public class WebModelServiceUtils {
     public static <T extends ObjectType> void deleteObject(Class<T> type, String oid, ModelExecuteOptions options,
                                                            OperationResult result, PageBase page,
                                                            PrismObject<UserType> principal) {
-        LOGGER.debug("Deleting {} with oid {}, options {}", new Object[]{type.getSimpleName(), oid, options});
+        LOGGER.debug("Deleting {} with oid {}, options {}", type.getSimpleName(), oid, options);
 
         OperationResult subResult;
         if (result != null) {
@@ -462,14 +490,13 @@ public class WebModelServiceUtils {
             subResult = new OperationResult(OPERATION_DELETE_OBJECT);
         }
         try {
-            Task task = createSimpleTask(result.getOperation(), principal, page.getTaskManager());
+            Task task = createSimpleTask(subResult.getOperation(), principal, page.getTaskManager());
 
-            ObjectDelta delta = page.getPrismContext().deltaFactory().object().create(type, ChangeType.DELETE);
-            delta.setOid(oid);
+            ObjectDelta<T> delta = page.getPrismContext().deltaFactory().object().createDeleteDelta(type, oid);
 
-            page.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), options, task, subResult);
+            page.getModelService().executeChanges(MiscUtil.createCollection(delta), options, task, subResult);
         } catch (Exception ex) {
-            subResult.recordFatalError("WebModelUtils.couldntDeleteObject", ex);
+            subResult.recordFatalError(page.createStringResource("WebModelUtils.couldntDeleteObject").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete object", ex);
         } finally {
             subResult.computeStatus();
@@ -479,13 +506,13 @@ public class WebModelServiceUtils {
             page.showResult(subResult);
         }
 
-        LOGGER.debug("Deleted with result {}", new Object[]{result});
+        LOGGER.debug("Deleted with result {}", result);
     }
 
     public static Collection<SelectorOptions<GetOperationOptions>> createOptionsForParentOrgRefs(GetOperationOptionsBuilder builder) {
-		return builder
-				.item(ObjectType.F_PARENT_ORG_REF).retrieve()
-				.build();
+        return builder
+                .item(ObjectType.F_PARENT_ORG_REF).retrieve()
+                .build();
     }
 
     public static void save(ObjectDelta delta, OperationResult result, PageBase page) {
@@ -497,13 +524,13 @@ public class WebModelServiceUtils {
     }
 
     public static void save(ObjectDelta delta, ModelExecuteOptions options, OperationResult result, Task task, PageBase page) {
-        save(WebComponentUtil.createDeltaCollection(delta), options, result, task, page);
+        save(MiscUtil.createCollection(delta), options, result, task, page);
     }
 
 
     public static void save(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
                             OperationResult result, Task task, PageBase page) {
-        LOGGER.debug("Saving deltas {}, options {}", new Object[]{deltas, options});
+        LOGGER.debug("Saving deltas {}, options {}", deltas, options);
 
         OperationResult subResult;
         if (result != null) {
@@ -514,11 +541,14 @@ public class WebModelServiceUtils {
 
         try {
             if (task == null) {
-            	task = page.createSimpleTask(result.getOperation());
+                task = page.createSimpleTask(result.getOperation());
             }
 
             page.getModelService().executeChanges(deltas, options, task, result);
         } catch (Exception ex) {
+            if (ex instanceof CommonException) {
+                subResult.setUserFriendlyMessage(((CommonException) ex).getUserFriendlyMessage());
+            }
             subResult.recordFatalError(ex.getMessage());
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save object", ex);
         } finally {
@@ -529,7 +559,7 @@ public class WebModelServiceUtils {
             page.showResult(subResult);
         }
 
-        LOGGER.debug("Saved with result {}", new Object[]{subResult});
+        LOGGER.debug("Saved with result {}", subResult);
     }
 
     public static <T extends ObjectType> ObjectDelta<T> createActivationAdminStatusDelta(
@@ -538,101 +568,114 @@ public class WebModelServiceUtils {
         ItemPath path = SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
         ActivationStatusType status = enabled ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED;
         ObjectDelta objectDelta = context.deltaFactory().object().createModificationReplaceProperty(type, oid, path,
-		        status);
+                status);
 
         return objectDelta;
     }
 
-    public static String getLoggedInUserOid() {
-    	MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+    public static FocusType getLoggedInFocus() {
+        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        Validate.notNull(principal, "No principal");
+        if (principal.getFocus() == null) {
+            throw new IllegalArgumentException("No focus in principal: " + principal);
+        }
+        return principal.getFocus();
+    }
+
+    public static String getLoggedInFocusOid() {
+        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
         Validate.notNull(principal, "No principal");
         if (principal.getOid() == null) {
-        	throw new IllegalArgumentException("No OID in principal: "+principal);
+            throw new IllegalArgumentException("No OID in principal: "+principal);
         }
         return principal.getOid();
     }
 
-    public static Locale getLocale() {
-        return getLocale(null);
-    }
+//    public static Locale getLocale() {
+//        return getLocale(null);
+//    }
 
-    public static Locale getLocale(UserType user) {
+    public static <F extends FocusType> Locale getLocale() {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
-        Locale locale = null;
-        if (principal != null) {
-            if (user == null) {
-                PrismObject<UserType> userPrismObject = principal.getUser().asPrismObject();
-                user = userPrismObject == null ? null : userPrismObject.asObjectable();
-            }
-            if (user != null && user.getPreferredLanguage() != null &&
-                    !user.getPreferredLanguage().trim().equals("")) {
-                try {
-                    locale = LocaleUtils.toLocale(user.getPreferredLanguage());
-                } catch (Exception ex) {
-                    LOGGER.debug("Error occurred while getting user locale, " + ex.getMessage());
-                }
-            }
-            if (locale != null && MidPointApplication.containsLocale(locale)) {
-                return locale;
-            } else {
-                String userLocale = user != null ? user.getLocale() : null;
-                try {
-                    locale = userLocale == null ? null : LocaleUtils.toLocale(userLocale);
-                } catch (Exception ex) {
-                    LOGGER.debug("Error occurred while getting user locale, " + ex.getMessage());
-                }
-                if (locale != null && MidPointApplication.containsLocale(locale)) {
-                    return locale;
-                } else {
-                	//session in tests is null
-                		if (ThreadContext.getSession() == null) {
-                			return MidPointApplication.getDefaultLocale();
-                		}
-                    
-                		locale = Session.get().getLocale();
-                    if (locale == null || !MidPointApplication.containsLocale(locale)) {
-                        //default locale for web application
-                        return MidPointApplication.getDefaultLocale();
-                    }
-                    return locale;
-                }
-            }
+        if (principal == null) {
+            return MidPointApplication.getDefaultLocale();
         }
+
+        Locale locale = null;
+
+        F focus = (F) principal.getFocus();
+        if (focus == null) {
+            return MidPointApplication.getDefaultLocale();
+        }
+//        if (principal != null) {
+////            if (focus == null) {
+//                PrismObject<? extends FocusType> focusPrismObject = principal.getFocus().asPrismObject();
+//               FocusType focus = focusPrismObject == null ? null : focusPrismObject.asObjectable();
+////            }
+        String prefLang = focus.getPreferredLanguage();
+        if (StringUtils.isBlank(prefLang)) {
+            prefLang = focus.getLocale();
+        }
+
+        try {
+            locale = LocaleUtils.toLocale(prefLang);
+        } catch (Exception ex) {
+            LOGGER.debug("Error occurred while getting user locale, " + ex.getMessage());
+        }
+
+        if (locale == null) {
+            if (ThreadContext.getSession() == null) {
+                return MidPointApplication.getDefaultLocale();
+            }
+
+            locale = Session.get().getLocale();
+        }
+
+        if (MidPointApplication.containsLocale(locale)) {
+            return locale;
+        }
+
         return MidPointApplication.getDefaultLocale();
     }
 
+//    public static TimeZone getTimezone() {
+//        return getTimezone(null);
+//    }
+
     public static TimeZone getTimezone() {
-        return getTimezone(null);
-    }
+        GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
 
-    public static TimeZone getTimezone(UserType user) {
-    	MidPointUserProfilePrincipal principal = SecurityUtils.getPrincipalUser();
-        if (principal != null && user == null) {
-            user = principal.getUser();
+        if (principal == null) {
+            return null;
         }
+
+        FocusType focus = principal.getFocus();
+
         String timeZone;
-
-        if (user != null && StringUtils.isNotEmpty(user.getTimezone())) {
-            timeZone = user.getTimezone();
+        if (focus == null || StringUtils.isEmpty(focus.getTimezone())) {
+            timeZone = principal.getCompiledGuiProfile().getDefaultTimezone();
         } else {
-            timeZone = principal != null && principal.getCompiledUserProfile() != null ?
-                    principal.getCompiledUserProfile().getDefaultTimezone() : "";
+            timeZone = focus.getTimezone();
         }
+
+        if (timeZone == null) {
+            return null;
+        }
+
         try {
-            if (timeZone != null) {
-                return TimeZone.getTimeZone(timeZone);
-            }
+            return TimeZone.getTimeZone(timeZone);
         } catch (Exception ex){
             LOGGER.debug("Error occurred while getting user time zone, " + ex.getMessage());
+            return null;
         }
-        return null;
+
     }
 
-    public static Task createSimpleTask(String operation, PrismObject<UserType> owner, TaskManager manager) {
+    public static Task createSimpleTask(String operation, PrismObject<? extends FocusType> owner, TaskManager manager) {
         return createSimpleTask(operation, null, owner, manager);
     }
-    
-    public static Task createSimpleTask(String operation, String channel, PrismObject<UserType> owner, TaskManager manager) {
+
+    public static Task createSimpleTask(String operation, String channel, PrismObject<? extends FocusType> owner, TaskManager manager) {
         Task task = manager.createTaskInstance(operation);
 
         if (owner == null) {
@@ -640,15 +683,15 @@ public class WebModelServiceUtils {
             if (user == null) {
                 throw new RestartResponseException(PageLogin.class);
             } else {
-                owner = user.getUser().asPrismObject();
+                owner = user.getFocus().asPrismObject();
             }
         }
 
         task.setOwner(owner);
         if (channel == null) {
-        	task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+            task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
         } else {
-        	task.setChannel(channel);
+            task.setChannel(channel);
         }
 
         return task;
@@ -665,196 +708,148 @@ public class WebModelServiceUtils {
         return null;
     }
 
-	public static Collection<SelectorOptions<GetOperationOptions>> createLookupTableRetrieveOptions(SchemaHelper schemaHelper) {
-		return schemaHelper.getOperationOptionsBuilder()
-				.item(LookupTableType.F_ROW)
-				.retrieveQuery()
-					.asc(LookupTableRowType.F_LABEL)
-				.end()
-				.build();
-	}
+    public static Collection<SelectorOptions<GetOperationOptions>> createLookupTableRetrieveOptions(SchemaHelper schemaHelper) {
+        return schemaHelper.getOperationOptionsBuilder()
+                .item(LookupTableType.F_ROW)
+                .retrieveQuery()
+                    .asc(LookupTableRowType.F_LABEL)
+                .end()
+                .build();
+    }
 
-	public static ActivationStatusType getAssignmentEffectiveStatus(String lifecycleStatus, ActivationType activationType, PageBase pageBase){
+    public static ActivationStatusType getAssignmentEffectiveStatus(String lifecycleStatus, ActivationType activationType, PageBase pageBase){
         return pageBase.getModelInteractionService().getAssignmentEffectiveStatus(lifecycleStatus, activationType);
     }
 
-	public static void assumePowerOfAttorney(PrismObject<UserType> donor,
-	        ModelInteractionService modelInteractionService, TaskManager taskManager, OperationResult parentResult) {
-	    Task task = taskManager.createTaskInstance();
-	    OperationResult result = OperationResult.createSubResultOrNewResult(parentResult, OPERATION_ASSUME_POWER_OF_ATTORNEY);
+    public static void assumePowerOfAttorney(PrismObject<UserType> donor,
+            ModelInteractionService modelInteractionService, TaskManager taskManager, OperationResult parentResult) {
+        Task task = taskManager.createTaskInstance();
+        OperationResult result = OperationResult.createSubResultOrNewResult(parentResult, OPERATION_ASSUME_POWER_OF_ATTORNEY);
 
-	    try {
-	        modelInteractionService.assumePowerOfAttorney(donor, task, result);
-	    } catch (CommonException ex) {
-	        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't assume power of attorney", ex);
-	        result.recordFatalError("WebModelUtils.couldntAssumePowerAttorney", ex);
-	    } finally {
-	    	result.computeStatusIfUnknown();
-	    }
-	}
+        try {
+            modelInteractionService.assumePowerOfAttorney(donor, task, result);
+        } catch (CommonException ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't assume power of attorney", ex);
+            result.recordFatalError("WebModelUtils.couldntAssumePowerAttorney", ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
 
-	public static void dropPowerOfAttorney(ModelInteractionService modelInteractionService, TaskManager taskManager, OperationResult parentResult) {
-	    Task task = taskManager.createTaskInstance();
-		OperationResult result = OperationResult.createSubResultOrNewResult(parentResult, OPERATION_DROP_POWER_OF_ATTORNEY);
+    public static void dropPowerOfAttorney(ModelInteractionService modelInteractionService, TaskManager taskManager, OperationResult parentResult) {
+        Task task = taskManager.createTaskInstance();
+        OperationResult result = OperationResult.createSubResultOrNewResult(parentResult, OPERATION_DROP_POWER_OF_ATTORNEY);
 
-	    try {
-	        modelInteractionService.dropPowerOfAttorney(task, result);
-	    } catch (CommonException ex) {
-	        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't drop power of attorney", ex);
-	        result.recordFatalError("WebModelUtils.couldntDropPowerAttorney", ex);
-	    } finally {
-	    	result.computeStatusIfUnknown();
-	    }
-	}
+        try {
+            modelInteractionService.dropPowerOfAttorney(task, result);
+        } catch (CommonException ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't drop power of attorney", ex);
+            result.recordFatalError("WebModelUtils.couldntDropPowerAttorney", ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
 
-	// deduplicate with Action.addIncludeOptionsForExport (ninja module)
-	public static GetOperationOptionsBuilder addIncludeOptionsForExportOrView(GetOperationOptionsBuilder builder,
-			Class<? extends ObjectType> type) {
-		// todo fix this brutal hack (related to checking whether to include particular options)
-		boolean all = type == null
-				|| Objectable.class.equals(type)
-				|| com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(type)
-				|| ObjectType.class.equals(type);
+    public static boolean isEnableExperimentalFeature(Task task, ModelServiceLocator pageBase) {
+        OperationResult result = task.getResult();
 
-		if (all || UserType.class.isAssignableFrom(type)) {
-			builder = builder.item(UserType.F_JPEG_PHOTO).retrieve();
-		}
-		if (all || TaskType.class.isAssignableFrom(type)) {
-			builder = builder.item(TaskType.F_RESULT).retrieve();
-		}
-		if (all || LookupTableType.class.isAssignableFrom(type)) {
-			builder = builder.item(LookupTableType.F_ROW).retrieveQuery().asc(PrismConstants.T_ID).end();
-		}
-		if (all || AccessCertificationCampaignType.class.isAssignableFrom(type)) {
-			builder = builder.item(AccessCertificationCampaignType.F_CASE).retrieve();
-		}
-		return builder;
-	}
+        ModelInteractionService mInteractionService = pageBase.getModelInteractionService();
 
-	public static boolean isEnableExperimentalFeature(Task task, ModelServiceLocator pageBase) {
-		OperationResult result = task.getResult();
-		
-		ModelInteractionService mInteractionService = pageBase.getModelInteractionService();
-		
-		CompiledUserProfile adminGuiConfig = null;
-		try {
-			adminGuiConfig = mInteractionService.getCompiledUserProfile(task, result);
-			result.recomputeStatus();
-			result.recordSuccessIfUnknown();
-		} catch (Exception e) {
-			LoggingUtils.logException(LOGGER, "Cannot load admin gui config", e);
-			result.recordPartialError("Cannot load admin gui config. Reason: " + e.getLocalizedMessage());
-			
-		}
-		
-		if (adminGuiConfig == null) {
-			return false;
-		}
-		
-		return BooleanUtils.isTrue(adminGuiConfig.isEnableExperimentalFeatures());
-		
-	}
-	
-	public static boolean isEnableExperimentalFeature(ModelServiceLocator pageBase) {
-		Task task = pageBase.createSimpleTask("Load admin gui config");
-		return isEnableExperimentalFeature(task, pageBase);
-		
-	}
+        CompiledGuiProfile adminGuiConfig = null;
+        try {
+            adminGuiConfig = mInteractionService.getCompiledGuiProfile(task, result);
+            result.recomputeStatus();
+            result.recordSuccessIfUnknown();
+        } catch (Exception e) {
+            LoggingUtils.logException(LOGGER, "Cannot load admin gui config", e);
+            result.recordPartialError("Cannot load admin gui config. Reason: " + e.getLocalizedMessage());
 
-	public static AccessCertificationConfigurationType getCertificationConfiguration(PageBase pageBase) {
-		OperationResult result = new OperationResult(WebModelServiceUtils.class.getName() + ".getCertificationConfiguration");
-		try {
-			return pageBase.getModelInteractionService().getCertificationConfiguration(result);
-		} catch (Throwable t) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Cannot load certification configuration", t);
-			return null;
-		}
-	}
-	
-	public static String translateMessage(OperationResult result, ModelServiceLocator page) {
-		LocalizationService service = page.getLocalizationService();
-		Locale locale = page.getLocale();
+        }
 
-		return service.translate(result.getUserFriendlyMessage(), locale);
-	}
-	
-	public static boolean isPostAuthenticationEnabled(TaskManager taskManager, ModelInteractionService modelInteractionService) {
-		MidPointPrincipal midpointPrincipal = SecurityUtils.getPrincipalUser();
-    	if (midpointPrincipal != null) {
-    		UserType user = midpointPrincipal.getUser();
-    		String OPERATION_LOAD_FLOW_POLICY = WebModelServiceUtils.class.getName() + ".loadFlowPolicy";
-    		Task task = taskManager.createTaskInstance(OPERATION_LOAD_FLOW_POLICY);
-    		OperationResult parentResult = new OperationResult(OPERATION_LOAD_FLOW_POLICY);
-    		RegistrationsPolicyType registrationPolicyType;
-			try {
-				registrationPolicyType = modelInteractionService.getFlowPolicy(user.asPrismObject(), task, parentResult);
-				if (registrationPolicyType == null) {
-					return false;
-				}
-				SelfRegistrationPolicyType postAuthenticationPolicy = registrationPolicyType.getPostAuthentication();
-				if (postAuthenticationPolicy == null) {
-					return false;
-				}
-	    		String requiredLifecycleState = postAuthenticationPolicy.getRequiredLifecycleState();
-	    		if (StringUtils.isNotBlank(requiredLifecycleState) && requiredLifecycleState.equals(user.getLifecycleState())) {
-	    			return true; 
-	    		}
-			} catch (CommonException e) {
-				LoggingUtils.logException(LOGGER, "Cannot determine post authentication policies", e);
-			}
-    	}
-    	return false;
-	}
-	
-	public static ObjectWrapper<SystemConfigurationType> loadSystemConfigurationAsObjectWrapper(PageBase pageBase) {
-		Task task = pageBase.createSimpleTask(OPERATION_GET_SYSTEM_CONFIG);
-		OperationResult result = new OperationResult(OPERATION_GET_SYSTEM_CONFIG);
+        if (adminGuiConfig == null) {
+            return false;
+        }
 
-		Collection<SelectorOptions<GetOperationOptions>> options = pageBase.getOperationOptionsBuilder()
-				.items(SystemConfigurationType.F_DEFAULT_USER_TEMPLATE, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY).resolve()
-				.build();
-		ObjectWrapper<SystemConfigurationType> wrapper = null;
-		try {
-			PrismObject<SystemConfigurationType> systemConfig = loadObject(
-				SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), options,
-				pageBase, task, result);
-		
-			ObjectWrapperFactory owf = new ObjectWrapperFactory(pageBase);
-		
-			wrapper = owf.createObjectWrapper("adminPage.systemConfiguration", null, systemConfig, ContainerStatus.MODIFYING, task);
-		
-			result.recordSuccess();
-		} catch (Exception ex) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load system configuration", ex);
-			result.recordFatalError(pageBase.createStringResource("WebModelUtils.couldntLoadSystemConfiguration").getString(), ex);
-		}
+        return BooleanUtils.isTrue(adminGuiConfig.isEnableExperimentalFeatures());
 
-		if (!WebComponentUtil.isSuccessOrHandledError(result) || wrapper == null) {
-			pageBase.showResult(result, false);
-			throw pageBase.getRestartResponseException(PageError.class);
-		}
+    }
 
-		return wrapper;
-	}
-	
-	public static <C extends Containerable> boolean isContainerValueWrapperEmpty(ContainerValueWrapper<C> value) {
-		for(ItemWrapper itemWrapper: value.getItems()) {
-				if(!itemWrapper.isEmpty()) {
-					return false;
-				} 
-		}
-		return true;
-	}
-	
-	public static <C extends Containerable> ContainerValueWrapper<C> createNewItemContainerValueWrapper(PageBase pageBase,
-			IModel<ContainerWrapper<C>> model) {
-    	ContainerWrapperFactory factory = new ContainerWrapperFactory(pageBase);
-		Task task = pageBase.createSimpleTask("Creating new object policy");
-		PrismContainerValue<C> newItem = model.getObject().getItem().createNewValue();
-		ContainerValueWrapper<C> valueWrapper = factory.createContainerValueWrapper(model.getObject(), newItem,
-				model.getObject().getObjectStatus(), ValueStatus.ADDED, model.getObject().getPath(), task);
-		valueWrapper.setShowEmpty(true, true);
-		model.getObject().getValues().add(valueWrapper);
-		return valueWrapper;
-	}
+    public static boolean isEnableExperimentalFeature(ModelInteractionService modelInteractionService, Task task, OperationResult result) {
+        CompiledGuiProfile adminGuiConfig = null;
+        try {
+            adminGuiConfig = modelInteractionService.getCompiledGuiProfile(task, result);
+            result.recomputeStatus();
+            result.recordSuccessIfUnknown();
+        } catch (Exception e) {
+            LoggingUtils.logException(LOGGER, "Cannot load admin gui config", e);
+            result.recordPartialError("Cannot load admin gui config. Reason: " + e.getLocalizedMessage());
+
+        }
+
+        if (adminGuiConfig == null) {
+            return false;
+        }
+
+        return BooleanUtils.isTrue(adminGuiConfig.isEnableExperimentalFeatures());
+
+    }
+
+    public static boolean isEnableExperimentalFeature(ModelServiceLocator pageBase) {
+        Task task = pageBase.createSimpleTask("Load admin gui config");
+        return isEnableExperimentalFeature(task, pageBase);
+
+    }
+
+    public static AccessCertificationConfigurationType getCertificationConfiguration(PageBase pageBase) {
+        OperationResult result = new OperationResult(WebModelServiceUtils.class.getName() + ".getCertificationConfiguration");
+        try {
+            return pageBase.getModelInteractionService().getCertificationConfiguration(result);
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot load certification configuration", t);
+            return null;
+        }
+    }
+
+    public static String translateMessage(OperationResult result, ModelServiceLocator page) {
+        LocalizationService service = page.getLocalizationService();
+        Locale locale = page.getLocale();
+
+        return service.translate(result.getUserFriendlyMessage(), locale);
+    }
+
+    public static boolean isPostAuthenticationEnabled(TaskManager taskManager, ModelInteractionService modelInteractionService) {
+        MidPointPrincipal midpointPrincipal = SecurityUtils.getPrincipalUser();
+        if (midpointPrincipal != null) {
+            FocusType focus = midpointPrincipal.getFocus();
+            Task task = taskManager.createTaskInstance(OPERATION_LOAD_FLOW_POLICY);
+            OperationResult parentResult = new OperationResult(OPERATION_LOAD_FLOW_POLICY);
+            RegistrationsPolicyType registrationPolicyType;
+            try {
+                registrationPolicyType = modelInteractionService.getFlowPolicy(focus.asPrismObject(), task, parentResult);
+                if (registrationPolicyType == null) {
+                    return false;
+                }
+                SelfRegistrationPolicyType postAuthenticationPolicy = registrationPolicyType.getPostAuthentication();
+                if (postAuthenticationPolicy == null) {
+                    return false;
+                }
+                String requiredLifecycleState = postAuthenticationPolicy.getRequiredLifecycleState();
+                if (StringUtils.isNotBlank(requiredLifecycleState) && requiredLifecycleState.equals(focus.getLifecycleState())) {
+                    return true;
+                }
+            } catch (CommonException e) {
+                LoggingUtils.logException(LOGGER, "Cannot determine post authentication policies", e);
+            }
+        }
+        return false;
+    }
+
+    public static PrismObject<SystemConfigurationType> loadSystemConfigurationAsPrismObject(PageBase pageBase, Task task, OperationResult result) {
+        PrismObject<SystemConfigurationType> systemConfig = loadObject(
+            SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
+            pageBase, task, result);
+
+        return systemConfig;
+    }
+
 }

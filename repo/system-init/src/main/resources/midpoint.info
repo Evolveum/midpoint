@@ -1,8 +1,0 @@
-midpoint.version=${project.version}
-midpoint.build=${git.describe}
-midpoint.branch=${git.branch}
-midpoint.timestamp=${timestamp}
-midpoint.scm=${project.scm.connection}
-midpoint.jira=${project.issueManagement.url}
-midpoint.lincence=Apache License 2.0
-

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.ninja.impl;
 
 import com.evolveum.midpoint.ninja.action.*;
@@ -15,7 +21,7 @@ public enum Command {
     DELETE("delete", DeleteOptions.class, DeleteRepositoryAction.class, null),
 
     COUNT("count", CountOptions.class, CountRepositoryAction.class, null),
-    
+
     VERIFY("verify", VerifyOptions.class, VerifyRepositoryAction.class, null),
 
 //    PASSWORD_RESET("password", PasswordResetOptions.class, PasswordResetRepositoryAction.class, null),

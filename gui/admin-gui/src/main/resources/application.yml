@@ -1,10 +1,16 @@
 spring:
   application:
     name: MidPoint
+  main:
+    # needed to override springSecurityFilterChain from Spring Security
+    allow-bean-definition-overriding: true
   servlet:
     multipart:
-      max-file-size: 100Mb
-      max-request-size: 100Mb
+      max-file-size: 100MB
+      max-request-size: 100MB
+      file-size-threshold: 256KB
+  thymeleaf:
+    cache: false
 
 server:
   tomcat:
@@ -48,9 +54,21 @@ auth:
 #    search:
 #      pattern: (uid={0})
 #      subtree: true
-
+#
 #security:
 #  enable-csrf: false # default for midpoint is true
 
 # more properties with default values can be found here:
 # https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+        - health
+        - threaddump
+        - heapdump
+        - env
+        - info
+        - metrics

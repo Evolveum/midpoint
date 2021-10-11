@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql.helpers;
 
@@ -78,13 +69,13 @@ public class OrgClosureManager {
     private static final Trace LOGGER = TraceManager.getTrace(OrgClosureManager.class);
 
     @Autowired
-	@Qualifier("repositoryService")
+    @Qualifier("repositoryService")
     private RepositoryService repositoryService;
 
-	@Autowired
-	private BaseHelper baseHelper;
+    @Autowired
+    private BaseHelper baseHelper;
 
-    private static boolean DUMP_TABLES = false;
+    private static final boolean DUMP_TABLES = false;
     private static final boolean COUNT_CLOSURE_RECORDS = false;
     private static final String CLOSURE_TABLE_NAME = "m_org_closure";
     private static final String TEMP_DELTA_TABLE_NAME_FOR_ORACLE = "m_org_closure_temp_delta";
@@ -105,8 +96,8 @@ public class OrgClosureManager {
      * @param closureContext
      */
     public <T extends ObjectType> void updateOrgClosure(PrismObject<? extends ObjectType> originalObject,
-		    Collection<? extends ItemDelta> modifications, Session session, String oid, Class<T> type, Operation operation,
-		    Context closureContext) {
+            Collection<? extends ItemDelta> modifications, Session session, String oid, Class<T> type, Operation operation,
+            Context closureContext) {
         if (!isEnabled() || !OrgType.class.isAssignableFrom(type)) {
             return;
         }
@@ -904,7 +895,7 @@ public class OrgClosureManager {
             NativeQuery q = session.createNativeQuery("SELECT count(*) FROM " + CLOSURE_TABLE_NAME + " WITH (TABLOCK, XLOCK)");
             q.list();
         } else {
-        	throw new AssertionError("Neither H2 nor Oracle nor SQL Server");
+            throw new AssertionError("Neither H2 nor Oracle nor SQL Server");
         }
         LOGGER.trace("...locked in {} ms", System.currentTimeMillis()-start);
 
@@ -1285,9 +1276,9 @@ public class OrgClosureManager {
         }
     }
 
-    public static enum Operation {ADD, DELETE, MODIFY}
+    public enum Operation {ADD, DELETE, MODIFY}
 
-    public static enum StartupAction {
+    public enum StartupAction {
 
         NONE("none"), CHECK("check"), REBUILD_IF_NEEDED("rebuildIfNeeded"), ALWAYS_REBUILD("alwaysRebuild");
 

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.model.impl.integrity;
@@ -23,6 +14,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -49,7 +41,7 @@ public class ObjectIntegrityCheckResultHandler extends AbstractSearchIterativeRe
 
     private ObjectStatistics statistics = new ObjectStatistics();
 
-    public ObjectIntegrityCheckResultHandler(Task coordinatorTask, String taskOperationPrefix, String processShortName,
+    public ObjectIntegrityCheckResultHandler(RunningTask coordinatorTask, String taskOperationPrefix, String processShortName,
             String contextDesc, TaskManager taskManager, PrismContext prismContext, RepositoryService repositoryService,
             SystemObjectCache systemObjectCache, OperationResult result) {
         super(coordinatorTask, taskOperationPrefix, processShortName, contextDesc, taskManager);
@@ -72,10 +64,10 @@ public class ObjectIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     }
 
     @Override
-    protected boolean handleObject(PrismObject<ObjectType> object, Task workerTask, OperationResult parentResult) throws CommonException {
+    protected boolean handleObject(PrismObject<ObjectType> object, RunningTask workerTask, OperationResult parentResult) throws CommonException {
         OperationResult result = parentResult.createMinorSubresult(CLASS_DOT + "handleObject");
         try {
-        	statistics.record(object);
+            statistics.record(object);
         } catch (RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Unexpected error while checking object {} integrity", e, ObjectTypeUtil.toShortString(object));
             result.recordPartialError("Unexpected error while checking object integrity", e);
@@ -99,19 +91,19 @@ public class ObjectIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         dumpStatistics();
     }
 
-	private void dumpStatistics() {
-		Map<String, ObjectTypeStatistics> map = statistics.getStatisticsMap();
-		if (map.isEmpty()) {
-			LOGGER.info("(no objects were found)");
-		} else {
-			StringBuilder sb = new StringBuilder();
-			for (Map.Entry<String, ObjectTypeStatistics> entry : map.entrySet()) {
-				sb.append("\n\n**************************************** Statistics for ").append(entry.getKey()).append(" ****************************************\n\n");
-				sb.append(entry.getValue().dump(HISTOGRAM_COLUMNS));
-			}
-			LOGGER.info("{}", sb.toString());
-		}
-		LOGGER.info("Objects processed with errors: {}", statistics.getErrors());
-	}
+    private void dumpStatistics() {
+        Map<String, ObjectTypeStatistics> map = statistics.getStatisticsMap();
+        if (map.isEmpty()) {
+            LOGGER.info("(no objects were found)");
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (Map.Entry<String, ObjectTypeStatistics> entry : map.entrySet()) {
+                sb.append("\n\n**************************************** Statistics for ").append(entry.getKey()).append(" ****************************************\n\n");
+                sb.append(entry.getValue().dump(HISTOGRAM_COLUMNS));
+            }
+            LOGGER.info("{}", sb.toString());
+        }
+        LOGGER.info("Objects processed with errors: {}", statistics.getErrors());
+    }
 
 }

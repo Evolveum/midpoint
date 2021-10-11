@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2014-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<objectTemplate oid="6fd041a4-3954-11e6-b2db-63400448082e">
+    <name>lookup table item subtypes</name>
+    <item>
+        <ref>subtype</ref>
+        <displayName>subtype</displayName>
+        <valueEnumerationRef oid="d74d9990-3953-11e6-ab88-7fda62960e11"/>
+    </item>
+</objectTemplate>

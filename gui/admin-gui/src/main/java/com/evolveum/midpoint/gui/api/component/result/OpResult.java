@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.gui.api.component.result;
@@ -29,6 +20,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
@@ -52,9 +44,10 @@ import java.util.Map;
  */
 public class OpResult implements Serializable, Visitable {
 
-	private static final Trace LOGGER = TraceManager.getTrace(OpResult.class);
+    private static final Trace LOGGER = TraceManager.getTrace(OpResult.class);
 
-	private static final String OPERATION_CHECK_TASK_VISIBILITY = OpResult.class.getName() + ".checkTaskVisibility";
+    private static final String OPERATION_CHECK_TASK_VISIBILITY = OpResult.class.getName() + ".checkTaskVisibility";
+    private static final String OPERATION_CHECK_CASE_VISIBILITY = OpResult.class.getName() + ".checkCaseVisibility";
 
     private OperationResultStatus status;
     private String operation;
@@ -64,14 +57,17 @@ public class OpResult implements Serializable, Visitable {
     private String exceptionMessage;
     private String exceptionsStackTrace;
     private List<OpResult> subresults;
-	private OpResult parent;
+    private OpResult parent;
     private int count;
     private String xml;
     private LocalizableMessage userFriendlyMessage;
 
-	// we assume there is at most one background task created (TODO revisit this assumption)
-	private String backgroundTaskOid;
-	private Boolean backgroundTaskVisible;			// available on root opResult only
+    // we assume there is at most one background task created (TODO revisit this assumption)
+    private String backgroundTaskOid;
+    private Boolean backgroundTaskVisible;            // available on root opResult only
+
+    private String caseOid;
+    private Boolean caseVisible;
 
     private boolean showMore;
     private boolean showError;
@@ -83,12 +79,12 @@ public class OpResult implements Serializable, Visitable {
     }
 
     public boolean isAlreadyShown() {
-		return alreadyShown;
-	}
+        return alreadyShown;
+    }
 
     public void setAlreadyShown(boolean alreadyShown) {
-		this.alreadyShown = alreadyShown;
-	}
+        this.alreadyShown = alreadyShown;
+    }
 
     public static OpResult getOpResult(PageBase page, OperationResult result) {
         OpResult opResult = new OpResult();
@@ -99,12 +95,12 @@ public class OpResult implements Serializable, Visitable {
             LocalizableMessage localizableMessage = ((CommonException) result.getCause()).getUserFriendlyMessage();
             if (localizableMessage != null) {
                 opResult.message = WebComponentUtil.resolveLocalizableMessage(localizableMessage, page);
-                
+
                 // Exclamation code:
 //                String key = localizableMessage.getKey() != null ? localizableMessage.getKey() : localizableMessage.getFallbackMessage();
-//        		StringResourceModel stringResourceModel = new StringResourceModel(key, page).setModel(new Model<String>()).setDefaultValue(localizableMessage.getFallbackMessage())
-//				.setParameters(localizableMessage.getArgs());
-//        		opResult.message = stringResourceModel.getString();
+//                StringResourceModel stringResourceModel = new StringResourceModel(key, page).setModel(new Model<String>()).setDefaultValue(localizableMessage.getFallbackMessage())
+//                .setParameters(localizableMessage.getArgs());
+//                opResult.message = stringResourceModel.getString();
             }
         }
 
@@ -164,61 +160,101 @@ public class OpResult implements Serializable, Visitable {
             opResult.backgroundTaskOid = result.getBackgroundTaskOid();
         }
 
+        String caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
+        if(caseOid != null) {
+            opResult.caseOid = caseOid;
+        }
+
         try {
             OperationResultType resultType = result.createOperationResultType();
             ObjectFactory of = new ObjectFactory();
             opResult.xml = page.getPrismContext().xmlSerializer().serialize(of.createOperationResult(resultType));
         } catch (SchemaException | RuntimeException ex) {
             String m = "Can't create xml: " + ex;
-//			error(m);
+//            error(m);
             opResult.xml = "<?xml version='1.0'?><message>" + StringEscapeUtils.escapeXml(m) + "</message>";
 //            throw ex;
         }
         return opResult;
     }
 
-	// This method should be called along with getOpResult for root operationResult. However, it might take some time,
-	// and there might be situations in which it is not required -- so we opted for calling it explicitly.
-	public void determineBackgroundTaskVisibility(PageBase pageBase) {
-		if (backgroundTaskOid == null) {
-			return;
-		}
-		try {
-			if (pageBase.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL)) {
-				backgroundTaskVisible = true;
-				return;
-			}
-		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-			backgroundTaskVisible = false;
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine background task visibility", e);
-			return;
-		}
+    // This method should be called along with getOpResult for root operationResult. However, it might take some time,
+    // and there might be situations in which it is not required -- so we opted for calling it explicitly.
+    public void determineObjectsVisibility(PageBase pageBase) {
+        determineBackgroundTaskVisibility(pageBase);
+        determineCaseVisibility(pageBase);
+    }
 
-		Task task = pageBase.createSimpleTask(OPERATION_CHECK_TASK_VISIBILITY);
-		try {
-			pageBase.getModelService().getObject(TaskType.class, backgroundTaskOid, null, task, task.getResult());
-			backgroundTaskVisible = true;
-		} catch (ObjectNotFoundException|SchemaException|SecurityViolationException|CommunicationException|ConfigurationException|ExpressionEvaluationException e) {
-			LOGGER.debug("Task {} is not visible by the current user: {}: {}", backgroundTaskOid, e.getClass(), e.getMessage());
-			backgroundTaskVisible = false;
-		}
-	}
+    private void determineBackgroundTaskVisibility(PageBase pageBase) {
+        if (backgroundTaskOid == null) {
+            return;
+        }
+        try {
+            if (pageBase.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL)) {
+                backgroundTaskVisible = true;
+                return;
+            }
+        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+            backgroundTaskVisible = false;
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine background task visibility", e);
+            return;
+        }
 
-	public boolean isShowMore() {
-		return showMore;
-	}
+        Task task = pageBase.createSimpleTask(OPERATION_CHECK_TASK_VISIBILITY);
+        try {
+            pageBase.getModelService().getObject(TaskType.class, backgroundTaskOid, null, task, task.getResult());
+            backgroundTaskVisible = true;
+        } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|CommunicationException|ConfigurationException|ExpressionEvaluationException e) {
+            LOGGER.debug("Task {} is not visible by the current user: {}: {}", backgroundTaskOid, e.getClass(), e.getMessage());
+            backgroundTaskVisible = false;
+        }
+    }
+
+    private void determineCaseVisibility(PageBase pageBase) {
+        if(getStatus().equals(OperationResultStatus.FATAL_ERROR)) {
+            caseVisible = false;
+            return;
+        }
+
+        if (caseOid == null) {
+            return;
+        }
+        try {
+            if (pageBase.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL)) {
+                caseVisible = true;
+                return;
+            }
+        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+            caseVisible = false;
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine case visibility", e);
+            return;
+        }
+
+        Task task = pageBase.createSimpleTask(OPERATION_CHECK_CASE_VISIBILITY);
+        try {
+            pageBase.getModelService().getObject(CaseType.class, caseOid, null, task, task.getResult());
+            caseVisible = true;
+        } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|CommunicationException|ConfigurationException|ExpressionEvaluationException e) {
+            LOGGER.debug("Case {} is not visible by the current user: {}: {}", caseOid, e.getClass(), e.getMessage());
+            caseVisible = false;
+        }
+    }
+
+    public boolean isShowMore() {
+        return showMore;
+    }
 
     public void setShowMore(boolean showMore) {
-		this.showMore = showMore;
-	}
+        this.showMore = showMore;
+    }
 
     public boolean isShowError() {
-		return showError;
-	}
+        return showError;
+    }
 
     public void setShowError(boolean showError) {
-		this.showError = showError;
-	}
+        this.showError = showError;
+    }
 
     public List<OpResult> getSubresults() {
         if (subresults == null) {
@@ -252,7 +288,7 @@ public class OpResult implements Serializable, Visitable {
 
     public List<Context> getContexts() {
         if (contexts == null) {
-        	contexts = new ArrayList<>();
+            contexts = new ArrayList<>();
         }
         return contexts;
     }
@@ -266,49 +302,63 @@ public class OpResult implements Serializable, Visitable {
     }
 
     public String getXml() {
-    	return xml;
+        return xml;
     }
 
-	public String getBackgroundTaskOid() {
-		return backgroundTaskOid;
-	}
+    public String getBackgroundTaskOid() {
+        return backgroundTaskOid;
+    }
 
-	public boolean isBackgroundTaskVisible() {
-		if (backgroundTaskVisible != null) {
-			return backgroundTaskVisible;
-		}
-		if (parent != null) {
-			return parent.isBackgroundTaskVisible();
-		}
-		return true;			// at least as for now
-	}
+    public boolean isBackgroundTaskVisible() {
+        if (backgroundTaskVisible != null) {
+            return backgroundTaskVisible;
+        }
+        if (parent != null) {
+            return parent.isBackgroundTaskVisible();
+        }
+        return true;            // at least as for now
+    }
 
-	@Override
-	public void accept(Visitor visitor) {
+    public String getCaseOid() {
+        return caseOid;
+    }
 
-		visitor.visit(this);
+    public boolean isCaseVisible() {
+        if (caseVisible != null) {
+            return caseVisible;
+        }
+        if (parent != null) {
+            return parent.isCaseVisible();
+        }
+        return true;            // at least as for now
+    }
 
-		for (OpResult result : this.getSubresults()){
-			result.accept(visitor);
-		}
+    @Override
+    public void accept(Visitor visitor) {
 
-	}
+        visitor.visit(this);
 
-	public void setShowMoreAll(final boolean show) {
-		Visitor visitor = new Visitor() {
+        for (OpResult result : this.getSubresults()){
+            result.accept(visitor);
+        }
 
-			@Override
-			public void visit(Visitable visitable) {
-				if (!(visitable instanceof OpResult)) {
-					return;
-				}
+    }
 
-				OpResult result = (OpResult) visitable;
-				result.setShowMore(show);
+    public void setShowMoreAll(final boolean show) {
+        Visitor visitor = new Visitor() {
 
-			}
-		};
+            @Override
+            public void visit(Visitable visitable) {
+                if (!(visitable instanceof OpResult)) {
+                    return;
+                }
 
-		accept(visitor);
-	}
+                OpResult result = (OpResult) visitable;
+                result.setShowMore(show);
+
+            }
+        };
+
+        accept(visitor);
+    }
 }

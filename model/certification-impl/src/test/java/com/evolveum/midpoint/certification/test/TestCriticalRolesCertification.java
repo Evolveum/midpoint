@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.certification.test;
@@ -70,24 +61,21 @@ public class TestCriticalRolesCertification extends AbstractCertificationTest {
 
     @Test
     public void test010CreateCampaign() throws Exception {
-        final String TEST_NAME = "test010CreateCampaign";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         certificationDefinition = repoAddObjectFromFile(CERT_DEF_FILE,
                 AccessCertificationDefinitionType.class, result).asObjectable();
-	    dummyTransport.clearMessages();
+        dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCampaignType campaign =
                 certificationManager.createCampaign(certificationDefinition.getOid(), task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -99,7 +87,7 @@ public class TestCriticalRolesCertification extends AbstractCertificationTest {
         display("campaign", campaign);
         assertSanityAfterCampaignCreate(campaign, certificationDefinition);
 
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     /*
@@ -122,21 +110,18 @@ jack->CTO                   none (A) -> A
 
     @Test
     public void test020OpenFirstStage() throws Exception {
-        final String TEST_NAME = "test020OpenFirstStage";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.openNextStage(campaignOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -181,22 +166,19 @@ jack->CTO                   none (A) -> A
         assertPercentCompleteCurrentIteration(campaign, 83, 83, 0);
         assertPercentCompleteAll(campaign, 83, 83, 0);
 
-	    display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     @Test
     public void test100RecordDecisions1() throws Exception {
-        final String TEST_NAME = "test100RecordDecisions1";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         assertEquals("unexpected # of cases", 6, caseList.size());
         AccessCertificationCaseType guybrushCooCase = findCase(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID);
@@ -204,7 +186,7 @@ jack->CTO                   none (A) -> A
         recordDecision(campaignOid, guybrushCooCase, ACCEPT, null, USER_CHEESE_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -229,21 +211,18 @@ jack->CTO                   none (A) -> A
 
     @Test
     public void test150CloseFirstStage() throws Exception {
-        final String TEST_NAME = "test150CloseFirstStage";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
-		task.setOwner(userAdministrator.asPrismObject());
+        Task task = getTestTask();
+        task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
-	    dummyTransport.clearMessages();
+        dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.closeCurrentStage(campaignOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -266,26 +245,23 @@ jack->CTO                   none (A) -> A
         assertPercentCompleteCurrentIteration(campaignOid, 100, 100, 100);
         assertPercentCompleteAll(campaignOid, 100, 100, 100);
         assertCasesCount(campaignOid, 6);
-	    display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     @Test
     public void test200OpenSecondStage() throws Exception {
-        final String TEST_NAME = "test200OpenSecondStage";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
-		task.setOwner(userAdministrator.asPrismObject());
+        Task task = getTestTask();
+        task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
-	    dummyTransport.clearMessages();
+        dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.openNextStage(campaignOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -330,39 +306,36 @@ jack->CTO                   none (A) -> A       none (A) -> A
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, ACCEPT, ACCEPT, null);
 
         // Current stage:
-	    //  - cases: 6, complete: 1 (no work items), decided: 1 (default outcome)
-	    //  - work items: 0 of 1 done
+        //  - cases: 6, complete: 1 (no work items), decided: 1 (default outcome)
+        //  - work items: 0 of 1 done
         assertPercentCompleteCurrent(campaign, 17, 17, 0);
         // All stages:
-	    //  - cases: 6, complete: 1 (no work items), decided: 1 (default outcome)
-	    //  - work items: 1/1 + 0/5 = 1/6 = 17%
+        //  - cases: 6, complete: 1 (no work items), decided: 1 (default outcome)
+        //  - work items: 1/1 + 0/5 = 1/6 = 17%
         assertPercentCompleteCurrentIteration(campaign, 17, 17, 17);
         assertPercentCompleteAll(campaign, 17, 17, 17);
         assertCasesCount(campaignOid, 6);
 
-	    display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     @Test
     public void test220StatisticsAllStages() throws Exception {
-        final String TEST_NAME = "test220StatisticsAllStages";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCasesStatisticsType stat =
                 certificationManager.getCampaignStatistics(campaignOid, false, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("statistics", stat.asPrismContainerValue());
+        displayDumpable("statistics", stat.asPrismContainerValue());
         assertEquals(1, stat.getMarkedAsAccept());
         assertEquals(0, stat.getMarkedAsRevoke());
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
@@ -374,17 +347,14 @@ jack->CTO                   none (A) -> A       none (A) -> A
 
     @Test
     public void test250RecordDecisionsSecondStage() throws Exception {
-        final String TEST_NAME = "test250RecordDecisionsSecondStage";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
 /*
 Stage2: allMustAccept, default: accept, advance on: accept          (target owner)
@@ -417,7 +387,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         // jackCto: no reviewers
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -448,37 +418,34 @@ jack->CTO                   none (A) -> A       none (A) -> A
         assertNoDecision(jackCeoCase, 2, 1, NO_RESPONSE, false);
         assertNoDecision(jackCtoCase, 2, 1, ACCEPT, false);
 
-	    // Current stage:
-	    //  - cases: 6, complete: 5 (1x no work items, 4x outcome), decided: 5
-	    //  - work items: 4 of 5 done
-	    assertPercentCompleteCurrent(campaign, 83, 83, 80);
-	    // All stages:
-	    //  - cases: 6, complete: 5 (all except jack->CEO), decided: 5 (all except jack->CEO)
-	    //  - work items: 1/1 + 4/5 = 5/6 = 83%
-	    assertPercentCompleteCurrentIteration(campaign, 83, 83, 83);
-	    assertPercentCompleteAll(campaign, 83, 83, 83);
+        // Current stage:
+        //  - cases: 6, complete: 5 (1x no work items, 4x outcome), decided: 5
+        //  - work items: 4 of 5 done
+        assertPercentCompleteCurrent(campaign, 83, 83, 80);
+        // All stages:
+        //  - cases: 6, complete: 5 (all except jack->CEO), decided: 5 (all except jack->CEO)
+        //  - work items: 1/1 + 4/5 = 5/6 = 83%
+        assertPercentCompleteCurrentIteration(campaign, 83, 83, 83);
+        assertPercentCompleteAll(campaign, 83, 83, 83);
     }
 
     @Test
     public void test260Statistics() throws Exception {
-        final String TEST_NAME = "test260Statistics";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCasesStatisticsType stat =
                 certificationManager.getCampaignStatistics(campaignOid, true, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("statistics", stat.asPrismContainerValue());
+        displayDumpable("statistics", stat.asPrismContainerValue());
         assertEquals(4, stat.getMarkedAsAccept());
         assertEquals(1, stat.getMarkedAsRevoke());
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
@@ -490,21 +457,18 @@ jack->CTO                   none (A) -> A       none (A) -> A
 
     @Test
     public void test290CloseSecondStage() throws Exception {
-        final String TEST_NAME = "test290CloseSecondStage";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
-		task.setOwner(userAdministrator.asPrismObject());
+        Task task = getTestTask();
+        task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
-	    dummyTransport.clearMessages();
+        dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.closeCurrentStage(campaignOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -522,35 +486,32 @@ jack->CTO                   none (A) -> A       none (A) -> A
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, 2);
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, ACCEPT, ACCEPT, 2);
 
-	    // Current stage:
-	    //  - cases: 6, complete: 5 (1x no work items, 4x outcome), decided: 5
-	    //  - work items: 4 of 5 done
-	    assertPercentCompleteCurrent(campaign, 83, 83, 80);
-	    // All stages:
-	    //  - cases: 6, complete: 5 (all except jack->CEO), decided: 5 (all except jack->CEO)
-	    //  - work items: 1/1 + 4/5 = 5/6 = 83%
-	    assertPercentCompleteCurrentIteration(campaign, 83, 83, 83);
-	    assertPercentCompleteAll(campaign, 83, 83, 83);
-	    display("dummy transport", dummyTransport);
+        // Current stage:
+        //  - cases: 6, complete: 5 (1x no work items, 4x outcome), decided: 5
+        //  - work items: 4 of 5 done
+        assertPercentCompleteCurrent(campaign, 83, 83, 80);
+        // All stages:
+        //  - cases: 6, complete: 5 (all except jack->CEO), decided: 5 (all except jack->CEO)
+        //  - work items: 1/1 + 4/5 = 5/6 = 83%
+        assertPercentCompleteCurrentIteration(campaign, 83, 83, 83);
+        assertPercentCompleteAll(campaign, 83, 83, 83);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     @Test
     public void test300OpenThirdStage() throws Exception {
-        final String TEST_NAME = "test300OpenThirdStage";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
-		task.setOwner(userAdministrator.asPrismObject());
+        Task task = getTestTask();
+        task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
-	    dummyTransport.clearMessages();
+        dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.openNextStage(campaignOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -598,33 +559,30 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, NO_RESPONSE, NO_RESPONSE, null);
 
-	    // Current stage:
-	    //  - cases: 4, complete: 0, decided: 0
-	    //  - work items: 0 of 8 done
-	    assertPercentCompleteCurrent(campaign, 0, 0, 0);
-	    // All stages:
-	    //  - cases: 6, complete: 1 (only guybrush->COO), decided: 1 (guybrush->COO)
-	    //  - work items: 1/1 + 4/5 + 0/8 = 5/14 = 36%
-	    assertPercentCompleteCurrentIteration(campaign, 17, 17, 36);
-	    assertPercentCompleteAll(campaign, 17, 17, 36);
+        // Current stage:
+        //  - cases: 4, complete: 0, decided: 0
+        //  - work items: 0 of 8 done
+        assertPercentCompleteCurrent(campaign, 0, 0, 0);
+        // All stages:
+        //  - cases: 6, complete: 1 (only guybrush->COO), decided: 1 (guybrush->COO)
+        //  - work items: 1/1 + 4/5 + 0/8 = 5/14 = 36%
+        assertPercentCompleteCurrentIteration(campaign, 17, 17, 36);
+        assertPercentCompleteAll(campaign, 17, 17, 36);
 
-	    display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     @Test
     public void test330RecordDecisionsThirdStage() throws Exception {
-        final String TEST_NAME = "test330RecordDecisionsThirdStage";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
-	    dummyTransport.clearMessages();
+        dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
 /*
 Case                        Stage1              Stage2                           Stage3
@@ -652,7 +610,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         // no response for jackCto
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -705,36 +663,33 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, NO_RESPONSE, NO_RESPONSE, null);
 
-	    // Current stage:
-	    //  - cases: 4, complete: 0, decided: 1
-	    //  - work items: 2 of 8 done
-	    assertPercentCompleteCurrent(campaign, 0, 25, 25);
-	    // All stages:
-	    //  - cases: 6, complete: 1 (only guybrush->COO), decided: 2 (guybrush->COO, admin->COO)
-	    //  - work items: 1/1 + 4/5 + 2/8 = 7/14 = 50%
-	    assertPercentCompleteCurrentIteration(campaign, 17, 33, 50);
-	    assertPercentCompleteAll(campaign, 17, 33, 50);
+        // Current stage:
+        //  - cases: 4, complete: 0, decided: 1
+        //  - work items: 2 of 8 done
+        assertPercentCompleteCurrent(campaign, 0, 25, 25);
+        // All stages:
+        //  - cases: 6, complete: 1 (only guybrush->COO), decided: 2 (guybrush->COO, admin->COO)
+        //  - work items: 1/1 + 4/5 + 2/8 = 7/14 = 50%
+        assertPercentCompleteCurrentIteration(campaign, 17, 33, 50);
+        assertPercentCompleteAll(campaign, 17, 33, 50);
 
-	    display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     @Test
     public void test390CloseThirdStage() throws Exception {
-        final String TEST_NAME = "test390CloseThirdStage";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
-		task.setOwner(userAdministrator.asPrismObject());
+        Task task = getTestTask();
+        task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
-	    dummyTransport.clearMessages();
+        dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.closeCurrentStage(campaignOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -771,36 +726,33 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseHistoricOutcomes(jackCeoCase, ACCEPT, NO_RESPONSE);
         assertCaseHistoricOutcomes(jackCtoCase, ACCEPT, ACCEPT, NO_RESPONSE);
 
-	    // Current stage:
-	    //  - cases: 4, complete: 0, decided: 1
-	    //  - work items: 2 of 8 done
-	    assertPercentCompleteCurrent(campaign, 0, 25, 25);
-	    // All stages:
-	    //  - cases: 6, complete: 1 (only guybrush->COO), decided: 2 (guybrush->COO, admin->COO)
-	    //  - work items: 1/1 + 4/5 + 2/8 = 7/14 = 50%
-	    assertPercentCompleteCurrentIteration(campaign, 17, 33, 50);
-	    assertPercentCompleteAll(campaign, 17, 33, 50);
+        // Current stage:
+        //  - cases: 4, complete: 0, decided: 1
+        //  - work items: 2 of 8 done
+        assertPercentCompleteCurrent(campaign, 0, 25, 25);
+        // All stages:
+        //  - cases: 6, complete: 1 (only guybrush->COO), decided: 2 (guybrush->COO, admin->COO)
+        //  - work items: 1/1 + 4/5 + 2/8 = 7/14 = 50%
+        assertPercentCompleteCurrentIteration(campaign, 17, 33, 50);
+        assertPercentCompleteAll(campaign, 17, 33, 50);
 
-	    display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     @Test
     public void test400OpenFourthStage() throws Exception {
-        final String TEST_NAME = "test400OpenFourthStage";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
-		task.setOwner(userAdministrator.asPrismObject());
+        Task task = getTestTask();
+        task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
-	    dummyTransport.clearMessages();
+        dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.openNextStage(campaignOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -848,31 +800,28 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, NO_RESPONSE, NO_RESPONSE, null);
 
-	    // Current stage:
-	    //  - cases: 3, complete: 0, decided: 0
-	    //  - work items: 0 of 3 done
-	    assertPercentCompleteCurrent(campaign, 0, 0, 0);
-	    // All stages:
-	    //  - cases: 6, complete: 1 (only guybrush->COO), decided: 1 (guybrush->COO)
-	    //  - work items: 1/1 + 4/5 + 2/8 + 0/3 = 7/17 = 41%
-	    assertPercentCompleteCurrentIteration(campaign, 17, 17, 41);
-	    assertPercentCompleteAll(campaign, 17, 17, 41);
-	    display("dummy transport", dummyTransport);
+        // Current stage:
+        //  - cases: 3, complete: 0, decided: 0
+        //  - work items: 0 of 3 done
+        assertPercentCompleteCurrent(campaign, 0, 0, 0);
+        // All stages:
+        //  - cases: 6, complete: 1 (only guybrush->COO), decided: 1 (guybrush->COO)
+        //  - work items: 1/1 + 4/5 + 2/8 + 0/3 = 7/17 = 41%
+        assertPercentCompleteCurrentIteration(campaign, 17, 17, 41);
+        assertPercentCompleteAll(campaign, 17, 17, 41);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     @Test
     public void test430RecordDecisionsFourthStage() throws Exception {
-        final String TEST_NAME = "test430RecordDecisionsFourthStage";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
 /*
 Stage4: allMustAccept
@@ -901,7 +850,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         recordDecision(campaignOid, administratorCeoCase, ACCEPT, null, USER_CHEESE_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -954,34 +903,31 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, NO_RESPONSE, NO_RESPONSE, null);
 
-	    // Current stage:
-	    //  - cases: 3, complete: 2, decided: 1
-	    //  - work items: 2 of 3 done
-	    assertPercentCompleteCurrent(campaign, 67, 33, 67);
-	    // All stages:
-	    //  - cases: 6, complete: 1 (only guybrush->COO), decided: 2 (guybrush->COO, admin->COO)
-	    //  - work items: 1/1 + 4/5 + 2/8 + 2/3 = 9/17 = 53%
-	    assertPercentCompleteCurrentIteration(campaign, 17, 33, 53);
-	    assertPercentCompleteAll(campaign, 17, 33, 53);
+        // Current stage:
+        //  - cases: 3, complete: 2, decided: 1
+        //  - work items: 2 of 3 done
+        assertPercentCompleteCurrent(campaign, 67, 33, 67);
+        // All stages:
+        //  - cases: 6, complete: 1 (only guybrush->COO), decided: 2 (guybrush->COO, admin->COO)
+        //  - work items: 1/1 + 4/5 + 2/8 + 2/3 = 9/17 = 53%
+        assertPercentCompleteCurrentIteration(campaign, 17, 33, 53);
+        assertPercentCompleteAll(campaign, 17, 33, 53);
     }
 
     @Test
     public void test490CloseFourthStage() throws Exception {
-        final String TEST_NAME = "test490CloseFourthStage";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
-		task.setOwner(userAdministrator.asPrismObject());
+        Task task = getTestTask();
+        task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
-	    dummyTransport.clearMessages();
+        dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.closeCurrentStage(campaignOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1021,34 +967,31 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseHistoricOutcomes(jackCeoCase, ACCEPT, NO_RESPONSE);
         assertCaseHistoricOutcomes(jackCtoCase, ACCEPT, ACCEPT, NO_RESPONSE, NO_RESPONSE);
 
-	    // Current stage:
-	    //  - cases: 3, complete: 2, decided: 1
-	    //  - work items: 2 of 3 done
-	    assertPercentCompleteCurrent(campaign, 67, 33, 67);
-	    // All stages:
-	    //  - cases: 6, complete: 1 (only guybrush->COO), decided: 2 (guybrush->COO, admin->COO)
-	    //  - work items: 1/1 + 4/5 + 2/8 + 2/3 = 9/17 = 53%
-	    assertPercentCompleteCurrentIteration(campaign, 17, 33, 53);
-	    assertPercentCompleteAll(campaign, 17, 33, 53);
-	    display("dummy transport", dummyTransport);
+        // Current stage:
+        //  - cases: 3, complete: 2, decided: 1
+        //  - work items: 2 of 3 done
+        assertPercentCompleteCurrent(campaign, 67, 33, 67);
+        // All stages:
+        //  - cases: 6, complete: 1 (only guybrush->COO), decided: 2 (guybrush->COO, admin->COO)
+        //  - work items: 1/1 + 4/5 + 2/8 + 2/3 = 9/17 = 53%
+        assertPercentCompleteCurrentIteration(campaign, 17, 33, 53);
+        assertPercentCompleteAll(campaign, 17, 33, 53);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     @Test
     public void test495StartRemediation() throws Exception {
-        final String TEST_NAME = "test900StartRemediation";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.startRemediation(campaignOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertInProgressOrSuccess(result);
 
@@ -1079,7 +1022,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
 
         userElaine = getUser(USER_ELAINE_OID).asObjectable();
         display("userElaine", userElaine);
-        assertEquals("wrong # of userElaine's assignments", 5, userElaine.getAssignment().size());
+        assertEquals("wrong # of userElaine's assignments", 6, userElaine.getAssignment().size());
 
         userGuybrush = getUser(USER_GUYBRUSH_OID).asObjectable();
         display("userGuybrush", userGuybrush);
@@ -1088,27 +1031,24 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
 
     @Test
     public void test497Statistics() throws Exception {
-        final String TEST_NAME = "test910Statistics";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCasesStatisticsType stat =
                 certificationManager.getCampaignStatistics(campaignOid, false, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
 //        AccessCertificationCampaignType campaignWithCases = getCampaignWithCases(campaignOid);
 //        display("campaignWithCases", campaignWithCases);
 
-        display("statistics", stat.asPrismContainerValue());
+        displayDumpable("statistics", stat.asPrismContainerValue());
         assertEquals(1, stat.getMarkedAsAccept());
         assertEquals(1, stat.getMarkedAsRevoke());
         assertEquals(1, stat.getMarkedAsRevokeAndRemedied());
@@ -1120,12 +1060,10 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
 
     @Test
     public void test499CheckAfterClose() throws Exception {
-        final String TEST_NAME = "test920CheckAfterClose";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator.asPrismObject());
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
@@ -1142,25 +1080,23 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
 
     @Test
     public void test500Reiterate() throws Exception {
-        final String TEST_NAME = "test500Reiterate";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         //certificationManager.closeCampaign(campaignOid, true, task, result);
         certificationManager.reiterateCampaign(campaignOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1179,24 +1115,24 @@ jack->CEO                   none (A) -> A       elaine: null -> NR [STOP] | NR
 jack->CTO                   none (A) -> A       none (A) -> A             | A    elaine:null,administrator:null -> NR       | NR   cheese:NR -> NR | NR
 */
 
-		// current iteration = 2, stage = 0
-	    // there are 3 cases in this iteration/stage: admin->CEO, jack->CEO, jack->CTO and 0 work items (no review stage is opened)
-	    // - among these cases, 100% is complete within iteration/stage (because of no work items!), 0 is decided
-	    // - work items are "all" decided (because there are none)
-	    // TODO ... but these percentages should not be 100%! It is misleading in the reports.
-	    assertPercentCompleteCurrent(campaign, 100, 0, 100);
-	    assertPercentCompleteCurrentStage(campaign, 100, 0, 100);
+        // current iteration = 2, stage = 0
+        // there are 3 cases in this iteration/stage: admin->CEO, jack->CEO, jack->CTO and 0 work items (no review stage is opened)
+        // - among these cases, 100% is complete within iteration/stage (because of no work items!), 0 is decided
+        // - work items are "all" decided (because there are none)
+        // TODO ... but these percentages should not be 100%! It is misleading in the reports.
+        assertPercentCompleteCurrent(campaign, 100, 0, 100);
+        assertPercentCompleteCurrentStage(campaign, 100, 0, 100);
 
-	    // When observing current iteration (i.e. 2), the above still holds.
-	    assertPercentCompleteCurrentIteration(campaign, 100, 0, 100);
+        // When observing current iteration (i.e. 2), the above still holds.
+        assertPercentCompleteCurrentIteration(campaign, 100, 0, 100);
 
-	    // But for the overall picture, we have:
-	    // - 6 cases
-	    //    - among them only 1 (guybrush->COO) is complete (17%)
-	    //    - 2 cases are decided (33%)
-	    // - work items are all from iteration 1: 1/1 + 4/5 + 2/8 + 2/3 = 9/17 = 53%
-	    assertPercentCompleteAll(campaign, 17, 33, 53);
-	    display("dummy transport", dummyTransport);
+        // But for the overall picture, we have:
+        // - 6 cases
+        //    - among them only 1 (guybrush->COO) is complete (17%)
+        //    - 2 cases are decided (33%)
+        // - work items are all from iteration 1: 1/1 + 4/5 + 2/8 + 2/3 = 9/17 = 53%
+        assertPercentCompleteAll(campaign, 17, 33, 53);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
 /*
@@ -1234,23 +1170,20 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
 */
 
 
-	@Test
+    @Test
     public void test510OpenNextStage() throws Exception {           // next stage is 2 (because the first one has no work items)
-        final String TEST_NAME = "test510OpenNextStage";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
-		dummyTransport.clearMessages();
+        dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.openNextStage(campaignOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1259,28 +1192,28 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertSanityAfterStageOpen(campaign, certificationDefinition, 2, 2, 5); // stage 1 in iteration 2 was skipped
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
-		caseList.removeIf(c -> norm(c.getIteration()) != 2);
-		assertEquals("Wrong number of certification cases", 3, caseList.size());
-		AccessCertificationCaseType administratorCeoCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID);
-		AccessCertificationCaseType jackCeoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
-		AccessCertificationCaseType jackCtoCase = findCase(caseList, USER_JACK_OID, ROLE_CTO_OID);
+        caseList.removeIf(c -> norm(c.getIteration()) != 2);
+        assertEquals("Wrong number of certification cases", 3, caseList.size());
+        AccessCertificationCaseType administratorCeoCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID);
+        AccessCertificationCaseType jackCeoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
+        AccessCertificationCaseType jackCtoCase = findCase(caseList, USER_JACK_OID, ROLE_CTO_OID);
 
-		assertCaseReviewers(administratorCeoCase, null, 0, emptyList());
-		assertCaseReviewers(jackCeoCase, NO_RESPONSE, 2, singletonList(USER_ELAINE_OID));
-		assertCaseReviewers(jackCtoCase, null, 0, emptyList());
+        assertCaseReviewers(administratorCeoCase, null, 0, emptyList());
+        assertCaseReviewers(jackCeoCase, NO_RESPONSE, 2, singletonList(USER_ELAINE_OID));
+        assertCaseReviewers(jackCtoCase, null, 0, emptyList());
 
-		assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID, null, NO_RESPONSE, null);
-		assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
-		assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, null, NO_RESPONSE, null);
+        assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID, null, NO_RESPONSE, null);
+        assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
+        assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, null, NO_RESPONSE, null);
 
-		// current iteration = 2, stage = 2 (stage 1 was skipped because all cases already have outcome for stage 1)
-		// there is 1 case in this iteration/stage: jack->CEO and 1 work item
-		// - it is not complete within iteration/stage neither decided
-		// - 0% of work items are decided
-		assertPercentCompleteCurrent(campaign, 0, 0, 0);
+        // current iteration = 2, stage = 2 (stage 1 was skipped because all cases already have outcome for stage 1)
+        // there is 1 case in this iteration/stage: jack->CEO and 1 work item
+        // - it is not complete within iteration/stage neither decided
+        // - 0% of work items are decided
+        assertPercentCompleteCurrent(campaign, 0, 0, 0);
 
 /*
-		But looking through iterations, there are 6 cases:
+        But looking through iterations, there are 6 cases:
 
 Case                        Stage1              Stage2 Iteration1
 =================================================================================
@@ -1297,92 +1230,27 @@ administrator->CEO                              "A" from iter 1
 jack->CEO                                       elaine
 jack->CTO                                       "A" from iter 1
 
-		Out of them, completed (for stage 2) are: elaine->CEO, guybrush->COO, administrator->COO, administrator->CEO, jack->CTO -> so 83%
-		Decided are: only two (guybrush -> COO, admin -> COO) ... because other ones are no-response because of later stages in iteration 1
-		Work items: created 5+1 (but 1 is overridden), completed 4 i.e. 80%
+        Out of them, completed (for stage 2) are: elaine->CEO, guybrush->COO, administrator->COO, administrator->CEO, jack->CTO -> so 83%
+        Decided are: only two (guybrush -> COO, admin -> COO) ... because other ones are no-response because of later stages in iteration 1
+        Work items: created 5+1 (but 1 is overridden), completed 4 i.e. 80%
  */
-		assertPercentCompleteCurrentStage(campaign, 83, 33, 80);
+        assertPercentCompleteCurrentStage(campaign, 83, 33, 80);
 
-		// When observing current iteration (i.e. 2), we have
-		// - three cases, 1 work item
-		// - completed: 2 cases (no work items!), decided: 0 cases
-		// - work items decided: 0 of 1
-		assertPercentCompleteCurrentIteration(campaign, 67, 0, 0);
+        // When observing current iteration (i.e. 2), we have
+        // - three cases, 1 work item
+        // - completed: 2 cases (no work items!), decided: 0 cases
+        // - work items decided: 0 of 1
+        assertPercentCompleteCurrentIteration(campaign, 67, 0, 0);
 
-		// But for the overall picture, we have:
-		// - 6 cases
-		//    - among them only 1 (guybrush->COO) is complete (17%)
-		//    - 2 cases are decided (33%)
-		// - work items are all from iteration 1 plus the one created now (but we do not count the original one in iteration 1
-		// that is overridden by it), so: 1/1 + 4/5 + 2/8 + 2/3 + 0/1 - 0/1 = 9/17 = 53%
-		assertPercentCompleteAll(campaign, 17, 33, 53);
+        // But for the overall picture, we have:
+        // - 6 cases
+        //    - among them only 1 (guybrush->COO) is complete (17%)
+        //    - 2 cases are decided (33%)
+        // - work items are all from iteration 1 plus the one created now (but we do not count the original one in iteration 1
+        // that is overridden by it), so: 1/1 + 4/5 + 2/8 + 2/3 + 0/1 - 0/1 = 9/17 = 53%
+        assertPercentCompleteAll(campaign, 17, 33, 53);
 
-		assertCasesCount(campaignOid, 6);
-		display("dummy transport", dummyTransport);
+        assertCasesCount(campaignOid, 6);
+        displayDumpable("dummy transport", dummyTransport);
     }
-
-//    @Test
-//    public void test520CloseFirstStage() throws Exception {
-//        final String TEST_NAME = "test520CloseFirstStage";
-//        TestUtil.displayTestTitle(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
-//        task.setOwner(userAdministrator.asPrismObject());
-//        OperationResult result = task.getResult();
-//
-//        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
-//        certificationManager.closeCurrentStage(campaignOid, task, result);
-//
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//
-//        AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-//        display("campaign in stage 1", campaign);
-//
-//        assertSanityAfterStageClose(campaign, certificationDefinition, 1);
-//
-//        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
-//        assertEquals("unexpected # of cases", 6, caseList.size());
-//
-//        assertCaseOutcome(caseList, USER_ELAINE_OID, ROLE_CEO_OID, ACCEPT, ACCEPT, 1);
-//        assertCaseOutcome(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID, ACCEPT, ACCEPT, 1);
-//        assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_COO_OID, ACCEPT, ACCEPT, 1);
-//        assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID, ACCEPT, ACCEPT, 1);
-//        assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, ACCEPT, ACCEPT, 1);
-//        assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, ACCEPT, ACCEPT, 1);
-//
-//        assertPercentComplete(campaignOid, 100, 100, 100);
-//        assertCasesCount(campaignOid, 6);
-//    }
-
-//    @Test
-//    public void test530OpenSecondStage() throws Exception {
-//        final String TEST_NAME = "test530OpenSecondStage";
-//        TestUtil.displayTestTitle(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
-//        task.setOwner(userAdministrator.asPrismObject());
-//        OperationResult result = task.getResult();
-//
-//        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
-//        certificationManager.openNextStage(campaignOid, task, result);
-//
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//
-//        AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-//        display("campaign in stage 2", campaign);
-//        assertSanityAfterStageOpen(campaign, certificationDefinition, 2, 2, 6);
-//
-//        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
-//    }
-
 }

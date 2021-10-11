@@ -1,43 +1,46 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.users;
 
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
+
+import java.util.*;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
-import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
@@ -53,33 +56,26 @@ import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
-import java.util.*;
-
-import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author lazyman
  * @author semancik
  */
-@PageDescriptor(url = "/admin/user", encoder = OnePageParameterEncoder.class, action = {
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
-                label = "PageAdminUsers.auth.usersAll.label",
-                description = "PageAdminUsers.auth.usersAll.description"),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USER_URL,
-                label = "PageUser.auth.user.label",
-                description = "PageUser.auth.user.description")})
+
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/user", matchUrlForSecurity = "/admin/user")
+        },
+        encoder = OnePageParameterEncoder.class,
+        action = {
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
+                        label = "PageAdminUsers.auth.usersAll.label",
+                        description = "PageAdminUsers.auth.usersAll.description"),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USER_URL,
+                        label = "PageUser.auth.user.label",
+                        description = "PageUser.auth.user.description")
+        })
 public class PageUser extends PageAdminFocus<UserType> {
     private static final long serialVersionUID = 1L;
 
@@ -87,29 +83,26 @@ public class PageUser extends PageAdminFocus<UserType> {
     private static final String OPERATION_LOAD_DELEGATED_BY_ME_ASSIGNMENTS = DOT_CLASS + "loadDelegatedByMeAssignments";
     private static final String OPERATION_LOAD_ASSIGNMENT_PEVIEW_DTO_LIST = DOT_CLASS + "createAssignmentPreviewDtoList";
 
-    private static final String ID_TASK_TABLE = "taskTable";
-    private static final String ID_TASKS = "tasks";
     private LoadableModel<List<AssignmentEditorDto>> delegationsModel;
     private LoadableModel<List<AssignmentInfoDto>> privilegesListModel;
-    private UserDelegationsTabPanel userDelegationsTabPanel = null;
+    private UserDelegationsTabPanel<?> userDelegationsTabPanel = null;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
 
     public PageUser() {
-        initialize(null);
+        super();
     }
 
     public PageUser(PageParameters parameters) {
-        getPageParameters().overwriteWith(parameters);
-        initialize(null);
+        super(parameters);
     }
 
     public PageUser(final PrismObject<UserType> userToEdit) {
-        initialize(userToEdit);
+        super(userToEdit);
     }
 
-    public PageUser(final PrismObject<UserType> unitToEdit, boolean isNewObject)  {
-        initialize(unitToEdit, isNewObject);
+    public PageUser(final PrismObject<UserType> userToEdit, boolean isNewObject)  {
+        super(userToEdit, isNewObject);
     }
 
     @Override
@@ -139,77 +132,72 @@ public class PageUser extends PageAdminFocus<UserType> {
     }
 
     @Override
-    protected FocusSummaryPanel<UserType> createSummaryPanel() {
-    	return new UserSummaryPanel(ID_SUMMARY_PANEL, getObjectModel(), this);
+    protected FocusSummaryPanel<UserType> createSummaryPanel(IModel<UserType> summaryModel) {
+        return new UserSummaryPanel(ID_SUMMARY_PANEL, summaryModel, this);
     }
 
-    protected void cancelPerformed(AjaxRequestTarget target) {
-        // uncoment later -> check for changes to not allow leave the page when
-        // some changes were made
-        // try{
-        // if (userModel.getObject().getOldDelta() != null &&
-        // !userModel.getObject().getOldDelta().isEmpty() ||
-        // userModel.getObject().getFocusPrimaryDelta() != null &&
-        // !userModel.getObject().getFocusPrimaryDelta().isEmpty()){
-        // showModalWindow(MODAL_ID_CONFIRM_CANCEL, target);
-        // } else{
+    protected void cancelPerformed() {
         redirectBack();
-
-        // }
-        // }catch(Exception ex){
-        // LoggingUtils.logUnexpectedException(LOGGER, "Could not return to user list",
-        // ex);
-        // }
     }
 
+    @Override
+    protected UserType createNewObject() {
+        return new UserType();
+    }
 
-	@Override
-	protected UserType createNewObject() {
-		return new UserType();
-	}
+    @Override
+    protected Class<PageUsers> getRestartResponsePage() {
+        return PageUsers.class;
+    }
 
-	@Override
-	protected Class getRestartResponsePage() {
-		return PageUsers.class;
-	}
+    @Override
+    public Class<UserType> getCompileTimeClass() {
+        return UserType.class;
+    }
 
-	@Override
-    public Class getCompileTimeClass() {
-		return UserType.class;
-	}
-
-	@Override
-	protected AbstractObjectMainPanel<UserType> createMainPanel(String id) {
+    @Override
+    protected AbstractObjectMainPanel<UserType> createMainPanel(String id) {
         return new FocusMainPanel<UserType>(id, getObjectModel(), getProjectionModel(), this) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void addSpecificTabs(final PageAdminObjectDetails<UserType> parentPage, List<ITab> tabs) {
-                FocusTabVisibleBehavior<UserType> authorization;
-                authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_PERSONAS_URL, false, isFocusHistoryPage(), PageUser.this);
                 tabs.add(
-                        new PanelTab(parentPage.createStringResource("pageAdminFocus.personas"), authorization){
+                        new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.personas"),
+                                getTabVisibility(ComponentConstants.UI_FOCUS_TAB_PERSONAS_URL, false, parentPage)) {
 
                             private static final long serialVersionUID = 1L;
 
                             @Override
                             public WebMarkupContainer createPanel(String panelId) {
-                                return new FocusPersonasTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
+                                return new FocusPersonasTabPanel<>(panelId, getMainForm(), getObjectModel());
+                            }
+
+                            @Override
+                            public String getCount() {
+                                if (getObjectWrapper() == null || getObjectWrapper().getObject() == null) {
+                                    return Integer.toString(0);
+                                }
+                                List<ObjectReferenceType> personasRefList = getObjectWrapper().getObject().asObjectable().getPersonaRef();
+                                int count = 0;
+                                for (ObjectReferenceType object : personasRefList) {
+                                    if (object != null && !object.asReferenceValue().isEmpty()) {
+                                        count++;
+                                    }
+                                }
+                                return Integer.toString(count);
                             }
 
                         });
 
-                authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
-                        ComponentConstants.UI_FOCUS_TAB_DELEGATIONS_URL, false, isFocusHistoryPage(), PageUser.this);
-                tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegations"), authorization)
-                {
+                tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegations"),
+                        getTabVisibility(ComponentConstants.UI_FOCUS_TAB_DELEGATIONS_URL, false, parentPage)) {
                     private static final long serialVersionUID = 1L;
-
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
                         userDelegationsTabPanel = new UserDelegationsTabPanel<>(panelId, getMainForm(), getObjectModel(),
-								delegationsModel, privilegesListModel, PageUser.this);
+                                delegationsModel, privilegesListModel);
                         return userDelegationsTabPanel;
                     }
 
@@ -219,15 +207,14 @@ public class PageUser extends PageAdminFocus<UserType> {
                     }
                 });
 
-                authorization = new FocusTabVisibleBehavior<UserType>(unwrapModel(),
-                        ComponentConstants.UI_FOCUS_TAB_DELEGATED_TO_ME_URL, true, isFocusHistoryPage(), PageUser.this);
-                tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegatedToMe"), authorization)
-                {
+                tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegatedToMe"),
+                        getTabVisibility(ComponentConstants.UI_FOCUS_TAB_DELEGATED_TO_ME_URL, true, parentPage)){
+
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new AssignmentTablePanel<UserType>(panelId, 
+                        return new AssignmentTablePanel<UserType>(panelId,
                                 getDelegatedToMeModel()) {
                             private static final long serialVersionUID = 1L;
 
@@ -242,7 +229,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                             public String getExcludeOid() {
                                 return getObject().getOid();
                             }
-                            
+
                             @Override
                             public IModel<String> getLabel() {
                                 return parentPage.createStringResource("FocusType.delegatedToMe");
@@ -255,8 +242,6 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                         };
                     }
-
-
 
                     @Override
                     public String getCount() {
@@ -277,8 +262,10 @@ public class PageUser extends PageAdminFocus<UserType> {
 
             @Override
             protected boolean areSavePreviewButtonsEnabled(){
-                return super.areSavePreviewButtonsEnabled() ||
-                        (userDelegationsTabPanel != null ? userDelegationsTabPanel.isDelegationsModelChanged() : false);
+                if (super.areSavePreviewButtonsEnabled()) {
+                    return true;
+                }
+                return userDelegationsTabPanel != null && userDelegationsTabPanel.isDelegationsModelChanged();
             }
 
             @Override
@@ -291,10 +278,6 @@ public class PageUser extends PageAdminFocus<UserType> {
                 PageUser.this.navigateToNext(new PageUserHistory(object, date));
             }
         };
-    }
-
-    protected boolean isSelfProfile(){
-        return false;
     }
 
     private List<AssignmentEditorDto> loadDelegatedByMeAssignments() {
@@ -371,7 +354,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 
     /**
      * for now used only for delegation changes
-     * @param modelContextMap
+     * @param modelContextMap preview changes deltas
      */
     @Override
     protected void processAdditionalFocalObjectsForPreview(Map<PrismObject<UserType>, ModelContext<? extends ObjectType>> modelContextMap){
@@ -424,7 +407,7 @@ public class PageUser extends PageAdminFocus<UserType> {
         userAssignmentsDtos.add(dto);
 
         deltas.add(delta);
-        PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+        PrismContainerDefinition<?> def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
         handleAssignmentDeltas(delta, userAssignmentsDtos, def, true);
         return deltas;
     }
@@ -432,34 +415,7 @@ public class PageUser extends PageAdminFocus<UserType> {
     public boolean isLoggedInUserPage(){
         return getObjectWrapper() != null && getObjectWrapper().getObject() != null &&
                 StringUtils.isNotEmpty(getObjectWrapper().getObject().asObjectable().getOid()) &&
-                getObjectWrapper().getObject().asObjectable().getOid().equals(WebModelServiceUtils.getLoggedInUserOid());
+                getObjectWrapper().getObject().asObjectable().getOid().equals(WebModelServiceUtils.getLoggedInFocusOid());
     }
-
-    protected int countConsents() {
-		int consentCounter = 0;
-		PrismObject<UserType> focus = getObjectModel().getObject().getObject();
-		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
-		for (AssignmentType assignment : assignments) {
-			if (isConsentAssignment(assignment)) {
-				consentCounter++;
-			}
-		}
-		return consentCounter;
-	}
-
-    private boolean isConsentAssignment(AssignmentType assignment) {
-    	return assignment.getTargetRef() != null && QNameUtil.match(assignment.getTargetRef().getRelation(), SchemaConstants.ORG_CONSENT);
-    }
-
-    protected List<AssignmentType> getConsentsList(List<AssignmentType> assignments, UserDtoStatus status){
-		List<AssignmentType> list = new ArrayList<>();
-		for (AssignmentType assignment : assignments) {
-			if (isConsentAssignment(assignment)) {
-			    //TODO set status
-				list.add(assignment);
-			}
-		}
-		return list;
-	}
 
 }

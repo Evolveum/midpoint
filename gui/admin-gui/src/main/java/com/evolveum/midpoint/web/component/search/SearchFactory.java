@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.search;
@@ -23,14 +14,8 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -44,31 +29,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -103,7 +64,6 @@ public class SearchFactory {
                 ItemPath.create(UserType.F_EMPLOYEE_NUMBER),
                 ItemPath.create(UserType.F_EMPLOYEE_TYPE),
                 ItemPath.create(UserType.F_ORGANIZATIONAL_UNIT),
-                ItemPath.create(UserType.F_COST_CENTER),
                 ItemPath.create(UserType.F_LOCALITY)));
         SEARCHABLE_OBJECTS.put(RoleType.class, Arrays.asList(
                 ItemPath.create(RoleType.F_NAME),
@@ -122,7 +82,7 @@ public class SearchFactory {
                 ItemPath.create(ConnectorType.F_CONNECTOR_TYPE)
         ));
         SEARCHABLE_OBJECTS.put(AbstractRoleType.class, Arrays.asList(
-        		ItemPath.create(AbstractRoleType.F_IDENTIFIER),
+                ItemPath.create(AbstractRoleType.F_IDENTIFIER),
                 ItemPath.create(AbstractRoleType.F_REQUESTABLE)
         ));
         SEARCHABLE_OBJECTS.put(OrgType.class, Arrays.asList(
@@ -146,23 +106,43 @@ public class SearchFactory {
                 ItemPath.create(ShadowType.F_DEAD),
                 ItemPath.create(ShadowType.F_INTENT),
                 ItemPath.create(ShadowType.F_EXISTS),
-                ItemPath.create(ShadowType.F_SYNCHRONIZATION_SITUATION),
-                ItemPath.create(ShadowType.F_FAILED_OPERATION_TYPE)
+                ItemPath.create(ShadowType.F_SYNCHRONIZATION_SITUATION)
         ));
         SEARCHABLE_OBJECTS.put(TaskType.class, Arrays.asList(
                 ItemPath.create(TaskType.F_TASK_IDENTIFIER),
                 ItemPath.create(TaskType.F_NODE),
                 ItemPath.create(TaskType.F_CATEGORY),
-                ItemPath.create(TaskType.F_RESULT_STATUS)
+                ItemPath.create(TaskType.F_RESULT_STATUS),
+                ItemPath.create(TaskType.F_EXECUTION_STATUS),
+                ItemPath.create(TaskType.F_HANDLER_URI),
+                ItemPath.create(TaskType.F_OBJECT_REF)
+
         ));
-        
+
         SEARCHABLE_OBJECTS.put(AssignmentType.class, Arrays.asList(
                 ItemPath.create(AssignmentType.F_TARGET_REF),
                 ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF),
                 ItemPath.create(AssignmentType.F_TENANT_REF),
                 ItemPath.create(AssignmentType.F_ORG_REF)
         ));
-        
+
+        SEARCHABLE_OBJECTS.put(CaseWorkItemType.class, Arrays.asList(
+                ItemPath.create(CaseWorkItemType.F_ASSIGNEE_REF),
+                ItemPath.create(CaseWorkItemType.F_ORIGINAL_ASSIGNEE_REF),
+                ItemPath.create(PrismConstants.T_PARENT, CaseType.F_STATE),
+                ItemPath.create(PrismConstants.T_PARENT, CaseType.F_OBJECT_REF),
+                ItemPath.create(CaseWorkItemType.F_PERFORMER_REF)
+        ));
+
+        SEARCHABLE_OBJECTS.put(CaseType.class, Arrays.asList(
+                ItemPath.create(CaseType.F_STATE),
+                ItemPath.create(CaseType.F_PARENT_REF),
+                ItemPath.create(CaseType.F_REQUESTOR_REF),
+                ItemPath.create(CaseType.F_TARGET_REF),
+                ItemPath.create(CaseType.F_TASK_REF),
+                ItemPath.create(CaseType.F_OBJECT_REF)
+        ));
+
         SEARCHABLE_OBJECTS.put(ObjectPolicyConfigurationType.class, Arrays.asList(
                 ItemPath.create(ObjectPolicyConfigurationType.F_SUBTYPE),
                 ItemPath.create(ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF)
@@ -173,25 +153,25 @@ public class SearchFactory {
             ResourceShadowDiscriminator discriminator, ModelServiceLocator modelServiceLocator) {
         return createSearch(ShadowType.class, discriminator, modelServiceLocator, true);
     }
-    
+
     public static <C extends Containerable> Search createContainerSearch(Class<C> type, ModelServiceLocator modelServiceLocator) {
-    	
-    	PrismContainerDefinition<C> containerDef = modelServiceLocator.getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
-    	List<SearchItemDefinition> availableDefs = getAvailableDefinitions(containerDef, true);
-    	
-    	Search search = new Search(type, availableDefs);
-    	return search;
+
+        PrismContainerDefinition<C> containerDef = modelServiceLocator.getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
+        List<SearchItemDefinition> availableDefs = getAvailableDefinitions(containerDef, true);
+
+        Search search = new Search(type, availableDefs);
+        return search;
     }
-    
+
 //    public static <C extends Containerable> Search createContainerSearch(Class<C> type, List<SearchItemDefinition> availableDefs, ModelServiceLocator modelServiceLocator) {
-//    	
-////    	PrismContainerDefinition<C> containerDef = modelServiceLocator.getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
-////    	List<SearchItemDefinition> availableDefs = getAvailableDefinitions(containerDef, true);
-//    	
-//    	Search search = new Search(type, availableDefs);
-//    	return search;
+//
+////        PrismContainerDefinition<C> containerDef = modelServiceLocator.getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
+////        List<SearchItemDefinition> availableDefs = getAvailableDefinitions(containerDef, true);
+//
+//        Search search = new Search(type, availableDefs);
+//        return search;
 //    }
-    
+
         public static <T extends ObjectType> Search createSearch(Class<T> type, ModelServiceLocator modelServiceLocator) {
         return createSearch(type, null, modelServiceLocator, true);
     }
@@ -249,12 +229,12 @@ public class SearchFactory {
     private static <C extends Containerable> List<SearchItemDefinition> getAvailableDefinitions(
             PrismContainerDefinition<C> objectDef, boolean useDefsFromSuperclass) {
 //        Map<ItemPath, ItemDefinition> map = new HashMap<>();
-    	List<SearchItemDefinition> definitions = new ArrayList<>();
+        List<SearchItemDefinition> definitions = new ArrayList<>();
 
         if (objectDef == null) {
-        	return definitions;
+            return definitions;
         }
-        
+
         definitions.addAll(createExtensionDefinitionList(objectDef));
 
         Class<C> typeClass = objectDef.getCompileTimeClass();
@@ -264,8 +244,8 @@ public class SearchFactory {
                 for (ItemPath path : paths) {
                     ItemDefinition def = objectDef.findItemDefinition(path);
                     if (def != null) {
-                    	SearchItemDefinition searchItemDef = new SearchItemDefinition(path, def, null);
-                    	definitions.add(searchItemDef);
+                        SearchItemDefinition searchItemDef = new SearchItemDefinition(path, def, null);
+                        definitions.add(searchItemDef);
                     }
                 }
             }
@@ -286,14 +266,14 @@ public class SearchFactory {
             return FullTextSearchConfigurationUtil.isEnabledFor(modelServiceLocator.getModelInteractionService().getSystemConfiguration(result)
                     .getFullTextSearch(), type);
         } catch (SchemaException | ObjectNotFoundException ex) {
-	        throw new SystemException(ex);
+            throw new SystemException(ex);
         }
     }
 
     private static <T extends ObjectType> SearchBoxModeType getDefaultSearchType(ModelServiceLocator modelServiceLocator, Class<T> type) {
         OperationResult result = new OperationResult(LOAD_ADMIN_GUI_CONFIGURATION);
         try {
-            CompiledUserProfile guiConfig = modelServiceLocator.getModelInteractionService().getCompiledUserProfile(null, result);
+            CompiledGuiProfile guiConfig = modelServiceLocator.getModelInteractionService().getCompiledGuiProfile(null, result);
             // TODO: improve: use proper view name
             List<CompiledObjectCollectionView> objectLists = guiConfig.findAllApplicableObjectCollectionViews(type);
             for (CompiledObjectCollectionView objectList : objectLists){
@@ -312,30 +292,30 @@ public class SearchFactory {
             PrismContainerDefinition<C> objectDef) {
 
 //        Map<ItemPath, ItemDefinition> map = new HashMap<>();
-    	List<SearchItemDefinition> searchItemDefinitions = new ArrayList<>();
+        List<SearchItemDefinition> searchItemDefinitions = new ArrayList<>();
 
         ItemPath extensionPath = ObjectType.F_EXTENSION;
 
         PrismContainerDefinition ext = objectDef.findContainerDefinition(ObjectType.F_EXTENSION);
         if (ext == null) {
-        	return searchItemDefinitions;
+            return searchItemDefinitions;
         }
-        
+
         for (ItemDefinition def : (List<ItemDefinition>) ext.getDefinitions()) {
-        	ItemPath itemPath = ItemPath.create(extensionPath, def.getName());
-        	
-        	if (!isIndexed(def)) {
-            	continue;
+            ItemPath itemPath = ItemPath.create(extensionPath, def.getItemName());
+
+            if (!isIndexed(def)) {
+                continue;
             }
-        	
-        	if (def instanceof PrismPropertyDefinition) {
-        		addSearchPropertyDef(objectDef, itemPath, searchItemDefinitions);
-        	}
-        	
-        	if (def instanceof PrismReferenceDefinition) {
-        		addSearchRefDef(objectDef, itemPath, searchItemDefinitions, null, null);
-        	}
-        	
+
+            if (def instanceof PrismPropertyDefinition) {
+                addSearchPropertyDef(objectDef, itemPath, searchItemDefinitions);
+            }
+
+            if (def instanceof PrismReferenceDefinition) {
+                addSearchRefDef(objectDef, itemPath, searchItemDefinitions, null, null);
+            }
+
             if (!(def instanceof PrismPropertyDefinition)
                     && !(def instanceof PrismReferenceDefinition)) {
                 continue;
@@ -345,38 +325,38 @@ public class SearchFactory {
 
         return searchItemDefinitions;
     }
-    
+
     public static <C extends Containerable> void addSearchRefDef(PrismContainerDefinition<C> containerDef, ItemPath path, List<SearchItemDefinition> defs, AreaCategoryType category, PageBase pageBase) {
-		PrismReferenceDefinition refDef = containerDef.findReferenceDefinition(path);
-		if (refDef == null) {
-			return;
-		}
-		if (pageBase == null) {
-			defs.add(new SearchItemDefinition(path, refDef, Collections.singletonList(WebComponentUtil.getDefaultRelationOrFail())));
-			return;
-		}
-		defs.add(new SearchItemDefinition(path, refDef, WebComponentUtil.getCategoryRelationChoices(category, pageBase)));
-	}
-	
-	public static <C extends Containerable> void addSearchPropertyDef(PrismContainerDefinition<C> containerDef, ItemPath path, List<SearchItemDefinition> defs) {
-		PrismPropertyDefinition propDef = containerDef.findPropertyDefinition(path);
-		if (propDef == null) {
-			return;
-		}
-		defs.add(new SearchItemDefinition(path, propDef, null));
-	}
-    
+        PrismReferenceDefinition refDef = containerDef.findReferenceDefinition(path);
+        if (refDef == null) {
+            return;
+        }
+        if (pageBase == null) {
+            defs.add(new SearchItemDefinition(path, refDef, Collections.singletonList(WebComponentUtil.getDefaultRelationOrFail())));
+            return;
+        }
+        defs.add(new SearchItemDefinition(path, refDef, WebComponentUtil.getCategoryRelationChoices(category, pageBase)));
+    }
+
+    public static <C extends Containerable> void addSearchPropertyDef(PrismContainerDefinition<C> containerDef, ItemPath path, List<SearchItemDefinition> defs) {
+        PrismPropertyDefinition propDef = containerDef.findPropertyDefinition(path);
+        if (propDef == null) {
+            return;
+        }
+        defs.add(new SearchItemDefinition(path, propDef, null));
+    }
+
     private static boolean isIndexed(ItemDefinition def) {
-    	if (!(def instanceof PrismPropertyDefinition)) {
-    		return true;
-    	}
-    	
-    	PrismPropertyDefinition propertyDef = (PrismPropertyDefinition) def;
-    	Boolean indexed = propertyDef.isIndexed();
-    	if (indexed == null) {
-    		return true;
-    	}
-    	
-    	return indexed.booleanValue();
+        if (!(def instanceof PrismPropertyDefinition)) {
+            return true;
+        }
+
+        PrismPropertyDefinition propertyDef = (PrismPropertyDefinition) def;
+        Boolean indexed = propertyDef.isIndexed();
+        if (indexed == null) {
+            return true;
+        }
+
+        return indexed.booleanValue();
     }
 }

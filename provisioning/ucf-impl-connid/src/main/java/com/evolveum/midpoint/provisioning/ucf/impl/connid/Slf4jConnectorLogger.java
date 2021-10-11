@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
@@ -26,52 +17,52 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Logger for ICF Connectors.
- * 
+ *
  * The ICF connectors will call this class to log messages. It is configured in
  * META-INF/services/org.identityconnectors.common.logging
- * 
+ *
  * @author Katka Valalikova
  *
  */
 public class Slf4jConnectorLogger implements LogSpi {
 
-	@Override
-	public void log(Class<?> clazz, String method, Level level, String message, Throwable ex) {
-		Trace LOGGER = TraceManager.getTrace(clazz);
-		//Mark all messages from ICF as ICF
-		Marker m = MarkerFactory.getMarker("ICF");
-		
-		//Translate ICF logging into slf4j
-		// OK    -> trace
-		// INFO  -> debug
-		// WARN  -> warn
-		// ERROR -> error
-		if (Level.OK.equals(level)) {
-			if (null == ex) {
-				LOGGER.trace(m, "method: {} msg:{}", method, message);
-			} else {
-				LOGGER.trace(m, "method: {} msg:{}", new Object[] { method, message }, ex);
-			}
-		} else if (Level.INFO.equals(level)) {
-			if (null == ex) {
-				LOGGER.debug(m, "method: {} msg:{}", method, message);
-			} else {
-				LOGGER.debug(m, "method: {} msg:{}", new Object[] { method, message }, ex);
-			}
-		} else if (Level.WARN.equals(level)) {
-			if (null == ex) {
-				LOGGER.warn(m, "method: {} msg:{}", method, message);
-			} else {
-				LOGGER.warn(m, "method: {} msg:{}", new Object[] { method, message }, ex);
-			}
-		} else if (Level.ERROR.equals(level)) {
-			if (null == ex) {
-				LOGGER.error(m, "method: {} msg:{}", method, message);
-			} else {
-				LOGGER.error(m, "method: {} msg:{}", new Object[] { method, message }, ex);
-			}
-		}
-	}
+    @Override
+    public void log(Class<?> clazz, String method, Level level, String message, Throwable ex) {
+        final Trace logger = TraceManager.getTrace(clazz);
+        //Mark all messages from ICF as ICF
+        Marker m = MarkerFactory.getMarker("ICF");
+
+        //Translate ICF logging into slf4j
+        // OK    -> trace
+        // INFO  -> debug
+        // WARN  -> warn
+        // ERROR -> error
+        if (Level.OK.equals(level)) {
+            if (null == ex) {
+                logger.trace(m, "method: {} msg:{}", method, message);
+            } else {
+                logger.trace(m, "method: {} msg:{}", new Object[] { method, message }, ex);
+            }
+        } else if (Level.INFO.equals(level)) {
+            if (null == ex) {
+                logger.debug(m, "method: {} msg:{}", method, message);
+            } else {
+                logger.debug(m, "method: {} msg:{}", new Object[] { method, message }, ex);
+            }
+        } else if (Level.WARN.equals(level)) {
+            if (null == ex) {
+                logger.warn(m, "method: {} msg:{}", method, message);
+            } else {
+                logger.warn(m, "method: {} msg:{}", new Object[] { method, message }, ex);
+            }
+        } else if (Level.ERROR.equals(level)) {
+            if (null == ex) {
+                logger.error(m, "method: {} msg:{}", method, message);
+            } else {
+                logger.error(m, "method: {} msg:{}", new Object[] { method, message }, ex);
+            }
+        }
+    }
 
     //@Override
     // not using override to be able to work with both "old" and current version of connid
@@ -80,9 +71,9 @@ public class Slf4jConnectorLogger implements LogSpi {
     }
 
     @Override
-	public boolean isLoggable(Class<?> clazz, Level level) {
-		return true;
-	}
+    public boolean isLoggable(Class<?> clazz, Level level) {
+        return true;
+    }
 
     //@Override
     // not using override to be able to work with both "old" and current version of connid

@@ -1,22 +1,15 @@
 /*
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.boot;
 
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.apache.catalina.Context;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
@@ -39,34 +32,34 @@ import java.io.IOException;
  */
 public class TomcatRootValve extends ValveBase {
 
-	private static final Trace LOGGER = TraceManager.getTrace(TomcatRootValve.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TomcatRootValve.class);
 
-	private String servletPath;
+    private String servletPath;
 
-	public TomcatRootValve(String serlvetPath) {
-		super();
+    public TomcatRootValve(String serlvetPath) {
+        super();
 
-		this.servletPath = serlvetPath == null ? "" : serlvetPath;
-	}
+        this.servletPath = serlvetPath == null ? "" : serlvetPath;
+    }
 
-	@Override
-	public void invoke(Request request, Response response) throws IOException, ServletException {
+    @Override
+    public void invoke(Request request, Response response) throws IOException, ServletException {
 
-		Context context = request.getContext();
-		if (context instanceof RootRootContext) {
-			String uri = request.getDecodedRequestURI();
-			if (uri.endsWith("favicon.ico")) {
-				LOGGER.trace("Redirecting favicon request to real application (URI={})", request.getDecodedRequestURI());
-				response.sendRedirect(servletPath + "/favicon.ico");
-				return;
-			} else {
-				LOGGER.trace("Redirecting request to real application root (URI={})", request.getDecodedRequestURI());
-				response.sendRedirect(servletPath + "/");
-				return;
-			}
-		}
+        Context context = request.getContext();
+        if (context instanceof RootRootContext) {
+            String uri = request.getDecodedRequestURI();
+            if (uri.endsWith("favicon.ico")) {
+                LOGGER.trace("Redirecting favicon request to real application (URI={})", request.getDecodedRequestURI());
+                response.sendRedirect(servletPath + "/favicon.ico");
+                return;
+            } else {
+                LOGGER.trace("Redirecting request to real application root (URI={})", request.getDecodedRequestURI());
+                response.sendRedirect(servletPath + "/");
+                return;
+            }
+        }
 
-		getNext().invoke(request, response);
-	}
+        getNext().invoke(request, response);
+    }
 
 }

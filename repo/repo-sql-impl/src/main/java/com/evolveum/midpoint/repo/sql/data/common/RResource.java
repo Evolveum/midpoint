@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.data.common;
@@ -23,6 +14,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RResourceAdministrativeState;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
+import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -96,6 +88,7 @@ public class RResource extends RObject<ResourceType> {
             @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
     })
     @Embedded
+    @NeverNull
     public RPolyString getNameCopy() {
         return nameCopy;
     }
@@ -154,15 +147,11 @@ public class RResource extends RObject<ResourceType> {
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setConnectorRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConnectorRef(), repositoryContext.relationRegistry));
 
-        if (jaxb.getConnector() != null) {
-            LOGGER.warn("Connector from resource type won't be saved. It should be translated to connector reference.");
-        }
-
         try {
             if (jaxb.getBusiness() != null) {
                 ResourceBusinessConfigurationType business = jaxb.getBusiness();
                 repo.getApproverRef().addAll(RUtil.safeListReferenceToSet(business.getApproverRef(),
-		                repo, RReferenceOwner.RESOURCE_BUSINESS_CONFIGURATON_APPROVER, repositoryContext.relationRegistry));
+                        repo, RReferenceOwner.RESOURCE_BUSINESS_CONFIGURATON_APPROVER, repositoryContext.relationRegistry));
                 repo.setAdministrativeState(RUtil.getRepoEnumValue(business.getAdministrativeState(),
                         RResourceAdministrativeState.class));
             }

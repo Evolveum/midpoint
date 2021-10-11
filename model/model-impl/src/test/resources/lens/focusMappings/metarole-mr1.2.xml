@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="4106cf9e-443e-4218-9aef-88d7d9aac3e4">
+    <name>mr1.2</name>
+    <assignment id="1">
+        <targetRef oid="786f30f5-083f-4e45-a06d-2213a8cbd789" type="RoleType"/>        <!-- mmr1.2.1 -->
+    </assignment>
+    <assignment id="2">
+        <targetRef oid="9fcb61b5-d970-4637-8cbe-6ffbaf075ab4" type="RoleType"/>        <!-- mmr1.2.2 -->
+    </assignment>
+    <assignment id="3">
+        <targetRef oid="717c386e-4fd0-48c7-982b-ccdbb8d4415e" type="RoleType"/>        <!-- mmr1.2.3 -->
+    </assignment>
+</role>

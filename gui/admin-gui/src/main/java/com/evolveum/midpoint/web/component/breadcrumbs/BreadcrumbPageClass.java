@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.breadcrumbs;
@@ -32,9 +23,9 @@ import java.util.Arrays;
  * @author Viliam Repan (lazyman)
  */
 public class BreadcrumbPageClass extends Breadcrumb {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private Class<? extends WebPage> page;
+    private Class<? extends WebPage> page;
     private PageParameters parameters;
 
     public BreadcrumbPageClass(IModel<String> label, Class<? extends WebPage> page, PageParameters parameters) {
@@ -78,16 +69,16 @@ public class BreadcrumbPageClass extends Breadcrumb {
         }
     }
 
-	@Override
-	public RestartResponseException getRestartResponseException() {
-		if (parameters == null) {
-			return new RestartResponseException(page);
-		} else {
-			return new RestartResponseException(page, parameters);
-		}
-	}
+    @Override
+    public RestartResponseException getRestartResponseException() {
+        if (parameters == null) {
+            return new RestartResponseException(page);
+        } else {
+            return new RestartResponseException(page, parameters);
+        }
+    }
 
-	@Override
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -104,13 +95,13 @@ public class BreadcrumbPageClass extends Breadcrumb {
         return Arrays.hashCode(new Object[]{page, parameters});
     }
 
-	@Override
-	protected void extendsDebugDump(StringBuilder sb, int indent) {
-		super.extendsDebugDump(sb, indent);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabelLn(sb, "page", page, indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "parameters", parameters==null?null:parameters.toString(), indent+1);
-	}
+    @Override
+    protected void extendsDebugDump(StringBuilder sb, int indent) {
+        super.extendsDebugDump(sb, indent);
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "page", page, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "parameters", parameters==null?null:parameters.toString(), indent+1);
+    }
 
 
 

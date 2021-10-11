@@ -1,30 +1,24 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import org.apache.commons.collections.buffer.CircularFifoBuffer;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Pavol Mederly
@@ -176,10 +170,12 @@ public class IterativeTaskInformation {
         rv.setCurrentObjectStartTimestamp(XmlTypeConverter.createXMLGregorianCalendar(currentObjectStartTimestamp));
     }
 
-    // sum != null, delta != null
     // overrideCurrent should be TRUE if the delta is chronologically later (i.e. if delta is meant as an update to sum)
     // if it is simply an aggregation of various (parallel) sources, overrideCurrent should be FALSE
-    public static void addTo(IterativeTaskInformationType sum, IterativeTaskInformationType delta, boolean overrideCurrent) {
+    public static void addTo(@NotNull IterativeTaskInformationType sum, IterativeTaskInformationType delta, boolean overrideCurrent) {
+        if (delta == null) {
+            return;
+        }
         if (sum.getLastSuccessEndTimestamp() == null || (delta.getLastSuccessEndTimestamp() != null &&
                 delta.getLastSuccessEndTimestamp().compare(sum.getLastSuccessEndTimestamp()) == DatatypeConstants.GREATER)) {
             sum.setLastSuccessObjectName(delta.getLastSuccessObjectName());
@@ -216,6 +212,41 @@ public class IterativeTaskInformation {
     }
 
     public List<String> getLastFailures() {
+        //noinspection unchecked
         return new ArrayList<>(lastFailures);
+    }
+
+    public static String format(IterativeTaskInformationType source) {
+        IterativeTaskInformationType i = source != null ? source : new IterativeTaskInformationType();
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format(Locale.US, "  Successfully processed: %6d in %10d ms = %8.1f ms per object", i.getTotalSuccessCount(),
+                i.getTotalSuccessDuration(), div(i.getTotalSuccessDuration(), i.getTotalSuccessCount())));
+        if (i.getLastSuccessEndTimestamp() != null) {
+            sb.append(String.format(Locale.US, ", last: %s:%s (%s, %s) on %tc in %d ms",
+                    QNameUtil.getLocalPart(i.getLastSuccessObjectType()),
+                    i.getLastSuccessObjectName(), i.getLastSuccessObjectDisplayName(), i.getLastSuccessObjectOid(),
+                    XmlTypeConverter.toDate(i.getLastSuccessEndTimestamp()), i.getLastSuccessDuration()));
+        }
+        sb.append("\n");
+        sb.append(String.format(Locale.US, "  Failed:                 %6d in %10d ms = %8.1f ms per object", i.getTotalFailureCount(),
+                i.getTotalFailureDuration(), div(i.getTotalFailureDuration(), i.getTotalFailureCount())));
+        if (i.getLastFailureEndTimestamp() != null) {
+            sb.append(String.format(Locale.US, ", last: %s:%s (%s, %s) on %tc in %d ms: %s",
+                    QNameUtil.getLocalPart(i.getLastFailureObjectType()),
+                    i.getLastFailureObjectName(), i.getLastFailureObjectDisplayName(), i.getLastFailureObjectOid(),
+                    XmlTypeConverter.toDate(i.getLastFailureEndTimestamp()), i.getLastFailureDuration(),
+                    i.getLastFailureExceptionMessage()));
+        }
+        sb.append("\n");
+        if (i.getCurrentObjectStartTimestamp() != null) {
+            sb.append(String.format(Locale.US, "  Current: %s:%s (%s, %s) started at %tc\n", QNameUtil.getLocalPart(i.getCurrentObjectType()),
+                    i.getCurrentObjectName(), i.getCurrentObjectDisplayName(), i.getCurrentObjectOid(),
+                    XmlTypeConverter.toDate(i.getCurrentObjectStartTimestamp())));
+        }
+        return sb.toString();
+    }
+
+    private static float div(long duration, int count) {
+        return count != 0 ? (float) duration / count : 0;
     }
 }

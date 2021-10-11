@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum et al.
+ * Copyright (c) 2010-2018 Evolveum et al. and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.input;
 
@@ -21,9 +12,17 @@ import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
@@ -38,14 +37,14 @@ import org.apache.wicket.markup.html.form.upload.FileUploadField;
  * @author katkav
  */
 public class UploadDownloadPanel extends InputPanel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(UploadDownloadPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(UploadDownloadPanel.class);
 
     private static final String ID_BUTTON_DOWNLOAD = "download";
     private static final String ID_BUTTON_DELETE = "remove";
     private static final String ID_INPUT_FILE = "fileInput";
-    
+
     private String downloadFileName = null;
     private String downloadContentType = "text/plain";
 
@@ -55,12 +54,25 @@ public class UploadDownloadPanel extends InputPanel {
     }
 
     private void initLayout(final boolean isReadOnly) {
-        final FileUploadField fileUpload = new FileUploadField(ID_INPUT_FILE);
+        final FileUploadField fileUpload = new FileUploadField(ID_INPUT_FILE) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String[] getInputAsArray() {
+                List<String> input = new ArrayList<>();
+                try {
+                    input.add(new String (IOUtils.toByteArray(getStream())));
+                } catch (IOException e) {
+                    LOGGER.error("Unable to define file content type: {}", e.getLocalizedMessage());
+                }
+                return input.toArray(new String[input.size()]);
+            }
+        };
         Form form = this.findParent(Form.class);
         fileUpload.add(new AjaxFormSubmitBehavior(form, "change") {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             protected void onSubmit(AjaxRequestTarget target) {
                 super.onSubmit(target);
                 UploadDownloadPanel.this.uploadFilePerformed(target);
@@ -73,9 +85,9 @@ public class UploadDownloadPanel extends InputPanel {
             }
         });
         fileUpload.add(new VisibleEnableBehaviour(){
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             public boolean isVisible() {
                 return !isReadOnly;
 
@@ -85,38 +97,49 @@ public class UploadDownloadPanel extends InputPanel {
         add(fileUpload);
 
         final AjaxDownloadBehaviorFromStream downloadBehavior = new AjaxDownloadBehaviorFromStream() {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected InputStream initStream() {
-				return getStream();
-			}
-		};
+            @Override
+            protected InputStream initStream() {
+                InputStream is = getStream();
+                try {
+                    String newContentType = URLConnection.guessContentTypeFromStream(is);
+                    if (StringUtils.isNotEmpty(newContentType)){
+                        setContentType(newContentType);
+                    }
+                } catch (IOException ex){
+                    LOGGER.error("Unable to define download file content type: {}", ex.getLocalizedMessage());
+                }
+                return is;
+            }
+        };
         downloadBehavior.setContentType(getDownloadContentType());
         downloadBehavior.setFileName(getDownloadFileName());
-		add(downloadBehavior);
+        add(downloadBehavior);
 
         add(new AjaxSubmitButton(ID_BUTTON_DOWNLOAD) {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             protected void onSubmit(AjaxRequestTarget target) {
                 downloadPerformed(downloadBehavior, target);
             }
         });
 
-        add(new AjaxSubmitButton(ID_BUTTON_DELETE) {
-			private static final long serialVersionUID = 1L;
+        AjaxSubmitButton deleteButton = new AjaxSubmitButton(ID_BUTTON_DELETE) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             protected void onSubmit(AjaxRequestTarget target) {
                 removeFilePerformed(target);
             }
-        });
+        };
+        deleteButton.add(new VisibleBehaviour(() -> !isReadOnly));
+        add(deleteButton);
 
         add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
-        	
+            private static final long serialVersionUID = 1L;
+
             @Override
             public boolean isVisible() {
                 return !isReadOnly;
@@ -169,9 +192,9 @@ public class UploadDownloadPanel extends InputPanel {
     }
 
     public InputStream getStream() {
-    	return null;
+        return null;
     }
-    
+
     public String getDownloadFileName() {
         return downloadFileName;
     }
@@ -181,9 +204,9 @@ public class UploadDownloadPanel extends InputPanel {
     }
 
     private void downloadPerformed(AjaxDownloadBehaviorFromStream downloadBehavior,
-			AjaxRequestTarget target) {
-		downloadBehavior.initiate(target);
-	}
+            AjaxRequestTarget target) {
+        downloadBehavior.initiate(target);
+    }
 
     private FileUploadField getInputFile(){
         return (FileUploadField)get(ID_INPUT_FILE);

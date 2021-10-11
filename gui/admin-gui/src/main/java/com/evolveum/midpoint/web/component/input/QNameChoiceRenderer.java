@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.input;
 
@@ -36,56 +27,56 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
  */
 @Deprecated
 public class QNameChoiceRenderer implements IChoiceRenderer<QName> {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static Map<String, String> prefixMap;
+    private static Map<String, String> prefixMap;
 
-	static {
-		prefixMap = new HashMap<>();
-		prefixMap.put(SchemaConstantsGenerated.NS_ICF_SCHEMA, "icfs:");
-		prefixMap.put(SchemaConstantsGenerated.NS_CAPABILITIES, "cap:");
-		prefixMap.put(SchemaConstantsGenerated.NS_COMMON, "c:");
-		prefixMap.put(SchemaConstantsGenerated.NS_QUERY, "q:");
-		prefixMap.put(MidPointConstants.NS_RI, "ri:");
-	}
+    static {
+        prefixMap = new HashMap<>();
+        prefixMap.put(SchemaConstantsGenerated.NS_ICF_SCHEMA, "icfs:");
+        prefixMap.put(SchemaConstantsGenerated.NS_CAPABILITIES, "cap:");
+        prefixMap.put(SchemaConstantsGenerated.NS_COMMON, "c:");
+        prefixMap.put(SchemaConstantsGenerated.NS_QUERY, "q:");
+        prefixMap.put(MidPointConstants.NS_RI, "ri:");
+    }
 
-	private boolean usePrefix = false;
+    private boolean usePrefix = false;
 
-	public QNameChoiceRenderer() {
-		this(false);
-	}
+    public QNameChoiceRenderer() {
+        this(false);
+    }
 
-	public QNameChoiceRenderer(boolean usePrefix) {
-		super();
-		this.usePrefix = usePrefix;
-	}
+    public QNameChoiceRenderer(boolean usePrefix) {
+        super();
+        this.usePrefix = usePrefix;
+    }
 
-	@Override
-	public QName getObject(String id, IModel<? extends List<? extends QName>> choices) {
-		if (StringUtils.isEmpty(id)) {
-			return null;
-		}
-		return choices.getObject().get(Integer.parseInt(id));
-	}
+    @Override
+    public QName getObject(String id, IModel<? extends List<? extends QName>> choices) {
+        if (StringUtils.isEmpty(id)) {
+            return null;
+        }
+        return choices.getObject().get(Integer.parseInt(id));
+    }
 
-	@Override
-	public Object getDisplayValue(QName object) {
-		StringBuilder sb = new StringBuilder();
-		if (usePrefix){
-			String prefix = prefixMap.get(object.getNamespaceURI());
-			if (StringUtils.isNotBlank(prefix)){
-				sb.append(prefix);
-			}
-		}
+    @Override
+    public Object getDisplayValue(QName object) {
+        StringBuilder sb = new StringBuilder();
+        if (usePrefix){
+            String prefix = prefixMap.get(object.getNamespaceURI());
+            if (StringUtils.isNotBlank(prefix)){
+                sb.append(prefix);
+            }
+        }
 
-		sb.append(object.getLocalPart());
-		return sb.toString();
-	}
+        sb.append(object.getLocalPart());
+        return sb.toString();
+    }
 
-	@Override
-	public String getIdValue(QName object, int index) {
-		return Integer.toString(index);
-	}
+    @Override
+    public String getIdValue(QName object, int index) {
+        return Integer.toString(index);
+    }
 
 
 }

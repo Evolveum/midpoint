@@ -1,0 +1,27 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="row">
+        <div wicket:id="labelContainer">
+            <span wicket:id="label"/>
+
+            <span wicket:id="required" style="color: #f00; font-weight: bold;"
+                wicket:message="title:prismPropertyPanel.required">*</span>
+            <i class="helpTextIcon" wicket:id="help"/>
+            <i class="helpTextIcon" wicket:id="deprecated"/>
+            <i class="helpTextIcon" wicket:id="experimental"/>
+        </div>
+
+        <div class="box-tools">
+            <wicket:child/>
+        </div>
+    </div>
+</wicket:panel>
+</html>

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql;
 
@@ -22,7 +13,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
@@ -33,7 +23,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -49,16 +38,9 @@ import java.util.Arrays;
 public class ModifyUser extends BaseSQLRepoTest {
 
     private static final String USER_FULLNAME = "Guybrush Threepwood";
-	private String userOid;
+    private String userOid;
     private String userBigOid;
     private String shadowOid;
-
-    @BeforeClass
-    public void beforeClass() throws Exception {
-        super.beforeClass();
-
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
 
     @Test
     public void test010Add() throws Exception {
@@ -74,10 +56,7 @@ public class ModifyUser extends BaseSQLRepoTest {
 
     @Test
     public void test020ModifyUser() throws Exception {
-    	final String TEST_NAME = "test020ModifyUser";
-    	TestUtil.displayTestTitle(TEST_NAME);
-
-    	OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createOperationResult();
 
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(FOLDER_BASIC, "t002.xml"), ObjectModificationType.COMPLEX_TYPE);
@@ -86,11 +65,11 @@ public class ModifyUser extends BaseSQLRepoTest {
         delta.setOid(userOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -101,10 +80,7 @@ public class ModifyUser extends BaseSQLRepoTest {
 
     @Test
     public void test021ModifyUserNoEmpNum() throws Exception {
-    	final String TEST_NAME = "test021ModifyUserNoEmpNum";
-    	TestUtil.displayTestTitle(TEST_NAME);
-
-    	OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createOperationResult();
 
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(FOLDER_BASIC, "t002a.xml"), ObjectModificationType.COMPLEX_TYPE);
@@ -113,11 +89,11 @@ public class ModifyUser extends BaseSQLRepoTest {
         delta.setOid(userOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -128,10 +104,7 @@ public class ModifyUser extends BaseSQLRepoTest {
 
     @Test
     public void test022ModifyUserEmptyEmpNum() throws Exception {
-    	final String TEST_NAME = "test022ModifyUserEmptyEmpNum";
-    	TestUtil.displayTestTitle(TEST_NAME);
-
-    	OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createOperationResult();
 
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(FOLDER_BASIC, "t002b.xml"), ObjectModificationType.COMPLEX_TYPE);
@@ -140,11 +113,11 @@ public class ModifyUser extends BaseSQLRepoTest {
         delta.setOid(userOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

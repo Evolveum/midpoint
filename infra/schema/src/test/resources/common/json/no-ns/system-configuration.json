@@ -1,0 +1,30 @@
+{
+  "systemConfiguration" : {
+    "oid" : "0978a754-9224-4afe-993a-ea1528012822",
+    "name" : "sysconfig",
+    "notificationConfiguration" : {
+      "handler" : {
+        "simpleUserNotifier" : [ {
+          "attachment" : [ {
+            "content" : "untyped"
+          }, {
+            "content" : {
+              "@type" : "string",
+              "@value" : "ABC"
+            }
+          }, {
+            "content" : {
+              "@type" : "base64Binary",
+              "@value" : "REVG"
+            }
+          }, {
+            "content" : {
+              "@type" : "integer",
+              "@value" : 1234567890123456789012345678901234567890
+            }
+          } ]
+        } ]
+      }
+    }
+  }
+}

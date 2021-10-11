@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<objectTemplate oid="817b3764-0ae9-11ea-b5cd-5bbc7109f250"
+   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+   xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
+    <name>User Template</name>
+
+
+    <mapping>
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>givenName + ' ' + familyName</code>
+             </script>
+        </expression>
+        <target>
+            <path>fullName</path>
+        </target>
+        <condition>
+             <script>
+                <code>givenName != null &amp;&amp; familyName != null</code>
+            </script>
+        </condition>
+    </mapping>
+
+</objectTemplate>

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.schema.util;
@@ -20,9 +11,14 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author mederly
@@ -31,7 +27,7 @@ public class CaseTypeUtil {
 
     @NotNull
     public static CaseType getCaseChecked(CaseWorkItemType workItem) {
-	    CaseType aCase = getCase(workItem);
+        CaseType aCase = getCase(workItem);
         if (aCase == null) {
             throw new IllegalStateException("No case for work item " + workItem);
         }
@@ -39,6 +35,10 @@ public class CaseTypeUtil {
     }
 
     public static CaseType getCase(CaseWorkItemType workItem) {
+        if (workItem == null) {
+            return null;
+        }
+
         @SuppressWarnings({"unchecked", "raw"})
         PrismContainerable<CaseWorkItemType> parent = workItem.asPrismContainerValue().getParent();
         if (!(parent instanceof PrismContainer)) {
@@ -53,4 +53,42 @@ public class CaseTypeUtil {
         return parentParentPov.asObjectable();
     }
 
+    public static boolean isClosed(CaseType aCase) {
+        return aCase != null && SchemaConstants.CASE_STATE_CLOSED.equals(aCase.getState());
+    }
+
+    public static XMLGregorianCalendar getStartTimestamp(CaseType aCase) {
+        return aCase != null && aCase.getMetadata() != null ? aCase.getMetadata().getCreateTimestamp() : null;
+    }
+
+    public static String getRequesterComment(CaseType aCase) {
+        OperationBusinessContextType businessContext = ApprovalContextUtil.getBusinessContext(aCase);
+        return businessContext != null ? businessContext.getComment() : null;
+    }
+
+    public static boolean isManualProvisioningCase(CaseType aCase){
+        if (aCase == null || CollectionUtils.isEmpty(aCase.getArchetypeRef())){
+            return false;
+        }
+        return aCase != null && ObjectTypeUtil.hasArchetype(aCase, SystemObjectsType.ARCHETYPE_MANUAL_CASE.value());
+    }
+
+    public static boolean isApprovalCase(CaseType aCase) {
+        return aCase != null && ObjectTypeUtil.hasArchetype(aCase, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
+    }
+
+    public static List<ObjectReferenceType> getAllCurrentAssignees(CaseType aCase) {
+        List<ObjectReferenceType> rv = new ArrayList<>();
+        for (CaseWorkItemType workItem : aCase.getWorkItem()) {
+            if (workItem.getCloseTimestamp() == null) {
+                rv.addAll(workItem.getAssigneeRef());
+            }
+        }
+        return rv;
+    }
+
+    public static boolean approvalSchemaExists(CaseType aCase){
+        return aCase != null && aCase.getApprovalContext() != null && aCase.getApprovalContext().getApprovalSchema() != null
+                && !aCase.getApprovalContext().getApprovalSchema().asPrismContainerValue().isEmpty();
+    }
 }

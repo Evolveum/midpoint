@@ -15,22 +15,22 @@
       "configurationProperties" : {
         "port" : "389",
         "host" : {
-        	"expression" : {
-        		"const" : "ldapHostname"
-        	}
+            "expression" : {
+                "const" : "ldapHostname"
+            }
         },
         "baseContexts" : {
-        	"expression" : {
-        		"script" : {
-        			"code" : "'dc='+basic.const('orgname')+',dc=com'"
-        		}
-        	}
+            "expression" : {
+                "script" : {
+                    "code" : "'dc='+basic.const('orgname')+',dc=com'"
+                }
+            }
         },
         "principal" : "cn=directory manager",
         "credentials" : {
             "expression" : {
-        		"const" : "password"
-        	}
+                "const" : "password"
+            }
         },
         "vlvSortAttribute" : "uid",
         "accountOperationalAttributes" : "ds-pwp-account-disabled"

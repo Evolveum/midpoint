@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="10000000-0000-0000-0000-000000300001"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <name>Dummy Resource David</name>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+        <icfc:configurationProperties>
+            <icfi:instanceId>david</icfi:instanceId>
+        </icfc:configurationProperties>
+
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+                <displayName>UID</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:weapon</ref>
+                <outbound>
+                    <source>
+                        <path>organizationalUnit</path>
+                    </source>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <includeNullInputs>false</includeNullInputs>
+                            <code>organizationalUnit + " (" + name + ") take"</code>
+                        </script>
+                    </expression>
+                </outbound>
+                <inbound>
+                    <expression>
+                        <script>
+                            <includeNullInputs>false</includeNullInputs>
+                            <code>input + " throw"</code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>locality</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:quote</ref>
+                <tolerant>false</tolerant>
+                <outbound>
+                    <source>
+                        <path>title</path>
+                    </source>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <includeNullInputs>false</includeNullInputs>
+                            <code>title + " (" + name + ") win"</code>
+                        </script>
+                    </expression>
+                    <condition>
+                        <script>
+                            <code>title != null</code>
+                        </script>
+                    </condition>
+                </outbound>
+            </attribute>
+            <!-- Let's have some weak mapping. This can ruin some things. E.g. it can cause phantom changes -->
+            <attribute>
+                <ref>ri:gossip</ref>
+                <tolerant>true</tolerant>
+                <outbound>
+                    <strength>weak</strength>
+                    <expression>
+                        <value>the king</value>
+                    </expression>
+                </outbound>
+            </attribute>
+            <dependency>
+                <resourceRef oid="10000000-0000-0000-0000-000000300002"/>
+                <strictness>relaxed</strictness>
+                <order>10</order>
+            </dependency>
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
+            </activation>
+            <credentials>
+                <password>
+                    <outbound/>
+                </password>
+            </credentials>
+        </objectType>
+    </schemaHandling>
+
+</resource>

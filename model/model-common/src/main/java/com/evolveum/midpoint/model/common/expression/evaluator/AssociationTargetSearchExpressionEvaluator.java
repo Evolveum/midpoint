@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
@@ -37,7 +28,10 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -55,86 +49,98 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author Radovan Semancik
  */
 public class AssociationTargetSearchExpressionEvaluator
-			extends AbstractSearchExpressionEvaluator<PrismContainerValue<ShadowAssociationType>,
-			                                          PrismContainerDefinition<ShadowAssociationType>> {
+            extends AbstractSearchExpressionEvaluator<PrismContainerValue<ShadowAssociationType>,
+                                                      PrismContainerDefinition<ShadowAssociationType>> {
 
-	private static final Trace LOGGER = TraceManager.getTrace(AssociationTargetSearchExpressionEvaluator.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AssociationTargetSearchExpressionEvaluator.class);
 
-	public AssociationTargetSearchExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType,
-			PrismContainerDefinition<ShadowAssociationType> outputDefinition, Protector protector, ObjectResolver objectResolver,
-			ModelService modelService, PrismContext prismContext, SecurityContextManager securityContextManager,
-			LocalizationService localizationService) {
-		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext,
-				securityContextManager, localizationService);
-	}
+    public AssociationTargetSearchExpressionEvaluator(QName elementName, SearchObjectExpressionEvaluatorType expressionEvaluatorType,
+            PrismContainerDefinition<ShadowAssociationType> outputDefinition, Protector protector, PrismContext prismContext, ObjectResolver objectResolver,
+            ModelService modelService, SecurityContextManager securityContextManager,
+            LocalizationService localizationService, CacheConfigurationManager cacheConfigurationManager) {
+        super(elementName, expressionEvaluatorType, outputDefinition, protector, prismContext, objectResolver, modelService, securityContextManager, localizationService,
+                cacheConfigurationManager);
+    }
 
-	@Override
-	protected AbstractSearchExpressionEvaluatorCache getCache() {
-		return AssociationSearchExpressionEvaluatorCache.getCache();
-	}
+    @Override
+    protected AbstractSearchExpressionEvaluatorCache getCache() {
+        return AssociationSearchExpressionEvaluatorCache.getCache();
+    }
 
-	@Override
-	protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params) throws SchemaException, ExpressionEvaluationException {
-		RefinedObjectClassDefinition rAssocTargetDef = (RefinedObjectClassDefinition) params.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
-		if (rAssocTargetDef == null) {
-			throw new ExpressionEvaluationException("No association target object class definition variable in "+
-					params.getContextDescription()+"; the expression may be used in a wrong place. It is only supposed to create an association.");
-		}
-		ObjectFilter resourceFilter = ObjectQueryUtil.createResourceFilter(rAssocTargetDef.getResourceOid(), getPrismContext());
-		ObjectFilter objectClassFilter = ObjectQueryUtil.createObjectClassFilter(rAssocTargetDef.getObjectClassDefinition().getTypeName(),
-				getPrismContext());
-		ObjectFilter extendedFilter = getPrismContext().queryFactory().createAnd(resourceFilter, objectClassFilter, query.getFilter());
-		query.setFilter(extendedFilter);
-		return query;
-	}
+    @Override
+    protected Class<?> getCacheClass() {
+        return AssociationSearchExpressionEvaluatorCache.class;
+    }
 
-	@Override
-	protected void extendOptions(Collection<SelectorOptions<GetOperationOptions>> options,
-			boolean searchOnResource) {
-		super.extendOptions(options, searchOnResource);
-		// We do not need to worry about associations of associations here
-		// (nested associations). Avoiding that will make the query faster.
-		options.add(SelectorOptions.create(getPrismContext().toUniformPath(ShadowType.F_ASSOCIATION), GetOperationOptions.createDontRetrieve()));
-	}
+    @Override
+    protected CacheType getCacheType() {
+        return CacheType.LOCAL_ASSOCIATION_TARGET_SEARCH_EVALUATOR_CACHE;
+    }
 
-	protected PrismContainerValue<ShadowAssociationType> createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> additionalAttributeDeltas, ExpressionEvaluationContext params) {
-		ShadowAssociationType associationType = new ShadowAssociationType();
-		PrismContainerValue<ShadowAssociationType> associationCVal = associationType.asPrismContainerValue();
-		associationType.setName(params.getMappingQName());
-		ObjectReferenceType targetRef = new ObjectReferenceType();
-		targetRef.setOid(oid);
-		targetRef.setType(targetTypeQName);
-		associationType.setShadowRef(targetRef);
+    @Override
+    protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params) throws SchemaException, ExpressionEvaluationException {
+        @SuppressWarnings("unchecked")
+        TypedValue<RefinedObjectClassDefinition> rAssocTargetDefTypedValue = params.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
+        if (rAssocTargetDefTypedValue == null || rAssocTargetDefTypedValue.getValue() == null) {
+            throw new ExpressionEvaluationException("No association target object class definition variable in "+
+                    params.getContextDescription()+"; the expression may be used in a wrong place. It is only supposed to create an association.");
+        }
+        RefinedObjectClassDefinition rAssocTargetDef = (RefinedObjectClassDefinition) rAssocTargetDefTypedValue.getValue();
+        ObjectFilter resourceFilter = ObjectQueryUtil.createResourceFilter(rAssocTargetDef.getResourceOid(), getPrismContext());
+        ObjectFilter objectClassFilter = ObjectQueryUtil.createObjectClassFilter(rAssocTargetDef.getObjectClassDefinition().getTypeName(),
+                getPrismContext());
+        ObjectFilter extendedFilter = getPrismContext().queryFactory().createAnd(resourceFilter, objectClassFilter, query.getFilter());
+        query.setFilter(extendedFilter);
+        return query;
+    }
 
-		try {
+    @Override
+    protected void extendOptions(Collection<SelectorOptions<GetOperationOptions>> options,
+            boolean searchOnResource) {
+        super.extendOptions(options, searchOnResource);
+        // We do not need to worry about associations of associations here
+        // (nested associations). Avoiding that will make the query faster.
+        options.add(SelectorOptions.create(getPrismContext().toUniformPath(ShadowType.F_ASSOCIATION), GetOperationOptions.createDontRetrieve()));
+    }
 
-			if (additionalAttributeDeltas != null) {
-				ItemDeltaCollectionsUtil.applyTo(additionalAttributeDeltas, associationCVal);
-			}
+    protected PrismContainerValue<ShadowAssociationType> createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> additionalAttributeDeltas, ExpressionEvaluationContext params) {
+        ShadowAssociationType associationType = new ShadowAssociationType();
+        PrismContainerValue<ShadowAssociationType> associationCVal = associationType.asPrismContainerValue();
+        associationType.setName(params.getMappingQName());
+        ObjectReferenceType targetRef = new ObjectReferenceType();
+        targetRef.setOid(oid);
+        targetRef.setType(targetTypeQName);
+        associationType.setShadowRef(targetRef);
 
-			getPrismContext().adopt(associationCVal, ShadowType.COMPLEX_TYPE, ShadowType.F_ASSOCIATION);
-			if (InternalsConfig.consistencyChecks) {
-				associationCVal.assertDefinitions("associationCVal in assignment expression in "+params.getContextDescription());
-			}
-		} catch (SchemaException e) {
-			// Should not happen
-			throw new SystemException(e);
-		}
+        try {
 
-		return associationCVal;
-	}
+            if (additionalAttributeDeltas != null) {
+                ItemDeltaCollectionsUtil.applyTo(additionalAttributeDeltas, associationCVal);
+            }
 
-	@Override
-	protected QName getDefaultTargetType() {
-		return ShadowType.COMPLEX_TYPE;
-	}
+            getPrismContext().adopt(associationCVal, ShadowType.COMPLEX_TYPE, ShadowType.F_ASSOCIATION);
+            if (InternalsConfig.consistencyChecks) {
+                associationCVal.assertDefinitions("associationCVal in assignment expression in "+params.getContextDescription());
+            }
+        } catch (SchemaException e) {
+            // Should not happen
+            throw new SystemException(e);
+        }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#shortDebugDump()
-	 */
-	@Override
-	public String shortDebugDump() {
-		return "associationExpression";
-	}
+        return associationCVal;
+    }
+
+    @Override
+    protected QName getDefaultTargetType() {
+        return ShadowType.COMPLEX_TYPE;
+    }
+
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#shortDebugDump()
+     */
+    @Override
+    public String shortDebugDump() {
+        return "associationExpression";
+    }
 
 }

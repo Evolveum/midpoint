@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.assignment;
 
@@ -74,9 +65,9 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
-            	List<AssignmentEditorDto> assignmentsListToDelete;
+                List<AssignmentEditorDto> assignmentsListToDelete;
                 if (dto != null){
-                	assignmentsListToDelete = new ArrayList<>();
+                    assignmentsListToDelete = new ArrayList<>();
                     assignmentsListToDelete.add(dto);
                 } else {
                     assignmentsListToDelete = getSelectedAssignments();
@@ -105,18 +96,18 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
     }
 
     protected void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target,
-			List<AssignmentEditorDto> toDelete) {
-		List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
+            List<AssignmentEditorDto> toDelete) {
+        List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
 
-		for (AssignmentEditorDto assignment : toDelete) {
-			if (UserDtoStatus.ADD.equals(assignment.getStatus())) {
-				assignments.remove(assignment);
-			} else {
-				assignment.setStatus(UserDtoStatus.DELETE);
-				assignment.setSelected(false);
-			}
-		}
-		target.add(getPageBase().getFeedbackPanel());
+        for (AssignmentEditorDto assignment : toDelete) {
+            if (UserDtoStatus.ADD.equals(assignment.getStatus())) {
+                assignments.remove(assignment);
+            } else {
+                assignment.setStatus(UserDtoStatus.DELETE);
+                assignment.setSelected(false);
+            }
+        }
+        target.add(getPageBase().getFeedbackPanel());
         reloadMainAssignmentsComponent(target);
     }
 
@@ -165,7 +156,9 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
             return null;
         }
 
-        construction.setResource(resource);
+        ObjectReferenceType resourceRef = new ObjectReferenceType();
+        resourceRef.asReferenceValue().setObject(resource.asPrismObject());
+        construction.setResourceRef(resourceRef);
 
         AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.ADD, assignment, getPageBase());
 
@@ -187,7 +180,7 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
 
         return selected;
     }
-    
+
     protected String getNoAssignmentsSelectedMessage(){
         return getString("AssignmentTablePanel.message.noAssignmentSelected");
     }

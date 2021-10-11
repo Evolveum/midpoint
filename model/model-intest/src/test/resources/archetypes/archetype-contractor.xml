@@ -1,0 +1,29 @@
+<!--
+  ~ Copyright (c) 2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype oid="3911cac2-78a6-11e9-8b5e-4b5bdb0c81d5"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+    <name>Contractor</name>
+    <archetypePolicy>
+        <display>
+            <label>Contractor</label>
+            <pluralLabel>Contractors</pluralLabel>
+            <icon>
+                <cssClass>fe fe-contractor</cssClass>
+                <color>red</color>
+            </icon>
+        </display>
+        <objectTemplateRef oid="f72193e4-78a6-11e9-a0b6-6f5ad4cfbb37"/>
+    </archetypePolicy>
+    <assignment>
+        <assignmentRelation>
+            <holderType>UserType</holderType>
+        </assignmentRelation>
+    </assignment>
+</archetype>

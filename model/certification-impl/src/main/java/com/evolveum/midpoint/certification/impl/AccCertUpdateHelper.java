@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.certification.impl;
@@ -30,7 +21,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -56,7 +47,7 @@ import static java.util.Collections.singleton;
 @Component
 public class AccCertUpdateHelper {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AccCertUpdateHelper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AccCertUpdateHelper.class);
 
     @Autowired private AccCertEventHelper eventHelper;
     @Autowired private PrismContext prismContext;
@@ -72,40 +63,40 @@ public class AccCertUpdateHelper {
     @Autowired private Clock clock;
     @Autowired private AccCertResponseComputationHelper computationHelper;
 
-	private static final String CLASS_DOT = AccCertUpdateHelper.class.getName() + ".";
-	private static final String OPERATION_DELETE_OBSOLETE_CAMPAIGN = CLASS_DOT + "deleteObsoleteCampaign";
-	private static final String OPERATION_CLEANUP_CAMPAIGNS_BY_NUMBER = CLASS_DOT + "cleanupCampaignsByNumber";
-	private static final String OPERATION_CLEANUP_CAMPAIGNS_BY_AGE = CLASS_DOT + "cleanupCampaignsByAge";
+    private static final String CLASS_DOT = AccCertUpdateHelper.class.getName() + ".";
+    private static final String OPERATION_DELETE_OBSOLETE_CAMPAIGN = CLASS_DOT + "deleteObsoleteCampaign";
+    private static final String OPERATION_CLEANUP_CAMPAIGNS_BY_NUMBER = CLASS_DOT + "cleanupCampaignsByNumber";
+    private static final String OPERATION_CLEANUP_CAMPAIGNS_BY_AGE = CLASS_DOT + "cleanupCampaignsByAge";
 
-	//region ================================ Triggers ================================
+    //region ================================ Triggers ================================
 
-	// see also MidpointUtil.createTriggersForTimedActions (in workflow-impl)
-	@NotNull
-	List<ItemDelta<?, ?>> getDeltasToCreateTriggersForTimedActions(String campaignOid, int escalationLevel,
-			Date workItemCreateTime,
-			Date workItemDeadline, List<WorkItemTimedActionsType> timedActionsList) {
-		LOGGER.trace("Creating triggers for timed actions for certification campaign {}, escalation level {}, create time {}, deadline {}, {} timed action(s)",
-				campaignOid, escalationLevel, workItemCreateTime, workItemDeadline, timedActionsList.size());
-		try {
-			List<TriggerType> triggers = WfContextUtil.createTriggers(escalationLevel, workItemCreateTime, workItemDeadline,
-					timedActionsList, prismContext, LOGGER, null, AccCertTimedActionTriggerHandler.HANDLER_URI);
-			LOGGER.trace("Created {} triggers for campaign {}:\n{}", triggers.size(), campaignOid, PrismUtil.serializeQuietlyLazily(prismContext, triggers));
-			if (triggers.isEmpty()) {
-				return Collections.emptyList();
-			} else {
-				return prismContext.deltaFor(AccessCertificationCampaignType.class)
-						.item(TaskType.F_TRIGGER).add(PrismContainerValue.toPcvList(triggers))
-						.asItemDeltas();
-			}
-		} catch (SchemaException | RuntimeException e) {
-			throw new SystemException("Couldn't create deltas for creating trigger(s) for campaign " + campaignOid + ": " + e.getMessage(), e);
-		}
-	}
+    // see also MidpointUtil.createTriggersForTimedActions (in workflow-impl)
+    @NotNull
+    List<ItemDelta<?, ?>> getDeltasToCreateTriggersForTimedActions(String campaignOid, int escalationLevel,
+            Date workItemCreateTime,
+            Date workItemDeadline, List<WorkItemTimedActionsType> timedActionsList) {
+        LOGGER.trace("Creating triggers for timed actions for certification campaign {}, escalation level {}, create time {}, deadline {}, {} timed action(s)",
+                campaignOid, escalationLevel, workItemCreateTime, workItemDeadline, timedActionsList.size());
+        try {
+            List<TriggerType> triggers = ApprovalContextUtil.createTriggers(escalationLevel, workItemCreateTime, workItemDeadline,
+                    timedActionsList, prismContext, LOGGER, null, AccCertTimedActionTriggerHandler.HANDLER_URI);
+            LOGGER.trace("Created {} triggers for campaign {}:\n{}", triggers.size(), campaignOid, PrismUtil.serializeQuietlyLazily(prismContext, triggers));
+            if (triggers.isEmpty()) {
+                return Collections.emptyList();
+            } else {
+                return prismContext.deltaFor(AccessCertificationCampaignType.class)
+                        .item(TaskType.F_TRIGGER).add(PrismContainerValue.toPcvList(triggers))
+                        .asItemDeltas();
+            }
+        } catch (SchemaException | RuntimeException e) {
+            throw new SystemException("Couldn't create deltas for creating trigger(s) for campaign " + campaignOid + ": " + e.getMessage(), e);
+        }
+    }
 
-	//endregion
+    //endregion
 
 
-	//region ================================ Auxiliary methods for delta processing ================================
+    //region ================================ Auxiliary methods for delta processing ================================
 
     @SuppressWarnings("SameParameterValue")
     List<ItemDelta<?,?>> createDeltasForStageNumberAndState(int number, AccessCertificationCampaignStateType state) {
@@ -124,26 +115,26 @@ public class AccCertUpdateHelper {
     }
 
     ItemDelta<?, ?> createStartTimeDelta(XMLGregorianCalendar date) throws SchemaException {
-		return prismContext.deltaFor(AccessCertificationCampaignType.class)
-				.item(AccessCertificationCampaignType.F_START_TIMESTAMP).replace(date)
-				.asItemDelta();
+        return prismContext.deltaFor(AccessCertificationCampaignType.class)
+                .item(AccessCertificationCampaignType.F_START_TIMESTAMP).replace(date)
+                .asItemDelta();
     }
 
-	ItemDelta<?, ?> createEndTimeDelta(XMLGregorianCalendar date) throws SchemaException {
-		return prismContext.deltaFor(AccessCertificationCampaignType.class)
-				.item(AccessCertificationCampaignType.F_END_TIMESTAMP).replace(date)
-				.asItemDelta();
-	}
+    ItemDelta<?, ?> createEndTimeDelta(XMLGregorianCalendar date) throws SchemaException {
+        return prismContext.deltaFor(AccessCertificationCampaignType.class)
+                .item(AccessCertificationCampaignType.F_END_TIMESTAMP).replace(date)
+                .asItemDelta();
+    }
 
     ContainerDelta createTriggerDeleteDelta() {
         return prismContext.deltaFactory().container()
-		        .createModificationReplace(ObjectType.F_TRIGGER, generalHelper.getCampaignObjectDefinition());
+                .createModificationReplace(ObjectType.F_TRIGGER, generalHelper.getCampaignObjectDefinition());
     }
 
     List<ItemDelta<?, ?>> createTriggerReplaceDelta(Collection<TriggerType> triggers) throws SchemaException {
-		return prismContext.deltaFor(AccessCertificationCampaignType.class)
-				.item(AccessCertificationCampaignType.F_TRIGGER).replaceRealValues(triggers)
-				.asItemDeltas();
+        return prismContext.deltaFor(AccessCertificationCampaignType.class)
+                .item(AccessCertificationCampaignType.F_TRIGGER).replaceRealValues(triggers)
+                .asItemDeltas();
     }
 
 
@@ -156,7 +147,7 @@ public class AccCertUpdateHelper {
         Collection<ObjectDeltaOperation<? extends ObjectType>> ops;
         try {
             ops = modelService.executeChanges(
-					singleton(objectDelta),
+                    singleton(objectDelta),
                     ModelExecuteOptions.createRaw().setPreAuthorized(), task, result);
         } catch (ExpressionEvaluationException|CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException e) {
             throw new SystemException("Unexpected exception when adding object: " + e.getMessage(), e);
@@ -170,17 +161,17 @@ public class AccCertUpdateHelper {
          */
     }
 
-	void modifyCampaignPreAuthorized(String campaignOid, ModificationsToExecute modifications, Task task, OperationResult result)
-			throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
-		for (List<ItemDelta<?, ?>> batch : modifications.batches) {
-			if (!batch.isEmpty()) {
-				LOGGER.trace("Applying {} changes to campaign {}", batch.size(), campaignOid);
-				modifyObjectPreAuthorized(AccessCertificationCampaignType.class, campaignOid, batch, task, result);
-			}
-		}
-	}
+    void modifyCampaignPreAuthorized(String campaignOid, ModificationsToExecute modifications, Task task, OperationResult result)
+            throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+        for (List<ItemDelta<?, ?>> batch : modifications.batches) {
+            if (!batch.isEmpty()) {
+                LOGGER.trace("Applying {} changes to campaign {}", batch.size(), campaignOid);
+                modifyObjectPreAuthorized(AccessCertificationCampaignType.class, campaignOid, batch, task, result);
+            }
+        }
+    }
 
-	<T extends ObjectType> void modifyObjectPreAuthorized(Class<T> objectClass, String oid, Collection<ItemDelta<?,?>> itemDeltas, Task task, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+    <T extends ObjectType> void modifyObjectPreAuthorized(Class<T> objectClass, String oid, Collection<ItemDelta<?,?>> itemDeltas, Task task, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
         ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().createModifyDelta(oid, itemDeltas, objectClass
         );
         try {
@@ -197,38 +188,38 @@ public class AccCertUpdateHelper {
 
     // TODO implement more efficiently
     AccessCertificationCampaignType refreshCampaign(AccessCertificationCampaignType campaign,
-		    OperationResult result) throws ObjectNotFoundException, SchemaException {
+            OperationResult result) throws ObjectNotFoundException, SchemaException {
         return repositoryService.getObject(AccessCertificationCampaignType.class, campaign.getOid(), null, result).asObjectable();
     }
-	//endregion
+    //endregion
 
-	void notifyReviewers(AccessCertificationCampaignType campaign, boolean unansweredOnly, Task task, OperationResult result) throws SchemaException {
-		List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(campaign.getOid(), norm(campaign.getIteration()), null, result);
-		Collection<String> reviewers = CertCampaignTypeUtil.getActiveReviewers(caseList);
-		for (String reviewerOid : reviewers) {
-			List<AccessCertificationCaseType> cases = queryHelper.getOpenCasesForReviewer(campaign, reviewerOid, result);
-			boolean notify = !unansweredOnly ||
-					cases.stream()
-							.flatMap(c -> c.getWorkItem().stream())
-							.anyMatch(wi -> ObjectTypeUtil.containsOid(wi.getAssigneeRef(), reviewerOid) &&
-									(wi.getOutput() == null || wi.getOutput().getOutcome() == null));
-			if (notify) {
-				ObjectReferenceType actualReviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
-				for (ObjectReferenceType reviewerOrDeputyRef : getReviewerAndDeputies(actualReviewerRef, task, result)) {
-					eventHelper.onReviewRequested(reviewerOrDeputyRef, actualReviewerRef, cases, campaign, task, result);
-				}
-			}
-		}
-	}
+    void notifyReviewers(AccessCertificationCampaignType campaign, boolean unansweredOnly, Task task, OperationResult result) throws SchemaException {
+        List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(campaign.getOid(), norm(campaign.getIteration()), null, result);
+        Collection<String> reviewers = CertCampaignTypeUtil.getActiveReviewers(caseList);
+        for (String reviewerOid : reviewers) {
+            List<AccessCertificationCaseType> cases = queryHelper.getOpenCasesForReviewer(campaign, reviewerOid, result);
+            boolean notify = !unansweredOnly ||
+                    cases.stream()
+                            .flatMap(c -> c.getWorkItem().stream())
+                            .anyMatch(wi -> ObjectTypeUtil.containsOid(wi.getAssigneeRef(), reviewerOid) &&
+                                    (wi.getOutput() == null || wi.getOutput().getOutcome() == null));
+            if (notify) {
+                ObjectReferenceType actualReviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
+                for (ObjectReferenceType reviewerOrDeputyRef : getReviewerAndDeputies(actualReviewerRef, task, result)) {
+                    eventHelper.onReviewRequested(reviewerOrDeputyRef, actualReviewerRef, cases, campaign, task, result);
+                }
+            }
+        }
+    }
 
-	@NotNull
-	List<ObjectReferenceType> getReviewerAndDeputies(ObjectReferenceType actualReviewerRef, Task task,
-			OperationResult result) throws SchemaException {
-		List<ObjectReferenceType> reviewerOrDeputiesRef = new ArrayList<>();
-		reviewerOrDeputiesRef.add(actualReviewerRef);
-		reviewerOrDeputiesRef.addAll(modelInteractionService.getDeputyAssignees(actualReviewerRef, OtherPrivilegesLimitationType.F_CERTIFICATION_WORK_ITEMS, task, result));
-		return reviewerOrDeputiesRef;
-	}
+    @NotNull
+    List<ObjectReferenceType> getReviewerAndDeputies(ObjectReferenceType actualReviewerRef, Task task,
+            OperationResult result) throws SchemaException {
+        List<ObjectReferenceType> reviewerOrDeputiesRef = new ArrayList<>();
+        reviewerOrDeputiesRef.add(actualReviewerRef);
+        reviewerOrDeputiesRef.addAll(modelInteractionService.getDeputyAssignees(actualReviewerRef, OtherPrivilegesLimitationType.F_CERTIFICATION_WORK_ITEMS, task, result));
+        return reviewerOrDeputiesRef;
+    }
 
 
 }

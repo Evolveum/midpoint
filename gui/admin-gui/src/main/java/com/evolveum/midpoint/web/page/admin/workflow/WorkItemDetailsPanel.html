@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="box box-info">
+        <div class="box-body no-padding">
+            <table class="table table-condensed table-striped">
+                <tr>
+                    <td class="col-md-3">
+                        <wicket:message key="workItemPanel.requestedBy"/>
+                    </td>
+                    <td class="col-md-9"><span wicket:id="requestedBy"/></td>
+                </tr>
+                <tr>
+                    <td class="col-md-3">
+                    <wicket:message key="workItemPanel.requestedFor"/>
+                    </td>
+                    <td class="col-md-9"><span wicket:id="requestedFor"/></td>
+                </tr>
+                <tr>
+                    <td class="col-md-3">
+                        <wicket:message key="workItemPanel.target"/>
+                    </td>
+                    <td class="col-md-9"><span wicket:id="target"/></td>
+                </tr>
+                <tr>
+                    <td class="col-md-3">
+                        <wicket:message key="workItemPanel.approver"/>
+                    </td>
+                    <td class="col-md-9"><span wicket:id="approver"/></td>
+                </tr>
+                <tr wicket:id="parentCaseContainer">
+                    <td class="col-md-3">
+                        <wicket:message key="workItemPanel.parentCase"/>
+                    </td>
+                    <td class="col-md-9"><span wicket:id="parentCase"/></td>
+                </tr>
+                <tr>
+                    <td class="col-md-3">
+                        <wicket:message key="workItemPanel.reason"/>
+                    </td>
+                    <td class="col-md-9"><span wicket:id="reason"/></td>
+                </tr>
+                <tr>
+                    <td class="col-md-3">
+                        <wicket:message key="workItemPanel.requesterComment"/>
+                    </td>
+                    <td class="col-md-9" style="max-width: 600px; word-wrap: break-word;"><span wicket:id="requesterCommentMessage"/></td>
+                </tr>
+     </table>
+</div>
+    </div>
+
+    <div wicket:id="deltasToBeApproved"/>
+
+    <div style="margin-top:20px" wicket:id="additionalInformation"/>
+
+    <div class="box box-info" wicket:id="additionalAttributes">
+        <div class="box-header">
+            <h3 class="box-title">
+                <wicket:message key="workItemPanel.additionalAttributes"/>
+            </h3>
+        </div>
+        <div class="box-body">
+            <div wicket:id="customForm"/>
+        </div>
+    </div>
+
+    <div wicket:id="commentContainer">
+        <h3>
+            <wicket:message key="workItemPanel.approverComment"/>
+        </h3>
+        <textarea wicket:id="approverComment" class="form-control input-sm" rows="2"></textarea>
+        <p/>
+    </div>
+
+    <form wicket:id="caseWorkItemEvidenceForm">
+        <h4>
+            <wicket:message key="PageCaseWorkItem.caseWorkItem.evidence"/>
+        </h4>
+        <div wicket:id="caseWorkItemEvidence"/>
+        <p/>
+    </form>
+</wicket:panel>
+</html>

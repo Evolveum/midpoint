@@ -1,22 +1,12 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -29,10 +19,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.jetbrains.annotations.NotNull;
 
@@ -59,6 +47,7 @@ public class CertWorkItemDtoProvider extends BaseSortableDataProvider<CertWorkIt
 
     private boolean notDecidedOnly;
     private String reviewerOid;
+    private boolean allItems;
 
     public CertWorkItemDtoProvider(Component component) {
         super(component, false);        // TODO make this cache-able
@@ -80,28 +69,21 @@ public class CertWorkItemDtoProvider extends BaseSortableDataProvider<CertWorkIt
 
             Collection<SelectorOptions<GetOperationOptions>> resolveNames = createCollection(createResolveNames());
             AccessCertificationService acs = getPage().getCertificationService();
-            List<AccessCertificationWorkItemType> workitems = acs.searchOpenWorkItems(caseQuery, notDecidedOnly, resolveNames, task, result);
+            List<AccessCertificationWorkItemType> workitems = acs.searchOpenWorkItems(caseQuery, notDecidedOnly, allItems, resolveNames, task, result);
             for (AccessCertificationWorkItemType workItem : workitems) {
                 getAvailableData().add(new CertWorkItemDto(workItem, getPage()));
             }
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't list decisions.", ex);
+            result.recordFatalError(getPage().createStringResource("CertCaseDtoProvider.message.internalIterator.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list decisions", ex);
         } finally {
             result.computeStatusIfUnknown();
         }
 
-        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
-            handleNotSuccessOrHandledErrorInIterator(result);
-        }
+        getPage().showResult(result, false);
 
         LOGGER.trace("end::iterator()");
         return getAvailableData().iterator();
-    }
-
-    private void handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
-        getPage().showResult(result);
-        throw new RestartResponseException(PageError.class);
     }
 
     @Override
@@ -113,18 +95,16 @@ public class CertWorkItemDtoProvider extends BaseSortableDataProvider<CertWorkIt
             Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
             AccessCertificationService acs = getPage().getCertificationService();
             ObjectQuery query = getQuery().clone();
-            count = acs.countOpenWorkItems(query, notDecidedOnly, null, task, result);
+            count = acs.countOpenWorkItems(query, notDecidedOnly, allItems,null, task, result);
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't count objects.", ex);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
+            result.recordFatalError(
+                    getPage().createStringResource("CertWorkItemDtoProvider.message.internalSize.fatalError", ex.getMessage()).getString(), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects: " + ex.getMessage(), ex);
         } finally {
             result.computeStatusIfUnknown();
         }
 
-        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
-            getPage().showResult(result);
-            throw new RestartResponseException(PageError.class);
-        }
+        getPage().showResult(result, false);
 
         LOGGER.trace("end::internalSize()");
         return count;
@@ -157,10 +137,13 @@ public class CertWorkItemDtoProvider extends BaseSortableDataProvider<CertWorkIt
         this.notDecidedOnly = notDecidedOnly;
     }
 
-	@NotNull
-	@Override
-	protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-		return SearchingUtils.createObjectOrderings(sortParam, true, getPrismContext());
-	}
+    @NotNull
+    @Override
+    protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+        return SearchingUtils.createObjectOrderings(sortParam, true, getPrismContext());
+    }
 
+    public void setAllItems(boolean allItems) {
+        this.allItems = allItems;
+    }
 }

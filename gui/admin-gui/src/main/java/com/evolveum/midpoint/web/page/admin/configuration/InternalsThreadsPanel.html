@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <div class="row">
+        <div class="col-md-6">
+            <h3><wicket:message key="PageInternals.title.threads"/></h3>
+            <textarea wicket:id="result"></textarea>
+            <p/>
+            <div class="main-button-bar">
+                <a class="btn btn-primary" wicket:id="showAllThreads"/>
+                <a class="btn btn-primary" wicket:id="showTasksThreads"/>
+                <a class="btn btn-primary" wicket:id="recordTasksThreads"/>
+                <a class="btn btn-margin-left btn-danger" wicket:id="deactivateServiceThreads"/>
+                <a class="btn btn-margin-left btn-success" wicket:id="reactivateServiceThreads"/>
+            </div>
+        </div>
+    </div>
+</wicket:panel>
+</body>
+</html>

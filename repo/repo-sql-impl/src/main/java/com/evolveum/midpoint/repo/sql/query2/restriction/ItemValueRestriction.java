@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
@@ -36,8 +27,6 @@ import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.IsNotNullCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.IsNullCondition;
 import com.evolveum.midpoint.repo.sql.query2.matcher.Matcher;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Abstract superclass for all value-related filters. There are two major problems solved:
@@ -52,29 +41,26 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRestriction<T> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ItemValueRestriction.class);
-
-    public ItemValueRestriction(InterpretationContext context, T filter, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
+    ItemValueRestriction(InterpretationContext context, T filter, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
         super(context, filter, filter.getFullPath(), filter.getDefinition(), baseEntityDefinition, parent);
     }
 
     @Override
     public Condition interpret() throws QueryException {
 
-    	ItemPath path = getItemPath();
+        ItemPath path = getItemPath();
         if (ItemPath.isEmpty(path)) {
             throw new QueryException("Null or empty path for ItemValueRestriction in " + filter.debugDump());
         }
         HqlDataInstance dataInstance = getItemPathResolver().resolveItemPath(path, itemDefinition, getBaseHqlEntity(), false);
         setHqlDataInstance(dataInstance);
 
-        Condition condition = interpretInternal();
-        return condition;
+        return interpretInternal();
     }
 
     public abstract Condition interpretInternal() throws QueryException;
 
-    protected Condition createPropertyVsConstantCondition(String hqlPropertyPath, Object value, ValueFilter filter) throws QueryException {
+    Condition createPropertyVsConstantCondition(String hqlPropertyPath, Object value, ValueFilter filter) throws QueryException {
         ItemRestrictionOperation operation = findOperationForFilter(filter);
 
         InterpretationContext context = getContext();
@@ -83,10 +69,11 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
         String matchingRule = filter.getMatchingRule() != null ? filter.getMatchingRule().getLocalPart() : null;
 
         // TODO treat null for multivalued properties (at least throw an exception!)
+        //noinspection unchecked
         return matcher.match(context.getHibernateQuery(), operation, hqlPropertyPath, value, matchingRule);
     }
 
-    protected ItemRestrictionOperation findOperationForFilter(ValueFilter filter) throws QueryException {
+    ItemRestrictionOperation findOperationForFilter(ValueFilter filter) throws QueryException {
         ItemRestrictionOperation operation;
         if (filter instanceof EqualFilter) {
             operation = ItemRestrictionOperation.EQ;
@@ -132,7 +119,7 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
      *
      * TODO implement for restrictions other than PropertyRestriction.
      */
-    protected Condition addIsNotNullIfNecessary(Condition condition, String propertyPath) {
+    Condition addIsNotNullIfNecessary(Condition condition, String propertyPath) {
         if (condition instanceof IsNullCondition || condition instanceof IsNotNullCondition) {
             return condition;
         }

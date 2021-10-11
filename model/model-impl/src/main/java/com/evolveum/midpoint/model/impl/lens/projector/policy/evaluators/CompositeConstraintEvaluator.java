@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
@@ -47,58 +38,78 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstra
 @Component
 public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<PolicyConstraintsType> {
 
-	@Autowired private ConstraintEvaluatorHelper evaluatorHelper;
-	@Autowired private PolicyRuleProcessor policyRuleProcessor;
+    private static final String OP_EVALUATE = CompositeConstraintEvaluator.class.getName() + ".evaluate";
 
-	@Override
-	public <AH extends AssignmentHolderType> EvaluatedCompositeTrigger evaluate(JAXBElement<PolicyConstraintsType> constraint,
-			PolicyRuleEvaluationContext<AH> rctx, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    @Autowired private ConstraintEvaluatorHelper evaluatorHelper;
+    @Autowired private PolicyRuleProcessor policyRuleProcessor;
 
-		boolean isAnd = QNameUtil.match(PolicyConstraintsType.F_AND, constraint.getName());
-		boolean isOr = QNameUtil.match(PolicyConstraintsType.F_OR, constraint.getName());
-		boolean isNot = QNameUtil.match(PolicyConstraintsType.F_NOT, constraint.getName());
-		assert isAnd || isOr || isNot;
-		List<EvaluatedPolicyRuleTrigger<?>> triggers = policyRuleProcessor
-				.evaluateConstraints(constraint.getValue(), !isOr, rctx, result);
-		if (isNot) {
-			if (triggers.isEmpty()) {
-				return createTrigger(NOT, constraint, triggers, rctx, result);
-			}
-		} else {
-			if (!triggers.isEmpty()) {
-				return createTrigger(isAnd ? AND : OR, constraint, triggers, rctx, result);
-			}
-		}
-		return null;
-	}
+    @Override
+    public <AH extends AssignmentHolderType> EvaluatedCompositeTrigger evaluate(@NotNull JAXBElement<PolicyConstraintsType> constraint,
+            @NotNull PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-	@NotNull
-	private EvaluatedCompositeTrigger createTrigger(PolicyConstraintKindType kind, JAXBElement<PolicyConstraintsType> constraintElement,
-			List<EvaluatedPolicyRuleTrigger<?>> triggers,
-			PolicyRuleEvaluationContext<?> rctx, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		return new EvaluatedCompositeTrigger(kind, constraintElement.getValue(),
-				createMessage(kind, constraintElement, rctx, result),
-				createShortMessage(kind, constraintElement, rctx, result),
-				triggers);
-	}
+        OperationResult result = parentResult.subresult(OP_EVALUATE)
+                .setMinor()
+                .build();
+        try {
+            boolean isAnd = QNameUtil.match(PolicyConstraintsType.F_AND, constraint.getName());
+            boolean isOr = QNameUtil.match(PolicyConstraintsType.F_OR, constraint.getName());
+            boolean isNot = QNameUtil.match(PolicyConstraintsType.F_NOT, constraint.getName());
+            assert isAnd || isOr || isNot;
+            List<EvaluatedPolicyRuleTrigger<?>> triggers = policyRuleProcessor
+                    .evaluateConstraints(constraint.getValue(), !isOr, rctx, result);
+            EvaluatedCompositeTrigger rv;
+            if (isNot) {
+                if (triggers.isEmpty()) {
+                    rv = createTrigger(NOT, constraint, triggers, rctx, result);
+                } else {
+                    rv = null;
+                }
+            } else {
+                if (!triggers.isEmpty()) {
+                    rv = createTrigger(isAnd ? AND : OR, constraint, triggers, rctx, result);
+                } else {
+                    rv = null;
+                }
+            }
+            if (rv != null) {
+                result.addReturn("trigger", rv.toDiagShortcut());
+            }
+            return rv;
+        } catch (Throwable t) {
+            result.recordFatalError(t.getMessage(), t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
 
-	private LocalizableMessage createMessage(PolicyConstraintKindType kind,
-			JAXBElement<PolicyConstraintsType> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
-				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + kind.value())
-				.build();
-		return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
-	}
+    @NotNull
+    private EvaluatedCompositeTrigger createTrigger(PolicyConstraintKindType kind, JAXBElement<PolicyConstraintsType> constraintElement,
+            List<EvaluatedPolicyRuleTrigger<?>> triggers,
+            PolicyRuleEvaluationContext<?> rctx, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+        return new EvaluatedCompositeTrigger(kind, constraintElement.getValue(),
+                createMessage(kind, constraintElement, rctx, result),
+                createShortMessage(kind, constraintElement, rctx, result),
+                triggers);
+    }
 
-	private LocalizableMessage createShortMessage(PolicyConstraintKindType kind,
-			JAXBElement<PolicyConstraintsType> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
-				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + kind.value())
-				.build();
-		return evaluatorHelper.createLocalizableShortMessage(constraintElement, ctx, builtInMessage, result);
-	}
+    private LocalizableMessage createMessage(PolicyConstraintKindType kind,
+            JAXBElement<PolicyConstraintsType> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+        LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
+                .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + kind.value())
+                .build();
+        return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
+    }
+
+    private LocalizableMessage createShortMessage(PolicyConstraintKindType kind,
+            JAXBElement<PolicyConstraintsType> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+        LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
+                .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + kind.value())
+                .build();
+        return evaluatorHelper.createLocalizableShortMessage(constraintElement, ctx, builtInMessage, result);
+    }
 }

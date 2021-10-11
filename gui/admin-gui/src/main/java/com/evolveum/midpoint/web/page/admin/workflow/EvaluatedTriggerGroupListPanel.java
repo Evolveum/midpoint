@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.page.admin.workflow;
@@ -29,21 +20,21 @@ import java.util.List;
  */
 public class EvaluatedTriggerGroupListPanel extends BasePanel<List<EvaluatedTriggerGroupDto>> {
 
-	private static final String ID_TRIGGER_GROUP_LIST = "triggerGroupList";
-	private static final String ID_TRIGGER_GROUP = "triggerGroup";
+    private static final String ID_TRIGGER_GROUP_LIST = "triggerGroupList";
+    private static final String ID_TRIGGER_GROUP = "triggerGroup";
 
-	public EvaluatedTriggerGroupListPanel(String id, IModel<List<EvaluatedTriggerGroupDto>> model) {
-		super(id, model);
-		initLayout();
-	}
+    public EvaluatedTriggerGroupListPanel(String id, IModel<List<EvaluatedTriggerGroupDto>> model) {
+        super(id, model);
+        initLayout();
+    }
 
-	private void initLayout() {
-		ListView<EvaluatedTriggerGroupDto> list = new ListView<EvaluatedTriggerGroupDto>(ID_TRIGGER_GROUP_LIST, getModel()) {
-			@Override
-			protected void populateItem(ListItem<EvaluatedTriggerGroupDto> item) {
-				item.add(new EvaluatedTriggerGroupPanel(ID_TRIGGER_GROUP, item.getModel()));
-			}
-		};
-		add(list);
-	}
+    private void initLayout() {
+        ListView<EvaluatedTriggerGroupDto> list = new ListView<EvaluatedTriggerGroupDto>(ID_TRIGGER_GROUP_LIST, getModel()) {
+            @Override
+            protected void populateItem(ListItem<EvaluatedTriggerGroupDto> item) {
+                item.add(new EvaluatedTriggerGroupPanel(ID_TRIGGER_GROUP, item.getModel()));
+            }
+        };
+        add(list);
+    }
 }

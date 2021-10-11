@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.helpers.modify;
@@ -28,6 +19,7 @@ import com.evolveum.midpoint.repo.sql.data.common.container.*;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.*;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
+import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.helpers.mapper.*;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -45,45 +37,46 @@ import java.util.Map;
 @Component
 public class PrismEntityMapper {
 
-    private static final Map<Key, Mapper> mappers = new HashMap<>();
+    private static final Map<Key, Mapper> MAPPERS = new HashMap<>();
 
     static {
-        mappers.put(new Key(Enum.class, SchemaEnum.class), new EnumMapper());
-        mappers.put(new Key(PolyString.class, RPolyString.class), new PolyStringMapper());
-        mappers.put(new Key(ActivationType.class, RActivation.class), new ActivationMapper());
-        mappers.put(new Key(Referencable.class, REmbeddedReference.class), new EmbeddedObjectReferenceMapper());
-        mappers.put(new Key(OperationalStateType.class, ROperationalState.class), new OperationalStateMapper());
-        mappers.put(new Key(AutoassignSpecificationType.class, RAutoassignSpecification.class), new AutoassignSpecificationMapper());
-        mappers.put(new Key(QName.class, String.class), new QNameMapper());
+        MAPPERS.put(new Key(Enum.class, SchemaEnum.class), new EnumMapper());
+        MAPPERS.put(new Key(PolyString.class, RPolyString.class), new PolyStringMapper());
+        MAPPERS.put(new Key(ActivationType.class, RActivation.class), new ActivationMapper());
+        MAPPERS.put(new Key(Referencable.class, REmbeddedReference.class), new EmbeddedObjectReferenceMapper());
+        MAPPERS.put(new Key(OperationalStateType.class, ROperationalState.class), new OperationalStateMapper());
+        MAPPERS.put(new Key(AutoassignSpecificationType.class, RAutoassignSpecification.class), new AutoassignSpecificationMapper());
+        MAPPERS.put(new Key(QName.class, String.class), new QNameMapper());
 
-        mappers.put(new Key(Referencable.class, RObjectReference.class), new ObjectReferenceMapper());
-        mappers.put(new Key(Referencable.class, RAssignmentReference.class), new AssignmentReferenceMapper());
-        mappers.put(new Key(Referencable.class, RCaseWorkItemReference.class), new CaseWorkItemReferenceMapper());
-        mappers.put(new Key(AssignmentType.class, RAssignment.class), new AssignmentMapper());
-        mappers.put(new Key(TriggerType.class, RTrigger.class), new TriggerMapper());
-        mappers.put(new Key(OperationExecutionType.class, ROperationExecution.class), new OperationExecutionMapper());
-        mappers.put(new Key(CaseWorkItemType.class, RCaseWorkItem.class), new CaseWorkItemMapper());
+        MAPPERS.put(new Key(Referencable.class, RObjectReference.class), new ObjectReferenceMapper());
+        MAPPERS.put(new Key(Referencable.class, RAssignmentReference.class), new AssignmentReferenceMapper());
+        MAPPERS.put(new Key(Referencable.class, RCaseWorkItemReference.class), new CaseWorkItemReferenceMapper());
+        MAPPERS.put(new Key(AssignmentType.class, RAssignment.class), new AssignmentMapper());
+        MAPPERS.put(new Key(TriggerType.class, RTrigger.class), new TriggerMapper());
+        MAPPERS.put(new Key(OperationExecutionType.class, ROperationExecution.class), new OperationExecutionMapper());
+        MAPPERS.put(new Key(CaseWorkItemType.class, RCaseWorkItem.class), new CaseWorkItemMapper());
 
-        mappers.put(new Key(OperationResultType.class, OperationResult.class), new OperationResultMapper());
-        mappers.put(new Key(MetadataType.class, Metadata.class), new MetadataMapper());
+        MAPPERS.put(new Key(OperationResultType.class, OperationResult.class), new OperationResultMapper());
+        MAPPERS.put(new Key(MetadataType.class, Metadata.class), new MetadataMapper());
 
-        mappers.put(new Key(byte[].class, RFocusPhoto.class), new RFocusPhotoMapper());
+        MAPPERS.put(new Key(byte[].class, RFocusPhoto.class), new RFocusPhotoMapper());
     }
 
     @Autowired private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;
     @Autowired private ExtItemDictionary extItemDictionary;
     @Autowired private RelationRegistry relationRegistry;
+    @Autowired private BaseHelper baseHelper;
 
     public boolean supports(Class inputType, Class outputType) {
         Key key = buildKey(inputType, outputType);
 
-        return mappers.containsKey(key);
+        return MAPPERS.containsKey(key);
     }
 
     public <I, O> Mapper<I, O> getMapper(Class<I> inputType, Class<O> outputType) {
         Key key = buildKey(inputType, outputType);
-        Mapper<I, O> mapper = mappers.get(key);
+        Mapper<I, O> mapper = MAPPERS.get(key);
         if (mapper == null) {
             throw new SystemException("Can't map '" + inputType + "' to '" + outputType + "'");
         }
@@ -107,10 +100,11 @@ public class PrismEntityMapper {
         if (context == null) {
             context = new MapperContext();
         }
-        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext, relationRegistry, extItemDictionary));
+        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext, relationRegistry, extItemDictionary,
+                baseHelper.getConfiguration()));
 
         Key key = buildKey(input.getClass(), outputType);
-        Mapper<I, O> mapper = mappers.get(key);
+        Mapper<I, O> mapper = MAPPERS.get(key);
         if (mapper == null) {
             throw new SystemException("Can't map '" + input.getClass() + "' to '" + outputType + "'");
         }
@@ -183,7 +177,7 @@ public class PrismEntityMapper {
         private Class from;
         private Class to;
 
-        public Key(Class from, Class to) {
+        Key(Class from, Class to) {
             this.from = from;
             this.to = to;
         }

@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<xsd:schema elementFormDefault="qualified"
+  targetNamespace="this"
+  xmlns:tns="this"
+  xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+  <xsd:complexType name="UserExtensionType">
+    <xsd:annotation>
+      <xsd:appinfo>
+        <a:extension ref="c:UserType"/>
+      </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:sequence>
+
+      <xsd:element name="impActivationTimestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
+        <xsd:annotation>
+          <xsd:appinfo>
+              <a:indexed>true</a:indexed>
+            </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:element>
+
+      <xsd:element name="impAdministratorDescription" type="xsd:string" minOccurs="0" maxOccurs="1">
+        <xsd:annotation>
+          <xsd:appinfo>
+                <a:indexed>false</a:indexed>
+            </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:element>
+
+      <xsd:element name="impReservationTimestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
+        <xsd:annotation>
+          <xsd:appinfo>
+                <a:indexed>true</a:indexed>
+            </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:element>
+
+      <xsd:element name="impLifeCycleStage" type="tns:impLifeCycleStageType" minOccurs="0" maxOccurs="1">
+        <xsd:annotation>
+          <xsd:appinfo>
+                <a:indexed>true</a:indexed>
+            </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:element>
+
+      <xsd:element name="impContact" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+        <xsd:annotation>
+          <xsd:appinfo>
+                <a:indexed>true</a:indexed>
+            </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:element>
+
+      <xsd:element name="impGidNumber" type="xsd:int" minOccurs="0" maxOccurs="1">
+        <xsd:annotation>
+          <xsd:appinfo>
+                <a:indexed>false</a:indexed>
+            </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:element>
+
+      <xsd:element name="impUidNumber" type="xsd:int" minOccurs="0" maxOccurs="1">
+        <xsd:annotation>
+          <xsd:appinfo>
+                <a:indexed>false</a:indexed>
+            </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:element>
+
+      <xsd:element name="impDepartmentNumber" type="xsd:string" minOccurs="0" maxOccurs="1">
+        <xsd:annotation>
+          <xsd:appinfo>
+                <a:indexed>false</a:indexed>
+            </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:element>
+
+      <xsd:element name="impStudentFacultyCode" type="xsd:string" minOccurs="0" maxOccurs="1">
+        <xsd:annotation>
+          <xsd:appinfo>
+                <a:indexed>false</a:indexed>
+            </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:element>
+
+     <xsd:element name="impExpirationTimestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
+        <xsd:annotation>
+          <xsd:appinfo>
+              <a:indexed>true</a:indexed>
+            </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:element>
+
+     <xsd:element name="impExpirationFirstNoticeTimestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
+        <xsd:annotation>
+          <xsd:appinfo>
+              <a:indexed>true</a:indexed>
+            </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:element>
+
+     <xsd:element name="impExpirationSecondNoticeTimestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
+        <xsd:annotation>
+          <xsd:appinfo>
+              <a:indexed>true</a:indexed>
+            </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:element>
+
+      <xsd:element name="impRoleCode" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+        <xsd:annotation>
+          <xsd:appinfo>
+                <a:indexed>true</a:indexed>
+            </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:element>
+
+      <xsd:element name="impLastRoleCode" type="xsd:string" minOccurs="0" maxOccurs="1">
+        <xsd:annotation>
+          <xsd:appinfo>
+                <a:indexed>true</a:indexed>
+            </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:element>
+
+      <xsd:element name="impLoginShell" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+        <xsd:annotation>
+            <xsd:appinfo>
+            </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:element>
+
+      <xsd:element name="impService" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+        <xsd:annotation>
+            <xsd:appinfo>
+            </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:element>
+
+      <xsd:element name="impEmailAlias" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+        <xsd:annotation>
+            <xsd:appinfo>
+            </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:element>
+
+    </xsd:sequence>
+    </xsd:complexType>
+
+     <xsd:simpleType name="impLifeCycleStageType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="inactive">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:label>Inactive</a:label>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="active">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:label>Active</a:label>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="expiring">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:label>Expiring</a:label>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="reserved">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:label>Reserved</a:label>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+</xsd:schema>

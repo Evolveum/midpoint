@@ -1,18 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <!-- Resource definition for an embedded OpenDJ instance. -->
@@ -33,42 +24,42 @@
     <name>Embedded Test OpenDJ</name>
 
     <connectorRef type="ConnectorType">
-    	<description>Dummy description, just for the test</description>
-		<filter>
+        <description>Dummy description, just for the test</description>
+        <filter>
             <q:equal>
-            	<q:path>connectorType</q:path>
+                <q:path>connectorType</q:path>
                 <q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
             </q:equal>
         </filter>
     </connectorRef>
 
-	<connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
-					   
-		<icfc:configurationProperties>
-			<icfcldap:port>10389</icfcldap:port>
-			<icfcldap:host>localhost</icfcldap:host>
-			<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
-			<icfcldap:bindDn>cn=directory manager</icfcldap:bindDn>
-			<icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
-			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
-			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
- 			<icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
- 			<icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
-		</icfc:configurationProperties>
-		
-		<icfc:resultsHandlerConfiguration>
-			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
-			<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
-			<icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
-		</icfc:resultsHandlerConfiguration>
-	
-	</connectorConfiguration>
+    <connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
+
+        <icfc:configurationProperties>
+            <icfcldap:port>10389</icfcldap:port>
+            <icfcldap:host>localhost</icfcldap:host>
+            <icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
+            <icfcldap:bindDn>cn=directory manager</icfcldap:bindDn>
+            <icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
+            <icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
+            <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
+             <icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
+             <icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
+        </icfc:configurationProperties>
+
+        <icfc:resultsHandlerConfiguration>
+            <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+            <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+            <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+        </icfc:resultsHandlerConfiguration>
+
+    </connectorConfiguration>
 
 
     <schemaHandling>
 
         <objectType>
-			<kind>account</kind>
+            <kind>account</kind>
             <intent>default</intent>
             <displayName>Default Account</displayName>
             <default>true</default>
@@ -79,19 +70,19 @@
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <!-- Name cannot be weak. Changes in name trigger object rename. -->
-					<source>
-						<path>$user/name</path>
-					</source>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                     <expression>
-                    	<script>
-	                        <code>
-	                        	import javax.naming.ldap.Rdn
-	                        	import javax.naming.ldap.LdapName
-	                        	
-	                        	dn = new LdapName('ou=people,dc=example,dc=com')
-	                        	dn.add(new Rdn('uid',name.toString()))
-	                        	return dn.toString()
-	                        </code>
+                        <script>
+                            <code>
+                                import javax.naming.ldap.Rdn
+                                import javax.naming.ldap.LdapName
+
+                                dn = new LdapName('ou=people,dc=example,dc=com')
+                                dn.add(new Rdn('uid',name.toString()))
+                                return dn.toString()
+                            </code>
                         </script>
                     </expression>
                 </outbound>
@@ -101,27 +92,27 @@
                 <ref>ri:cn</ref>
                 <displayName>Common Name</displayName>
                 <outbound>
-                	<source>
-	                    <path>$user/fullName</path>
+                    <source>
+                        <path>$user/fullName</path>
                     </source>
                 </outbound>
             </attribute>
 
             <attribute>
-                <ref>ri:sn</ref>                
+                <ref>ri:sn</ref>
                 <outbound>
-                	<source>
-                		<path>familyName</path>
-                	</source>
+                    <source>
+                        <path>familyName</path>
+                    </source>
                 </outbound>
             </attribute>
 
             <attribute>
                 <ref>ri:givenName</ref>
                 <outbound>
-                	<source>
-                		<path>givenName</path>
-                	</source>
+                    <source>
+                        <path>givenName</path>
+                    </source>
                 </outbound>
             </attribute>
 
@@ -129,32 +120,32 @@
                 <ref>ri:uid</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
-                	<!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
-                	     as a side-effect as it is a naming attribute. -->
-                	<strength>weak</strength>
-                	<source>
-                		<path>$user/name</path>
-                	</source>
+                    <!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
+                         as a side-effect as it is a naming attribute. -->
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                 </outbound>
             </attribute>
 
             <association>
-            	<ref>ri:group</ref>
-            	<displayName>LDAP Group Membership</displayName>
-            	<kind>entitlement</kind>
-            	<intent>ldapGroup</intent>
-            	<intent>projAdmGroup</intent>
-            	<direction>objectToSubject</direction>
-            	<associationAttribute>ri:uniqueMember</associationAttribute>
-            	<valueAttribute>ri:dn</valueAttribute>
+                <ref>ri:group</ref>
+                <displayName>LDAP Group Membership</displayName>
+                <kind>entitlement</kind>
+                <intent>ldapGroup</intent>
+                <intent>projAdmGroup</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:uniqueMember</associationAttribute>
+                <valueAttribute>ri:dn</valueAttribute>
             </association>
-            
+
             <activation>
                 <administrativeStatus>
                     <outbound/>
                 </administrativeStatus>
             </activation>
-            
+
             <credentials>
                 <password>
                     <outbound/>
@@ -162,10 +153,10 @@
             </credentials>
 
         </objectType>
-        
-        
+
+
         <objectType>
-        	<kind>entitlement</kind>
+            <kind>entitlement</kind>
             <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
             <objectClass>ri:groupOfUniqueNames</objectClass>
@@ -174,19 +165,19 @@
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <!-- Name cannot be weak. Changes in name trigger object rename. -->
-					<source>
-						<path>$focus/name</path>
-					</source>
+                    <source>
+                        <path>$focus/name</path>
+                    </source>
                     <expression>
-                    	<script>
-	                        <code>
-	                        	import javax.naming.ldap.Rdn
-	                        	import javax.naming.ldap.LdapName
-	                        	
-	                        	dn = new LdapName('ou=groups,dc=example,dc=com')
-	                        	dn.add(new Rdn('cn', name.toString()))
-	                        	return dn.toString()
-	                        </code>
+                        <script>
+                            <code>
+                                import javax.naming.ldap.Rdn
+                                import javax.naming.ldap.LdapName
+
+                                dn = new LdapName('ou=groups,dc=example,dc=com')
+                                dn.add(new Rdn('cn', name.toString()))
+                                return dn.toString()
+                            </code>
                         </script>
                     </expression>
                 </outbound>
@@ -195,26 +186,26 @@
                 <ref>ri:cn</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
-                	<!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
-                	     as a side-effect as it is a naming attribute. -->
-                	<strength>weak</strength>
-                	<source>
-                		<path>$focus/name</path>
-                	</source>
+                    <!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
+                         as a side-effect as it is a naming attribute. -->
+                    <strength>weak</strength>
+                    <source>
+                        <path>$focus/name</path>
+                    </source>
                 </outbound>
             </attribute>
             <attribute>
                 <ref>ri:description</ref>
                 <outbound>
-                	<source>
-                		<path>description</path>
-                	</source>
+                    <source>
+                        <path>description</path>
+                    </source>
                 </outbound>
             </attribute>
         </objectType>
-        
+
         <objectType>
-        	<kind>entitlement</kind>
+            <kind>entitlement</kind>
             <intent>projAdmGroup</intent>
             <displayName>Project Admin Group</displayName>
             <objectClass>ri:groupOfUniqueNames</objectClass>
@@ -223,20 +214,20 @@
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <!-- Name cannot be weak. Changes in name trigger object rename. -->
-					<source>
-						<path>$focus/name</path>
-					</source>
+                    <source>
+                        <path>$focus/name</path>
+                    </source>
                     <expression>
-                    	<script>
-	                        <code>
-	                        	import javax.naming.ldap.Rdn
-	                        	import javax.naming.ldap.LdapName
-	                        	
-	                        	dn = new LdapName('dc=example,dc=com')
-	                        	dn.add(new Rdn('ou', name.toString()))
-	                        	dn.add(new Rdn('cn', 'admins'))
-	                        	return dn.toString()
-	                        </code>
+                        <script>
+                            <code>
+                                import javax.naming.ldap.Rdn
+                                import javax.naming.ldap.LdapName
+
+                                dn = new LdapName('dc=example,dc=com')
+                                dn.add(new Rdn('ou', name.toString()))
+                                dn.add(new Rdn('cn', 'admins'))
+                                return dn.toString()
+                            </code>
                         </script>
                     </expression>
                 </outbound>
@@ -245,31 +236,31 @@
                 <ref>ri:cn</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
-                	<!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
-                	     as a side-effect as it is a naming attribute. -->
-                	<strength>weak</strength>
-                	<expression>
-                		<value>admins</value>
-                	</expression>
+                    <!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
+                         as a side-effect as it is a naming attribute. -->
+                    <strength>weak</strength>
+                    <expression>
+                        <value>admins</value>
+                    </expression>
                 </outbound>
             </attribute>
             <dependency>
-				<kind>generic</kind>
-				<intent>projOu</intent>
-			</dependency>
-			<association>
-            	<ref>ri:group</ref>
-            	<displayName>LDAP Group Membership</displayName>
-            	<kind>entitlement</kind>
-            	<intent>ldapGroup</intent>
-            	<direction>objectToSubject</direction>
-            	<associationAttribute>ri:uniqueMember</associationAttribute>
-            	<valueAttribute>ri:dn</valueAttribute>
+                <kind>generic</kind>
+                <intent>projOu</intent>
+            </dependency>
+            <association>
+                <ref>ri:group</ref>
+                <displayName>LDAP Group Membership</displayName>
+                <kind>entitlement</kind>
+                <intent>ldapGroup</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:uniqueMember</associationAttribute>
+                <valueAttribute>ri:dn</valueAttribute>
             </association>
         </objectType>
-        
+
         <objectType>
-        	<kind>generic</kind>
+            <kind>generic</kind>
             <intent>projOu</intent>
             <displayName>Project Organizational Unit</displayName>
             <objectClass>ri:organizationalUnit</objectClass>
@@ -278,19 +269,19 @@
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <!-- Name cannot be weak. Changes in name trigger object rename. -->
-					<source>
-						<path>$focus/name</path>
-					</source>
+                    <source>
+                        <path>$focus/name</path>
+                    </source>
                     <expression>
-                    	<script>
-	                        <code>
-	                        	import javax.naming.ldap.Rdn
-	                        	import javax.naming.ldap.LdapName
-	                        	
-	                        	dn = new LdapName('dc=example,dc=com')
-                        		dn.add(new Rdn('ou', name.toString()))
-	                        	return dn.toString()
-	                        </code>
+                        <script>
+                            <code>
+                                import javax.naming.ldap.Rdn
+                                import javax.naming.ldap.LdapName
+
+                                dn = new LdapName('dc=example,dc=com')
+                                dn.add(new Rdn('ou', name.toString()))
+                                return dn.toString()
+                            </code>
                         </script>
                     </expression>
                 </outbound>
@@ -299,38 +290,38 @@
                 <ref>ri:ou</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
-                	<!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
-                	     as a side-effect as it is a naming attribute. -->
-                	<strength>weak</strength>
-                	<source>
-                		<path>$focus/name</path>
-                	</source>
+                    <!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
+                         as a side-effect as it is a naming attribute. -->
+                    <strength>weak</strength>
+                    <source>
+                        <path>$focus/name</path>
+                    </source>
                 </outbound>
                 <inbound>
-                	<strength>weak</strength>
-                	<target>
-                		<path>$focus/name</path>
-                	</target>
+                    <strength>weak</strength>
+                    <target>
+                        <path>$focus/name</path>
+                    </target>
                 </inbound>
             </attribute>
             <attribute>
                 <ref>ri:description</ref>
                 <outbound>
-                	<source>
-                		<path>description</path>
-                	</source>
+                    <source>
+                        <path>description</path>
+                    </source>
                 </outbound>
             </attribute>
         </objectType>
-        
-        
-        
+
+
+
        <!-- Lots of object type definitions here. They are not really used. They are
             here just to make the resource definition bigger and the clone slower.
-            MID-3424 --> 
-        
+            MID-3424 -->
+
        <objectType>
-			<kind>account</kind>
+            <kind>account</kind>
             <intent>fake01</intent>
             <displayName>Fake Account</displayName>
             <default>false</default>
@@ -341,19 +332,19 @@
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <!-- Name cannot be weak. Changes in name trigger object rename. -->
-					<source>
-						<path>$user/name</path>
-					</source>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                     <expression>
-                    	<script>
-	                        <code>
-	                        	import javax.naming.ldap.Rdn
-	                        	import javax.naming.ldap.LdapName
-	                        	
-	                        	dn = new LdapName('ou=people,dc=example,dc=com')
-	                        	dn.add(new Rdn('uid',name.toString()))
-	                        	return dn.toString()
-	                        </code>
+                        <script>
+                            <code>
+                                import javax.naming.ldap.Rdn
+                                import javax.naming.ldap.LdapName
+
+                                dn = new LdapName('ou=people,dc=example,dc=com')
+                                dn.add(new Rdn('uid',name.toString()))
+                                return dn.toString()
+                            </code>
                         </script>
                     </expression>
                 </outbound>
@@ -362,46 +353,46 @@
                 <ref>ri:cn</ref>
                 <displayName>Common Name</displayName>
                 <outbound>
-                	<source>
-	                    <path>$user/fullName</path>
+                    <source>
+                        <path>$user/fullName</path>
                     </source>
                 </outbound>
             </attribute>
             <attribute>
-                <ref>ri:sn</ref>                
+                <ref>ri:sn</ref>
                 <outbound>
-                	<source>
-                		<path>familyName</path>
-                	</source>
+                    <source>
+                        <path>familyName</path>
+                    </source>
                 </outbound>
             </attribute>
             <attribute>
                 <ref>ri:givenName</ref>
                 <outbound>
-                	<source>
-                		<path>givenName</path>
-                	</source>
+                    <source>
+                        <path>givenName</path>
+                    </source>
                 </outbound>
             </attribute>
             <attribute>
                 <ref>ri:uid</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
-                	<strength>weak</strength>
-                	<source>
-                		<path>$user/name</path>
-                	</source>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                 </outbound>
             </attribute>
             <association>
-            	<ref>ri:group</ref>
-            	<displayName>LDAP Group Membership</displayName>
-            	<kind>entitlement</kind>
-            	<intent>ldapGroup</intent>
-            	<direction>objectToSubject</direction>
-            	<associationAttribute>ri:uniqueMember</associationAttribute>
-            	<valueAttribute>ri:dn</valueAttribute>
-            </association>            
+                <ref>ri:group</ref>
+                <displayName>LDAP Group Membership</displayName>
+                <kind>entitlement</kind>
+                <intent>ldapGroup</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:uniqueMember</associationAttribute>
+                <valueAttribute>ri:dn</valueAttribute>
+            </association>
             <activation>
                 <administrativeStatus>
                     <outbound/>
@@ -413,10 +404,10 @@
                 </password>
             </credentials>
         </objectType>
-        
-        
+
+
         <objectType>
-			<kind>account</kind>
+            <kind>account</kind>
             <intent>fake02</intent>
             <displayName>Fake Account</displayName>
             <default>false</default>
@@ -427,19 +418,19 @@
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <!-- Name cannot be weak. Changes in name trigger object rename. -->
-					<source>
-						<path>$user/name</path>
-					</source>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                     <expression>
-                    	<script>
-	                        <code>
-	                        	import javax.naming.ldap.Rdn
-	                        	import javax.naming.ldap.LdapName
-	                        	
-	                        	dn = new LdapName('ou=people,dc=example,dc=com')
-	                        	dn.add(new Rdn('uid',name.toString()))
-	                        	return dn.toString()
-	                        </code>
+                        <script>
+                            <code>
+                                import javax.naming.ldap.Rdn
+                                import javax.naming.ldap.LdapName
+
+                                dn = new LdapName('ou=people,dc=example,dc=com')
+                                dn.add(new Rdn('uid',name.toString()))
+                                return dn.toString()
+                            </code>
                         </script>
                     </expression>
                 </outbound>
@@ -448,46 +439,46 @@
                 <ref>ri:cn</ref>
                 <displayName>Common Name</displayName>
                 <outbound>
-                	<source>
-	                    <path>$user/fullName</path>
+                    <source>
+                        <path>$user/fullName</path>
                     </source>
                 </outbound>
             </attribute>
             <attribute>
-                <ref>ri:sn</ref>                
+                <ref>ri:sn</ref>
                 <outbound>
-                	<source>
-                		<path>familyName</path>
-                	</source>
+                    <source>
+                        <path>familyName</path>
+                    </source>
                 </outbound>
             </attribute>
             <attribute>
                 <ref>ri:givenName</ref>
                 <outbound>
-                	<source>
-                		<path>givenName</path>
-                	</source>
+                    <source>
+                        <path>givenName</path>
+                    </source>
                 </outbound>
             </attribute>
             <attribute>
                 <ref>ri:uid</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
-                	<strength>weak</strength>
-                	<source>
-                		<path>$user/name</path>
-                	</source>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                 </outbound>
             </attribute>
             <association>
-            	<ref>ri:group</ref>
-            	<displayName>LDAP Group Membership</displayName>
-            	<kind>entitlement</kind>
-            	<intent>ldapGroup</intent>
-            	<direction>objectToSubject</direction>
-            	<associationAttribute>ri:uniqueMember</associationAttribute>
-            	<valueAttribute>ri:dn</valueAttribute>
-            </association>            
+                <ref>ri:group</ref>
+                <displayName>LDAP Group Membership</displayName>
+                <kind>entitlement</kind>
+                <intent>ldapGroup</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:uniqueMember</associationAttribute>
+                <valueAttribute>ri:dn</valueAttribute>
+            </association>
             <activation>
                 <administrativeStatus>
                     <outbound/>
@@ -499,9 +490,9 @@
                 </password>
             </credentials>
         </objectType>
-        
+
         <objectType>
-			<kind>account</kind>
+            <kind>account</kind>
             <intent>fake03</intent>
             <displayName>Fake Account</displayName>
             <default>false</default>
@@ -512,19 +503,19 @@
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <!-- Name cannot be weak. Changes in name trigger object rename. -->
-					<source>
-						<path>$user/name</path>
-					</source>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                     <expression>
-                    	<script>
-	                        <code>
-	                        	import javax.naming.ldap.Rdn
-	                        	import javax.naming.ldap.LdapName
-	                        	
-	                        	dn = new LdapName('ou=people,dc=example,dc=com')
-	                        	dn.add(new Rdn('uid',name.toString()))
-	                        	return dn.toString()
-	                        </code>
+                        <script>
+                            <code>
+                                import javax.naming.ldap.Rdn
+                                import javax.naming.ldap.LdapName
+
+                                dn = new LdapName('ou=people,dc=example,dc=com')
+                                dn.add(new Rdn('uid',name.toString()))
+                                return dn.toString()
+                            </code>
                         </script>
                     </expression>
                 </outbound>
@@ -533,46 +524,46 @@
                 <ref>ri:cn</ref>
                 <displayName>Common Name</displayName>
                 <outbound>
-                	<source>
-	                    <path>$user/fullName</path>
+                    <source>
+                        <path>$user/fullName</path>
                     </source>
                 </outbound>
             </attribute>
             <attribute>
-                <ref>ri:sn</ref>                
+                <ref>ri:sn</ref>
                 <outbound>
-                	<source>
-                		<path>familyName</path>
-                	</source>
+                    <source>
+                        <path>familyName</path>
+                    </source>
                 </outbound>
             </attribute>
             <attribute>
                 <ref>ri:givenName</ref>
                 <outbound>
-                	<source>
-                		<path>givenName</path>
-                	</source>
+                    <source>
+                        <path>givenName</path>
+                    </source>
                 </outbound>
             </attribute>
             <attribute>
                 <ref>ri:uid</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
-                	<strength>weak</strength>
-                	<source>
-                		<path>$user/name</path>
-                	</source>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                 </outbound>
             </attribute>
             <association>
-            	<ref>ri:group</ref>
-            	<displayName>LDAP Group Membership</displayName>
-            	<kind>entitlement</kind>
-            	<intent>ldapGroup</intent>
-            	<direction>objectToSubject</direction>
-            	<associationAttribute>ri:uniqueMember</associationAttribute>
-            	<valueAttribute>ri:dn</valueAttribute>
-            </association>            
+                <ref>ri:group</ref>
+                <displayName>LDAP Group Membership</displayName>
+                <kind>entitlement</kind>
+                <intent>ldapGroup</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:uniqueMember</associationAttribute>
+                <valueAttribute>ri:dn</valueAttribute>
+            </association>
             <activation>
                 <administrativeStatus>
                     <outbound/>
@@ -584,9 +575,9 @@
                 </password>
             </credentials>
         </objectType>
-        
+
         <objectType>
-			<kind>account</kind>
+            <kind>account</kind>
             <intent>fake04</intent>
             <displayName>Fake Account</displayName>
             <default>false</default>
@@ -597,19 +588,19 @@
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <!-- Name cannot be weak. Changes in name trigger object rename. -->
-					<source>
-						<path>$user/name</path>
-					</source>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                     <expression>
-                    	<script>
-	                        <code>
-	                        	import javax.naming.ldap.Rdn
-	                        	import javax.naming.ldap.LdapName
-	                        	
-	                        	dn = new LdapName('ou=people,dc=example,dc=com')
-	                        	dn.add(new Rdn('uid',name.toString()))
-	                        	return dn.toString()
-	                        </code>
+                        <script>
+                            <code>
+                                import javax.naming.ldap.Rdn
+                                import javax.naming.ldap.LdapName
+
+                                dn = new LdapName('ou=people,dc=example,dc=com')
+                                dn.add(new Rdn('uid',name.toString()))
+                                return dn.toString()
+                            </code>
                         </script>
                     </expression>
                 </outbound>
@@ -618,46 +609,46 @@
                 <ref>ri:cn</ref>
                 <displayName>Common Name</displayName>
                 <outbound>
-                	<source>
-	                    <path>$user/fullName</path>
+                    <source>
+                        <path>$user/fullName</path>
                     </source>
                 </outbound>
             </attribute>
             <attribute>
-                <ref>ri:sn</ref>                
+                <ref>ri:sn</ref>
                 <outbound>
-                	<source>
-                		<path>familyName</path>
-                	</source>
+                    <source>
+                        <path>familyName</path>
+                    </source>
                 </outbound>
             </attribute>
             <attribute>
                 <ref>ri:givenName</ref>
                 <outbound>
-                	<source>
-                		<path>givenName</path>
-                	</source>
+                    <source>
+                        <path>givenName</path>
+                    </source>
                 </outbound>
             </attribute>
             <attribute>
                 <ref>ri:uid</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
-                	<strength>weak</strength>
-                	<source>
-                		<path>$user/name</path>
-                	</source>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                 </outbound>
             </attribute>
             <association>
-            	<ref>ri:group</ref>
-            	<displayName>LDAP Group Membership</displayName>
-            	<kind>entitlement</kind>
-            	<intent>ldapGroup</intent>
-            	<direction>objectToSubject</direction>
-            	<associationAttribute>ri:uniqueMember</associationAttribute>
-            	<valueAttribute>ri:dn</valueAttribute>
-            </association>            
+                <ref>ri:group</ref>
+                <displayName>LDAP Group Membership</displayName>
+                <kind>entitlement</kind>
+                <intent>ldapGroup</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:uniqueMember</associationAttribute>
+                <valueAttribute>ri:dn</valueAttribute>
+            </association>
             <activation>
                 <administrativeStatus>
                     <outbound/>
@@ -669,9 +660,9 @@
                 </password>
             </credentials>
         </objectType>
-        
+
         <objectType>
-			<kind>account</kind>
+            <kind>account</kind>
             <intent>fake05</intent>
             <displayName>Fake Account</displayName>
             <default>false</default>
@@ -682,19 +673,19 @@
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <!-- Name cannot be weak. Changes in name trigger object rename. -->
-					<source>
-						<path>$user/name</path>
-					</source>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                     <expression>
-                    	<script>
-	                        <code>
-	                        	import javax.naming.ldap.Rdn
-	                        	import javax.naming.ldap.LdapName
-	                        	
-	                        	dn = new LdapName('ou=people,dc=example,dc=com')
-	                        	dn.add(new Rdn('uid',name.toString()))
-	                        	return dn.toString()
-	                        </code>
+                        <script>
+                            <code>
+                                import javax.naming.ldap.Rdn
+                                import javax.naming.ldap.LdapName
+
+                                dn = new LdapName('ou=people,dc=example,dc=com')
+                                dn.add(new Rdn('uid',name.toString()))
+                                return dn.toString()
+                            </code>
                         </script>
                     </expression>
                 </outbound>
@@ -703,46 +694,46 @@
                 <ref>ri:cn</ref>
                 <displayName>Common Name</displayName>
                 <outbound>
-                	<source>
-	                    <path>$user/fullName</path>
+                    <source>
+                        <path>$user/fullName</path>
                     </source>
                 </outbound>
             </attribute>
             <attribute>
-                <ref>ri:sn</ref>                
+                <ref>ri:sn</ref>
                 <outbound>
-                	<source>
-                		<path>familyName</path>
-                	</source>
+                    <source>
+                        <path>familyName</path>
+                    </source>
                 </outbound>
             </attribute>
             <attribute>
                 <ref>ri:givenName</ref>
                 <outbound>
-                	<source>
-                		<path>givenName</path>
-                	</source>
+                    <source>
+                        <path>givenName</path>
+                    </source>
                 </outbound>
             </attribute>
             <attribute>
                 <ref>ri:uid</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
-                	<strength>weak</strength>
-                	<source>
-                		<path>$user/name</path>
-                	</source>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                 </outbound>
             </attribute>
             <association>
-            	<ref>ri:group</ref>
-            	<displayName>LDAP Group Membership</displayName>
-            	<kind>entitlement</kind>
-            	<intent>ldapGroup</intent>
-            	<direction>objectToSubject</direction>
-            	<associationAttribute>ri:uniqueMember</associationAttribute>
-            	<valueAttribute>ri:dn</valueAttribute>
-            </association>            
+                <ref>ri:group</ref>
+                <displayName>LDAP Group Membership</displayName>
+                <kind>entitlement</kind>
+                <intent>ldapGroup</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:uniqueMember</associationAttribute>
+                <valueAttribute>ri:dn</valueAttribute>
+            </association>
             <activation>
                 <administrativeStatus>
                     <outbound/>
@@ -754,9 +745,9 @@
                 </password>
             </credentials>
         </objectType>
-        
+
         <objectType>
-			<kind>account</kind>
+            <kind>account</kind>
             <intent>fake06</intent>
             <displayName>Fake Account</displayName>
             <default>false</default>
@@ -767,19 +758,19 @@
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <!-- Name cannot be weak. Changes in name trigger object rename. -->
-					<source>
-						<path>$user/name</path>
-					</source>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                     <expression>
-                    	<script>
-	                        <code>
-	                        	import javax.naming.ldap.Rdn
-	                        	import javax.naming.ldap.LdapName
-	                        	
-	                        	dn = new LdapName('ou=people,dc=example,dc=com')
-	                        	dn.add(new Rdn('uid',name.toString()))
-	                        	return dn.toString()
-	                        </code>
+                        <script>
+                            <code>
+                                import javax.naming.ldap.Rdn
+                                import javax.naming.ldap.LdapName
+
+                                dn = new LdapName('ou=people,dc=example,dc=com')
+                                dn.add(new Rdn('uid',name.toString()))
+                                return dn.toString()
+                            </code>
                         </script>
                     </expression>
                 </outbound>
@@ -788,46 +779,46 @@
                 <ref>ri:cn</ref>
                 <displayName>Common Name</displayName>
                 <outbound>
-                	<source>
-	                    <path>$user/fullName</path>
+                    <source>
+                        <path>$user/fullName</path>
                     </source>
                 </outbound>
             </attribute>
             <attribute>
-                <ref>ri:sn</ref>                
+                <ref>ri:sn</ref>
                 <outbound>
-                	<source>
-                		<path>familyName</path>
-                	</source>
+                    <source>
+                        <path>familyName</path>
+                    </source>
                 </outbound>
             </attribute>
             <attribute>
                 <ref>ri:givenName</ref>
                 <outbound>
-                	<source>
-                		<path>givenName</path>
-                	</source>
+                    <source>
+                        <path>givenName</path>
+                    </source>
                 </outbound>
             </attribute>
             <attribute>
                 <ref>ri:uid</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
-                	<strength>weak</strength>
-                	<source>
-                		<path>$user/name</path>
-                	</source>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                 </outbound>
             </attribute>
             <association>
-            	<ref>ri:group</ref>
-            	<displayName>LDAP Group Membership</displayName>
-            	<kind>entitlement</kind>
-            	<intent>ldapGroup</intent>
-            	<direction>objectToSubject</direction>
-            	<associationAttribute>ri:uniqueMember</associationAttribute>
-            	<valueAttribute>ri:dn</valueAttribute>
-            </association>            
+                <ref>ri:group</ref>
+                <displayName>LDAP Group Membership</displayName>
+                <kind>entitlement</kind>
+                <intent>ldapGroup</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:uniqueMember</associationAttribute>
+                <valueAttribute>ri:dn</valueAttribute>
+            </association>
             <activation>
                 <administrativeStatus>
                     <outbound/>
@@ -839,9 +830,9 @@
                 </password>
             </credentials>
         </objectType>
-        
+
         <objectType>
-			<kind>account</kind>
+            <kind>account</kind>
             <intent>fake07</intent>
             <displayName>Fake Account</displayName>
             <default>false</default>
@@ -852,19 +843,19 @@
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <!-- Name cannot be weak. Changes in name trigger object rename. -->
-					<source>
-						<path>$user/name</path>
-					</source>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                     <expression>
-                    	<script>
-	                        <code>
-	                        	import javax.naming.ldap.Rdn
-	                        	import javax.naming.ldap.LdapName
-	                        	
-	                        	dn = new LdapName('ou=people,dc=example,dc=com')
-	                        	dn.add(new Rdn('uid',name.toString()))
-	                        	return dn.toString()
-	                        </code>
+                        <script>
+                            <code>
+                                import javax.naming.ldap.Rdn
+                                import javax.naming.ldap.LdapName
+
+                                dn = new LdapName('ou=people,dc=example,dc=com')
+                                dn.add(new Rdn('uid',name.toString()))
+                                return dn.toString()
+                            </code>
                         </script>
                     </expression>
                 </outbound>
@@ -873,46 +864,46 @@
                 <ref>ri:cn</ref>
                 <displayName>Common Name</displayName>
                 <outbound>
-                	<source>
-	                    <path>$user/fullName</path>
+                    <source>
+                        <path>$user/fullName</path>
                     </source>
                 </outbound>
             </attribute>
             <attribute>
-                <ref>ri:sn</ref>                
+                <ref>ri:sn</ref>
                 <outbound>
-                	<source>
-                		<path>familyName</path>
-                	</source>
+                    <source>
+                        <path>familyName</path>
+                    </source>
                 </outbound>
             </attribute>
             <attribute>
                 <ref>ri:givenName</ref>
                 <outbound>
-                	<source>
-                		<path>givenName</path>
-                	</source>
+                    <source>
+                        <path>givenName</path>
+                    </source>
                 </outbound>
             </attribute>
             <attribute>
                 <ref>ri:uid</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
-                	<strength>weak</strength>
-                	<source>
-                		<path>$user/name</path>
-                	</source>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                 </outbound>
             </attribute>
             <association>
-            	<ref>ri:group</ref>
-            	<displayName>LDAP Group Membership</displayName>
-            	<kind>entitlement</kind>
-            	<intent>ldapGroup</intent>
-            	<direction>objectToSubject</direction>
-            	<associationAttribute>ri:uniqueMember</associationAttribute>
-            	<valueAttribute>ri:dn</valueAttribute>
-            </association>            
+                <ref>ri:group</ref>
+                <displayName>LDAP Group Membership</displayName>
+                <kind>entitlement</kind>
+                <intent>ldapGroup</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:uniqueMember</associationAttribute>
+                <valueAttribute>ri:dn</valueAttribute>
+            </association>
             <activation>
                 <administrativeStatus>
                     <outbound/>
@@ -924,9 +915,9 @@
                 </password>
             </credentials>
         </objectType>
-        
+
         <objectType>
-			<kind>account</kind>
+            <kind>account</kind>
             <intent>fake08</intent>
             <displayName>Fake Account</displayName>
             <default>false</default>
@@ -937,19 +928,19 @@
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <!-- Name cannot be weak. Changes in name trigger object rename. -->
-					<source>
-						<path>$user/name</path>
-					</source>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                     <expression>
-                    	<script>
-	                        <code>
-	                        	import javax.naming.ldap.Rdn
-	                        	import javax.naming.ldap.LdapName
-	                        	
-	                        	dn = new LdapName('ou=people,dc=example,dc=com')
-	                        	dn.add(new Rdn('uid',name.toString()))
-	                        	return dn.toString()
-	                        </code>
+                        <script>
+                            <code>
+                                import javax.naming.ldap.Rdn
+                                import javax.naming.ldap.LdapName
+
+                                dn = new LdapName('ou=people,dc=example,dc=com')
+                                dn.add(new Rdn('uid',name.toString()))
+                                return dn.toString()
+                            </code>
                         </script>
                     </expression>
                 </outbound>
@@ -958,46 +949,46 @@
                 <ref>ri:cn</ref>
                 <displayName>Common Name</displayName>
                 <outbound>
-                	<source>
-	                    <path>$user/fullName</path>
+                    <source>
+                        <path>$user/fullName</path>
                     </source>
                 </outbound>
             </attribute>
             <attribute>
-                <ref>ri:sn</ref>                
+                <ref>ri:sn</ref>
                 <outbound>
-                	<source>
-                		<path>familyName</path>
-                	</source>
+                    <source>
+                        <path>familyName</path>
+                    </source>
                 </outbound>
             </attribute>
             <attribute>
                 <ref>ri:givenName</ref>
                 <outbound>
-                	<source>
-                		<path>givenName</path>
-                	</source>
+                    <source>
+                        <path>givenName</path>
+                    </source>
                 </outbound>
             </attribute>
             <attribute>
                 <ref>ri:uid</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
-                	<strength>weak</strength>
-                	<source>
-                		<path>$user/name</path>
-                	</source>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                 </outbound>
             </attribute>
             <association>
-            	<ref>ri:group</ref>
-            	<displayName>LDAP Group Membership</displayName>
-            	<kind>entitlement</kind>
-            	<intent>ldapGroup</intent>
-            	<direction>objectToSubject</direction>
-            	<associationAttribute>ri:uniqueMember</associationAttribute>
-            	<valueAttribute>ri:dn</valueAttribute>
-            </association>            
+                <ref>ri:group</ref>
+                <displayName>LDAP Group Membership</displayName>
+                <kind>entitlement</kind>
+                <intent>ldapGroup</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:uniqueMember</associationAttribute>
+                <valueAttribute>ri:dn</valueAttribute>
+            </association>
             <activation>
                 <administrativeStatus>
                     <outbound/>
@@ -1009,9 +1000,9 @@
                 </password>
             </credentials>
         </objectType>
-        
+
         <objectType>
-			<kind>account</kind>
+            <kind>account</kind>
             <intent>fake09</intent>
             <displayName>Fake Account</displayName>
             <default>false</default>
@@ -1022,19 +1013,19 @@
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <!-- Name cannot be weak. Changes in name trigger object rename. -->
-					<source>
-						<path>$user/name</path>
-					</source>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                     <expression>
-                    	<script>
-	                        <code>
-	                        	import javax.naming.ldap.Rdn
-	                        	import javax.naming.ldap.LdapName
-	                        	
-	                        	dn = new LdapName('ou=people,dc=example,dc=com')
-	                        	dn.add(new Rdn('uid',name.toString()))
-	                        	return dn.toString()
-	                        </code>
+                        <script>
+                            <code>
+                                import javax.naming.ldap.Rdn
+                                import javax.naming.ldap.LdapName
+
+                                dn = new LdapName('ou=people,dc=example,dc=com')
+                                dn.add(new Rdn('uid',name.toString()))
+                                return dn.toString()
+                            </code>
                         </script>
                     </expression>
                 </outbound>
@@ -1043,46 +1034,46 @@
                 <ref>ri:cn</ref>
                 <displayName>Common Name</displayName>
                 <outbound>
-                	<source>
-	                    <path>$user/fullName</path>
+                    <source>
+                        <path>$user/fullName</path>
                     </source>
                 </outbound>
             </attribute>
             <attribute>
-                <ref>ri:sn</ref>                
+                <ref>ri:sn</ref>
                 <outbound>
-                	<source>
-                		<path>familyName</path>
-                	</source>
+                    <source>
+                        <path>familyName</path>
+                    </source>
                 </outbound>
             </attribute>
             <attribute>
                 <ref>ri:givenName</ref>
                 <outbound>
-                	<source>
-                		<path>givenName</path>
-                	</source>
+                    <source>
+                        <path>givenName</path>
+                    </source>
                 </outbound>
             </attribute>
             <attribute>
                 <ref>ri:uid</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
-                	<strength>weak</strength>
-                	<source>
-                		<path>$user/name</path>
-                	</source>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                 </outbound>
             </attribute>
             <association>
-            	<ref>ri:group</ref>
-            	<displayName>LDAP Group Membership</displayName>
-            	<kind>entitlement</kind>
-            	<intent>ldapGroup</intent>
-            	<direction>objectToSubject</direction>
-            	<associationAttribute>ri:uniqueMember</associationAttribute>
-            	<valueAttribute>ri:dn</valueAttribute>
-            </association>            
+                <ref>ri:group</ref>
+                <displayName>LDAP Group Membership</displayName>
+                <kind>entitlement</kind>
+                <intent>ldapGroup</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:uniqueMember</associationAttribute>
+                <valueAttribute>ri:dn</valueAttribute>
+            </association>
             <activation>
                 <administrativeStatus>
                     <outbound/>
@@ -1094,9 +1085,9 @@
                 </password>
             </credentials>
         </objectType>
-        
+
         <objectType>
-			<kind>account</kind>
+            <kind>account</kind>
             <intent>fake10</intent>
             <displayName>Fake Account</displayName>
             <default>false</default>
@@ -1107,19 +1098,19 @@
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <!-- Name cannot be weak. Changes in name trigger object rename. -->
-					<source>
-						<path>$user/name</path>
-					</source>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                     <expression>
-                    	<script>
-	                        <code>
-	                        	import javax.naming.ldap.Rdn
-	                        	import javax.naming.ldap.LdapName
-	                        	
-	                        	dn = new LdapName('ou=people,dc=example,dc=com')
-	                        	dn.add(new Rdn('uid',name.toString()))
-	                        	return dn.toString()
-	                        </code>
+                        <script>
+                            <code>
+                                import javax.naming.ldap.Rdn
+                                import javax.naming.ldap.LdapName
+
+                                dn = new LdapName('ou=people,dc=example,dc=com')
+                                dn.add(new Rdn('uid',name.toString()))
+                                return dn.toString()
+                            </code>
                         </script>
                     </expression>
                 </outbound>
@@ -1128,46 +1119,46 @@
                 <ref>ri:cn</ref>
                 <displayName>Common Name</displayName>
                 <outbound>
-                	<source>
-	                    <path>$user/fullName</path>
+                    <source>
+                        <path>$user/fullName</path>
                     </source>
                 </outbound>
             </attribute>
             <attribute>
-                <ref>ri:sn</ref>                
+                <ref>ri:sn</ref>
                 <outbound>
-                	<source>
-                		<path>familyName</path>
-                	</source>
+                    <source>
+                        <path>familyName</path>
+                    </source>
                 </outbound>
             </attribute>
             <attribute>
                 <ref>ri:givenName</ref>
                 <outbound>
-                	<source>
-                		<path>givenName</path>
-                	</source>
+                    <source>
+                        <path>givenName</path>
+                    </source>
                 </outbound>
             </attribute>
             <attribute>
                 <ref>ri:uid</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
-                	<strength>weak</strength>
-                	<source>
-                		<path>$user/name</path>
-                	</source>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                 </outbound>
             </attribute>
             <association>
-            	<ref>ri:group</ref>
-            	<displayName>LDAP Group Membership</displayName>
-            	<kind>entitlement</kind>
-            	<intent>ldapGroup</intent>
-            	<direction>objectToSubject</direction>
-            	<associationAttribute>ri:uniqueMember</associationAttribute>
-            	<valueAttribute>ri:dn</valueAttribute>
-            </association>            
+                <ref>ri:group</ref>
+                <displayName>LDAP Group Membership</displayName>
+                <kind>entitlement</kind>
+                <intent>ldapGroup</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:uniqueMember</associationAttribute>
+                <valueAttribute>ri:dn</valueAttribute>
+            </association>
             <activation>
                 <administrativeStatus>
                     <outbound/>
@@ -1179,61 +1170,61 @@
                 </password>
             </credentials>
         </objectType>
-        
+
     </schemaHandling>
 
     <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-    	<configured>
-	        <cap:activation>
-	            <cap:status>
-	                <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
-	                <cap:enableValue/>
-	                <cap:disableValue>true</cap:disableValue>
-	            </cap:status>
-	        </cap:activation>
-		</configured>
+        <configured>
+            <cap:activation>
+                <cap:status>
+                    <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
+                    <cap:enableValue/>
+                    <cap:disableValue>true</cap:disableValue>
+                </cap:status>
+            </cap:activation>
+        </configured>
     </capabilities>
 
     <synchronization>
-    	<objectSynchronization>
-    		<objectClass>ri:inetOrgPerson</objectClass>
-	        <enabled>true</enabled>
-	        <correlation>
-	            <q:equal>
-	                <q:path>name</q:path>
-	                <expression>
-	                	<path>$shadow/attributes/ri:uid</path>
-	                </expression>
-	            </q:equal>
-	        </correlation>
+        <objectSynchronization>
+            <objectClass>ri:inetOrgPerson</objectClass>
+            <enabled>true</enabled>
+            <correlation>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <path>$shadow/attributes/ri:uid</path>
+                    </expression>
+                </q:equal>
+            </correlation>
 
             <objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
 
-	        <reaction>
-	            <situation>linked</situation>
-	            <synchronize>true</synchronize>
-	        </reaction>
-	        <reaction>
-	            <situation>deleted</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
-	            </action>
-	        </reaction>
-	        <reaction>
-	            <situation>unlinked</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-	            </action>
-	        </reaction>
-	        <reaction>
-	            <situation>unmatched</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-	            </action>
-	        </reaction>
-		</objectSynchronization>
-	</synchronization>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
 </resource>

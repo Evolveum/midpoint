@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.query2.resolution;
@@ -43,9 +34,9 @@ public class HqlDataInstance<D extends JpaDataNodeDefinition> implements DebugDu
     @SuppressWarnings("unused")
     private static final Trace LOGGER = TraceManager.getTrace(HqlDataInstance.class);
 
-	@NotNull final String hqlPath;                         // concrete path for accessing this item
-	@NotNull final D jpaDefinition;                        // definition of this item
-    final HqlDataInstance<?> parentDataItem;         	   // how we got here - optional
+    @NotNull final String hqlPath;                         // concrete path for accessing this item
+    @NotNull final D jpaDefinition;                        // definition of this item
+    final HqlDataInstance<?> parentDataItem;                // how we got here - optional
 
     HqlDataInstance(@NotNull String hqlPath, @NotNull D jpaDefinition, HqlDataInstance<?> parentDataItem) {
         this.hqlPath = hqlPath;
@@ -63,18 +54,13 @@ public class HqlDataInstance<D extends JpaDataNodeDefinition> implements DebugDu
         }
     }
 
-	@NotNull
+    @NotNull
     public D getJpaDefinition() {
         return jpaDefinition;
     }
 
     HqlDataInstance<?> getParentItem() {
         return parentDataItem;
-    }
-
-    @Override
-    public String debugDump() {
-        return debugDump(0);
     }
 
     @SuppressWarnings("unused")

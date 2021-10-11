@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism.xnode;
@@ -24,23 +15,25 @@ import java.util.Map;
  */
 public interface XNodeFactory {
 
-	RootXNode root(QName rootElementName, XNode subnode);
+    RootXNode root(QName rootElementName, XNode subnode);
 
-	<T> PrimitiveXNode<T> primitive();
+    <T> PrimitiveXNode<T> primitive();
 
-	<T> PrimitiveXNode<T> primitive(T value, QName typeName);
+    <T> PrimitiveXNode<T> primitive(T value, QName typeName);
 
-	<T> PrimitiveXNode<T> primitive(T value);
+    <T> PrimitiveXNode<T> primitive(T value);
 
-	<T> PrimitiveXNode<T> primitive(ValueParser<T> valueParser);
+    <T> PrimitiveXNode<T> primitiveAttribute(T value);
 
-	<T> PrimitiveXNode<T> primitive(ValueParser<T> valueParser, QName typeName, boolean explicitTypeDeclaration);
+    <T> PrimitiveXNode<T> primitive(ValueParser<T> valueParser);
 
-	MapXNode map();
+    <T> PrimitiveXNode<T> primitive(ValueParser<T> valueParser, QName typeName, boolean explicitTypeDeclaration);
 
-	MapXNode map(Map<QName, XNode> source);
+    MapXNode map();
 
-	MapXNode map(QName key, XNode value);
+    MapXNode map(Map<QName, XNode> source);
 
-	ListXNode list(XNode... nodes);
+    MapXNode map(QName key, XNode value);
+
+    ListXNode list(XNode... nodes);
 }

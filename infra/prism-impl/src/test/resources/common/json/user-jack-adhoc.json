@@ -16,7 +16,25 @@
     "givenName" : "Jack",
     "familyName" : "Sparrow",
     "additionalNames" : [ "Captain", "Jackie" ],
-    "polyName" : "Džek Sperou",
+    "polyName" : {
+        "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+        "orig" : "Džek Sperou",
+        "norm" : "dzek sperou",
+        "translation" : {
+            "key" : "JACK",
+            "fallback" : "Jack",
+            "argument" : [ {
+                "value" : "Sparrow"
+                }
+            ]
+        },
+        "lang" : {
+            "en" : "Jack Sparrow",
+            "sk" : "Džek Sperou",
+            "ru" : "Джек Воробей",
+            "hr" : "Ðek Sperou"
+        }
+    },
     "assignment" : [ {
       "id" : 1111,
       "description" : "Assignment 1"
@@ -48,8 +66,14 @@
       }
     },
     "accountRef" : [ {
-      "oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1111",
-      "type" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd#AccountType"
+      "oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1113",
+      "type" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd#AccountType",
+      "object" : {
+        "oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1113",
+        "name" : "jsparrow"
+      }
+    }, {
+      "oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1111"
     }, {
       "oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1112",
       "type" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd#AccountType",

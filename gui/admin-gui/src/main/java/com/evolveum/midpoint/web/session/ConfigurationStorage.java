@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.session;
@@ -26,12 +17,11 @@ import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
  */
 public class ConfigurationStorage implements PageStorage {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private DebugSearchDto debugSearchDto;
+    private DebugSearchDto debugSearchDto;
 
     private ObjectPaging debugSearchPaging;
-    private ObjectPaging accountDetailsPaging;
 
     @Override
     public Search getSearch() {
@@ -40,7 +30,7 @@ public class ConfigurationStorage implements PageStorage {
 
     @Override
     public void setSearch(Search search) {
-    	debugSearchDto.setSearch(search);
+        debugSearchDto.setSearch(search);
     }
 
     public void setDebugSearchDto(DebugSearchDto debugSearchDto) {
@@ -48,8 +38,8 @@ public class ConfigurationStorage implements PageStorage {
     }
 
     public DebugSearchDto getDebugSearchDto() {
-		return debugSearchDto;
-	}
+        return debugSearchDto;
+    }
 
     @Override
     public ObjectPaging getPaging() {
@@ -61,27 +51,18 @@ public class ConfigurationStorage implements PageStorage {
         this.debugSearchPaging = debugSearchPaging;
     }
 
-    public ObjectPaging getAccountDetailsPaging() {
-        return accountDetailsPaging;
+    @Override
+    public String debugDump() {
+        return debugDump(0);
     }
 
-    public void setAccountDetailsPaging(ObjectPaging accountDetailsPaging) {
-        this.accountDetailsPaging = accountDetailsPaging;
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("ConfigurationStorage\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "debugSearchDto", debugSearchDto, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "debugSearchPaging", debugSearchPaging, indent+1);
+        return sb.toString();
     }
-
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
-
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("ConfigurationStorage\n");
-		DebugUtil.debugDumpWithLabelLn(sb, "debugSearchDto", debugSearchDto, indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "debugSearchPaging", debugSearchPaging, indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "accountDetailsPaging", accountDetailsPaging, indent+1);
-		return sb.toString();
-	}
 }

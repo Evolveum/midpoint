@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:ext="http://example.com/p"
+        oid="87d973ee-5c47-488e-94cb-dfaa8cc9448d">
+    <name>manka</name>
+    <extension>
+        <ext:hidden1>h1.1</ext:hidden1>
+        <ext:hidden1>h1.2</ext:hidden1>
+        <ext:visible>v1</ext:visible>
+        <ext:visible>v2</ext:visible>
+        <ext:visible>v3</ext:visible>
+    </extension>
+    <assignment id="1">
+        <extension>
+            <ext:weapon>w1</ext:weapon>
+            <ext:weapon>w2</ext:weapon>
+            <ext:weapon>w3</ext:weapon>
+            <ext:shipName>none</ext:shipName>
+        </extension>
+        <targetRef oid="12345" type="RoleType" />
+    </assignment>
+</user>

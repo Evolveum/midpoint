@@ -1,97 +1,71 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism;
 
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 import static org.testng.AssertJUnit.assertEquals;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import javax.xml.namespace.QName;
+
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
 import com.evolveum.midpoint.prism.impl.xnode.MapXNodeImpl;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
-import javax.xml.namespace.QName;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
  * @author Radovan Semancik
- *
  */
-public class TestFundamentals {
+public class TestFundamentals extends AbstractPrismTest {
 
-	@BeforeSuite
-	public void setupDebug() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
-		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
-	}
+    @Test
+    public void testPrismValueContainsRealValue() {
+        // GIVEN
+        PrismPropertyValue<String> valFoo1 = new PrismPropertyValueImpl<>("foo");
+        PrismPropertyValue<String> valBar1 = new PrismPropertyValueImpl<>("bar");
+        valBar1.setOriginType(OriginType.OUTBOUND);
+        Collection<PrismValue> collection = new ArrayList<>();
+        collection.add(valFoo1);
+        collection.add(valBar1);
 
-	@Test
-    public void testPrismValueContainsRealValue() throws Exception {
-		System.out.println("\n\n===[ testPrismValueContainsRealValue ]===\n");
-		// GIVEN
-		PrismPropertyValue<String> valFoo1 = new PrismPropertyValueImpl<>("foo");
-		PrismPropertyValue<String> valBar1 = new PrismPropertyValueImpl<>("bar");
-		valBar1.setOriginType(OriginType.OUTBOUND);
-		Collection<PrismValue> collection = new ArrayList<>();
-		collection.add(valFoo1);
-		collection.add(valBar1);
+        PrismPropertyValue<String> valFoo2 = new PrismPropertyValueImpl<>("foo");
+        PrismPropertyValue<String> valFoo3 = new PrismPropertyValueImpl<>("foo");
+        valFoo3.setOriginType(OriginType.OUTBOUND);
 
-		PrismPropertyValue<String> valFoo2 = new PrismPropertyValueImpl<>("foo");
-		PrismPropertyValue<String> valFoo3 = new PrismPropertyValueImpl<>("foo");
-		valFoo3.setOriginType(OriginType.OUTBOUND);
+        PrismPropertyValue<String> valBar2 = new PrismPropertyValueImpl<>("bar");
+        valBar2.setOriginType(OriginType.OUTBOUND);
+        PrismPropertyValue<String> valBar3 = new PrismPropertyValueImpl<>("bar");
 
-		PrismPropertyValue<String> valBar2 = new PrismPropertyValueImpl<>("bar");
-		valBar2.setOriginType(OriginType.OUTBOUND);
-		PrismPropertyValue<String> valBar3 = new PrismPropertyValueImpl<>("bar");
+        PrismPropertyValue<String> valBaz = new PrismPropertyValueImpl<>("baz");
 
-		PrismPropertyValue<String> valBaz = new PrismPropertyValueImpl<>("baz");
-
-		// WHEN - THEN
-		assert PrismValueCollectionsUtil.containsRealValue(collection, valFoo1);
-		assert PrismValueCollectionsUtil.containsRealValue(collection, valBar1);
-		assert PrismValueCollectionsUtil.containsRealValue(collection, valFoo2);
-		assert PrismValueCollectionsUtil.containsRealValue(collection, valBar2);
-		assert PrismValueCollectionsUtil.containsRealValue(collection, valFoo3);
-		assert PrismValueCollectionsUtil.containsRealValue(collection, valBar3);
-		assert !PrismValueCollectionsUtil.containsRealValue(collection, valBaz);
+        // WHEN - THEN
+        assert PrismValueCollectionsUtil.containsRealValue(collection, valFoo1);
+        assert PrismValueCollectionsUtil.containsRealValue(collection, valBar1);
+        assert PrismValueCollectionsUtil.containsRealValue(collection, valFoo2);
+        assert PrismValueCollectionsUtil.containsRealValue(collection, valBar2);
+        assert PrismValueCollectionsUtil.containsRealValue(collection, valFoo3);
+        assert PrismValueCollectionsUtil.containsRealValue(collection, valBar3);
+        assert !PrismValueCollectionsUtil.containsRealValue(collection, valBaz);
     }
 
-	@Test
-	public void testRawTypeClone() throws Exception {
-		System.out.println("\n\n===[ testRawTypeClone ]===\n");
-		// GIVEN
-		QName typeQName = new QName("abcdef");
-		MapXNodeImpl mapXNode = new MapXNodeImpl();
-		mapXNode.setTypeQName(typeQName);
-		RawType rawType = new RawType(mapXNode, PrismTestUtil.getPrismContext());
+    @Test
+    public void testRawTypeClone() {
+        // GIVEN
+        QName typeQName = new QName("abcdef");
+        MapXNodeImpl mapXNode = new MapXNodeImpl();
+        mapXNode.setTypeQName(typeQName);
+        RawType rawType = new RawType(mapXNode, PrismTestUtil.getPrismContext());
 
-		// WHEN
-		RawType rawTypeClone = rawType.clone();
+        // WHEN
+        RawType rawTypeClone = rawType.clone();
 
-		// THEN
-		assertEquals("Wrong or missing type QName", typeQName, rawTypeClone.getXnode().getTypeQName());
-	}
-
+        // THEN
+        assertEquals("Wrong or missing type QName", typeQName, rawTypeClone.getXnode().getTypeQName());
+    }
 }

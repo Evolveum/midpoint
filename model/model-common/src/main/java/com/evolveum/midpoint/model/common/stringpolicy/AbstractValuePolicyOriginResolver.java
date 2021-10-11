@@ -1,17 +1,8 @@
-/**
- * Copyright (c) 2017-2018 Evolveum
+/*
+ * Copyright (c) 2017-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common.stringpolicy;
 
@@ -43,120 +34,130 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyOriginType;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyOriginType.OBJECT;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 /**
  * @author semancik
  *
  */
-public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> {
-	
-	private static final Trace LOGGER = TraceManager.getTrace(AbstractValuePolicyOriginResolver.class);
-	
-	private final PrismObject<O> object;
-	private final ObjectResolver objectResolver;
-	
-	public AbstractValuePolicyOriginResolver(PrismObject<O> object, ObjectResolver objectResolver) {
-		super();
-		this.object = object;
-		this.objectResolver = objectResolver;
-	}
+public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> implements ObjectBasedValuePolicyOriginResolver<O> {
 
-	public PrismObject<O> getObject() {
-		return object;
-	}
-	
-	public abstract ObjectQuery getOwnerQuery();
-	
-	public <R extends ObjectType> Class<R> getOwnerClass() {
-		return (Class<R>) UserType.class;
-	}
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractValuePolicyOriginResolver.class);
 
-	// TODO: later maybe isolate this method to an interface (ValuePolicyTypeResolver)
-	public <R extends ObjectType> void resolve(ResultHandler<R> handler, ProhibitedValueItemType prohibitedValueItemType, String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		ValuePolicyOriginType originType = prohibitedValueItemType.getOrigin();
-		if (originType == null) {
-			handleObject(handler, result);
-		}
-		switch (originType) {
-			case OBJECT:
-				handleObject(handler, result);
-				break;
-			case OWNER:
-				handleOwner(handler, contextDescription, task, result);
-				break;
-			case PERSONA:
-				handlePersonas(handler, contextDescription, task, result);
-				break;
-			case PROJECTION:
-				handleProjections(handler, prohibitedValueItemType, contextDescription, task, result);
-				break;
-			default:
-				throw new IllegalArgumentException("Unexpected origin type "+originType);
-		}
-	}
-	
-	private <R extends ObjectType> void handleObject(ResultHandler<R> handler, OperationResult result) {
-		handler.handle((PrismObject<R>) getObject(), result);
-	}
+    private final PrismObject<O> object;
+    private final ObjectResolver objectResolver;
 
-	private <P extends ObjectType> void handlePersonas(ResultHandler<P> handler, String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		PrismObject<O> object = getObject();
-		if (!object.canRepresent(UserType.class)) {
-			return;
-		}
-		for (ObjectReferenceType personaRef: ((UserType)object.asObjectable()).getPersonaRef()) {
-			UserType persona = objectResolver.resolve(personaRef, UserType.class, SelectorOptions.createCollection(GetOperationOptions.createReadOnly()), "resolving persona in " + contextDescription, task, result);
-			handler.handle((PrismObject<P>) persona.asPrismObject(), result);
-		}
-	}
-	
-	private <P extends ObjectType> void handleProjections(ResultHandler<P> handler, ProhibitedValueItemType prohibitedValueItemType, String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		PrismObject<O> object = getObject();
-		// Not very efficient. We will usually read the shadows again, as they are already in model context.
-		// It will also work only for the items that are stored in shadow (usually not attributes, unless caching is enabled).
-		// But this is good enough for now.
-		FocusType focusType;
-		if (object.canRepresent(FocusType.class)) {
-			focusType = ((FocusType)object.asObjectable());
-		} else if (object.canRepresent(ShadowType.class)) {
-			ObjectQuery query = getObject().getPrismContext()
-			.queryFor(FocusType.class)
-			.item(UserType.F_LINK_REF).ref(getObject().getOid())
-			.build();
-			final Holder<FocusType> focusTypeHolder = new Holder<>();
-			try {
-				objectResolver.searchIterative(FocusType.class, query, 
-						SelectorOptions.createCollection(GetOperationOptions.createReadOnly()), 
-						(foundObject, objectResult) -> {
-							focusTypeHolder.setValue(foundObject.asObjectable());
-							return true;
-						}, task, result);
-			} catch (CommunicationException | ConfigurationException | SecurityViolationException
-					| ExpressionEvaluationException e) {
-				throw new SystemException(e.getMessage(), e);
-			}
-			focusType = focusTypeHolder.getValue();
-		} else {
-			return;
-		}
-		ResourceShadowDiscriminator shadowDiscriminator = ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(prohibitedValueItemType.getProjectionDiscriminator());
-		for (ObjectReferenceType linkRef: focusType.getLinkRef()) {
-			GetOperationOptions options = GetOperationOptions.createReadOnly();
-			options.setNoFetch(true);
-			ShadowType shadowType = objectResolver.resolve(linkRef, ShadowType.class, 
-					SelectorOptions.createCollection(options), 
-					"resolving projection shadow in " + contextDescription, task, result);
-			if (shadowDiscriminator != null) {
-				if (!ShadowUtil.matches(shadowType.asPrismObject(), shadowDiscriminator)) {
-					LOGGER.trace("Skipping evaluation of projection {} in {} because it does not match discriminator", shadowType, contextDescription);
-					continue;
-				}
-			}
-			handler.handle((PrismObject<P>) shadowType.asPrismObject(), result);
-		}
-	}
+    AbstractValuePolicyOriginResolver(PrismObject<O> object, ObjectResolver objectResolver) {
+        super();
+        this.object = object;
+        this.objectResolver = objectResolver;
+    }
 
-	private <P extends ObjectType> void handleOwner(ResultHandler<P> handler, String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		objectResolver.searchIterative(getOwnerClass(), getOwnerQuery(), SelectorOptions.createCollection(GetOperationOptions.createReadOnly()), 
-				handler, task, result);
-	}
+    @Override
+    public PrismObject<O> getObject() {
+        return object;
+    }
+
+    public abstract ObjectQuery getOwnerQuery();
+
+    public <R extends ObjectType> Class<R> getOwnerClass() {
+        return (Class<R>) UserType.class;
+    }
+
+    @Override
+    public <R extends ObjectType> void resolve(ProhibitedValueItemType prohibitedValueItem, ResultHandler<R> handler,
+            String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException,
+            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        ValuePolicyOriginType origin = defaultIfNull(prohibitedValueItem.getOrigin(), OBJECT);
+        switch (origin) {
+            case OBJECT:
+                handleObject(handler, result);
+                break;
+            case OWNER:
+                handleOwner(handler, contextDescription, task, result);
+                break;
+            case PERSONA:
+                handlePersonas(handler, contextDescription, task, result);
+                break;
+            case PROJECTION:
+                handleProjections(handler, prohibitedValueItem, contextDescription, task, result);
+                break;
+            default:
+                throw new IllegalArgumentException("Unexpected origin type " + origin);
+        }
+    }
+
+    private <R extends ObjectType> void handleObject(ResultHandler<R> handler, OperationResult result) {
+        handler.handle((PrismObject<R>) object, result);
+    }
+
+    private <P extends ObjectType> void handlePersonas(ResultHandler<P> handler, String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        if (!object.canRepresent(UserType.class)) {
+            return;
+        }
+        for (ObjectReferenceType personaRef: ((UserType)object.asObjectable()).getPersonaRef()) {
+            UserType persona = objectResolver.resolve(personaRef, UserType.class, SelectorOptions.createCollection(GetOperationOptions.createReadOnly()), "resolving persona in " + contextDescription, task, result);
+            //noinspection unchecked
+            handler.handle((PrismObject<P>) persona.asPrismObject(), result);
+        }
+    }
+
+    private <P extends ObjectType> void handleProjections(ResultHandler<P> handler, ProhibitedValueItemType prohibitedValueItemType, String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        // Not very efficient. We will usually read the shadows again, as they are already in model context.
+        // It will also work only for the items that are stored in shadow (usually not attributes, unless caching is enabled).
+        // But this is good enough for now.
+        FocusType focusType;
+        if (object.canRepresent(FocusType.class)) {
+            focusType = ((FocusType)object.asObjectable());
+        } else if (object.canRepresent(ShadowType.class)) {
+            ObjectQuery query = object.getPrismContext()
+                    .queryFor(FocusType.class)
+                    .item(FocusType.F_LINK_REF).ref(object.getOid())
+                    .build();
+            final Holder<FocusType> focusTypeHolder = new Holder<>();
+            try {
+                objectResolver.searchIterative(FocusType.class, query,
+                        SelectorOptions.createCollection(GetOperationOptions.createReadOnly()),
+                        (foundObject, objectResult) -> {
+                            focusTypeHolder.setValue(foundObject.asObjectable());
+                            return true;
+                        }, task, result);
+            } catch (CommunicationException | ConfigurationException | SecurityViolationException
+                    | ExpressionEvaluationException e) {
+                throw new SystemException(e.getMessage(), e);
+            }
+            focusType = focusTypeHolder.getValue();
+        } else {
+            return;
+        }
+        // We want to provide default intent to allow configurators to be a little lazy and skip intent specification.
+        // Consider changing this if necessary.
+        ResourceShadowDiscriminator shadowDiscriminator = ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(
+                prohibitedValueItemType.getProjectionDiscriminator(), true);
+        for (ObjectReferenceType linkRef: focusType.getLinkRef()) {
+            GetOperationOptions options = GetOperationOptions.createReadOnly();
+            options.setNoFetch(true);
+            ShadowType resolvedShadow = objectResolver.resolve(linkRef, ShadowType.class,
+                    SelectorOptions.createCollection(options),
+                    "resolving projection shadow in " + contextDescription, task, result);
+            if (shadowDiscriminator != null) {
+                if (!ShadowUtil.matches(resolvedShadow.asPrismObject(), shadowDiscriminator)) {
+                    LOGGER.trace("Skipping evaluation of projection {} in {} because it does not match discriminator", resolvedShadow, contextDescription);
+                    continue;
+                }
+            }
+            //noinspection unchecked
+            handler.handle((PrismObject<P>) resolvedShadow.asPrismObject(), result);
+        }
+    }
+
+    private <P extends ObjectType> void handleOwner(ResultHandler<P> handler, String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        ObjectQuery ownerQuery = getOwnerQuery();
+        if (ownerQuery != null) {
+            objectResolver.searchIterative(getOwnerClass(), ownerQuery,
+                    SelectorOptions.createCollection(GetOperationOptions.createReadOnly()), handler, task, result);
+        }
+    }
 }

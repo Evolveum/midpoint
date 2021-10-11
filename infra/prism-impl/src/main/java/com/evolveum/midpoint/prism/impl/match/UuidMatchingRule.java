@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl.match;
 
@@ -36,50 +27,50 @@ import com.evolveum.midpoint.util.DOMUtil;
  */
 public class UuidMatchingRule implements MatchingRule<String> {
 
-	@Override
-	public QName getName() {
-		return PrismConstants.UUID_MATCHING_RULE_NAME;
-	}
+    @Override
+    public QName getName() {
+        return PrismConstants.UUID_MATCHING_RULE_NAME;
+    }
 
-	@Override
-	public boolean isSupported(QName xsdType) {
-		return (DOMUtil.XSD_STRING.equals(xsdType));
-	}
+    @Override
+    public boolean isSupported(QName xsdType) {
+        return (DOMUtil.XSD_STRING.equals(xsdType));
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.match.MatchingRule#match(java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public boolean match(String a, String b) {
-		if (a == null && b == null) {
-			return true;
-		}
-		if (a == null || b == null) {
-			return false;
-		}
-		return StringUtils.equalsIgnoreCase(a.trim(), b.trim());
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.model.match.MatchingRule#match(java.lang.Object, java.lang.Object)
+     */
+    @Override
+    public boolean match(String a, String b) {
+        if (a == null && b == null) {
+            return true;
+        }
+        if (a == null || b == null) {
+            return false;
+        }
+        return StringUtils.equalsIgnoreCase(a.trim(), b.trim());
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.match.MatchingRule#normalize(java.lang.Object)
-	 */
-	@Override
-	public String normalize(String original) {
-		if (original == null) {
-			return null;
-		}
-		return StringUtils.lowerCase(original).trim();
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.prism.match.MatchingRule#normalize(java.lang.Object)
+     */
+    @Override
+    public String normalize(String original) {
+        if (original == null) {
+            return null;
+        }
+        return StringUtils.lowerCase(original).trim();
+    }
 
-	@Override
-	public boolean matchRegex(String a, String regex) {
-		if (a == null){
-			return false;
-		}
+    @Override
+    public boolean matchRegex(String a, String regex) {
+        if (a == null){
+            return false;
+        }
 
-		Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-		Matcher matcher = pattern.matcher(a);
-		return matcher.matches();
-	}
+        Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(a);
+        return matcher.matches();
+    }
 
 }

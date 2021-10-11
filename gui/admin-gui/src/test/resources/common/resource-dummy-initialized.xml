@@ -1,23 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <resource oid="10000000-0000-0000-0000-000000000004"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-		  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
@@ -26,8 +17,8 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-	<name>Dummy Resource</name>
-	<operationalState>
+    <name>Dummy Resource</name>
+    <operationalState>
       <lastAvailabilityStatus>up</lastAvailabilityStatus>
    </operationalState>
    <connectorRef oid="2dee34c1-5a1b-4c53-bbb2-7dd5d8f45533" type="c:ConnectorType"><!-- ICF com.evolveum.icf.dummy.connector.DummyConnector v2.0 -->
@@ -381,8 +372,8 @@
                <expression>
                   <script>
                      <code>
-								name + iterationToken
-							</code>
+                                name + iterationToken
+                            </code>
                   </script>
                </expression>
             </outbound>
@@ -411,12 +402,12 @@
                   <script>
                      <allowEmptyValues>true</allowEmptyValues>
                      <code>
-								if (input?.contains('#')) {
-                            		return null
-                        		} else {
-                            		return input
-                        		}
-							</code>
+                                if (input?.contains('#')) {
+                                    return null
+                                } else {
+                                    return input
+                                }
+                            </code>
                   </script>
                </expression>
                <target>
@@ -618,8 +609,8 @@
                <expression>
                   <script>
                      <code>
-								'T' + name + iterationToken
-							</code>
+                                'T' + name + iterationToken
+                            </code>
                   </script>
                </expression>
             </outbound>
@@ -628,8 +619,8 @@
                <expression>
                   <script>
                      <code>
-								input?.substring(1)
-							</code>
+                                input?.substring(1)
+                            </code>
                   </script>
                </expression>
                <target>
@@ -816,24 +807,24 @@
          <argument>
             <script>
                <code>
-					'user: ' + user?.getName()
-					</code>
+                    'user: ' + user?.getName()
+                    </code>
             </script>
             <name>usr</name>
          </argument>
          <argument>
             <script>
                <code>
-					'account: ' + account?.getActivation()?.getAdministrativeStatus()
-					</code>
+                    'account: ' + account?.getActivation()?.getAdministrativeStatus()
+                    </code>
             </script>
             <name>acc</name>
          </argument>
          <argument>
             <script>
                <code>
-					'resource: ' + resource?.getName()
-					</code>
+                    'resource: ' + resource?.getName()
+                    </code>
             </script>
             <name>res</name>
          </argument>
@@ -847,7 +838,7 @@ to spiral :size
    fd :size rt 15
    spiral :size *1.02
 end
-			</code>
+            </code>
          <operation>add</operation>
          <kind>account</kind>
          <order>after</order>

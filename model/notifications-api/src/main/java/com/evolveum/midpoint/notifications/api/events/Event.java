@@ -1,88 +1,172 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.notifications.api.events;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import javax.xml.namespace.QName;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.Serializable;
 
 /**
- * @author mederly
+ * Notification event that should be propagated, filtered, externalized (typically to ascii or html), and send out.
  */
-public interface Event extends DebugDumpable, ShortDumpable {
+@SuppressWarnings("unused") // Event methods are often called from notification expressions.
+public interface Event extends DebugDumpable, ShortDumpable, Serializable {
 
-    LightweightIdentifier getId();
+    /**
+     * Randomly generated event ID. It is immutable.
+     */
+    @NotNull LightweightIdentifier getId();
 
-    boolean isStatusType(EventStatusType eventStatusType);
-    boolean isOperationType(EventOperationType eventOperationType);
-    boolean isCategoryType(EventCategoryType eventCategoryType);
-
-    boolean isAccountRelated();
-
-    boolean isUserRelated();
-
-    boolean isWorkItemRelated();
-
-    boolean isWorkflowProcessRelated();
-
-    boolean isWorkflowRelated();
-
-    boolean isPolicyRuleRelated();
-
-    boolean isAdd();
-
-    boolean isModify();
-
-    boolean isDelete();
-
-    boolean isSuccess();
-
-    boolean isAlsoSuccess();
-
-    boolean isFailure();
-
-    boolean isOnlyFailure();
-
-    boolean isInProgress();
-
-    // requester
-
+    /**
+     * Entity that requested the operation that resulted in the event being generated.
+     * May be null if unknown.
+     */
     SimpleObjectRef getRequester();
 
-    String getRequesterOid();
+    /**
+     * @return OID of the requester
+     */
+    default String getRequesterOid() {
+        return getRequester() != null ? getRequester().getOid() : null;
+    }
 
-    void setRequester(SimpleObjectRef requester);
-
-    // requestee
-
+    /**
+     * Entity that is the object of this event or the "owner" of the object of this event.
+     * Typically it is the user that we'd like to send the notification to.
+     *
+     * For example:
+     * - for model notifications: the focal object
+     * - for resource object (account) notifications: resource object (account) owner
+     * - workflow notifications: the object of the approval case
+     * - certification notifications: campaign owner or reviewer (depending on the kind of event)
+     *
+     * May be null if unknown.
+     */
     SimpleObjectRef getRequestee();
 
-    String getRequesteeOid();
+    /**
+     * @return true if requestee is of give type
+     */
+    default boolean requesteeIs(Class<?> type) {
+        ObjectType requesteeObject = getRequesteeObject();
+        return requesteeObject != null && type.isAssignableFrom(requesteeObject.getClass());
+    }
 
-    void setRequestee(SimpleObjectRef requestee);
+    default boolean requesteeIsUser() {
+        return requesteeIs(UserType.class);
+    }
 
-    void createExpressionVariables(Map<QName, Object> variables, OperationResult result);
+    /**
+     * @return resolved requestee object (or null)
+     */
+    ObjectType getRequesteeObject();
+
+    /**
+     * @return display name of the requestee (or null)
+     */
+    PolyStringType getRequesteeDisplayName();
+
+    /**
+     * @return OID of the requestee
+     */
+    default String getRequesteeOid() {
+        return getRequestee() != null ? getRequestee().getOid() : null;
+    }
+
+    /**
+     * @return true if the status of the operation that caused this event corresponds to the specified one
+     */
+    boolean isStatusType(EventStatusType eventStatus);
+
+    /**
+     * @return true if the type of the operation that caused this event corresponds to the specified one
+     */
+    boolean isOperationType(EventOperationType eventOperation);
+
+    /**
+     * @return true if the category of the event matches the specified one
+     */
+    boolean isCategoryType(EventCategoryType eventCategory);
+
+    /**
+     * @return true if the object of the event is of UserType
+     *
+     * Currently applies only to ModelEvent and CustomEvent.
+     * TODO specify semantics of this method more precisely; see also MID-4598
+     */
+    boolean isUserRelated();
+
+    @Deprecated // Remove in 4.2
+    default boolean isAccountRelated() {
+        return isCategoryType(EventCategoryType.RESOURCE_OBJECT_EVENT);
+    }
+
+    default boolean isWorkItemRelated() {
+        return isCategoryType(EventCategoryType.WORK_ITEM_EVENT);
+    }
+
+    @Deprecated // We no longer talk about workflow processes. There are approval cases instead. Remove in 4.2.
+    default boolean isWorkflowProcessRelated() {
+        return isCategoryType(EventCategoryType.WORKFLOW_PROCESS_EVENT);
+    }
+
+    @Deprecated // We no longer talk about workflows. There are approvals instead. Remove in 4.2.
+    default boolean isWorkflowRelated() {
+        return isCategoryType(EventCategoryType.WORKFLOW_EVENT);
+    }
+
+    default boolean isPolicyRuleRelated() {
+        return isCategoryType(EventCategoryType.POLICY_RULE_EVENT);
+    }
+
+    default boolean isCertCampaignStageRelated() {
+        return isCategoryType(EventCategoryType.CERT_CAMPAIGN_STAGE_EVENT);
+    }
+
+    default boolean isAdd() {
+        return isOperationType(EventOperationType.ADD);
+    }
+
+    default boolean isModify() {
+        return isOperationType(EventOperationType.MODIFY);
+    }
+
+    default boolean isDelete() {
+        return isOperationType(EventOperationType.DELETE);
+    }
+
+    default boolean isSuccess() {
+        return isStatusType(EventStatusType.SUCCESS);
+    }
+
+    default boolean isAlsoSuccess() {
+        return isStatusType(EventStatusType.ALSO_SUCCESS);
+    }
+
+    default boolean isFailure() {
+        return isStatusType(EventStatusType.FAILURE);
+    }
+
+    default boolean isOnlyFailure() {
+        return isStatusType(EventStatusType.ONLY_FAILURE);
+    }
+
+    default boolean isInProgress() {
+        return isStatusType(EventStatusType.IN_PROGRESS);
+    }
 
     /**
      * Checks if the event is related to an item with a given path.
@@ -100,13 +184,20 @@ public interface Event extends DebugDumpable, ShortDumpable {
      * Paths are compared without taking ID segments into account.
      *
      * EXPERIMENTAL; does not always work (mainly for values being deleted)
-     *
-     * @param itemPath
-     * @return
      */
     boolean isRelatedToItem(ItemPath itemPath);
 
+    /**
+     * @return channel that was used to initiate the operation that caused this event
+     */
     String getChannel();
+
+    /**
+     * @return textual representation of event status
+     *
+     * TODO consider what to do with this
+     */
+    String getStatusAsText();
 
     /**
      * If needed, we can prescribe the handler that should process this event. It is recommended only for ad-hoc situations.

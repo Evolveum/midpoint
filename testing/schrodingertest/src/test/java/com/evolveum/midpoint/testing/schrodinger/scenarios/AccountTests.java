@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import com.evolveum.midpoint.schrodinger.page.configuration.ImportObjectPage;
@@ -8,22 +14,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 
-import javax.naming.ConfigurationException;
 import java.io.File;
 import java.io.IOException;
 
 /**
  * Created by matus on 3/22/2018.
  */
-public class AccountTests extends TestBase {
+public class AccountTests extends AbstractSchrodingerTest {
 
-    private static File CSV_TARGET_FILE;
+    private static File csvTargetFile;
 
-    private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resources/csv/resource-csv-username.xml");
+    private static final File CSV_RESOURCE_MEDIUM = new File("./src/test/resources/csv/resource-csv-username.xml");
 
-    protected static final File CSV_INITIAL_SOURCE_FILE = new File("../../samples/resources/csv/midpoint-username.csv");
+    protected static final File CSV_INITIAL_SOURCE_FILE = new File("./src/test/resources/csv/midpoint-username.csv");
 
     protected static final String IMPORT_CSV_RESOURCE_DEPENDENCY= "importCsvResource";
     protected static final String CREATE_MP_USER_DEPENDENCY= "createMidpointUser";
@@ -38,9 +43,6 @@ public class AccountTests extends TestBase {
 
     protected static final String CSV_RESOURCE_ATTR_FILE_PATH= "File path";
 
-    //TODO seems that some problems with property files in the csv resource which is being used for tests, replace value after resolution
-    protected static final String CSV_RESOURCE_ATTR_UNIQUE= "UI_CSV_NAME_ATTRIBUTE";
-
     protected static final String TEST_USER_MIKE_NAME= "michelangelo";
     protected static final String TEST_USER_MIKE_LAST_NAME_OLD= "di Lodovico Buonarroti Simoni";
     protected static final String TEST_USER_MIKE_LAST_NAME_NEW= "di Lodovico Buonarroti Simoni Il Divino";
@@ -50,12 +52,12 @@ public class AccountTests extends TestBase {
 
 
     @Test(priority = 1, groups = TEST_GROUP_BEFORE_USER_DELETION)
-    public void createMidpointUser() throws IOException, ConfigurationException {
+    public void createMidpointUser() throws IOException {
 
         initTestDirectory(DIRECTORY_CURRENT_TEST);
 
-        CSV_TARGET_FILE = new File(CSV_TARGET_DIR, FILE_RESOUCE_NAME);
-        FileUtils.copyFile(CSV_INITIAL_SOURCE_FILE,CSV_TARGET_FILE);
+        csvTargetFile = new File(csvTargetDir, FILE_RESOUCE_NAME);
+        FileUtils.copyFile(CSV_INITIAL_SOURCE_FILE, csvTargetFile);
 
         UserPage user = basicPage.newUser();
 
@@ -64,6 +66,7 @@ public class AccountTests extends TestBase {
                         .addAttributeValue("name", TEST_USER_MIKE_NAME)
                         .addAttributeValue(UserType.F_GIVEN_NAME, "Michelangelo")
                         .addAttributeValue(UserType.F_FAMILY_NAME, "di Lodovico Buonarroti Simoni")
+                        .addProtectedAttributeValue("value","5ecr3tPassword")
                         .and()
                     .and()
                 .checkKeepDisplayingResults()
@@ -73,7 +76,7 @@ public class AccountTests extends TestBase {
         );
     }
 
-    @Test(groups = TEST_GROUP_BEFORE_USER_DELETION)
+    @Test(priority = 2, groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void importCsvResource(){
         ImportObjectPage importPage = basicPage.importObject();
 
@@ -82,14 +85,14 @@ public class AccountTests extends TestBase {
                 .getObjectsFromFile()
                 .chooseFile(CSV_RESOURCE_MEDIUM)
                 .checkOverwriteExistingObject()
-                .clickImport()
+                .clickImportFileButton()
                     .feedback()
                     .isSuccess()
         );
     }
 
 
-    @Test (dependsOnMethods = {IMPORT_CSV_RESOURCE_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
+    @Test (priority = 3, dependsOnMethods = {IMPORT_CSV_RESOURCE_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void changeResourceFilePath(){
         ListResourcesPage listResourcesPage = basicPage.listResources();
 
@@ -98,7 +101,7 @@ public class AccountTests extends TestBase {
                 .clickByName(CSV_RESOURCE_NAME)
                     .clickEditResourceConfiguration()
                         .form()
-                        .changeAttributeValue(CSV_RESOURCE_ATTR_FILE_PATH, ScenariosCommons.CSV_SOURCE_OLDVALUE,CSV_TARGET_FILE.getAbsolutePath())
+                        .changeAttributeValue(CSV_RESOURCE_ATTR_FILE_PATH, ScenariosCommons.CSV_SOURCE_OLDVALUE, csvTargetFile.getAbsolutePath())
                         .changeAttributeValue(CSV_RESOURCE_ATTR_UNIQUE,"","username")
                     .and()
                 .and()
@@ -108,7 +111,7 @@ public class AccountTests extends TestBase {
         refreshResourceSchema(CSV_RESOURCE_NAME);
     }
 
-    @Test(dependsOnMethods = {CREATE_MP_USER_DEPENDENCY,CHANGE_RESOURCE_FILE_PATH_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
+    @Test(priority = 4, dependsOnMethods = {CREATE_MP_USER_DEPENDENCY,CHANGE_RESOURCE_FILE_PATH_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void addAccount() {
         ListUsersPage users = basicPage.listUsers();
         Assert.assertTrue(
@@ -121,8 +124,7 @@ public class AccountTests extends TestBase {
                 .and()
                 .clickByName(TEST_USER_MIKE_NAME)
                     .selectTabProjections()
-                    .clickCog()
-                    .addProjection()
+                    .clickAddProjection()
                             .table()
                             .selectCheckboxByName(CSV_RESOURCE_NAME)
                         .and()
@@ -135,7 +137,7 @@ public class AccountTests extends TestBase {
         );
     }
 
-    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
+    @Test (priority = 5, dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void modifyAccountAttribute(){
         ListUsersPage users = basicPage.listUsers();
                 users
@@ -148,7 +150,7 @@ public class AccountTests extends TestBase {
                     .clickByName(TEST_USER_MIKE_NAME)
                         .selectTabProjections()
                             .table()
-                            .clickByName(CSV_RESOURCE_NAME)
+                            .clickByName(TEST_USER_MIKE_NAME)
                                 .changeAttributeValue("lastname",TEST_USER_MIKE_LAST_NAME_OLD,TEST_USER_MIKE_LAST_NAME_NEW)
                             .and()
                         .and()
@@ -159,7 +161,7 @@ public class AccountTests extends TestBase {
             ;
     }
 
-    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
+    @Test (priority = 6, dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void modifyAccountPassword(){
         ListUsersPage users = basicPage.listUsers();
             users
@@ -172,9 +174,9 @@ public class AccountTests extends TestBase {
                 .clickByName(TEST_USER_MIKE_NAME)
                     .selectTabProjections()
                         .table()
-                        .clickByName(CSV_RESOURCE_NAME)
+                        .clickByName(TEST_USER_MIKE_NAME)
                             .showEmptyAttributes("Password")
-                            .addProtectedAttributeValue("Value","5ecr3t")
+                            .addProtectedAttributeValue("value","5ecr3t")
                         .and()
                     .and()
                 .and()
@@ -184,7 +186,7 @@ public class AccountTests extends TestBase {
                     .isSuccess();
     }
 
-    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
+    @Test (priority = 7, dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void disableAccount(){
         ListUsersPage users = basicPage.listUsers();
             users
@@ -197,8 +199,8 @@ public class AccountTests extends TestBase {
                 .clickByName(TEST_USER_MIKE_NAME)
                     .selectTabProjections()
                         .table()
-                        .clickByName(CSV_RESOURCE_NAME)
-                            .selectOption("Administrative status","Disabled")
+                        .clickByName(TEST_USER_MIKE_NAME)
+                            .selectOption("administrativeStatus","Disabled")
                         .and()
                     .and()
                 .and()
@@ -208,7 +210,7 @@ public class AccountTests extends TestBase {
                     .isSuccess();
     }
 
-    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY, DISABLE_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
+    @Test (priority = 8, dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY, DISABLE_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void enableAccount(){
         ListUsersPage users = basicPage.listUsers();
             users
@@ -221,8 +223,8 @@ public class AccountTests extends TestBase {
                 .clickByName(TEST_USER_MIKE_NAME)
                     .selectTabProjections()
                         .table()
-                        .clickByName(CSV_RESOURCE_NAME)
-                            .selectOption("Administrative status","Enabled")
+                        .clickByName(TEST_USER_MIKE_NAME)
+                            .selectOption("administrativeStatus","Enabled")
                         .and()
                     .and()
                 .and()
@@ -232,7 +234,7 @@ public class AccountTests extends TestBase {
                     .isSuccess();
     }
 
-    @Test(dependsOnMethods = {ENABLE_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
+    @Test(priority = 9, dependsOnMethods = {ENABLE_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void deleteAccount(){
         ListUsersPage users = basicPage.listUsers();
                 users
@@ -245,9 +247,9 @@ public class AccountTests extends TestBase {
                     .clickByName(TEST_USER_MIKE_NAME)
                         .selectTabProjections()
                             .table()
-                            .selectCheckboxByName(CSV_RESOURCE_NAME)
+                            .selectCheckboxByName(TEST_USER_MIKE_NAME)
                         .and()
-                            .clickCog()
+                            .clickHeaderActionDropDown()
                             .delete()
                                 .clickYes()
                         .and()

@@ -1,35 +1,33 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.tools.layout;
+
+import java.io.File;
+import java.util.List;
 
 import org.springframework.boot.loader.WarLauncher;
 import org.springframework.boot.loader.archive.Archive;
 import org.springframework.boot.loader.archive.JarFileArchive;
 import org.springframework.boot.loader.jar.JarFile;
 
-import java.io.File;
-import java.util.List;
-
 /**
  * Created by Viliam Repan (lazyman).
+ * <p>
+ * Supports JAR loading out of executable JAR, this is supported in newer Spring Boot via
+ * loader.path (or Loader-Path in Manifest or environment variable):
+ * https://docs.spring.io/spring-boot/docs/current/reference/html/appendix-executable-jar-format.html#executable-jar-property-launcher-features
+ * <p>
+ * It's unsure whether we can tie the path to dynamic midpoint.home,
+ * but perhaps midpoint.sh can take care of that.
  */
 public class MidPointWarLauncher extends WarLauncher {
-	
-	private static volatile MidPointWarLauncher warlauncher = null;
+
+    private static volatile MidPointWarLauncher warLauncher = null;
     private static volatile ClassLoader classLoader = null;
 
     public MidPointWarLauncher() {
@@ -40,65 +38,60 @@ public class MidPointWarLauncher extends WarLauncher {
     }
 
     public static void main(String[] args) throws Exception {
-    	String mode = args != null && args.length > 0 ? args[0] : null;
-    	
-    	 if ("start".equals(mode)) {
-             MidPointWarLauncher.start(args);
-         } else if ("stop".equals(mode)) {
-             MidPointWarLauncher.stop(args);
-         } else {
-        	 new MidPointWarLauncher().launch(args);        
-         }
+        String mode = args != null && args.length > 0 ? args[0] : null;
+
+        if ("start".equals(mode)) {
+            MidPointWarLauncher.start(args);
+        } else if ("stop".equals(mode)) {
+            MidPointWarLauncher.stop(args);
+        } else {
+            new MidPointWarLauncher().launch(args);
+        }
     }
-    
+
     public static synchronized void start(String[] args) throws Exception {
-        warlauncher = new MidPointWarLauncher();
+        warLauncher = new MidPointWarLauncher();
 
         try {
             JarFile.registerUrlProtocolHandler();
-            classLoader = warlauncher.createClassLoader(warlauncher.getClassPathArchives());
-            warlauncher.launch(args, warlauncher.getMainClass(), classLoader, true);
+            classLoader = warLauncher.createClassLoader(warLauncher.getClassPathArchives());
+            warLauncher.launch(args, warLauncher.getMainClass(), classLoader, true);
         } catch (Exception ex) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Could not start MidPoint application").append(";").append(ex.getLocalizedMessage());
-            throw new Exception(sb.toString(), ex);
+            throw new Exception(
+                    "Could not start MidPoint application" + ";" + ex.getLocalizedMessage(), ex);
         }
     }
-    
-    public static synchronized void stop(String[] args) throws Exception {
 
+    public static synchronized void stop(String[] args) throws Exception {
         try {
-            if (warlauncher != null) {
-                warlauncher.launch(args, warlauncher.getMainClass(), classLoader, true);
-                warlauncher = null;
+            if (warLauncher != null) {
+                warLauncher.launch(args, warLauncher.getMainClass(), classLoader, true);
+                warLauncher = null;
                 classLoader = null;
             }
-        } catch (Exception ex) {            
-            StringBuilder sb = new StringBuilder();
-            sb.append("Could not stop MidPoint application").append(";").append(ex.getLocalizedMessage());
-            throw new Exception(sb.toString(), ex);
-            
+        } catch (Exception ex) {
+            throw new Exception(
+                    "Could not stop MidPoint application" + ";" + ex.getLocalizedMessage(), ex);
         }
     }
-    
-    protected void launch(String[] args, String mainClass, ClassLoader classLoader, boolean wait) throws Exception {
 
+    @SuppressWarnings("SameParameterValue")
+    protected void launch(String[] args, String mainClass, ClassLoader classLoader, boolean wait) throws Exception {
         Thread.currentThread().setContextClassLoader(classLoader);
 
         Thread runnerThread = new Thread(() -> {
             try {
                 createMainMethodRunner(mainClass, args, classLoader).run();
             } catch (Exception ex) {
-                
+                // ignored
             }
         });
         runnerThread.setContextClassLoader(classLoader);
         runnerThread.setName(Thread.currentThread().getName());
         runnerThread.start();
-        if (wait == true) {
+        if (wait) {
             runnerThread.join();
         }
-
     }
 
     @Override
@@ -106,7 +99,7 @@ public class MidPointWarLauncher extends WarLauncher {
         List<Archive> archives = super.getClassPathArchives();
 
         File midPointHomeLib = getMidPointHomeLib();
-        if (midPointHomeLib == null || !midPointHomeLib.exists() || !midPointHomeLib.isDirectory()) {
+        if (!midPointHomeLib.exists() || !midPointHomeLib.isDirectory()) {
             return archives;
         }
 

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+
+<shadow oid="1d1e519e-0d22-11ea-8cdf-3f09f7f3a585"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
+    <name>ou=Super,dc=example,dc=com</name>
+    <resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
+    <objectClass>ri:organizationalUnit</objectClass>
+    <kind>generic</kind>
+    <intent>ou</intent>
+    <attributes>
+        <ri:dn>ou=super,dc=example,dc=com</ri:dn>
+        <ri:ou>Super</ri:ou>
+    </attributes>
+</shadow>

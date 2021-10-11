@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.capability;
@@ -43,25 +34,25 @@ public class CapabilityCredentialsPanel extends BasePanel<CapabilityDto<Credenti
     private static final String ID_T_PASS_RETURN = "passReturnedTooltip";
 
     public CapabilityCredentialsPanel(String componentId, IModel<CapabilityDto<CredentialsCapabilityType>> model,
-			WebMarkupContainer capabilitiesTable, PageResourceWizard parentPage) {
+            WebMarkupContainer capabilitiesTable, PageResourceWizard parentPage) {
         super(componentId, model);
-		initLayout(capabilitiesTable, parentPage);
+        initLayout(capabilitiesTable, parentPage);
     }
 
     protected void initLayout(final WebMarkupContainer capabilitiesTable, PageResourceWizard parentPage) {
 
-		parentPage.addEditingEnabledBehavior(this);
+        parentPage.addEditingEnabledBehavior(this);
 
         Label passLabel = new Label(ID_LABEL_PASSWORD, createStringResource("capabilityCredentialsPanel.label.password"));
         add(passLabel);
 
         CheckBox enabled = new CheckBox(ID_ENABLED, new PropertyModel<>(getModel(), "capability.enabled"));
-		enabled.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				target.add(capabilitiesTable);
-			}
-		});
+        enabled.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                target.add(capabilitiesTable);
+            }
+        });
         add(enabled);
 
         CheckBox passwordEnabled = new CheckBox(ID_PASSWORD_ENABLED, new PropertyModel<>(getModel(), "capability.password.enabled"));

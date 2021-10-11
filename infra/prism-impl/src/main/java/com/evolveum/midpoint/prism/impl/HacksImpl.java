@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism.impl;
@@ -37,64 +28,64 @@ import javax.xml.soap.Detail;
  */
 public class HacksImpl implements Hacks, XNodeMutator {
 
-	@NotNull private final PrismContextImpl prismContext;
+    @NotNull private final PrismContextImpl prismContext;
 
-	HacksImpl(@NotNull PrismContextImpl prismContext) {
-		this.prismContext = prismContext;
-	}
+    HacksImpl(@NotNull PrismContextImpl prismContext) {
+        this.prismContext = prismContext;
+    }
 
-	/**
-	 * TODO rewrite this method using Prism API
-	 */
-	@Override
-	public void serializeFaultMessage(Detail detail, Object faultInfo, QName faultMessageElementName, Trace logger) {
-		try {
-			XNodeImpl faultMessageXnode = prismContext.getBeanMarshaller().marshall(faultInfo);
-			RootXNodeImpl xroot = new RootXNodeImpl(faultMessageElementName, faultMessageXnode);
-			xroot.setExplicitTypeDeclaration(true);
-			QName faultType = prismContext.getSchemaRegistry().determineTypeForClass(faultInfo.getClass());
-			xroot.setTypeQName(faultType);
-			prismContext.getParserDom().serializeUnderElement(xroot, faultMessageElementName, detail);
-		} catch (SchemaException e) {
-			logger.error("Error serializing fault message (SOAP fault detail): {}", e.getMessage(), e);
-		}
-	}
+    /**
+     * TODO rewrite this method using Prism API
+     */
+    @Override
+    public void serializeFaultMessage(Detail detail, Object faultInfo, QName faultMessageElementName, Trace logger) {
+        try {
+            XNodeImpl faultMessageXnode = prismContext.getBeanMarshaller().marshall(faultInfo);
+            RootXNodeImpl xroot = new RootXNodeImpl(faultMessageElementName, faultMessageXnode);
+            xroot.setExplicitTypeDeclaration(true);
+            QName faultType = prismContext.getSchemaRegistry().determineTypeForClass(faultInfo.getClass());
+            xroot.setTypeQName(faultType);
+            prismContext.getParserDom().serializeUnderElement(xroot, faultMessageElementName, detail);
+        } catch (SchemaException e) {
+            logger.error("Error serializing fault message (SOAP fault detail): {}", e.getMessage(), e);
+        }
+    }
 
-	@Override
-	public <T> void setPrimitiveXNodeValue(PrimitiveXNode<T> node, T value, QName typeName) {
-		((PrimitiveXNodeImpl<T>) node).setValue(value, typeName);
-	}
+    @Override
+    public <T> void setPrimitiveXNodeValue(PrimitiveXNode<T> node, T value, QName typeName) {
+        ((PrimitiveXNodeImpl<T>) node).setValue(value, typeName);
+    }
 
-	@Override
-	public void putToMapXNode(MapXNode map, QName key, XNode value) {
-		((MapXNodeImpl) map).put(key, value);
-	}
+    @Override
+    public void putToMapXNode(MapXNode map, QName key, XNode value) {
+        ((MapXNodeImpl) map).put(key, (XNodeImpl) value);
+    }
 
-	@Override
-	public void addToListXNode(ListXNode list, XNode... nodes) {
-		for (XNode node : nodes) {
-			((ListXNodeImpl) list).add((XNodeImpl) node);
-		}
-	}
+    @Override
+    public void addToListXNode(ListXNode list, XNode... nodes) {
+        for (XNode node : nodes) {
+            ((ListXNodeImpl) list).add((XNodeImpl) node);
+        }
+    }
 
-	@Override
-	public <T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap, PrismContext prismContext, ParsingContext pc) throws SchemaException {
-		XNodeProcessorUtil.parseProtectedType(protectedType, (MapXNodeImpl) xmap, prismContext, pc);
-	}
+    @Override
+    public <T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap, PrismContext prismContext, ParsingContext pc) throws SchemaException {
+        XNodeProcessorUtil.parseProtectedType(protectedType, (MapXNodeImpl) xmap, prismContext, pc);
+    }
 
-	@Override
-	public Element serializeSingleElementMapToElement(MapXNode filterClauseXNode) throws SchemaException {
-		DomLexicalProcessor domParser = getDomParser(prismContext);
-		return domParser.serializeSingleElementMapToElement(filterClauseXNode);
-	}
+    @Override
+    public Element serializeSingleElementMapToElement(MapXNode filterClauseXNode) throws SchemaException {
+        DomLexicalProcessor domParser = getDomParser(prismContext);
+        return domParser.serializeSingleElementMapToElement(filterClauseXNode);
+    }
 
-	private static DomLexicalProcessor getDomParser(@NotNull PrismContext prismContext) {
-		return ((PrismContextImpl) prismContext).getParserDom();
-	}
+    private static DomLexicalProcessor getDomParser(@NotNull PrismContext prismContext) {
+        return ((PrismContextImpl) prismContext).getParserDom();
+    }
 
-	@Override
-	public void setXNodeType(XNode node, QName explicitTypeName, boolean explicitTypeDeclaration) {
-		((XNodeImpl) node).setTypeQName(explicitTypeName);
-		((XNodeImpl) node).setExplicitTypeDeclaration(explicitTypeDeclaration);
-	}
+    @Override
+    public void setXNodeType(XNode node, QName explicitTypeName, boolean explicitTypeDeclaration) {
+        ((XNodeImpl) node).setTypeQName(explicitTypeName);
+        ((XNodeImpl) node).setExplicitTypeDeclaration(explicitTypeDeclaration);
+    }
 }

@@ -1,0 +1,22 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+  <!-- MID-5168 -->
+<role oid="18f17721-63e1-42cf-abaf-8a50a04e639f"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>Read resource operational state</name>
+    <authorization>
+        <name>read-resource-operational-state</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>ResourceType</type>
+        </object>
+        <item>operationalState</item>
+    </authorization>
+</role>

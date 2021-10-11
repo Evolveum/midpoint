@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright (c) 2013 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="12345678-d34d-b33f-f00d-5555550303dd"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>Fight</name>
+    <inducement>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000300001" type="c:ResourceType"/>
+            <kind>account</kind>
+        </construction>
+    </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000300002" type="c:ResourceType"/>
+        </construction>
+    </inducement>
+</role>

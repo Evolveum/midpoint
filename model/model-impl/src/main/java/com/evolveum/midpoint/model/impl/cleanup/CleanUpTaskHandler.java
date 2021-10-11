@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.model.impl.cleanup;
@@ -31,175 +22,185 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @Component
 public class CleanUpTaskHandler implements TaskHandler {
 
-	public static final String HANDLER_URI = ModelPublicConstants.CLEANUP_TASK_HANDLER_URI;
+    public static final String HANDLER_URI = ModelPublicConstants.CLEANUP_TASK_HANDLER_URI;
 
     @Autowired private TaskManager taskManager;
-	@Autowired private RepositoryService repositoryService;
+    @Autowired private RepositoryService repositoryService;
     @Autowired private AuditService auditService;
     @Autowired private AccessCertificationService certificationService;
 
     @Autowired(required = false)
     private ReportManager reportManager;
-	
-	private static final transient Trace LOGGER = TraceManager.getTrace(CleanUpTaskHandler.class);
 
-	@PostConstruct
-	private void initialize() {
-		taskManager.registerHandler(HANDLER_URI, this);
-	}
+    private static final Trace LOGGER = TraceManager.getTrace(CleanUpTaskHandler.class);
 
-	@NotNull
-	@Override
-	public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
-		return new StatisticsCollectionStrategy()
-				.fromZero()
-				.maintainIterationStatistics();
-	}
+    @PostConstruct
+    private void initialize() {
+        taskManager.registerHandler(HANDLER_URI, this);
+    }
 
-	@Override
-	public TaskRunResult run(Task task) {
-		LOGGER.trace("CleanUpTaskHandler.run starting");
-		
-		OperationResult opResult = new OperationResult(OperationConstants.CLEANUP);
-		TaskRunResult runResult = new TaskRunResult();
-		runResult.setOperationResult(opResult);
+    @NotNull
+    @Override
+    public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+        return new StatisticsCollectionStrategy()
+                .fromZero()
+                .maintainIterationStatistics();
+    }
 
-		CleanupPoliciesType cleanupPolicies = task.getExtensionContainerRealValue(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES);
+    @Override
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+        LOGGER.trace("CleanUpTaskHandler.run starting");
 
-		if (cleanupPolicies != null) {
-			LOGGER.info("Using task-specific cleanupPolicies: {}", cleanupPolicies);
-		} else {
-			PrismObject<SystemConfigurationType> systemConfig;
-			try {
-				systemConfig = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, opResult);
-			} catch (ObjectNotFoundException ex) {
-				LOGGER.error("Cleanup: Object does not exist: {}", ex.getMessage(), ex);
-				opResult.recordFatalError("Object does not exist: " + ex.getMessage(), ex);
-				runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-				return runResult;
-			} catch (SchemaException ex) {
-				LOGGER.error("Cleanup: Error dealing with schema: {}", ex.getMessage(), ex);
-				opResult.recordFatalError("Error dealing with schema: " + ex.getMessage(), ex);
-				runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-				return runResult;
-			}
-			SystemConfigurationType systemConfigType = systemConfig.asObjectable();
-			cleanupPolicies = systemConfigType.getCleanupPolicy();
-		}
-		
-		if (cleanupPolicies == null) {
-			LOGGER.trace("Cleanup: No clean up polices specified. Finishing clean up task.");
-			opResult.computeStatus();
-			runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-			return runResult;
-		}
-		
-		CleanupPolicyType auditCleanupPolicy = cleanupPolicies.getAuditRecords();
-		if (auditCleanupPolicy != null) {
-			try {
-				// TODO report progress
-				auditService.cleanupAudit(auditCleanupPolicy, opResult);
-			} catch (Exception ex) {
-				LOGGER.error("Audit cleanup: {}", ex.getMessage(), ex);
-				opResult.recordFatalError(ex.getMessage(), ex);
-				runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			}
-		} else {
-			LOGGER.trace("Cleanup: No clean up policy for audit specified. Finishing clean up task.");
-		}
-		
-		CleanupPolicyType closedTasksPolicy = cleanupPolicies.getClosedTasks();
-		if (closedTasksPolicy != null) {
-			try {
-				taskManager.cleanupTasks(closedTasksPolicy, task, opResult);
-			} catch (Exception ex) {
-				LOGGER.error("Tasks cleanup: {}", ex.getMessage(), ex);
-				opResult.recordFatalError(ex.getMessage(), ex);
-				runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			}
-		} else {
-			LOGGER.trace("Cleanup: No clean up policy for closed tasks specified. Finishing clean up task.");
-		}
-		
-		CleanupPolicyType reportCleanupPolicy = cleanupPolicies.getOutputReports();
-		if (reportCleanupPolicy != null) {
-			try {
-                if (reportManager == null) {
-                    //TODO improve dependencies for report-impl (probably for tests) and set autowire to required
-                    LOGGER.error("Report manager was not autowired, reports cleanup will be skipped.");
-                } else {
-	                // TODO report progress
-				    reportManager.cleanupReports(reportCleanupPolicy, opResult);
+        OperationResult opResult = new OperationResult(OperationConstants.CLEANUP);
+        TaskRunResult runResult = new TaskRunResult();
+        runResult.setOperationResult(opResult);
+
+        CleanupPoliciesType cleanupPolicies;
+        CleanupPoliciesType taskCleanupPolicies = task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES);
+        if (taskCleanupPolicies != null) {
+            LOGGER.info("Using task-specific cleanupPolicies: {}", taskCleanupPolicies);
+            cleanupPolicies = taskCleanupPolicies;
+        } else {
+            PrismObject<SystemConfigurationType> systemConfig;
+            try {
+                systemConfig = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, opResult);
+            } catch (ObjectNotFoundException ex) {
+                LOGGER.error("Cleanup: Object does not exist: {}", ex.getMessage(), ex);
+                opResult.recordFatalError("Object does not exist: " + ex.getMessage(), ex);
+                runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+                return runResult;
+            } catch (SchemaException ex) {
+                LOGGER.error("Cleanup: Error dealing with schema: {}", ex.getMessage(), ex);
+                opResult.recordFatalError("Error dealing with schema: " + ex.getMessage(), ex);
+                runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+                return runResult;
+            }
+            SystemConfigurationType systemConfigType = systemConfig.asObjectable();
+            cleanupPolicies = systemConfigType.getCleanupPolicy();
+        }
+
+        if (cleanupPolicies == null) {
+            LOGGER.trace("Cleanup: No clean up polices specified. Finishing clean up task.");
+            opResult.computeStatus();
+            runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
+            return runResult;
+        }
+
+        if (task.canRun()) {
+            CleanupPolicyType auditCleanupPolicy = cleanupPolicies.getAuditRecords();
+            if (auditCleanupPolicy != null) {
+                try {
+                    // TODO report progress
+                    auditService.cleanupAudit(auditCleanupPolicy, opResult);
+                } catch (Exception ex) {
+                    LOGGER.error("Audit cleanup: {}", ex.getMessage(), ex);
+                    opResult.recordFatalError(ex.getMessage(), ex);
+                    runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
                 }
-			} catch (Exception ex) {
-				LOGGER.error("Reports cleanup: {}", ex.getMessage(), ex);
-				opResult.recordFatalError(ex.getMessage(), ex);
-				runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			}
-		} else {
-			LOGGER.trace("Cleanup: No clean up policy for report specified. Finishing clean up task.");
-		}
+            } else {
+                LOGGER.trace("Cleanup: No clean up policy for audit specified. Finishing clean up task.");
+            }
+        }
 
-		CleanupPolicyType closedCampaignsPolicy = cleanupPolicies.getClosedCertificationCampaigns();
-		if (closedCampaignsPolicy != null) {
-			try {
-				certificationService.cleanupCampaigns(closedCampaignsPolicy, task, opResult);
-			} catch (Throwable ex) {
-				LOGGER.error("Campaigns cleanup: {}", ex.getMessage(), ex);
-				opResult.recordFatalError(ex.getMessage(), ex);
-				runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			}
-		} else {
-			LOGGER.trace("Cleanup: No clean up policy for closed tasks specified. Finishing clean up task.");
-		}
+        if (task.canRun()) {
+            CleanupPolicyType closedTasksPolicy = cleanupPolicies.getClosedTasks();
+            if (closedTasksPolicy != null) {
+                try {
+                    taskManager.cleanupTasks(closedTasksPolicy, task, opResult);
+                } catch (Exception ex) {
+                    LOGGER.error("Tasks cleanup: {}", ex.getMessage(), ex);
+                    opResult.recordFatalError(ex.getMessage(), ex);
+                    runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+                }
+            } else {
+                LOGGER.trace("Cleanup: No clean up policy for closed tasks specified. Finishing clean up task.");
+            }
+        }
 
+        if (task.canRun()) {
+            DeadNodeCleanupPolicyType deadNodesPolicy = cleanupPolicies.getDeadNodes();
+            if (deadNodesPolicy != null) {
+                try {
+                    taskManager.cleanupNodes(deadNodesPolicy, task, opResult);
+                } catch (Exception ex) {
+                    LOGGER.error("Nodes cleanup: {}", ex.getMessage(), ex);
+                    opResult.recordFatalError(ex.getMessage(), ex);
+                    runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+                }
+            } else {
+                LOGGER.trace("Cleanup: No clean up policy for closed tasks specified. Finishing clean up task.");
+            }
+        }
 
-		opResult.computeStatus();
-		// This "run" is finished. But the task goes on ...
-		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-		LOGGER.trace("CleanUpTaskHandler.run stopping");
-		return runResult;
-	}
+        if (task.canRun()) {
+            CleanupPolicyType reportCleanupPolicy = cleanupPolicies.getOutputReports();
+            if (reportCleanupPolicy != null) {
+                try {
+                    if (reportManager == null) {
+                        //TODO improve dependencies for report-impl (probably for tests) and set autowire to required
+                        LOGGER.error("Report manager was not autowired, reports cleanup will be skipped.");
+                    } else {
+                        // TODO report progress
+                        reportManager.cleanupReports(reportCleanupPolicy, opResult);
+                    }
+                } catch (Exception ex) {
+                    LOGGER.error("Reports cleanup: {}", ex.getMessage(), ex);
+                    opResult.recordFatalError(ex.getMessage(), ex);
+                    runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+                }
+            } else {
+                LOGGER.trace("Cleanup: No clean up policy for report specified. Finishing clean up task.");
+            }
+        }
 
-	@Override
-	public Long heartbeat(Task task) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+        if (task.canRun()) {
+            CleanupPolicyType closedCampaignsPolicy = cleanupPolicies.getClosedCertificationCampaigns();
+            if (closedCampaignsPolicy != null) {
+                try {
+                    certificationService.cleanupCampaigns(closedCampaignsPolicy, task, opResult);
+                } catch (Throwable ex) {
+                    LOGGER.error("Campaigns cleanup: {}", ex.getMessage(), ex);
+                    opResult.recordFatalError(ex.getMessage(), ex);
+                    runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+                }
+            } else {
+                LOGGER.trace("Cleanup: No clean up policy for closed tasks specified. Finishing clean up task.");
+            }
+        }
 
-	@Override
-	public void refreshStatus(Task task) {
-		// TODO Auto-generated method stub
-		
-	}
+        opResult.computeStatusIfUnknown();
+        if (runResult.getRunResultStatus() == null) {
+            runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
+        }
+        LOGGER.trace("CleanUpTaskHandler.run stopping");
+        return runResult;
+    }
 
-	@Override
-	public String getCategoryName(Task task) {
-		if (task != null && task.getExtensionContainerRealValue(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES) != null) {
-			return TaskCategory.UTIL;			// this is run on-demand just like other utility tasks (e.g. delete task handler)
-		} else {
-			return TaskCategory.SYSTEM;			// this is the default instance, always running
-		}
-	}
+    @Override
+    public String getCategoryName(Task task) {
+        return TaskCategory.CLEANUP;
+    }
 
-	@Override
-	public List<String> getCategoryNames() {
-		return Arrays.asList(TaskCategory.UTIL, TaskCategory.SYSTEM);
-	}
+    @Override
+    public List<String> getCategoryNames() {
+        return Collections.singletonList(TaskCategory.CLEANUP);
+    }
 
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_CLEANUP_TASK.value();
+    }
 }

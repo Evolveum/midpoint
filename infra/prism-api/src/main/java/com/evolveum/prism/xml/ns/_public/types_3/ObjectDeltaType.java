@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 //
@@ -38,6 +29,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.JaxbVisitable;
+import com.evolveum.midpoint.prism.JaxbVisitor;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -87,7 +80,7 @@ import org.w3c.dom.Element;
     "oid",
     "itemDelta"
 })
-public class ObjectDeltaType implements Serializable {
+public class ObjectDeltaType implements Serializable, JaxbVisitable {
 
     @XmlElement(required = true)
     protected ChangeTypeType changeType;
@@ -159,10 +152,6 @@ public class ObjectDeltaType implements Serializable {
     /**
      * Gets the value of the objectToAdd property.
      *
-     * @return
-     *     possible object is
-     *     {@link ObjectDeltaType.ObjectToAdd }
-     *
      */
     public ObjectType getObjectToAdd() {
         return objectToAdd;
@@ -170,10 +159,6 @@ public class ObjectDeltaType implements Serializable {
 
     /**
      * Sets the value of the objectToAdd property.
-     *
-     * @param value
-     *     allowed object is
-     *     {@link ObjectDeltaType.ObjectToAdd }
      *
      */
     public <T extends ObjectType> void setObjectToAdd(T value) {
@@ -230,57 +215,68 @@ public class ObjectDeltaType implements Serializable {
         return this.itemDelta;
     }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((changeType == null) ? 0 : changeType.hashCode());
-		result = prime * result + ((itemDelta == null) ? 0 : itemDelta.hashCode());
-		result = prime * result + ((objectToAdd == null) ? 0 : objectToAdd.hashCode());
-		result = prime * result + ((objectType == null) ? 0 : objectType.hashCode());
-		result = prime * result + ((oid == null) ? 0 : oid.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((changeType == null) ? 0 : changeType.hashCode());
+        result = prime * result + ((itemDelta == null) ? 0 : itemDelta.hashCode());
+        result = prime * result + ((objectToAdd == null) ? 0 : objectToAdd.hashCode());
+        result = prime * result + ((objectType == null) ? 0 : objectType.hashCode());
+        result = prime * result + ((oid == null) ? 0 : oid.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ObjectDeltaType other = (ObjectDeltaType) obj;
-		if (changeType != other.changeType)
-			return false;
-		if (itemDelta == null) {
-			if (other.itemDelta != null)
-				return false;
-		} else if (!itemDelta.equals(other.itemDelta))
-			return false;
-		if (objectToAdd == null) {
-			if (other.objectToAdd != null)
-				return false;
-		} else if (!objectToAdd.equals(other.objectToAdd))
-			return false;
-		if (objectType == null) {
-			if (other.objectType != null)
-				return false;
-		} else if (!objectType.equals(other.objectType))
-			return false;
-		if (oid == null) {
-			if (other.oid != null)
-				return false;
-		} else if (!oid.equals(other.oid))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ObjectDeltaType other = (ObjectDeltaType) obj;
+        if (changeType != other.changeType)
+            return false;
+        if (itemDelta == null) {
+            if (other.itemDelta != null)
+                return false;
+        } else if (!itemDelta.equals(other.itemDelta))
+            return false;
+        if (objectToAdd == null) {
+            if (other.objectToAdd != null)
+                return false;
+        } else if (!objectToAdd.equals(other.objectToAdd))
+            return false;
+        if (objectType == null) {
+            if (other.objectType != null)
+                return false;
+        } else if (!objectType.equals(other.objectType))
+            return false;
+        if (oid == null) {
+            if (other.oid != null)
+                return false;
+        } else if (!oid.equals(other.oid))
+            return false;
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "ObjectDeltaType(changeType=" + changeType + ", objectType=" + objectType + ", objectToAdd="
-				+ objectToAdd + ", oid=" + oid + ", modification=" + itemDelta + ")";
-	}
+    @Override
+    public String toString() {
+        return "ObjectDeltaType(changeType=" + changeType + ", objectType=" + objectType + ", objectToAdd="
+                + objectToAdd + ", oid=" + oid + ", modification=" + itemDelta + ")";
+    }
+
+    @Override
+    public void accept(JaxbVisitor visitor) {
+        visitor.visit(this);
+        for (ItemDeltaType delta : itemDelta) {
+            delta.accept(visitor);
+        }
+        if (objectToAdd != null) {
+            objectToAdd.accept(visitor);
+        }
+    }
 
     /**
      * <p>Java class for anonymous complex type.
@@ -303,7 +299,7 @@ public class ObjectDeltaType implements Serializable {
     @XmlType(name = "", propOrder = {
         "any"
     })
-    public static class ObjectToAdd implements Serializable {
+    public static class ObjectToAdd implements Serializable, JaxbVisitable {
 
         @XmlAnyElement(lax = true)
         protected JAXBElement<?> any;
@@ -353,6 +349,13 @@ public class ObjectDeltaType implements Serializable {
             return retval;
         }
 
+        @Override
+        public void accept(JaxbVisitor visitor) {
+            visitor.visit(this);
+            if (any != null && any.getValue() instanceof JaxbVisitable) {
+                ((JaxbVisitable) any.getValue()).accept(visitor);
+            }
+        }
     }
 
     /**

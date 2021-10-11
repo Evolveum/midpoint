@@ -16,6 +16,7 @@ DETERMINISTIC
     DELETE FROM m_acc_cert_case;
     DELETE FROM m_acc_cert_campaign;
     DELETE FROM m_acc_cert_definition;
+    DELETE FROM m_audit_resource;
     DELETE FROM m_audit_prop_value;
     DELETE FROM m_audit_ref_value;
     DELETE FROM m_audit_delta;
@@ -79,6 +80,7 @@ DETERMINISTIC
     DELETE FROM m_ext_item;
     DELETE FROM m_object_subtype;
     DELETE FROM m_object_collection;
+    DELETE FROM m_dashboard;
     DELETE FROM m_object;
 
     RETURN run;

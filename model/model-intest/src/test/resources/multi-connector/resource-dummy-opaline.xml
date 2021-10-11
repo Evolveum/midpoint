@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="d4a2a030-0a1c-11ea-b61c-67d35cfea30f"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+          xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <name>Dummy Resource: Opaline</name>
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnectorPure</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnectorPure">
+
+        <icfc:configurationProperties>
+            <icfi:instanceId>opaline</icfi:instanceId>
+            <icfi:uselessGuardedString>
+                <clearValue>whatever</clearValue>
+            </icfi:uselessGuardedString>
+            <icfi:uselessString>USEless-opaline</icfi:uselessString>
+        </icfc:configurationProperties>
+
+        <icfc:resultsHandlerConfiguration>
+            <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+            <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+            <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+        </icfc:resultsHandlerConfiguration>
+
+    </connectorConfiguration>
+
+    <additionalConnector>
+        <name>scriptRunner</name>
+        <connectorRef type="ConnectorType">
+            <filter>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnectorScriptRunner</q:value>
+                </q:equal>
+            </filter>
+        </connectorRef>
+        <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnectorScriptRunner">
+            <icfc:configurationProperties>
+                <icfi:instanceId>opaline-script</icfi:instanceId>
+                <icfi:uselessGuardedString>
+                    <clearValue>whatever-script</clearValue>
+                </icfi:uselessGuardedString>
+                <icfi:uselessString>USEless-script</icfi:uselessString>
+            </icfc:configurationProperties>
+        </connectorConfiguration>
+    </additionalConnector>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Username</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>name + iterationToken</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+                <displayName>UID</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <displayName>Full Name</displayName>
+                <outbound>
+                    <source>
+                        <path>fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:title</ref>
+                <tolerant>true</tolerant>
+            </attribute>
+            <attribute>
+                <ref>ri:location</ref>
+                <displayName>Location</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>locality</path>
+                    </source>
+                </outbound>
+            </attribute>
+
+            <iteration>
+                <maxIterations>5</maxIterations>
+            </iteration>
+
+            <protected>
+                <filter>
+                    <q:equal>
+                        <q:path>attributes/name</q:path>
+                        <q:value>daviejones</q:value>
+                    </q:equal>
+                </filter>
+            </protected>
+            <protected>
+                <filter>
+                    <q:equal>
+                        <q:path>attributes/name</q:path>
+                        <q:value>calypso</q:value>
+                    </q:equal>
+                </filter>
+            </protected>
+
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
+                <lockoutStatus>
+                    <outbound/>
+                </lockoutStatus>
+            </activation>
+
+            <credentials>
+                <password>
+                    <outbound>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </outbound>
+                </password>
+            </credentials>
+
+        </objectType>
+
+    </schemaHandling>
+
+    <scripts>
+
+        <script> <!-- after-add-account script -->
+            <host>resource</host>
+            <language>Gibberish</language>
+            <argument>
+                <script>
+                    <code>'user: ' + focus?.getName()</code>
+                </script>
+                <name>usr</name>
+            </argument>
+            <code>Gibbery-fibery foobar baz!</code>
+            <operation>add</operation>
+            <kind>account</kind>
+            <order>after</order>
+        </script>
+
+        <script> <!-- before-modify-account script -->
+            <host>resource</host>
+            <language>Gibberish</language>
+            <argument>
+                <path>$focus/costCenter</path>
+                <name>howMuch</name>
+            </argument>
+            <code>Beware the Jabberwock, my son!</code>
+            <operation>modify</operation>
+            <kind>account</kind>
+            <order>before</order>
+        </script>
+
+    </scripts>
+
+</resource>

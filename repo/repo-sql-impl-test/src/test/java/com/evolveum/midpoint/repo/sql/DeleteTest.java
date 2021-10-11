@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql;
@@ -19,8 +10,6 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
@@ -42,13 +31,11 @@ import java.util.List;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class DeleteTest extends BaseSQLRepoTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(DeleteTest.class);
-
     @Test
     public void delete001() throws Exception {
         final File file = new File("./../../samples/dsee/odsee-localhost-advanced-sync.xml");
         if (!file.exists()) {
-            LOGGER.warn("skipping addGetDSEESyncDoubleTest, file {} not found.",
+            logger.warn("skipping addGetDSEESyncDoubleTest, file {} not found.",
                     new Object[]{file.getPath()});
             return;
         }
@@ -59,13 +46,13 @@ public class DeleteTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("Delete Test");
         for (int i = 0; i < elements.size(); i++) {
             PrismObject object = elements.get(i);
-            LOGGER.info("Adding object {}, type {}", new Object[]{i, object.getCompileTimeClass().getSimpleName()});
+            logger.info("Adding object {}, type {}", new Object[]{i, object.getCompileTimeClass().getSimpleName()});
             oids.add(repositoryService.addObject(object, null, result));
         }
 
         for (int i = 0; i < elements.size(); i++) {
             PrismObject object = elements.get(i);
-            LOGGER.info("Deleting object {}, type {}", new Object[]{i, object.getCompileTimeClass().getSimpleName()});
+            logger.info("Deleting object {}, type {}", new Object[]{i, object.getCompileTimeClass().getSimpleName()});
 
             repositoryService.deleteObject(object.getCompileTimeClass(), oids.get(i), result);
         }
@@ -99,21 +86,17 @@ public class DeleteTest extends BaseSQLRepoTest {
 
         AssertJUnit.assertTrue(result.isSuccess());
 
-        Session session = getFactory().openSession();
-        try {
-            Query query = session.createNativeQuery("select count(*) from m_trigger where owner_oid = ?");
+        try (Session session = getFactory().openSession()) {
+            Query<?> query = session.createNativeQuery("select count(*) from m_trigger where owner_oid = ?");
             query.setParameter(1, oid);
 
             Number count = (Number) query.uniqueResult();
             AssertJUnit.assertEquals(count.longValue(), 0L);
-        } finally {
-            session.close();
         }
     }
 
     @Test
     public void test100DeleteObjects() throws Exception {
-//        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
         List<PrismObject<? extends Objectable>> objects = prismContext.parserFor(new File(FOLDER_BASIC, "objects.xml")).parseObjects();
         OperationResult result = new OperationResult("add objects");
 

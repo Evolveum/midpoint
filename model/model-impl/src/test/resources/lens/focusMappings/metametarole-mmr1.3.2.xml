@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="c5f74a67-da40-4498-a2f9-1d41ff4163b6">
+    <name>mmr1.3.2</name>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <source>
+                    <path>extension/p132c</path>
+                </source>
+                <target>
+                    <path>organizationalUnit</path>
+                </target>
+            </mapping>
+            <mapping>
+                <source>
+                    <path>extension/p132b</path>
+                </source>
+                <target>
+                    <path>extension/p132c</path>
+                </target>
+            </mapping>
+            <mapping>
+                <source>
+                    <path>extension/p132a</path>
+                </source>
+                <target>
+                    <path>extension/p132b</path>
+                </target>
+            </mapping>
+            <mapping>
+                <source>
+                    <path>description</path>
+                </source>
+                <expression>
+                    <script>
+                        <code>
+                            // source = this metarole
+                            description + ':' + basic.stringify(source.name)
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>extension/p132a</path>
+                </target>
+            </mapping>
+        </focusMappings>
+        <order>3</order>
+        <focusType>UserType</focusType>
+    </inducement>
+</role>

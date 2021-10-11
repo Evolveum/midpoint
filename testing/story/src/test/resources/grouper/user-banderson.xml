@@ -1,0 +1,17 @@
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="4f439db5-181e-4297-9f7d-b3115524dbe8">
+    <name>banderson</name>
+    <assignment>
+        <targetRef oid="c89f31dd-8d4f-4e0a-82cb-58ff9d8c1b2f" type="RoleType"/>    <!-- role-ldap-basic -->
+    </assignment>
+    <fullName>Bob Anderson</fullName>
+    <givenName>Bob</givenName>
+    <familyName>Anderson</familyName>
+</user>

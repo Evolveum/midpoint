@@ -1,24 +1,28 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql;
 
 import java.util.Set;
+import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
+import org.hibernate.Session;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -30,33 +34,15 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import org.hibernate.Session;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import javax.xml.XMLConstants;
-import javax.xml.namespace.QName;
-
-/**
- * @author lazyman
- */
-
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(RAnyConverterStaticTest.class);
     private static final String NS_P = "http://example.com/p";
     private static final String NS_T = PrismConstants.NS_TYPES;
     private static final String NS_FOO_RESOURCE = "http://example.com/foo";
@@ -195,16 +181,16 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         AssertJUnit.assertNotNull(def);
         PrismProperty item = (PrismProperty) def.instantiate();
         item.setRealValue(BeforeAfterType.AFTER);
-        def.toMutable().setName(valueName);
-
 
         RAnyConverter converter = new RAnyConverter(prismContext, extItemDictionary);
         Set<RAnyValue<?>> values;
         try {
             values = converter.convertToRValue(item, false, RObjectExtensionType.EXTENSION);
             AssertJUnit.fail("Should have throw serialization related exception after creating ext item");
-        } catch (DtoTranslationException ex) {
-            AssertJUnit.assertTrue(SerializationRelatedException.class.equals(ex.getCause().getClass()));
+        } catch (RestartOperationRequestedException ex) {   // this is a new way
+            System.out.println("Got expected exception: " + ex);
+        } catch (DtoTranslationException ex) {              // this was an old way
+            AssertJUnit.assertEquals("Wrong exception class", RestartOperationRequestedException.class, ex.getCause().getClass());
         }
 
         values = converter.convertToRValue(item, false, RObjectExtensionType.EXTENSION);

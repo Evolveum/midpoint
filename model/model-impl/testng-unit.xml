@@ -1,18 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="unit" parallel="false">
@@ -23,19 +14,6 @@
             <class name="com.evolveum.midpoint.model.impl.TestFilterResolver"/>
         </classes>
     </test>
-    <test name="Controller" preserve-order="true" parallel="false" verbose="10">
-        <classes>
-            <class name="com.evolveum.midpoint.model.impl.controller.ControllerAddObjectTest"/>
-            <class name="com.evolveum.midpoint.model.impl.controller.ControllerGetObjectTest"/>
-            <class name="com.evolveum.midpoint.model.impl.controller.ControllerLaunchImportTest"/>
-            <class name="com.evolveum.midpoint.model.impl.controller.ControllerListResourceObjectsTest"/>
-            <class name="com.evolveum.midpoint.model.impl.controller.ControllerModifyObjectTest"/>
-            <class name="com.evolveum.midpoint.model.impl.controller.ControllerSearchObjectsTest"/>
-            <class name="com.evolveum.midpoint.model.impl.controller.ControllerTestResourceTest"/>
-            <class name="com.evolveum.midpoint.model.impl.controller.FilterManagerImplTest"/>
-            <class name="com.evolveum.midpoint.model.impl.controller.ModelUtilsTest"/>
-        </classes>
-    </test>
     <test name="Expressions" preserve-order="true" parallel="false" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.impl.expr.ExpressionHandlerImplTest"/>
@@ -43,19 +21,12 @@
             <class name="com.evolveum.midpoint.model.impl.expr.TestModelExpressions"/>
         </classes>
     </test>
-    <test name="Filters" preserve-order="true" parallel="false" verbose="10">
-        <classes>
-            <class name="com.evolveum.midpoint.model.impl.filter.DiacriticsFilterTest"/>
-            <class name="com.evolveum.midpoint.model.impl.filter.EmptyFilterTest"/>
-            <class name="com.evolveum.midpoint.model.impl.filter.PatternFilterTest"/>
-        </classes>
-    </test>
     <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.impl.sync.SynchronizationSituationTest"/>
             <class name="com.evolveum.midpoint.model.impl.sync.ActionManagerImplTest"/>
             <class name="com.evolveum.midpoint.model.impl.sync.TestSynchronizationService"/>
-            <class name="com.evolveum.midpoint.model.impl.sync.TestCorrelationConfiramtionEvaluator"/>
+            <class name="com.evolveum.midpoint.model.impl.sync.TestCorrelationConfirmationEvaluator"/>
         </classes>
     </test>
     <test name="Lens" preserve-order="true" parallel="false" verbose="10">
@@ -64,12 +35,14 @@
             <class name="com.evolveum.midpoint.model.impl.lens.TestAssignmentProcessor2"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestAssignmentEvaluator"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestAssignmentEvaluatorDynamic"/>
+            <class name="com.evolveum.midpoint.model.impl.lens.TestAssignedMappings"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestProjector"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestProjectorRoleEntitlement"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestDependencies"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestClockwork"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestReconScript"/>
-            <class name="com.evolveum.midpoint.model.impl.lens.TestPasswordPolicyProcessor"/>
+            <class name="com.evolveum.midpoint.model.impl.lens.TestPasswordPolicyProcessorForUser"/>
+            <class name="com.evolveum.midpoint.model.impl.lens.TestPasswordPolicyProcessorForService"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestPasswordPolicy"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestPolicyRules"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestPolicyRules2"/>
@@ -79,11 +52,10 @@
     </test>
     <test name="Misc" preserve-order="true" parallel="false" verbose="10">
         <classes>
-            <class name="com.evolveum.midpoint.model.impl.ModelWebServiceTest"/>
             <class name="com.evolveum.midpoint.model.impl.security.TestPasswordAuthenticationEvaluator"/>
             <class name="com.evolveum.midpoint.model.impl.security.TestNonceAuthenticationEvaluator"/>
             <class name="com.evolveum.midpoint.model.impl.security.TestSecurityQuestionsAuthenticationEvaluator"/>
-            <class name="com.evolveum.midpoint.model.impl.security.TestUserProfileService"/>
+            <class name="com.evolveum.midpoint.model.impl.security.TestGuiProfiledPrincipalManager"/>
             <class name="com.evolveum.midpoint.model.impl.misc.TestCaseManagement"/>
             <class name="com.evolveum.midpoint.model.impl.misc.TestRelationRegistry"/>
             <class name="com.evolveum.midpoint.model.impl.misc.ShadowIntegrityCheckerTest"/>

@@ -1,0 +1,22 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="84851118-7579-46aa-a1c7-5b22eec1e443">
+    <name>alice</name>
+    <assignment>
+        <targetRef oid="369d1192-cb12-4cf9-90ea-0111895e9cb5" type="RoleType"/>    <!-- one -->
+    </assignment>
+    <assignment>
+        <targetRef oid="8a1e3f58-1fb8-451e-a251-126385ddfa0a" type="RoleType"/>    <!-- two -->
+    </assignment>
+    <assignment>
+        <targetRef oid="ce741b1a-0181-4c99-aaad-3d3a5f9eb48b" type="RoleType"/>    <!-- three -->
+    </assignment>
+    <givenName>Alice</givenName>
+    <familyName>White</familyName>
+</user>

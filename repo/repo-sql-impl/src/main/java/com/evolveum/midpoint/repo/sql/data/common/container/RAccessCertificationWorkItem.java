@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
@@ -56,12 +47,12 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 
     private static final Trace LOGGER = TraceManager.getTrace(RAccessCertificationWorkItem.class);
 
-	public static final String TABLE = "m_acc_cert_wi";
+    public static final String TABLE = "m_acc_cert_wi";
     public static final String F_OWNER = "owner";
 
     private Boolean trans;
 
-    private String ownerOwnerOid;						// campaign OID
+    private String ownerOwnerOid;                        // campaign OID
     private RAccessCertificationCase owner;
     private Integer ownerId;
     private Integer id;
@@ -79,16 +70,16 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 
     // ridiculous name, but needed in order to match case.owner_oid
     @Column(name = "owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
-    //@OwnerIdGetter()			// this is not a single-valued owner id
+    //@OwnerIdGetter()            // this is not a single-valued owner id
     public String getOwnerOwnerOid() {
         return ownerOwnerOid;
     }
 
-	public void setOwnerOwnerOid(String ownerOwnerOid) {
-		this.ownerOwnerOid = ownerOwnerOid;
-	}
+    public void setOwnerOwnerOid(String ownerOwnerOid) {
+        this.ownerOwnerOid = ownerOwnerOid;
+    }
 
-	@Id
+    @Id
     @ForeignKey(name = "fk_acc_cert_wi_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -97,25 +88,25 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
         return owner;
     }
 
-	public void setOwner(RAccessCertificationCase _case) {
-		this.owner = _case;
-		if (_case != null) {            // sometimes we are called with null _case but non-null IDs
-			this.ownerId = _case.getId();
-			this.ownerOwnerOid = _case.getOwnerOid();
-		}
-	}
+    public void setOwner(RAccessCertificationCase _case) {
+        this.owner = _case;
+        if (_case != null) {            // sometimes we are called with null _case but non-null IDs
+            this.ownerId = _case.getId();
+            this.ownerOwnerOid = _case.getOwnerOid();
+        }
+    }
 
-	@Column(name = "owner_id", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
-	//@OwnerIdGetter()			// this is not a single-valued owner id
+    @Column(name = "owner_id", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
+    //@OwnerIdGetter()            // this is not a single-valued owner id
     public Integer getOwnerId() {
         return ownerId;
     }
 
-	public void setOwnerId(Integer ownerId) {
-		this.ownerId = ownerId;
-	}
+    public void setOwnerId(Integer ownerId) {
+        this.ownerId = ownerId;
+    }
 
-	@Id
+    @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
     @Column(name = "id")
@@ -124,29 +115,29 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
         return id;
     }
 
-	public void setId(Integer id) {
-		this.id = id;
-	}
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-	@Column(nullable = false)
-	public Integer getIteration() {
-		return iteration;
-	}
+    @Column(nullable = false)
+    public Integer getIteration() {
+        return iteration;
+    }
 
-	@Column
-	public Integer getStageNumber() {
-    	return stageNumber;
-	}
+    @Column
+    public Integer getStageNumber() {
+        return stageNumber;
+    }
 
-	public void setIteration(Integer iteration) {
-		this.iteration = iteration;
-	}
+    public void setIteration(Integer iteration) {
+        this.iteration = iteration;
+    }
 
-	public void setStageNumber(Integer stageNumber) {
-		this.stageNumber = stageNumber;
-	}
+    public void setStageNumber(Integer stageNumber) {
+        this.stageNumber = stageNumber;
+    }
 
-	@JaxbName(localPart = "assigneeRef")
+    @JaxbName(localPart = "assigneeRef")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
@@ -159,68 +150,68 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     }
 
     @Column
-	public REmbeddedReference getPerformerRef() {
-		return performerRef;
-	}
+    public REmbeddedReference getPerformerRef() {
+        return performerRef;
+    }
 
-	public void setPerformerRef(REmbeddedReference performerRef) {
-		this.performerRef = performerRef;
-	}
+    public void setPerformerRef(REmbeddedReference performerRef) {
+        this.performerRef = performerRef;
+    }
 
-	@JaxbPath(itemPath = { @JaxbName(localPart = "output"), @JaxbName(localPart = "outcome") })
-	@Column
-	public String getOutcome() {
-		return outcome;
-	}
+    @JaxbPath(itemPath = { @JaxbName(localPart = "output"), @JaxbName(localPart = "outcome") })
+    @Column
+    public String getOutcome() {
+        return outcome;
+    }
 
-	public void setOutcome(String outcome) {
-		this.outcome = outcome;
-	}
+    public void setOutcome(String outcome) {
+        this.outcome = outcome;
+    }
 
-	@Column
-	public XMLGregorianCalendar getOutputChangeTimestamp() {
-		return outputChangeTimestamp;
-	}
+    @Column
+    public XMLGregorianCalendar getOutputChangeTimestamp() {
+        return outputChangeTimestamp;
+    }
 
-	public void setOutputChangeTimestamp(XMLGregorianCalendar outputChangeTimestamp) {
-		this.outputChangeTimestamp = outputChangeTimestamp;
-	}
+    public void setOutputChangeTimestamp(XMLGregorianCalendar outputChangeTimestamp) {
+        this.outputChangeTimestamp = outputChangeTimestamp;
+    }
 
-	@Column
-	public XMLGregorianCalendar getCloseTimestamp() {
-		return closeTimestamp;
-	}
+    @Column
+    public XMLGregorianCalendar getCloseTimestamp() {
+        return closeTimestamp;
+    }
 
-	public void setCloseTimestamp(XMLGregorianCalendar closeTimestamp) {
-		this.closeTimestamp = closeTimestamp;
-	}
+    public void setCloseTimestamp(XMLGregorianCalendar closeTimestamp) {
+        this.closeTimestamp = closeTimestamp;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (!(o instanceof RAccessCertificationWorkItem))
-			return false;
-		RAccessCertificationWorkItem that = (RAccessCertificationWorkItem) o;
-		return Objects.equals(ownerOwnerOid, that.ownerOwnerOid) &&
-				Objects.equals(ownerId, that.ownerId) &&
-				Objects.equals(id, that.id) &&
-				Objects.equals(iteration, that.iteration) &&
-				Objects.equals(stageNumber, that.stageNumber) &&
-				Objects.equals(assigneeRef, that.assigneeRef) &&
-				Objects.equals(performerRef, that.performerRef) &&
-				Objects.equals(outcome, that.outcome) &&
-				Objects.equals(outputChangeTimestamp, that.outputChangeTimestamp) &&
-				Objects.equals(closeTimestamp, that.closeTimestamp);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof RAccessCertificationWorkItem))
+            return false;
+        RAccessCertificationWorkItem that = (RAccessCertificationWorkItem) o;
+        return Objects.equals(ownerOwnerOid, that.ownerOwnerOid) &&
+                Objects.equals(ownerId, that.ownerId) &&
+                Objects.equals(id, that.id) &&
+                Objects.equals(iteration, that.iteration) &&
+                Objects.equals(stageNumber, that.stageNumber) &&
+                Objects.equals(assigneeRef, that.assigneeRef) &&
+                Objects.equals(performerRef, that.performerRef) &&
+                Objects.equals(outcome, that.outcome) &&
+                Objects.equals(outputChangeTimestamp, that.outputChangeTimestamp) &&
+                Objects.equals(closeTimestamp, that.closeTimestamp);
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects
-				.hash(ownerOwnerOid, ownerId, id, iteration, stageNumber, assigneeRef, performerRef, outcome, outputChangeTimestamp, closeTimestamp);
-	}
+    @Override
+    public int hashCode() {
+        return Objects
+                .hash(ownerOwnerOid, ownerId, id, iteration, stageNumber, assigneeRef, performerRef, outcome, outputChangeTimestamp, closeTimestamp);
+    }
 
-	@Transient
+    @Transient
     public Boolean isTransient() {
         return trans;
     }
@@ -230,8 +221,8 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     }
 
     public static RAccessCertificationWorkItem toRepo(RAccessCertificationCase _case, AccessCertificationWorkItemType workItem, RepositoryContext context) throws DtoTranslationException {
-		RAccessCertificationWorkItem rWorkItem = new RAccessCertificationWorkItem();
-		rWorkItem.setOwner(_case);
+        RAccessCertificationWorkItem rWorkItem = new RAccessCertificationWorkItem();
+        rWorkItem.setOwner(_case);
         toRepo(rWorkItem, workItem, context);
         return rWorkItem;
     }
@@ -239,22 +230,22 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     public static RAccessCertificationWorkItem toRepo(String campaignOid, Integer caseId, AccessCertificationWorkItemType workItem,
             RepositoryContext context) throws DtoTranslationException {
         RAccessCertificationWorkItem rWorkItem = new RAccessCertificationWorkItem();
-		rWorkItem.setOwnerOwnerOid(campaignOid);
-		rWorkItem.setOwnerId(caseId);
-		toRepo(rWorkItem, workItem, context);
+        rWorkItem.setOwnerOwnerOid(campaignOid);
+        rWorkItem.setOwnerId(caseId);
+        toRepo(rWorkItem, workItem, context);
         return rWorkItem;
     }
 
     private static void toRepo(RAccessCertificationWorkItem rWorkItem,
-			AccessCertificationWorkItemType workItem, RepositoryContext context) throws DtoTranslationException {
+            AccessCertificationWorkItemType workItem, RepositoryContext context) throws DtoTranslationException {
         rWorkItem.setTransient(null);       // we don't try to advise hibernate - let it do its work, even if it would cost some SELECTs
-		Integer idInt = RUtil.toInteger(workItem.getId());
-		if (idInt == null) {
-			throw new IllegalArgumentException("No ID for access certification work item: " + workItem);
-		}
-		rWorkItem.setId(idInt);
-		rWorkItem.setIteration(norm(workItem.getIteration()));
-		rWorkItem.setStageNumber(workItem.getStageNumber());
+        Integer idInt = RUtil.toInteger(workItem.getId());
+        if (idInt == null) {
+            throw new IllegalArgumentException("No ID for access certification work item: " + workItem);
+        }
+        rWorkItem.setId(idInt);
+        rWorkItem.setIteration(norm(workItem.getIteration()));
+        rWorkItem.setStageNumber(workItem.getStageNumber());
         rWorkItem.getAssigneeRef().addAll(RCertWorkItemReference.safeListReferenceToSet(
                 workItem.getAssigneeRef(), rWorkItem, context.relationRegistry));
         rWorkItem.setPerformerRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getPerformerRef(), context.relationRegistry));

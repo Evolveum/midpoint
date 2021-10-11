@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.model.api.context;
@@ -32,31 +23,31 @@ import java.util.Set;
  */
 public interface EvaluationOrder extends DebugDumpable, ShortDumpable, Cloneable {
 
-	int getSummaryOrder();
+    int getSummaryOrder();
 
-	EvaluationOrder advance(QName relation);
+    EvaluationOrder advance(QName relation);
 
-	EvaluationOrder decrease(MultiSet<QName> relations);
+    EvaluationOrder decrease(MultiSet<QName> relations);
 
-	int getMatchingRelationOrder(QName relation);
+    int getMatchingRelationOrder(QName relation);
 
-	Collection<QName> getExtraRelations();
+    Collection<QName> getExtraRelations();
 
-	EvaluationOrder clone();
+    EvaluationOrder clone();
 
-	EvaluationOrder resetOrder(QName relation, int newOrder);
+    EvaluationOrder resetOrder(QName relation, int newOrder);
 
-	// returns the delta that would transform current object state to the newState
-	// both current and new states must be defined
-	Map<QName, Integer> diff(EvaluationOrder newState);
+    // returns the delta that would transform current object state to the newState
+    // both current and new states must be defined
+    Map<QName, Integer> diff(EvaluationOrder newState);
 
-	EvaluationOrder applyDifference(Map<QName, Integer> difference);
+    EvaluationOrder applyDifference(Map<QName, Integer> difference);
 
-	boolean isDefined();
+    boolean isDefined();
 
-	Set<QName> getRelations();
+    Set<QName> getRelations();
 
-	boolean isValid();
+    boolean isValid();
 
-	boolean isOrderOne();
+    boolean isOrderOne();
 }

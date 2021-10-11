@@ -1,6 +1,13 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.schrodinger.page.resource;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.TabPanel;
@@ -52,10 +59,11 @@ public class EditResourceConfigurationPage extends BasicPage {
     }
 
     public TestConnectionModal<EditResourceConfigurationPage> clickSaveAndTestConnection() {
-        $(Schrodinger.byDataId("testConnection")).click();
+        $(Schrodinger.byDataId("testConnection")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         SelenideElement testModalBox = $(Schrodinger
                 .byElementAttributeValue("div", "aria-labelledby", "Test connection result(s)"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M);
+                .waitUntil(Condition.exist, MidPoint.TIMEOUT_LONG_1_M)
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new TestConnectionModal<>(this, testModalBox);
     }

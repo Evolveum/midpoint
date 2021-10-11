@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
@@ -36,14 +27,14 @@ public class ObjectClassDataProvider implements IDataProvider<ObjectClassDto> {
     private String filter;
 
     public ObjectClassDataProvider(@NotNull NonEmptyModel<List<ObjectClassDto>> allClasses) {
-		this.allClasses = allClasses;
+        this.allClasses = allClasses;
     }
 
     @Override
     public Iterator<? extends ObjectClassDto> iterator(long first, long count) {
         List<ObjectClassDto> data = new ArrayList<>();
-		List<ObjectClassDto> filteredClasses = getFilteredClasses();
-		for (int i = (int) first; i < filteredClasses.size() && i < first + count; i++) {
+        List<ObjectClassDto> filteredClasses = getFilteredClasses();
+        for (int i = (int) first; i < filteredClasses.size() && i < first + count; i++) {
             data.add(filteredClasses.get(i));
         }
         return data.iterator();
@@ -59,38 +50,38 @@ public class ObjectClassDataProvider implements IDataProvider<ObjectClassDto> {
         return new Model<>(object);
     }
 
-	// not cached because of data staleness issues (when source model(s) get reset)
+    // not cached because of data staleness issues (when source model(s) get reset)
     private List<ObjectClassDto> getFilteredClasses() {
-		if (StringUtils.isEmpty(filter)) {
+        if (StringUtils.isEmpty(filter)) {
             return allClasses.getObject();
         }
-		List<ObjectClassDto> rv = new ArrayList<>();
-		for (ObjectClassDto dto : allClasses.getObject()) {
+        List<ObjectClassDto> rv = new ArrayList<>();
+        for (ObjectClassDto dto : allClasses.getObject()) {
             if (StringUtils.containsIgnoreCase(dto.getDisplayName(), filter)) {
                 rv.add(dto);
             }
         }
-		return rv;
+        return rv;
     }
 
     @Override
     public void detach() {
     }
 
-//	public boolean isDisplayed(String name) {
-//		for (ObjectClassDto objectClass : getFilteredClasses()) {
-//			if (objectClass.getDisplayName().equals(name)) {
-//				return true;
-//			}
-//		}
-//		return false;
-//	}
+//    public boolean isDisplayed(String name) {
+//        for (ObjectClassDto objectClass : getFilteredClasses()) {
+//            if (objectClass.getDisplayName().equals(name)) {
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
 
-	public void setFilter(String filter) {
-		this.filter = filter;
-	}
+    public void setFilter(String filter) {
+        this.filter = filter;
+    }
 
-	public String getFilter() {
-		return filter;
-	}
+    public String getFilter() {
+        return filter;
+    }
 }

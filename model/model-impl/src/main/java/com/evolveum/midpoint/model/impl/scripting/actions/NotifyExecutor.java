@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
@@ -22,16 +13,14 @@ import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.CustomEvent;
-import com.evolveum.midpoint.notifications.api.events.Event;
+import com.evolveum.midpoint.notifications.api.events.factory.CustomEventFactory;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,13 +32,11 @@ import javax.annotation.PostConstruct;
 @Component
 public class NotifyExecutor extends BaseActionExecutor {
 
-    @Autowired
-    private LightweightIdentifierGenerator lightweightIdentifierGenerator;
-
     @Autowired(required = false)                            // During some tests this might be unavailable
     private NotificationManager notificationManager;
 
-    private static final Trace LOGGER = TraceManager.getTrace(NotifyExecutor.class);
+    @Autowired(required = false)
+    private CustomEventFactory customEventFactory;
 
     private static final String NAME = "notify";
     private static final String PARAM_SUBTYPE = "subtype";
@@ -76,8 +63,8 @@ public class NotifyExecutor extends BaseActionExecutor {
         boolean forWholeInput = expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_FOR_WHOLE_INPUT, input, context, false, PARAM_FOR_WHOLE_INPUT, globalResult);
 
         if (handler != null) {
-			checkRootAuthorization(context, globalResult, NAME);		// TODO explain that the reason is that handler is not null
-		}
+            checkRootAuthorization(context, globalResult, NAME);        // TODO explain that the reason is that handler is not null
+        }
 
         if (status == null) {
             status = EventStatusType.SUCCESS;
@@ -89,10 +76,13 @@ public class NotifyExecutor extends BaseActionExecutor {
         if (notificationManager == null) {
             throw new IllegalStateException("Notification manager is unavailable");
         }
+        if (customEventFactory == null) {
+            throw new IllegalStateException("Custom event factory is unavailable");
+        }
 
         int eventCount = 0;
         if (forWholeInput) {
-            Event event = new CustomEvent(lightweightIdentifierGenerator, subtype, handler, input.getData(), operation, status, context.getChannel());
+            CustomEvent event = customEventFactory.createEvent(subtype, handler, input.getData(), operation, status, context.getChannel());
             notificationManager.processEvent(event, context.getTask(), globalResult);
             eventCount++;
         } else {
@@ -100,7 +90,7 @@ public class NotifyExecutor extends BaseActionExecutor {
                 PrismValue value = item.getValue();
                 OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
                 context.checkTaskStop();
-                Event event = new CustomEvent(lightweightIdentifierGenerator, subtype, handler, value, operation, status, context.getChannel());
+                CustomEvent event = customEventFactory.createEvent(subtype, handler, value, operation, status, context.getChannel());
                 notificationManager.processEvent(event, context.getTask(), result);
                 eventCount++;
                 operationsHelper.trimAndCloneResult(result, globalResult, context);

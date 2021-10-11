@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<c:user oid="c0c010c0-d34d-b33f-f00d-111111111888"
+   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+   xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <c:name>angelika</c:name>
+    <c:fullName>angelika</c:fullName>
+    <c:givenName>angelika</c:givenName>
+    <c:familyName>angelika</c:familyName>
+    <c:credentials>
+        <c:password>
+            <c:value>
+                <c:clearValue>deadmentellnotales</c:clearValue>
+            </c:value>
+        </c:password>
+    </c:credentials>
+</c:user>

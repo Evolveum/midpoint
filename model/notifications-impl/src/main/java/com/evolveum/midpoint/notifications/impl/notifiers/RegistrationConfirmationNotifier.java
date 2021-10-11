@@ -1,105 +1,92 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import com.evolveum.midpoint.notifications.api.events.ModelEvent;
+
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.notifications.api.events.Event;
-import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationConfirmationNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @Component
-public class RegistrationConfirmationNotifier extends ConfirmationNotifier {
+public class RegistrationConfirmationNotifier extends ConfirmationNotifier<RegistrationConfirmationNotifierType> {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ConfirmationNotifier.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ConfirmationNotifier.class);
 
-	@Override
-	public void init() {
-		register(RegistrationConfirmationNotifierType.class);
-	}
+    @Override
+    public Class<RegistrationConfirmationNotifierType> getEventHandlerConfigurationType() {
+        return RegistrationConfirmationNotifierType.class;
+    }
 
-	@Override
-	protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType,
-			OperationResult result) {
-		if (!(super.quickCheckApplicability(event, generalNotifierType, result))
-				|| !((ModelEvent) event).hasFocusOfType(UserType.class)) {
-			LOGGER.trace(
-					"RegistrationConfirmationNotifier is not applicable for this kind of event, continuing in the handler chain; event class = "
-							+ event.getClass());
-			return false;
-		} else {
-			return true;
-		}
-	}
+    @Override
+    protected boolean quickCheckApplicability(ModelEvent event, RegistrationConfirmationNotifierType configuration,
+            OperationResult result) {
+        // TODO generalize to FocusType
+        if (!event.hasFocusOfType(UserType.class)) {
+            LOGGER.trace(
+                    "RegistrationConfirmationNotifier is not applicable for this kind of event, continuing in the handler chain; event class = "
+                            + event.getClass());
+            return false;
+        } else {
+            return true;
+        }
+    }
 
-	@Override
-	protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType,
-			OperationResult result) {
-		if (!event.isSuccess()) {
-			LOGGER.trace("Operation was not successful, exiting.");
-			return false;
-		}
+    @Override
+    protected boolean checkApplicability(ModelEvent event, RegistrationConfirmationNotifierType configuration,
+            OperationResult result) {
+        if (!event.isSuccess()) {
+            LOGGER.trace("Operation was not successful, exiting.");
+            return false;
+        } else if (event.getFocusDeltas().isEmpty()) {
+            LOGGER.trace("No user deltas in event, exiting.");
+            return false;
+        } else if (SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI.equals(event.getChannel())) {
+            LOGGER.trace("Found change from registration channel.");
+            return true;
+        } else {
+            LOGGER.trace("No registration present in delta. Skip sending notifications.");
+            return false;
+        }
+    }
 
-		ModelEvent modelEvent = (ModelEvent) event;
-		if (modelEvent.getFocusDeltas().isEmpty()) {
-			LOGGER.trace("No user deltas in event, exiting.");
-			return false;
-		}
-		if (SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI.equals(modelEvent.getChannel())) {
-			LOGGER.trace("Found change from registration channel.");
-			return true;
-		} else {
-			LOGGER.trace("No registration present in delta. Skip sending notifications.");
-			return false;
-		}
-	}
+    @Override
+    protected String getSubject(ModelEvent event, RegistrationConfirmationNotifierType configuration, String transport,
+            Task task, OperationResult result) {
+        return "Registration confirmation";
+    }
 
-	@Override
-	protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport,
-			Task task, OperationResult result) {
-		return "Registration confirmation";
-	}
-
-	@Override
-    protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
+    @Override
+    protected String getBody(ModelEvent event, RegistrationConfirmationNotifierType configuration, String transport,
+            Task task, OperationResult result) {
 
       UserType userType = getUser(event);
 
-		String plainTextPassword = "IhopeYouRememberYourPassword";
-		try {
-			plainTextPassword = getMidpointFunctions().getPlaintextUserPassword(userType);
-		} catch (EncryptionException e) {
-			//ignore...????
-		}
+        String plainTextPassword = "IhopeYouRememberYourPassword";
+        try {
+            plainTextPassword = getMidpointFunctions().getPlaintextUserPassword(userType);
+        } catch (EncryptionException e) {
+            //ignore...????
+        }
 
         StringBuilder messageBuilder = new StringBuilder("Dear ");
         messageBuilder.append(userType.getGivenName()).append(",\n")
         .append("your account was successfully created. To activate your account click on the following confiramtion link. ")
         .append("\n")
-        .append(createConfirmationLink(userType, generalNotifierType, result))
+        .append(createConfirmationLink(userType, configuration, result))
         .append("\n\n")
         .append("After your account is activated, use following credentials to log in: \n")
         .append("username: ")
@@ -110,9 +97,8 @@ public class RegistrationConfirmationNotifier extends ConfirmationNotifier {
         return messageBuilder.toString();
     }
 
-	@Override
-	public String getConfirmationLink(UserType userType) {
-		return getMidpointFunctions().createRegistrationConfirmationLink(userType);
-
-	}
+    @Override
+    public String getConfirmationLink(UserType userType) {
+        return getMidpointFunctions().createRegistrationConfirmationLink(userType);
+    }
 }

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<c:user oid="c46f4b09-2200-4977-88bc-da1f3ffd0b42"
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
+    <c:name>
+        <t:orig>Localized</t:orig>   <!-- intentionally different from US version in properties -->
+        <t:norm>localized</t:norm>
+        <t:translation>
+            <t:key>user.localized</t:key>
+        </t:translation>
+    </c:name>
+</c:user>

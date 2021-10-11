@@ -1,22 +1,14 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism.impl;
 
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
@@ -36,25 +28,26 @@ import javax.xml.namespace.QName;
  * @author mederly
  *
  */
+@Experimental
 public class LiteralEqualsStrategy extends JAXBEqualsStrategy {
 
-	public static EqualsStrategy INSTANCE = new LiteralEqualsStrategy();
+    public static final EqualsStrategy INSTANCE = new LiteralEqualsStrategy();
 
-	@Override
-	protected boolean equalsInternal(ObjectLocator leftLocator,
-			ObjectLocator rightLocator, Object lhs, Object rhs) {
-//		System.out.println("DomAwareEqualsStrategy: "+PrettyPrinter.prettyPrint(lhs)+"<=>"+PrettyPrinter.prettyPrint(rhs));
-		if (lhs instanceof String && rhs instanceof String) {
+    @Override
+    protected boolean equalsInternal(ObjectLocator leftLocator,
+            ObjectLocator rightLocator, Object lhs, Object rhs) {
+//        System.out.println("DomAwareEqualsStrategy: "+PrettyPrinter.prettyPrint(lhs)+"<=>"+PrettyPrinter.prettyPrint(rhs));
+        if (lhs instanceof String && rhs instanceof String) {
             // this is questionable (but seems ok)
-			return DOMUtil.compareTextNodeValues((String)lhs, (String)rhs);
-		} else if (lhs instanceof Element && rhs instanceof Element) {
+            return DOMUtil.compareTextNodeValues((String)lhs, (String)rhs);
+        } else if (lhs instanceof Element && rhs instanceof Element) {
             // this is perhaps obsolete
-			final Element left = (Element) lhs;
-			final Element right = (Element) rhs;
-			boolean result = DOMUtil.compareElement(left, right, true);
-//			System.out.println("cmp: "+PrettyPrinter.prettyPrint(left)+"<=>"+PrettyPrinter.prettyPrint(right)+": "+result);
-			return result;
-		} else if (lhs instanceof QName && rhs instanceof QName) {
+            final Element left = (Element) lhs;
+            final Element right = (Element) rhs;
+            boolean result = DOMUtil.compareElement(left, right, true);
+//            System.out.println("cmp: "+PrettyPrinter.prettyPrint(left)+"<=>"+PrettyPrinter.prettyPrint(right)+": "+result);
+            return result;
+        } else if (lhs instanceof QName && rhs instanceof QName) {
             QName l = (QName) lhs;
             QName r = (QName) rhs;
             if (!l.equals(r)) {
@@ -65,8 +58,8 @@ public class LiteralEqualsStrategy extends JAXBEqualsStrategy {
             // ItemPathType's equals is already working literally
             return ((ItemPathType) lhs).equals((ItemPathType) rhs);
         } else {
-			return super.equalsInternal(leftLocator, rightLocator, lhs, rhs);
-		}
-	}
+            return super.equalsInternal(leftLocator, rightLocator, lhs, rhs);
+        }
+    }
 
 }

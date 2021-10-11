@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!-- Object modification description that is changing user "jack" by adding a new account -->
+
+<account oid="22220000-2200-0000-0000-333300003333"
+    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+    xmlns:piracy="http://pirates.com/xml/ns"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <name>ht</name>
+    <resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="ResourceType"/>
+    <objectClass>ri:inetOrgPerson</objectClass>
+    <intent>internal</intent>
+    <kind>account</kind>
+    <attributes>
+        <ri:dn>uid=ht,ou=people,dc=example,dc=com</ri:dn>
+        <ri:uid>ht</ri:uid>
+        <ri:cn>Herman Toothrot</ri:cn>
+        <ri:givenName>Herman</ri:givenName>
+        <ri:sn>Toothrot</ri:sn>
+        <ri:l>Monkey Island</ri:l>
+    </attributes>
+</account>

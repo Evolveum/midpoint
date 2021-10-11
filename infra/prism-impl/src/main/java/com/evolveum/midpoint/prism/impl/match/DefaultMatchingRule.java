@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl.match;
 
@@ -31,63 +22,63 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
  */
 public class DefaultMatchingRule<T> implements MatchingRule<T> {
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.match.MatchingRule#getUrl()
-	 */
-	@Override
-	public QName getName() {
-		return PrismConstants.DEFAULT_MATCHING_RULE_NAME;
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.model.match.MatchingRule#getUrl()
+     */
+    @Override
+    public QName getName() {
+        return PrismConstants.DEFAULT_MATCHING_RULE_NAME;
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.match.MatchingRule#isSupported(java.lang.Class, javax.xml.namespace.QName)
-	 */
-	@Override
-	public boolean isSupported(QName xsdType) {
-		// We support everything. We are the default.
-		return true;
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.model.match.MatchingRule#isSupported(java.lang.Class, javax.xml.namespace.QName)
+     */
+    @Override
+    public boolean isSupported(QName xsdType) {
+        // We support everything. We are the default.
+        return true;
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.match.MatchingRule#match(java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public boolean match(T a, T b) {
-		if (a == null && b == null) {
-			return true;
-		}
-		if (a == null || b == null) {
-			return false;
-		}
-		if (a instanceof Matchable && b instanceof Matchable) {
-			return ((Matchable)a).match((Matchable)b);
-		}
-		// Just use plain java equals() method
-		return a.equals(b);
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.model.match.MatchingRule#match(java.lang.Object, java.lang.Object)
+     */
+    @Override
+    public boolean match(T a, T b) {
+        if (a == null && b == null) {
+            return true;
+        }
+        if (a == null || b == null) {
+            return false;
+        }
+        if (a instanceof Matchable && b instanceof Matchable) {
+            return ((Matchable)a).match((Matchable)b);
+        }
+        // Just use plain java equals() method
+        return a.equals(b);
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.match.MatchingRule#normalize(java.lang.Object)
-	 */
-	@Override
-	public T normalize(T original) {
-		return original;
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.prism.match.MatchingRule#normalize(java.lang.Object)
+     */
+    @Override
+    public T normalize(T original) {
+        return original;
+    }
 
-	@Override
-	public boolean matchRegex(T a, String regex) {
-		String valueToMatch = null;
-		if (a instanceof Matchable){
-			return ((Matchable) a).matches(regex);
-		} else if (a instanceof String){
-			valueToMatch = (String) a;
-		} else if (a instanceof Integer){
-			valueToMatch = Integer.toString((Integer) a);
-		} else {
-			valueToMatch = String.valueOf(a);
-		}
+    @Override
+    public boolean matchRegex(T a, String regex) {
+        String valueToMatch;
+        if (a instanceof Matchable){
+            return ((Matchable<?>) a).matches(regex);
+        } else if (a instanceof String){
+            valueToMatch = (String) a;
+        } else if (a instanceof Integer){
+            valueToMatch = Integer.toString((Integer) a);
+        } else {
+            valueToMatch = String.valueOf(a);
+        }
 
-		return Pattern.matches(regex, valueToMatch);
-	}
+        return Pattern.matches(regex, valueToMatch);
+    }
 
 }

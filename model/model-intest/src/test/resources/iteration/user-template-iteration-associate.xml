@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!-- Iteration with token expression and pre- and post-condition. Sequential suffix.
+     Configured in dark-violet dummy resource as account sync template
+     -->
+
+<objectTemplate oid="c0ee8964-0d2a-45d5-8a8e-6ee4f31e1c12"
+   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
+    <name>Iteration User Template (associate subtype)</name>
+    <iterationSpecification>
+        <maxIterations>5</maxIterations>
+        <tokenExpression>
+            <script>
+                <code>
+                    '-' + iteration
+                </code>
+            </script>
+        </tokenExpression>
+    </iterationSpecification>
+    <mapping>
+        <source>
+            <path>nickName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    nickName + iterationToken
+                </code>
+             </script>
+        </expression>
+        <target>
+            <path>name</path>
+        </target>
+    </mapping>
+</objectTemplate>

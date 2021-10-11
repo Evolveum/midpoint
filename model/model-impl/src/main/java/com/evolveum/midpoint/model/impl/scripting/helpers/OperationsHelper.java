@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2019 Evolveum
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.model.impl.scripting.helpers;
@@ -29,6 +20,8 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -134,8 +127,9 @@ public class OperationsHelper {
 
     public void recordEnd(ExecutionContext context, ObjectType objectType, long started, Throwable ex) {
         if (context.isRecordProgressAndIterationStatistics()) {
-            if (context.getTask() != null && objectType != null) {
-                context.getTask().recordIterativeOperationEnd(
+            Task task = context.getTask();
+            if (task != null && objectType != null) {
+                task.recordIterativeOperationEnd(
                         PolyString.getOrig(objectType.getName()),
                         StatisticsUtil.getDisplayName(objectType.asPrismObject()),
                         StatisticsUtil.getObjectType(objectType, prismContext),
@@ -143,10 +137,14 @@ public class OperationsHelper {
                         started, ex);
             } else {
                 LOGGER.warn("Couldn't record operation end in script execution; task = {}, objectType = {}",
-                        context.getTask(), objectType);
+                        task, objectType);
             }
-            if (context.getTask() != null) {
-                context.getTask().setProgress(context.getTask().getProgress() + 1);
+            if (task != null) {
+                if (task instanceof RunningTask) {
+                    ((RunningTask) task).incrementProgressAndStoreStatsIfNeeded();
+                } else {
+                    task.setProgress(task.getProgress() + 1);
+                }
             }
         }
     }
@@ -165,7 +163,7 @@ public class OperationsHelper {
             ExecutionContext context) {
         result.computeStatusIfUnknown();
         // TODO make this configurable
-        result.getSubresults().forEach(s -> s.setMinor(true));
+        result.getSubresults().forEach(s -> s.setMinor());
         result.cleanupResult();
         globalResult.addSubresult(result.clone());
     }

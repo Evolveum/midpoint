@@ -1,32 +1,28 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.schrodinger.component.common.table;
 
+import static com.codeborne.selenide.Selectors.byPartialLinkText;
+import static com.codeborne.selenide.Selectors.byText;
+import static com.codeborne.selenide.Selenide.$;
+
+import java.util.Objects;
+
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import org.openqa.selenium.By;
+
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.component.common.Paging;
 import com.evolveum.midpoint.schrodinger.component.common.Search;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
-import org.openqa.selenium.By;
-
-
-import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -37,15 +33,57 @@ public class Table<T> extends Component<T> {
         super(parent, parentElement);
     }
 
+    public TableRow rowByColumnLabel(String label, String rowValue) {
+        int index = findColumnByLabel(label);
 
-    public Search<? extends Table> search() {
+        ElementsCollection rows = getParentElement().findAll("tbody tr");
+        for (SelenideElement row : rows) {
+            String value = row.find("td:nth-child(" + index + ")").text();
+            if (value == null) {
+                continue;
+            }
+            value = value.trim();
+
+            if (Objects.equals(rowValue, value)) {
+                return new TableRow(this, row);
+            }
+        }
+
+        return null;
+    }
+
+    public int findColumnByLabel(String label) {
+        ElementsCollection headers = getParentElement().findAll("thead th div span[data-s-id=label]");
+        int index = 1;
+        for (SelenideElement header : headers) {
+            String value = header.text();
+            if (value == null) {
+                index++;
+                continue;
+            }
+
+            if (Objects.equals(label, value)) {
+                break;
+            }
+            index++;
+        }
+
+        return index;
+    }
+
+    public TableRow rowByColumnResourceKey(String key, String rowValue) {
+        // todo implement
+        return null;
+    }
+
+    public Search<? extends Table<T>> search() {
         SelenideElement searchElement = getParentElement().$(By.cssSelector(".form-inline.pull-right.search-form"));
 
         return new Search<>(this, searchElement);
     }
 
-    public Paging<T> paging() {
-        SelenideElement pagingElement = getParentElement().$(By.className("boxed-table-footer-paging"));
+    public <P extends Table<T>> Paging<P> paging() {
+        SelenideElement pagingElement = getParentElement().$x(".//div[@class='boxed-table-footer-paging']");
 
         return new Paging(this, pagingElement);
     }
@@ -58,15 +96,35 @@ public class Table<T> extends Component<T> {
         return this;
     }
 
-    public boolean currentTableContains(String name) {
+    public boolean currentTableContains(String elementValue) {
+        return currentTableContains("Span", elementValue);
+    }
+
+    public boolean currentTableContains(String elementName, String elementValue) {
 
         // TODO replate catch Throwable with some less generic error
         try {
-            return $(Schrodinger.byElementValue("Span", name)).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S).is(Condition.visible);
+            return $(Schrodinger.byElementValue(elementName, elementValue)).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S).is(Condition.visible);
         } catch (Throwable t) {
             return false;
         }
 
+    }
+
+    public boolean containsText(String value) {
+        return getParentElement().$(byText(value)).is(Condition.visible);
+    }
+
+    public boolean containsLinkTextPartially(String value) {
+        return $(byPartialLinkText(value)).is(Condition.visible);
+    }
+
+    public boolean buttonToolBarExists() {
+        return $(Schrodinger.byDataId("buttonToolbar")).exists();
+    }
+
+    public SelenideElement getButtonToolbar() {
+        return $(Schrodinger.byDataId("buttonToolbar"));
     }
 
 }

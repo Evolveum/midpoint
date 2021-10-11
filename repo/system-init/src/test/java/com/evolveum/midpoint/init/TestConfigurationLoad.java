@@ -1,106 +1,79 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.init;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
+import static org.testng.Assert.*;
 
-import static org.testng.Assert.assertTrue;
 import java.io.File;
 import java.util.Iterator;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 
-public class TestConfigurationLoad {
+public class TestConfigurationLoad extends AbstractUnitTest {
 
-	private static final Trace LOGGER = TraceManager.getTrace(TestConfigurationLoad.class);
+    @Test
+    public void test010SimpleConfigTest() {
+        System.clearProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
+        logger.info("midpoint.home => {}", System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY));
 
-	@Test
-	public void test010SimpleConfigTest() {
-		LOGGER.info("---------------- test010SimpleConfigTest -----------------");
+        assertNull(System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY), "midpoint.home");
 
-		System.clearProperty("midpoint.home");
-		LOGGER.info("midpoint.home => " + System.getProperty("midpoint.home"));
+        StartupConfiguration sc = new StartupConfiguration();
+        sc.init();
+        Configuration c = sc.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION);
+        assertEquals(c.getString("repositoryServiceFactoryClass"),
+                "com.evolveum.midpoint.repo.sql.SqlRepositoryFactory");
+        logger.info("{}", sc);
 
-		assertNull(System.getProperty("midpoint.home"), "midpoint.home");
+        Iterator<String> i = c.getKeys();
+        while (i.hasNext()) {
+            String key = i.next();
+            logger.info("  " + key + " = " + c.getString(key));
+        }
 
-		StartupConfiguration sc = new StartupConfiguration();
-		assertNotNull(sc);
-		sc.init();
-		Configuration c = sc.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION);
-		assertEquals(c.getString("repositoryServiceFactoryClass"),
-				"com.evolveum.midpoint.repo.sql.SqlRepositoryFactory");
-		LOGGER.info(sc.toString());
+        assertTrue(c.getBoolean("asServer"));
+        assertEquals(c.getString("baseDir"), System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY));
+    }
 
-		@SuppressWarnings("unchecked")
-		Iterator<String> i = c.getKeys();
+    /**
+     * MID-3349
+     */
+    @Test
+    public void test020DirectoryAndExtractionTest() throws Exception {
+        File midpointHome = new File("target/midPointHome");
+        System.setProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY, "target/midPointHome/");
+        StartupConfiguration sc = new StartupConfiguration();
+        sc.init();
 
-		while ( i.hasNext()) {
-			String key = i.next();
-			LOGGER.info("  " + key + " = " + c.getString(key));
-		}
+        assertNotNull(midpointHome);
+        assertTrue(midpointHome.exists(), "existence");
+        assertTrue(midpointHome.isDirectory(), "type directory");
 
-		assertEquals(c.getBoolean("asServer"), true);
-		assertEquals(c.getString("baseDir"), System.getProperty("midpoint.home") );
+        File configFile = new File(midpointHome, "config.xml");
+        assertTrue(configFile.exists(), "existence");
+        assertTrue(configFile.isFile(), "type file");
+        TestUtil.assertPrivateFilePermissions(configFile);
 
-	}
+        ConfigurableProtectorFactory keystoreFactory = new ConfigurableProtectorFactory();
+        keystoreFactory.setConfiguration(sc);
+        keystoreFactory.init();
 
-	/**
-	 * MID-3349
-	 */
-	@Test
-	public void test020DirectoryAndExtractionTest() throws Exception {
-		LOGGER.info("---------------- test020DirectoryAndExtractionTest -----------------");
+        File keystoreFile = new File(midpointHome, "keystore.jceks");
+        assertTrue(keystoreFile.exists(), "existence");
+        assertTrue(keystoreFile.isFile(), "type file");
+        TestUtil.assertPrivateFilePermissions(keystoreFile);
 
-		File midpointHome = new File("target/midPointHome");
-		System.setProperty("midpoint.home", "target/midPointHome/");
-		StartupConfiguration sc = new StartupConfiguration();
-		assertNotNull(sc);
-		sc.init();
-
-		assertNotNull(midpointHome);
-		assertTrue(midpointHome.exists(),  "existence");
-		assertTrue(midpointHome.isDirectory(),  "type directory");
-
-		File configFile = new File(midpointHome, "config.xml");
-		assertTrue(configFile.exists(),  "existence");
-		assertTrue(configFile.isFile(),  "type file");
-		TestUtil.assertPrivateFilePermissions(configFile);
-		
-		ConfigurableProtectorFactory keystoreFactory = new ConfigurableProtectorFactory();
-		keystoreFactory.setConfiguration(sc);
-		keystoreFactory.init();
-
-		File keystoreFile = new File(midpointHome, "keystore.jceks");
-		assertTrue(keystoreFile.exists(),  "existence");
-		assertTrue(keystoreFile.isFile(),  "type file");
-		TestUtil.assertPrivateFilePermissions(keystoreFile);
-		
-		//cleanup
-		System.clearProperty("midpoint.home");
-
-	}
-	
-
+        //cleanup
+        System.clearProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
+    }
 }

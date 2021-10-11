@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="63a7aa8e-406a-49a8-9c10-019b43c2ff2f"
+      xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+      xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+      xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+      xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+      xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+      xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+    <name>employee</name>
+    <lifecycleState>draft</lifecycleState>
+    <assignment>
+        <targetRef oid="a370bac5-6619-4fb5-bcf8-8e1199dc43e8" type="RoleType"/>    <!-- constraints -->
+    </assignment>
+</role>

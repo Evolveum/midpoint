@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
@@ -49,14 +40,16 @@ public class DebugObjectItem extends Selectable implements InlineMenuable {
     //todo create subclasses
     private String resourceName;
     private String resourceType;
-    private OperationResultStatusType status;			// TODO store full operation result here
+    private OperationResultStatusType status;            // TODO store full operation result here
 
+    private Class<? extends ObjectType> type;
     private String fullName;
 
-    public DebugObjectItem(String oid, String name, String description) {
+    public DebugObjectItem(String oid, String name, String description, Class<? extends ObjectType> type) {
         this.name = name;
         this.oid = oid;
         this.description = description;
+        this.type = type;
     }
 
     public String getName() {
@@ -65,6 +58,10 @@ public class DebugObjectItem extends Selectable implements InlineMenuable {
 
     public String getOid() {
         return oid;
+    }
+
+    public Class<? extends ObjectType> getType() {
+        return type;
     }
 
     public String getResourceName() {
@@ -97,11 +94,11 @@ public class DebugObjectItem extends Selectable implements InlineMenuable {
 
     public static DebugObjectItem createDebugObjectItem(PrismObject<? extends ObjectType> object) {
         DebugObjectItem item = new DebugObjectItem(object.getOid(), WebComponentUtil.getName(object),
-				object.getPropertyRealValue(ObjectType.F_DESCRIPTION, String.class));
+                object.getPropertyRealValue(ObjectType.F_DESCRIPTION, String.class), object.getCompileTimeClass());
 
         if (object.asObjectable().getFetchResult() != null) {
-        	item.setStatus(object.asObjectable().getFetchResult().getStatus());
-		}
+            item.setStatus(object.asObjectable().getFetchResult().getStatus());
+        }
 
         if (UserType.class.isAssignableFrom(object.getCompileTimeClass())) {
             PolyString fullName = WebComponentUtil.getValue(object, UserType.F_FULL_NAME, PolyString.class);
@@ -111,15 +108,15 @@ public class DebugObjectItem extends Selectable implements InlineMenuable {
         return item;
     }
 
-	public OperationResultStatusType getStatus() {
-		return status;
-	}
+    public OperationResultStatusType getStatus() {
+        return status;
+    }
 
-	public void setStatus(OperationResultStatusType status) {
-		this.status = status;
-	}
+    public void setStatus(OperationResultStatusType status) {
+        this.status = status;
+    }
 
-	@Override
+    @Override
     public List<InlineMenuItem> getMenuItems() {
         return new ArrayList<>();
     }

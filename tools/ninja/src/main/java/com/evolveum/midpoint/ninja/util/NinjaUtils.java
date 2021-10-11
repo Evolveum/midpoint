@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.ninja.util;
 
 import com.beust.jcommander.JCommander;
@@ -54,6 +60,7 @@ public class NinjaUtils {
         ConnectionOptions connection = new ConnectionOptions();
 
         JCommander.Builder builder = JCommander.newBuilder()
+                .expandAtSign(false)
                 .addObject(base)
                 .addObject(connection);
 
@@ -128,10 +135,10 @@ public class NinjaUtils {
         return null;
     }
 
-    public static Writer createWriter(File output, Charset charset, boolean zip) throws IOException {
+    public static Writer createWriter(File output, Charset charset, boolean zip, boolean overwrite) throws IOException {
         OutputStream os;
         if (output != null) {
-            if (output.exists()) {
+            if (!overwrite && output.exists()) {
                 throw new NinjaException("Export file '" + output.getPath() + "' already exists");
             }
             output.createNewFile();

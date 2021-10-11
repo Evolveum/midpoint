@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.*;
@@ -6,10 +12,9 @@ import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -17,6 +22,7 @@ import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -25,8 +31,6 @@ import java.util.*;
 @ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class PerformanceTest extends BaseSQLRepoTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(PerformanceTest.class);
 
     private static final String[] GIVEN_NAMES = {"James", "Josephine", "Art", "Lenna", "Donette", "Simona", "Mitsue",
             "Leota", "Sage", "Kris", "Minna", "Abel", "Kiley", "Graciela", "Cammy", "Mattie", "Meaghan", "Gladys", "Yuki",
@@ -48,23 +52,33 @@ public class PerformanceTest extends BaseSQLRepoTest {
 
     @Test(enabled = false)
     public void test100Parsing() throws Exception {
-        long time = System.currentTimeMillis();
+        String data = FileUtils.readFileToString(new File(FOLDER_BASIC, "objects.xml"), StandardCharsets.UTF_8);
+        String lang = PrismContext.LANG_JSON;
 
-        int COUNT = 1000;
+        List<PrismObject<? extends Objectable>> list = prismContext.parserFor(data).parseObjects();
+        String[] dataArray = new String[list.size()];
+
+        int j = 0;
+        for (PrismObject o : list) {
+            dataArray[j] = prismContext.serializerFor(lang).serialize(o);
+            j++;
+        }
+
+        long time = System.currentTimeMillis();
+        int COUNT = 10000;
         for (int i = 0; i < COUNT; i++) {
-            List<PrismObject<? extends Objectable>> elements = prismContext.parserFor(new File(FOLDER_BASIC, "objects.xml")).parseObjects();
-            for (PrismObject obj : elements) {
-                prismContext.serializerFor(PrismContext.LANG_XML).serialize(obj);
+            for (String s : dataArray) {
+                PrismObject o = prismContext.parserFor(s).parse();
+                prismContext.serializerFor(lang).serialize(o);
             }
         }
-        LOGGER.info("xxx>> time: {}", (System.currentTimeMillis() - time));
+        logger.info("xxx>> time: {}", (System.currentTimeMillis() - time));
     }
 
     @Test(enabled = false)
     public void test200PrepareBigXml() throws Exception {
         File file = new File("./target/big-test.xml");
-        Writer writer = new OutputStreamWriter(new FileOutputStream(file), "utf-8");
-        try {
+        try (Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
             writeHeader(writer);
 
             OrgType root = createOrgType("University", "University org. structure", "UROOT", "Bratislava", null);
@@ -100,8 +114,6 @@ public class PerformanceTest extends BaseSQLRepoTest {
             }
 
             writeFooter(writer);
-        } finally {
-            writer.close();
         }
     }
 
@@ -117,11 +129,11 @@ public class PerformanceTest extends BaseSQLRepoTest {
 
         int COUNT = 100;
         for (int i = 0; i < COUNT; i++) {
-            LOGGER.info("Get operation {} of {}", i+1, COUNT);
+            logger.info("Get operation {} of {}", i+1, COUNT);
             repositoryService.getObject(UserType.class, oid, null, result);
         }
         long duration = System.currentTimeMillis() - time;
-        LOGGER.info("xxx>> time: {} ms, per get: {} ms", duration, (double) duration/COUNT);
+        logger.info("xxx>> time: {} ms, per get: {} ms", duration, (double) duration/COUNT);
     }
 
 
@@ -161,12 +173,9 @@ public class PerformanceTest extends BaseSQLRepoTest {
     }
 
     private String createUserName(String given, String family, int userId) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(given.toLowerCase().charAt(0));
-        sb.append(family.toLowerCase().charAt(0));
-        sb.append(StringUtils.leftPad(Integer.toString(userId), 8, "0"));
-
-        return sb.toString();
+        return String.valueOf(given.toLowerCase().charAt(0))
+                + family.toLowerCase().charAt(0)
+                + StringUtils.leftPad(Integer.toString(userId), 8, "0");
     }
 
     private UserType createUserType(int userId, String orgOid) throws SchemaException {
@@ -239,7 +248,7 @@ public class PerformanceTest extends BaseSQLRepoTest {
     private void writeObject(ObjectType obj, Writer writer) throws IOException, SchemaException {
         PrismObject prism = obj.asPrismObject();
         prismContext.adopt(prism);
-        writer.write(prismContext.serializerFor(PrismContext.LANG_XML).serialize(prism));
+        writer.write(prismContext.xmlSerializer().serialize(prism));
         writer.write('\n');
     }
 

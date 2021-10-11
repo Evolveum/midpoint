@@ -1,30 +1,23 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.page.error;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
@@ -51,6 +44,7 @@ public class PageError extends PageBase {
     private static final String ID_ERROR_MESSAGE = "errorMessage";
     private static final String ID_BACK = "back";
     private static final String ID_HOME = "home";
+    private static final String ID_LOGOUT_FORM = "logoutForm";
     private static final String ID_CSRF_FIELD = "csrfField";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageError.class);
@@ -144,9 +138,23 @@ public class PageError extends PageBase {
         };
         add(home);
 
+        Form form = new Form(ID_LOGOUT_FORM);
+        form.add(AttributeModifier.replace("action", new IModel<String>() {
+            @Override
+            public String getObject() {
+                return getUrlForLogout();
+            }
+        }));
+        form.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return SecurityUtils.getPrincipalUser() != null;
+            }
+        });
+        add(form);
+
         WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
-        csrfField.add(new VisibleBehaviour(() -> SecurityUtils.getPrincipalUser() != null));
-        add(csrfField);
+        form.add(csrfField);
     }
 
     private int getCode() {
@@ -187,5 +195,14 @@ public class PageError extends PageBase {
 
     protected String getErrorMessageKey() {
         return "PageError.message";
+    }
+
+    private String getUrlForLogout() {
+        ModuleAuthentication moduleAuthentication = SecurityUtils.getAuthenticatedModule();
+
+        if (moduleAuthentication == null) {
+            return SecurityUtils.DEFAULT_LOGOUT_PATH;
+        }
+        return SecurityUtils.getPathForLogoutWithContextPath(getRequest().getContextPath(), moduleAuthentication);
     }
 }

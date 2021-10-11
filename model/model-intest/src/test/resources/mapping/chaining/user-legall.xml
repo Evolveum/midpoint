@@ -1,0 +1,18 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:p="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+      oid="db3875df-5f5e-4379-bca5-d1349eee5033">
+    <name>legall</name>
+    <extension>
+        <p:booleanFlag>true</p:booleanFlag>
+    </extension>
+    <assignment>
+        <targetRef oid="c7968dad-0711-4e45-8846-b6c28fc8c71a" type="RoleType"/>
+    </assignment>
+    <fullName>François Antoine de Legall de Kermeur</fullName>
+</user>

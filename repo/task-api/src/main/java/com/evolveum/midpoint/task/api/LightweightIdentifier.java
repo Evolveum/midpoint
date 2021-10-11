@@ -1,19 +1,13 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.task.api;
+
+import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Lightweight identifier is a "reasonable unique" identifier that is very cheap
@@ -26,72 +20,59 @@ package com.evolveum.midpoint.task.api;
  *
  * @author semancik
  */
-public class LightweightIdentifier {
+public class LightweightIdentifier implements Serializable {
 
-	private static final String SEPARATOR = "-";
+    private static final String SEPARATOR = "-";
 
-	private long timestamp;
-	private int hostIdentifier;
-	private int sequenceNumber;
-	private String string;
+    private long timestamp;
+    private int hostIdentifier;
+    private int sequenceNumber;
+    private String string;
 
-	public LightweightIdentifier(long timestamp, int hostIdentifier, int sequenceNumber) {
-		this.timestamp = timestamp;
-		this.hostIdentifier = hostIdentifier;
-		this.sequenceNumber = sequenceNumber;
-		formatString();
-	}
+    public LightweightIdentifier(long timestamp, int hostIdentifier, int sequenceNumber) {
+        this.timestamp = timestamp;
+        this.hostIdentifier = hostIdentifier;
+        this.sequenceNumber = sequenceNumber;
+        formatString();
+    }
 
-	public long getTimestamp() {
-		return timestamp;
-	}
+    public long getTimestamp() {
+        return timestamp;
+    }
 
-	public int getHostIdentifier() {
-		return hostIdentifier;
-	}
+    public int getHostIdentifier() {
+        return hostIdentifier;
+    }
 
-	public int getSequenceNumber() {
-		return sequenceNumber;
-	}
+    public int getSequenceNumber() {
+        return sequenceNumber;
+    }
 
-	private void formatString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(timestamp);
-		sb.append(SEPARATOR);
-		sb.append(hostIdentifier);
-		sb.append(SEPARATOR);
-		sb.append(sequenceNumber);
-		string = sb.toString();
-	}
+    private void formatString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(timestamp);
+        sb.append(SEPARATOR);
+        sb.append(hostIdentifier);
+        sb.append(SEPARATOR);
+        sb.append(sequenceNumber);
+        string = sb.toString();
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((string == null) ? 0 : string.hashCode());
-		return result;
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        LightweightIdentifier that = (LightweightIdentifier) o;
+        return Objects.equals(string, that.string);
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		LightweightIdentifier other = (LightweightIdentifier) obj;
-		if (string == null) {
-			if (other.string != null)
-				return false;
-		} else if (!string.equals(other.string))
-			return false;
-		return true;
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(string);
+    }
 
-	@Override
-	public String toString() {
-		return string;
-	}
-
+    @Override
+    public String toString() {
+        return string;
+    }
 }

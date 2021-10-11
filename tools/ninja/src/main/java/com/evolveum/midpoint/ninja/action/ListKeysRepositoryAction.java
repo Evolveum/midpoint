@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.ninja.action;
 
 import com.evolveum.midpoint.ninja.impl.LogTarget;
@@ -6,7 +12,8 @@ import com.evolveum.midpoint.ninja.opts.ListKeysOptions;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtector;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import org.apache.xml.security.utils.Base64;
+
+import org.apache.commons.codec.binary.Base64;
 import org.springframework.context.ApplicationContext;
 
 import javax.crypto.SecretKey;
@@ -123,6 +130,6 @@ public class ListKeysRepositoryAction extends RepositoryAction<ListKeysOptions> 
             throw new NinjaException(ex.getMessage(), ex);
         }
 
-        return Base64.encode(sha1.digest(key.getEncoded()));
+        return Base64.encodeBase64String(sha1.digest(key.getEncoded()));
     }
 }

@@ -1,20 +1,12 @@
 /*
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.self.component;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -36,7 +28,7 @@ import java.util.List;
 /**
  * @author Kate Honchar
  */
-public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
+public class LinksPanel extends BasePanel<List<RichHyperlinkType>> {
 
     private static final String DOT_CLASS = LinksPanel.class.getName() + ".";
 
@@ -52,7 +44,7 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
     private static final Trace LOGGER = TraceManager.getTrace(LinksPanel.class);
 
     public LinksPanel(String id) {
-        super(id, null);
+        this(id, null);
     }
 
     public LinksPanel(String id, IModel<List<RichHyperlinkType>> model) {
@@ -60,6 +52,12 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
     }
 
     @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
+
+
     protected void initLayout() {
 
         final List<RichHyperlinkType> linksList = getModel().getObject();
@@ -91,15 +89,20 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
             }
 
             WebMarkupContainer column = new WebMarkupContainer(columnView.newChildId());
-            Link linkItem = new Link(ID_LINK) {
+            Link<Void> linkItem = new Link<Void>(ID_LINK) {
+
+                private static final long serialVersionUID = 1L;
 
                 @Override
                 public void onClick() {
+                    // TODO Auto-generated method stub
+
                 }
 
                 @Override
-                protected void onComponentTag(final ComponentTag tag) {
+                protected void onComponentTag(ComponentTag tag) {
                     super.onComponentTag(tag);
+
                     String rootContext = "";
                     //TODO: what is this for???
                     if (link.getTargetUrl() != null && !link.getTargetUrl().startsWith("http://") &&
@@ -117,6 +120,8 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
                     tag.put("href", rootContext + (link.getTargetUrl() == null ? "#" : link.getTargetUrl()));
                 }
             };
+
+
             linkItem.add(new Label(ID_IMAGE) {
 
                 @Override

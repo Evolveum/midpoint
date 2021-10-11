@@ -1,0 +1,25 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<ucfChange
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <objectClass>ri:GroupObjectClass</objectClass>
+    <objectDelta>
+        <t:changeType>add</t:changeType>
+        <t:objectType>ShadowType</t:objectType>
+        <t:objectToAdd xsi:type="ShadowType">
+            <attributes>
+                <icfs:name>ref:alumni</icfs:name>
+                <icfs:uid>00000000000000000000000000000002</icfs:uid>
+            </attributes>
+        </t:objectToAdd>
+    </objectDelta>
+</ucfChange>

@@ -1,17 +1,8 @@
-/**
- * Copyright (c) 2016-2017 Evolveum
+/*
+ * Copyright (c) 2016-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.api.context;
 
@@ -34,67 +25,70 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Cloneable {
 
-	@NotNull
-	Collection<EvaluatedPolicyRuleTrigger<?>> getTriggers();
+    @NotNull
+    Collection<EvaluatedPolicyRuleTrigger<?>> getTriggers();
 
-	default boolean isTriggered() {
-		return !getTriggers().isEmpty();
-	}
+    default boolean isTriggered() {
+        return !getTriggers().isEmpty();
+    }
 
-	/**
-	 * Returns all triggers, even those that were indirectly collected via situation policy rules.
-	 */
-	@NotNull
-	Collection<EvaluatedPolicyRuleTrigger<?>> getAllTriggers();
+    /**
+     * Returns all triggers, even those that were indirectly collected via situation policy rules.
+     */
+    @NotNull
+    Collection<EvaluatedPolicyRuleTrigger<?>> getAllTriggers();
 
-	String getName();
+    String getName();
 
-	PolicyRuleType getPolicyRule();
+    PolicyRuleType getPolicyRule();
 
-	PolicyConstraintsType getPolicyConstraints();
-	
-	PolicyThresholdType getPolicyThreshold();
+    PolicyConstraintsType getPolicyConstraints();
 
-	// returns statically defined actions; consider using getEnabledActions() instead
-	PolicyActionsType getActions();
+    PolicyThresholdType getPolicyThreshold();
 
-	AssignmentPath getAssignmentPath();
+    // returns statically defined actions; consider using getEnabledActions() instead
+    PolicyActionsType getActions();
 
-	/**
-	 * Object that "directly owns" the rule. TODO. [consider if really needed]
-	 */
-	@Nullable
-	ObjectType getDirectOwner();
+    AssignmentPath getAssignmentPath();
 
-	// TODO consider removing
-	String getPolicySituation();
+    /**
+     * Object that "directly owns" the rule. TODO. [consider if really needed]
+     */
+    @Nullable
+    ObjectType getDirectOwner();
 
-	Collection<PolicyExceptionType> getPolicyExceptions();
+    // TODO consider removing
+    String getPolicySituation();
 
-	void addToEvaluatedPolicyRuleTypes(Collection<EvaluatedPolicyRuleType> rules, PolicyRuleExternalizationOptions options,
-			Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector, PrismContext prismContext);
+    Collection<PolicyExceptionType> getPolicyExceptions();
 
-	boolean isGlobal();
+    void addToEvaluatedPolicyRuleTypes(Collection<EvaluatedPolicyRuleType> rules, PolicyRuleExternalizationOptions options,
+            Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector, PrismContext prismContext);
 
-	String toShortString();
+    boolean isGlobal();
 
-	List<TreeNode<LocalizableMessage>> extractMessages();
+    String toShortString();
 
-	List<TreeNode<LocalizableMessage>> extractShortMessages();
+    List<TreeNode<LocalizableMessage>> extractMessages();
 
-	// BEWARE: enabled actions can be queried only after computeEnabledActions has been called
-	// todo think again about this
+    List<TreeNode<LocalizableMessage>> extractShortMessages();
 
-	boolean containsEnabledAction();
+    // BEWARE: enabled actions can be queried only after computeEnabledActions has been called
+    // todo think again about this
 
-	boolean containsEnabledAction(Class<? extends PolicyActionType> clazz);
+    boolean containsEnabledAction();
 
-	Collection<PolicyActionType> getEnabledActions();
+    boolean containsEnabledAction(Class<? extends PolicyActionType> clazz);
 
-	<T extends PolicyActionType> List<T> getEnabledActions(Class<T> clazz);
+    Collection<PolicyActionType> getEnabledActions();
 
-	<T extends PolicyActionType> T getEnabledAction(Class<T> clazz);
+    <T extends PolicyActionType> List<T> getEnabledActions(Class<T> clazz);
 
-	// use only if you know what you're doing
-	void addTrigger(@NotNull EvaluatedPolicyRuleTrigger<?> trigger);
+    <T extends PolicyActionType> T getEnabledAction(Class<T> clazz);
+
+    // use only if you know what you're doing
+    void addTrigger(@NotNull EvaluatedPolicyRuleTrigger<?> trigger);
+
+    //experimental
+    String getPolicyRuleIdentifier();
 }

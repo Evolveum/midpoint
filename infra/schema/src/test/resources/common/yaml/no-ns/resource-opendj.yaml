@@ -97,7 +97,7 @@ resource:
         \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
         >icfs:name</ra:namingAttribute>\n\t\t\t                     <ra:nativeObjectClass\
         \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
-        >__ACCOUNT__</ra:nativeObjectClass>\n\t\t\t                     <ra:account\
+        >__ACCOUNT__</ra:nativeObjectClass>\n\t\t\t                     <ra:resourceObject\
         \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
         />\n\t\t\t                     <ra:default xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
         />\n\t\t\t\t\t\t\t</xsd:appinfo>\n\t\t\t\t\t\t</xsd:annotation>\n\t\t\t\t\t\
@@ -287,7 +287,10 @@ resource:
               returnType: "scalar"
               code: "$defaultLocation"
       protected:
-        name: "uid=idm,ou=Administrators,dc=example,dc=com"
+        filter:
+          equal:
+            path: "attributes/name"
+            value: "uid=idm,ou=Administrators,dc=example,dc=com"
       activation:
         administrativeStatus:
           outbound:
@@ -341,9 +344,7 @@ resource:
         - handlerUri: "unlinkAccount"
       - situation: "unlinked"
         action:
-        - ref: "linkAccount"
+        - handlerUri: "linkAccount"
       - situation: "unmatched"
         action:
-        - userTemplateRef:
-            oid: "c0c010c0-d34d-b33f-f00d-777111111111"
-          ref: "addUser"
+          handlerUri: "addUser"

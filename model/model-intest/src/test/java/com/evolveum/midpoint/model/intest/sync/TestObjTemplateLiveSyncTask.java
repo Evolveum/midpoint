@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest.sync;
 
@@ -35,29 +26,29 @@ import java.io.FileNotFoundException;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestObjTemplateLiveSyncTask extends AbstractObjTemplateSyncTest {
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
 
-		dummyResourceByzantine.setSyncStyle(DummySyncStyle.SMART);
-	}
+        dummyResourceByzantine.setSyncStyle(DummySyncStyle.SMART);
+    }
 
-	@Override
-	protected void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException {
-		if (resource == resourceDummyByzantine) {
-			importObjectFromFile(TASK_LIVE_SYNC_DUMMY_BYZANTINE_FILE);
-		} else {
-			throw new IllegalArgumentException("Unknown resource "+resource);
-		}
-	}
+    @Override
+    protected void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException {
+        if (resource == resourceDummyByzantine) {
+            importObjectFromFile(TASK_LIVE_SYNC_DUMMY_BYZANTINE_FILE);
+        } else {
+            throw new IllegalArgumentException("Unknown resource "+resource);
+        }
+    }
 
-	@Override
-	protected String getSyncTaskOid(PrismObject<ResourceType> resource) {
-		if (resource == resourceDummyByzantine) {
-			return TASK_LIVE_SYNC_DUMMY_BYZANTINE_OID;
-		} else {
-			throw new IllegalArgumentException("Unknown resource "+resource);
-		}
-	}
+    @Override
+    protected String getSyncTaskOid(PrismObject<ResourceType> resource) {
+        if (resource == resourceDummyByzantine) {
+            return TASK_LIVE_SYNC_DUMMY_BYZANTINE_OID;
+        } else {
+            throw new IllegalArgumentException("Unknown resource "+resource);
+        }
+    }
 
 }

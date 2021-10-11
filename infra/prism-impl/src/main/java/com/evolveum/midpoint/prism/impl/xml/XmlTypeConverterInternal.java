@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism.impl.xml;
@@ -45,55 +36,55 @@ import java.util.GregorianCalendar;
  */
 public class XmlTypeConverterInternal {
 
-	private static DatatypeFactory datatypeFactory = null;
+    private static DatatypeFactory datatypeFactory = null;
 
-	private static DatatypeFactory getDatatypeFactory() {
-		if (datatypeFactory == null) {
-			try {
-				datatypeFactory = DatatypeFactory.newInstance();
-			} catch (DatatypeConfigurationException ex) {
-				throw new IllegalStateException("Cannot construct DatatypeFactory: " + ex.getMessage(), ex);
-			}
-		}
-		return datatypeFactory;
-	}
+    private static DatatypeFactory getDatatypeFactory() {
+        if (datatypeFactory == null) {
+            try {
+                datatypeFactory = DatatypeFactory.newInstance();
+            } catch (DatatypeConfigurationException ex) {
+                throw new IllegalStateException("Cannot construct DatatypeFactory: " + ex.getMessage(), ex);
+            }
+        }
+        return datatypeFactory;
+    }
 
 
-	/**
-	 * @param val
-	 * @param elementName
-	 * @param doc
-	 * @param recordType
-	 * @return created element
-	 * @throws SchemaException
-	 */
-	public static Element toXsdElement(Object val, QName elementName, Document doc, boolean recordType) throws SchemaException {
-	    if (val == null) {
-	        // if no value is specified, do not create element
-	        return null;
-	    }
-	    Class type = XsdTypeMapper.getTypeFromClass(val.getClass());
-	    if (type == null) {
-	        throw new IllegalArgumentException("No type mapping for conversion: " + val.getClass() + "(element " + elementName + ")");
-	    }
-	    if (doc == null) {
-	        doc = DOMUtil.getDocument();
-	    }
-	    Element element = doc.createElementNS(elementName.getNamespaceURI(), elementName.getLocalPart());
-	    //TODO: switch to global namespace prefixes map
-	//            element.setPrefix(MidPointNamespacePrefixMapper.getPreferredPrefix(elementName.getNamespaceURI()));
-	    toXsdElement(val, element, recordType);
-	    return element;
-	}
+    /**
+     * @param val
+     * @param elementName
+     * @param doc
+     * @param recordType
+     * @return created element
+     * @throws SchemaException
+     */
+    public static Element toXsdElement(Object val, QName elementName, Document doc, boolean recordType) throws SchemaException {
+        if (val == null) {
+            // if no value is specified, do not create element
+            return null;
+        }
+        Class type = XsdTypeMapper.getTypeFromClass(val.getClass());
+        if (type == null) {
+            throw new IllegalArgumentException("No type mapping for conversion: " + val.getClass() + "(element " + elementName + ")");
+        }
+        if (doc == null) {
+            doc = DOMUtil.getDocument();
+        }
+        Element element = doc.createElementNS(elementName.getNamespaceURI(), elementName.getLocalPart());
+        //TODO: switch to global namespace prefixes map
+    //            element.setPrefix(MidPointNamespacePrefixMapper.getPreferredPrefix(elementName.getNamespaceURI()));
+        toXsdElement(val, element, recordType);
+        return element;
+    }
 
-	private static void toXsdElement(Object val, Element element, boolean recordType) throws SchemaException {
+    private static void toXsdElement(Object val, Element element, boolean recordType) throws SchemaException {
         if (val instanceof Element) {
             return;
         } else if (val instanceof QName) {
             QName qname = (QName) val;
             DOMUtil.setQNameValue(element, qname);
         } else if (val instanceof PolyString) {
-        	polyStringToElement(element, (PolyString)val);
+            polyStringToElement(element, (PolyString)val);
         } else {
             element.setTextContent(toXmlTextContent(val, DOMUtil.getQName(element)));
         }
@@ -103,8 +94,8 @@ public class XmlTypeConverterInternal {
         }
     }
 
-	// TODO move to DOM/XML serializer
-	public static String toXmlTextContent(Object val, QName elementName) {
+    // TODO move to DOM/XML serializer
+    public static String toXmlTextContent(Object val, QName elementName) {
         if (val == null) {
             // if no value is specified, do not create element
             return null;
@@ -116,7 +107,7 @@ public class XmlTypeConverterInternal {
         if (type.equals(String.class)) {
             return (String) val;
         } if (type.equals(PolyString.class)){
-        	return ((PolyString) val).getNorm();
+            return ((PolyString) val).getNorm();
         } else if (type.equals(char.class) || type.equals(Character.class)) {
             return ((Character) val).toString();
         } else if (type.equals(File.class)) {
@@ -136,7 +127,7 @@ public class XmlTypeConverterInternal {
             return Base64.encodeBase64String(binaryData);
         } else if (type.equals(Boolean.class)) {
             Boolean bool = (Boolean) val;
-            if (bool.booleanValue()) {
+            if (bool) {
                 return XsdTypeMapper.BOOLEAN_XML_VALUE_TRUE;
             } else {
                 return XsdTypeMapper.BOOLEAN_XML_VALUE_FALSE;
@@ -149,32 +140,32 @@ public class XmlTypeConverterInternal {
             XMLGregorianCalendar xmlCal = XmlTypeConverter.createXMLGregorianCalendar((GregorianCalendar) val);
             return xmlCal.toXMLFormat();
         } else if (type.equals(ZonedDateTime.class)) {
-        	GregorianCalendar gregorianCalendar = GregorianCalendar.from((ZonedDateTime)val);
+            GregorianCalendar gregorianCalendar = GregorianCalendar.from((ZonedDateTime)val);
             XMLGregorianCalendar xmlCal = XmlTypeConverter.createXMLGregorianCalendar(gregorianCalendar);
             return xmlCal.toXMLFormat();
         } else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
-        	return ((XMLGregorianCalendar) val).toXMLFormat();
+            return ((XMLGregorianCalendar) val).toXMLFormat();
         } else if (Duration.class.isAssignableFrom(type)) {
-        	return ((Duration) val).toString();
+            return ((Duration) val).toString();
         } else if (type.equals(UniformItemPath.class) || type.equals(ItemPath.class)) {
-        	return ItemPathSerializerTemp.serializeWithDeclarations((ItemPath) val);
+            return ItemPathSerializerTemp.serializeWithDeclarations((ItemPath) val);
         } else {
             throw new IllegalArgumentException("Unknown type for conversion: " + type + "(element " + elementName + ")");
         }
     }
 
-	/**
-	 * Serialize PolyString to DOM element.
-	 */
-	private static void polyStringToElement(Element polyStringElement, PolyString polyString) {
-		if (polyString.getOrig() != null) {
-			Element origElement = DOMUtil.createSubElement(polyStringElement, PrismConstants.POLYSTRING_ELEMENT_ORIG_QNAME);
-			origElement.setTextContent(polyString.getOrig());
-		}
-		if (polyString.getNorm() != null) {
-			Element origElement = DOMUtil.createSubElement(polyStringElement, PrismConstants.POLYSTRING_ELEMENT_NORM_QNAME);
-			origElement.setTextContent(polyString.getNorm());
-		}
-	}
+    /**
+     * Serialize PolyString to DOM element.
+     */
+    private static void polyStringToElement(Element polyStringElement, PolyString polyString) {
+        if (polyString.getOrig() != null) {
+            Element origElement = DOMUtil.createSubElement(polyStringElement, PrismConstants.POLYSTRING_ELEMENT_ORIG_QNAME);
+            origElement.setTextContent(polyString.getOrig());
+        }
+        if (polyString.getNorm() != null) {
+            Element origElement = DOMUtil.createSubElement(polyStringElement, PrismConstants.POLYSTRING_ELEMENT_NORM_QNAME);
+            origElement.setTextContent(polyString.getNorm());
+        }
+    }
 
 }

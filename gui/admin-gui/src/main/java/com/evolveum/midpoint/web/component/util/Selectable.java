@@ -1,20 +1,13 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.util;
+
+import com.evolveum.midpoint.schema.result.OperationResult;
 
 import java.io.Serializable;
 
@@ -25,9 +18,10 @@ public abstract class Selectable<S> implements Serializable {
 
    private static final long serialVersionUID = 1L;
 
-	public static final String F_SELECTED = "selected";
+    public static final String F_SELECTED = "selected";
 
     private boolean selected;
+    private OperationResult result;
 
     public boolean isSelected() {
         return selected;
@@ -38,6 +32,7 @@ public abstract class Selectable<S> implements Serializable {
     }
 
     public S getValue() {
-    	return (S) this;
+        return (S) this;
     }
+
 }

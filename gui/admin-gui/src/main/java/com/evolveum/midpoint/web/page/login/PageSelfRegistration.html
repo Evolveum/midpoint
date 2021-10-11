@@ -2,17 +2,8 @@
 <!--
   ~ Copyright (c) 2010-2013 Evolveum
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
@@ -25,17 +16,17 @@
         <div class="panel panel-default">
             <div class="box-body">
             <form wicket:id="mainForm">
-            	<div wicket:id="contentArea"></div>
+                <div wicket:id="contentArea"></div>
            </form>
-			    <wicket:fragment wicket:id="staticContent">
-			    	<div wicket:id="staticForm">
-			          <div style="text-align: center">
+                <wicket:fragment wicket:id="staticContent">
+                    <div wicket:id="staticForm">
+                      <div style="text-align: center">
                         <h3 wicket:id="welcome"/>
                     </div>
                     <div>
                         <label wicket:id="additionalText"></label>
                     </div>
-                    
+
                         <table class="table table-striped">
                             <tr>
                                 <td>
@@ -80,29 +71,29 @@
                             </tr>
                         </table>
                     </div>
-					<div class="col-md-offset-6">
-                        <div wicket:id="captcha"/>
-
-                        <a class="btn btn-default" wicket:id="back"/>
-                        <a class="btn btn-primary" wicket:id="submitRegistration"/>
-                    </div>	                   
-			    </wicket:fragment>
-			    <wicket:fragment wicket:id="dynamicContent">
-			          <div wicket:id="dynamicForm">
-                    </div>
-					<div class="col-md-offset-6">
+                    <div class="col-md-offset-6">
                         <div wicket:id="captcha"/>
 
                         <a class="btn btn-default" wicket:id="back"/>
                         <a class="btn btn-primary" wicket:id="submitRegistration"/>
                     </div>
-			    </wicket:fragment>
+                </wicket:fragment>
+                <wicket:fragment wicket:id="dynamicContent">
+                      <div wicket:id="dynamicForm">
+                    </div>
+                    <div class="col-md-offset-6">
+                        <div wicket:id="captcha"/>
 
-            	<wicket:fragment wicket:id="messageContent">
-	                <div style="text-align: center">
-	                    <h2 wicket:id="registrationInfo"></h2>
-	                </div>
-	            </wicket:fragment>
+                        <a class="btn btn-default" wicket:id="back"/>
+                        <a class="btn btn-primary" wicket:id="submitRegistration"/>
+                    </div>
+                </wicket:fragment>
+
+                <wicket:fragment wicket:id="messageContent">
+                    <div style="text-align: center">
+                        <h2 wicket:id="registrationInfo"></h2>
+                    </div>
+                </wicket:fragment>
             </div>
         </div>
     </div>

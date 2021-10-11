@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.lens;
 
@@ -35,35 +26,35 @@ import java.util.List;
  */
 public class LensObjectDeltaOperation<T extends ObjectType> extends ObjectDeltaOperation<T> implements Serializable {
 
-	private boolean audited = false;
+    private boolean audited = false;
 
-	public LensObjectDeltaOperation() {
-		super();
-	}
+    public LensObjectDeltaOperation() {
+        super();
+    }
 
-	public LensObjectDeltaOperation(ObjectDelta<T> objectDelta) {
-		super(objectDelta);
-	}
+    public LensObjectDeltaOperation(ObjectDelta<T> objectDelta) {
+        super(objectDelta);
+    }
 
-	public boolean isAudited() {
-		return audited;
-	}
+    public boolean isAudited() {
+        return audited;
+    }
 
-	public void setAudited(boolean audited) {
-		this.audited = audited;
-	}
+    public void setAudited(boolean audited) {
+        this.audited = audited;
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(super.debugDump(indent));
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "audited", audited, indent + 1);
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(super.debugDump(indent));
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, "audited", audited, indent + 1);
+        return sb.toString();
+    }
 
-	@Override
-	protected String getDebugDumpClassName() {
+    @Override
+    protected String getDebugDumpClassName() {
         return "LensObjectDeltaOperation";
     }
 
@@ -85,15 +76,15 @@ public class LensObjectDeltaOperation<T extends ObjectType> extends ObjectDeltaO
         return retval;
     }
 
-	public LensObjectDeltaOperation<T> clone() {
-		LensObjectDeltaOperation<T> clone = new LensObjectDeltaOperation<>();
-		super.copyToClone(clone);
-		copyToClone(clone);
-		return clone;
-	}
+    public LensObjectDeltaOperation<T> clone() {
+        LensObjectDeltaOperation<T> clone = new LensObjectDeltaOperation<>();
+        super.copyToClone(clone);
+        copyToClone(clone);
+        return clone;
+    }
 
-	protected void copyToClone(LensObjectDeltaOperation<T> clone) {
-		clone.audited = this.audited;
-	}
+    protected void copyToClone(LensObjectDeltaOperation<T> clone) {
+        clone.audited = this.audited;
+    }
 
 }

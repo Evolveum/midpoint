@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="cfda5d1a-c940-4648-a362-d49195ee2d17">
+    <name>mr2.2</name>
+    <assignment id="1">
+        <targetRef oid="0f4ff4db-53d9-4028-9995-6fa6f1d2fbfe" type="RoleType"/>        <!-- mmr2.2.1 -->
+    </assignment>
+    <activation>
+        <administrativeStatus>disabled</administrativeStatus>
+    </activation>
+</role>

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
@@ -20,7 +11,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -50,12 +40,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- *  @author shood
- * */
 public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeDependencyType>> {
 
-    private static enum ChangeState{
+    private enum ChangeState{
         SKIP, FIRST, LAST
     }
 
@@ -87,7 +74,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
 
     public ResourceDependencyEditor(String id, IModel<List<ResourceObjectTypeDependencyType>> model, PageResourceWizard parentPage) {
         super(id, model);
-		initLayout(parentPage);
+        initLayout(parentPage);
     }
 
     @Override
@@ -118,14 +105,15 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
                 Label linkLabel = new Label(ID_DEPENDENCY_LINK_NAME, createDependencyLabelModel(item));
                 linkContainer.add(linkLabel);
 
-                AjaxLink delete = new AjaxLink(ID_DELETE_BUTTON) {
+                AjaxLink<Void> delete = new AjaxLink<Void>(ID_DELETE_BUTTON) {
+                    private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         deleteDependencyPerformed(target, item);
                     }
                 };
-				parentPage.addEditingVisibleBehavior(delete);
+                parentPage.addEditingVisibleBehavior(delete);
                 linkContainer.add(delete);
 
                 WebMarkupContainer dependencyBody = new WebMarkupContainer(ID_DEPENDENCY_BODY);
@@ -152,7 +140,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
 
                 TextField order = new TextField<>(ID_ORDER, new PropertyModel<Integer>(item.getModelObject(), "order"));
                 order.add(prepareAjaxOnComponentTagUpdateBehavior());
-				parentPage.addEditingEnabledBehavior(order);
+                parentPage.addEditingEnabledBehavior(order);
                 dependencyBody.add(order);
 
                 DropDownChoice strictness = new DropDownChoice<>(ID_STRICTNESS,
@@ -160,7 +148,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
                         WebComponentUtil.createReadonlyModelFromEnum(ResourceObjectTypeDependencyStrictnessType.class),
                     new EnumChoiceRenderer<>(this));
                 strictness.add(prepareAjaxOnComponentTagUpdateBehavior());
-				parentPage.addEditingEnabledBehavior(strictness);
+                parentPage.addEditingEnabledBehavior(strictness);
                 dependencyBody.add(strictness);
 
                 DropDownChoice kind = new DropDownChoice<>(ID_KIND,
@@ -168,12 +156,12 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
                         WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class),
                     new EnumChoiceRenderer<>(this));
                 kind.add(prepareAjaxOnComponentTagUpdateBehavior());
-				parentPage.addEditingEnabledBehavior(kind);
+                parentPage.addEditingEnabledBehavior(kind);
                 dependencyBody.add(kind);
 
                 TextField intent = new TextField<>(ID_INTENT, new PropertyModel<String>(item.getModelObject(), "intent"));
                 intent.add(prepareAjaxOnComponentTagUpdateBehavior());
-				parentPage.addEditingEnabledBehavior(intent);
+                parentPage.addEditingEnabledBehavior(intent);
                 dependencyBody.add(intent);
 
                 DropDownChoice resource = new DropDownChoice<>(ID_REF,
@@ -187,7 +175,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
                         }, new ObjectReferenceChoiceRenderer(resourceMap));
 
                 resource.add(prepareAjaxOnComponentTagUpdateBehavior());
-				parentPage.addEditingEnabledBehavior(resource);
+                parentPage.addEditingEnabledBehavior(resource);
                 dependencyBody.add(resource);
 
                 Label orderTooltip = new Label(ID_T_ORDER);
@@ -214,14 +202,15 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
         repeater.setOutputMarkupId(true);
         container.add(repeater);
 
-        AjaxLink add = new AjaxLink(ID_ADD_BUTTON) {
+        AjaxLink<Void> add = new AjaxLink<Void>(ID_ADD_BUTTON) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 addDependencyPerformed(target);
             }
         };
-		parentPage.addEditingVisibleBehavior(add);
+        parentPage.addEditingVisibleBehavior(add);
         add(add);
     }
 
@@ -275,7 +264,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
             resources = getPageBase().getModelService().searchObjects(ResourceType.class, null, null, task, result);
             result.recomputeStatus();
         } catch (CommonException|RuntimeException e){
-            result.recordFatalError("Couldn't get resource list.", e);
+            result.recordFatalError(getString("ResourceDependencyEditor.message.createResourceList.fatalError"), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get resource list.", e);
         }
 

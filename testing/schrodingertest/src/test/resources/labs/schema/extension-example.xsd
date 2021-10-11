@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<xsd:schema elementFormDefault="qualified"
+            targetNamespace="http://example.com/midpoint"
+            xmlns:tns="http://example.com/midpoint"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <xsd:complexType name="UserExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:UserType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ouNumber" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>true</a:indexed>
+                        <a:displayName>Department Number</a:displayName>
+                        <a:displayOrder>141</a:displayOrder>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Organizational unit/department number.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ouPath" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>true</a:indexed>
+                        <a:displayName>Organizational Path</a:displayName>
+                        <a:displayOrder>142</a:displayOrder>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Organizational path from root to user's department. Separated by ":".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="isManager" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>true</a:indexed>
+                        <a:displayName>Is Manager</a:displayName>
+                        <a:displayOrder>143</a:displayOrder>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        TRUE: is manager.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="empStatus" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>true</a:indexed>
+                        <a:displayName>Employee Status</a:displayName>
+                        <a:displayOrder>146</a:displayOrder>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        F: Former employee
+                        A: Active employee
+                        I: Inactive employee (maternity leave etc.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+</xsd:schema>

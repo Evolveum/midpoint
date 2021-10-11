@@ -1,0 +1,33 @@
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<ucfChange
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <objectClass>ri:AccountObjectClass</objectClass>
+    <identifiers>
+        <icfs:name>banderson</icfs:name>
+        <icfs:uid>banderson</icfs:uid>
+    </identifiers>
+    <objectDelta>
+        <t:changeType>modify</t:changeType>
+        <t:objectType>ShadowType</t:objectType>
+        <t:itemDelta>
+            <t:modificationType>delete</t:modificationType>
+            <t:path>attributes/ri:test</t:path>
+            <t:value>value2</t:value>
+        </t:itemDelta>
+        <t:itemDelta>
+            <t:modificationType>delete</t:modificationType>
+            <t:path>attributes/ri:memberOf</t:path>
+            <t:value>group2</t:value>
+            <t:value>group3</t:value>
+        </t:itemDelta>
+    </objectDelta>
+</ucfChange>

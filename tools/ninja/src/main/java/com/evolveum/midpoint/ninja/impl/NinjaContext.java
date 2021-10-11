@@ -1,22 +1,14 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.ninja.impl;
 
 import com.beust.jcommander.JCommander;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.ninja.opts.BaseOptions;
 import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
 import com.evolveum.midpoint.ninja.util.InitializationBeanPostprocessor;
@@ -35,9 +27,6 @@ import java.nio.charset.Charset;
  * Created by Viliam Repan (lazyman).
  */
 public class NinjaContext {
-
-    private static final String MIDPOINT_SILENT_PROPERTY_NAME = "midpoint.silent";
-    private static final String MIDPOINT_HOME_OPTION = "midpoint.home";
 
     private static final String REPOSITORY_SERVICE_BEAN = "repositoryService";
 
@@ -100,7 +89,7 @@ public class NinjaContext {
     private RepositoryService setupRepositoryViaMidPointHome(ConnectionOptions options) {
         log.info("Initializing repository using midpoint home");
 
-        System.setProperty(MIDPOINT_SILENT_PROPERTY_NAME, "true");
+        System.setProperty(MidpointConfiguration.MIDPOINT_SILENT_PROPERTY, "true");
 
         String midpointHome = options.getMidpointHome();
 
@@ -108,7 +97,7 @@ public class NinjaContext {
         String jdbcUsername = options.getUsername();
         String jdbcPassword = getPassword(options);
 
-        System.setProperty(MIDPOINT_HOME_OPTION, midpointHome);
+        System.setProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY, midpointHome);
 
         InitializationBeanPostprocessor postprocessor = new InitializationBeanPostprocessor();
         postprocessor.setJdbcUrl(jdbcUrl);
@@ -194,15 +183,15 @@ public class NinjaContext {
     }
 
     public SchemaHelper getSchemaHelper() {
-    	if (schemaHelper != null) {
-    		return schemaHelper;
-	    }
+        if (schemaHelper != null) {
+            return schemaHelper;
+        }
 
-	    if (context != null) {
-	    	schemaHelper = context.getBean(SchemaHelper.class);
-	    }
+        if (context != null) {
+            schemaHelper = context.getBean(SchemaHelper.class);
+        }
 
-	    return schemaHelper;
+        return schemaHelper;
     }
 
     public Log getLog() {

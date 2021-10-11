@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.common.expression.evaluator;
 
@@ -35,6 +26,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.AbstractAutowiredExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
@@ -46,38 +38,40 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 @Component
 public class LiteralExpressionEvaluatorFactory extends AbstractAutowiredExpressionEvaluatorFactory {
 
-	@Autowired private PrismContext prismContext;
+    private static final QName ELEMENT_NAME = new ObjectFactory().createValue(null).getName();
 
-	// Used by Spring
-	public LiteralExpressionEvaluatorFactory() {
-		super();
-	}
-	
-	// Used in tests
-	public LiteralExpressionEvaluatorFactory(PrismContext prismContext) {
-		super();
-		this.prismContext = prismContext;
-	}
+    @Autowired private PrismContext prismContext;
 
-	@Override
-	public QName getElementName() {
-		return new ObjectFactory().createValue(null).getName();
-	}
+    // Used by Spring
+    public LiteralExpressionEvaluatorFactory() {
+        super();
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement, com.evolveum.midpoint.prism.PrismContext)
-	 */
-	@Override
-	public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, D outputDefinition,
-																									ExpressionFactory factory, String contextDescription, Task task, OperationResult result) throws SchemaException {
+    // Used in tests
+    public LiteralExpressionEvaluatorFactory(PrismContext prismContext) {
+        super();
+        this.prismContext = prismContext;
+    }
+
+    @Override
+    public QName getElementName() {
+        return ELEMENT_NAME;
+    }
+
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement, com.evolveum.midpoint.prism.PrismContext)
+     */
+    @Override
+    public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, D outputDefinition, ExpressionProfile expressionProfile,
+                                                                                                    ExpressionFactory factory, String contextDescription, Task task, OperationResult result) throws SchemaException {
 
         Validate.notNull(outputDefinition, "output definition must be specified for literal expression evaluator");
 
-		Item<V,D> output = StaticExpressionUtil.parseValueElements(evaluatorElements, outputDefinition, contextDescription);
+        Item<V,D> output = StaticExpressionUtil.parseValueElements(evaluatorElements, outputDefinition, contextDescription);
 
-		PrismValueDeltaSetTriple<V> deltaSetTriple = ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
+        PrismValueDeltaSetTriple<V> deltaSetTriple = ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
 
-		return new LiteralExpressionEvaluator<>(deltaSetTriple);
-	}
+        return new LiteralExpressionEvaluator<>(ELEMENT_NAME, deltaSetTriple);
+    }
 
 }

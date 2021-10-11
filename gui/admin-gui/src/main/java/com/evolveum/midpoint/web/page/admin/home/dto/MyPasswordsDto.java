@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.page.admin.home.dto;
@@ -20,7 +11,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPropagationUserControlType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordChangeSecurityType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -32,6 +25,9 @@ public class MyPasswordsDto implements Serializable {
     public static final String F_ACCOUNTS = "accounts";
     public static final String F_PASSWORD = "password";
     public static final String F_OLD_PASSWORD = "oldPassword";
+
+
+    private PrismObject<? extends FocusType> focus;
 
     private List<PasswordAccountDto> accounts;
     private ProtectedStringType password;
@@ -76,5 +72,17 @@ public class MyPasswordsDto implements Serializable {
 
     public void setOldPassword(String oldPassword) {
         this.oldPassword = oldPassword;
+    }
+
+    public PrismObject<? extends FocusType> getFocus() {
+        return focus;
+    }
+
+    public void setFocus(PrismObject<? extends FocusType> focus) {
+        this.focus = focus;
+    }
+
+    public String getFocusOid() {
+        return focus.getOid();
     }
 }

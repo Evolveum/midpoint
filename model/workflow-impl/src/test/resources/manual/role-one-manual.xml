@@ -1,0 +1,16 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="0379f623-a3e9-405a-ba52-b1f7ecd2d46f"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>One: Manual</name>
+    <inducement>
+        <construction>
+            <resourceRef oid="ffb52158-63dc-4f5b-b998-fb6bfcfc546e" type="ResourceType"/> <!-- Manual -->
+            <kind>account</kind>
+        </construction>
+    </inducement>
+</role>

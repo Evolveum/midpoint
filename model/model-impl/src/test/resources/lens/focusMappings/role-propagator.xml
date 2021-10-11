@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="8e56a98a-bcb9-4178-94f2-5488da473132">
+    <name>propagator</name>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <name>fullName -> description</name>
+                <source>
+                    <path>fullName</path>
+                </source>
+                <target>
+                    <path>description</path>
+                </target>
+            </mapping>
+            <mapping>
+                <name>name, honorificPrefix -> fullName</name>
+                <source>
+                    <path>name</path>
+                </source>
+                <source>
+                    <path>honorificPrefix</path>
+                </source>
+                <expression>
+                    <script>
+                        <code>
+                            if (name != null &amp;&amp; honorificPrefix != null) {
+                                basic.stringify(name) + ', the ' + basic.stringify(honorificPrefix)
+                            } else {
+                                null
+                            }
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>fullName</path>
+                </target>
+            </mapping>
+            <mapping>
+                <name>title -> honorificPrefix</name>
+                <source>
+                    <path>title</path>
+                </source>
+                <target>
+                    <path>honorificPrefix</path>
+                </target>
+            </mapping>
+            <mapping>
+                <name>organization -> title</name>
+                <source>
+                    <path>organization</path>
+                </source>
+                <expression>
+                    <script>
+                        <relativityMode>absolute</relativityMode>
+                        <code>
+                            organization
+                                    .collect { basic.stringify(it) }
+                                    .sort()
+                                    .join(', ')
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>title</path>
+                </target>
+            </mapping>
+            <mapping>
+                <name>organizationalUnit -> organization</name>
+                <source>
+                    <path>organizationalUnit</path>
+                </source>
+                <target>
+                    <path>organization</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+</role>

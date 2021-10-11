@@ -1,0 +1,36 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="b7218b57-fb8a-4dfd-a4c0-976849a4640c">
+    <name>metarole-slowing-down</name>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <source>
+                    <path>name</path>
+                </source>
+                <expression>
+                    <script>
+                        <code>
+                            try {
+                                Thread.sleep(20)
+                            } catch (InterruptedException e) {
+                                // just ignore
+                            }
+                            name
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>description</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+    <!-- no approver (i.e. going to task 0) -->
+</role>

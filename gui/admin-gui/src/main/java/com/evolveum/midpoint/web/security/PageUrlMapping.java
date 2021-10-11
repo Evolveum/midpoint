@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.security;
@@ -65,6 +56,44 @@ public enum PageUrlMapping {
                     "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.guiAll.description"),
             new AuthorizationActionValue(AUTZ_GUI_ALL_DEPRECATED_URL,
                     "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.guiAll.description")
+    }),
+    CASE_DETAILS("/admin/workItem/**", new DisplayableValue[]{
+            new AuthorizationActionValue(AUTZ_UI_WORK_ITEM_URL,
+                    "PageCaseWorkItem.authUri.workItemDetails.label", "PageCaseWorkItem.authUri.workItemDetails.description"),
+            new AuthorizationActionValue(AUTZ_UI_WORK_ITEMS_ALL_URL,
+                    "PageCaseWorkItems.authUri.workItemsAll.label", "PageAdminResources.authUri.workItemsAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageCaseWorkItems.authUri.guiAll.label", "PageAdminRoles.authUri.guiAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_DEPRECATED_URL,
+                    "PageCaseWorkItems.authUri.guiAll.label", "PageAdminRoles.authUri.guiAll.description")
+    }),
+    ACTUATOR("/actuator/**", new DisplayableValue[]{
+            new AuthorizationActionValue(AUTZ_ACTUATOR_ALL_URL,
+                    "ActuatorEndpoint.authActuator.all.label", "ActuatorEndpoint.authActuator.all.description")
+    }),
+    ACTUATOR_THREAD_DUMP("/actuator/threaddump", new DisplayableValue[]{
+            new AuthorizationActionValue(AUTZ_ACTUATOR_THREAD_DUMP_URL,
+                    "ActuatorEndpoint.authActuator.threadDump.label", "ActuatorEndpoint.authActuator.threadDump.description")
+    }),
+    ACTUATOR_HEAP_DUMP("/actuator/heapdump", new DisplayableValue[]{
+            new AuthorizationActionValue(AUTZ_ACTUATOR_HEAP_DUMP_URL,
+                    "ActuatorEndpoint.authActuator.heapDump.label", "ActuatorEndpoint.authActuator.heapDump.description")
+    }),
+    ACTUATOR_ENV("/actuator/env/**", new DisplayableValue[]{
+            new AuthorizationActionValue(AUTZ_ACTUATOR_ENV_URL,
+                    "ActuatorEndpoint.authActuator.env.label", "ActuatorEndpoint.authActuator.env.description")
+    }),
+    ACTUATOR_INFO("/actuator/info", new DisplayableValue[]{
+            new AuthorizationActionValue(AUTZ_ACTUATOR_INFO_URL,
+                    "ActuatorEndpoint.authActuator.info.label", "ActuatorEndpoint.authActuator.info.description")
+    }),
+    ACTUATOR_METRICS("/actuator/metrics/**", new DisplayableValue[]{
+            new AuthorizationActionValue(AUTZ_ACTUATOR_METRICS_URL,
+                    "ActuatorEndpoint.authActuator.metrics.label", "ActuatorEndpoint.authActuator.metrics.description")
+    }),
+    REST("/ws/rest/**", new DisplayableValue[]{
+            new AuthorizationActionValue(AUTZ_REST_ALL_URL,
+                    "RestEndpoint.authRest.all.label", "RestEndpoint.authRest.all.description")
     });
 
     private String url;

@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="49cf021c-4127-41e1-9187-abcbeb8c0903">
+    <name>mmr1.1.2</name>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <source>
+                    <path>extension/p112c</path>
+                </source>
+                <target>
+                    <path>organizationalUnit</path>
+                </target>
+            </mapping>
+            <mapping>
+                <source>
+                    <path>extension/p112b</path>
+                </source>
+                <target>
+                    <path>extension/p112c</path>
+                </target>
+            </mapping>
+            <mapping>
+                <source>
+                    <path>extension/p112a</path>
+                </source>
+                <source>
+                    <path>$focus/title</path>
+                </source>
+                <expression>
+                    <script>
+                        <code>p112a</code>
+                    </script>
+                </expression>
+                <target>
+                    <path>extension/p112b</path>
+                </target>
+                <condition>
+                    <script>
+                        <code>basic.stringify(title) == 'enabled'</code>
+                    </script>
+                </condition>
+            </mapping>
+            <mapping>
+                <source>
+                    <path>description</path>
+                </source>
+                <expression>
+                    <script>
+                        <code>
+                            // source = this metarole
+                            description + ':' + basic.stringify(source.name)
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>extension/p112a</path>
+                </target>
+            </mapping>
+        </focusMappings>
+        <order>3</order>
+        <focusType>UserType</focusType>
+    </inducement>
+</role>

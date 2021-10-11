@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="integration" parallel="false">
+    <listeners>
+        <listener class-name="com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor"/>
+    </listeners>
+    <test name="Model Integration" preserve-order="true" parallel="false" verbose="10">
+        <classes>
+            <class name="com.evolveum.midpoint.model.intest.TestModelServiceContract"/>
+            <class name="com.evolveum.midpoint.model.intest.TestPreviewChanges"/>
+            <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStruct"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestRbac"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestImportRecon"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestManual"/>
+        </classes>
+    </test>
+</suite>

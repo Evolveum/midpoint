@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="958d0b7b-146f-4c25-aee1-ae27d26e34ed">
+    <name>r4</name>
+    <assignment id="1">
+        <targetRef oid="b2876ccd-ed84-40f4-9841-f694a0722196" type="RoleType"/>        <!-- mr4.1 -->
+    </assignment>
+    <condition>
+        <source>
+            <path>$focus/title</path>
+        </source>
+        <expression>
+            <script>
+                <code>basic.stringify(title) == 'enabled'</code>
+            </script>
+        </expression>
+    </condition>
+</role>

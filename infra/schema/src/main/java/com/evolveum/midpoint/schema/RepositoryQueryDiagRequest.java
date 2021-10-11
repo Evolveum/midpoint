@@ -1,22 +1,14 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.io.Serializable;
@@ -29,53 +21,54 @@ import java.util.Collection;
  *
  * @author mederly
  */
+@Experimental
 public class RepositoryQueryDiagRequest implements Serializable {
 
-	private Class<? extends ObjectType> type;
-	private ObjectQuery query;
-	private Collection<SelectorOptions<GetOperationOptions>> options;
+    private Class<? extends ObjectType> type;
+    private ObjectQuery query;
+    private Collection<SelectorOptions<GetOperationOptions>> options;
 
-	private Serializable implementationLevelQuery;				// this is used if specified
+    private Serializable implementationLevelQuery;                // this is used if specified
 
-	private boolean translateOnly;
+    private boolean translateOnly;
 
-	public Class<? extends ObjectType> getType() {
-		return type;
-	}
+    public Class<? extends ObjectType> getType() {
+        return type;
+    }
 
-	public void setType(Class<? extends ObjectType> type) {
-		this.type = type;
-	}
+    public void setType(Class<? extends ObjectType> type) {
+        this.type = type;
+    }
 
-	public ObjectQuery getQuery() {
-		return query;
-	}
+    public ObjectQuery getQuery() {
+        return query;
+    }
 
-	public void setQuery(ObjectQuery query) {
-		this.query = query;
-	}
+    public void setQuery(ObjectQuery query) {
+        this.query = query;
+    }
 
-	public Collection<SelectorOptions<GetOperationOptions>> getOptions() {
-		return options;
-	}
+    public Collection<SelectorOptions<GetOperationOptions>> getOptions() {
+        return options;
+    }
 
-	public void setOptions(Collection<SelectorOptions<GetOperationOptions>> options) {
-		this.options = options;
-	}
+    public void setOptions(Collection<SelectorOptions<GetOperationOptions>> options) {
+        this.options = options;
+    }
 
-	public Serializable getImplementationLevelQuery() {
-		return implementationLevelQuery;
-	}
+    public Serializable getImplementationLevelQuery() {
+        return implementationLevelQuery;
+    }
 
-	public void setImplementationLevelQuery(Serializable implementationLevelQuery) {
-		this.implementationLevelQuery = implementationLevelQuery;
-	}
+    public void setImplementationLevelQuery(Serializable implementationLevelQuery) {
+        this.implementationLevelQuery = implementationLevelQuery;
+    }
 
-	public boolean isTranslateOnly() {
-		return translateOnly;
-	}
+    public boolean isTranslateOnly() {
+        return translateOnly;
+    }
 
-	public void setTranslateOnly(boolean translateOnly) {
-		this.translateOnly = translateOnly;
-	}
+    public void setTranslateOnly(boolean translateOnly) {
+        this.translateOnly = translateOnly;
+    }
 }

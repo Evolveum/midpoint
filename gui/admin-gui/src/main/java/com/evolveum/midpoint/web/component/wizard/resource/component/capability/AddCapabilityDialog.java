@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.wizard.resource.component.capability;
 
@@ -82,14 +73,14 @@ public class AddCapabilityDialog extends ModalWindow {
             existingCapabilityClasses.add(cap.getCapability().getClass());
         }
 
-		List<CapabilityDto<CapabilityType>> rv = new ArrayList<>();
-		for (Capability supportedCapability : Capability.values()) {
+        List<CapabilityDto<CapabilityType>> rv = new ArrayList<>();
+        for (Capability supportedCapability : Capability.values()) {
             if (!existingCapabilityClasses.contains(supportedCapability.getClazz())) {
-                rv.add(new CapabilityDto<>(CapabilityStep.fillDefaults(supportedCapability.newInstance()), false));		// 'among natives' doesn't matter here
+                rv.add(new CapabilityDto<>(CapabilityStep.fillDefaults(supportedCapability.newInstance()), false));        // 'among natives' doesn't matter here
             }
         }
 
-		return rv;
+        return rv;
     }
 
     private ListDataProvider<CapabilityDto<CapabilityType>> createProvider() {
@@ -109,7 +100,7 @@ public class AddCapabilityDialog extends ModalWindow {
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-    	return PageBase.createStringResourceStatic(this, resourceKey, objects);
+        return PageBase.createStringResourceStatic(this, resourceKey, objects);
     }
 
     private void initLayout(WebMarkupContainer container){
@@ -158,7 +149,7 @@ public class AddCapabilityDialog extends ModalWindow {
         model.setObject(loadModel(selected));
     }
 
-	@SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
     public TablePanel<CapabilityDto<CapabilityType>> getTable() {
         return (TablePanel<CapabilityDto<CapabilityType>>) get(getContentId()+":"+ID_TABLE);
     }

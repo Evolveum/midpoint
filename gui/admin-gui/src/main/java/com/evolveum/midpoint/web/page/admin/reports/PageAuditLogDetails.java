@@ -1,23 +1,15 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.reports;
 
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -27,6 +19,8 @@ import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -47,14 +41,23 @@ import com.evolveum.midpoint.gui.api.component.delta.ObjectDeltaOperationPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -80,6 +83,7 @@ public class PageAuditLogDetails extends PageBase {
     private static final String ID_PARAMETERS_EVENT_IDENTIFIER = "eventIdentifier";
     private static final String ID_PARAMETERS_SESSION_IDENTIFIER = "sessionIdentifier";
     private static final String ID_PARAMETERS_TASK_IDENTIFIER = "taskIdentifier";
+    private static final String ID_PARAMETERS_REQUEST_IDENTIFIER = "requestIdentifier";
     private static final String ID_PARAMETERS_TASK_OID = "taskOID";
     private static final String ID_PARAMETERS_HOST_IDENTIFIER = "hostIdentifier";
     private static final String ID_PARAMETERS_NODE_IDENTIFIER = "nodeIdentifier";
@@ -95,7 +99,7 @@ public class PageAuditLogDetails extends PageBase {
     private static final String ID_PARAMETERS_EVENT_RESULT = "result";
     private static final String ID_PARAMETERS_PARAMETER = "parameter";
     private static final String ID_PARAMETERS_MESSAGE = "message";
-	private static final String ID_ADDITIONAL_ITEMS = "additionalItems";
+    private static final String ID_ADDITIONAL_ITEMS = "additionalItems";
     private static final String ID_ADDITIONAL_ITEM_LINE = "additionalItemLine";
     private static final String ID_ITEM_NAME = "itemName";
     private static final String ID_ITEM_VALUE = "itemValue";
@@ -110,22 +114,24 @@ public class PageAuditLogDetails extends PageBase {
 
     // items that are not listed here are sorted according to their display name
     private static final List<String> EXTENSION_ITEMS_ORDER =
-			Arrays.asList(
-					WorkflowConstants.AUDIT_OBJECT,
-					WorkflowConstants.AUDIT_TARGET,
-					WorkflowConstants.AUDIT_ORIGINAL_ASSIGNEE,
-					WorkflowConstants.AUDIT_CURRENT_ASSIGNEE,
-					WorkflowConstants.AUDIT_STAGE_NUMBER,
-					WorkflowConstants.AUDIT_STAGE_COUNT,
-					WorkflowConstants.AUDIT_STAGE_NAME,
-					WorkflowConstants.AUDIT_STAGE_DISPLAY_NAME,
-					WorkflowConstants.AUDIT_ESCALATION_LEVEL_NUMBER,
-					WorkflowConstants.AUDIT_ESCALATION_LEVEL_NAME,
-					WorkflowConstants.AUDIT_ESCALATION_LEVEL_DISPLAY_NAME,
-					WorkflowConstants.AUDIT_REQUESTER_COMMENT,
-					WorkflowConstants.AUDIT_COMMENT,
-					WorkflowConstants.AUDIT_WORK_ITEM_ID,
-					WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID);
+            Arrays.asList(
+                    WorkflowConstants.AUDIT_OBJECT,
+                    WorkflowConstants.AUDIT_TARGET,
+                    WorkflowConstants.AUDIT_ORIGINAL_ASSIGNEE,
+                    WorkflowConstants.AUDIT_CURRENT_ASSIGNEE,
+                    WorkflowConstants.AUDIT_STAGE_NUMBER,
+                    WorkflowConstants.AUDIT_STAGE_COUNT,
+                    WorkflowConstants.AUDIT_STAGE_NAME,
+                    WorkflowConstants.AUDIT_STAGE_DISPLAY_NAME,
+                    WorkflowConstants.AUDIT_ESCALATION_LEVEL_NUMBER,
+                    WorkflowConstants.AUDIT_ESCALATION_LEVEL_NAME,
+                    WorkflowConstants.AUDIT_ESCALATION_LEVEL_DISPLAY_NAME,
+                    WorkflowConstants.AUDIT_REQUESTER_COMMENT,
+                    WorkflowConstants.AUDIT_COMMENT,
+                    WorkflowConstants.AUDIT_WORK_ITEM_ID,
+                    WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID);
+
+    private Map<String, String> resourceForShadow = new HashMap<String, String>();
 
     public PageAuditLogDetails() {
         AuditLogStorage storage = getSessionStorage().getAuditLog();
@@ -159,15 +165,15 @@ public class PageAuditLogDetails extends PageBase {
         initLayoutBackButton();
     }
 
-	public Map<String, Object> getAuditEventRecordProviderParameters() {
-		Map<String, Object> parameters = new HashMap<>();
-		parameters.put(AuditEventRecordProvider.PARAMETER_TASK_IDENTIFIER, recordModel.getObject().getTaskIdentifier());
-		return parameters;
-	}
+    public Map<String, Object> getAuditEventRecordProviderParameters() {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put(AuditEventRecordProvider.PARAMETER_TASK_IDENTIFIER, recordModel.getObject().getTaskIdentifier());
+        return parameters;
+    }
 
-	private void initAuditLogHistoryPanel(WebMarkupContainer eventPanel) {
+    private void initAuditLogHistoryPanel(WebMarkupContainer eventPanel) {
         AuditEventRecordProvider provider = new AuditEventRecordProvider(PageAuditLogDetails.this, null,
-		        this::getAuditEventRecordProviderParameters);
+                this::getAuditEventRecordProviderParameters);
 
         BoxedTablePanel<AuditEventRecordType> table = new BoxedTablePanel<AuditEventRecordType>(
                 ID_HISTORY_PANEL, provider, initColumns(), UserProfileStorage.TableId.TASK_EVENTS_TABLE, TASK_EVENTS_TABLE_SIZE) {
@@ -293,26 +299,30 @@ public class PageAuditLogDetails extends PageBase {
         taskOID.setOutputMarkupId(true);
         eventDetailsPanel.add(taskOID);
 
+        final Label requestIdentifier = new Label(ID_PARAMETERS_REQUEST_IDENTIFIER, new PropertyModel(recordModel,ID_PARAMETERS_REQUEST_IDENTIFIER));
+        requestIdentifier.setOutputMarkupId(true);
+        eventDetailsPanel.add(requestIdentifier);
+
         final Label hostIdentifier = new Label(ID_PARAMETERS_HOST_IDENTIFIER, new PropertyModel(recordModel,ID_PARAMETERS_HOST_IDENTIFIER));
         hostIdentifier.setOutputMarkupId(true);
         eventDetailsPanel.add(hostIdentifier);
 
         final Label nodeIdentifier = new Label(ID_PARAMETERS_NODE_IDENTIFIER, new PropertyModel(recordModel, ID_PARAMETERS_NODE_IDENTIFIER));
-		nodeIdentifier.setOutputMarkupId(true);
+        nodeIdentifier.setOutputMarkupId(true);
         eventDetailsPanel.add(nodeIdentifier);
 
         final Label remoteHostAddress = new Label(ID_PARAMETERS_REMOTE_HOST_ADDRESS, new PropertyModel(recordModel, ID_PARAMETERS_REMOTE_HOST_ADDRESS));
-		remoteHostAddress.setOutputMarkupId(true);
+        remoteHostAddress.setOutputMarkupId(true);
         eventDetailsPanel.add(remoteHostAddress);
 
-		final Label initiatorRef = new Label(ID_PARAMETERS_EVENT_INITIATOR,
+        final Label initiatorRef = new Label(ID_PARAMETERS_EVENT_INITIATOR,
                 new Model<>(WebModelServiceUtils.resolveReferenceName(recordModel.getObject().getInitiatorRef(), this,
                         createSimpleTask(ID_PARAMETERS_EVENT_INITIATOR),
                         new OperationResult(ID_PARAMETERS_EVENT_INITIATOR))));
         initiatorRef.setOutputMarkupId(true);
         eventDetailsPanel.add(initiatorRef);
 
-		final Label attorneyRef = new Label(ID_PARAMETERS_EVENT_ATTORNEY,
+        final Label attorneyRef = new Label(ID_PARAMETERS_EVENT_ATTORNEY,
                 new Model<>(WebModelServiceUtils.resolveReferenceName(recordModel.getObject().getAttorneyRef(), this,
                         createSimpleTask(ID_PARAMETERS_EVENT_ATTORNEY),
                         new OperationResult(ID_PARAMETERS_EVENT_ATTORNEY))));
@@ -377,78 +387,78 @@ public class PageAuditLogDetails extends PageBase {
         message.setOutputMarkupId(true);
         eventDetailsPanel.add(message);
 
-		ListView<AuditEventRecordItemValueDto> additionalItemsList = new ListView<AuditEventRecordItemValueDto>(
-				ID_ADDITIONAL_ITEM_LINE,
-				new IModel<List<AuditEventRecordItemValueDto>>() {
-					@Override
-					public List<AuditEventRecordItemValueDto> getObject() {
-						List<AuditEventRecordItemValueDto> rv = new ArrayList<>();
-						for (AuditEventRecordItemType item : getSortedItems()) {
-							String currentName = getDisplayName(item.getName());
-							if (item instanceof AuditEventRecordPropertyType) {
-								for (String value : ((AuditEventRecordPropertyType) item).getValue()) {
-									rv.add(new AuditEventRecordItemValueDto(currentName, value));
-									currentName = null;
-								}
-							} else if (item instanceof AuditEventRecordReferenceType) {
-								for (AuditEventRecordReferenceValueType value : ((AuditEventRecordReferenceType) item).getValue()) {
-									rv.add(new AuditEventRecordItemValueDto(currentName, value.getTargetName() != null ?
-											value.getTargetName().getOrig() : value.getOid()));
-									currentName = null;
-								}
-							} else {
-								// should not occur
-							}
-						}
-						return rv;
-					}
+        ListView<AuditEventRecordItemValueDto> additionalItemsList = new ListView<AuditEventRecordItemValueDto>(
+                ID_ADDITIONAL_ITEM_LINE,
+                new IModel<List<AuditEventRecordItemValueDto>>() {
+                    @Override
+                    public List<AuditEventRecordItemValueDto> getObject() {
+                        List<AuditEventRecordItemValueDto> rv = new ArrayList<>();
+                        for (AuditEventRecordItemType item : getSortedItems()) {
+                            String currentName = getDisplayName(item.getName());
+                            if (item instanceof AuditEventRecordPropertyType) {
+                                for (String value : ((AuditEventRecordPropertyType) item).getValue()) {
+                                    rv.add(new AuditEventRecordItemValueDto(currentName, value));
+                                    currentName = null;
+                                }
+                            } else if (item instanceof AuditEventRecordReferenceType) {
+                                for (AuditEventRecordReferenceValueType value : ((AuditEventRecordReferenceType) item).getValue()) {
+                                    rv.add(new AuditEventRecordItemValueDto(currentName, value.getTargetName() != null ?
+                                            value.getTargetName().getOrig() : value.getOid()));
+                                    currentName = null;
+                                }
+                            } else {
+                                // should not occur
+                            }
+                        }
+                        return rv;
+                    }
 
-					// TODO take locale into account when sorting
-					private List<AuditEventRecordItemType> getSortedItems() {
-						AuditEventRecordType record = recordModel.getObject();
-						List<AuditEventRecordItemType> rv = new ArrayList<>();
-						rv.addAll(record.getProperty());
-						rv.addAll(record.getReference());
-						rv.sort((a, b) -> {
-							// explicitly enumerated are shown first; others are sorted by display name
-							int index_a = EXTENSION_ITEMS_ORDER.indexOf(a.getName());
-							int index_b = EXTENSION_ITEMS_ORDER.indexOf(b.getName());
-							if (index_a != -1 && index_b != -1) {
-								return Integer.compare(index_a, index_b);
-							} else if (index_a != -1) {
-								return -1;
-							} else if (index_b != -1) {
-								return 1;
-							}
-							String name_a = getDisplayName(a.getName());
-							String name_b = getDisplayName(b.getName());
-							return String.CASE_INSENSITIVE_ORDER.compare(name_a, name_b);
-						});
-						return rv;
-					}
+                    // TODO take locale into account when sorting
+                    private List<AuditEventRecordItemType> getSortedItems() {
+                        AuditEventRecordType record = recordModel.getObject();
+                        List<AuditEventRecordItemType> rv = new ArrayList<>();
+                        rv.addAll(record.getProperty());
+                        rv.addAll(record.getReference());
+                        rv.sort((a, b) -> {
+                            // explicitly enumerated are shown first; others are sorted by display name
+                            int indexA = EXTENSION_ITEMS_ORDER.indexOf(a.getName());
+                            int indexB = EXTENSION_ITEMS_ORDER.indexOf(b.getName());
+                            if (indexA != -1 && indexB != -1) {
+                                return Integer.compare(indexA, indexB);
+                            } else if (indexA != -1) {
+                                return -1;
+                            } else if (indexB != -1) {
+                                return 1;
+                            }
+                            String nameA = getDisplayName(a.getName());
+                            String nameB = getDisplayName(b.getName());
+                            return String.CASE_INSENSITIVE_ORDER.compare(nameA, nameB);
+                        });
+                        return rv;
+                    }
 
-					private String getDisplayName(String nameKey) {
-						// null should not occur so we don't try to be nice when displaying it
-						return nameKey != null ? createStringResource(nameKey).getString() : "(null)";
-					}
-				}) {
+                    private String getDisplayName(String nameKey) {
+                        // null should not occur so we don't try to be nice when displaying it
+                        return nameKey != null ? createStringResource(nameKey).getString() : "(null)";
+                    }
+                }) {
             @Override
             protected void populateItem(ListItem<AuditEventRecordItemValueDto> item) {
                 item.add(new Label(ID_ITEM_NAME, new PropertyModel<String>(item.getModel(), AuditEventRecordItemValueDto.F_NAME)));
                 item.add(new Label(ID_ITEM_VALUE, new PropertyModel<String>(item.getModel(), AuditEventRecordItemValueDto.F_VALUE)));
             }
         };
-		WebMarkupContainer additionalItemsContainer = new WebMarkupContainer(ID_ADDITIONAL_ITEMS);
+        WebMarkupContainer additionalItemsContainer = new WebMarkupContainer(ID_ADDITIONAL_ITEMS);
         additionalItemsContainer.add(additionalItemsList);
-		additionalItemsContainer.add(new VisibleBehaviour(() -> !additionalItemsList.getModelObject().isEmpty()));
-		eventDetailsPanel.add(additionalItemsContainer);
+        additionalItemsContainer.add(new VisibleBehaviour(() -> !additionalItemsList.getModelObject().isEmpty()));
+        eventDetailsPanel.add(additionalItemsContainer);
     }
 
     private void initDeltasPanel(WebMarkupContainer eventPanel){
         List<ObjectDeltaOperationType> deltas = recordModel.getObject().getDelta();
         RepeatingView deltaScene = new RepeatingView(ID_DELTA_LIST_PANEL);
 
-        for(ObjectDeltaOperationType deltaOp :deltas){
+        for(ObjectDeltaOperationType deltaOp :connectDeltas(deltas)){
             ObjectDeltaOperationPanel deltaPanel = new ObjectDeltaOperationPanel(deltaScene.newChildId(), Model.of(deltaOp), this);
             deltaPanel.setOutputMarkupId(true);
             deltaScene.add(deltaPanel);
@@ -457,6 +467,57 @@ public class PageAuditLogDetails extends PageBase {
         }
         eventPanel.addOrReplace(deltaScene);
 
+    }
+
+    private Collection<ObjectDeltaOperationType> connectDeltas(List<ObjectDeltaOperationType> deltas) {
+        Map<PolyStringType, ObjectDeltaOperationType> focusDeltas = new HashMap<PolyStringType, ObjectDeltaOperationType>();
+        List<ObjectDeltaOperationType> otherDeltas = new ArrayList<ObjectDeltaOperationType>();
+        for (ObjectDeltaOperationType delta : deltas) {
+            if (delta != null && delta.getObjectDelta() != null && FocusType.class.isAssignableFrom(WebComponentUtil.qnameToClass(getPrismContext(), delta.getObjectDelta().getObjectType()))) {
+                if (focusDeltas.containsKey(delta.getObjectName())) {
+                    focusDeltas.get(delta.getObjectName()).setResourceName(null);
+                    focusDeltas.get(delta.getObjectName()).setResourceOid(null);
+                    if (delta.getObjectDelta() != null) {
+                        if (focusDeltas.get(delta.getObjectName()).getObjectDelta() == null) {
+                            focusDeltas.get(delta.getObjectName()).setObjectDelta(delta.getObjectDelta());
+                        } else {
+                            focusDeltas.get(delta.getObjectName()).getObjectDelta().getItemDelta().addAll(delta.getObjectDelta().getItemDelta());
+                        }
+                        for (ItemDeltaType itemDelta : delta.getObjectDelta().getItemDelta()) {
+                            if (itemDelta == null) {
+                                continue;
+                            }
+                            if ((delta.getResourceName() != null || !StringUtils.isEmpty(delta.getResourceOid()))
+                                    && itemDelta.getPath() != null && ItemPath.create(FocusType.F_LINK_REF).equivalent(itemDelta.getPath().getItemPath())) {
+                                for (RawType rawType : itemDelta.getValue()) {
+                                    if (rawType != null && QNameUtil.match(rawType.getExplicitTypeName(), ObjectReferenceType.COMPLEX_TYPE)) {
+                                        try {
+                                            //TODO change this after hack in asReferencable is fixed
+                                            Referencable ref = rawType.getParsedRealValue(ObjectReferenceType.class);
+                                            if (ref != null && !StringUtils.isEmpty(ref.getOid())) {
+                                                String resource = (delta.getResourceName() != null) ? delta.getResourceName().getOrig() : delta.getResourceOid();
+                                                resourceForShadow.put(ref.getOid(), resource);
+                                            }
+                                        } catch (SchemaException e) {
+                                            LOGGER.debug("Couldn't parse ObjectReferenceType from RawType {}", rawType);
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    focusDeltas.put(delta.getObjectName(), delta);
+                }
+            } else {
+                otherDeltas.add(delta);
+            }
+        }
+        List<ObjectDeltaOperationType> retDeltas = new ArrayList<ObjectDeltaOperationType>();
+        retDeltas.addAll(focusDeltas.values());
+        retDeltas.addAll(otherDeltas);
+        return retDeltas;
     }
 
     protected void initLayoutBackButton() {

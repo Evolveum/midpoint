@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl.xnode;
 
@@ -28,46 +19,46 @@ import com.evolveum.midpoint.util.DebugUtil;
  */
 public class SchemaXNodeImpl extends XNodeImpl implements SchemaXNode {
 
-	private Element schemaElement;
+    private Element schemaElement;
 
-	public Element getSchemaElement() {
-		return schemaElement;
-	}
+    public Element getSchemaElement() {
+        return schemaElement;
+    }
 
-	public void setSchemaElement(Element schemaElement) {
-		this.schemaElement = schemaElement;
-	}
+    public void setSchemaElement(Element schemaElement) {
+        this.schemaElement = schemaElement;
+    }
 
-	@Override
-	public boolean isEmpty() {
-		return schemaElement == null || DOMUtil.isEmpty(schemaElement);
-	}
+    @Override
+    public boolean isEmpty() {
+        return schemaElement == null || DOMUtil.isEmpty(schemaElement);
+    }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		if (schemaElement == null) {
-			sb.append("Schema: null");
-		} else {
-			sb.append("Schema: present");
-		}
-		String dumpSuffix = dumpSuffix();
-		if (dumpSuffix != null) {
-			sb.append(dumpSuffix);
-		}
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        if (schemaElement == null) {
+            sb.append("Schema: null");
+        } else {
+            sb.append("Schema: present");
+        }
+        String dumpSuffix = dumpSuffix();
+        if (dumpSuffix != null) {
+            sb.append(dumpSuffix);
+        }
+        return sb.toString();
+    }
 
-	@Override
-	public String getDesc() {
-		return "schema";
-	}
+    @Override
+    public String getDesc() {
+        return "schema";
+    }
 
     @Override
     public boolean equals(Object o) {

@@ -1,0 +1,21 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="541ad3fc-1ae7-4412-a205-47093a78f0cf"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Cases Assignee Self</name>
+    <authorization>
+        <name>cases-assignee-self-read</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>CaseType</type>
+            <assignee>
+                <special>self</special>
+            </assignee>
+        </object>
+    </authorization>
+    <delegable>true</delegable>
+</role>

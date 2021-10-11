@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.roles;
 
@@ -24,19 +15,25 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.web.component.MultifunctionalButton;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.dialog.ConfigureTaskConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -85,130 +82,136 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 
-import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.isAuthorized;
+import org.apache.wicket.model.StringResourceModel;
+
+import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
 public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extends BasePanel<R> {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	protected enum QueryScope {
-		SELECTED, ALL, ALL_DIRECT
-	}
+    protected enum QueryScope {
+        SELECTED, ALL, ALL_DIRECT
+    }
 
-	protected enum MemberOperation {
-		ADD, REMOVE, RECOMPUTE
-	}
+    protected enum MemberOperation {
+        ADD, REMOVE, RECOMPUTE
+    }
 
-	private static final Trace LOGGER = TraceManager.getTrace(AbstractRoleMemberPanel.class);
-	private static final String DOT_CLASS = AbstractRoleMemberPanel.class.getName() + ".";
-	protected static final String OPERATION_LOAD_MEMBER_RELATIONS = DOT_CLASS + "loadMemberRelationsList";
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractRoleMemberPanel.class);
+    private static final String DOT_CLASS = AbstractRoleMemberPanel.class.getName() + ".";
+    protected static final String OPERATION_LOAD_MEMBER_RELATIONS = DOT_CLASS + "loadMemberRelationsList";
+    protected static final String OPERATION_LOAD_ARCHETYPE_OBJECT = DOT_CLASS + "loadArchetypeObject";
 
-	protected static final String ID_FORM = "form";
-	
-	protected static final String ID_CONTAINER_MEMBER = "memberContainer";
-	protected static final String ID_CHILD_TABLE = "childUnitTable";
-	protected static final String ID_MEMBER_TABLE = "memberTable";
-	
-	private static final String ID_OBJECT_TYPE = "type";
-	private static final String ID_TENANT = "tenant";
-	private static final String ID_PROJECT = "project";
-	private static final String ID_INDIRECT_MEMBERS = "indirectMembers";
+    protected static final String ID_FORM = "form";
 
-	protected static final String ID_SEARCH_SCOPE = "searchScope";
-	protected SearchBoxScopeType scopeDefaultValue = null;
-	protected QName objectTypeDefaultValue = null;
+    protected static final String ID_CONTAINER_MEMBER = "memberContainer";
+    protected static final String ID_CHILD_TABLE = "childUnitTable";
+    protected static final String ID_MEMBER_TABLE = "memberTable";
 
-	protected static final String ID_SEARCH_BY_RELATION = "searchByRelation";
+    private static final String ID_OBJECT_TYPE = "type";
+    private static final String ID_TENANT = "tenant";
+    private static final String ID_PROJECT = "project";
+    private static final String ID_INDIRECT_MEMBERS = "indirectMembers";
 
-	private static Map<QName, Map<String, String>> authorizations = new HashMap<>();
-	private static Map<QName, TableId> tablesId = new HashMap<>();
+    protected static final String ID_SEARCH_SCOPE = "searchScope";
+    protected SearchBoxScopeType scopeDefaultValue = null;
+    protected QName objectTypeDefaultValue = null;
 
-	static {
-		tablesId.put(RoleType.COMPLEX_TYPE, TableId.ROLE_MEMEBER_PANEL);
-		tablesId.put(ServiceType.COMPLEX_TYPE, TableId.SERVICE_MEMEBER_PANEL);
-		tablesId.put(OrgType.COMPLEX_TYPE, TableId.ORG_MEMEBER_PANEL);
-	}
-	
-	static {
-		authorizations.put(RoleType.COMPLEX_TYPE, GuiAuthorizationConstants.ROLE_MEMBERS_AUTHORIZATIONS);
-		authorizations.put(ServiceType.COMPLEX_TYPE, GuiAuthorizationConstants.SERVICE_MEMBERS_AUTHORIZATIONS);
-		authorizations.put(OrgType.COMPLEX_TYPE, GuiAuthorizationConstants.ORG_MEMBERS_AUTHORIZATIONS);
-	}
-	
-	public AbstractRoleMemberPanel(String id, IModel<R> model) {
-		super(id, model);
-	}
+    protected static final String ID_SEARCH_BY_RELATION = "searchByRelation";
 
-	@Override
-	protected void onInitialize(){
-		super.onInitialize();
-		initLayout();
-	}
+    private static Map<QName, Map<String, String>> authorizations = new HashMap<>();
+    private static Map<QName, TableId> tablesId = new HashMap<>();
 
-	protected void initLayout() {
-		Form<?> form = new com.evolveum.midpoint.web.component.form.Form(ID_FORM);
-		form.setOutputMarkupId(true);
-		add(form);
-		initDefaultSearchParameters();
-		initSearch(form);
-		initMemberTable(form);
-		setOutputMarkupId(true);
-		
-	}
+    static {
+        tablesId.put(RoleType.COMPLEX_TYPE, TableId.ROLE_MEMEBER_PANEL);
+        tablesId.put(ServiceType.COMPLEX_TYPE, TableId.SERVICE_MEMEBER_PANEL);
+        tablesId.put(OrgType.COMPLEX_TYPE, TableId.ORG_MEMEBER_PANEL);
+        tablesId.put(ArchetypeType.COMPLEX_TYPE, TableId.ARCHETYPE_MEMEBER_PANEL);
+    }
 
-	private void initDefaultSearchParameters(){
-		GuiObjectListPanelConfigurationType additionalPanel = getAdditionalPanelConfig();
-		if (additionalPanel != null && additionalPanel.getSearchBoxConfiguration() != null) {
-			scopeDefaultValue = additionalPanel.getSearchBoxConfiguration().getDefaultScope();
-			objectTypeDefaultValue = additionalPanel.getSearchBoxConfiguration().getDefaultObjectType();
-		}
-		if (scopeDefaultValue == null){
-			scopeDefaultValue = SearchBoxScopeType.ONE_LEVEL;
-		}
-		if (objectTypeDefaultValue == null){
-			objectTypeDefaultValue = WebComponentUtil.classToQName(getPrismContext(), getDefaultObjectType());
-		}
-		if (getMemberPanelStorage() != null){
-			if (getMemberPanelStorage().getOrgSearchScope() == null){
-				getMemberPanelStorage().setOrgSearchScope(scopeDefaultValue);
-			}
-			if (getMemberPanelStorage().getType() == null){
-				getMemberPanelStorage().setType(ObjectTypes.getObjectType(objectTypeDefaultValue.getLocalPart()));
-			}
-		}
-	}
+    static {
+        authorizations.put(RoleType.COMPLEX_TYPE, GuiAuthorizationConstants.ROLE_MEMBERS_AUTHORIZATIONS);
+        authorizations.put(ServiceType.COMPLEX_TYPE, GuiAuthorizationConstants.SERVICE_MEMBERS_AUTHORIZATIONS);
+        authorizations.put(OrgType.COMPLEX_TYPE, GuiAuthorizationConstants.ORG_MEMBERS_AUTHORIZATIONS);
+        authorizations.put(ArchetypeType.COMPLEX_TYPE, GuiAuthorizationConstants.ARCHETYPE_MEMBERS_AUTHORIZATIONS);
+    }
 
-	protected Form<?> getForm() {
-		return (Form) get(ID_FORM);
-	}
-	
-	private void initMemberTable(Form<?> form) {
-		WebMarkupContainer memberContainer = new WebMarkupContainer(ID_CONTAINER_MEMBER);
-		memberContainer.setOutputMarkupId(true);
-		memberContainer.setOutputMarkupPlaceholderTag(true);
-		form.add(memberContainer);
+    public AbstractRoleMemberPanel(String id, IModel<R> model) {
+        super(id, model);
+    }
 
-		PageBase pageBase = getPageBase();
-		//TODO QName defines a relation value which will be used for new member creation
-		MainObjectListPanel<ObjectType, QName> childrenListPanel = new MainObjectListPanel<ObjectType, QName>(
-				ID_MEMBER_TABLE, ObjectType.class, getTableId(getComplexTypeQName()), getSearchOptions(), pageBase) {
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
+        initLayout();
+    }
 
-			private static final long serialVersionUID = 1L;
+    protected void initLayout() {
+        Form<?> form = new com.evolveum.midpoint.web.component.form.Form(ID_FORM);
+        form.setOutputMarkupId(true);
+        add(form);
+        initDefaultSearchParameters();
+        initSearch(form);
+        initMemberTable(form);
+        setOutputMarkupId(true);
 
-			@Override
+    }
+
+    private void initDefaultSearchParameters(){
+        GuiObjectListPanelConfigurationType additionalPanel = getAdditionalPanelConfig();
+        if (additionalPanel != null && additionalPanel.getSearchBoxConfiguration() != null) {
+            scopeDefaultValue = additionalPanel.getSearchBoxConfiguration().getDefaultScope();
+            objectTypeDefaultValue = additionalPanel.getSearchBoxConfiguration().getDefaultObjectType();
+        }
+        if (scopeDefaultValue == null){
+            scopeDefaultValue = SearchBoxScopeType.ONE_LEVEL;
+        }
+        if (objectTypeDefaultValue == null){
+            objectTypeDefaultValue = WebComponentUtil.classToQName(getPrismContext(), getDefaultObjectType());
+        }
+        if (getMemberPanelStorage() != null){
+            if (getMemberPanelStorage().getOrgSearchScope() == null){
+                getMemberPanelStorage().setOrgSearchScope(scopeDefaultValue);
+            }
+            if (getMemberPanelStorage().getType() == null){
+                getMemberPanelStorage().setType(ObjectTypes.getObjectType(objectTypeDefaultValue.getLocalPart()));
+            }
+        }
+    }
+
+    protected Form<?> getForm() {
+        return (Form) get(ID_FORM);
+    }
+
+    private void initMemberTable(Form<?> form) {
+        WebMarkupContainer memberContainer = new WebMarkupContainer(ID_CONTAINER_MEMBER);
+        memberContainer.setOutputMarkupId(true);
+        memberContainer.setOutputMarkupPlaceholderTag(true);
+        form.add(memberContainer);
+
+        PageBase pageBase = getPageBase();
+        Class type = getMemberPanelStorage() != null && getMemberPanelStorage().getType() != null ?
+                getMemberPanelStorage().getType().getClassDefinition() : ObjectType.class;
+        //TODO QName defines a relation value which will be used for new member creation
+        MainObjectListPanel<ObjectType> childrenListPanel = new MainObjectListPanel<ObjectType>(
+                ID_MEMBER_TABLE, type, getTableId(getComplexTypeQName()), getSearchOptions()) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
             protected void objectDetailsPerformed(AjaxRequestTarget target, ObjectType object) {
                 detailsPerformed(target, object);
             }
 
             @Override
-            protected boolean isClickable(IModel<SelectableBean<ObjectType>> rowModel) {
+            protected boolean isObjectDetailsEnabled(IModel<SelectableBean<ObjectType>> rowModel) {
                 if (rowModel == null || rowModel.getObject() == null
                         || rowModel.getObject().getValue() == null) {
                     return false;
@@ -218,68 +221,40 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            protected void newObjectPerformed(AjaxRequestTarget target, QName influencingObject) {
-                AbstractRoleMemberPanel.this.createFocusMemberPerformed(target);
+            protected DisplayType getNewObjectButtonSpecialDisplayType(){
+                return getCreateMemberButtonDisplayType();
             }
 
-			@Override
-			protected List<Component> createToolbarButtonsList(String buttonId){
-				List<Component> buttonsList = super.createToolbarButtonsList(buttonId);
-				MultifunctionalButton<AssignmentObjectRelation> assignButton = new MultifunctionalButton<AssignmentObjectRelation>(buttonId) {
-					private static final long serialVersionUID = 1L;
+            @Override
+            protected DisplayType getNewObjectButtonStandardDisplayType(){
+                return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
+                        createStringResource("abstractRoleMemberPanel.menu.createMember", "", "").getString());
+            }
 
-					@Override
-					protected List<AssignmentObjectRelation> getAdditionalButtonsObjects() {
-						return WebComponentUtil.getRelationsDividedList(loadMemberRelationsList());
-					}
+            @Override
+            protected List<MultiFunctinalButtonDto> loadButtonDescriptions() {
+                return createAdditionalButtonsDescription();
+            }
 
-					@Override
-					protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation) {
-						AbstractRoleMemberPanel.this.assignMembers(target, relation != null && !CollectionUtils.isEmpty(relation.getRelations()) ?
-								Arrays.asList(relation.getRelations().get(0)) : getSupportedRelations());
-					}
+            @Override
+            protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
+                AbstractRoleMemberPanel.this.createFocusMemberPerformed(target, relation);
+            }
 
-					@Override
-					protected String getDefaultButtonStyle() {
-						return GuiStyleConstants.EVO_ASSIGNMENT_ICON;
-					}
+            @Override
+            protected List<Component> createToolbarButtonsList(String buttonId){
+                List<Component> buttonsList = super.createToolbarButtonsList(buttonId);
+                MultifunctionalButton assignButton = createAssignButton(buttonId);
+                buttonsList.add(1, assignButton);
+                return buttonsList;
+            }
 
-					@Override
-					protected String getAdditionalButtonStyle(AssignmentObjectRelation assignmentTargetRelation) {
-						DisplayType display = WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation);
-						if (display != null && display.getIcon() != null && !StringUtils.isEmpty(display.getIcon().getCssClass())) {
-							return display.getIcon().getCssClass();
-						}
-						return "";
-					}
+            @Override
+            protected IColumn<SelectableBean<ObjectType>, String> createIconColumn(){
+                return (IColumn) ColumnUtils.createIconColumn(pageBase);
+            }
 
-					@Override
-					protected String getAdditionalButtonTitle(AssignmentObjectRelation assignmentTargetRelation) {
-						DisplayType display = WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation);
-						if (display != null && display.getTooltip() != null) {
-							return display.getTooltip().getOrig();
-						}
-						return "";
-					}
-				};
-
-
-//				AjaxIconButton assignButton = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_ASSIGN), 	//TODO change icon class
-//						createStringResource("TreeTablePanel.menu.addMembers")) {
-//
-//					private static final long serialVersionUID = 1L;
-//
-//					@Override
-//					public void onClick(AjaxRequestTarget target) {
-//						AbstractRoleMemberPanel.this.assignMembers(target, getSupportedRelations());
-//					}
-//				};
-//				assignButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
-				buttonsList.add(1, assignButton);
-				return buttonsList;
-			}
-
-			@Override
+            @Override
             protected List<IColumn<SelectableBean<ObjectType>, String>> createColumns() {
                 return createMembersColumns();
             }
@@ -291,7 +266,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             protected Search createSearch() {
-                return SearchFactory.createSearch(getDefaultObjectType(), pageBase);
+                return getMemberPanelStorage() != null && getMemberPanelStorage().getSearch() != null ?
+                        getMemberPanelStorage().getSearch() : SearchFactory.createSearch(getDefaultObjectType(), pageBase);
             }
 
             @Override
@@ -310,54 +286,143 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                     filters.add(members.getFilter());
                 }
 
-	            QueryFactory queryFactory = pageBase.getPrismContext().queryFactory();
-	            if (filters.size() == 1) {
+                QueryFactory queryFactory = pageBase.getPrismContext().queryFactory();
+                if (filters.size() == 1) {
                     return queryFactory.createQuery(filters.iterator().next());
                 } else {
-		            return queryFactory.createQuery(queryFactory.createAnd(filters));
-	            }
+                    return queryFactory.createQuery(queryFactory.createAnd(filters));
+                }
             }
 
             @Override
-			protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig(){
-				return AbstractRoleMemberPanel.this.getAdditionalPanelConfig();
-			}
+            protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig(){
+                return AbstractRoleMemberPanel.this.getAdditionalPanelConfig();
+            }
+
+            @Override
+            protected boolean isAdditionalPanel(){
+                return true;
+            }
+
+            protected boolean isTypeChanged(Class<ObjectType> newTypeClass){
+                return true;
+            }
         };
         childrenListPanel.setOutputMarkupId(true);
         memberContainer.add(childrenListPanel);
     }
-	
-	protected TableId getTableId(QName complextType) {
-		return tablesId.get(complextType);
-	}
-	
-	protected Map<String, String> getAuthorizations(QName complexType) {
-		return authorizations.get(complexType);
-	}
-	
-	protected QName getComplexTypeQName() {
-		return getModelObject().asPrismObject().getComplexTypeDefinition().getTypeName();
-	}
 
-    private List<InlineMenuItem> createRowActions() {
-        List<InlineMenuItem> menu = new ArrayList<>();
-        if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_ASSIGN)) {
-            menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.assign")) {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public InlineMenuItemAction initAction() {
-                    return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
-                        private static final long serialVersionUID = 1L;
-
-                        @Override
-                        public void onClick(AjaxRequestTarget target) {
-                            assignMembers(target, getSupportedRelations());
-                        }
-                    };
-                }
-			});
+    private List<MultiFunctinalButtonDto> createAdditionalButtonsDescription() {
+        List<MultiFunctinalButtonDto> multiFunctinalButtonDtos = new ArrayList<>();
+        List<AssignmentObjectRelation> loadedRelations = loadMemberRelationsList();
+        if (org.apache.commons.collections4.CollectionUtils.isNotEmpty(loadedRelations)) {
+            List<AssignmentObjectRelation> relations = WebComponentUtil.divideAssignmentRelationsByAllValues(loadedRelations);
+            relations.forEach(relation -> {
+                MultiFunctinalButtonDto buttonDto = new MultiFunctinalButtonDto();
+                DisplayType additionalButtonDisplayType = WebComponentUtil.getAssignmentObjectRelationDisplayType(getPageBase(), relation,
+                        "abstractRoleMemberPanel.menu.createMember");
+                buttonDto.setAdditionalButtonDisplayType(additionalButtonDisplayType);
+                buttonDto.setCompositedIcon(createCompositedIcon(relation, additionalButtonDisplayType));
+                buttonDto.setAssignmentObjectRelation(relation);
+                multiFunctinalButtonDtos.add(buttonDto);
+            });
         }
+        return  multiFunctinalButtonDtos;
+    }
+
+    private CompositedIcon createCompositedIcon(AssignmentObjectRelation relation, DisplayType additionalButtonDisplayType) {
+        CompositedIconBuilder builder = WebComponentUtil.getAssignmentRelationIconBuilder(getPageBase(), relation,
+                additionalButtonDisplayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green"));
+        if (builder == null) {
+            return null;
+        }
+        return builder.build();
+    }
+
+    private MultifunctionalButton createAssignButton(String buttonId) {
+        MultifunctionalButton assignButton = new MultifunctionalButton(buttonId, createAssignmentAdditionalButtons()) {
+            private static final long serialVersionUID = 1L;
+
+
+            @Override
+            protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
+                List<QName> relations = relation != null && !CollectionUtils.isEmpty(relation.getRelations()) ?
+                        Arrays.asList(relation.getRelations().get(0)) : getSupportedRelations().getAvailableRelationList();
+                AvailableRelationDto avariableRelations = new AvailableRelationDto(relations, getSupportedRelations().getDefaultRelation());
+                List<QName> objectTypes = relation != null && !CollectionUtils.isEmpty(relation.getObjectTypes()) ?
+                        relation.getObjectTypes() : null;
+                List<ObjectReferenceType> archetypeRefList = relation != null && !CollectionUtils.isEmpty(relation.getArchetypeRefs()) ?
+                        relation.getArchetypeRefs() : null;
+                assignMembers(target, avariableRelations, objectTypes, archetypeRefList, relation == null);
+            }
+
+            @Override
+            protected DisplayType getMainButtonDisplayType(){
+                return getAssignMemberButtonDisplayType();
+            }
+
+            @Override
+            protected DisplayType getDefaultObjectButtonDisplayType(){
+                return getAssignMemberButtonDisplayType();
+            }
+
+        };
+        assignButton.add(AttributeAppender.append("class", "btn-margin-right"));
+
+
+        return assignButton;
+    }
+
+    private List<MultiFunctinalButtonDto> createAssignmentAdditionalButtons() {
+        List<MultiFunctinalButtonDto> additionalAssignmentButtons = new ArrayList<>();
+        List<AssignmentObjectRelation> assignmentObjectRelations = WebComponentUtil.divideAssignmentRelationsByAllValues(loadMemberRelationsList());
+        if (assignmentObjectRelations == null) {
+            return additionalAssignmentButtons;
+        }
+        assignmentObjectRelations.forEach(relation -> {
+            MultiFunctinalButtonDto buttonDto = new MultiFunctinalButtonDto();
+            buttonDto.setAssignmentObjectRelation(relation);
+
+            DisplayType additionalDispayType = WebComponentUtil.getAssignmentObjectRelationDisplayType(AbstractRoleMemberPanel.this.getPageBase(), relation,
+                    "abstractRoleMemberPanel.menu.assignMember");
+            //TODO null additinalDisplayType
+            CompositedIconBuilder builder = WebComponentUtil.getAssignmentRelationIconBuilder(AbstractRoleMemberPanel.this.getPageBase(), relation,
+                    additionalDispayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green"));
+            CompositedIcon icon = builder.build();
+            buttonDto.setAdditionalButtonDisplayType(additionalDispayType);
+            buttonDto.setCompositedIcon(icon);
+            additionalAssignmentButtons.add(buttonDto);
+        });
+
+        return additionalAssignmentButtons;
+
+    }
+
+    protected TableId getTableId(QName complextType) {
+        return tablesId.get(complextType);
+    }
+
+    protected Map<String, String> getAuthorizations(QName complexType) {
+        return authorizations.get(complexType);
+    }
+
+    protected QName getComplexTypeQName() {
+        return getModelObject().asPrismObject().getComplexTypeDefinition().getTypeName();
+    }
+
+    private DisplayType getCreateMemberButtonDisplayType(){
+        return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
+                AbstractRoleMemberPanel.this.createStringResource("abstractRoleMemberPanel.menu.createMember", "", "").getString());
+    }
+
+    private DisplayType getAssignMemberButtonDisplayType(){
+        return WebComponentUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
+                AbstractRoleMemberPanel.this.createStringResource("abstractRoleMemberPanel.menu.assignMember", "", "").getString());
+    }
+
+    protected List<InlineMenuItem> createRowActions() {
+        List<InlineMenuItem> menu = new ArrayList<>();
+        createAssignMemberRowAction(menu);
 
         if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_UNASSIGN)) {
             menu.add(new ButtonInlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.unassign")) {
@@ -376,43 +441,15 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
                 }
 
-				@Override
+                @Override
                 public String getButtonIconCssClass() {
                     return GuiStyleConstants.CLASS_UNASSIGN;
                 }
             });
         }
 
-        if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_RECOMPUTE)) {
-            menu.add(new ButtonInlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.recompute")) {
-                private static final long serialVersionUID = 1L;
+        createRecomputeMemberRowAction(menu);
 
-                @Override
-                public InlineMenuItemAction initAction() {
-                    return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
-                        private static final long serialVersionUID = 1L;
-
-                        @Override
-                        public void onClick(AjaxRequestTarget target) {
-                            recomputeMembersPerformed(target);
-                        }
-                    };
-                }
-
-				@Override
-				public IModel<String> getConfirmationMessageModel() {
-					return getMemberTable().getSelectedObjectsCount() > 0 ?
-							createStringResource("abstractRoleMemberPanel.recomputeSelectedMembersConfirmationLabel")
-							: createStringResource("abstractRoleMemberPanel.recomputeAllMembersConfirmationLabel");
-				}
-
-				@Override
-				public String getButtonIconCssClass() {
-					return GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM;
-				}
-
-			});
-        }
         if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_CREATE)) {
             menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.create")) {
                 private static final long serialVersionUID = 1L;
@@ -449,563 +486,782 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             });
         }
         return menu;
-	}
-	
-	protected abstract List<QName> getSupportedRelations();
-
-	protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig(){
-		return null;
-	}
-
-	private boolean isAuthorized(String action) {
-		Map<String, String> memeberAuthz = getAuthorizations(getComplexTypeQName());
-		return WebComponentUtil.isAuthorized(memeberAuthz.get(action));
-	}
-
-	private List<AssignmentObjectRelation> loadMemberRelationsList(){
-		OperationResult result = new OperationResult(OPERATION_LOAD_MEMBER_RELATIONS);
-		List<AssignmentObjectRelation> assignmentTargetRelations = new ArrayList<>();
-		PrismObject obj = getModelObject().asPrismObject();
-		try {
-			AssignmentCandidatesSpecification spec = getPageBase().getModelInteractionService()
-					.determineAssignmentTargetSpecification(obj, result);
-			assignmentTargetRelations = spec != null ? spec.getAssignmentObjectRelations() : new ArrayList<>();
-		} catch (SchemaException | ConfigurationException ex){
-			result.recordPartialError(ex.getLocalizedMessage());
-			LOGGER.error("Couldn't load member relations list for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
-		}
-		return assignmentTargetRelations;
-	}
-
-	protected <O extends ObjectType> void assignMembers(AjaxRequestTarget target, List<QName> availableRelationList) {
-		MemberOperationsHelper.assignMembers(getPageBase(), getModelObject(), target, availableRelationList);
-	}
-
-	private void unassignMembersPerformed(AjaxRequestTarget target) {
-		QueryScope scope = getQueryScope(false);
-		
-		ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(getPageBase().getMainPopupBodyId(),
-				createStringResource("abstractRoleMemberPanel.unassignAllMembersConfirmationLabel")) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected List<QName> getSupportedObjectTypes() {
-				return AbstractRoleMemberPanel.this.getSupportedObjectTypes(true);
-			}
-
-			@Override
-			protected List<QName> getSupportedRelations() {
-				return AbstractRoleMemberPanel.this.getSupportedRelations();
-			}
-			
-			@Override
-			protected boolean isFocusTypeSelectorVisible() {
-				return !QueryScope.SELECTED.equals(scope);
-			}
-
-
-			protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
-				unassignMembersPerformed(type, scope, relations, target);
-
-			}
-		};
-
-		getPageBase().showMainPopup(chooseTypePopupContent, target);
-	}
-	
-	private void deleteMembersPerformed(AjaxRequestTarget target) {
-		QueryScope scope = getQueryScope(false);
-		ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(getPageBase().getMainPopupBodyId(),
-					createStringResource("abstractRoleMemberPanel.deleteAllMembersConfirmationLabel")) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected List<QName> getSupportedObjectTypes() {
-				return AbstractRoleMemberPanel.this.getSupportedObjectTypes(true);
-			}
-
-			@Override
-			protected List<QName> getSupportedRelations() {
-				return AbstractRoleMemberPanel.this.getSupportedRelations();
-			}
-
-			protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
-				deleteMembersPerformed(type, scope, relations, target);
-
-			}
-
-			@Override
-			protected boolean isFocusTypeSelectorVisible() {
-				return !QueryScope.SELECTED.equals(scope);
-			}
-
-		};
-
-		getPageBase().showMainPopup(chooseTypePopupContent, target);
-		
-	}
-	
-	protected void createFocusMemberPerformed(AjaxRequestTarget target) {
-
-		ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(
-				getPageBase().getMainPopupBodyId()) {
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			protected List<QName> getSupportedObjectTypes() {
-				return AbstractRoleMemberPanel.this.getSupportedObjectTypes(false);
-			}
-			
-			@Override
-			protected List<QName> getSupportedRelations() {
-				return AbstractRoleMemberPanel.this.getSupportedRelations();
-			}
-
-			protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
-				if (relations == null || relations.isEmpty()) {
-					getSession().warn("No relation was selected. Cannot create member");
-					target.add(this);
-					target.add(getPageBase().getFeedbackPanel());
-					return;
-				}
-				try {
-					MemberOperationsHelper.initObjectForAdd(AbstractRoleMemberPanel.this.getPageBase(), AbstractRoleMemberPanel.this.getModelObject(), type, relations, target);
-				} catch (SchemaException e) {
-					throw new SystemException(e.getMessage(), e);
-				}
-
-			};
-		};
-
-		getPageBase().showMainPopup(chooseTypePopupContent, target);
-
-	}
-	
-	protected void deleteMembersPerformed(QName type, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
-		if (relations == null || relations.isEmpty()) {
-			getSession().warn("No relation was selected. Cannot perform delete members");
-			target.add(this);
-			target.add(getPageBase().getFeedbackPanel());
-			return;
-		}
-		MemberOperationsHelper.deleteMembersPerformed(getPageBase(), scope, getActionQuery(scope, relations), type, target);
-	}
-
-	protected void unassignMembersPerformed(QName type, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
-		if (relations == null || relations.isEmpty()) {
-			getSession().warn("No relation was selected. Cannot perform unassign members");
-			target.add(this);
-			target.add(getPageBase().getFeedbackPanel());
-			return;
-		}
-		MemberOperationsHelper.unassignMembersPerformed(getPageBase(), getModelObject(), scope, getActionQuery(scope, relations), relations, type, target);
-	}
-	
-	private ObjectViewDto<OrgType> getParameter(String panelId) {
-		ChooseTypePanel<OrgType> tenantChoice = (ChooseTypePanel) get(createComponentPath(ID_FORM, panelId));
-		return tenantChoice.getModelObject();
-	}
-	
-	protected ObjectQuery getActionQuery(QueryScope scope, Collection<QName> relations) {
-		switch (scope) {
-			case ALL:
-				return createAllMemberQuery(relations);
-			case ALL_DIRECT:
-				return MemberOperationsHelper.createDirectMemberQuery(getModelObject(), getSearchType().getTypeQName(), relations, getParameter(ID_TENANT), getParameter(ID_PROJECT), getPrismContext());
-			case SELECTED:
-				return MemberOperationsHelper.createSelectedObjectsQuery(getMemberTable().getSelectedObjects(), getPrismContext());
-		}
-
-		return null;
-	}
-	
-	protected void initSearch(Form<?> form) {
-
-		List<SearchBoxScopeType> scopeValues = Arrays.asList(SearchBoxScopeType.values());
-		DropDownFormGroup<SearchBoxScopeType> searchScrope = createDropDown(ID_SEARCH_SCOPE,
-				Model.of(getMemberPanelStorage() != null ? getMemberPanelStorage().getOrgSearchScope() : scopeDefaultValue),
-				scopeValues,
-				WebComponentUtil.getEnumChoiceRenderer(AbstractRoleMemberPanel.this),
-				"abstractRoleMemberPanel.searchScope", "abstractRoleMemberPanel.searchScope.tooltip");
-		searchScrope.add(new VisibleBehaviour(() -> getModelObject() instanceof OrgType));
-		form.add(searchScrope);
-		
-		DropDownFormGroup<QName> typeSelect = createDropDown(ID_OBJECT_TYPE,
-				Model.of(getMemberPanelStorage() != null ? getMemberPanelStorage().getType().getTypeQName() : WebComponentUtil.classToQName(getPrismContext(), getDefaultObjectType())),
-				getSupportedObjectTypes(true), new QNameObjectTypeChoiceRenderer(),
-				"abstractRoleMemberPanel.type", "abstractRoleMemberPanel.type.tooltip");
-		form.add(typeSelect);
-
-		RelationDropDownChoicePanel relationSelector = new RelationDropDownChoicePanel(ID_SEARCH_BY_RELATION,
-				getMemberPanelStorage() != null ? getMemberPanelStorage().getRelation() : null,
-				getSupportedRelations(), true){
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void onValueChanged(AjaxRequestTarget target){
-				refreshAll(target);
-			}
-		};
-		form.add(relationSelector);
-		
-		ChooseTypePanel<OrgType> tenant = createParameterPanel(ID_TENANT, true);
-		form.add(tenant);
-		tenant.add(new VisibleBehaviour(() -> getModelObject() instanceof RoleType));
-		
-		ChooseTypePanel<OrgType> project = createParameterPanel(ID_PROJECT, false);
-		form.add(project);
-		project.add(new VisibleBehaviour(() -> getModelObject() instanceof RoleType));
-
-		CheckFormGroup includeIndirectMembers = new CheckFormGroup(ID_INDIRECT_MEMBERS,
-				Model.of(getMemberPanelStorage() != null ? getMemberPanelStorage().getIndirect() : false),
-					createStringResource("abstractRoleMemberPanel.indirectMembers"), "abstractRoleMemberPanel.indirectMembers.tooltip", false, "col-md-4", "col-md-2");
-		includeIndirectMembers.getCheck().add(new AjaxFormComponentUpdatingBehavior("change") {
-			
-			private static final long serialVersionUID = 1L;
-			
-			protected void onUpdate(AjaxRequestTarget target) {
-				refreshAll(target);
-			}; 
-			
-		});
-		
-		includeIndirectMembers.getCheck().add(new EnableBehaviour(() ->
-				getSearchScopeValue().equals(SearchBoxScopeType.ONE_LEVEL) || !searchScrope.isVisible()));
-		includeIndirectMembers.setOutputMarkupId(true);
-		form.add(includeIndirectMembers);
-
-	}
-	
-	protected List<QName> getSupportedObjectTypes(boolean includeAbstractTypes) {
-		return WebComponentUtil.createFocusTypeList(includeAbstractTypes);
-	}
-	
-	private ChooseTypePanel<OrgType> createParameterPanel(String id, boolean isTenant) {
-
-		ChooseTypePanel<OrgType> orgSelector = new ChooseTypePanel<OrgType>(id, Model.of(new ObjectViewDto())) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void executeCustomAction(AjaxRequestTarget target, OrgType object) {
-				refreshAll(target);
-			}
-
-			@Override
-			protected void executeCustomRemoveAction(AjaxRequestTarget target) {
-				refreshAll(target);
-			}
-
-			@Override
-			protected ObjectQuery getChooseQuery() {
-				S_FilterEntryOrEmpty q = getPrismContext().queryFor(OrgType.class);
-				if (isTenant) {
-					return q.item(OrgType.F_TENANT).eq(true).build();
-				} else {
-					return q.not().item(OrgType.F_TENANT).eq(true).build();
-				}
-			}
-
-			@Override
-			protected boolean isSearchEnabled() {
-				return true;
-			}
-
-			@Override
-			public Class<OrgType> getObjectTypeClass() {
-				return OrgType.class;
-			}
-
-			@Override
-			protected AttributeAppender getInputStyleClass(){
-				return AttributeAppender.append("class", "col-md-10");
-			}
-
-		};
-		orgSelector.setOutputMarkupId(true);
-		orgSelector.setOutputMarkupPlaceholderTag(true);
-		return orgSelector;
-
-	}
-		
-	private <V> DropDownFormGroup<V> createDropDown(String id, IModel<V> defaultModel, final List<V> values,
-			IChoiceRenderer<V> renderer, String labelKey, String tooltipKey) {
-		DropDownFormGroup<V> listSelect = new DropDownFormGroup<V>(id, defaultModel, Model.ofList(values), renderer, createStringResource(labelKey), 
-				tooltipKey, false, "col-md-4", "col-md-8", true);
-
-		listSelect.getInput().add(new OnChangeAjaxBehavior() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				refreshAll(target);
-			}
-		});
-		listSelect.setOutputMarkupId(true);
-		return listSelect;
-	}
-
-	protected void refreshAll(AjaxRequestTarget target) {
-		updateMembersPanelSessionStorage();
-
-		DropDownFormGroup<QName> typeChoice = (DropDownFormGroup) get(createComponentPath(ID_FORM, ID_OBJECT_TYPE));
-		QName type = getMemberPanelStorage() != null ? getMemberPanelStorage().getType().getTypeQName() : typeChoice.getModelObject();
-		getMemberTable().clearCache();
-		getMemberTable().refreshTable(WebComponentUtil.qnameToClass(getPrismContext(), type, FocusType.class), target);
-		target.add(this);
-	}
-
-	
-	private MainObjectListPanel<FocusType, QName> getMemberTable() {
-		return (MainObjectListPanel<FocusType, QName>) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
-	}
-	
-	protected QueryScope getQueryScope(boolean isRecompute) {
-		if (CollectionUtils.isNotEmpty(MemberOperationsHelper.getFocusOidToRecompute(getMemberTable().getSelectedObjects()))) {
-			return QueryScope.SELECTED;
-		}
-		
-		if (getIndirectmembersPanel().getValue()) {
-			return QueryScope.ALL;
-		}
-		
-		return QueryScope.ALL_DIRECT;
-	}
-	
-	private CheckFormGroup getIndirectmembersPanel() {
-		return (CheckFormGroup) get(createComponentPath(ID_FORM, ID_INDIRECT_MEMBERS));
-	}
-	
-	protected void recomputeMembersPerformed(AjaxRequestTarget target) {
-		MemberOperationsHelper.recomputeMembersPerformed(getPageBase(), getQueryScope(true), getActionQuery(getQueryScope(true), getSupportedRelations()), getSupportedRelations(), target);
-		
-	}
-
-	protected ObjectQuery createContentQuery() {
-		CheckFormGroup isIndirect = getIndirectmembersPanel();
-		List<QName> relations = QNameUtil.match(getSelectedRelation(), PrismConstants.Q_ANY) ? getSupportedRelations() : Arrays.asList(getSelectedRelation());  
- 		return createMemberQuery(isIndirect != null ? isIndirect.getValue() : false, relations);
-
-	}
-
-	protected QName getSelectedRelation(){
-		MemberPanelStorage storage = getMemberPanelStorage();
-		if (storage != null){
-			return storage.getRelation();
-		}
-		RelationDropDownChoicePanel relationDropDown = (RelationDropDownChoicePanel) get(createComponentPath(ID_FORM, ID_SEARCH_BY_RELATION));
-		return relationDropDown.getRelationValue();
-	}
-
-	private SearchBoxScopeType getSearchScopeValue(){
-		if (getMemberPanelStorage() != null){
-			return getMemberPanelStorage().getOrgSearchScope();
-		}
-		DropDownFormGroup<SearchBoxScopeType> searchScopeComponent = (DropDownFormGroup<SearchBoxScopeType>)get(createComponentPath(ID_FORM, ID_SEARCH_SCOPE));
-		return searchScopeComponent.getModelObject();
-	}
-	
-	protected ObjectTypes getSearchType() {
-		DropDownFormGroup<QName> searchByTypeChoice = (DropDownFormGroup<QName>) get(
-				createComponentPath(ID_FORM, ID_OBJECT_TYPE));
-		QName typeName = searchByTypeChoice.getModelObject();
-		return ObjectTypes.getObjectTypeFromTypeQName(typeName);
-	}
-	
-	protected ObjectQuery createMemberQuery(boolean indirect, Collection<QName> relations) {
-		if (indirect) {
-			return createAllMemberQuery(relations);
-		}
-		
-		return MemberOperationsHelper.createDirectMemberQuery(getModelObject(), getSearchType().getTypeQName(), relations, getParameter(ID_TENANT), getParameter(ID_PROJECT), getPrismContext());
-	}
-
-
-	protected ObjectQuery createAllMemberQuery(Collection<QName> relations) {
-		return getPrismContext().queryFor(FocusType.class)
-				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(getModelObject(), relations))
-				.build();
-	}
-	
-	
-	protected ObjectReferenceType createReference() {
-		ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getModelObject(), getPageBase().getPrismContext());
-		return ref;
-	}
-
-	protected void detailsPerformed(AjaxRequestTarget target, ObjectType object) {
-		if (WebComponentUtil.hasDetailsPage(object.getClass())) {
-			WebComponentUtil.dispatchToObjectDetailsPage(object.getClass(), object.getOid(), this, true);
-		} else {
-			error("Could not find proper response page");
-			throw new RestartResponseException(getPageBase());
-		}
-	}
-
-	protected List<IColumn<SelectableBean<ObjectType>, String>> createMembersColumns() {
-		List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
-
-		IColumn<SelectableBean<ObjectType>, String> column = new AbstractExportableColumn<SelectableBean<ObjectType>, String>(
-				createStringResource("TreeTablePanel.fullName.displayName")) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> cellItem,
-					String componentId, IModel<SelectableBean<ObjectType>> rowModel) {
-				SelectableBean<ObjectType> bean = rowModel.getObject();
-				ObjectType object = bean.getValue();
-				cellItem.add(new Label(componentId,
-							getMemberObjectDisplayName(object)));
-			}
-
-			@Override
-			public IModel<String> getDataModel(IModel<SelectableBean<ObjectType>> rowModel) {
-				return Model.of(getMemberObjectDisplayName(rowModel.getObject().getValue()));
-			}
-
-		};
-		columns.add(column);
-
-		column = new AbstractExportableColumn<SelectableBean<ObjectType>, String>(
-				createStringResource("TreeTablePanel.identifier.description")) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> cellItem,
-					String componentId, IModel<SelectableBean<ObjectType>> rowModel) {
-				SelectableBean<ObjectType> bean = rowModel.getObject();
-				ObjectType object = bean.getValue();
-				cellItem.add(new Label(componentId, getMemberObjectIdentifier(object)));
-			}
-
-			@Override
-			public IModel<String> getDataModel(IModel<SelectableBean<ObjectType>> rowModel) {
-				return Model.of(getMemberObjectIdentifier(rowModel.getObject().getValue()));
-			}
-
-		};
-		columns.add(column);
-//		if (isRelationColumnVisible()){
-			columns.add(createRelationColumn());
-//		}
-		return columns;
-	}
-
-	protected IColumn<SelectableBean<ObjectType>, String> createRelationColumn() {
-		return new AbstractExportableColumn<SelectableBean<ObjectType>, String>(
-				createStringResource("roleMemberPanel.relation")) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> cellItem,
-									 String componentId, IModel<SelectableBean<ObjectType>> rowModel) {
-				cellItem.add(new Label(componentId,
-						getRelationValue(rowModel.getObject().getValue())));
-			}
-
-			@Override
-			public IModel<String> getDataModel(IModel<SelectableBean<ObjectType>> rowModel) {
-				return Model.of(getRelationValue(rowModel.getObject().getValue()));
-			}
-
-		};
-	}
-
-	protected boolean isRelationColumnVisible(){
-		return false;
-	}
-
-
-	private String getMemberObjectDisplayName(ObjectType object){
-		if (object == null){
-			return "";
-		}
-		if (object instanceof UserType) {
-			return WebComponentUtil.getOrigStringFromPoly(((UserType) object).getFullName());
-		} else if (object instanceof AbstractRoleType) {
-			return WebComponentUtil
-					.getOrigStringFromPoly(((AbstractRoleType) object).getDisplayName());
-		} else {
-			return "";
-		}
-	}
-
-	private String getMemberObjectIdentifier(ObjectType object){
-		if (object == null){
-			return "";
-		}
-		if (object instanceof UserType) {
-			return ((UserType) object).getEmailAddress();
-		} else if (object instanceof AbstractRoleType) {
-			return ((AbstractRoleType) object).getIdentifier();
-		} else {
-			return object.getDescription();
-		}
-	}
-
-	private Collection<SelectorOptions<GetOperationOptions>> getSearchOptions(){
-			return SelectorOptions
-					.createCollection(GetOperationOptions.createDistinct());
-	}
-
-	protected <O extends ObjectType> Class<O> getDefaultObjectType(){
-		return (Class<O>) FocusType.class;
-	}
-
-	protected Form getFormComponent(){
-		return (Form) get(ID_FORM);
-	}
-
-
-	private String getRelationValue(ObjectType focusObject){
-		String relation = "";
-		if (FocusType.class.isAssignableFrom(focusObject.getClass())) {
-			// Do NOT take relation from an assignment. Use roleMembershipRef instead. Reasons:
-			// 1. Authorizations (MID-4893). User may be authorized just for roleMemberhsipRef and not for assignment
-			//    Authorization for roleMembershipRef is enough to display member panel.
-			// 2. There may be assignments that are not valid. We do not want to display relation for those.
-			for (ObjectReferenceType roleMembershipRef : ((FocusType) focusObject).getRoleMembershipRef()) {
-				relation = buildRelation(roleMembershipRef, relation);
-			}
-			
-		} 
-		return relation;
-				
-	}
-	
-	private String buildRelation(ObjectReferenceType roleMembershipRef, String relation) {
-		if (roleMembershipRef.getOid().equals(getModelObject().getOid())) {
-			QName assignmentRelation = roleMembershipRef.getRelation();
-			if (getSupportedRelations().stream().anyMatch(r -> QNameUtil.match(r, assignmentRelation))) {
-				if (!StringUtils.isBlank(relation)) {
-					relation += ",";
-				}
-				relation += assignmentRelation.getLocalPart();
-			}
-		}
-		return relation;
-	}
-
-	protected void updateMembersPanelSessionStorage(){
-		MemberPanelStorage storage = getMemberPanelStorage();
-		if (storage != null){
-			storage.setType(getSearchType());
-
-			RelationDropDownChoicePanel relationDropDown = (RelationDropDownChoicePanel) get(createComponentPath(ID_FORM, ID_SEARCH_BY_RELATION));
-			storage.setRelation(relationDropDown.getRelationValue());
-
-			CheckFormGroup indirectPanel = getIndirectmembersPanel();
-			if (indirectPanel != null){
-				storage.setIndirect(indirectPanel.getValue());
-			}
-
-			DropDownFormGroup<SearchBoxScopeType> searchScopeComponent =
-					(DropDownFormGroup<SearchBoxScopeType>)get(createComponentPath(ID_FORM, ID_SEARCH_SCOPE));
-			storage.setOrgSearchScope(searchScopeComponent.getModelObject());
-		}
-	}
-
-	protected MemberPanelStorage getMemberPanelStorage(){
-		return null;
-	}
+    }
+
+    protected void createAssignMemberRowAction(List<InlineMenuItem> menu) {
+         if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_ASSIGN)) {
+                menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.assign")) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public InlineMenuItemAction initAction() {
+                        return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void onClick(AjaxRequestTarget target) {
+                                MemberOperationsHelper.assignMembers(getPageBase(), AbstractRoleMemberPanel.this.getModelObject(), target, getSupportedRelations(), null);
+                            }
+                        };
+                    }
+                });
+            }
+    }
+
+    protected void createRecomputeMemberRowAction(List<InlineMenuItem> menu) {
+         if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_RECOMPUTE)) {
+                menu.add(new ButtonInlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.recompute")) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public InlineMenuItemAction initAction() {
+                        return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void onClick(AjaxRequestTarget target) {
+                                recomputeMembersPerformed(target);
+                            }
+                        };
+                    }
+
+//                    @Override
+//                    public IModel<String> getConfirmationMessageModel() {
+//                        return getMemberTable().getSelectedObjectsCount() > 0 ?
+//                                createStringResource("abstractRoleMemberPanel.recomputeSelectedMembersConfirmationLabel")
+//                                : createStringResource("abstractRoleMemberPanel.recomputeAllMembersConfirmationLabel");
+//                    }
+
+                    @Override
+                    public String getButtonIconCssClass() {
+                        return GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM;
+                    }
+
+                });
+            }
+    }
+
+
+
+    protected abstract AvailableRelationDto getSupportedRelations();
+
+    protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig(){
+        return null;
+    }
+
+    private boolean isAuthorized(String action) {
+        Map<String, String> memeberAuthz = getAuthorizations(getComplexTypeQName());
+        return WebComponentUtil.isAuthorized(memeberAuthz.get(action));
+    }
+
+
+
+    private List<AssignmentObjectRelation> loadMemberRelationsList(){
+        List<AssignmentObjectRelation> assignmentTargetRelations = new ArrayList<>();
+        AssignmentCandidatesSpecification spec = loadCandidateSpecification();
+        assignmentTargetRelations = spec != null ? spec.getAssignmentObjectRelations() : new ArrayList<>();
+        return assignmentTargetRelations;
+    }
+
+    private AssignmentCandidatesSpecification loadCandidateSpecification(){
+        OperationResult result = new OperationResult(OPERATION_LOAD_MEMBER_RELATIONS);
+        PrismObject obj = getModelObject().asPrismObject();
+        AssignmentCandidatesSpecification spec = null;
+        try {
+            spec = getPageBase().getModelInteractionService()
+                    .determineAssignmentHolderSpecification(obj, result);
+        } catch (SchemaException | ConfigurationException ex){
+            result.recordPartialError(ex.getLocalizedMessage());
+            LOGGER.error("Couldn't load member relations list for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
+        }
+        return spec;
+    }
+
+    protected void assignMembers(AjaxRequestTarget target, AvailableRelationDto availableRelationList,
+                                 List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList, boolean isOrgTreePanelVisible) {
+        MemberOperationsHelper.assignMembers(getPageBase(), getModelObject(), target, availableRelationList,
+                objectTypes, archetypeRefList, isOrgTreePanelVisible);
+    }
+
+    private void unassignMembersPerformed(AjaxRequestTarget target) {
+        QueryScope scope = getQueryScope();
+
+        ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(getPageBase().getMainPopupBodyId(),
+                createStringResource("abstractRoleMemberPanel.unassignAllMembersConfirmationLabel")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<QName> getSupportedObjectTypes() {
+                return AbstractRoleMemberPanel.this.getSupportedObjectTypes(true);
+            }
+
+            @Override
+            protected List<QName> getSupportedRelations() {
+                return AbstractRoleMemberPanel.this.getSupportedRelations().getAvailableRelationList();
+            }
+
+            @Override
+            protected boolean isFocusTypeSelectorVisible() {
+                return !QueryScope.SELECTED.equals(scope);
+            }
+
+
+            protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
+                unassignMembersPerformed(type, SearchBoxScopeType.SUBTREE.equals(getSearchScope()) && QueryScope.ALL.equals(scope) ?
+                        QueryScope.ALL_DIRECT : scope, relations, target);
+            }
+
+            @Override
+            protected QName getDefaultObjectType() {
+                return WebComponentUtil.classToQName(AbstractRoleMemberPanel.this.getPrismContext(),
+                    AbstractRoleMemberPanel.this.getDefaultObjectType());
+            }
+        };
+
+        getPageBase().showMainPopup(chooseTypePopupContent, target);
+    }
+
+    private void deleteMembersPerformed(AjaxRequestTarget target) {
+        QueryScope scope = getQueryScope();
+        StringResourceModel confirmModel;
+        if (SearchBoxScopeType.SUBTREE.equals(getSearchScope())) {
+            confirmModel = createStringResource("abstractRoleMemberPanel.deleteAllSubtreeMembersConfirmationLabel");
+        } else {
+            confirmModel = getMemberTable().getSelectedObjectsCount() > 0 ?
+                    createStringResource("abstractRoleMemberPanel.deleteSelectedMembersConfirmationLabel")
+                    : createStringResource("abstractRoleMemberPanel.deleteAllMembersConfirmationLabel");
+        }
+        ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(getPageBase().getMainPopupBodyId(),
+                    confirmModel) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<QName> getSupportedObjectTypes() {
+                return AbstractRoleMemberPanel.this.getSupportedObjectTypes(true);
+            }
+
+            @Override
+            protected List<QName> getSupportedRelations() {
+                return AbstractRoleMemberPanel.this.getSupportedRelations().getAvailableRelationList();
+            }
+
+            protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
+                deleteMembersPerformed(scope, relations, target);
+            }
+
+            @Override
+            protected boolean isFocusTypeSelectorVisible() {
+                return !QueryScope.SELECTED.equals(scope);
+            }
+
+            @Override
+            protected QName getDefaultObjectType() {
+                return WebComponentUtil.classToQName(AbstractRoleMemberPanel.this.getPrismContext(),
+                    AbstractRoleMemberPanel.this.getDefaultObjectType());
+            }
+        };
+
+        getPageBase().showMainPopup(chooseTypePopupContent, target);
+    }
+
+    protected void createFocusMemberPerformed(AjaxRequestTarget target) {
+        createFocusMemberPerformed(target, null);
+    }
+
+    protected void createFocusMemberPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec) {
+        if (relationSpec != null){
+            try {
+                List<ObjectReferenceType> newReferences = new ArrayList<>();
+                if (CollectionUtils.isEmpty(relationSpec.getRelations())){
+                    relationSpec.setRelations(Arrays.asList(RelationTypes.MEMBER.getRelation()));
+                }
+                ObjectReferenceType memberRef = ObjectTypeUtil.createObjectRef(AbstractRoleMemberPanel.this.getModelObject(), relationSpec.getRelations().get(0));
+                newReferences.add(memberRef);
+                if (CollectionUtils.isNotEmpty(relationSpec.getArchetypeRefs())) {
+                    newReferences.add(relationSpec.getArchetypeRefs().get(0));
+                }
+                QName newMemberType = CollectionUtils.isNotEmpty(relationSpec.getObjectTypes()) ? relationSpec.getObjectTypes().get(0) :
+                        getSupportedObjectTypes(false).get(0);
+                WebComponentUtil.initNewObjectWithReference(AbstractRoleMemberPanel.this.getPageBase(), newMemberType, newReferences);
+            } catch (SchemaException e) {
+                throw new SystemException(e.getMessage(), e);
+            }
+        } else {
+            ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(
+                    getPageBase().getMainPopupBodyId()) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                protected List<QName> getSupportedObjectTypes() {
+                    return AbstractRoleMemberPanel.this.getNewMemberObjectTypes();
+                }
+
+                @Override
+                protected List<QName> getSupportedRelations() {
+                    return AbstractRoleMemberPanel.this.getSupportedRelations().getAvailableRelationList();
+                }
+
+                protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
+                    if (type == null) {
+                        getSession().warn("No type was selected. Cannot create member");
+                        target.add(this);
+                        target.add(getPageBase().getFeedbackPanel());
+                        return;
+                    }
+                    if (relations == null || relations.isEmpty()) {
+                        getSession().warn("No relation was selected. Cannot create member");
+                        target.add(this);
+                        target.add(getPageBase().getFeedbackPanel());
+                        return;
+                    }
+                    AbstractRoleMemberPanel.this.getPageBase().hideMainPopup(target);
+                    try {
+                        List<ObjectReferenceType> newReferences = new ArrayList<>();
+                        for (QName relation : relations) {
+                            newReferences.add(ObjectTypeUtil.createObjectRef(AbstractRoleMemberPanel.this.getModelObject(), relation));
+                        }
+                        WebComponentUtil.initNewObjectWithReference(AbstractRoleMemberPanel.this.getPageBase(), type, newReferences);
+                    } catch (SchemaException e) {
+                        throw new SystemException(e.getMessage(), e);
+                    }
+
+                }
+
+                @Override
+                protected QName getDefaultObjectType() {
+                    if (relationSpec != null && CollectionUtils.isNotEmpty(relationSpec.getObjectTypes())) {
+                        return relationSpec.getObjectTypes().get(0);
+                    }
+                    return super.getDefaultObjectType();
+                }
+
+                @Override
+                protected boolean isFocusTypeSelectorVisible() {
+                    return relationSpec == null;
+                }
+            };
+
+            getPageBase().showMainPopup(chooseTypePopupContent, target);
+        }
+    }
+
+    protected void deleteMembersPerformed(QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
+        if (relations == null || relations.isEmpty()) {
+            getSession().warn("No relation was selected. Cannot perform delete members");
+            target.add(this);
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+        MemberOperationsHelper.deleteMembersPerformed(getPageBase(), scope, getActionQuery(scope, relations), target);
+    }
+
+    protected void unassignMembersPerformed(QName type, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
+        if (relations == null || relations.isEmpty()) {
+            getSession().warn("No relation was selected. Cannot perform unassign members");
+            target.add(this);
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+        MemberOperationsHelper.unassignMembersPerformed(getPageBase(), getModelObject(), scope, getActionQuery(scope, relations), relations, type, target);
+    }
+
+    private ObjectViewDto<OrgType> getParameter(String panelId) {
+        ChooseTypePanel<OrgType> tenantChoice = (ChooseTypePanel) get(createComponentPath(ID_FORM, panelId));
+        return tenantChoice.getModelObject();
+    }
+
+    protected ObjectQuery getActionQuery(QueryScope scope, Collection<QName> relations) {
+        switch (scope) {
+            case ALL:
+                return createAllMemberQuery(relations);
+            case ALL_DIRECT:
+                return MemberOperationsHelper.createDirectMemberQuery(getModelObject(), getSearchType().getTypeQName(), relations, getParameter(ID_TENANT), getParameter(ID_PROJECT), getPrismContext());
+            case SELECTED:
+                return MemberOperationsHelper.createSelectedObjectsQuery(getMemberTable().getSelectedObjects(), getPrismContext());
+        }
+
+        return null;
+    }
+
+    protected void initSearch(Form<?> form) {
+
+        List<SearchBoxScopeType> scopeValues = Arrays.asList(SearchBoxScopeType.values());
+        DropDownFormGroup<SearchBoxScopeType> searchScrope = createDropDown(ID_SEARCH_SCOPE,
+                Model.of(getMemberPanelStorage() != null ? getMemberPanelStorage().getOrgSearchScope() : scopeDefaultValue),
+                scopeValues,
+                WebComponentUtil.getEnumChoiceRenderer(AbstractRoleMemberPanel.this),
+                "abstractRoleMemberPanel.searchScope", "abstractRoleMemberPanel.searchScope.tooltip", true);
+        searchScrope.add(new VisibleBehaviour(() -> getModelObject() instanceof OrgType));
+        form.add(searchScrope);
+
+        List<QName> supportedTypes = getSupportedObjectTypes(false);
+        DropDownFormGroup<QName> typeSelect = createDropDown(ID_OBJECT_TYPE,
+                Model.of(getMemberPanelStorage() != null ? getMemberPanelStorage().getType().getTypeQName() : WebComponentUtil.classToQName(getPrismContext(), getDefaultObjectType())),
+                supportedTypes, new QNameObjectTypeChoiceRenderer(){
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public Object getDisplayValue(QName qname) {
+                        if (qname == null || getObjectTypesListParentType().equals(qname)){
+                            return StringUtils.leftPad(createStringResource("ObjectTypes.all").getString(), 1);
+                        } else {
+                            return super.getDisplayValue(qname);
+                        }
+                    }
+
+                    @Override
+                    public QName getObject(String id, IModel<? extends List<? extends QName>> choices) {
+                        QName qname = super.getObject(id, choices);
+                        if (qname == null){
+                            return getObjectTypesListParentType();
+                        }
+                        return qname;
+                    }
+
+                },
+                "abstractRoleMemberPanel.type", "abstractRoleMemberPanel.type.tooltip", false);
+        form.add(typeSelect);
+
+        RelationDropDownChoicePanel relationSelector = new RelationDropDownChoicePanel(ID_SEARCH_BY_RELATION,
+                getMemberPanelStorage() != null ? getMemberPanelStorage().getRelation() : getSupportedRelations().getDefaultRelation(),
+                getSupportedRelations().getAvailableRelationList(), true){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onValueChanged(AjaxRequestTarget target){
+                refreshAll(target);
+            }
+
+            @Override
+            protected String getNullValidDisplayValue(){
+                return getString("RelationTypes.ANY");
+            }
+        };
+        form.add(relationSelector);
+
+        ChooseTypePanel<OrgType> tenant = createParameterPanel(ID_TENANT, true);
+        form.add(tenant);
+        tenant.add(new VisibleBehaviour(() -> getModelObject() instanceof RoleType));
+
+        ChooseTypePanel<OrgType> project = createParameterPanel(ID_PROJECT, false);
+        form.add(project);
+        project.add(new VisibleBehaviour(() -> getModelObject() instanceof RoleType));
+
+        CheckFormGroup includeIndirectMembers = new CheckFormGroup(ID_INDIRECT_MEMBERS,
+                Model.of(getMemberPanelStorage() != null ? getMemberPanelStorage().getIndirect() : false),
+                    createStringResource("abstractRoleMemberPanel.indirectMembers"), "abstractRoleMemberPanel.indirectMembers.tooltip", false, "col-md-4", "col-md-2");
+        includeIndirectMembers.getCheck().add(new AjaxFormComponentUpdatingBehavior("change") {
+
+            private static final long serialVersionUID = 1L;
+
+            protected void onUpdate(AjaxRequestTarget target) {
+                refreshAll(target);
+            }
+
+        });
+
+        includeIndirectMembers.add(new VisibleBehaviour(() ->
+                getSearchScopeValue().equals(SearchBoxScopeType.ONE_LEVEL) || !searchScrope.isVisible()));
+        includeIndirectMembers.setOutputMarkupId(true);
+        form.add(includeIndirectMembers);
+
+    }
+
+    protected List<QName> getSupportedObjectTypes(boolean includeAbstractTypes) {
+        return WebComponentUtil.createFocusTypeList(includeAbstractTypes);
+    }
+
+    protected QName getObjectTypesListParentType(){
+        return FocusType.COMPLEX_TYPE;
+    }
+
+    protected List<QName> getNewMemberObjectTypes() {
+        return WebComponentUtil.createFocusTypeList();
+    }
+
+    private ChooseTypePanel<OrgType> createParameterPanel(String id, boolean isTenant) {
+
+        ChooseTypePanel<OrgType> orgSelector = new ChooseTypePanel<OrgType>(id, Model.of(new ObjectViewDto())) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void executeCustomAction(AjaxRequestTarget target, OrgType object) {
+                refreshAll(target);
+            }
+
+            @Override
+            protected void executeCustomRemoveAction(AjaxRequestTarget target) {
+                refreshAll(target);
+            }
+
+            @Override
+            protected ObjectQuery getChooseQuery() {
+                S_FilterEntryOrEmpty q = getPrismContext().queryFor(OrgType.class);
+                if (isTenant) {
+                    return q.item(OrgType.F_TENANT).eq(true).build();
+                } else {
+                    return q.not().item(OrgType.F_TENANT).eq(true).build();
+                }
+            }
+
+            @Override
+            protected boolean isSearchEnabled() {
+                return true;
+            }
+
+            @Override
+            public Class<OrgType> getObjectTypeClass() {
+                return OrgType.class;
+            }
+
+            @Override
+            protected AttributeAppender getInputStyleClass(){
+                return AttributeAppender.append("class", "col-md-10");
+            }
+
+        };
+        orgSelector.setOutputMarkupId(true);
+        orgSelector.setOutputMarkupPlaceholderTag(true);
+        return orgSelector;
+
+    }
+
+    private <V> DropDownFormGroup<V> createDropDown(String id, IModel<V> defaultModel, final List<V> values,
+            IChoiceRenderer<V> renderer, String labelKey, String tooltipKey, boolean required) {
+        DropDownFormGroup<V> listSelect = new DropDownFormGroup<V>(id, defaultModel, Model.ofList(values), renderer, createStringResource(labelKey),
+                tooltipKey, false, "col-md-4", "col-md-8", required){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String getNullValidDisplayValue(){
+                return getString("ObjectTypes.all");
+            }
+        };
+
+        listSelect.getInput().add(new OnChangeAjaxBehavior() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                refreshAll(target);
+            }
+        });
+        listSelect.setOutputMarkupId(true);
+        return listSelect;
+    }
+
+    protected void refreshAll(AjaxRequestTarget target) {
+        updateMembersPanelSessionStorage();
+
+        DropDownFormGroup<QName> typeChoice = (DropDownFormGroup) get(createComponentPath(ID_FORM, ID_OBJECT_TYPE));
+        QName type = getMemberPanelStorage() != null ? getMemberPanelStorage().getType().getTypeQName() : typeChoice.getModelObject();
+        getMemberTable().clearCache();
+        getMemberTable().refreshTable(WebComponentUtil.qnameToClass(getPrismContext(), type, FocusType.class), target);
+        target.add(this);
+    }
+
+
+    protected MainObjectListPanel<FocusType> getMemberTable() {
+        return (MainObjectListPanel<FocusType>) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
+    }
+
+    protected QueryScope getQueryScope() {
+        if (CollectionUtils.isNotEmpty(MemberOperationsHelper.getFocusOidToRecompute(getMemberTable().getSelectedObjects()))) {
+            return QueryScope.SELECTED;
+        }
+
+        if (getIndirectmembersPanel().getValue() || SearchBoxScopeType.SUBTREE.equals(getSearchScope())) {
+            return QueryScope.ALL;
+        }
+
+        return QueryScope.ALL_DIRECT;
+    }
+
+    private CheckFormGroup getIndirectmembersPanel() {
+        return (CheckFormGroup) get(createComponentPath(ID_FORM, ID_INDIRECT_MEMBERS));
+    }
+
+    protected void recomputeMembersPerformed(AjaxRequestTarget target) {
+
+        StringResourceModel confirmModel;
+        if (SearchBoxScopeType.SUBTREE.equals(getSearchScope())) {
+            confirmModel = createStringResource("abstractRoleMemberPanel.recomputeAllSubtreeMembersConfirmationLabel");
+        } else {
+            confirmModel = getMemberTable().getSelectedObjectsCount() > 0 ?
+                    createStringResource("abstractRoleMemberPanel.recomputeSelectedMembersConfirmationLabel")
+                    : createStringResource("abstractRoleMemberPanel.recomputeAllMembersConfirmationLabel");
+        }
+        ConfigureTaskConfirmationPanel dialog = new ConfigureTaskConfirmationPanel(((PageBase)getPage()).getMainPopupBodyId(),
+                confirmModel) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected PrismObject<TaskType> getTask(AjaxRequestTarget target) {
+                Task task = MemberOperationsHelper.createRecomputeMembersTask(getPageBase(), getQueryScope(),
+                        getActionQuery(getQueryScope(), getSupportedRelations().getAvailableRelationList()), target);
+                if (task == null) {
+                    return null;
+                }
+                PrismObject<TaskType> recomputeTask = task.getClonedTaskObject();
+                TaskType recomputeTaskType = recomputeTask.asObjectable();
+                recomputeTaskType.getAssignment().add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value(), ObjectTypes.ARCHETYPE, getPrismContext()));
+                return recomputeTask;
+            }
+
+            @Override
+            public StringResourceModel getTitle() {
+                return createStringResource("pageUsers.message.confirmActionPopupTitle");
+            }
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                MemberOperationsHelper.recomputeMembersPerformed(getPageBase(), getQueryScope(),
+                        getActionQuery(getQueryScope(), getSupportedRelations().getAvailableRelationList()), target);
+            }
+        };
+        ((PageBase)getPage()).showMainPopup(dialog, target);
+    }
+
+    protected ObjectQuery createContentQuery() {
+        CheckFormGroup isIndirect = getIndirectmembersPanel();
+        List<QName> relations = QNameUtil.match(getSelectedRelation(), PrismConstants.Q_ANY) ? getSupportedRelations().getAvailableRelationList() : Arrays.asList(getSelectedRelation());
+         return createMemberQuery(isIndirect != null ? isIndirect.getValue() : false, relations);
+
+    }
+
+    protected QName getSelectedRelation(){
+        MemberPanelStorage storage = getMemberPanelStorage();
+        if (storage != null){
+            return storage.getRelation();
+        }
+        RelationDropDownChoicePanel relationDropDown = (RelationDropDownChoicePanel) get(createComponentPath(ID_FORM, ID_SEARCH_BY_RELATION));
+        return relationDropDown.getRelationValue();
+    }
+
+    private SearchBoxScopeType getSearchScopeValue(){
+        if (getMemberPanelStorage() != null){
+            return getMemberPanelStorage().getOrgSearchScope();
+        }
+        DropDownFormGroup<SearchBoxScopeType> searchScopeComponent = (DropDownFormGroup<SearchBoxScopeType>)get(createComponentPath(ID_FORM, ID_SEARCH_SCOPE));
+        return searchScopeComponent.getModelObject();
+    }
+
+    protected ObjectTypes getSearchType() {
+        DropDownFormGroup<QName> searchByTypeChoice = (DropDownFormGroup<QName>) get(
+                createComponentPath(ID_FORM, ID_OBJECT_TYPE));
+        QName typeName = searchByTypeChoice.getModelObject();
+        return ObjectTypes.getObjectTypeFromTypeQName(typeName);
+    }
+
+    protected ObjectQuery createMemberQuery(boolean indirect, Collection<QName> relations) {
+        if (indirect) {
+            return createAllMemberQuery(relations);
+        }
+
+        return MemberOperationsHelper.createDirectMemberQuery(getModelObject(), getSearchType().getTypeQName(), relations, getParameter(ID_TENANT), getParameter(ID_PROJECT), getPrismContext());
+    }
+
+
+    protected ObjectQuery createAllMemberQuery(Collection<QName> relations) {
+        return getPrismContext().queryFor(FocusType.class)
+                .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(getModelObject(), relations))
+                .build();
+    }
+
+
+    protected ObjectReferenceType createReference() {
+        ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getModelObject(), getPageBase().getPrismContext());
+        return ref;
+    }
+
+    protected void detailsPerformed(AjaxRequestTarget target, ObjectType object) {
+        if (WebComponentUtil.hasDetailsPage(object.getClass())) {
+            WebComponentUtil.dispatchToObjectDetailsPage(object.getClass(), object.getOid(), this, true);
+        } else {
+            error("Could not find proper response page");
+            throw new RestartResponseException(getPageBase());
+        }
+    }
+
+    protected List<IColumn<SelectableBean<ObjectType>, String>> createMembersColumns() {
+        List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
+
+        IColumn<SelectableBean<ObjectType>, String> column = new AbstractExportableColumn<SelectableBean<ObjectType>, String>(
+                createStringResource("TreeTablePanel.fullName.displayName")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> cellItem,
+                    String componentId, IModel<SelectableBean<ObjectType>> rowModel) {
+                SelectableBean<ObjectType> bean = rowModel.getObject();
+                ObjectType object = bean.getValue();
+                cellItem.add(new Label(componentId,
+                            getMemberObjectDisplayName(object, true)));
+            }
+
+            @Override
+            public IModel<String> getDataModel(IModel<SelectableBean<ObjectType>> rowModel) {
+                return Model.of(getMemberObjectDisplayName(rowModel.getObject().getValue(), true));
+            }
+
+        };
+        columns.add(column);
+
+        column = new AbstractExportableColumn<SelectableBean<ObjectType>, String>(
+                createStringResource("TreeTablePanel.identifier.description")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> cellItem,
+                    String componentId, IModel<SelectableBean<ObjectType>> rowModel) {
+                SelectableBean<ObjectType> bean = rowModel.getObject();
+                ObjectType object = bean.getValue();
+                cellItem.add(new Label(componentId, getMemberObjectIdentifier(object)));
+            }
+
+            @Override
+            public IModel<String> getDataModel(IModel<SelectableBean<ObjectType>> rowModel) {
+                return Model.of(getMemberObjectIdentifier(rowModel.getObject().getValue()));
+            }
+
+        };
+        columns.add(column);
+//        if (isRelationColumnVisible()){
+            columns.add(createRelationColumn());
+//        }
+        return columns;
+    }
+
+    protected IColumn<SelectableBean<ObjectType>, String> createRelationColumn() {
+        return new AbstractExportableColumn<SelectableBean<ObjectType>, String>(
+                createStringResource("roleMemberPanel.relation")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> cellItem,
+                                     String componentId, IModel<SelectableBean<ObjectType>> rowModel) {
+                cellItem.add(new Label(componentId,
+                        getRelationValue(rowModel.getObject().getValue())));
+            }
+
+            @Override
+            public IModel<String> getDataModel(IModel<SelectableBean<ObjectType>> rowModel) {
+                return Model.of(getRelationValue(rowModel.getObject().getValue()));
+            }
+
+        };
+    }
+
+    protected boolean isRelationColumnVisible(){
+        return false;
+    }
+
+
+    private String getMemberObjectDisplayName(ObjectType object){
+        return getMemberObjectDisplayName(object, false);
+    }
+
+    private String getMemberObjectDisplayName(ObjectType object, boolean translate){
+        if (object == null){
+            return "";
+        }
+        if (object instanceof UserType) {
+            return WebComponentUtil.getTranslatedPolyString(((UserType) object).getFullName());
+        } else if (object instanceof AbstractRoleType) {
+            return WebComponentUtil.getTranslatedPolyString(((AbstractRoleType) object).getDisplayName());
+        } else {
+            return "";
+        }
+    }
+
+    private String getMemberObjectIdentifier(ObjectType object){
+        if (object == null){
+            return "";
+        }
+        if (object instanceof UserType) {
+            return ((UserType) object).getEmailAddress();
+        } else if (object instanceof AbstractRoleType) {
+            return ((AbstractRoleType) object).getIdentifier();
+        } else {
+            return object.getDescription();
+        }
+    }
+
+    private Collection<SelectorOptions<GetOperationOptions>> getSearchOptions(){
+            return SelectorOptions
+                    .createCollection(GetOperationOptions.createDistinct());
+    }
+
+    protected <O extends ObjectType> Class<O> getDefaultObjectType(){
+        return (Class<O>) FocusType.class;
+    }
+
+    protected Form getFormComponent(){
+        return (Form) get(ID_FORM);
+    }
+
+
+    private String getRelationValue(ObjectType focusObject){
+        String relation = "";
+        if (FocusType.class.isAssignableFrom(focusObject.getClass())) {
+            // Do NOT take relation from an assignment. Use roleMembershipRef instead. Reasons:
+            // 1. Authorizations (MID-4893). User may be authorized just for roleMemberhsipRef and not for assignment
+            //    Authorization for roleMembershipRef is enough to display member panel.
+            // 2. There may be assignments that are not valid. We do not want to display relation for those.
+            for (ObjectReferenceType roleMembershipRef : getMembershipReferenceList((FocusType) focusObject)) {
+                relation = buildRelation(roleMembershipRef, relation);
+            }
+
+        }
+        return relation;
+
+    }
+
+    protected List<ObjectReferenceType> getMembershipReferenceList(FocusType focusObject){
+        return focusObject.getRoleMembershipRef();
+    }
+
+    private String buildRelation(ObjectReferenceType roleMembershipRef, String relation) {
+        if (roleMembershipRef.getOid().equals(getModelObject().getOid())) {
+            QName assignmentRelation = roleMembershipRef.getRelation();
+            if (getSupportedRelations().getAvailableRelationList().stream().anyMatch(r -> QNameUtil.match(r, assignmentRelation))) {
+                if (!StringUtils.isBlank(relation)) {
+                    relation += ",";
+                }
+                relation += assignmentRelation.getLocalPart();
+            }
+        }
+        return relation;
+    }
+
+    protected void updateMembersPanelSessionStorage(){
+        MemberPanelStorage storage = getMemberPanelStorage();
+        if (storage != null){
+            storage.setType(getSearchType());
+
+            RelationDropDownChoicePanel relationDropDown = (RelationDropDownChoicePanel) get(createComponentPath(ID_FORM, ID_SEARCH_BY_RELATION));
+            storage.setRelation(relationDropDown.getRelationValue());
+
+            CheckFormGroup indirectPanel = getIndirectmembersPanel();
+            if (indirectPanel != null){
+                storage.setIndirect(indirectPanel.getValue());
+            }
+
+            DropDownFormGroup<SearchBoxScopeType> searchScopeComponent =
+                    (DropDownFormGroup<SearchBoxScopeType>)get(createComponentPath(ID_FORM, ID_SEARCH_SCOPE));
+            storage.setOrgSearchScope(searchScopeComponent.getModelObject());
+        }
+    }
+
+    protected MemberPanelStorage getMemberPanelStorage(){
+        return null;
+    }
+
+    protected SearchBoxScopeType getSearchScope() {
+        DropDownFormGroup<SearchBoxScopeType> searchorgScope = (DropDownFormGroup<SearchBoxScopeType>) get(
+                createComponentPath(ID_FORM, ID_SEARCH_SCOPE));
+        return searchorgScope.getModelObject();
+    }
 }

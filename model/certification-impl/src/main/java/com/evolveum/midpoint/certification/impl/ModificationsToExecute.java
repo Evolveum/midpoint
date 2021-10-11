@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.certification.impl;
@@ -31,45 +22,45 @@ import java.util.stream.Collectors;
  */
 public class ModificationsToExecute {
 
-	private static final int BATCH_SIZE = 50;
+    private static final int BATCH_SIZE = 50;
 
-	final List<List<ItemDelta<?, ?>>> batches = new ArrayList<>();
+    final List<List<ItemDelta<?, ?>>> batches = new ArrayList<>();
 
-	private List<ItemDelta<?, ?>> getLastBatch() {
-		return batches.get(batches.size() - 1);
-	}
+    private List<ItemDelta<?, ?>> getLastBatch() {
+        return batches.get(batches.size() - 1);
+    }
 
-	public boolean isEmpty() {
-		return batches.isEmpty();
-	}
+    public boolean isEmpty() {
+        return batches.isEmpty();
+    }
 
-	public void add(ItemDelta<?, ?>... deltas) {
-		add(Arrays.asList(deltas));
-	}
+    public void add(ItemDelta<?, ?>... deltas) {
+        add(Arrays.asList(deltas));
+    }
 
-	public void add(Collection<ItemDelta<?, ?>> deltas) {
-		if (deltas.isEmpty()) {
-			return;
-		}
-		if (isEmpty() || getLastBatch().size() + deltas.size() > BATCH_SIZE) {
-			createNewBatch();
-		}
-		getLastBatch().addAll(deltas);
-	}
+    public void add(Collection<ItemDelta<?, ?>> deltas) {
+        if (deltas.isEmpty()) {
+            return;
+        }
+        if (isEmpty() || getLastBatch().size() + deltas.size() > BATCH_SIZE) {
+            createNewBatch();
+        }
+        getLastBatch().addAll(deltas);
+    }
 
-	void createNewBatch() {
-		batches.add(new ArrayList<>());
-	}
+    void createNewBatch() {
+        batches.add(new ArrayList<>());
+    }
 
-	int getTotalDeltasCount() {
-		int rv = 0;
-		for (List<ItemDelta<?, ?>> batch : batches) {
-			rv += batch.size();
-		}
-		return rv;
-	}
+    int getTotalDeltasCount() {
+        int rv = 0;
+        for (List<ItemDelta<?, ?>> batch : batches) {
+            rv += batch.size();
+        }
+        return rv;
+    }
 
-	List<ItemDelta<?, ?>> getAllDeltas() {
-		return batches.stream().flatMap(Collection::stream).collect(Collectors.toList());
-	}
+    List<ItemDelta<?, ?>> getAllDeltas() {
+        return batches.stream().flatMap(Collection::stream).collect(Collectors.toList());
+    }
 }

@@ -1,26 +1,18 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -49,6 +41,7 @@ public class PendingOperationPanel extends BasePanel<List<PendingOperationType>>
         super.onInitialize();
 
         initLayout();
+        add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(getModelObject())));
     }
 
     private void initLayout() {
@@ -93,23 +86,24 @@ public class PendingOperationPanel extends BasePanel<List<PendingOperationType>>
                 OperationResultStatusType rStatus = op.getResultStatus();
                 PendingOperationExecutionStatusType eStatus = op.getExecutionStatus();
 
-                if (rStatus != null &&
-                        (rStatus == OperationResultStatusType.FATAL_ERROR || rStatus == OperationResultStatusType.PARTIAL_ERROR)) {
+                if (rStatus == OperationResultStatusType.FATAL_ERROR
+                        || rStatus == OperationResultStatusType.PARTIAL_ERROR) {
                     return "label-danger";
                 }
 
-                if (rStatus != null &&
-                        (rStatus == OperationResultStatusType.UNKNOWN || rStatus == OperationResultStatusType.WARNING)) {
+                if (rStatus == OperationResultStatusType.UNKNOWN
+                        || rStatus == OperationResultStatusType.WARNING) {
                     return "label-warning";
                 }
 
-                if ((rStatus != null && rStatus == OperationResultStatusType.SUCCESS)
-                        || (eStatus != null && eStatus == PendingOperationExecutionStatusType.COMPLETED)) {
+                if (rStatus == OperationResultStatusType.SUCCESS
+                        || eStatus == PendingOperationExecutionStatusType.COMPLETED) {
                     return "label-success";
                 }
 
-                if ((rStatus != null &&
-                        (rStatus == OperationResultStatusType.IN_PROGRESS || rStatus == OperationResultStatusType.NOT_APPLICABLE || rStatus == OperationResultStatusType.HANDLED_ERROR))) {
+                if (rStatus == OperationResultStatusType.IN_PROGRESS
+                        || rStatus == OperationResultStatusType.NOT_APPLICABLE
+                        || rStatus == OperationResultStatusType.HANDLED_ERROR) {
                     return "label-info";
                 }
 
@@ -149,7 +143,7 @@ public class PendingOperationPanel extends BasePanel<List<PendingOperationType>>
 
         sb.append(getString(key)).append(" ");
 
-        String value = obj instanceof Enum ? getString((Enum) obj) : obj.toString();
+        String value = obj instanceof Enum ? getString((Enum<?>) obj) : obj.toString();
 
         sb.append(value);
         sb.append('\n');

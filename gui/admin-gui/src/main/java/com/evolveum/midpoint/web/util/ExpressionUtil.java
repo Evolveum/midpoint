@@ -1,29 +1,25 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.util;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -32,19 +28,17 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.util.*;
 
-/**
- *  @author shood
- * */
 public class ExpressionUtil {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ExpressionUtil.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ExpressionUtil.class);
 
-	public static enum ExpressionEvaluatorType{
+    public enum ExpressionEvaluatorType{
         LITERAL,
         AS_IS,
         PATH,
@@ -52,7 +46,7 @@ public class ExpressionUtil {
         GENERATE
     }
 
-    public static enum Language{
+    public enum Language{
         GROOVY("http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy"),
         XPATH("http://www.w3.org/TR/xpath/"),
         JAVASCRIPT("http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript");
@@ -68,7 +62,7 @@ public class ExpressionUtil {
         }
     }
 
-    private final static QName SHADOW_REF_KEY = new QName("shadowRef");
+    public final static QName SHADOW_REF_KEY = new QName(SchemaConstants.NS_C, "shadowRef");
     private final static QName SHADOW_OID_KEY = new QName("oid");
     private final static QName SHADOW_TYPE_KEY = new QName("type");
 
@@ -209,94 +203,94 @@ public class ExpressionUtil {
     }
 
     public static String loadExpression(ExpressionType expression, PrismContext prismContext, Trace LOGGER) {
-		if (expression == null || expression.getExpressionEvaluator().isEmpty()) {
-			return "";
-		}
-		List<JAXBElement<?>> evaluators = expression.getExpressionEvaluator();
-		try {
-			return serializeEvaluators(evaluators, prismContext);
-		} catch (SchemaException e) {
-			//TODO - how can we show this error to user?
-			LoggingUtils.logUnexpectedException(LOGGER, "Could not load expressions from mapping.", e, e.getStackTrace());
-			return e.getMessage();
-		}
-	}
-
-	private static String serializeEvaluators(List<JAXBElement<?>> evaluators, PrismContext prismContext) throws SchemaException {
-		if (evaluators.size() == 1) {
-			return serialize(evaluators.get(0), prismContext);
-		} else {
-			StringBuilder sb = new StringBuilder();
-			for (JAXBElement<?> element : evaluators) {
-				String subElement = serialize(element, prismContext);
-				sb.append(subElement).append("\n");
-			}
-			return sb.toString();
-		}
-	}
-
-	private static String serialize(JAXBElement<?> element, PrismContext prismContext) throws SchemaException {
-		String xml;
-		if (element.getValue() instanceof RawType) {
-			RawType raw = (RawType) element.getValue();
-			RootXNode rootNode = prismContext.xnodeFactory().root(element.getName(), raw.serializeToXNode());
-			xml = prismContext.xmlSerializer().serialize(rootNode);
-		} else {
-			xml = prismContext.xmlSerializer().serialize(element);
-		}
-		return WebXmlUtil.stripNamespaceDeclarations(xml);
-	}
-
-	public static boolean isEmpty(ExpressionType expression) {
-		return expression == null || expression.getExpressionEvaluator().isEmpty();
-	}
-
-	public static boolean isShadowRefNotEmpty(ExpressionType expression) {
-        List<ObjectReferenceType> shadowRefValueList = getShadowRefValue(expression);
-		return !isEmpty(expression) && shadowRefValueList != null && shadowRefValueList.size() > 0;
-	}
-
-	public static boolean isAssociationTargetSearchNotEmpty(ExpressionType expression) {
-        String path = getTargetSearchExpPathValue(expression);
-        String value = getTargetSearchExpValue(expression);
-		return StringUtils.isNotEmpty(path) && StringUtils.isNotEmpty(value);
-	}
-
-	public static boolean isLiteralExpressionValueNotEmpty(ExpressionType expression) throws SchemaException{
-        List<String> values = getLiteralExpressionValues(expression);
-		return values != null && values.size() > 0;
-	}
-
-	public static boolean areAllExpressionValuesEmpty(ExpressionType expression) throws SchemaException {
-        return !isShadowRefNotEmpty(expression) && !isLiteralExpressionValueNotEmpty(expression) && !isAssociationTargetSearchNotEmpty(expression);
+        if (expression == null || expression.getExpressionEvaluator().isEmpty()) {
+            return "";
+        }
+        List<JAXBElement<?>> evaluators = expression.getExpressionEvaluator();
+        try {
+            return serializeEvaluators(evaluators, prismContext);
+        } catch (SchemaException e) {
+            //TODO - how can we show this error to user?
+            LoggingUtils.logUnexpectedException(LOGGER, "Could not load expressions from mapping.", e, e.getStackTrace());
+            return e.getMessage();
+        }
     }
 
-	public static void parseExpressionEvaluators(String xml, ExpressionType expressionObject, PrismContext context) throws SchemaException {
-		expressionObject.getExpressionEvaluator().clear();
-		if (StringUtils.isNotBlank(xml)) {
-			xml = WebXmlUtil.wrapInElement("expression", xml, true);
-			LOGGER.info("Expression to serialize: {}", xml);
-			JAXBElement<?> newElement = context.parserFor(xml).xml().parseRealValueToJaxbElement();
-			expressionObject.getExpressionEvaluator().addAll(((ExpressionType) (newElement.getValue())).getExpressionEvaluator());
-		}
-	}
+    private static String serializeEvaluators(List<JAXBElement<?>> evaluators, PrismContext prismContext) throws SchemaException {
+        if (evaluators.size() == 1) {
+            return serialize(evaluators.get(0), prismContext);
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (JAXBElement<?> element : evaluators) {
+                String subElement = serialize(element, prismContext);
+                sb.append(subElement).append("\n");
+            }
+            return sb.toString();
+        }
+    }
 
-	// TODO move somewhere else? generalize a bit?
-	public static RootXNode parseSearchFilter(String data, PrismContext context) throws SchemaException {
-		String xml = WebXmlUtil.wrapInElement("root", data, false);
-		RootXNode rootXNode = context.parserFor(xml).xml().parseToXNode();
-		if (rootXNode.getSubnode() instanceof MapXNode) {
-			MapXNode mapXNode = (MapXNode) rootXNode.getSubnode();
-			if (mapXNode.size() != 1) {
-				throw new SchemaException("Content cannot be parsed as a search filter: " + mapXNode.debugDump());
-			}
-			return mapXNode.getEntryAsRoot(mapXNode.keySet().iterator().next());
-		} else {
-			throw new SchemaException("Content cannot be parsed as a search filter: " + DebugUtil.debugDump(rootXNode.getSubnode()));
-		}
-	}
+    public static String serialize(JAXBElement<?> element, PrismContext prismContext) throws SchemaException {
+        String xml;
+        if (element.getValue() instanceof RawType) {
+            RawType raw = (RawType) element.getValue();
+            RootXNode rootNode = prismContext.xnodeFactory().root(element.getName(), raw.serializeToXNode());
+            xml = prismContext.xmlSerializer().serialize(rootNode);
+        } else {
+            xml = prismContext.xmlSerializer().serialize(element);
+        }
+        return WebXmlUtil.stripNamespaceDeclarations(xml);
+    }
 
-	public static JAXBElement findFirstEvaluatorByName(ExpressionType expression, QName elementName){
+    public static boolean isEmpty(ExpressionType expression) {
+        return expression == null || expression.getExpressionEvaluator().isEmpty();
+    }
+
+    public static boolean isShadowRefNotEmpty(ExpressionType expression, PrismContext prismContext) {
+        List<ObjectReferenceType> shadowRefValueList = getShadowRefValue(expression, prismContext);
+        return !isEmpty(expression) && shadowRefValueList != null && shadowRefValueList.size() > 0;
+    }
+
+    public static boolean isAssociationTargetSearchNotEmpty(ExpressionType expression) {
+        String path = getTargetSearchExpPathValue(expression);
+        String value = getTargetSearchExpValue(expression);
+        return StringUtils.isNotEmpty(path) && StringUtils.isNotEmpty(value);
+    }
+
+    public static boolean isLiteralExpressionValueNotEmpty(ExpressionType expression) throws SchemaException{
+        List<String> values = getLiteralExpressionValues(expression);
+        return values != null && values.size() > 0;
+    }
+
+    public static boolean areAllExpressionValuesEmpty(ExpressionType expression, PrismContext prismContext) throws SchemaException {
+        return !isShadowRefNotEmpty(expression, prismContext) && !isLiteralExpressionValueNotEmpty(expression) && !isAssociationTargetSearchNotEmpty(expression);
+    }
+
+    public static void parseExpressionEvaluators(String xml, ExpressionType expressionObject, PrismContext context) throws SchemaException {
+        expressionObject.getExpressionEvaluator().clear();
+        if (StringUtils.isNotBlank(xml)) {
+            xml = WebXmlUtil.wrapInElement("expression", xml, true);
+            LOGGER.trace("Expression to serialize: {}", xml);
+            JAXBElement<?> newElement = context.parserFor(xml).xml().parseRealValueToJaxbElement();
+            expressionObject.getExpressionEvaluator().addAll(((ExpressionType) (newElement.getValue())).getExpressionEvaluator());
+        }
+    }
+
+    // TODO move somewhere else? generalize a bit?
+    public static RootXNode parseSearchFilter(String data, PrismContext context) throws SchemaException {
+        String xml = WebXmlUtil.wrapInElement("root", data, false);
+        RootXNode rootXNode = context.parserFor(xml).xml().parseToXNode();
+        if (rootXNode.getSubnode() instanceof MapXNode) {
+            MapXNode mapXNode = (MapXNode) rootXNode.getSubnode();
+            if (mapXNode.size() != 1) {
+                throw new SchemaException("Content cannot be parsed as a search filter: " + mapXNode.debugDump());
+            }
+            return mapXNode.getEntryAsRoot(mapXNode.keySet().iterator().next());
+        } else {
+            throw new SchemaException("Content cannot be parsed as a search filter: " + DebugUtil.debugDump(rootXNode.getSubnode()));
+        }
+    }
+
+    public static JAXBElement findFirstEvaluatorByName(ExpressionType expression, QName elementName){
         if (isEmpty(expression) || elementName == null){
             return null;
         }
@@ -309,7 +303,7 @@ public class ExpressionUtil {
     }
 
     public static List<JAXBElement> findAllEvaluatorsByName(ExpressionType expression, QName elementName){
-	    List<JAXBElement> elements = new ArrayList<>();
+        List<JAXBElement> elements = new ArrayList<>();
         if (isEmpty(expression) || elementName == null){
             return elements;
         }
@@ -348,23 +342,30 @@ public class ExpressionUtil {
             XNode node = raw.getXnode();
             if (node instanceof MapXNode && ((MapXNode) node).containsKey(SHADOW_REF_KEY)) {
                 XNode shadowRefNodes = ((MapXNode) node).get(SHADOW_REF_KEY);
-               if (shadowRefNodes instanceof MapXNode && shadowRefOid.equals(getShadowRefNodeOid((MapXNode) shadowRefNodes))) {
-                   prismContext.xnodeMutator().putToMapXNode((MapXNode) node, SHADOW_REF_KEY, null);
-                   //todo don't get why while using removeEvaluatorByName no changes are saved
-//                   removeEvaluatorByName(expression, SchemaConstantsGenerated.C_VALUE);
-               } else if (shadowRefNodes instanceof ListXNode) {
-                   Iterator<? extends XNode> it = ((ListXNode) shadowRefNodes).asList().iterator();
-                   while (it.hasNext()) {
-                       XNode shadowRefNode = it.next();
-                       if (shadowRefNode instanceof MapXNode && shadowRefOid.equals(getShadowRefNodeOid((MapXNode) shadowRefNode))) {
-                           it.remove();
-                           break;
-                       }
-                   }
-               }
+                if (shadowRefNodes instanceof MapXNode && shadowRefOid.equals(getShadowRefNodeOid((MapXNode) shadowRefNodes))) {
+                    prismContext.xnodeMutator().putToMapXNode((MapXNode) node, SHADOW_REF_KEY, null);
+                    //todo don't get why while using removeEvaluatorByName no changes are saved
+                    //                   removeEvaluatorByName(expression, SchemaConstantsGenerated.C_VALUE);
+                } else if (shadowRefNodes instanceof ListXNode) {
+                    Iterator<? extends XNode> it = ((ListXNode) shadowRefNodes).asList().iterator();
+                    while (it.hasNext()) {
+                        XNode shadowRefNode = it.next();
+                        if (shadowRefNode instanceof MapXNode && shadowRefOid.equals(getShadowRefNodeOid((MapXNode) shadowRefNode))) {
+                            it.remove();
+                            break;
+                        }
+                    }
+                }
             }
         }
         expression.getExpressionEvaluator().add(element);
+    }
+
+    public static void clearExpressionEvaluator(ExpressionType expression){
+        if (expression == null){
+            return;
+        }
+        expression.getExpressionEvaluator().clear();
     }
 
     private static String getShadowRefNodeOid(MapXNode shadowRefNode){
@@ -422,6 +423,7 @@ public class ExpressionUtil {
         if (values == null) {
             values = prismContext.xnodeFactory().map();        // todo [med] this has no effect on the map node!
         }
+        expression.getExpressionEvaluator().add(element);
         return values;
     }
 
@@ -446,93 +448,81 @@ public class ExpressionUtil {
         expression.getExpressionEvaluator().add(evaluator);
     }
 
-    public static List<ObjectReferenceType> getShadowRefValue(ExpressionType expressionType) {
-        if (expressionType == null) {
-            return null;
-        }
-        List<ObjectReferenceType> shadowRefList = new ArrayList<>();
-        ListXNode shadowRefNodes = getShadowRefNodesList(expressionType, false, null);
-
-        if (shadowRefNodes != null) {
-            for (XNode shadowRefNode : shadowRefNodes.asList()) {
-                if (shadowRefNode instanceof MapXNode) {
-                    if (shadowRefNode != null && ((MapXNode) shadowRefNode).containsKey(SHADOW_OID_KEY)) {
-                        ObjectReferenceType shadowRef = new ObjectReferenceType();
-                        PrimitiveXNode shadowOidNode = (PrimitiveXNode) ((MapXNode) shadowRefNode).get(SHADOW_OID_KEY);
-                        String oid = shadowOidNode != null && shadowOidNode.getValueParser() != null ? shadowOidNode.getValueParser().getStringValue() :
-                                (shadowOidNode != null && shadowOidNode.getValue() != null ? (String) shadowOidNode.getValue() : null);
-                        shadowRef.setOid(oid);
-                        shadowRef.setType(ShadowType.COMPLEX_TYPE);
-                        shadowRefList.add(shadowRef);
-                    }
+    @NotNull
+    public static List<ObjectReferenceType> getShadowRefValue(ExpressionType expressionType, PrismContext prismContext) {
+        List<ObjectReferenceType> rv = new ArrayList<>();
+        if (expressionType != null) {
+            for (ShadowAssociationType association : getAssociationList(expressionType)) {
+                if (association.getShadowRef() != null) {
+                    rv.add(association.getShadowRef().clone());
                 }
             }
         }
-        return shadowRefList;
+        return rv;
     }
 
-    public static ListXNode getShadowRefNodesList(ExpressionType expression, boolean createIfNotExist, PrismContext prismContext){
+    public static boolean isShadowRefNodeExists(ExpressionType expression) {
         if (expression == null) {
-            return null;
-        }
-        if (createIfNotExist && prismContext == null) {
-            throw new IllegalArgumentException("createIfNotExist is true but prismContext is null");
+            return false;
         }
         JAXBElement element = ExpressionUtil.findFirstEvaluatorByName(expression, SchemaConstantsGenerated.C_VALUE);
-        ListXNode shadowRefNodes = null;
-        if (element == null && createIfNotExist){
-            element =  new JAXBElement(SchemaConstantsGenerated.C_VALUE, RawType.class, new RawType(prismContext));
-            expression.getExpressionEvaluator().add(element);
+        if (element == null) {
+            return false;
         }
-        if (element != null && element.getValue() instanceof RawType) {
+        if (element.getValue() instanceof RawType) {
             RawType raw = (RawType) element.getValue();
-            XNode node = raw.getXnode();
-            if (node == null && createIfNotExist) {
-                raw = new RawType(prismContext.xnodeFactory().map(), prismContext);
-                node = raw.getXnode();
-                element.setValue(raw);
+            PrismValue prismValue = raw.getAlreadyParsedValue();
+            if (prismValue != null && prismValue instanceof PrismContainerValue &&
+                    ((PrismContainerValue)prismValue).getComplexTypeDefinition() != null &&
+                    ShadowAssociationType.class.equals(((PrismContainerValue)prismValue).getComplexTypeDefinition().getCompileTimeClass())){
+                return true;
             }
-            if (node instanceof MapXNode) {
-                if (((MapXNode) node).containsKey(SHADOW_REF_KEY)) {
-                    if (((MapXNode) node).get(SHADOW_REF_KEY) instanceof ListXNode) {
-                        shadowRefNodes = (ListXNode) ((MapXNode) node).get(SHADOW_REF_KEY);
-                    } else if (createIfNotExist && ((MapXNode) node).get(SHADOW_REF_KEY) instanceof MapXNode) {
-                        MapXNode shadowRef = (MapXNode) ((MapXNode) node).get(SHADOW_REF_KEY);
-                        shadowRefNodes = prismContext.xnodeFactory().list(shadowRef);
-                        prismContext.xnodeMutator().putToMapXNode((MapXNode) node, SHADOW_REF_KEY, shadowRefNodes);
-                    }
-                } else if (createIfNotExist) {
-                    shadowRefNodes = prismContext.xnodeFactory().list();
-                    prismContext.xnodeMutator().putToMapXNode((MapXNode) node, SHADOW_REF_KEY, shadowRefNodes);
-                }
-            } else if (createIfNotExist) {
-                shadowRefNodes = prismContext.xnodeFactory().list();
-                node = prismContext.xnodeFactory().map();
-                prismContext.xnodeMutator().putToMapXNode((MapXNode) node, SHADOW_REF_KEY, shadowRefNodes);
-                raw = new RawType(node, prismContext);
-                element.setValue(raw);
-            }
+        } else if (element.getValue() instanceof ShadowAssociationType) {
+            return true;
         }
-        return shadowRefNodes;
+            return false;
+    }
+
+    /**((PrismContainerValue)prismValue).getComplexTypeDefinition()
+     * @return Immutable list of associations.
+     */
+    @NotNull
+    private static List<ShadowAssociationType> getAssociationList(ExpressionType expression) {
+        if (expression == null) {
+            return Collections.emptyList();
+        }
+        List<ShadowAssociationType> rv = new ArrayList<>();
+        try {
+            for (JAXBElement<?> evaluatorJaxbElement : expression.getExpressionEvaluator()) {
+                if (QNameUtil.match(evaluatorJaxbElement.getName(), SchemaConstantsGenerated.C_VALUE)) {
+                    Object evaluatorValue = evaluatorJaxbElement.getValue();
+                    if (evaluatorValue instanceof ShadowAssociationType) {
+                        rv.add((ShadowAssociationType) evaluatorValue);
+                    } else if (evaluatorValue instanceof RawType) {
+                        rv.add(((RawType) evaluatorValue).getParsedRealValue(ShadowAssociationType.class));
+                    } else if (evaluatorValue == null) {
+                        // just ignore it
+                    } else {
+                        throw new SchemaException("Expected ShadowAssociationType, got " + MiscUtil.getClass(evaluatorValue));
+                    }
+                }
+            }
+        } catch (SchemaException e) {
+            throw new SystemException(e.getMessage(), e);   // todo
+        }
+        return Collections.unmodifiableList(rv);
     }
 
     public static void addShadowRefEvaluatorValue(ExpressionType expression, String oid, PrismContext prismContext) {
-        XNodeFactory factory = prismContext.xnodeFactory();
-
-        if (expression == null) {
-            expression = new ExpressionType();      // TODO ??? this value is thrown away
+        if (StringUtils.isNotEmpty(oid)) {
+            expression.getExpressionEvaluator().add(
+                    new JAXBElement<>(SchemaConstants.C_VALUE, ShadowAssociationType.class,
+                            new ShadowAssociationType(prismContext).shadowRef(oid, ShadowType.COMPLEX_TYPE)));
+        } else {
+            expression.getExpressionEvaluator().add(
+                    new JAXBElement<>(SchemaConstants.C_VALUE, ShadowAssociationType.class,
+                            new ShadowAssociationType(prismContext)));
         }
-        JAXBElement valueElement = findFirstEvaluatorByName(expression, SchemaConstantsGenerated.C_VALUE);
-        if (valueElement == null) {
-           valueElement = new JAXBElement<>(SchemaConstants.C_VALUE, RawType.class, new RawType(prismContext));
-           expression.getExpressionEvaluator().add(valueElement);
-        }
-        ListXNode shadowRefNodes = getShadowRefNodesList(expression, true, prismContext);
-
-        Map<QName, XNode> shadowRefNodeSource = new HashMap<>();
-        shadowRefNodeSource.put(SHADOW_OID_KEY, factory.primitive(oid));
-        shadowRefNodeSource.put(SHADOW_TYPE_KEY, factory.primitive(ShadowType.COMPLEX_TYPE.getLocalPart()));
-        prismContext.xnodeMutator().addToListXNode(shadowRefNodes, factory.map(shadowRefNodeSource));
     }
 
     public static List<String> getLiteralExpressionValues(ExpressionType expression) throws SchemaException{

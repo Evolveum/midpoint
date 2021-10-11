@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sql.util;
 
 import org.hibernate.transform.BasicTransformerAdapter;
@@ -13,7 +19,7 @@ import java.util.List;
  * @author lazyman
  * @author mederly
  */
-public class GetContainerableResult implements Serializable {
+public final class GetContainerableResult implements Serializable {
 
     public static final ResultStyle RESULT_STYLE = new ResultStyle() {
         @Override

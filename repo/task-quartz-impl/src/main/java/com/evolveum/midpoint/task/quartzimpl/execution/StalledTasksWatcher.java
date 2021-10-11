@@ -1,25 +1,18 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -28,10 +21,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Watches whether a task is stalled.
@@ -40,9 +30,11 @@ import java.util.Map;
  */
 public class StalledTasksWatcher {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(StalledTasksWatcher.class);
+    private static final Trace LOGGER = TraceManager.getTrace(StalledTasksWatcher.class);
 
     private static final String DOT_CLASS = StalledTasksWatcher.class.getName() + ".";
+
+    private static final List<String> CATEGORIES_TO_SKIP = Collections.singletonList(TaskCategory.ASYNCHRONOUS_UPDATE);
 
     private TaskManagerQuartzImpl taskManager;
 
@@ -77,10 +69,13 @@ public class StalledTasksWatcher {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "checkStalledTasks");
 
-        Map<String,TaskQuartzImpl> runningTasks = taskManager.getLocallyRunningTaskInstances();
+        Map<String, RunningTaskQuartzImpl> runningTasks = taskManager.getLocallyRunningTaskInstances();
         LOGGER.trace("checkStalledTasks: running tasks = {}", runningTasks);
 
-        for (TaskQuartzImpl task : runningTasks.values()) {
+        for (RunningTaskQuartzImpl task : runningTasks.values()) {
+            if (CATEGORIES_TO_SKIP.contains(task.getCategory())) {
+                continue;
+            }
             long currentTimestamp = System.currentTimeMillis();
             long lastStartedTimestamp = task.getLastRunStartTimestamp() != null ? task.getLastRunStartTimestamp() : 0L;
             Long heartbeatProgressInfo = task.getHandler().heartbeat(task);
@@ -89,7 +84,7 @@ public class StalledTasksWatcher {
                 realProgress = heartbeatProgressInfo;
             } else {
                 try {
-                    realProgress = taskManager.getTask(task.getOid(), result).getProgress();
+                    realProgress = taskManager.getTaskPlain(task.getOid(), result).getProgress();
                 } catch (ObjectNotFoundException e) {
                     LoggingUtils.logException(LOGGER, "Task {} cannot be checked for staleness because it is gone", e, task);
                     continue;
@@ -116,20 +111,20 @@ public class StalledTasksWatcher {
                                 lastProgressEntry.measuredProgress,
                                 new Date(lastProgressEntry.measurementTimestamp),
                                 lastProgressEntry.lastNotificationIssuedTimestamp != 0 ?
-									" [this is a repeated notification]" : "");
+                                    " [this is a repeated notification]" : "");
                         lastProgressEntry.lastNotificationIssuedTimestamp = currentTimestamp;
+                        try {
+                            taskManager.recordTaskThreadsDump(task.getOid(), SchemaConstants.INTERNAL_URI, result);
+                        } catch (SchemaException|ObjectNotFoundException|ObjectAlreadyExistsException|RuntimeException e) {
+                            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't record thread dump for stalled task {}", e, task);
+                        }
                     }
                 }
             }
         }
 
         // clean-up obsolete progress entries
-        Iterator<String> iterator = lastProgressMap.keySet().iterator();
-        while (iterator.hasNext()) {
-            if (!runningTasks.containsKey(iterator.next())) {
-                iterator.remove();
-            }
-        }
+        lastProgressMap.keySet().removeIf(s -> !runningTasks.containsKey(s));
 
         LOGGER.trace("checkStalledTasks lastProgress map after cleaning up = {}", lastProgressMap);
     }

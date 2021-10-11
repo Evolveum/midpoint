@@ -1,0 +1,49 @@
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:ext="http://grouper-demo.tier.internet2.edu"
+      oid="56f53812-047d-4b69-83e8-519a73d161e1">
+    <name>affiliation</name>
+    <extension>
+        <ext:grouperNamePrefix>ref:affiliation:</ext:grouperNamePrefix>
+        <ext:ldapRootDn>ou=Affiliations,ou=Groups,dc=example,dc=com</ext:ldapRootDn>
+        <ext:midPointNamePrefix>affiliation_</ext:midPointNamePrefix>
+        <ext:midPointDisplayNamePrefix>Affiliation: </ext:midPointDisplayNamePrefix>
+    </extension>
+    <assignment>
+        <targetRef oid="bcaec940-50c8-44bb-aa37-b2b5bb2d5b90" relation="org:default" type="c:RoleType" />     <!-- metarole-grouper-provided-group -->
+    </assignment>
+    <assignment>
+        <targetRef oid="8da46694-bd71-4e1e-bfd7-73865ae2ea9a" relation="org:default" type="c:RoleType" />     <!-- metarole-ldap-group -->
+    </assignment>
+    <inducement>
+        <targetRef oid="1d7c0e3a-4456-409c-9f50-95407b2eb785" relation="org:default" type="c:OrgType" />     <!-- affiliations -->
+    </inducement>
+    <!-- Group-type-specific data -->
+    <inducement>
+        <construction>
+            <resourceRef oid="e417225d-8a08-46f3-9b5d-624990b52386" relation="org:default" type="c:ResourceType" />     <!-- Faculty CSV -->
+        </construction>
+        <order>2</order>
+        <condition>
+            <expression>
+                <script>
+                    <code>assignmentPath[0].target.identifier == 'faculty'</code>
+                </script>
+            </expression>
+        </condition>
+    </inducement>
+</archetype>

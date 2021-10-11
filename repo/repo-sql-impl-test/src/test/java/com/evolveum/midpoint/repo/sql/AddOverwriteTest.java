@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql;
@@ -63,19 +54,12 @@ import java.util.List;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class AddOverwriteTest extends BaseSQLRepoTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AddOverwriteTest.class);
     private static final String ORG_STRUCT_OBJECTS = "src/test/resources/orgstruct/org-monkey-island.xml";
     private static final String IMPORT_OVERWRITE = "src/test/resources/basic/import-overwrite.xml";
     private static final File RESOURCE_OPENDJ_FILE = new File("src/test/resources/basic/resource-opendj.xml");
     private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
 
     private static final String ORG_OID = "00000000-8888-6666-0000-100000000001";
-
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
 
     @Test
     public void addWithOverwrite() throws Exception {
@@ -160,7 +144,7 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
 
     @Test
     public void addWithOverwriteResource() throws Exception {
-    	// GIVEN
+        // GIVEN
 
         SchemaRegistry reg= prismContext.getSchemaRegistry();
         PrismPropertyDefinition def = reg.findPropertyDefinitionByElementName(CapabilitiesType.F_NATIVE);

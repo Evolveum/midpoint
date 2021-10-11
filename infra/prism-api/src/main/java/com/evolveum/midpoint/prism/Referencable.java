@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism;
@@ -19,6 +10,7 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ReferentialIntegrityType;
 
 import javax.xml.namespace.QName;
 
@@ -29,21 +21,23 @@ import javax.xml.namespace.QName;
  */
 public interface Referencable {
 
-	PrismReferenceValue asReferenceValue();
+    PrismReferenceValue asReferenceValue();
 
-	Referencable setupReferenceValue(PrismReferenceValue value);
+    Referencable setupReferenceValue(PrismReferenceValue value);
 
-	String getOid();
+    String getOid();
 
-	QName getType();
+    QName getType();
 
-	PolyStringType getTargetName();
+    PolyStringType getTargetName();
 
-	QName getRelation();
+    QName getRelation();
 
-	String getDescription();
+    String getDescription();
 
-	EvaluationTimeType getResolutionTime();
+    EvaluationTimeType getResolutionTime();
 
-	SearchFilterType getFilter();
+    ReferentialIntegrityType getReferentialIntegrity();
+
+    SearchFilterType getFilter();
 }

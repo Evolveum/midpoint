@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
@@ -49,7 +40,7 @@ public class MappingTypeDto implements Serializable {
     public static final String F_EXPRESSION_POLICY_REF = "expressionPolicyRef";
     public static final String F_CONDITION_POLICY_REF = "conditionPolicyRef";
 
-    private static MappingStrengthType DEFAULT_MAPPING_STRENGTH = MappingStrengthType.NORMAL;
+    private static final MappingStrengthType DEFAULT_MAPPING_STRENGTH = MappingStrengthType.NORMAL;
 
     private MappingType mappingObject;
     private MappingType oldMappingObject;
@@ -110,12 +101,12 @@ public class MappingTypeDto implements Serializable {
     }
 
     private void loadConditions(PrismContext context) {
-		condition = ExpressionUtil.loadExpression(mappingObject.getCondition(), context, LOGGER);
+        condition = ExpressionUtil.loadExpression(mappingObject.getCondition(), context, LOGGER);
 
-		conditionType = ExpressionUtil.getExpressionType(condition);
-		if (conditionType != null && conditionType.equals(ExpressionUtil.ExpressionEvaluatorType.SCRIPT)) {
-			conditionLanguage = ExpressionUtil.getExpressionLanguage(condition);
-		}
+        conditionType = ExpressionUtil.getExpressionType(condition);
+        if (conditionType != null && conditionType.equals(ExpressionUtil.ExpressionEvaluatorType.SCRIPT)) {
+            conditionLanguage = ExpressionUtil.getExpressionLanguage(condition);
+        }
     }
 
     public void cancelChanges() {
@@ -137,7 +128,7 @@ public class MappingTypeDto implements Serializable {
         }
 
         if(target != null){
-        	VariableBindingDefinitionType mappingTarget = new VariableBindingDefinitionType();
+            VariableBindingDefinitionType mappingTarget = new VariableBindingDefinitionType();
             mappingTarget.setPath(prismContext.itemPathParser().asItemPathType(target));
             mappingObject.setTarget(mappingTarget);
         } else {
@@ -169,7 +160,7 @@ public class MappingTypeDto implements Serializable {
             if (mappingObject.getCondition() == null) {
                 mappingObject.setCondition(new ExpressionType());
             }
-			ExpressionUtil.parseExpressionEvaluators(condition, mappingObject.getCondition(), prismContext);
+            ExpressionUtil.parseExpressionEvaluators(condition, mappingObject.getCondition(), prismContext);
         }
 
         return mappingObject;
@@ -361,7 +352,7 @@ public class MappingTypeDto implements Serializable {
         sb.append("->");
 
         if (mapping.getTarget() != null) {
-        	VariableBindingDefinitionType target = mapping.getTarget();
+            VariableBindingDefinitionType target = mapping.getTarget();
             if (target.getPath() != null && !ItemPath.isEmpty(target.getPath().getItemPath())) {
                 sb.append(target.getPath().getItemPath().last());
             }

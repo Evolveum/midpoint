@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.importer;
 
@@ -31,16 +22,16 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Task handler for "Import objects from file" task.
@@ -49,6 +40,8 @@ import java.util.List;
  * <p/>
  * The import task might be executed on a different node (as usual for async tasks), but this won't work as the file
  * is not serializable. Therefore the task needs to be locked to the executing node. (TODO)
+ *
+ * UNFINISHED. MIGHT BE USEFUL IN THE FUTURE.
  *
  * @author Radovan Semancik
  * @see TaskHandler
@@ -113,15 +106,15 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
         // Set filename
 //        Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
 //        PropertyDelta objectClassDelta = new PropertyDelta<Object>(
-//        		new PropertyPath(TaskType.F_EXTENSION, filenamePropertyDefinition.getName()),
-//        		filenamePropertyDefinition);
+//                new PropertyPath(TaskType.F_EXTENSION, filenamePropertyDefinition.getName()),
+//                filenamePropertyDefinition);
 //        objectClassDelta.setValueToReplace(new PrismPropertyValue<Object>(input.getAbsolutePath()));
 //        ((Collection)modifications).add(objectClassDelta);
         try {
-        	PrismProperty filenameProp = filenamePropertyDefinition.instantiate();
-        	filenameProp.setRealValue(input.getAbsolutePath());
-        	task.setExtensionProperty(filenameProp);
-        	task.savePendingModifications(result);
+            PrismProperty filenameProp = filenamePropertyDefinition.instantiate();
+            filenameProp.setRealValue(input.getAbsolutePath());
+            task.setExtensionProperty(filenameProp);
+            task.flushPendingModifications(result);
 //            task.modify(modifications, result);
         } catch (ObjectNotFoundException e) {
             LOGGER.error("Task object not found, expecting it to exist (task {})", task, e);
@@ -141,7 +134,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
         // the run(task) method.
         // Note: the thread may be actually started on a different node
         taskManager.switchToBackground(task, result);
-		result.setBackgroundTaskOid(task.getOid());
+        result.setBackgroundTaskOid(task.getOid());
 
         LOGGER.trace("Import objects from file {} switched to background, control thread returning with task {}", input, task);
     }
@@ -150,7 +143,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
      * The body of the task. This will start the import "loop".
      */
     @Override
-    public TaskRunResult run(Task task) {
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 
         LOGGER.debug("Import objects from file run (task {})", task);
 
@@ -162,7 +155,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 
         // Determine the input file from task extension
 
-        PrismProperty<String> filenameProperty = task.getExtensionProperty(ModelConstants.FILENAME_PROPERTY_NAME);
+        PrismProperty<String> filenameProperty = task.getExtensionPropertyOrClone(ModelConstants.FILENAME_PROPERTY_NAME);
         if (filenameProperty == null) {
             LOGGER.error("Import: No file specified");
             opResult.recordFatalError("No file specified");
@@ -196,9 +189,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 
     @Override
     public Long heartbeat(Task task) {
-        // Delegate heartbeat to the result handler
-        //TODO: return getHandler(task).heartbeat();
-        throw new NotImplementedException();
+        return null;
     }
 
     @Override
@@ -209,5 +200,10 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.IMPORT_FROM_FILE;
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
 }

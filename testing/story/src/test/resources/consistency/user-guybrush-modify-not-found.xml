@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user oid="c0c010c0-d34d-b33f-f00d-111111111333"
+   xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>guybrush123</name>
+
+    <linkRef oid="a0c010c0-d34d-b33f-f00d-111111111333" type="ShadowType"/>
+
+     <assignment>
+        <construction>
+            <resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
+            <kind>account</kind>
+            <intent>internal</intent>
+        </construction>
+    </assignment>
+
+    <fullName>Guybrush Threepwood</fullName>
+    <givenName>Guybrush</givenName>
+    <familyName>Threepwood</familyName>
+    <emailAddress>guybrush@evolveum.com</emailAddress>
+    <organizationalUnit>Loosers</organizationalUnit>
+    <locality>Deep in the Caribbean</locality>
+
+    <credentials>
+        <password>
+            <value>
+                <clearValue>howMuchWoodWouldWoodchuckChuckIfWoodchuckCouldChuckWood</clearValue>
+            </value>
+        </password>
+    </credentials>
+
+</user>

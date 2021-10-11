@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="1eff65de-5bb6-483d-9edf-8cc2c2ee0233"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin.async/AsyncUpdateConnector"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <name>Grouper Resource (dummy + async)</name>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId>grouper</icfi:instanceId>
+            <icfi:uidMode>external</icfi:uidMode>
+        </icfc:configurationProperties>
+        <icfc:resultsHandlerConfiguration>
+            <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+            <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+            <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+        </icfc:resultsHandlerConfiguration>
+    </connectorConfiguration>
+    <additionalConnector>
+        <name>AMQP async update connector</name>
+        <connectorRef type="c:ConnectorType">
+            <filter>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>AsyncUpdateConnector</q:value>
+                </q:equal>
+            </filter>
+        </connectorRef>
+        <connectorConfiguration>
+            <conf:sources>
+                <other>
+                    <className>com.evolveum.midpoint.testing.story.grouper.MockAsyncUpdateSource</className>
+                </other>
+            </conf:sources>
+            <conf:transformExpression>
+                <script>
+                    <code>
+                        // ------------------ START OF CONFIGURATION ------------------
+
+                        parameters = [
+                                superGroup: 'etc:midpointGroups',
+                                groupIncludePattern: [ 'midpoint:.*', 'app:.*', 'test:.*', 'ref:.*' ],
+                                groupExcludePattern: [ '.*_(includes|excludes|systemOfRecord|systemOfRecordAndIncludes)' ],
+                                relevantSourceId: 'ldap'
+                        ]
+
+                        // ------------------ END OF CONFIGURATION ------------------
+
+                        parameters.put('message', message)
+                        grouper.execute('createUcfChange', parameters)
+                </code>
+                </script>
+            </conf:transformExpression>
+            <!--<conf:processTracingConfiguration>-->
+            <!--    <interval>1</interval>-->
+            <!--</conf:processTracingConfiguration>-->
+        </connectorConfiguration>
+    </additionalConnector>
+    <schemaHandling>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <objectClass>ri:GroupObjectClass</objectClass>
+            <default>true</default>
+            <attribute>
+                <ref>icfs:name</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>extension/grouperName</path>
+                    </target>
+                </inbound>
+                <inbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.schema.util.*
+                                import com.evolveum.midpoint.schema.constants.*
+
+                                if (input == null) {
+                                    null
+                                } else {
+                                    archetypeOid = '5f2b96d2-49b5-4a8a-9601-14457309a69b'       // generic-grouper-group archetype
+                                    switch (input) {
+                                        case ~/ref:affiliation:.*/: archetypeOid = '56f53812-047d-4b69-83e8-519a73d161e1'; break;   // affiliation archetype
+                                        case ~/ref:dept:.*/: archetypeOid = '1cec5f78-8fba-459b-9547-ef7485009f40'; break;          // department archetype
+                                        case ~/ref:course:.*/: archetypeOid = '3dab9a72-118b-4e40-a138-bb691c335eca'; break;        // course archetype
+                                        case ~/app:mailinglist:.*/: archetypeOid = '1645d1dc-1f7c-4508-b50b-97b501ccdee3'; break;   // mailing-list archetype
+                                    }
+                                    ObjectTypeUtil.createAssignmentTo(archetypeOid, ObjectTypes.ARCHETYPE, prismContext)
+                                }
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>assignment</path>
+                        <set>
+                            <predefined>all</predefined>    <!--  we tolerate no other assignments -->
+                        </set>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:members</ref>
+                <fetchStrategy>explicit</fetchStrategy>
+                <storageStrategy>indexOnly</storageStrategy>
+            </attribute>
+        </objectType>
+    </schemaHandling>
+    <synchronization>
+        <objectSynchronization>
+            <enabled>true</enabled>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <objectClass>ri:GroupObjectClass</objectClass>
+            <focusType>OrgType</focusType>
+            <correlation>
+                <q:equal>
+                    <q:path>extension/grouperName</q:path>
+                    <expression>
+                        <path>
+                            $account/attributes/name
+                        </path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#asyncUpdate</channel>
+                <condition>
+                    <script>
+                        <code>import com.evolveum.midpoint.prism.path.ItemPath
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType
+
+                        // member-only updates should _NOT_ be synchronized
+                        resourceObjectDelta != null &amp;&amp; resourceObjectDelta.isModify() &amp;&amp;
+                                resourceObjectDelta.modifications.size() == 1 &amp;&amp;
+                                ItemPath.create(ShadowType.F_ATTRIBUTES, 'members').equivalent(resourceObjectDelta.modifications.iterator().next().path)
+                        </code>
+                    </script>
+                </condition>
+                <synchronize>false</synchronize>
+            </reaction>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <!-- a separate task will take care of deleted groups -->
+                <!-- we don't even need to unlink the shadow -->
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
+    <caching>
+        <cachingStategy>passive</cachingStategy>
+    </caching>
+</resource>

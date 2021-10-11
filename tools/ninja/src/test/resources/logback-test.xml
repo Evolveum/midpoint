@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<configuration>
+    <appender name="X" class="ch.qos.logback.core.FileAppender">
+        <file>./target/test.log</file>
+        <encoder>
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+        </encoder>
+    </appender>
+    <!--<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">-->
+        <!--<layout class="ch.qos.logback.classic.PatternLayout">-->
+            <!--<pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>-->
+        <!--</layout>-->
+    <!--</appender>-->
+
+    <root level="INFO">
+        <appender-ref ref="X"/>
+        <!--<appender-ref ref="CONSOLE"/>-->
+    </root>
+</configuration>

@@ -1,0 +1,30 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="00000001-d34d-b33f-f00d-000000000028">
+    <name>Role28</name>
+    <assignment id="1">
+        <policyRule>
+            <policyConstraints>
+                <or>
+                    <assignment>
+                        <item>description</item>
+                    </assignment>
+                    <assignment>
+                        <item>activation/validFrom</item>
+                    </assignment>
+                </or>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />    <!-- administrator -->
+                </approval>
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>

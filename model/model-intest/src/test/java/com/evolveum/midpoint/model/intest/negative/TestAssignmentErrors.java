@@ -1,35 +1,21 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest.negative;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.*;
+
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
-import static org.testng.AssertJUnit.assertNotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -41,33 +27,22 @@ import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -75,110 +50,95 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * correct handling of connector exceptions.
  *
  * @author semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTest {
 
-	private static final String TEST_DIR = "src/test/resources/negative";
-	private static final String TEST_TARGET_DIR = "target/test/negative";
+    private static final String USER_LEMONHEAD_NAME = "lemonhead";
+    private static final String USER_LEMONHEAD_FULLNAME = "Lemonhead";
+    private static final String USER_SHARPTOOTH_NAME = "sharptooth";
+    private static final String USER_SHARPTOOTH_FULLNAME = "Sharptooth";
+    private static final String USER_SHARPTOOTH_PASSWORD_1_CLEAR = "SHARPyourT33TH";
+    private static final String USER_SHARPTOOTH_PASSWORD_2_CLEAR = "L00SEyourT33TH";
+    private static final String USER_SHARPTOOTH_PASSWORD_3_CLEAR = "HAV3noT33TH";
 
-	private static final String USER_LEMONHEAD_NAME = "lemonhead";
-	private static final String USER_LEMONHEAD_FULLNAME = "Lemonhead";
-	private static final String USER_SHARPTOOTH_NAME = "sharptooth";
-	private static final String USER_SHARPTOOTH_FULLNAME = "Sharptooth";
-	private static final String USER_SHARPTOOTH_PASSWORD_1_CLEAR = "SHARPyourT33TH";
-	private static final String USER_SHARPTOOTH_PASSWORD_2_CLEAR = "L00SEyourT33TH";
-	private static final String USER_SHARPTOOTH_PASSWORD_3_CLEAR = "HAV3noT33TH";
-	private static final String USER_REDSKULL_NAME = "redskull";
-	private static final String USER_REDSKULL_FULLNAME = "Red Skull";
+    private static final String USER_AFET_NAME = "afet";
+    private static final String USER_AFET_FULLNAME = "Alfredo Fettucini";
+    private static final String USER_BFET_NAME = "bfet";
+    private static final String USER_BFET_FULLNAME = "Bill Fettucini";
+    private static final String USER_CFET_NAME = "cfet";
+    private static final String USER_CFET_FULLNAME = "Carlos Fettucini";
 
-	private static final String USER_AFET_NAME = "afet";
-	private static final String USER_AFET_FULLNAME = "Alfredo Fettucini";
-	private static final String USER_BFET_NAME = "bfet";
-	private static final String USER_BFET_FULLNAME = "Bill Fettucini";
-	private static final String USER_CFET_NAME = "cfet";
-	private static final String USER_CFET_FULLNAME = "Carlos Fettucini";
+    private String userSharptoothOid;
 
-	protected static final Trace LOGGER = TraceManager.getTrace(TestAssignmentErrors.class);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+    }
 
-	private PrismObject<ResourceType> resource;
-	private String userLemonheadOid;
-	private String userSharptoothOid;
-
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
-	}
-
-	@Test
-	public void test010RefinedSchemaWhite() throws Exception {
-		final String TEST_NAME = "test010RefinedSchemaWhite";
-		TestUtil.displayTestTitle(TEST_NAME);
-		// GIVEN
-
-		// WHEN
-		PrismObject<ResourceType> resourceWhite = getObject(ResourceType.class, RESOURCE_DUMMY_WHITE_OID);
-		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceWhite, prismContext);
-		display("Refined schema", refinedSchema);
-
-		RefinedObjectClassDefinition accountDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-		assertNotNull("Account definition is missing", accountDef);
-		assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
-		assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
-		assertNotNull("Null secondary identifiers in account", accountDef.getSecondaryIdentifiers());
-		assertFalse("Empty secondary identifiers in account", accountDef.getSecondaryIdentifiers().isEmpty());
-		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
-		assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClass()));
-
-		assertEquals("Unexpected kind in account definition", ShadowKindType.ACCOUNT, accountDef.getKind());
-		assertTrue("Account definition in not default", accountDef.isDefaultInAKind());
-		assertEquals("Wrong intent in account definition", SchemaConstants.INTENT_DEFAULT, accountDef.getIntent());
-		assertFalse("Account definition is deprecated", accountDef.isDeprecated());
-		assertFalse("Account definition in auxiliary", accountDef.isAuxiliary());
-
-		RefinedAttributeDefinition uidDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_UID);
-		assertEquals(1, uidDef.getMaxOccurs());
-		assertEquals(0, uidDef.getMinOccurs());
-		assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
-		assertFalse("UID has create", uidDef.canAdd());
-		assertFalse("UID has update", uidDef.canModify());
-		assertTrue("No UID read", uidDef.canRead());
-		assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(uidDef));
-
-		RefinedAttributeDefinition nameDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
-		assertEquals(1, nameDef.getMaxOccurs());
-		assertEquals(1, nameDef.getMinOccurs());
-		assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
-		assertTrue("No NAME create", nameDef.canAdd());
-		assertTrue("No NAME update", nameDef.canModify());
-		assertTrue("No NAME read", nameDef.canRead());
-		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
-
-		RefinedAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
-		assertNotNull("No definition for fullname", fullnameDef);
-		assertEquals(1, fullnameDef.getMaxOccurs());
-		assertEquals(1, fullnameDef.getMinOccurs());
-		assertTrue("No fullname create", fullnameDef.canAdd());
-		assertTrue("No fullname update", fullnameDef.canModify());
-		assertTrue("No fullname read", fullnameDef.canRead());
-
-		assertNull("The _PASSSWORD_ attribute sneaked into schema",
-				accountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
-	}
-
-	/**
-	 * The "white" resource has no outbound mapping and there is also no mapping in the assignment. Therefore
-	 * this results in account without any attributes. It should fail.
-	 */
-	@Test
-    public void test100UserJackAssignBlankAccount() throws Exception {
-		final String TEST_NAME = "test100UserJackAssignBlankAccount";
-        displayTestTitle(TEST_NAME);
-
+    @Test
+    public void test010RefinedSchemaWhite() throws Exception {
         // GIVEN
-        Task task = createTask(TEST_NAME);
+
+        // WHEN
+        PrismObject<ResourceType> resourceWhite = getObject(ResourceType.class, RESOURCE_DUMMY_WHITE_OID);
+        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceWhite, prismContext);
+        displayDumpable("Refined schema", refinedSchema);
+
+        RefinedObjectClassDefinition accountDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        assertNotNull("Account definition is missing", accountDef);
+        assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
+        assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
+        assertNotNull("Null secondary identifiers in account", accountDef.getSecondaryIdentifiers());
+        assertFalse("Empty secondary identifiers in account", accountDef.getSecondaryIdentifiers().isEmpty());
+        assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
+        assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClass()));
+
+        assertEquals("Unexpected kind in account definition", ShadowKindType.ACCOUNT, accountDef.getKind());
+        assertTrue("Account definition in not default", accountDef.isDefaultInAKind());
+        assertEquals("Wrong intent in account definition", SchemaConstants.INTENT_DEFAULT, accountDef.getIntent());
+        assertFalse("Account definition is deprecated", accountDef.isDeprecated());
+        assertFalse("Account definition in auxiliary", accountDef.isAuxiliary());
+
+        RefinedAttributeDefinition uidDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_UID);
+        assertEquals(1, uidDef.getMaxOccurs());
+        assertEquals(0, uidDef.getMinOccurs());
+        assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
+        assertFalse("UID has create", uidDef.canAdd());
+        assertFalse("UID has update", uidDef.canModify());
+        assertTrue("No UID read", uidDef.canRead());
+        assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(uidDef));
+
+        RefinedAttributeDefinition nameDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+        assertEquals(1, nameDef.getMaxOccurs());
+        assertEquals(1, nameDef.getMinOccurs());
+        assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
+        assertTrue("No NAME create", nameDef.canAdd());
+        assertTrue("No NAME update", nameDef.canModify());
+        assertTrue("No NAME read", nameDef.canRead());
+        assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
+
+        RefinedAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
+        assertNotNull("No definition for fullname", fullnameDef);
+        assertEquals(1, fullnameDef.getMaxOccurs());
+        assertEquals(1, fullnameDef.getMinOccurs());
+        assertTrue("No fullname create", fullnameDef.canAdd());
+        assertTrue("No fullname update", fullnameDef.canModify());
+        assertTrue("No fullname read", fullnameDef.canRead());
+
+        assertNull("The _PASSSWORD_ attribute sneaked into schema",
+                accountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+    }
+
+    /**
+     * The "white" resource has no outbound mapping and there is also no mapping in the assignment. Therefore
+     * this results in account without any attributes. It should fail.
+     */
+    @Test
+    public void test100UserJackAssignBlankAccount() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -190,9 +150,9 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
         dummyAuditService.clear();
 
-		// WHEN
-		//not expected that it fails, insted the fatal error in the result is excpected
-		modelService.executeChanges(deltas, null, task, result);
+        // WHEN
+        //not expected that it fails, insted the fatal error in the result is excpected
+        modelService.executeChanges(deltas, null, task, result);
 
         result.computeStatus();
 
@@ -201,7 +161,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         TestUtil.assertPartialError(result);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -209,19 +169,16 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.PARTIAL_ERROR);
         dummyAuditService.assertExecutionMessage();
 
-	}
+    }
 
-	/**
-	 * The "while" resource has no outbound mapping and there is also no mapping in the assignment. Therefore
-	 * this results in account without any attributes. It should fail.
-	 */
-	@Test
+    /**
+     * The "while" resource has no outbound mapping and there is also no mapping in the assignment. Therefore
+     * this results in account without any attributes. It should fail.
+     */
+    @Test
     public void test101AddUserCharlesAssignBlankAccount() throws Exception {
-		final String TEST_NAME = "test101AddUserCharlesAssignBlankAccount";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
@@ -231,13 +188,13 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
         ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(userCharles);
 
-		// WHEN
-        displayWhen(TEST_NAME);
+        // WHEN
+        when();
         //we do not expect this to throw an exception. instead the fatal error in the result is excpected
-		Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = executeChanges(userDelta, null, task, result);
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = executeChanges(userDelta, null, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
+        // THEN
+        then();
         assertFailure(result);
 
         // Even though the operation failed the addition of a user should be successful. Let's check if user was really added.
@@ -248,29 +205,24 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         assertUser(userAfter, userOid, "charles", "Charles L. Charles", null, null, null);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.PARTIAL_ERROR);
         dummyAuditService.assertExecutionMessage();
 
-	}
+    }
 
-
-	@Test
+    @Test
     public void test200UserLemonheadAssignAccountBrokenNetwork() throws Exception {
-		final String TEST_NAME = "test200UserLemonheadAssignAccountBrokenNetwork";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         PrismObject<UserType> user = createUser(USER_LEMONHEAD_NAME, USER_LEMONHEAD_FULLNAME);
         addObject(user);
-        userLemonheadOid = user.getOid();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(user.getOid(), RESOURCE_DUMMY_OID, null, true);
@@ -279,45 +231,42 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         getDummyResource().setBreakMode(BreakMode.NETWORK);
         dummyAuditService.clear();
 
-		// WHEN
-        displayWhen(TEST_NAME);
-		// not expected that it fails, instead the error in the result is expected
-		modelService.executeChanges(deltas, null, task, result);
+        // WHEN
+        when();
+        // not expected that it fails, instead the error in the result is expected
+        modelService.executeChanges(deltas, null, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
+        // THEN
+        then();
         display(result);
-		// account cannot be updated due to a network error. The operation was postponed, therefore
-		// it is "in progress".
+        // account cannot be updated due to a network error. The operation was postponed, therefore
+        // it is "in progress".
         assertInProgress(result);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertTarget(user.getOid());
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.IN_PROGRESS);
 
-	}
+    }
 
-	// PARTIAL_ERROR: Unable to get object from the resource. Probably it has not been created yet because of previous unavailability of the resource.
-	// TODO: timeout or explicit retry
-//	@Test
+    // PARTIAL_ERROR: Unable to get object from the resource. Probably it has not been created yet because of previous unavailability of the resource.
+    // TODO: timeout or explicit retry
+//    @Test
 //    public void test205UserLemonheadRecovery() throws Exception {
-//		final String TEST_NAME = "test205UserLemonheadRecovery";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
 //        // GIVEN
-//        Task task = createTask(TEST_NAME);
+//        Task task = getTestTask();
 //        OperationResult result = task.getResult();
 //        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 //
 //        dummyResource.setBreakMode(BreakMode.NONE);
 //        dummyAuditService.clear();
 //
-//		// WHEN
-//		//not expected that it fails, instead the error in the result is expected
+//        // WHEN
+//        //not expected that it fails, instead the error in the result is expected
 //        modelService.recompute(UserType.class, userLemonheadOid, task, result);
 //
 //        result.computeStatus();
@@ -335,15 +284,12 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 //        dummyAuditService.assertExecutionOutcome(OperationResultStatus.HANDLED_ERROR);
 //        dummyAuditService.assertExecutionMessage();
 //
-//	}
+//    }
 
-	@Test
+    @Test
     public void test210UserSharptoothAssignAccountBrokenGeneric() throws Exception {
-		final String TEST_NAME = "test210UserSharptoothAssignAccountBrokenGeneric";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -352,9 +298,9 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         PasswordType passwordType = new PasswordType();
         ProtectedStringType passwordPs = new ProtectedStringType();
         passwordPs.setClearValue(USER_SHARPTOOTH_PASSWORD_1_CLEAR);
-		passwordType.setValue(passwordPs);
-		credentialsType.setPassword(passwordType);
-		user.asObjectable().setCredentials(credentialsType);
+        passwordType.setValue(passwordPs);
+        credentialsType.setPassword(passwordType);
+        user.asObjectable().setCredentials(credentialsType);
         addObject(user);
         userSharptoothOid = user.getOid();
 
@@ -366,21 +312,20 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         dummyAuditService.clear();
 
         try {
-			// WHEN
-	        displayWhen(TEST_NAME);
-			//not expected that it fails, instead the error in the result is expected
-			modelService.executeChanges(deltas, null, task, result);
-			
-			assertNotReached();
+            // WHEN
+            when();
+            //not expected that it fails, instead the error in the result is expected
+            modelService.executeChanges(deltas, null, task, result);
+
+            assertNotReached();
         } catch (GenericConnectorException e) {
-			// THEN
-			displayThen(TEST_NAME);
-			display("Expected exception", e);
+            then();
+            displayExpectedException(e);
         }
-	    assertFailure(result);
+        assertFailure(result);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -401,293 +346,285 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         ObjectDeltaOperation<? extends ObjectType> deltaop2 = i.next();
         assertEquals("Unexpected result of second executed deltas", OperationResultStatus.FATAL_ERROR, deltaop2.getExecutionResult().getStatus());
 
-	}
+    }
 
-	/**
-	 * User has assigned account. We recover the resource (clear break mode) and recompute.
-	 * The account should be created.
-	 */
-	@Test
+    /**
+     * User has assigned account. We recover the resource (clear break mode) and recompute.
+     * The account should be created.
+     */
+    @Test
     public void test212UserSharptoothAssignAccountRecovery() throws Exception {
-		final String TEST_NAME = "test212UserSharptoothAssignAccountRecovery";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         getDummyResource().resetBreakMode();
         dummyAuditService.clear();
 
-		// WHEN
-        displayWhen(TEST_NAME);
+        // WHEN
+        when();
         recomputeUser(userSharptoothOid, task, result);
 
         // THEN
-		displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         assertDummyAccount(null, USER_SHARPTOOTH_NAME, USER_SHARPTOOTH_FULLNAME, true);
         assertDummyPassword(null, USER_SHARPTOOTH_NAME, USER_SHARPTOOTH_PASSWORD_1_CLEAR);
-	}
+    }
 
-	/**
-	 * Change user password. But there is error on the resource.
-	 * User password should be changed, account password unchanged and there
-	 * should be handled error in the result. Delta is remembered in the shadow.
-	 * MID-3569
-	 */
-	@Test
+    /**
+     * Change user password. But there is error on the resource.
+     * User password should be changed, account password unchanged and there
+     * should be handled error in the result. Delta is remembered in the shadow.
+     * MID-3569
+     */
+    @Test
     public void test214UserSharptoothChangePasswordNetworkError() throws Exception {
-		testUserSharptoothChangePasswordError("test214UserSharptoothChangePasswordNetworkError",
-				BreakMode.NETWORK, USER_SHARPTOOTH_PASSWORD_1_CLEAR, USER_SHARPTOOTH_PASSWORD_2_CLEAR,
-				OperationResultStatus.IN_PROGRESS);
-	}
+        testUserSharptoothChangePasswordError(
+                BreakMode.NETWORK, USER_SHARPTOOTH_PASSWORD_1_CLEAR, USER_SHARPTOOTH_PASSWORD_2_CLEAR,
+                OperationResultStatus.IN_PROGRESS);
+    }
 
-	/**
-	 * Change user password. But there is generic error on the resource.
-	 * 
-	 * Default dummy resource has no error criticality definition. Therefore generic errors
-	 * are considered critical. This operation is supposed to die.
-	 * 
-	 * MID-3569
-	 */
-	@Test
+    /**
+     * Change user password. But there is generic error on the resource.
+     * <p>
+     * Default dummy resource has no error criticality definition. Therefore generic errors
+     * are considered critical. This operation is supposed to die.
+     * <p>
+     * MID-3569
+     */
+    @Test
     public void test215UserSharptoothChangePasswordGenericError() throws Exception {
-		try {
-			testUserSharptoothChangePasswordError("test215UserSharptoothChangePasswordGenericError",
-				BreakMode.GENERIC, USER_SHARPTOOTH_PASSWORD_1_CLEAR, USER_SHARPTOOTH_PASSWORD_3_CLEAR,
-				OperationResultStatus.FATAL_ERROR);
-			
-			assertNotReached();
-		} catch (GenericConnectorException e) {
-			// expected
-		}
-	}
-	
-	// This test doesn't work on default dummy
-	// TODO: apply it to black dummy
-//	/**
-//	 * Change user password. But there is generic error on the resource.
-//	 * User password should be changed, account password unchanged and there
-//	 * should be partial error in the result. We have no idea what's going on here.
-//	 * Default dummy 
-//	 * MID-3569
-//	 */
-//	@Test
-//    public void test216UserSharptoothChangePasswordGenericError() throws Exception {
-//		testUserSharptoothChangePasswordError("test216UserSharptoothChangePasswordGenericError",
-//				BreakMode.GENERIC, USER_SHARPTOOTH_PASSWORD_1_CLEAR, USER_SHARPTOOTH_PASSWORD_3_CLEAR,
-//				OperationResultStatus.PARTIAL_ERROR);
-//	}
+        try {
+            testUserSharptoothChangePasswordError(
+                    BreakMode.GENERIC, USER_SHARPTOOTH_PASSWORD_1_CLEAR, USER_SHARPTOOTH_PASSWORD_3_CLEAR,
+                    OperationResultStatus.FATAL_ERROR);
 
-	public void testUserSharptoothChangePasswordError(final String TEST_NAME, BreakMode breakMode, String oldPassword, String newPassword, OperationResultStatus expectedResultStatus) throws Exception {
-        displayTestTitle(TEST_NAME);
+            assertNotReached();
+        } catch (GenericConnectorException e) {
+            // expected
+        }
+    }
+
+    // This test doesn't work on default dummy
+    // TODO: apply it to black dummy
+//    /**
+//     * Change user password. But there is generic error on the resource.
+//     * User password should be changed, account password unchanged and there
+//     * should be partial error in the result. We have no idea what's going on here.
+//     * Default dummy
+//     * MID-3569
+//     */
+//    @Test
+//    public void test216UserSharptoothChangePasswordGenericError() throws Exception {
+//        testUserSharptoothChangePasswordError("test216UserSharptoothChangePasswordGenericError",
+//                BreakMode.GENERIC, USER_SHARPTOOTH_PASSWORD_1_CLEAR, USER_SHARPTOOTH_PASSWORD_3_CLEAR,
+//                OperationResultStatus.PARTIAL_ERROR);
+//    }
+
+    public void testUserSharptoothChangePasswordError(BreakMode breakMode,
+            String oldPassword, String newPassword, OperationResultStatus expectedResultStatus)
+            throws Exception {
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         getDummyResource().setBreakMode(breakMode);
         dummyAuditService.clear();
 
-		// WHEN
-        displayWhen(TEST_NAME);
+        // WHEN
+        when();
         modifyUserChangePassword(userSharptoothOid, newPassword, task, result);
 
         // THEN
-		displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertStatus(result, expectedResultStatus);
 
         getDummyResource().resetBreakMode();
 
         PrismObject<UserType> userAfter = getUser(userSharptoothOid);
-		display("User afte", userAfter);
+        display("User afte", userAfter);
         assertEncryptedUserPassword(userAfter, newPassword);
 
         assertDummyAccount(null, USER_SHARPTOOTH_NAME, USER_SHARPTOOTH_FULLNAME, true);
         assertDummyPassword(null, USER_SHARPTOOTH_NAME, oldPassword);
-	}
+    }
 
-	/**
-	 * Assign account to user, delete the account shadow (not the account), recompute the user.
-	 * We expect that the shadow will be re-created and re-linked.
-	 *
-	 * This is tried on the default dummy resource where synchronization is enabled.
-	 */
-	@Test
+    /**
+     * Assign account to user, delete the account shadow (not the account), recompute the user.
+     * We expect that the shadow will be re-created and re-linked.
+     * <p>
+     * This is tried on the default dummy resource where synchronization is enabled.
+     */
+    @Test
     public void test220UserAssignAccountDeletedShadowRecomputeSync() throws Exception {
-		final String TEST_NAME = "test220UserAssignAccountDeletedShadowRecomputeSync";
-		displayTestTitle(TEST_NAME);
-
-		//GIVEN
-		PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME, RESOURCE_DUMMY_OID, null,
-				USER_AFET_NAME, USER_AFET_FULLNAME);
-		String shadowOidBefore = getSingleLinkOid(user);
-		Task task = createTask(TEST_NAME);
+        //GIVEN
+        PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(RESOURCE_DUMMY_OID, null,
+                USER_AFET_NAME, USER_AFET_FULLNAME);
+        String shadowOidBefore = getSingleLinkOid(user);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         recomputeUser(user.getOid(), task, result);
 
-		// THEN
+        // THEN
         result.computeStatus();
         display("Recompute result", result);
-        TestUtil.assertSuccess(result,2);
+        TestUtil.assertSuccess(result, 2);
 
         user = getUser(user.getOid());
         display("User after", user);
         String shadowOidAfter = getSingleLinkOid(user);
-        display("Shadow OID after", shadowOidAfter);
+        displayValue("Shadow OID after", shadowOidAfter);
         PrismObject<ShadowType> shadowAfter = repositoryService.getObject(ShadowType.class, shadowOidAfter, null, result);
         display("Shadow after", shadowAfter);
 
-        assertFalse("New and old shadow OIDs are the same", shadowOidBefore.equals(shadowOidAfter));
+        assertThat(shadowOidAfter)
+                .withFailMessage("New and old shadow OIDs are the same")
+                .isNotEqualTo(shadowOidBefore);
 
         // ... and again ...
 
-        task = createTask(TEST_NAME);
+        task = getTestTask();
         result = task.getResult();
 
-		// WHEN
+        // WHEN
         recomputeUser(user.getOid(), task, result);
 
-		// THEN
+        // THEN
         result.computeStatus();
         display("Recompute result", result);
-        TestUtil.assertSuccess(result,2);
+        TestUtil.assertSuccess(result, 2);
 
         user = getUser(user.getOid());
         display("User after", user);
         String shadowOidAfterAfter = getSingleLinkOid(user);
-        display("Shadow OID after the second time", shadowOidAfterAfter);
+        displayValue("Shadow OID after the second time", shadowOidAfterAfter);
 
         assertEquals("The shadow OIDs has changed after second recompute", shadowOidAfter, shadowOidAfterAfter);
-	}
+    }
 
-	/**
-	 * Assign account to user, delete the account shadow (not the account), recompute the user.
-	 * We expect an error.
-	 *
-	 * This is tried on the red dummy resource where there is no synchronization.
-	 */
-	//TODO: after fixing uniqueness check in ProjectionValueProcessor, change the test little bit
-	//see git commit: 7052f9628a76815d27a119090a97ec57fbdebaec
-	@Test
-	public void test222UserAssignAccountDeletedShadowRecomputeNoSync() throws Exception {
-		final String TEST_NAME = "test222UserAssignAccountDeletedShadowRecomputeNoSync";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+    /**
+     * Assign account to user, delete the account shadow (not the account), recompute the user.
+     * We expect an error.
+     * <p>
+     * This is tried on the red dummy resource where there is no synchronization.
+     */
+    //TODO: after fixing uniqueness check in ProjectionValueProcessor, change the test little bit
+    //see git commit: 7052f9628a76815d27a119090a97ec57fbdebaec
+    @Test
+    public void test222UserAssignAccountDeletedShadowRecomputeNoSync() throws Exception {
+        // GIVEN
+        PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(
+                RESOURCE_DUMMY_RED_OID, RESOURCE_DUMMY_RED_NAME, USER_BFET_NAME, USER_BFET_FULLNAME);
+        Task task = createPlainTask();
+        OperationResult result = task.getResult();
 
-		// GIVEN
-		PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME, RESOURCE_DUMMY_RED_OID,
-				RESOURCE_DUMMY_RED_NAME, USER_BFET_NAME, USER_BFET_FULLNAME);
-		Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
+        try {
+            // WHEN
+            recomputeUser(user.getOid(), task, result);
 
-		try {
-			// WHEN
-			recomputeUser(user.getOid(), task, result);
+            AssertJUnit.fail("Unexpected success");
+        } catch (ObjectAlreadyExistsException e) {
+            // this is expected
+            result.computeStatus();
+            TestUtil.assertFailure(result);
+        }
 
-			AssertJUnit.fail("Unexpected success");
-		} catch (ObjectAlreadyExistsException e) {
-			// this is expected
-			result.computeStatus();
-			TestUtil.assertFailure(result);
-		}
+        user = getUser(user.getOid());
+        display("User after", user);
+        assertNoLinkedAccount(user);
 
-		user = getUser(user.getOid());
-		display("User after", user);
-		assertNoLinkedAccount(user);
+        // and again ...
 
-		// and again ...
+        task = createPlainTask();
+        result = task.getResult();
 
-		task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
-		result = task.getResult();
+        try {
+            // WHEN
+            recomputeUser(user.getOid(), task, result);
 
-		try {
-			// WHEN
-			recomputeUser(user.getOid(), task, result);
+            AssertJUnit.fail("Unexpected success");
+        } catch (ObjectAlreadyExistsException e) {
+            // this is expected
+            result.computeStatus();
+            TestUtil.assertFailure(result);
+        }
 
-			AssertJUnit.fail("Unexpected success");
-		} catch (ObjectAlreadyExistsException e) {
-			// this is expected
-			result.computeStatus();
-			TestUtil.assertFailure(result);
-		}
+        user = getUser(user.getOid());
+        display("User after", user);
+        assertNoLinkedAccount(user);
+    }
 
-		user = getUser(user.getOid());
-		display("User after", user);
-		assertNoLinkedAccount(user);
-
-	}
-
-	/**
-	 * Assign account to user, delete the account shadow (not the account), recompute the user.
-	 * We expect that the shadow will be re-created and re-linked.
-	 *
-	 * This is tried on the yellow dummy resource where there is reduced synchronization config.
-	 */
-	@Test
+    /**
+     * Assign account to user, delete the account shadow (not the account), recompute the user.
+     * We expect that the shadow will be re-created and re-linked.
+     * <p>
+     * This is tried on the yellow dummy resource where there is reduced synchronization config.
+     */
+    @Test
     public void test224UserAssignAccountDeletedShadowRecomputeReducedSync() throws Exception {
-		final String TEST_NAME = "test224UserAssignAccountDeletedShadowRecomputeReducedSync";
-		displayTestTitle(TEST_NAME);
-
-		//GIVEN
-		PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME,
-				RESOURCE_DUMMY_YELLOW_OID, RESOURCE_DUMMY_YELLOW_NAME,
-				USER_CFET_NAME, USER_CFET_FULLNAME);
-		String shadowOidBefore = getSingleLinkOid(user);
-		Task task = createTask(TEST_NAME);
+        //GIVEN
+        PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(
+                RESOURCE_DUMMY_YELLOW_OID, RESOURCE_DUMMY_YELLOW_NAME,
+                USER_CFET_NAME, USER_CFET_FULLNAME);
+        String shadowOidBefore = getSingleLinkOid(user);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         recomputeUser(user.getOid(), task, result);
 
-		// THEN
+        // THEN
         result.computeStatus();
         display("Recompute result", result);
-        TestUtil.assertSuccess(result,2);
+        TestUtil.assertSuccess(result, 2);
 
         user = getUser(user.getOid());
         display("User after", user);
         String shadowOidAfter = getSingleLinkOid(user);
-        display("Shadow OID after", shadowOidAfter);
+        displayValue("Shadow OID after", shadowOidAfter);
         PrismObject<ShadowType> shadowAfter = repositoryService.getObject(ShadowType.class, shadowOidAfter, null, result);
         display("Shadow after", shadowAfter);
 
-        assertFalse("New and old shadow OIDs are the same", shadowOidBefore.equals(shadowOidAfter));
+        assertThat(shadowOidAfter).withFailMessage("New and old shadow OIDs are the same")
+                .isNotEqualTo(shadowOidBefore);
 
         // ... and again ...
 
-        task = createTask(TEST_NAME);
+        task = getTestTask();
         result = task.getResult();
 
-		// WHEN
+        // WHEN
         recomputeUser(user.getOid(), task, result);
 
-		// THEN
+        // THEN
         result.computeStatus();
         display("Recompute result", result);
-        TestUtil.assertSuccess(result,2);
+        TestUtil.assertSuccess(result, 2);
 
         user = getUser(user.getOid());
         display("User after", user);
         String shadowOidAfterAfter = getSingleLinkOid(user);
-        display("Shadow OID after the second time", shadowOidAfterAfter);
+        displayValue("Shadow OID after the second time", shadowOidAfterAfter);
 
         assertEquals("The shadow OIDs has changed after second recompute", shadowOidAfter, shadowOidAfterAfter);
 
-	}
+    }
 
-	private PrismObject<UserType> setupUserAssignAccountDeletedShadowRecompute(final String TEST_NAME, String dummyResourceOid,
-			String dummyResourceName, String userName, String userFullName) throws Exception {
+    private PrismObject<UserType> setupUserAssignAccountDeletedShadowRecompute(
+            String dummyResourceOid, String dummyResourceName, String userName, String userFullName)
+            throws Exception {
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         getDummyResource().resetBreakMode();
@@ -697,8 +634,8 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         user.asObjectable().getAssignment().add(assignmentType);
         ActivationType activationType = new ActivationType();
         activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
-		user.asObjectable().setActivation(activationType);
-		setPassword(user, "blablabla");
+        user.asObjectable().setActivation(activationType);
+        setPassword(user, "blablabla");
         addObject(user);
 
         // precondition
@@ -722,8 +659,6 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         dummyAuditService.clear();
 
         return user;
-	}
-
-
+    }
 
 }

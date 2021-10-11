@@ -1,20 +1,19 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
+
+import javax.xml.bind.JAXBElement;
+
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
@@ -22,54 +21,41 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModificationPolicyConstraintType;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-import javax.xml.bind.JAXBElement;
-
-/**
- * @author semancik
- * @author mederly
- */
 @Component
 public abstract class ModificationConstraintEvaluator<T extends ModificationPolicyConstraintType> implements PolicyConstraintEvaluator<T> {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ModificationConstraintEvaluator.class);
+    @Autowired protected ConstraintEvaluatorHelper evaluatorHelper;
+    @Autowired protected PrismContext prismContext;
+    @Autowired protected RelationRegistry relationRegistry;
 
-	@Autowired protected ConstraintEvaluatorHelper evaluatorHelper;
-	@Autowired protected PrismContext prismContext;
-	@Autowired protected RelationRegistry relationRegistry;
+    @NotNull <AH extends AssignmentHolderType> String createStateKey(PolicyRuleEvaluationContext<AH> rctx) {
+        ModelState state = rctx.lensContext.getState();
 
-	@NotNull
-	protected <AH extends AssignmentHolderType> String createStateKey(PolicyRuleEvaluationContext<AH> rctx) {
-		ModelState state = rctx.lensContext.getState();
-		String stateKey;
-		if (state == ModelState.INITIAL || state == ModelState.PRIMARY) {
-			stateKey = "toBe";
-		} else {
-			stateKey = "was";
-			// TODO derive more precise information from executed deltas, if needed
-		}
-		return stateKey;
-	}
+        // TODO derive more precise information from executed deltas, if needed
+        if (state == ModelState.INITIAL || state == ModelState.PRIMARY) {
+            return "toBe";
+        } else {
+            return "was";
+        }
+    }
 
-	boolean expressionPasses(JAXBElement<T> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
-			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-			ConfigurationException, ExpressionEvaluationException {
-		T constraint = constraintElement.getValue();
-		if (constraint.getExpression() != null) {
-			if (!evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx, constraintElement),
-					"expression in modification constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result)) {
-				return false;
-			}
-			// TODO retrieve localization messages from return (it should be Object then, not Boolean)
-		}
-		return true;
-	}
+    // TODO retrieve localization messages from return (it should be Object then, not Boolean)
+    boolean expressionPasses(JAXBElement<T> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        return constraintElement.getValue().getExpression() == null || expressionEvaluatesToTrue(constraintElement, ctx, result);
+    }
+
+    private boolean expressionEvaluatesToTrue(JAXBElement<T> constraintElement, PolicyRuleEvaluationContext<?> ctx,
+            OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        T constraint = constraintElement.getValue();
+        ExpressionVariables variables = evaluatorHelper.createExpressionVariables(ctx, constraintElement);
+        String contextDescription = "expression in modification constraint " + constraint.getName() + " (" + ctx.state + ")";
+        return evaluatorHelper.evaluateBoolean(constraint.getExpression(), variables, contextDescription, ctx.task, result);
+    }
 }

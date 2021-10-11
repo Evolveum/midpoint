@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ManagerSearchType;
@@ -14,14 +20,14 @@ public class ManagerSearchDto implements Serializable{
     private String orgType;
     private boolean allowSelf;
 
-	public ManagerSearchDto(ManagerSearchType manager) {
-		if (manager != null) {
-			orgType = manager.getOrgType();
-			allowSelf = Boolean.TRUE.equals(manager.isAllowSelf());
-		}
-	}
+    public ManagerSearchDto(ManagerSearchType manager) {
+        if (manager != null) {
+            orgType = manager.getOrgType();
+            allowSelf = Boolean.TRUE.equals(manager.isAllowSelf());
+        }
+    }
 
-	public String getOrgType() {
+    public String getOrgType() {
         return orgType;
     }
 

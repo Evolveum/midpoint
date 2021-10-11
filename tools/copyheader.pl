@@ -1,20 +1,12 @@
 #!/usr/bin/perl
 #
-# Copyright (c) 2014-2015 Evolveum
+# Copyright (c) 2010-2020 Evolveum and contributors
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# This work is dual-licensed under the Apache License 2.0
+# and European Union Public License. See LICENSE file for details.
 #
 # Hack to set copyright headers
+# TODO: maybe it needs fix... or removal?
 #
 # Author: Radovan Semancik
 #
@@ -40,19 +32,10 @@ my $licencePattern = "Licensed under the Apache License";
 
 my $license = <<EOT;
 
-Copyright (c) 2010-2015 Evolveum
+ Copyright (c) 2010-2020 Evolveum and contributors
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+This work is dual-licensed under the Apache License 2.0
+and European Union Public License. See LICENSE file for details.
 EOT
 
 my $dir;
@@ -89,7 +72,7 @@ if (-f $dir) {
 
 sub processDir {
   my ($currDir) = @_;
-  
+
   opendir(my $dh, $currDir) || die ("Cannot open $currDir: $!\n");
   my @subs = readdir $dh;
   closedir $dh;
@@ -114,11 +97,11 @@ sub processDir {
 
 sub header {
   my ($path) = @_;
-  
+
   open(my $fh, $path) or die("Cannot open $path: $!\n");
   my (@lines) = <$fh>;
   close $fh;
-  
+
   my $hasLicense = 0;
   my $nonComment = 0;
   my @linesToKeep;
@@ -135,10 +118,10 @@ sub header {
       push @linesToKeep,$line;
     }
   }
-  
+
   if (!$hasLicense) {
     print "$path: $hasLicense ".scalar(@lines)."/".scalar(@linesToKeep)." lines\n";
-  
+
     if ($modify) {
       open($fh, ">$path") or die("Cannot write to $path: $!\n");
       foreach my $lline (split("\n",$license)) {
@@ -151,8 +134,8 @@ sub header {
       close($fh);
     }
   }
-  
-}  
+
+}
 
 
 ### USAGE and DOCUMENTATION

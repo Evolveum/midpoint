@@ -1,240 +1,191 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.schema;
 
+import java.util.Date;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.io.IOException;
-import java.util.Date;
-
-import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * @author mederly
  */
-public class TestImmutable {
+public class TestImmutable extends AbstractSchemaTest {
 
-	@BeforeSuite
-	public void setup() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-	}
+    @Test
+    public void test010SimpleProperty() {
+        // GIVEN
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
 
-	@Test
-	public void test010SimpleProperty() throws Exception {
-		System.out.println("===[ test010SimpleProperty ]===");
+        // WHEN
+        PrismPropertyDefinition<String> displayNamePPD = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstantsGenerated.C_DISPLAY_NAME);
+        PrismProperty<String> displayNamePP = displayNamePPD.instantiate();
+        displayNamePP.setRealValue("Big red ball");
+        displayNamePP.freeze();
 
-		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+        // THEN
+        try {
+            displayNamePP.setRealValue("Small black cube");
+            AssertJUnit.fail("Value was changed when immutable!");
+        } catch (RuntimeException e) {
+            System.out.println("Got (expected) exception of " + e);
+        }
 
-		// WHEN
-		PrismPropertyDefinition<String> displayNamePPD = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstantsGenerated.C_DISPLAY_NAME);
-		PrismProperty<String> displayNamePP = displayNamePPD.instantiate();
-		displayNamePP.setRealValue("Big red ball");
-		displayNamePP.setImmutable(true);
+        try {
+            displayNamePP.getValue().setValue("Green point");
+            AssertJUnit.fail("Value was changed when immutable!");
+        } catch (RuntimeException e) {
+            System.out.println("Got (expected) exception of " + e);
+        }
+    }
 
-		// THEN
-		try {
-			displayNamePP.setRealValue("Small black cube");
-			AssertJUnit.fail("Value was changed when immutable!");
-		} catch (RuntimeException e) {
-			System.out.println("Got (expected) exception of " + e);
-		}
+    @Test
+    public void test020DateProperty() {
+        // GIVEN
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
 
-		try {
-			displayNamePP.getValue().setValue("Green point");
-			AssertJUnit.fail("Value was changed when immutable!");
-		} catch (RuntimeException e) {
-			System.out.println("Got (expected) exception of " + e);
-		}
+        // WHEN
+        PrismPropertyDefinition<XMLGregorianCalendar> datePPD = prismContext.definitionFactory().createPropertyDefinition(
+                new QName(SchemaConstants.NS_C, "dateTime"), DOMUtil.XSD_DATETIME);
+        PrismProperty<XMLGregorianCalendar> datePP = datePPD.instantiate();
+        Date now = new Date();
+        Date yesterday = new Date(now.getTime() - 86400000L);
+        datePP.setRealValue(XmlTypeConverter.createXMLGregorianCalendar(now));
+        datePP.freeze();
 
-		// WHEN
-		displayNamePP.setImmutable(false);
+        // THEN
+        try {
+            datePP.setRealValue(XmlTypeConverter.createXMLGregorianCalendar(yesterday));
+            AssertJUnit.fail("Value was changed when immutable!");
+        } catch (RuntimeException e) {
+            System.out.println("Got (expected) exception of " + e);
+        }
 
-		// THEN
-		displayNamePP.setRealValue("Small black cube");
-		assertEquals("Real value was not changed", "Small black cube", displayNamePP.getAnyRealValue());
-		displayNamePP.getAnyValue().setValue("Green point");
-		assertEquals("Real value was not changed", "Green point", displayNamePP.getAnyRealValue());
-	}
+        try {
+            datePP.getValue().setValue(XmlTypeConverter.createXMLGregorianCalendar(yesterday));
+            AssertJUnit.fail("Value was changed when immutable!");
+        } catch (RuntimeException e) {
+            System.out.println("Got (expected) exception of " + e);
+        }
 
-	@Test
-	public void test020DateProperty() throws Exception {
-		System.out.println("===[ test020DateProperty ]===");
+        // Testing that returned objects are in fact clones (disabled as not implemented yet)
+//        XMLGregorianCalendar realValue = datePP.getAnyRealValue();
+//        int hourPlus1 = (realValue.getHour() + 1) % 24;
+//        realValue.setHour(hourPlus1);
+//        assertEquals("Date was changed even if it should not", XmlTypeConverter.createXMLGregorianCalendar(now), datePP.getAnyRealValue());
+    }
 
-		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+    @Test
+    public void test030Reference() throws Exception {
+        // GIVEN
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
 
-		// WHEN
-		PrismPropertyDefinition<XMLGregorianCalendar> datePPD = prismContext.definitionFactory().createPropertyDefinition(
-				new QName(SchemaConstants.NS_C, "dateTime"), DOMUtil.XSD_DATETIME);
-		PrismProperty<XMLGregorianCalendar> datePP = datePPD.instantiate();
-		Date now = new Date();
-		Date yesterday = new Date(now.getTime()-86400000L);
-		datePP.setRealValue(XmlTypeConverter.createXMLGregorianCalendar(now));
-		datePP.setImmutable(true);
+        // WHEN
+        PrismReferenceDefinition refPRD = prismContext.definitionFactory().createReferenceDefinition(new QName(SchemaConstants.NS_C, "ref"), ObjectReferenceType.COMPLEX_TYPE);
+        PrismReference refPR = refPRD.instantiate();
+        refPR.add(ObjectTypeUtil.createObjectRef("oid1", ObjectTypes.USER).asReferenceValue());
+        refPR.freeze();
 
-		// THEN
-		try {
-			datePP.setRealValue(XmlTypeConverter.createXMLGregorianCalendar(yesterday));
-			AssertJUnit.fail("Value was changed when immutable!");
-		} catch (RuntimeException e) {
-			System.out.println("Got (expected) exception of " + e);
-		}
+        // THEN
+        try {
+            refPR.replace(ObjectTypeUtil.createObjectRef("oid2", ObjectTypes.USER).asReferenceValue());
+            AssertJUnit.fail("Value was changed when immutable!");
+        } catch (RuntimeException e) {
+            System.out.println("Got (expected) exception of " + e);
+        }
 
-		try {
-			datePP.getValue().setValue(XmlTypeConverter.createXMLGregorianCalendar(yesterday));
-			AssertJUnit.fail("Value was changed when immutable!");
-		} catch (RuntimeException e) {
-			System.out.println("Got (expected) exception of " + e);
-		}
+        try {
+            refPR.getValue().setOid("oid2");
+            AssertJUnit.fail("Value was changed when immutable!");
+        } catch (RuntimeException e) {
+            System.out.println("Got (expected) exception of " + e);
+        }
+    }
 
-		// Testing that returned objects are in fact clones (disabled as not implemented yet)
-//		XMLGregorianCalendar realValue = datePP.getAnyRealValue();
-//		int hourPlus1 = (realValue.getHour() + 1) % 24;
-//		realValue.setHour(hourPlus1);
-//		assertEquals("Date was changed even if it should not", XmlTypeConverter.createXMLGregorianCalendar(now), datePP.getAnyRealValue());
-	}
+    @Test
+    public void test100Resource() throws Exception {
+        // GIVEN
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
 
-	@Test
-	public void test030Reference() throws Exception {
-		System.out.println("===[ test030Reference ]===");
+        // WHEN
+        PrismObject<ResourceType> resource = prismContext.createObject(ResourceType.class);
+        resource.setOid("oid1");
+        resource.asObjectable().setName(PolyStringType.fromOrig("resource1"));
 
-		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+        SchemaHandlingType schemaHandling = new SchemaHandlingType(prismContext);
+        ResourceObjectTypeDefinitionType objectTypeDef = new ResourceObjectTypeDefinitionType(prismContext);
+        objectTypeDef.setDefault(true);
+        IterationSpecificationType iterationSpecificationType = new IterationSpecificationType();
+        iterationSpecificationType.setMaxIterations(100);
+        objectTypeDef.setIteration(iterationSpecificationType);
+        schemaHandling.getObjectType().add(objectTypeDef);
+        resource.asObjectable().setSchemaHandling(schemaHandling);
 
-		// WHEN
-		PrismReferenceDefinition refPRD = prismContext.definitionFactory().createReferenceDefinition(new QName(SchemaConstants.NS_C, "ref"), ObjectReferenceType.COMPLEX_TYPE);
-		PrismReference refPR = refPRD.instantiate();
-		refPR.add(ObjectTypeUtil.createObjectRef("oid1", ObjectTypes.USER).asReferenceValue());
-		refPR.setImmutable(true);
+        ResourceBusinessConfigurationType businessConfiguration = new ResourceBusinessConfigurationType(prismContext);
+        businessConfiguration.setAdministrativeState(ResourceAdministrativeStateType.ENABLED);
+        resource.asObjectable().setBusiness(businessConfiguration);
 
-		// THEN
-		try {
-			refPR.replace(ObjectTypeUtil.createObjectRef("oid2", ObjectTypes.USER).asReferenceValue());
-			AssertJUnit.fail("Value was changed when immutable!");
-		} catch (RuntimeException e) {
-			System.out.println("Got (expected) exception of " + e);
-		}
+        resource.freeze();
 
-		try {
-			refPR.getValue().setOid("oid2");
-			AssertJUnit.fail("Value was changed when immutable!");
-		} catch (RuntimeException e) {
-			System.out.println("Got (expected) exception of " + e);
-		}
+        System.out.println("Resource: " + resource.debugDump());
 
-		// WHEN
-		refPR.setImmutable(false);
+        // THEN
 
-		// THEN
-		refPR.replace(ObjectTypeUtil.createObjectRef("oid2", ObjectTypes.USER).asReferenceValue());
-		assertEquals("OID was not changed", "oid2", refPR.getOid());
-		refPR.getValue().setOid("oid3");
-		assertEquals("Real value was not changed", "oid3", refPR.getOid());
-	}
+        // standard property
+        try {
+            resource.asObjectable().setName(PolyStringType.fromOrig("resource2"));
+            AssertJUnit.fail("Value of name was changed when immutable!");
+        } catch (RuntimeException e) {
+            System.out.println("Got (expected) exception of " + e);
+        }
 
-	@Test
-	public void test100Resource() throws Exception {
-		System.out.println("===[ test100Resource ]===");
+        // OID
+        try {
+            resource.setOid("oid2");
+            AssertJUnit.fail("Value of OID was changed when immutable!");
+        } catch (RuntimeException e) {
+            System.out.println("Got (expected) exception of " + e);
+        }
 
-		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+        // values in sub-container
+        try {
+            resource.asObjectable().getBusiness().setAdministrativeState(ResourceAdministrativeStateType.DISABLED);
+            AssertJUnit.fail("Value of resource administrative status was changed when immutable!");
+        } catch (RuntimeException e) {
+            System.out.println("Got (expected) exception of " + e);
+        }
 
-		// WHEN
-		PrismObject<ResourceType> resource = prismContext.createObject(ResourceType.class);
-		resource.setOid("oid1");
-		resource.asObjectable().setName(PolyStringType.fromOrig("resource1"));
+        try {
+            resource.asObjectable().getSchemaHandling().getObjectType().get(0).setDefault(false);
+            AssertJUnit.fail("Value of schemaHandling/[1]/default was changed when immutable!");
+        } catch (RuntimeException e) {
+            System.out.println("Got (expected) exception of " + e);
+        }
 
-		SchemaHandlingType schemaHandling = new SchemaHandlingType(prismContext);
-		ResourceObjectTypeDefinitionType objectTypeDef = new ResourceObjectTypeDefinitionType(prismContext);
-		objectTypeDef.setDefault(true);
-		IterationSpecificationType iterationSpecificationType = new IterationSpecificationType();
-		iterationSpecificationType.setMaxIterations(100);
-		objectTypeDef.setIteration(iterationSpecificationType);
-		schemaHandling.getObjectType().add(objectTypeDef);
-		resource.asObjectable().setSchemaHandling(schemaHandling);
-
-		ResourceBusinessConfigurationType businessConfiguration = new ResourceBusinessConfigurationType(prismContext);
-		businessConfiguration.setAdministrativeState(ResourceAdministrativeStateType.ENABLED);
-		resource.asObjectable().setBusiness(businessConfiguration);
-
-		resource.setImmutable(true);
-
-		System.out.println("Resource: " + resource.debugDump());
-
-		// THEN
-
-		// standard property
-		try {
-			resource.asObjectable().setName(PolyStringType.fromOrig("resource2"));
-			AssertJUnit.fail("Value of name was changed when immutable!");
-		} catch (RuntimeException e) {
-			System.out.println("Got (expected) exception of " + e);
-		}
-
-		// OID
-		try {
-			resource.setOid("oid2");
-			AssertJUnit.fail("Value of OID was changed when immutable!");
-		} catch (RuntimeException e) {
-			System.out.println("Got (expected) exception of " + e);
-		}
-
-		// values in sub-container
-		try {
-			resource.asObjectable().getBusiness().setAdministrativeState(ResourceAdministrativeStateType.DISABLED);
-			AssertJUnit.fail("Value of resource administrative status was changed when immutable!");
-		} catch (RuntimeException e) {
-			System.out.println("Got (expected) exception of " + e);
-		}
-
-		try {
-			resource.asObjectable().getSchemaHandling().getObjectType().get(0).setDefault(false);
-			AssertJUnit.fail("Value of schemaHandling/[1]/default was changed when immutable!");
-		} catch (RuntimeException e) {
-			System.out.println("Got (expected) exception of " + e);
-		}
-
-		// value in a bean (not implemented yet)
-//		try {
-//			resource.asObjectable().getSchemaHandling().getObjectType().get(0).getIteration().setMaxIterations(500);
-//			AssertJUnit.fail("Value of maxIterations was changed when immutable!");
-//		} catch (RuntimeException e) {
-//			System.out.println("Got (expected) exception of " + e);
-//		}
-	}
-
+        // value in a bean (not implemented yet)
+//        try {
+//            resource.asObjectable().getSchemaHandling().getObjectType().get(0).getIteration().setMaxIterations(500);
+//            AssertJUnit.fail("Value of maxIterations was changed when immutable!");
+//        } catch (RuntimeException e) {
+//            System.out.println("Got (expected) exception of " + e);
+//        }
+    }
 
 }

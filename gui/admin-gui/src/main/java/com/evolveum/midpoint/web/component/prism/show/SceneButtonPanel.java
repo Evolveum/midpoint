@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.prism.show;
@@ -31,9 +22,9 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
  * @author lazyman
  */
 public class SceneButtonPanel extends Panel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public static final String ID_MINIMIZE_BUTTON = "minimizeButton";
+    public static final String ID_MINIMIZE_BUTTON = "minimizeButton";
     public static final String ID_ICON = "icon";
 
     public SceneButtonPanel(String id, IModel<SceneDto> model) {
@@ -44,7 +35,7 @@ public class SceneButtonPanel extends Panel {
 
     private void initLayout(final IModel<SceneDto> model) {
         AjaxLink<String> minimize = new AjaxLink<String>(ID_MINIMIZE_BUTTON) {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -55,7 +46,7 @@ public class SceneButtonPanel extends Panel {
 
         Label icon = new Label(ID_ICON);
         icon.add(AttributeModifier.append("class", new IModel<String>() {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
@@ -70,7 +61,7 @@ public class SceneButtonPanel extends Panel {
         minimize.add(icon);
 
         icon.add(new AttributeAppender("title", new IModel<String>() {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {

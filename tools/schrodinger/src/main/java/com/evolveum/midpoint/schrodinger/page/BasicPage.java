@@ -1,14 +1,28 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.schrodinger.page;
+
+import static com.codeborne.selenide.Selenide.$;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebDriverRunner;
+import org.apache.commons.lang3.StringUtils;
+import org.openqa.selenium.By;
+
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.LoggedUser;
 import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
 import com.evolveum.midpoint.schrodinger.component.configuration.*;
+import com.evolveum.midpoint.schrodinger.page.archetype.ListArchetypesPage;
+import com.evolveum.midpoint.schrodinger.page.cases.*;
 import com.evolveum.midpoint.schrodinger.page.certification.*;
 import com.evolveum.midpoint.schrodinger.page.configuration.*;
-import com.evolveum.midpoint.schrodinger.page.org.NewOrgPage;
+import com.evolveum.midpoint.schrodinger.page.org.OrgPage;
 import com.evolveum.midpoint.schrodinger.page.org.OrgTreePage;
 import com.evolveum.midpoint.schrodinger.page.report.AuditLogViewerPage;
 import com.evolveum.midpoint.schrodinger.page.report.CreatedReportsPage;
@@ -19,7 +33,7 @@ import com.evolveum.midpoint.schrodinger.page.resource.ListConnectorHostsPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.resource.NewResourcePage;
 import com.evolveum.midpoint.schrodinger.page.role.ListRolesPage;
-import com.evolveum.midpoint.schrodinger.page.role.NewRolePage;
+import com.evolveum.midpoint.schrodinger.page.role.RolePage;
 import com.evolveum.midpoint.schrodinger.page.self.CredentialsPage;
 import com.evolveum.midpoint.schrodinger.page.self.HomePage;
 import com.evolveum.midpoint.schrodinger.page.self.ProfilePage;
@@ -27,15 +41,12 @@ import com.evolveum.midpoint.schrodinger.page.self.RequestRolePage;
 import com.evolveum.midpoint.schrodinger.page.service.ListServicesPage;
 import com.evolveum.midpoint.schrodinger.page.service.NewServicePage;
 import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
-import com.evolveum.midpoint.schrodinger.page.task.NewTaskPage;
-import com.evolveum.midpoint.schrodinger.page.user.FormSubmitablePage;
+import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
+import com.evolveum.midpoint.schrodinger.page.user.FormSubmittablePage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
-import com.evolveum.midpoint.schrodinger.page.workitems.*;
+import com.evolveum.midpoint.schrodinger.util.ConstantsUtil;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
-import org.openqa.selenium.By;
-
-import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -72,7 +83,15 @@ public class BasicPage {
     }
 
     public ListUsersPage listUsers() {
-        clickAdministrationMenu("PageAdmin.menu.top.users", "PageAdmin.menu.top.users.list");
+        return listUsers("");
+    }
+
+    public ListUsersPage listUsers(String objectListMenuItemKey) {
+        if (StringUtils.isEmpty(objectListMenuItemKey)) {
+            clickAdministrationMenu("PageAdmin.menu.top.users", "PageAdmin.menu.top.users.list");
+        } else {
+            clickAdministrationMenu("PageAdmin.menu.top.users", objectListMenuItemKey);
+        }
         return new ListUsersPage();
     }
 
@@ -86,9 +105,9 @@ public class BasicPage {
         return new OrgTreePage();
     }
 
-    public NewOrgPage newOrgUnit() {
+    public OrgPage newOrgUnit() {
         clickAdministrationMenu("PageAdmin.menu.top.users.org", "PageAdmin.menu.top.users.org.new");
-        return new NewOrgPage();
+        return new OrgPage();
     }
 
     public ListRolesPage listRoles() {
@@ -96,9 +115,9 @@ public class BasicPage {
         return new ListRolesPage();
     }
 
-    public NewRolePage newRole() {
+    public RolePage newRole() {
         clickAdministrationMenu("PageAdmin.menu.top.roles", "PageAdmin.menu.top.roles.new");
-        return new NewRolePage();
+        return new RolePage();
     }
 
     public ListServicesPage listServices() {
@@ -111,6 +130,11 @@ public class BasicPage {
         return new NewServicePage();
     }
 
+    public ListArchetypesPage listArchetypes() {
+        clickAdministrationMenu("PageAdmin.menu.top.archetypes", "PageAdmin.menu.top.archetypes.list");
+        return new ListArchetypesPage();
+    }
+
     public ListResourcesPage listResources() {
         clickAdministrationMenu("PageAdmin.menu.top.resources", "PageAdmin.menu.top.resources.list");
         return new ListResourcesPage();
@@ -119,6 +143,31 @@ public class BasicPage {
     public NewResourcePage newResource() {
         clickAdministrationMenu("PageAdmin.menu.top.resources", "PageAdmin.menu.top.resources.new");
         return new NewResourcePage();
+    }
+
+    public AllCasesPage listAllCases(){
+        clickAdministrationMenu(ConstantsUtil.MENU_TOP_CASES, ConstantsUtil.MENU_ALL_CASES);
+        return new AllCasesPage();
+    }
+
+    public MyCasesPage listMyCases(){
+        clickAdministrationMenu(ConstantsUtil.MENU_TOP_CASES, ConstantsUtil.MENU_MY_CASES_MENU_ITEM_LABEL_TEXT);
+        return new MyCasesPage();
+    }
+
+    public AllManualCasesPage listAllManualCases(){
+        clickAdministrationMenu(ConstantsUtil.MENU_TOP_CASES, ConstantsUtil.MENU_ALL_MANUAL_CASES_MENU_ITEM_LABEL_TEXT);
+        return new AllManualCasesPage();
+    }
+
+    public AllRequestsPage listAllRequests() {
+        clickAdministrationMenu(ConstantsUtil.MENU_TOP_CASES, ConstantsUtil.MENU_ALL_REQUESTS_MENU_ITEM_LABEL_TEXT);
+        return new AllRequestsPage();
+    }
+
+    public AllApprovalsPage listAllApprovals() {
+        clickAdministrationMenu(ConstantsUtil.MENU_TOP_CASES, ConstantsUtil.MENU_ALL_APPROVALS_MENU_ITEM_LABEL_TEXT);
+        return new AllApprovalsPage();
     }
 
     public MyItemsPage myItems() {
@@ -151,11 +200,6 @@ public class BasicPage {
         return new RequestsAboutMePage();
     }
 
-    public AllRequestsPage allRequests() {
-        clickAdministrationMenu("PageAdmin.menu.top.workItems", "PageAdmin.menu.top.workItems.listProcessInstancesAll");
-        return new AllRequestsPage();
-    }
-
     public CampaignDefinitionsPage campaignDefinitions() {
         clickAdministrationMenu("PageAdmin.menu.top.certification", "PageAdmin.menu.top.certification.definitions");
         return new CampaignDefinitionsPage();
@@ -186,9 +230,9 @@ public class BasicPage {
         return new ListTasksPage();
     }
 
-    public NewTaskPage newTask() {
+    public TaskPage newTask() {
         clickAdministrationMenu("PageAdmin.menu.top.serverTasks", "PageAdmin.menu.top.serverTasks.new");
-        return new NewTaskPage();
+        return new TaskPage();
     }
 
     public ListReportsPage listReports() {
@@ -266,8 +310,18 @@ public class BasicPage {
         return new SystemPage().adminGuiTab();
     }
 
+    public InfrastructureTab infrastructure() {
+        clickConfigurationMenu("PageAdmin.menu.top.configuration.basic", "PageAdmin.menu.top.configuration.infrastructure");
+        return new SystemPage().infrastructureTab();
+    }
+
+    public RoleManagementTab roleManagement() {
+        clickConfigurationMenu("PageAdmin.menu.top.configuration.basic", "PageAdmin.menu.top.configuration.roleManagement");
+        return new SystemPage().roleManagementTab();
+    }
+
     public InternalsConfigurationPage internalsConfiguration() {
-        clickConfigurationMenu("PageAdmin.menu.top.configuration.internals", null);
+        clickConfigurationMenu("PageAdmin.menu.top.configuration.internals", null, 1);
         return new InternalsConfigurationPage();
     }
 
@@ -276,8 +330,8 @@ public class BasicPage {
         return new QueryPlaygroundPage();
     }
 
-    public FormSubmitablePage dynamicForm() {
-        return new FormSubmitablePage();
+    public FormSubmittablePage dynamicForm() {
+        return new FormSubmittablePage();
     }
 
     private void clickSelfServiceMenu(String mainMenuKey, String menuItemKey) {
@@ -285,20 +339,66 @@ public class BasicPage {
     }
 
     private void clickAdministrationMenu(String mainMenuKey, String menuItemKey) {
-        clickMenuItem("PageAdmin.menu.mainNavigation", mainMenuKey, menuItemKey);
+        clickMenuItem(ConstantsUtil.ADMINISTRATION_MENU_ITEMS_SECTION_KEY, mainMenuKey, menuItemKey);
+    }
+
+    public String getAdministrationMenuItemIconClass(String mainMenuKey, String menuItemKey){
+        SelenideElement menuItem = getMenuItemElement(ConstantsUtil.ADMINISTRATION_MENU_ITEMS_SECTION_KEY, mainMenuKey, menuItemKey);
+        return menuItem.parent().$(By.tagName("i")).getAttribute("class");
     }
 
     private void clickConfigurationMenu(String mainMenuKey, String menuItemKey) {
-        clickMenuItem("PageAdmin.menu.top.configuration", mainMenuKey, menuItemKey);
+        clickConfigurationMenu(mainMenuKey, menuItemKey, 0);
+    }
+
+    private void clickConfigurationMenu(String mainMenuKey, String menuItemKey, int index) {
+        clickMenuItem("PageAdmin.menu.top.configuration", mainMenuKey, menuItemKey, index);
     }
 
     public FeedbackBox<? extends BasicPage> feedback() {
-        SelenideElement feedback = $(By.cssSelector("div.feedbackContainer")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M);;
-
+        SelenideElement feedback = $(By.cssSelector("div.feedbackContainer")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M);
         return new FeedbackBox<>(this, feedback);
     }
 
     private void clickMenuItem(String topLevelMenuKey, String mainMenuKey, String menuItemKey) {
+        clickMenuItem(topLevelMenuKey, mainMenuKey, menuItemKey, 0);
+    }
+
+    private void clickMenuItem(String topLevelMenuKey, String mainMenuKey, String menuItemKey, int index) {
+        getMenuItemElement(topLevelMenuKey, mainMenuKey, menuItemKey, index).click();
+    }
+
+    public SelenideElement getMenuItemElement(String topLevelMenuKey, String mainMenuKey, String menuItemKey) {
+        return getMenuItemElement(topLevelMenuKey, mainMenuKey, menuItemKey, 0);
+    }
+
+    public SelenideElement getMenuItemElement(String topLevelMenuKey, String mainMenuKey, String menuItemKey, int index){
+        SelenideElement mainMenu = getMainMenuItemElement(topLevelMenuKey, mainMenuKey, index);
+        if (menuItemKey == null){
+            return mainMenu;
+        }
+        SelenideElement menuItem = mainMenu.$(Schrodinger.byDataResourceKey(menuItemKey));
+        menuItem.waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        return menuItem;
+    }
+
+    public SelenideElement getMenuItemElementByMenuLabelText(String topLevelMenuKey, String mainMenuKey, String menuItemLabelText){
+        SelenideElement mainMenu = getMainMenuItemElement(topLevelMenuKey, mainMenuKey);
+        if (StringUtils.isEmpty(menuItemLabelText)){
+            return mainMenu;
+        }
+        SelenideElement menuItem = mainMenu.$(By.partialLinkText(menuItemLabelText));
+        menuItem.shouldBe(Condition.visible);
+
+        return menuItem;
+    }
+
+    private SelenideElement getMainMenuItemElement(String topLevelMenuKey, String mainMenuKey) {
+        return getMainMenuItemElement(topLevelMenuKey, mainMenuKey, 0);
+    }
+
+    private SelenideElement getMainMenuItemElement(String topLevelMenuKey, String mainMenuKey, int index){
         SelenideElement topLevelMenu = $(Schrodinger.byDataResourceKey(topLevelMenuKey));
         topLevelMenu.shouldBe(Condition.visible);
 
@@ -308,22 +408,20 @@ public class BasicPage {
             topLevelMenuChevron.shouldHave(Condition.cssClass("fa-chevron-down")).waitUntil(Condition.cssClass("fa-chevron-down"), MidPoint.TIMEOUT_DEFAULT_2_S);
         }
 
-        SelenideElement mainMenu = topLevelMenu.$(Schrodinger.byDataResourceKey(mainMenuKey));
+        SelenideElement mainMenu = topLevelMenu.$(Schrodinger.byDataResourceKey("span", mainMenuKey), index);
         mainMenu.shouldBe(Condition.visible);
-        if (menuItemKey == null) {
-            mainMenu.click();
-            return;
-        }
 
         SelenideElement mainMenuLi = mainMenu.parent().parent();
         if (!mainMenuLi.has(Condition.cssClass("active"))) {
             mainMenu.click();
-            mainMenuLi.waitUntil(Condition.cssClass("active"),MidPoint.TIMEOUT_DEFAULT_2_S).shouldHave(Condition.cssClass("active"));
+            mainMenuLi.waitUntil(Condition.cssClass("active"),MidPoint.TIMEOUT_MEDIUM_6_S).shouldHave(Condition.cssClass("active"));
         }
+        return mainMenu;
+    }
 
-        SelenideElement menuItem = mainMenu.$(Schrodinger.byDataResourceKey(menuItemKey));
-        menuItem.shouldBe(Condition.visible);
-
-        menuItem.click();
+    public String getCurrentUrl() {
+        String url = WebDriverRunner.url();
+        url = url.split("\\?")[0];
+        return url;
     }
 }

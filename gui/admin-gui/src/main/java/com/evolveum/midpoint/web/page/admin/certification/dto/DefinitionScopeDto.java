@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
@@ -43,6 +34,8 @@ public class DefinitionScopeDto implements Serializable {
     public static final String F_INCLUDE_ROLES = "includeRoles";
     public static final String F_INCLUDE_ORGS = "includeOrgs";
     public static final String F_INCLUDE_SERVICES = "includeServices";
+    public static final String F_INCLUDE_USERS = "includeUsers";
+    public static final String F_RELATION_LIST = "relationList";
     public static final String F_INCLUDE_ENABLED_ITEMS_ONLY = "enabledItemsOnly";
 
     private String name;
@@ -57,10 +50,10 @@ public class DefinitionScopeDto implements Serializable {
     private boolean includeServices;
     private boolean includeUsers;
     private boolean enabledItemsOnly;
-	private ExpressionType itemSelectionExpression;
-	private List<QName> relationList = new ArrayList<>();
+    private ExpressionType itemSelectionExpression;
+    private List<QName> relationList = new ArrayList<>();
 
-	public void loadSearchFilter(SearchFilterType searchFilterType, PrismContext prismContext)  {
+    public void loadSearchFilter(SearchFilterType searchFilterType, PrismContext prismContext)  {
         if (searchFilterType == null) {
             return;
         }
@@ -161,23 +154,23 @@ public class DefinitionScopeDto implements Serializable {
         this.includeOrgs = includeOrgs;
     }
 
-	public boolean isIncludeServices() {
-		return includeServices;
-	}
+    public boolean isIncludeServices() {
+        return includeServices;
+    }
 
-	public void setIncludeServices(boolean includeServices) {
-		this.includeServices = includeServices;
-	}
+    public void setIncludeServices(boolean includeServices) {
+        this.includeServices = includeServices;
+    }
 
-	public boolean isIncludeUsers() {
-		return includeUsers;
-	}
+    public boolean isIncludeUsers() {
+        return includeUsers;
+    }
 
-	public void setIncludeUsers(boolean includeUsers) {
-		this.includeUsers = includeUsers;
-	}
+    public void setIncludeUsers(boolean includeUsers) {
+        this.includeUsers = includeUsers;
+    }
 
-	public boolean isEnabledItemsOnly() {
+    public boolean isEnabledItemsOnly() {
         return enabledItemsOnly;
     }
 
@@ -185,13 +178,13 @@ public class DefinitionScopeDto implements Serializable {
         this.enabledItemsOnly = enabledItemsOnly;
     }
 
-	public ExpressionType getItemSelectionExpression() {
-		return itemSelectionExpression;
-	}
+    public ExpressionType getItemSelectionExpression() {
+        return itemSelectionExpression;
+    }
 
-	public void setItemSelectionExpression(ExpressionType itemSelectionExpression) {
-		this.itemSelectionExpression = itemSelectionExpression;
-	}
+    public void setItemSelectionExpression(ExpressionType itemSelectionExpression) {
+        this.itemSelectionExpression = itemSelectionExpression;
+    }
 
     public List<QName> getRelationList() {
         return relationList;

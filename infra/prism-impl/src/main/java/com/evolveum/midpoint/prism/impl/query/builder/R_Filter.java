@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism.impl.query.builder;
@@ -21,6 +12,8 @@ import com.evolveum.midpoint.prism.impl.query.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.*;
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,6 +26,8 @@ import java.util.List;
  *
  * @author mederly
  */
+// FIXME: Add better names
+@Experimental
 public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
 
     final private QueryBuilder queryBuilder;
@@ -364,7 +359,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     public S_ConditionEntry item(QName... names) {
         return item(ItemPath.create((Object[]) names));
     }
-    
+
     @Override
     public S_ConditionEntry item(String... names) {
         return item(ItemPath.create((Object[]) names));
@@ -415,9 +410,9 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (parentFilter == null) {
             throw new IllegalStateException("endBlock() call without preceding block() one");
         }
-	    if (hasRestriction()) {
-		    return addSubfilter(null).endBlock();         // finish if this is open 'type' or 'exists' filter
-	    }
+        if (hasRestriction()) {
+            return addSubfilter(null).endBlock();         // finish if this is open 'type' or 'exists' filter
+        }
         if (currentFilter != null || parentFilter.hasRestriction()) {
             ObjectFilter simplified = simplify(currentFilter);
             if (simplified != null || parentFilter.hasRestriction()) {

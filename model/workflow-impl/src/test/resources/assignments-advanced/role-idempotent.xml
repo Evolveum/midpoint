@@ -1,0 +1,15 @@
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="e2f2d977-887b-4ea1-99d8-a6a030a1a6c0">
+    <name>idempotent</name>
+    <assignment>
+        <targetRef oid="715dc3b6-eb2c-4cc8-b2bf-0f7968bbc52a" type="RoleType"/> <!-- metarole-administrator-approval -->
+    </assignment>
+    <idempotence>conservative</idempotence>
+</role>

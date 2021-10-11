@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2014-2015 Evolveum
+ * Copyright (c) 2014-2015 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.tools.testng;
 
@@ -28,30 +19,30 @@ import org.testng.collections.Maps;
 
 public class AlphabeticalMethodInterceptor implements IMethodInterceptor {
 
-	@Override
-	public List<IMethodInstance> intercept(List<IMethodInstance> methods, ITestContext context) {
-		List<Object> instanceList = Lists.newArrayList();
-	    Map<Object, List<IMethodInstance>> map = Maps.newHashMap();
-	    for (IMethodInstance mi : methods) {
-	    	Object instance = mi.getInstance();
-	        if (!instanceList.contains(instance)) {
-	          instanceList.add(instance);
-	        }
-		    List<IMethodInstance> l = map.computeIfAbsent(instance, k -> Lists.newArrayList());
-		    l.add(mi);
-	    }
+    @Override
+    public List<IMethodInstance> intercept(List<IMethodInstance> methods, ITestContext context) {
+        List<Object> instanceList = Lists.newArrayList();
+        Map<Object, List<IMethodInstance>> map = Maps.newHashMap();
+        for (IMethodInstance mi : methods) {
+            Object instance = mi.getInstance();
+            if (!instanceList.contains(instance)) {
+              instanceList.add(instance);
+            }
+            List<IMethodInstance> l = map.computeIfAbsent(instance, k -> Lists.newArrayList());
+            l.add(mi);
+        }
 
-	    Comparator<IMethodInstance> comparator = Comparator.comparing(o -> o.getMethod().getMethodName());
-	    List<IMethodInstance> result = Lists.newArrayList();
-	    for (Object instance : instanceList) {
-	    	List<IMethodInstance> methodlist = map.get(instance);
-	    	IMethodInstance[] array = methodlist.toArray(new IMethodInstance[methodlist.size()]);
-			Arrays.sort(array, comparator);
-			result.addAll(Arrays.asList(array));
-	    }
+        Comparator<IMethodInstance> comparator = Comparator.comparing(o -> o.getMethod().getMethodName());
+        List<IMethodInstance> result = Lists.newArrayList();
+        for (Object instance : instanceList) {
+            List<IMethodInstance> methodlist = map.get(instance);
+            IMethodInstance[] array = methodlist.toArray(new IMethodInstance[methodlist.size()]);
+            Arrays.sort(array, comparator);
+            result.addAll(Arrays.asList(array));
+        }
 
-	    System.out.println("AlphabeticalMethodInterceptor: "+result);
+        System.out.println("AlphabeticalMethodInterceptor: "+result);
 
-	    return result;
-	}
+        return result;
+    }
 }

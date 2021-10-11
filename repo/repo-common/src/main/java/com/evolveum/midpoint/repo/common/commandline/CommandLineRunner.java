@@ -1,17 +1,8 @@
-/**
- * Copyright (c) 2017 Evolveum
+/*
+ * Copyright (c) 2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.common.commandline;
 
@@ -35,51 +26,51 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CommandLineExecution
  * @author semancik
  */
 public class CommandLineRunner {
-	
-	private static final Trace LOGGER = TraceManager.getTrace(CommandLineRunner.class);
-	
-	private static final Pattern REGEX_CODE_SPLITTER = Pattern.compile("([^\"]\\S*|\".+?\")\\s*"); // bash -c "echo Im not a number, im a ; echo free man"
-	private static final int EXIT_SUCCESS = 0;
-	private static final String SHELL = "bash";
-    
-	private final String code;
-	private final OperationResult result;
-	private CommandLineExecutionMethod exectionMethod;
-	private Map<String, String> env;
-	
-	private Boolean warningHasEmerged = false;
 
-	public CommandLineRunner(String code, OperationResult result) {
-		super();
-		this.code = code;
-		this.result = result;
-	}
+    private static final Trace LOGGER = TraceManager.getTrace(CommandLineRunner.class);
 
-	public Map<String, String> getEnv() {
-		return env;
-	}
+    private static final Pattern REGEX_CODE_SPLITTER = Pattern.compile("([^\"]\\S*|\".+?\")\\s*"); // bash -c "echo Im not a number, im a ; echo free man"
+    private static final int EXIT_SUCCESS = 0;
+    private static final String SHELL = "bash";
 
-	public void setEnv(Map<String, String> env) {
-		this.env = env;
-	}
+    private final String code;
+    private final OperationResult result;
+    private CommandLineExecutionMethod exectionMethod;
+    private Map<String, String> env;
 
-	public CommandLineExecutionMethod getExectionMethod() {
-		return exectionMethod;
-	}
+    private Boolean warningHasEmerged = false;
 
-	public void setExectionMethod(CommandLineExecutionMethod exectionMethod) {
-		this.exectionMethod = exectionMethod;
-	}
+    public CommandLineRunner(String code, OperationResult result) {
+        super();
+        this.code = code;
+        this.result = result;
+    }
 
-	public void execute() throws IOException, InterruptedException {
-        
+    public Map<String, String> getEnv() {
+        return env;
+    }
+
+    public void setEnv(Map<String, String> env) {
+        this.env = env;
+    }
+
+    public CommandLineExecutionMethod getExectionMethod() {
+        return exectionMethod;
+    }
+
+    public void setExectionMethod(CommandLineExecutionMethod exectionMethod) {
+        this.exectionMethod = exectionMethod;
+    }
+
+    public void execute() throws IOException, InterruptedException {
+
 
         ProcessBuilder processBuilder = new ProcessBuilder(produceCommand());
 
         if (env != null) {
-        	processBuilder.environment().putAll(env);
+            processBuilder.environment().putAll(env);
         }
-                
+
         LOGGER.debug("Starting process {}", processBuilder.command());
 
         Process process = processBuilder.start();
@@ -101,24 +92,24 @@ public class CommandLineRunner {
         result.computeStatus();
     }
 
-    
+
     private List<String> produceCommand() {
-    	if (exectionMethod == null) {
-    		return produceCommandExec();
-    	}
-    	switch (exectionMethod) {
-    		case EXEC:
-    			return produceCommandExec();
-    		case SHELL:
-    			return produceCommandShell();
-    		default:
-    			throw new IllegalArgumentException("Unknown exec method "+exectionMethod);
-    	}
-    	
+        if (exectionMethod == null) {
+            return produceCommandExec();
+        }
+        switch (exectionMethod) {
+            case EXEC:
+                return produceCommandExec();
+            case SHELL:
+                return produceCommandShell();
+            default:
+                throw new IllegalArgumentException("Unknown exec method "+exectionMethod);
+        }
+
     }
-    
+
     private List<String> produceCommandExec() {
-    	Matcher match = REGEX_CODE_SPLITTER.matcher(code);
+        Matcher match = REGEX_CODE_SPLITTER.matcher(code);
         List<String> scriptParts = new ArrayList<>();
         while (match.find()) {
             String processedCommand = match.group(1);
@@ -126,8 +117,8 @@ public class CommandLineRunner {
         }
         LOGGER.debug("The constructed list of commands: {}", scriptParts);
         return scriptParts;
-	}
-    
+    }
+
     private List<String> produceCommandShell() {
         List<String> commands = new ArrayList<>();
         commands.add(SHELL);
@@ -135,9 +126,9 @@ public class CommandLineRunner {
         commands.add(code);
         LOGGER.debug("Constructed shell commands: {}", commands);
         return commands;
-	}
+    }
 
-	private String readOutput(InputStream processInputStream) throws IOException {
+    private String readOutput(InputStream processInputStream) throws IOException {
         return readOutput(processInputStream, null);
     }
 

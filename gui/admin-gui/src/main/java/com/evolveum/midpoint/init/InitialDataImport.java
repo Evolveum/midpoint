@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.init;
@@ -27,6 +18,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -124,24 +116,24 @@ public class InitialDataImport extends DataImport{
         } catch (ObjectNotFoundException ex) {
             importObject = true;
         } catch (Exception ex) {
-        	if (!importObject){
-	            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get object with oid {} from model", ex,
-	                    object.getOid());
-	            result.recordWarning("Couldn't get object with oid '" + object.getOid() + "' from model",
-	                    ex);
-        	}
+            if (!importObject){
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get object with oid {} from model", ex,
+                        object.getOid());
+                result.recordWarning("Couldn't get object with oid '" + object.getOid() + "' from model",
+                        ex);
+            }
         }
 
         if (!importObject) {
             return null;
         }
-        
+
         preImportUpdate(object);
 
         ObjectDelta delta = DeltaFactory.Object.createAddDelta(object);
         try {
             LOGGER.info("Starting initial import of file {}.", file.getName());
-            model.executeChanges(WebComponentUtil.createDeltaCollection(delta), ModelExecuteOptions.createIsImport(), task, result);
+            model.executeChanges(MiscUtil.createCollection(delta), ModelExecuteOptions.createIsImport(), task, result);
             result.recordSuccess();
             LOGGER.info("Created {} as part of initial import", object);
             return true;
@@ -155,10 +147,10 @@ public class InitialDataImport extends DataImport{
         }
     }
 
-	private File getResource(String name) {
+    private File getResource(String name) {
         URI path;
         try {
-        	LOGGER.trace("getResource: name = {}", name);
+            LOGGER.trace("getResource: name = {}", name);
             path = InitialDataImport.class.getClassLoader().getResource(name).toURI();
             LOGGER.trace("getResource: path = {}", path);
             //String updatedPath = path.toString().replace("zip:/", "jar:/");
@@ -171,7 +163,7 @@ public class InitialDataImport extends DataImport{
     }
 
     private void cleanup() throws IOException {
-        Path destDir = Paths.get(configuration.getMidpointHome() + "/tmp/initial-objects");
+        Path destDir = Paths.get(configuration.getMidpointHome(), "tmp/initial-objects");
         FileUtils.deleteDirectory(destDir.toFile());
     }
 
@@ -188,8 +180,7 @@ public class InitialDataImport extends DataImport{
         env.put("create", "false");
         try (FileSystem zipfs = FileSystems.newFileSystem(src, env)) {
             Path pathInZipfile = zipfs.getPath("/WEB-INF/classes/initial-objects");
-            //TODO: use some well defined directory, e.g. midPoint home
-            final Path destDir = Paths.get(configuration.getMidpointHome() + "/tmp");
+            final Path destDir = Paths.get(configuration.getMidpointHome(), "tmp");
 
             Files.walkFileTree(pathInZipfile, new SimpleFileVisitor<Path>() {
 
@@ -230,8 +221,7 @@ public class InitialDataImport extends DataImport{
         LOGGER.trace("InitialDataImport normalized code location: {}", normalizedSrc);
         try (FileSystem zipfs = FileSystems.newFileSystem(normalizedSrc, env)) {
             Path pathInZipfile = zipfs.getPath("/initial-objects");
-            //TODO: use some well defined directory, e.g. midPoint home
-            final Path destDir = Paths.get(configuration.getMidpointHome() + "/tmp");
+            final Path destDir = Paths.get(configuration.getMidpointHome(), "tmp");
             Files.walkFileTree(pathInZipfile, new SimpleFileVisitor<Path>() {
 
                 @Override
@@ -258,7 +248,7 @@ public class InitialDataImport extends DataImport{
     }
 
     private File setupInitialObjectsTmpFolder() {
-        File tmpDir = new File(configuration.getMidpointHome()+"/tmp");
+        File tmpDir = new File(configuration.getMidpointHome(), "tmp");
         if (!tmpDir.mkdir()) {
             LOGGER.warn("Failed to create temporary directory for initial objects {}. Maybe it already exists",
                     configuration.getMidpointHome()+"/tmp");
@@ -273,9 +263,9 @@ public class InitialDataImport extends DataImport{
         return tmpDir;
     }
 
-    private File[] getInitialImportObjects() {
+    protected File[] getInitialImportObjects() {
         URL path = InitialDataImport.class.getClassLoader().getResource("initial-objects");
-    	String resourceType = path.getProtocol();
+        String resourceType = path.getProtocol();
 
         File folder = null;
 
@@ -299,9 +289,9 @@ public class InitialDataImport extends DataImport{
             throw new RuntimeException("Failed get URI for the source code bundled with initial objects", ex);
         }
 
-    	if ("file".equals(resourceType)) {
-	        folder = getResource("initial-objects");
-    	}
+        if ("file".equals(resourceType)) {
+            folder = getResource("initial-objects");
+        }
 
         File[] files = folder.listFiles(pathname -> {
             if (pathname.isDirectory()) {

@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.component.menu;
@@ -20,6 +11,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -29,14 +21,17 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.home.PageMyPasswordQuestions;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordQuestionsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SecurityQuestionAnswerDTO;
-import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -46,9 +41,13 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import javax.xml.namespace.QName;
 import java.util.*;
+
+import static org.springframework.security.saml.util.StringUtils.stripSlashes;
 
 /**
  * @author lazyman
@@ -60,10 +59,13 @@ public class UserMenuPanel extends BasePanel {
     private static final String DOT_CLASS = UserMenuPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loaduser";
     private static final String OPERATION_LOAD_QUESTION_POLICY = DOT_CLASS + "LOAD Question Policy";
+    private static final String DEFAULT_LOGOUT_PATH = "/logout";
 
     private static final String ID_USERNAME_LINK = "usernameLink";
+    private static final String ID_LOGOUT_FORM = "logoutForm";
     private static final String ID_CSRF_FIELD = "csrfField";
     private static final String ID_USERNAME = "username";
+    private static final String ID_FOCUS_TYPE = "focusType";
     private static final String ID_EDIT_PROFILE = "editProfile";
     private static final String ID_PASSWORD_QUESTIONS = "passwordQuestions";
     private static final String ID_ICON_BOX = "menuIconBox";
@@ -82,9 +84,11 @@ public class UserMenuPanel extends BasePanel {
     private boolean isPasswordModelLoaded = false;
     private  byte[] jpegPhoto = null;
     private List<SecurityQuestionDefinitionType> securityPolicyQuestions = new ArrayList<>();
+    private PageBase pageBase;
 
-    public UserMenuPanel(String id) {
+    public UserMenuPanel(String id, PageBase pageBase) {
         super(id);
+        this.pageBase = pageBase;
         initLayout();
         if (!isPasswordModelLoaded) {
             passwordQuestionsDtoIModel = new LoadableModel<PasswordQuestionsDto>(false) {
@@ -107,6 +111,11 @@ public class UserMenuPanel extends BasePanel {
                 return loadSecurityPolicyQuestionsModel();
             }
         };
+    }
+
+    @Override
+    public PageBase getPageBase() {
+        return pageBase;
     }
 
     private void initLayout() {
@@ -206,8 +215,20 @@ public class UserMenuPanel extends BasePanel {
         username.setRenderBodyOnly(true);
         add(username);
 
+        Label focusType = new Label(ID_FOCUS_TYPE, getPageBase().createStringResource("PageTemplate." + getFocusType()));
+        add(focusType);
+
+        Form form = new Form(ID_LOGOUT_FORM);
+        form.add(AttributeModifier.replace("action", new IModel<String>() {
+            @Override
+            public String getObject() {
+                return SecurityUtils.getPathForLogoutWithContextPath(getRequest().getContextPath(), getAuthenticatedModule());
+            }
+        }));
+        add(form);
+
         WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
-        add(csrfField);
+        form.add(csrfField);
 
         AjaxButton editPasswordQ = new AjaxButton(ID_PASSWORD_QUESTIONS,
                 createStringResource("UserMenuPanel.editPasswordQuestions")) {
@@ -251,6 +272,22 @@ public class UserMenuPanel extends BasePanel {
         });
     }
 
+    private String getUrlForLogout() {
+        ModuleAuthentication moduleAuthentication = getAuthenticatedModule();
+        return "/" + stripSlashes(getRequest().getContextPath()) + "/" +
+                stripSlashes(moduleAuthentication.getPrefix()) + DEFAULT_LOGOUT_PATH;
+    }
+
+    private ModuleAuthentication getAuthenticatedModule() {
+        ModuleAuthentication moduleAuthentication = SecurityUtils.getAuthenticatedModule();
+
+        if (moduleAuthentication == null) {
+            String message = "Unauthenticated request";
+            throw new IllegalArgumentException(message);
+        }
+        return moduleAuthentication;
+    }
+
     private String getShortUserName() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -267,6 +304,21 @@ public class UserMenuPanel extends BasePanel {
         return principal.toString();
     }
 
+    private String getFocusType() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return "Unknown";
+        }
+        Object principal = authentication.getPrincipal();
+
+        if (principal == null || principal.equals("anonymousUser")) {
+            return "Unknown";
+        }
+
+        QName type = WebComponentUtil.classToQName(getPageBase().getPrismContext(), WebModelServiceUtils.getLoggedInFocus().getClass());
+        return type.getLocalPart();
+    }
+
     private PasswordQuestionsDto loadModel(PageBase parentPage) {
         LOGGER.trace("Loading user for Security Question Page.");
 
@@ -274,16 +326,16 @@ public class UserMenuPanel extends BasePanel {
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
 
         if (parentPage == null) {
-        	parentPage = ((PageBase)getPage());
+            parentPage = ((PageBase)getPage());
         }
 
         try {
 
-        	MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
-        	if (principal == null) {
-        		result.recordNotApplicableIfUnknown();
-        		return null;
-        	}
+            MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+            if (principal == null) {
+                result.recordNotApplicableIfUnknown();
+                return null;
+            }
             String userOid = principal.getOid();
             Task task = parentPage.createSimpleTask(OPERATION_LOAD_USER);
             OperationResult subResult = result.createSubresult(OPERATION_LOAD_USER);
@@ -327,12 +379,12 @@ public class UserMenuPanel extends BasePanel {
                 Protector protector = ((PageBase) getPage()).getPrismContext().getDefaultProtector();
                 if (securityQuestionAnswerType.getQuestionAnswer() != null && securityQuestionAnswerType.getQuestionAnswer().getEncryptedDataType() != null) {
                     try {
-                    	String decoded = protector.decryptString(securityQuestionAnswerType.getQuestionAnswer());
+                        String decoded = protector.decryptString(securityQuestionAnswerType.getQuestionAnswer());
                         secQuestAnswListDTO.add(new SecurityQuestionAnswerDTO(securityQuestionAnswerType
                                 .getQuestionIdentifier(), decoded));
                     } catch (EncryptionException e) {
                         // TODO do we need to thrown exception here?
-                    	LOGGER.error("Could not get security questions. Error: "  + e.getMessage(), e);
+                        LOGGER.error("Could not get security questions. Error: "  + e.getMessage(), e);
                         continue;
                     }
                 }
