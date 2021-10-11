@@ -11,10 +11,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -35,10 +41,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderType, AHDM extends AssignmentHolderDetailsModel<AH>> extends AbstractPageObjectDetails<AH, AHDM> {
 
@@ -206,6 +208,47 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
     protected AHDM createObjectDetailsModels(PrismObject<AH> object) {
         return (AHDM) new AssignmentHolderDetailsModel<>(createPrismObejctModel(object), this);
+    }
+
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        String objectCollectionName = getObjectCollectionName();
+        if (objectCollectionName != null) {
+            return () -> {
+                if (getObjectDetailsModels() != null && getObjectDetailsModels().getObjectStatus() == ItemStatus.ADDED) {
+                    return createStringResource("PageAdminObjectDetails.title.new", objectCollectionName).getString();
+                }
+
+                String name = null;
+                if (getModelWrapperObject() != null && getModelWrapperObject().getObject() != null) {
+                    name = WebComponentUtil.getName(getModelWrapperObject().getObject());
+                }
+
+                return createStringResource("PageAdminObjectDetails.title.edit.readonly.${readOnly}", getModel(), objectCollectionName, name).getString();
+            };
+        }
+
+        return super.createPageTitleModel();
+    }
+
+    private String getObjectCollectionName() {
+        if (getModelWrapperObject() == null || getModelWrapperObject().getObject() == null) {
+            return null;
+        }
+
+        PrismObject<AH> assignmentHolderObj = getModelWrapperObject().getObject();
+        DisplayType displayType = GuiDisplayTypeUtil.getArchetypePolicyDisplayType(assignmentHolderObj, PageAssignmentHolderDetails.this);
+        if (displayType == null || displayType.getLabel() == null) {
+            return null;
+        }
+
+        String archetypeLocalizedName = getLocalizationService()
+                .translate(displayType.getLabel().toPolyString(), WebComponentUtil.getCurrentLocale(), true);
+        if (StringUtils.isNotEmpty(archetypeLocalizedName)) {
+            return archetypeLocalizedName;
+        }
+
+        return null;
     }
 
 }
