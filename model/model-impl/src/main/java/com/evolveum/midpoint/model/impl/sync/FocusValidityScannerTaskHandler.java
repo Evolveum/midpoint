@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.TaskUtil;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -264,6 +265,10 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
     private void reconcileFocus(PrismObject<FocusType> focus, Task workerTask, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException,
             ConfigurationException, PolicyViolationException, SecurityViolationException, PreconditionViolationException {
+        if (TaskUtil.isDryRun(workerTask)) {
+            LOGGER.debug("Skipping recomputing of {} because of dry run mode in {}", focus, workerTask);
+            return;
+        }
         LOGGER.trace("Recomputing focus {}", focus);
         // We want reconcile option here. There may be accounts that are in wrong activation state.
         // We will not notice that unless we go with reconcile.
