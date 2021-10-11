@@ -29,7 +29,7 @@ In terminal, go to your midPoint installation directory and execute:
 bin/ninja.sh -v export -r -O export.xml
 ----
 
-NOTE: See xref:midpoint/reference/deployment/ninja[ninja] for more export configuration options and their meaning
+NOTE: See xref:/midpoint/reference/deployment/ninja[ninja] for more export configuration options and their meaning
 
 == Initializing & changing configuration for native PostgreSQL repository
 
@@ -53,7 +53,7 @@ In terminal, navigate to your midPoint installation directory and execute:
 bin/ninja.sh -v import -i export.xml
 ----
 
-NOTE: See xref:midpoint/reference/deployment/ninja[ninja] for more import configuration options and their meaning
+NOTE: See xref:/midpoint/reference/deployment/ninja[ninja] for more import configuration options and their meaning
 
 == 4. Starting midPoint
 
