@@ -256,6 +256,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 return loadMultiFunctionalButtonModel(true);
             }
 
+            @Override
+            protected String getTitleForNewObjectButton() {
+                return createStringResource("TreeTablePanel.menu.createMember").getString();
+            }
+
         };
         childrenListPanel.setOutputMarkupId(true);
         memberContainer.add(childrenListPanel);
@@ -508,7 +513,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
     private AjaxIconButton createAssignButton(String buttonId) {
         AjaxIconButton assignButton = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.EVO_ASSIGNMENT_ICON),
-                createStringResource("MainObjectListPanel.newObject")) {
+                createStringResource("TreeTablePanel.menu.addMembers")) {
 
             private static final long serialVersionUID = 1L;
 
