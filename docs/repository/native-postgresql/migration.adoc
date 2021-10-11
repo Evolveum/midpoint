@@ -5,7 +5,7 @@
 == Overview
 
 Since changes in schema are too large to be handled by SQL update, or you may be
-switching database during
+switch to PostgreSQL database, you must export and reimport all your data.
 
 In short the migration process should be:
 
