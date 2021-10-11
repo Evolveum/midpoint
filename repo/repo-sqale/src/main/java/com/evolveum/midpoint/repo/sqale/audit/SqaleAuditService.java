@@ -200,12 +200,17 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
 
             OperationResult executionResult = deltaOperation.getExecutionResult();
             if (executionResult != null) {
+                executionResult = processExecutionResult(executionResult);
+
                 OperationResultType operationResult = executionResult.createOperationResultType();
                 if (operationResult != null) {
                     deltaRow.status = operationResult.getStatus();
-                    // Note that escaping invalid characters and using toString for unsupported types is safe in the
-                    // context of operation result serialization.
-                    deltaRow.fullResult = sqlRepoContext.createFullResult(operationResult);
+                    if (!repositoryConfiguration().getDeltaExecutionResult().equals(
+                            SqaleRepositoryConfiguration.AUDIT_DELTA_EXECUTION_RESULT_NONE)) {
+                        // Note that escaping invalid characters and using toString for unsupported
+                        // types is safe in the context of operation result serialization.
+                        deltaRow.fullResult = sqlRepoContext.createFullResult(operationResult);
+                    }
                 }
             }
             deltaRow.resourceOid = SqaleUtils.oidToUUid(deltaOperation.getResourceOid());
@@ -222,6 +227,25 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         } catch (Exception ex) {
             throw new SystemException("Problem during audit delta conversion", ex);
         }
+    }
+
+    private OperationResult processExecutionResult(OperationResult executionResult) {
+        switch (repositoryConfiguration().getDeltaExecutionResult()) {
+            case SqaleRepositoryConfiguration.AUDIT_DELTA_EXECUTION_RESULT_TOP:
+                executionResult = executionResult.keepRootOnly();
+                break;
+            case SqaleRepositoryConfiguration.AUDIT_DELTA_EXECUTION_RESULT_CLEANED_UP:
+                executionResult = executionResult.clone();
+                try {
+                    executionResult.cleanupResult();
+                } catch (Exception e) {
+                    logger.warn("Execution result cleanup exception (reported, but ignored otherwise).", e);
+                }
+                break;
+            default:
+                // full - nothing to do
+        }
+        return executionResult;
     }
 
     private String computeChecksum(byte[]... objects) {
