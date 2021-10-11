@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.component;
 
 import java.util.Iterator;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -206,7 +208,8 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
     }
 
     private void deletePerformed(AjaxRequestTarget target) {
-        ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), createStringResource("do you really want to delete " + getObjectType())) {
+        ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
+                createStringResource("OperationalButtonsPanel.deletePerformed", WebComponentUtil.getDisplayNameOrName(getPrismObject()))) {
             private static final long serialVersionUID = 1L;
 
             @Override
