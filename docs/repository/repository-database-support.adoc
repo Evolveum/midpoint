@@ -7,18 +7,32 @@
 :page-wiki-metadata-modify-date: 2021-04-06T14:16:35.663+02:00
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
-:page-upkeep-status: green
-
-MidPoint was designed with a flexible implementation of its wiki:Repository+Subsystem[repository subsystem], which allows support for several types of storage technologies.
-The only storage technology that midPoint currently supports is relational database.
-Relational database always was, and it still is, the reliable workhorse of many identity management solutions, including midPoint.
+:page-upkeep-status: red
 
 [TIP]
 .TL;DR
 ====
-MIdPoint supports several database engines.
-However, you should choose *PostgreSQL*.
+You should choose *PostgreSQL* database, using xref:native-postgresql/[native PostgreSQL repository implementation].
+Do not think much about it, just do it.
 ====
+
+MidPoint has to store its own data in a database which we call _repository_.
+MidPoint stores all the data there, users, roles, xref:/midpoint/reference/resources/shadow/[shadow objects] representing accounts, configuration, everything.
+MidPoint needs PostgreSQL database engine to do that.
+PostgreSQL is leading open source relational database engine.
+Since midPoint 4.4, midPoint can use features specific to PostgreSQL to its advantage (using xref:native-postgresql/[native PostgreSQL repository implementation]).
+
+MidPoint also has support for other database engines.
+However, since midPoint 4.4, such support is deprecated.
+Do not use other database engines unless there are historic reasons, and you have a sound plan for migration to PostgreSQL.
+
+== Relational Database
+
+MidPoint was designed with a flexible implementation of its xref:/midpoint/architecture/archive/subsystems/repo/[repository subsystem], which allows support for several types of storage technologies, ranging from relational databases, NoSQL databases, directory servers - as long as the database servers can provide sufficient features.
+However, the only storage technology that midPoint currently supports is relational database.
+No other technologies provide the feature that midPoint needs in sufficient completeness, quality and usability.
+Relational database always was, and it still is, the reliable workhorse of many identity management solutions, including midPoint.
+Since midPoint 4.0 it is *PostgreSQL*, open source relational database engine that should play the role of midPoint repository.
 
 == Generic vs Native Repository Implementation
 
@@ -30,89 +44,121 @@ Generic database code must strictly adhere to standardized SQL and it cannot tak
 This means limitations in performance and scalability.
 Also, supporting and testing several database engines is not an easy task.
 
-As midPoint deployment grow in complexity and size, we are reaching the boundaries of generic database support approach.
-Therefore we have to specialize our implementation and choose our champion among the database engine.
-We have chosen *PostgreSQL database*. PostgreSQL is undoubtedly one of the best open source database engines.
+As midPoint deployment grow in complexity and size, we were reaching the boundaries of generic database support approach.
+Therefore, we had to specialize our implementation and choose our champion among the database engine.
+We have chosen *PostgreSQL database*.
+PostgreSQL is undoubtedly one of the best open source database engines.
 As midPoint is open source project, it was crucial to support an open source database.
 As we have doubts about the open source character of MySQL and the capabilities and community strength of MariaDB, PostgreSQL was a clear choice.
 That is also the reason that we have decided to focus on PostgreSQL and PostgreSQL was a recommended database engine since midPoint 4.0 release.
 
-We had plans to create a _native_ repository implementation, an implementation that could take full advantage of underlying database, an implementation that can avoid the complications and overhead of generic database data mapping.
-This has finally materialized in link:/midpoint/projects/midscale/[midScale project]. MidScale project brings a native, efficient, high-performance, scalable repository implementation for PostgreSQL database.
+Since midPoint 4.4, there is a _native_ repository implementation, an implementation that takes full advantage of underlying database, an implementation that avoids the complications and overhead of generic database data mapping.
+It was developed in xref:/midpoint/projects/midscale/[midScale project], an implementation which brings a native, efficient, high-performance, scalable repository implementation for PostgreSQL database.
 
-Therefore, as of midPoint 4.4 there will be two repository implementations:
+Therefore, as of midPoint 4.4 there are two repository implementations:
 
-* *Native* PostgreSQL repository implementation, efficient and scalable repository implementation.
+* xref:native-postgresql/[*Native* PostgreSQL repository implementation], efficient and scalable repository implementation.
 This should be the default choice for all midPoint deployments.
-It will be available in midPoint 4.4.
+It is available since midPoint 4.4.
 
-* *Generic* repository implementation, supporting PostgreSQL, Microsoft SQL and Oracle databases.
-This is the implementation that was used since midPoint 3.x. As of midPoint 4.4, this is considered to be a "legacy" implementation.
-It is still fully supported, however it can have performance and scalability limitations.
-It is not formally deprecated yet.
-However, we do not plan any new development or improvement of this implementation.
+* xref:generic/[*Generic* repository implementation], supporting PostgreSQL, Microsoft SQL and Oracle databases.
+This is the implementation that was used since midPoint 3.x.
+As of midPoint 4.4, this is considered to be a "legacy" implementation.
+It is still fully supported, however it is formally *deprecated*.
+We do not plan any new development or improvement of this implementation.
+Therefore, it is likely to have performance and scalability limitations.
 
 == The Future Of Database Engine Support
 
 Few important facts for the future of database engine support in midPoint:
 
-* *PostgreSQL will be supported and recommended* for all new midPoint versions.
-Newest PostgreSQL releases will be supported by new midPoint releases, given enough time to test new PostgreSQL releases.
+* *PostgreSQL is strongly recemmended* for all new midPoint versions.
+The plan is to support PostgreSQL database all foreseeable future.
+Newest PostgreSQL releases will be supported by new midPoint releases as they are released, given enough time to test new PostgreSQL releases.
 
-* Support for MySQL and MariaDB was dropped in midPoint 4.3. Need for MySQL/MariaDB in midPoint community seems to be negligible (see the link:/midpoint/projects/midscale/survey/[survey]), which contributed to a decision to drop MySQL/MariaDB support quickly.
+* Support for MySQL and MariaDB was dropped in midPoint 4.3.
+Need for MySQL/MariaDB in midPoint community seems to be negligible (see the xref:/midpoint/projects/midscale/survey/[survey]), which contributed to a decision to drop MySQL/MariaDB support quickly.
 These database engines will not be supported any longer.
 
-* Other commercial database engines (Oracle, Microsoft SQL) remain in the gray zone.
-We have not made any decision about these.
+* Other commercial database engines (Oracle, Microsoft SQL) remain in the gray zone for the time being.
+Support for them is formally *deprecated* since midPoint 4.4.
 They are currently supported.
 However, it is quite likely that these databases will not be included in standard midPoint support service.
-Support services for these databases will need to be purchased separately - to compensate for extra effort supporting them.
+There may be a need to purchase support services for these databases separately - to compensate for extra effort supporting them.
 It is quite clear, that these database engines are *not* our priority.
 We currently do not plan to support any newer database versions for these commercial databases.
+Quite the contrary, we plan to drop the support entirely, probably in midPoint 4.7 at the latest.
 Users that require clear database support plans should choose PostgreSQL database instead.
 
-* Support for H2 is likely to remain for development and demonstration purposes.
+* Support for H2 is likely to remain for development and demonstration purposes, at least for the time being.
+However, once support for generic database repository is gone, support for H2 will be gone too.
+We need to find an alternative way how to support easy evaluation and demo deployments without H2.
 
-The bottom line is, that *if you start a new midPoint deployment, the best choice is to go with PostgreSQL*. If you have existing midPoint deployment then you are probably OK to continue operation with current setup, but plan to migrate to PostgreSQL in the future.
+The bottom line is, that *if you start a new midPoint deployment, the best choice is to go with PostgreSQL*. If you have existing midPoint deployment then you are probably OK to continue operation with current setup for a short while, but plan to migrate to PostgreSQL soon.
 
+These decisions may seem radical.
+However, they are necessary to maintain quality of midPoint deployments in the future.
+We would rather invest the effort to improve midPoint, rather than spending time on testing many database engines in various versions for every midPoint release.
+We have confirmed our plans in a xref:/midpoint/projects/midscale/survey/[survey], the re-confirmed it once again in xref:/midpoint/projects/midscale/survey/[midScale survey].
+The community agrees, PostgreSQL it is.
 
-== Migration to Native PostgreSQL Repository
+== New Deployments
+
+Choose xref:native-postgresql/[native PostgreSQL repository implementation].
+Just do it.
+Given our plans for the future, it is not worth considering any other options.
+
+== Existing Deployments: Migration to Native PostgreSQL Repository
 
 Firstly and most importantly, there is no need for panic or any other quick action right now.
 PostgreSQL is the recommended database, but other databases are still supported (except for MariaDB/MySQL, which were deprecated some time ago).
-The other databases will be supported until there is a clear migration path to PostgreSQL.
-There is no need to migrate your existing deployment right now.
-*Please wait until midPoint 4.4*. MidPoint 4.4 would be an ideal point for you to migrate your database.
-However, you can keep your existing database even a little longer.
-There is still time to prepare: both for you and midPoint.
-However, please keep in mind that you will probably need to migrate to PostgreSQL eventually.
+The other databases will be supported for some time, to give all users proper chance to migrate to PostgreSQL.
+It would be nice of you migrate your existing deployment right now, however doing it a bit later is still OK.
+If you have exiting deployment in production, migration may require some planning and careful execution.
+Take your time preparing for the migration.
+However, do not delay for too long.
+Create migration plan right now.
 
-We have the following plan for database support:
+Migration of existing deployments should be done is several steps:
 
-. We are developing _native_ repository implementation for PostgreSQL.
-This implementation will work only for PostgreSQL and it will take advantage of all the database features that we need.
-This will come with a new and more efficient database schema.
-For now this is planned to be released in production-ready quality in midPoint 4.4.
+. *Upgrade to midPoint 4.4, using your existing database.*
+Your database engine is still supported in midPoint 4.4 (unless you are running MySQL/MariaDB, in which case you should have migrated already).
+Upgrade to midPoint 4.4 may pose challenges of its own, especially if you are migrating from midPoint 4.0.
+The challenges will be easier if you do not need to worry about big changes in the database engine.
 
-. We will create a migration plan (and a guide) from all the supported databases to the new native PostgreSQL repository.
-The migration path will most likely involve XML export/import of the data.
+. *Run and test midPoint 4.4 with your existing database* for some time (few weeks or months).
+Make sure that everything is operating normally, check that all the usual upgrade problems were addressed.
+No need to hurry here.
+The implementation of Oracle or Microsoft SQL support in midPoint 4.4 is no worse than it was in previous versions.
+Even if the support is deprecated, the code is still maintained and it should work well.
+Make sure everything works smoothly before taking the next step.
+Maybe even waiting for midPoint 4.4.1 might be a good idea.
 
-. Both the new native PostgreSQL repository and the old generic implementations will be supported in midPoint 4.4 LTS, planned for release in late 2021.
-Expected lifetime of midPoint 4.4 LTS is until late 2024.
-Therefore you will have at least three-year migration period to PostgreSQL if you stick with midPoint 4.4 LTS.
+. *Migrate the database to PostgreSQL*.
+Native PostgreSQL repository is using a PostgreSQL-specific database schema that is not compatible with previous versions of midPoint.
+Therefore the data need to be exported and re-imported.
+Please see TODO for details, yet the outline of the process is as follows:
+[arabic]
+.. Disable access of all users to midPoint.
 
-. The plans for database support beyond midPoint 4.4 LTS are still quite fuzzy.
-We have already dropped database support for MySQL and MariaDB, as there was almost no interest in this support in midPoint community.
-There are no specific plans for dropping support for Oracle and Microsoft SQL, but it may happen eventually.
+.. Export all the data to XML (or other supported format).
 
-The new native PostgreSQL repository has a completely new database schema, designed to take full advantage of PostgreSQL capabilities.
+.. Stop midPoint.
+
+.. Create new PostgreSQL database, apply database schema, reconfigure midPoint to access the database.
+
+.. Import data from the XML export (e.g. using xref:/midpoint/reference/deployment/ninja/[ninja]).
+
+.. Start midPoint, test it.
+
+The native PostgreSQL repository has a completely new database schema, designed to take full advantage of PostgreSQL capabilities.
 This database schema is not compatible with the database schema for the old generic repository.
-Therefore full data migration is needed for any conversion from (old) generic repository implementation to (new) native repository implementation.
-The migration is done by exporting all the data to XML, setting up a new empty database and importing the XML data.
-This migration is needed even for migrating data from existing PostgreSQL deployments to the new native PostgreSQL repository, as the database schemas are not compatible.
+Therefore, full data migration is needed for any conversion from (old) generic repository implementation to (new) native repository implementation.
+This migration is needed even for migrating data from existing (generic) PostgreSQL deployments to the new (native) PostgreSQL repository, as the database schemas are not compatible.
 
+Please see TODO for details.
 
-== Support For Database Engines
+== Support Services For Database Engines
 
 MidPoint is using database for its data store.
 MidPoint _needs_ database engine, but it does not _include_ database engine.
@@ -121,7 +167,7 @@ The database engine is *not* considered to be part of midPoint.
 Therefore the database engine itself is not included in Evolveum support for midPoint.
 
 Evolveum will make reasonable effort to make sure that midPoint works well with the databases.
-We are testing midPoint with several databases, using various versions and configurations.
+We are testing midPoint with all supported databases, using various versions and configurations.
 We are trying to make sure that midPoint works with the common database engines in common configurations.
 We will fix the bugs in midPoint database-related code as part of our support problems.
 In some cases we will also make work-arounds for some frequent and annoying database issues, although such decisions are made on case-by-case basis.
@@ -135,7 +181,7 @@ There are lots of variables here, single-node databases, clustered databases, ma
 Those depend on your environment, your requirements and workloads.
 We cannot possibly make such decisions for you.
 We provide database schema that midPoint needs.
-But fine-tuning of the database is up to you.
+But fine-tuning of the database engine is up to you.
 There are small deployments and big deployments, each of them may have different database tuning requirements.
 For example, audit table may work with default setting in a small deployment that cleans up audit records after few months.
 But a large deployments that keeps audit records for years will need a very specific solution for storing audit data.
@@ -148,14 +194,15 @@ Making sure that the bug is fixed is your responsibility.
 You should have a means to do it.
 This is usually a support contract with the database vendor or in-house capability.
 
-From a practical perspective, midPoint usually works well with recent versions of PostgreSQL in usual configurations.
+From a practical perspective, midPoint works well with recent versions of PostgreSQL in usual configurations.
+Most of our testing is based on this configuration.
 Small midPoint deployment that are not performance-sensitive can probably operate without any problems even without any special support coverage for the database engine, just making sure that the database engine is properly maintained.
 Larger midPoint deployments will surely benefit from a dedicated PostgreSQL support.
-Such support contract can surely be consolidated with other applications in your organizations that are using PostgreSQL and it is also a great way how to support PostgreSQL project.
-Therefore we always recommend to secure a support for PostgreSQL database if you can afford it.
+Such support contract can surely be consolidated with other applications in your organizations that are using PostgreSQL, and it is also a great way how to support PostgreSQL project.
+Therefore, we always recommend to purchase a support for PostgreSQL database if you can afford it.
 
 As for commercial and semi-commercial database (Oracle, MS SQL) we always strongly recommend to purchase a support contract for database engine if you insist on using such database.
-However, perhaps the best strategy would be to migrate to PostgreSQL eventually.
+However, perhaps the best strategy would be to migrate to PostgreSQL as soon as possible.
 
 
 == Clusters and Cloud
@@ -169,7 +216,7 @@ Which means, that midPoint can only work for clustered configurations that can p
 MidPoint will not work in environments with read-only replicas, environments that provide eventual consistency or any weaker consistency guarantees.
 
 * Proper configuration of database clusters is a complex task that often involves trade-offs.
-For example clusters built for high availability and robustness may increase data maintenance overhead and it may result in lower overall performance.
+For example clusters built for high availability and robustness may increase data maintenance overhead, and it may result in lower overall performance.
 Analysis, design, proper configuration and maintenance of database clusters is your responsibility.
 Evolveum support will not resolve issues that are caused by inappropriate design or configuration of database clusters.
 It is unrealistic to expect that midPoint will be highly available or more performant just because it runs on a database cluster.
@@ -181,4 +228,5 @@ Even though midPoint is tested in a variety of database configurations during de
 If you happen to experience an issue with midPoint operation, we have to reproduce the issue in order to have any realistic chance to fix it.
 Some issues can be reproduced in our testing environment.
 However, presence of database clustering makes reproduction of issues much harder.
-Therefore please be prepared that Evolveum team may request access to your testing environment where the issue can be reproduced in order to diagnose and fix an issue.
+Therefore, please be prepared that Evolveum team may request access to your testing environment where the issue can be reproduced in order to diagnose and fix an issue.
+
