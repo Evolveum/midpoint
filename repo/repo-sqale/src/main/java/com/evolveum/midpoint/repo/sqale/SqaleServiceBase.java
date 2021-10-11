@@ -59,8 +59,8 @@ public class SqaleServiceBase {
         return sqlRepoContext;
     }
 
-    protected JdbcRepositoryConfiguration repositoryConfiguration() {
-        return sqlRepoContext.getJdbcRepositoryConfiguration();
+    public SqaleRepositoryConfiguration repositoryConfiguration() {
+        return (SqaleRepositoryConfiguration) sqlRepoContext.getJdbcRepositoryConfiguration();
     }
 
     protected PrismContext prismContext() {

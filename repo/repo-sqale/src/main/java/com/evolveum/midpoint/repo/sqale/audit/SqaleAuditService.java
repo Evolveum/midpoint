@@ -188,7 +188,8 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                 DeltaConversionOptions options =
                         DeltaConversionOptions.createSerializeReferenceNames();
                 options.setEscapeInvalidCharacters(isEscapingInvalidCharacters(auditConfiguration));
-                String serializedDelta = DeltaConvertor.toObjectDeltaTypeXml(delta, options);
+                String serializedDelta = DeltaConvertor.serializeDelta(
+                        delta, options, repositoryConfiguration().getFullObjectFormat());
 
                 // serializedDelta is transient, needed for changed items later
                 deltaRow.serializedDelta = serializedDelta;

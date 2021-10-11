@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,7 +7,8 @@
 package com.evolveum.midpoint.schema;
 
 import static com.evolveum.midpoint.prism.PrismObject.asPrismObject;
-import static com.evolveum.midpoint.util.MiscUtil.*;
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+import static com.evolveum.midpoint.util.MiscUtil.requireNonNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,8 +45,10 @@ public class DeltaConvertor {
     /**
      * Object delta: XML (api-types-3) -> native
      */
-    @NotNull public static <T extends Objectable> ObjectDelta<T> createObjectDelta(ObjectModificationType objectModification,
-            Class<T> type, PrismContext prismContext) throws SchemaException {
+    @NotNull
+    public static <T extends Objectable> ObjectDelta<T> createObjectDelta(
+            ObjectModificationType objectModification, Class<T> type, PrismContext prismContext)
+            throws SchemaException {
         Validate.notNull(prismContext, "No prismContext in DeltaConvertor.createObjectDelta call");
         PrismObjectDefinition<T> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
         if (objectDefinition == null) {
@@ -57,8 +60,9 @@ public class DeltaConvertor {
     /**
      * Object delta: XML (api-types-3) -> native
      */
-    @NotNull public static <T extends Objectable> ObjectDelta<T> createObjectDelta(ObjectModificationType objectModification,
-            PrismObjectDefinition<T> objDef) throws SchemaException {
+    @NotNull
+    public static <T extends Objectable> ObjectDelta<T> createObjectDelta(
+            ObjectModificationType objectModification, PrismObjectDefinition<T> objDef) throws SchemaException {
         ObjectDelta<T> objectDelta = objDef.getPrismContext().deltaFactory().object()
                 .create(objDef.getCompileTimeClass(), ChangeType.MODIFY);
 
@@ -74,8 +78,8 @@ public class DeltaConvertor {
      * Object delta: XML -> native
      */
     @NotNull
-    public static <T extends Objectable> ObjectDelta<T> createObjectDelta(ObjectDeltaType objectDeltaBean,
-            PrismContext prismContext) throws SchemaException {
+    public static <T extends Objectable> ObjectDelta<T> createObjectDelta(
+            ObjectDeltaType objectDeltaBean, PrismContext prismContext) throws SchemaException {
         argCheck(prismContext != null, "No prismContext in DeltaConvertor.createObjectDelta call");
         QName objectTypeName =
                 requireNonNull(objectDeltaBean.getObjectType(),
@@ -175,7 +179,7 @@ public class DeltaConvertor {
             try {
                 propPropModTypes = toItemDeltaTypes(propDelta);
             } catch (SchemaException e) {
-                throw new SchemaException(e.getMessage() + " in " + delta.toString(), e);
+                throw new SchemaException(e.getMessage() + " in " + delta, e);
             }
             propModBeans.addAll(propPropModTypes);
         }
@@ -214,7 +218,7 @@ public class DeltaConvertor {
                 try {
                     propPropModTypes = toItemDeltaTypes(propDelta, options);
                 } catch (SchemaException e) {
-                    throw new SchemaException(e.getMessage() + " in " + objectDelta.toString(), e);
+                    throw new SchemaException(e.getMessage() + " in " + objectDelta, e);
                 }
                 objectDeltaBean.getItemDelta().addAll(propPropModTypes);
             }
@@ -229,15 +233,20 @@ public class DeltaConvertor {
     /**
      * Object delta: native -> serialized XML.
      */
-    public static String toObjectDeltaTypeXml(ObjectDelta<? extends com.evolveum.prism.xml.ns._public.types_3.ObjectType> delta, DeltaConversionOptions options)
+    public static String serializeDelta(
+            ObjectDelta<? extends com.evolveum.prism.xml.ns._public.types_3.ObjectType> delta,
+            DeltaConversionOptions options,
+            @NotNull String language)
             throws SchemaException {
-        argCheck(delta.getPrismContext() != null, "ObjectDelta without prismContext cannot be converted to XML");
+        argCheck(delta.getPrismContext() != null, "ObjectDelta without prismContext cannot serialized");
         ObjectDeltaType objectDeltaType = toObjectDeltaType(delta, options);
         SerializationOptions serializationOptions = new SerializationOptions()
                 .skipTransient(true)
+                .skipWhitespaces(true)
                 .serializeReferenceNames(DeltaConversionOptions.isSerializeReferenceNames(options))
                 .escapeInvalidCharacters(DeltaConversionOptions.isEscapeInvalidCharacters(options));
-        return delta.getPrismContext().xmlSerializer().options(serializationOptions)
+        return delta.getPrismContext().serializerFor(language)
+                .options(serializationOptions)
                 .serializeRealValue(objectDeltaType, SchemaConstants.T_OBJECT_DELTA);
     }
 
