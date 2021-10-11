@@ -1,0 +1,59 @@
+= Migration to Native PostgreSQL Repository
+:page-since: "4.4"
+:page-keywords: [ 'PostgreSQL', 'repository', 'database' ]
+
+== Overview
+
+Since changes in schema are too large to be handled by SQL update, or you may be
+switching database during
+
+In short the migration process should be:
+ . Upgrading midPoint to 4.4 using your original SQL configuration
+ . Exporting your existing data to file system using Ninja
+ . Initializing Native PostgreSQL repository
+ . Changing midPoint configuration to use native PostgreSQL Repository
+ . Importing your existing data to native PostgreSQL Repository using Ninja
+ . Starting midPoint with new configuration
+
+
+== 1. Exporting your existing data to file system using Ninja
+
+We need to export existing data in raw mode, so they can be later reimported
+into new native PostgreSQL repository using same tool (ninja).
+
+In terminal, go to your midPoint installation directory and execute:
+
+[source, bash]
+----
+bin/ninja.sh -v export -r -O export.xml
+----
+
+NOTE: See xref:midpoint/reference/deployment/ninja[ninja] for more export configuration options and their meaning
+
+== 2. Initializing & changing configuration for native PostgreSQL repository
+
+See xref:/midpoint/reference/repository/native-postresql/usage[Native PostgreSQL Repository]
+for installation and configuration of native PostgreSQL repository.
+
+WARNING: Please backup your `config.xml`, you may need it later, if you will need to
+revert changes in order to fix some problems.
+
+WARNING: Do not start midPoint after configuration changes performed in usage documentation.
+
+== 3. Importing your existing data to repository Using Ninja
+
+Once export is successful and configuration changes were made, we may proceed with
+importing data to new native PostgreSQL repository.
+
+In terminal, navigate to your midPoint installation directory and execute:
+
+[source, bash]
+----
+bin/ninja.sh -v import -i export.xml
+----
+
+NOTE: See xref:midpoint/reference/deployment/ninja[ninja] for more import configuration options and their meaning
+
+== 4. Starting midPoint
+
+If import was successful, you are now able to start midPoint using new repository.
