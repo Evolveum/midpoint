@@ -137,7 +137,7 @@ Maybe even waiting for midPoint 4.4.1 might be a good idea.
 . *Migrate the database to PostgreSQL*.
 Native PostgreSQL repository is using a PostgreSQL-specific database schema that is not compatible with previous versions of midPoint.
 Therefore the data need to be exported and re-imported.
-Please see TODO for details, yet the outline of the process is as follows:
+Please see xref:native-postgresql/migration/[] for details, yet the outline of the process is as follows:
 [arabic]
 .. Disable access of all users to midPoint.
 
@@ -156,7 +156,7 @@ This database schema is not compatible with the database schema for the old gene
 Therefore, full data migration is needed for any conversion from (old) generic repository implementation to (new) native repository implementation.
 This migration is needed even for migrating data from existing (generic) PostgreSQL deployments to the new (native) PostgreSQL repository, as the database schemas are not compatible.
 
-Please see TODO for details.
+Please see xref:native-postgresql/migration/[] for details.
 
 == Support Services For Database Engines
 
@@ -230,3 +230,10 @@ Some issues can be reproduced in our testing environment.
 However, presence of database clustering makes reproduction of issues much harder.
 Therefore, please be prepared that Evolveum team may request access to your testing environment where the issue can be reproduced in order to diagnose and fix an issue.
 
+== See Also
+
+* xref:native-postgresql/[]
+
+* xref:generic/[]
+
+* xref:native-postgresql/migration/[]
