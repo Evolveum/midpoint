@@ -13,6 +13,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
@@ -43,10 +44,6 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -304,10 +301,18 @@ public class ColumnUtils {
                     public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem,
                             String componentId, IModel<SelectableBean<T>> rowModel) {
                         SelectableBean<TaskType> object = (SelectableBean<TaskType>) rowModel.getObject();
-                        PrismProperty<ShadowKindType> pKind = object.getValue() != null ?
-                                object.getValue().asPrismObject().findProperty(
-                                        ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND))
-                                : null;
+
+                        PrismProperty<ShadowKindType> pKind;
+                        if (object.getValue() != null) {
+                            pKind = findPropertyInResourceSet(object.getValue(), ResourceObjectSetType.F_KIND);
+                            if (pKind == null) {
+                                pKind = object.getValue().asPrismObject().findProperty(
+                                        ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
+                            }
+                        } else {
+                            pKind = null;
+                        }
+
                         if (pKind != null) {
                             cellItem.add(new Label(componentId, WebComponentUtil
                                     .createLocalizedModelForEnum(pKind.getRealValue(), cellItem)));
@@ -325,10 +330,18 @@ public class ColumnUtils {
             public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem,
                     String componentId, IModel<SelectableBean<T>> rowModel) {
                 SelectableBean<TaskType> object = (SelectableBean<TaskType>) rowModel.getObject();
-                PrismProperty<String> pIntent = object.getValue() != null ?
-                        object.getValue().asPrismObject().findProperty(
-                                ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT))
-                        : null;
+
+                PrismProperty<String> pIntent;
+                if (object.getValue() != null) {
+                    pIntent = findPropertyInResourceSet(object.getValue(), ResourceObjectSetType.F_INTENT);
+                    if (pIntent == null) {
+                        pIntent = object.getValue().asPrismObject().findProperty(
+                                ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
+                    }
+                } else {
+                    pIntent = null;
+                }
+
                 if (pIntent != null) {
                     cellItem.add(new Label(componentId, pIntent.getRealValue()));
                 } else {
@@ -344,10 +357,18 @@ public class ColumnUtils {
             public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem,
                     String componentId, IModel<SelectableBean<T>> rowModel) {
                 SelectableBean<TaskType> object = (SelectableBean<TaskType>) rowModel.getObject();
-                PrismProperty<QName> pObjectClass = object.getValue() != null ?
-                        object.getValue().asPrismObject().findProperty(
-                                ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS))
-                        : null;
+
+                PrismProperty<QName> pObjectClass;
+                if (object.getValue() != null) {
+                    pObjectClass = findPropertyInResourceSet(object.getValue(), ResourceObjectSetType.F_OBJECTCLASS);
+                    if (pObjectClass == null) {
+                        pObjectClass = object.getValue().asPrismObject().findProperty(
+                                ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS));
+                    }
+                } else {
+                    pObjectClass = null;
+                }
+
                 if (pObjectClass != null) {
                     cellItem.add(new Label(componentId, pObjectClass.getRealValue().getLocalPart()));
                 } else {
@@ -364,6 +385,41 @@ public class ColumnUtils {
 
         return columns;
 
+    }
+
+    private static PrismProperty findPropertyInResourceSet(TaskType value, ItemPath pathToProperty) {
+        if (!WebComponentUtil.isResourceRelatedTask(value)) {
+            return null;
+        }
+        PrismContainer resourceSet = value.asPrismObject().findContainer(
+                ItemPath.create(
+                        TaskType.F_ACTIVITY,
+                        ActivityDefinitionType.F_WORK,
+                        WorkDefinitionsType.F_RECONCILIATION,
+                        ReconciliationWorkDefinitionType.F_RESOURCE_OBJECTS
+                ));
+        if (resourceSet == null) {
+            resourceSet = value.asPrismObject().findContainer(
+                    ItemPath.create(
+                            TaskType.F_ACTIVITY,
+                            ActivityDefinitionType.F_WORK,
+                            WorkDefinitionsType.F_IMPORT,
+                            ImportWorkDefinitionType.F_RESOURCE_OBJECTS
+                    ));
+        }
+        if (resourceSet == null) {
+            resourceSet = value.asPrismObject().findContainer(
+                    ItemPath.create(
+                            TaskType.F_ACTIVITY,
+                            ActivityDefinitionType.F_WORK,
+                            WorkDefinitionsType.F_LIVE_SYNCHRONIZATION,
+                            LiveSyncWorkDefinitionType.F_RESOURCE_OBJECTS
+                    ));
+        }
+        if (resourceSet != null) {
+            return resourceSet.findProperty(pathToProperty);
+        }
+        return null;
     }
 
     public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultRoleColumns() {
