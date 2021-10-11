@@ -502,7 +502,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             try {
                 Task task = getPageBase().createSimpleTask(OPERATION_DELETE_OBJECT);
 
-                ObjectDelta delta = getPrismContext().deltaFactory().object().create(UserType.class, ChangeType.DELETE);
+                ObjectDelta delta = getPrismContext().deltaFactory().object().create(objectToDelete.getClass(), ChangeType.DELETE);
                 delta.setOid(object.getOid());
 
                 ExecuteChangeOptionsDto executeOptions = getExecuteOptions();
