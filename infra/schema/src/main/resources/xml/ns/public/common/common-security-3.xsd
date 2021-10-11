@@ -528,6 +528,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="maxAuthenticationAgeMillis" type="xsd:long" minOccurs="0" maxOccurs="1" default="86400000">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Session length related to SAML SSO assertion in Midpoint before user is
+                        required to reauthenticate into the IDP.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="nameId" type="tns:AuthenticationModuleSaml2NameIdType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
