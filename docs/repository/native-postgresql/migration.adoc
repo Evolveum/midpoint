@@ -33,7 +33,7 @@ NOTE: See xref:/midpoint/reference/deployment/ninja[ninja] for more export confi
 
 == Initializing & changing configuration for native PostgreSQL repository
 
-See xref:/midpoint/reference/repository/native-postresql/usage[Native PostgreSQL Repository]
+See xref:/midpoint/reference/repository/native-postgresql/usage[Native PostgreSQL Repository]
 for installation and configuration of native PostgreSQL repository.
 
 WARNING: Please backup your `config.xml`, you may need it later, if you will need to
