@@ -1876,7 +1876,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return guiConfigurationRegistry.findCounter(identifier);
     }
 
-    public boolean isNewRepo() {
+    public boolean isNativeRepo() {
         return getRepositoryService().getRepositoryType().equals("Native");
     }
 }

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.func;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -193,7 +194,7 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test123LookupLanguagesOrderById() throws Exception {
+    public void test124LookupLanguagesOrderById() throws Exception {
         given();
         OperationResult result = createOperationResult();
 
@@ -207,15 +208,17 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
                 .maxSize(1)
                 .asc(PrismConstants.T_ID)
                 .end();
-        PrismObject<LookupTableType> lookup = repositoryService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), result);
+        PrismObject<LookupTableType> lookup = repositoryService.getObject(
+                LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), result);
 
         then();
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertThatOperationResult(result)
+                .isSuccess();
+        assertThat(lookup).isNotNull();
     }
 
     @Test
-    public void test124LookupLanguagesGetByKeyContainingReturningNothing() throws Exception {
+    public void test125LookupLanguagesGetByKeyContainingReturningNothing() throws Exception {
         given();
         OperationResult result = createOperationResult();
 
@@ -226,7 +229,8 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
                 .item(LookupTableRowType.F_KEY)
                 .contains("xyz")
                 .end();
-        PrismObject<LookupTableType> lookup = repositoryService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), result);
+        PrismObject<LookupTableType> lookup = repositoryService.getObject(
+                LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), result);
 
         then();
         result.computeStatus();
@@ -251,7 +255,8 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
                 .item(LookupTableRowType.F_VALUE)
                 .eq("sk")
                 .end();
-        PrismObject<LookupTableType> lookup = repositoryService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), result);
+        PrismObject<LookupTableType> lookup = repositoryService.getObject(
+                LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), result);
 
         then();
         result.computeStatus();
@@ -275,7 +280,8 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
                 .item(LookupTableRowType.F_LABEL)
                 .startsWith(fragment)
                 .end();
-        PrismObject<LookupTableType> lookup = repositoryService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), result);
+        PrismObject<LookupTableType> lookup = repositoryService.getObject(
+                LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), result);
 
         then();
         result.computeStatus();
@@ -297,7 +303,7 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
                 .contains("n")
                 .offset(0)
                 .maxSize(1)
-                .desc(LookupTableRowType.F_LABEL)        // using sorting key other than the one used in search
+                .desc(LookupTableRowType.F_LABEL) // using sorting key other than the one used in search
                 .end();
         PrismObject<LookupTableType> lookup = repositoryService.getObject(
                 LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), result);
