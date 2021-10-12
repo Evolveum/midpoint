@@ -50,6 +50,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
 
     private SamlServerConfiguration samlConfiguration;
     private Map<String, String> namesOfUsernameAttributes = new HashMap<String, String>();
+    private Long maxAuthenticationAgeMillis;
 
     private SamlModuleWebSecurityConfiguration() {
     }
@@ -88,6 +89,9 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
                 .setSignRequests(Boolean.TRUE.equals(serviceProviderType.isSignRequests()))
                 .setWantAssertionsSigned(Boolean.TRUE.equals(serviceProviderType.isWantAssertionsSigned()))
                 .setSingleLogoutEnabled(Boolean.TRUE.equals(serviceProviderType.isSingleLogoutEnabled()));
+        if (serviceProviderType.getMaxAuthenticationAgeMillis() != null) {
+            configuration.setMaxAuthenticationAgeMillis(serviceProviderType.getMaxAuthenticationAgeMillis());
+        }
         if (StringUtils.isNotBlank(publicHttpUrlPattern)) {
             serviceProvider.setBasePath(publicHttpUrlPattern);
         } else {
@@ -284,6 +288,14 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
 
     public void setNamesOfUsernameAttributes(Map<String, String> namesOfUsernameAttributes) {
         this.namesOfUsernameAttributes = namesOfUsernameAttributes;
+    }
+
+    public Long getMaxAuthenticationAgeMillis() {
+        return maxAuthenticationAgeMillis;
+    }
+
+    public void setMaxAuthenticationAgeMillis(Long input) {
+        maxAuthenticationAgeMillis = input;
     }
 
     @Override

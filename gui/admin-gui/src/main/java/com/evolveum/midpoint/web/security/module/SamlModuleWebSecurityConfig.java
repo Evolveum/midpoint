@@ -30,11 +30,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.saml.SamlRequestMatcher;
+import org.springframework.security.saml.SamlValidator;
 import org.springframework.security.saml.provider.SamlProviderLogoutFilter;
 import org.springframework.security.saml.provider.SamlServerConfiguration;
 import org.springframework.security.saml.provider.provisioning.SamlProviderProvisioning;
 import org.springframework.security.saml.provider.service.ServiceProviderService;
 import org.springframework.security.saml.provider.service.config.SamlServiceProviderServerBeanConfiguration;
+import org.springframework.security.saml.spi.DefaultValidator;
 import org.springframework.security.saml.spi.SpringSecuritySaml;
 import org.springframework.security.saml.spi.opensaml.OpenSamlImplementation;
 import org.springframework.security.web.authentication.logout.CompositeLogoutHandler;
@@ -64,11 +66,14 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
     @Autowired
     private ModelAuditRecorder auditProvider;
 
+    private final Long maxAuthenticationAgeMillis;
+
     private MidpointSamlProviderServerBeanConfiguration beanConfiguration;
 
     public SamlModuleWebSecurityConfig(C configuration) {
         super(configuration);
         this.beanConfiguration = new MidpointSamlProviderServerBeanConfiguration(configuration);
+        this.maxAuthenticationAgeMillis = configuration.getMaxAuthenticationAgeMillis();
     }
 
     @Override
@@ -132,6 +137,24 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
                     samlMetadataCache(),
                     authenticationRequestEnhancer()
             );
+        }
+
+        @Override
+        public SamlValidator samlValidator() {
+            // Extend the session timeout from Spring default 24 hours to a configurable value.
+            // Due to restrictive Integer type used in Spring SAML API,
+            // the max number of days we can extend the timeout is 24.85 days.
+            // If no configuration value is provided, leave maxAuthenticationAgeMillis unchanged with 24-hour default.
+            if (maxAuthenticationAgeMillis != null) {
+                int useMax = maxAuthenticationAgeMillis > Integer.MAX_VALUE
+                        ? Integer.MAX_VALUE : maxAuthenticationAgeMillis.intValue();
+
+                SamlValidator modifiedDefaultValidator = super.samlValidator();
+                ((DefaultValidator)modifiedDefaultValidator).setMaxAuthenticationAgeMillis(useMax);
+                return modifiedDefaultValidator;
+            } else {
+                return super.samlValidator();
+            }
         }
 
         @Bean
