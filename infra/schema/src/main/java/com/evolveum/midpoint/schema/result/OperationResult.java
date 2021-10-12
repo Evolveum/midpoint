@@ -109,7 +109,6 @@ public class OperationResult
     public static final String PARAM_LANGUAGE = "language";
 
     public static final String RETURN_COUNT = "count";
-    public static final String RETURN_BACKGROUND_TASK_OID = "backgroundTaskOid";
     public static final String RETURN_COMMENT = "comment";
     public static final String DEFAULT = "";
 
@@ -1271,7 +1270,7 @@ public class OperationResult
         return this;
     }
 
-    public Map<String, Collection<String>> getContext() {
+    public @NotNull Map<String, Collection<String>> getContext() {
         if (context == null) {
             context = new HashMap<>();
         }
@@ -2256,17 +2255,10 @@ public class OperationResult
 
     public void setBackgroundTaskOid(String oid) {
         setAsynchronousOperationReference(TASK_OID_PREFIX + oid);
-        addReturn(RETURN_BACKGROUND_TASK_OID, oid); // deprecated
     }
 
     public void setCaseOid(String oid) {
         setAsynchronousOperationReference(CASE_OID_PREFIX + oid);
-    }
-
-    // use asynchronous operation reference
-    @Deprecated // TODO remove in 4.2
-    public String getBackgroundTaskOid() {
-        return getReturnSingle(RETURN_BACKGROUND_TASK_OID);
     }
 
     @Override

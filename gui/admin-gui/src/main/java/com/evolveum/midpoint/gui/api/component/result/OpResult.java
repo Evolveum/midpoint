@@ -64,7 +64,7 @@ public class OpResult implements Serializable, Visitable {
 
     // we assume there is at most one background task created (TODO revisit this assumption)
     private String backgroundTaskOid;
-    private Boolean backgroundTaskVisible;            // available on root opResult only
+    private Boolean backgroundTaskVisible; // available on root opResult only
 
     private String caseOid;
     private Boolean caseVisible;
@@ -121,49 +121,33 @@ public class OpResult implements Serializable, Visitable {
             opResult.exceptionsStackTrace = writer.toString();
         }
 
-        if (result.getParams() != null) {
-            for (Map.Entry<String, Collection<String>> entry : result.getParams().entrySet()) {
-                String paramValue = null;
-                Collection<String> values = entry.getValue();
-                if (values != null) {
-                    paramValue = values.toString();
-                }
-
-                opResult.getParams().add(new Param(entry.getKey(), paramValue));
+        for (Map.Entry<String, Collection<String>> entry : result.getParams().entrySet()) {
+            String paramValue = null;
+            Collection<String> values = entry.getValue();
+            if (values != null) {
+                paramValue = values.toString();
             }
+            opResult.getParams().add(new Param(entry.getKey(), paramValue));
         }
 
-        if (result.getContext() != null) {
-            for (Map.Entry<String, Collection<String>> entry : result.getContext().entrySet()) {
-                String contextValue = null;
-                Collection<String> values = entry.getValue();
-                if (values != null) {
-                    contextValue = values.toString();
-                }
-
-                opResult.getContexts().add(new Context(entry.getKey(), contextValue));
+        for (Map.Entry<String, Collection<String>> entry : result.getContext().entrySet()) {
+            String contextValue = null;
+            Collection<String> values = entry.getValue();
+            if (values != null) {
+                contextValue = values.toString();
             }
+            opResult.getContexts().add(new Context(entry.getKey(), contextValue));
         }
 
-        if (result.getSubresults() != null) {
-            for (OperationResult subresult : result.getSubresults()) {
-                OpResult subOpResult = OpResult.getOpResult(page, subresult);
-                opResult.getSubresults().add(subOpResult);
-                subOpResult.parent = opResult;
-                if (subOpResult.getBackgroundTaskOid() != null) {
-                    opResult.backgroundTaskOid = subOpResult.getBackgroundTaskOid();
-                }
-            }
+        for (OperationResult subresult : result.getSubresults()) {
+            OpResult subOpResult = OpResult.getOpResult(page, subresult);
+            opResult.getSubresults().add(subOpResult);
+            subOpResult.parent = opResult;
         }
 
-        if (result.getBackgroundTaskOid() != null) {
-            opResult.backgroundTaskOid = result.getBackgroundTaskOid();
-        }
-
-        String caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
-        if (caseOid != null) {
-            opResult.caseOid = caseOid;
-        }
+        String asynchronousOperationReference = result.findAsynchronousOperationReference();
+        opResult.backgroundTaskOid = OperationResult.referenceToTaskOid(asynchronousOperationReference);
+        opResult.caseOid = OperationResult.referenceToCaseOid(asynchronousOperationReference);
 
         if (opResult.parent == null) {
             opResult.xml = createXmlModel(result, page);
