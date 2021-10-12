@@ -1,19 +1,18 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema.result;
 
-import static com.evolveum.midpoint.prism.util.CloneUtil.cloneCloneable;
-import static com.evolveum.midpoint.util.MiscUtil.or0;
-
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
+import static com.evolveum.midpoint.prism.util.CloneUtil.cloneCloneable;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultImportanceType.*;
 
 import java.io.Serializable;
@@ -24,10 +23,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.internals.ThreadLocalOperationsMonitor;
-import com.evolveum.midpoint.schema.util.TraceUtil;
-import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -44,11 +39,17 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.internals.ThreadLocalOperationsMonitor;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.ParamsTypeUtil;
+import com.evolveum.midpoint.schema.util.TraceUtil;
 import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.logging.*;
+import com.evolveum.midpoint.util.logging.LevelOverrideTurboFilter;
+import com.evolveum.midpoint.util.logging.LoggingLevelOverrideConfiguration;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.util.statistics.OperationInvocationRecord;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -95,7 +96,6 @@ public class OperationResult
     public static final String CONTEXT_OID = "oid";
     public static final String CONTEXT_OBJECT = "object";
     public static final String CONTEXT_ITEM = "item";
-    public static final String CONTEXT_RESOURCE = "resource";
     public static final String CONTEXT_REASON = "reason";
 
     public static final String PARAM_OID = "oid";
@@ -263,7 +263,7 @@ public class OperationResult
         return result != null ? result.keepRootOnly() : null;
     }
 
-    private OperationResult keepRootOnly() {
+    public OperationResult keepRootOnly() {
         return new OperationResult(getOperation(), null, getStatus(), 0, getMessageCode(), getMessage(), null, null, null);
     }
 

@@ -1,26 +1,28 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (c) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * TaskErrorSelectableBeanImpl alternative for new repository.
+ * TODO: promised to be removed in 4.5, at least in this doc: https://docs.evolveum.com/midpoint/reference/admin-gui/admin-gui-config/
  */
-public class TaskErrorSelectableBeanImplNew extends SelectableBeanImpl<OperationExecutionType> {
+public class TaskErrorSelectableBeanImplOld<O extends ObjectType> extends SelectableBeanImpl<O> {
     public static final String F_OBJECT_REF_NAME = "objectName";
     public static final String F_STATUS = "status";
     public static final String F_MESSAGE = "message";
@@ -28,7 +30,7 @@ public class TaskErrorSelectableBeanImplNew extends SelectableBeanImpl<Operation
     public static final String F_RECORD_TYPE = "recordType";
     public static final String F_REAL_OWNER_DESCRIPTION = "realOwnerDescription";
 
-    private ObjectType realOwner;
+    private O realOwner;
     private OperationResultStatusType status;
     private String message;
     private String taskOid;
@@ -36,29 +38,53 @@ public class TaskErrorSelectableBeanImplNew extends SelectableBeanImpl<Operation
     private OperationExecutionRecordTypeType recordType;
     private String objectName;
 
-    public TaskErrorSelectableBeanImplNew() {
+    public TaskErrorSelectableBeanImplOld() {
     }
 
-    public TaskErrorSelectableBeanImplNew(@NotNull OperationExecutionType opex) {
+    public TaskErrorSelectableBeanImplOld(@NotNull O object, @NotNull String taskOid) {
         //TODO: better identification? e.g. if it is shadow, display also resource for the shadow?
         // if it is user, display type? or rather 'midpoint' representing local repo?
         // of would it be better to have separate column for it?
-        realOwner = ObjectTypeUtil.getParentObject(opex);
+        this.realOwner = object;
 
-        status = opex.getStatus();
-        message = opex.getMessage();
-        errorTimestamp = opex.getTimestamp();
-        recordType = opex.getRecordType();
-        // TODO: make up our mind about "real" real owner? realOwner is probably just "owner"
-        //  see OperationExecutionRecordRealOwnerType about really real owner
-        objectName = extractRealOwner(opex, realOwner);
+        for (OperationExecutionType execution : object.getOperationExecution()) {
+            if (execution.getTaskRef() == null || !taskOid.equals(execution.getTaskRef().getOid())) {
+                continue;
+            }
+            status = execution.getStatus();
+            message = extractMessages(execution);
+            errorTimestamp = execution.getTimestamp();
+            recordType = execution.getRecordType();
+            objectName = extractRealOwner(execution, object);
+        }
+    }
+
+    private String extractMessages(OperationExecutionType execution) {
+        List<String> messages = new ArrayList<>();
+        if (execution.getMessage() != null) {
+            message = execution.getMessage();
+            return message;
+        }
+
+        for (ObjectDeltaOperationType deltaOperation : execution.getOperation()) {
+            OperationResultType result = deltaOperation.getExecutionResult();
+            if (result == null || result.getMessage() == null) {
+                continue;
+            }
+            OperationResultStatusType status = result.getStatus();
+            if (status != OperationResultStatusType.WARNING && status != OperationResultStatusType.FATAL_ERROR && status != OperationResultStatusType.PARTIAL_ERROR) {
+                continue;
+            }
+            messages.add(result.getMessage());
+        }
+        return StringUtils.join(messages, "; ");
     }
 
     public XMLGregorianCalendar getErrorTimestamp() {
         return errorTimestamp;
     }
 
-    private String extractRealOwner(@NotNull OperationExecutionType execution, ObjectType object) {
+    private String extractRealOwner(@NotNull OperationExecutionType execution, O object) {
         OperationExecutionRecordRealOwnerType realOwnerType = execution.getRealOwner();
         if (realOwnerType == null) {
             return WebComponentUtil.getName(object);
@@ -82,9 +108,8 @@ public class TaskErrorSelectableBeanImplNew extends SelectableBeanImpl<Operation
 
     }
 
-    public PrismObject<ObjectType> getRealOwner() {
-        //noinspection unchecked
-        return (PrismObject<ObjectType>) realOwner.asPrismObject();
+    public PrismObject<O> getRealOwner() {
+        return (PrismObject<O>) realOwner.asPrismObject();
     }
 
     public String getRealOwnerDescription() {

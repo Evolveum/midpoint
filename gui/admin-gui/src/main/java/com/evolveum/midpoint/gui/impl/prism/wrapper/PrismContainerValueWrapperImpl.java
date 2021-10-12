@@ -261,6 +261,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     @Override
     public List<ItemWrapper<?,?>> getNonContainers() {
         if (!nonContainers.isEmpty()) {
+            sortContainers();
             return nonContainers;
         }
 

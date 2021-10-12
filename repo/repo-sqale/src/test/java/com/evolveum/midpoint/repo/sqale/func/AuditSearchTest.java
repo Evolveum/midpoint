@@ -108,8 +108,12 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         ObjectDeltaOperation<UserType> delta3 = createDelta(ItemPath.create(
                         ObjectType.F_METADATA, MetadataType.F_REQUEST_TIMESTAMP),
                 MiscUtil.asXMLGregorianCalendar(System.currentTimeMillis()));
-        // adding additional "column" to one of deltas
-        delta3.setExecutionResult(new OperationResult("delta-op", OperationResultStatus.SUCCESS, "message"));
+        // adding execution result to one of deltas
+        OperationResult opResult3 = new OperationResult("delta-op", OperationResultStatus.SUCCESS, "message");
+        opResult3.subresult("sub-op1").setMinor().build().setStatus(OperationResultStatus.PARTIAL_ERROR);
+        opResult3.subresult("sub-op2").setMinor().build().setSuccess();
+        opResult3.subresult("sub-op3").build().setSuccess();
+        delta3.setExecutionResult(opResult3);
         record1.addDelta(delta3);
         // just want to see two values, that's all
         record1.addReferenceValue("ref1",

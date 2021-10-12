@@ -137,11 +137,8 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
         // here we use config from context, it can be main repository configuration
         SqlRepositoryConfiguration repoConfig =
                 (SqlRepositoryConfiguration) sqlRepoContext.getJdbcRepositoryConfiguration();
-        boolean createMissing = repoConfig.isCreateMissingCustomColumns()
-                // but we'll consider the flag also on audit configuration, just in case
-                || configuration.getBoolean(JdbcRepositoryConfiguration.PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS, false);
         SqlTableMetadata tableMetadata = null;
-        if (createMissing) {
+        if (repoConfig.isCreateMissingCustomColumns()) {
             try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
                 tableMetadata = SqlTableMetadata.create(
                         jdbcSession.connection(), QAuditEventRecord.TABLE_NAME);

@@ -291,6 +291,11 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             public ContainerPanelConfigurationType getPanelConfiguration() {
                 return AbstractRoleMemberPanel.this.getPanelConfiguration();
             }
+
+            @Override
+            protected String getTitleForNewObjectButton() {
+                return createStringResource("TreeTablePanel.menu.createMember").getString();
+            }
         };
         childrenListPanel.setOutputMarkupId(true);
         memberContainer.add(childrenListPanel);
@@ -572,7 +577,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
     private AjaxIconButton createAssignButton(String buttonId) {
         AjaxIconButton assignButton = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.EVO_ASSIGNMENT_ICON),
-                createStringResource("MainObjectListPanel.newObject")) {
+                createStringResource("TreeTablePanel.menu.addMembers")) {
 
             private static final long serialVersionUID = 1L;
 

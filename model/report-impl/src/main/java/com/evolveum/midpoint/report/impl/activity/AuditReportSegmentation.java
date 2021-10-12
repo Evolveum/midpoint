@@ -97,10 +97,6 @@ class AuditReportSegmentation {
             }
         }
 
-
-        System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXX REPORT_FROM: " + reportFrom + " ||||| REPORT_TO : " + reportTo + " XXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-        System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXX REPORT_FROM_FIRST_RECORD: " + reportFromFirstAuditRecord + " ||||| REPORT_TO_REALIZED_TIME : " + reportToRealizedTime + " XXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-        System.out.println("_______________________________________________________________________________");
         int result =
                 reportFrom.toGregorianCalendar().compareTo(reportTo.toGregorianCalendar());
 
@@ -181,7 +177,6 @@ class AuditReportSegmentation {
             bucketTo = XmlTypeConverter.createXMLGregorianCalendar(reportToMillis);
         }
 
-        System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXX FROM: " + bucketFrom + " ||||| TO : " + bucketTo + " XXXXXXXXXXXXXXXXXXXXXXXXXXXX");
         ObjectFilter filter = PrismContext.get().queryFor(AuditEventRecordType.class)
                     .item(AuditEventRecordType.F_TIMESTAMP).ge(bucketFrom) // inclusive
                     .and().item(AuditEventRecordType.F_TIMESTAMP).le(bucketTo) // exclusive

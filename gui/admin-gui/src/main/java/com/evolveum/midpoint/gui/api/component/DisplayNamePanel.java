@@ -115,7 +115,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
         if (!(containerable instanceof ObjectType)) {
             return false;
         }
-        if (((ObjectType) containerable).getOid().isBlank()) {
+        if (StringUtils.isBlank(((ObjectType) containerable).getOid())) {
             return false;
         }
         return WebComponentUtil.hasDetailsPage(containerable.getClass());

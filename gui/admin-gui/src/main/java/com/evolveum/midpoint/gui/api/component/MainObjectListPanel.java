@@ -300,34 +300,15 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             }
          }
 
-        String sb = createStringResource("MainObjectListPanel.newObject").getString()
-                + " "
-                + createStringResource("ObjectTypeLowercase." + getType().getSimpleName()).getString();
+        String title = getTitleForNewObjectButton();
         return GuiDisplayTypeUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
-                sb);
+                title);
     }
 
-    protected Map<IconCssStyle, IconType> createMainButtonLayerIcons(DisplayType mainButtonDisplayType) {
-        if (!isCollectionViewPanelForCompiledView()) {
-            return Collections.emptyMap();
-        }
-        return WebComponentUtil.createMainButtonLayerIcon(mainButtonDisplayType);
-    }
-
-    private DisplayType getNewObjectButtonSpecialDisplayType() {
-        String iconCssStyle = WebComponentUtil.createDefaultBlackIcon(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()));
-
-        String sb = createStringResource("MainObjectListPanel.newObject").getString()
+    protected String getTitleForNewObjectButton() {
+        return createStringResource("MainObjectListPanel.newObject").getString()
                 + " "
                 + createStringResource("ObjectTypeLowercase." + getType().getSimpleName()).getString();
-        DisplayType display = GuiDisplayTypeUtil.createDisplayType(iconCssStyle, "", sb);
-        display.setLabel(WebComponentUtil.createPolyFromOrigString(
-                getType().getSimpleName(), "ObjectType." + getType().getSimpleName()));
-        return display;
-    }
-
-    protected boolean getNewObjectGenericButtonVisibility() {
-        return true;
     }
 
     private AjaxIconButton createImportObjectButton(String buttonId) {
@@ -502,7 +483,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             try {
                 Task task = getPageBase().createSimpleTask(OPERATION_DELETE_OBJECT);
 
-                ObjectDelta delta = getPrismContext().deltaFactory().object().create(UserType.class, ChangeType.DELETE);
+                ObjectDelta delta = getPrismContext().deltaFactory().object().create(objectToDelete.getClass(), ChangeType.DELETE);
                 delta.setOid(object.getOid());
 
                 ExecuteChangeOptionsDto executeOptions = getExecuteOptions();

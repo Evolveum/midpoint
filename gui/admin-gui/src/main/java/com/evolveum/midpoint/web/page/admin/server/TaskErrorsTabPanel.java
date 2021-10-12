@@ -12,13 +12,10 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
-import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -26,6 +23,7 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -33,15 +31,21 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
+import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskErrorSelectableBeanImpl;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskErrorSelectableBeanImplOld;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
@@ -63,17 +67,30 @@ public class TaskErrorsTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initLayout();
+        if (getPageBase().isNativeRepo()) {
+            initLayoutNew(); // New repo, searchContainers, see MID-7235
+        } else {
+            initLayoutOld(); // Old repo, searchObjects
+        }
         setOutputMarkupId(true);
     }
 
-    private void initLayout() {
-
-        SelectableBeanObjectDataProvider<? extends ObjectType> provider = new SelectableBeanObjectDataProvider<>(this, null) {
+    private void initLayoutNew() {
+        var provider = new SelectableBeanContainerDataProvider<OperationExecutionType>(this, Model.of(), null, true) {
 
             @Override
-            public SelectableBean<ObjectType> createDataObjectWrapper(ObjectType obj) {
-                return new TaskErrorSelectableBeanImpl<>(obj, getModelObject().getOid());
+            protected String getDefaultSortParam() {
+                return TaskErrorSelectableBeanImpl.F_ERROR_TIMESTAMP;
+            }
+
+            @Override
+            protected SortOrder getDefaultSortOrder() {
+                return SortOrder.DESCENDING;
+            }
+
+            @Override
+            public SelectableBean<OperationExecutionType> createDataObjectWrapper(OperationExecutionType obj) {
+                return new TaskErrorSelectableBeanImpl(obj);
             }
 
             @Override
@@ -88,6 +105,89 @@ public class TaskErrorsTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
                     OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
                     ItemPath ordering;
                     if (sortParam.getProperty().equals(TaskErrorSelectableBeanImpl.F_ERROR_TIMESTAMP)) {
+                        ordering = ItemPath.create(OperationExecutionType.F_TIMESTAMP);
+                    } else if (sortParam.getProperty().equals("name")) {
+                        // TODO why is this "name" and not TaskErrorSelectableBeanImpl.F_OBJECT_REF_NAME?
+                        ordering = ItemPath.create(PrismConstants.T_PARENT, ObjectType.F_NAME);
+                    } else {
+                        // TODO this is actually not used
+                        ordering = ItemPath.create(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty()));
+                    }
+                    return Collections.singletonList(
+                            getPrismContext().queryFactory().createOrdering(ordering, order));
+                } else {
+                    return Collections.emptyList();
+                }
+            }
+
+            @Override
+            public Class<OperationExecutionType> getType() {
+                return OperationExecutionType.class;
+            }
+        };
+
+        BoxedTablePanel<?> table = new BoxedTablePanel<>(ID_TASK_ERRORS, provider, initColumns());
+        table.setOutputMarkupId(true);
+        add(table);
+    }
+
+    private List<IColumn<TaskErrorSelectableBeanImpl, String>> initColumns() {
+        List<IColumn<TaskErrorSelectableBeanImpl, String>> columns = new ArrayList<>();
+        columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.objectName"), TaskErrorSelectableBeanImpl.F_OBJECT_REF_NAME) {
+            @Override
+            public String getSortProperty() {
+                return "name";
+            }
+        });
+        columns.add(new AbstractColumn<>(createStringResource("pageTaskEdit.taskErros.timestamp"), TaskErrorSelectableBeanImpl.F_ERROR_TIMESTAMP) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<TaskErrorSelectableBeanImpl>> cellItem, String componentId,
+                    IModel<TaskErrorSelectableBeanImpl> rowModel) {
+                Label label = new Label(componentId, (IModel<String>) () ->
+                        WebComponentUtil.getShortDateTimeFormattedValue(rowModel.getObject().getErrorTimestamp(), getPageBase()));
+                cellItem.add(label);
+            }
+        });
+        columns.add(new EnumPropertyColumn<>(createStringResource("pageTaskEdit.taskErros.status"), TaskErrorSelectableBeanImpl.F_STATUS));
+        columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.message"), TaskErrorSelectableBeanImpl.F_MESSAGE));
+        columns.add(new EnumPropertyColumn<>(createStringResource("pageTaskEdit.taskErros.recordType"), TaskErrorSelectableBeanImpl.F_RECORD_TYPE));
+        columns.add(new AjaxLinkColumn<>(createStringResource("pageTaskEdit.taskErros.realOwner"), TaskErrorSelectableBeanImpl.F_REAL_OWNER_DESCRIPTION) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<TaskErrorSelectableBeanImpl> rowModel) {
+                TaskErrorSelectableBeanImpl object = rowModel.getObject();
+                PrismObject<ObjectType> realOwner = object.getRealOwner();
+                WebComponentUtil.dispatchToObjectDetailsPage(
+                        realOwner.getCompileTimeClass(), realOwner.getOid(), TaskErrorsTabPanel.this, false);
+            }
+        });
+
+        return columns;
+    }
+
+    private void initLayoutOld() {
+
+        SelectableBeanObjectDataProvider<? extends ObjectType> provider = new SelectableBeanObjectDataProvider<>(this, null) {
+
+            @Override
+            public SelectableBean<ObjectType> createDataObjectWrapper(ObjectType obj) {
+                return new TaskErrorSelectableBeanImplOld<>(obj, getModelObject().getOid());
+            }
+
+            @Override
+            public ObjectQuery getQuery() {
+                return createContentQuery(getModelObject().getOid(), getPageBase());
+            }
+
+            @NotNull
+            @Override
+            protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+                if (sortParam != null && sortParam.getProperty() != null) {
+                    OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
+                    ItemPath ordering;
+                    if (sortParam.getProperty().equals(TaskErrorSelectableBeanImplOld.F_ERROR_TIMESTAMP)) {
                         ordering = ItemPath.create("operationExecution", "timestamp");
                     } else {
                         ordering = ItemPath.create(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty()));
@@ -99,46 +199,46 @@ public class TaskErrorsTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
                     return Collections.emptyList();
                 }
             }
-            
+
             @Override
             public Class<ObjectType> getType() {
                 return ObjectType.class;
             }
         };
 
-        BoxedTablePanel<TaskErrorSelectableBeanImpl<ObjectType>> table = new BoxedTablePanel<>(ID_TASK_ERRORS, provider, initColumns());
+        BoxedTablePanel<TaskErrorSelectableBeanImplOld<ObjectType>> table = new BoxedTablePanel<>(ID_TASK_ERRORS, provider, initColumnsOld());
         table.setOutputMarkupId(true);
         add(table);
 
     }
 
-    private List<IColumn<TaskErrorSelectableBeanImpl<ObjectType>, String>> initColumns() {
-        List<IColumn<TaskErrorSelectableBeanImpl<ObjectType>, String>> columns = new ArrayList<>();
-        columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.objectName"), TaskErrorSelectableBeanImpl.F_OBJECT_REF_NAME) {
+    private List<IColumn<TaskErrorSelectableBeanImplOld<ObjectType>, String>> initColumnsOld() {
+        List<IColumn<TaskErrorSelectableBeanImplOld<ObjectType>, String>> columns = new ArrayList<>();
+        columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.objectName"), TaskErrorSelectableBeanImplOld.F_OBJECT_REF_NAME) {
             @Override
             public String getSortProperty() {
                 return "name";
             }
         });
-        columns.add(new AbstractColumn<>(createStringResource("pageTaskEdit.taskErros.timestamp"), TaskErrorSelectableBeanImpl.F_ERROR_TIMESTAMP) {
+        columns.add(new AbstractColumn<>(createStringResource("pageTaskEdit.taskErros.timestamp"), TaskErrorSelectableBeanImplOld.F_ERROR_TIMESTAMP) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void populateItem(Item<ICellPopulator<TaskErrorSelectableBeanImpl<ObjectType>>> cellItem, String componentId,
-                    IModel<TaskErrorSelectableBeanImpl<ObjectType>> rowModel) {
+            public void populateItem(Item<ICellPopulator<TaskErrorSelectableBeanImplOld<ObjectType>>> cellItem, String componentId,
+                    IModel<TaskErrorSelectableBeanImplOld<ObjectType>> rowModel) {
                 Label label = new Label(componentId, (IModel<String>) () -> WebComponentUtil.getShortDateTimeFormattedValue(rowModel.getObject().getErrorTimestamp(), getPageBase()));
                 cellItem.add(label);
             }
 
         });
-        columns.add(new EnumPropertyColumn<>(createStringResource("pageTaskEdit.taskErros.status"), TaskErrorSelectableBeanImpl.F_STATUS));
-        columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.message"), TaskErrorSelectableBeanImpl.F_MESSAGE));
-        columns.add(new EnumPropertyColumn<>(createStringResource("pageTaskEdit.taskErros.recordType"), TaskErrorSelectableBeanImpl.F_RECORD_TYPE));
-        columns.add(new AjaxLinkColumn<>(createStringResource("pageTaskEdit.taskErros.realOwner"), TaskErrorSelectableBeanImpl.F_REAL_OWNER_DESCRIPTION) {
+        columns.add(new EnumPropertyColumn<>(createStringResource("pageTaskEdit.taskErros.status"), TaskErrorSelectableBeanImplOld.F_STATUS));
+        columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.message"), TaskErrorSelectableBeanImplOld.F_MESSAGE));
+        columns.add(new EnumPropertyColumn<>(createStringResource("pageTaskEdit.taskErros.recordType"), TaskErrorSelectableBeanImplOld.F_RECORD_TYPE));
+        columns.add(new AjaxLinkColumn<>(createStringResource("pageTaskEdit.taskErros.realOwner"), TaskErrorSelectableBeanImplOld.F_REAL_OWNER_DESCRIPTION) {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<TaskErrorSelectableBeanImpl<ObjectType>> rowModel) {
-                TaskErrorSelectableBeanImpl<ObjectType> object = rowModel.getObject();
+            public void onClick(AjaxRequestTarget target, IModel<TaskErrorSelectableBeanImplOld<ObjectType>> rowModel) {
+                TaskErrorSelectableBeanImplOld<ObjectType> object = rowModel.getObject();
                 PrismObject<ObjectType> realOwner = object.getRealOwner();
                 WebComponentUtil.dispatchToObjectDetailsPage(realOwner.getCompileTimeClass(), realOwner.getOid(), TaskErrorsTabPanel.this, false);
             }
@@ -148,20 +248,30 @@ public class TaskErrorsTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
     }
 
     private ObjectQuery createContentQuery(String taskOid, PageBase pageBase) {
-        return pageBase.getPrismContext().queryFor(ObjectType.class)
-                .exists(ObjectType.F_OPERATION_EXECUTION)
-                .block()
-                .item(OperationExecutionType.F_TASK_REF).ref(taskOid)
-                .and()
-                .block().item(OperationExecutionType.F_STATUS)
-                .eq(OperationResultStatusType.FATAL_ERROR)
-                .or().item(OperationExecutionType.F_STATUS)
-                .eq(OperationResultStatusType.PARTIAL_ERROR)
-                .or().item(OperationExecutionType.F_STATUS)
-                .eq(OperationResultStatusType.WARNING)
-                .endBlock()
-                .endBlock()
-                .build();
+        if (pageBase.isNativeRepo()) {
+            return getPrismContext().queryFor(OperationExecutionType.class)
+                    .item(OperationExecutionType.F_TASK_REF).ref(taskOid)
+                    .and()
+                    // new repo allows EQ with multiple values meaning IN
+                    .item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.FATAL_ERROR,
+                            OperationResultStatusType.PARTIAL_ERROR, OperationResultStatusType.WARNING)
+                    .build();
+        } else {
+            return pageBase.getPrismContext().queryFor(ObjectType.class)
+                    .exists(ObjectType.F_OPERATION_EXECUTION)
+                    .block()
+                    .item(OperationExecutionType.F_TASK_REF).ref(taskOid)
+                    .and()
+                    .block().item(OperationExecutionType.F_STATUS)
+                    .eq(OperationResultStatusType.FATAL_ERROR)
+                    .or().item(OperationExecutionType.F_STATUS)
+                    .eq(OperationResultStatusType.PARTIAL_ERROR)
+                    .or().item(OperationExecutionType.F_STATUS)
+                    .eq(OperationResultStatusType.WARNING)
+                    .endBlock()
+                    .endBlock()
+                    .build();
+        }
     }
 
     @Override
