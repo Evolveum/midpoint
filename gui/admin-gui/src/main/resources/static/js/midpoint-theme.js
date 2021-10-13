@@ -67,6 +67,9 @@ function showAjaxStatusSign() {
 
 function hideAjaxStatusSign() {
     document.getElementById('ajax_busy').style.visibility = 'hidden';
+    if (document.querySelector("[role='tooltip']") != null) {
+        document.querySelector("[role='tooltip']").style.visibility = 'hidden';
+    };
 }
 
 /**
