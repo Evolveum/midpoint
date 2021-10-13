@@ -81,7 +81,7 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
 
     @AfterMethod
     public void reportAfterTest() {
-        Collection<SqlRecorder.QueryEntry> sqlBuffer = queryRecorder.getBuffer();
+        Collection<SqlRecorder.QueryEntry> sqlBuffer = queryRecorder.getQueryBuffer();
         if (!sqlBuffer.isEmpty()) {
             display("Recorded SQL queries:");
             for (SqlRecorder.QueryEntry entry : sqlBuffer) {
@@ -165,7 +165,7 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
                 String name = String.format("shadow-%07d-at-%s", userIndex, resourceEntry.getKey());
                 ShadowType shadow = createShadow(name, resourceEntry.getValue());
                 // for the last user, but only once for a single resource
-                if (userIndex == BASE_USER_COUNT && queryRecorder.getBuffer().isEmpty()) {
+                if (userIndex == BASE_USER_COUNT && queryRecorder.getQueryBuffer().isEmpty()) {
                     queryRecorder.startRecording();
                 }
                 try (Split ignored = stopwatch.start()) {
@@ -251,7 +251,7 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
                 String name = String.format("shadow-more-%07d-at-%s", userIndex, resourceEntry.getKey());
                 ShadowType shadowType = createShadow(name, resourceEntry.getValue());
                 // for the last user, but only once for a single resource
-                if (userIndex == MORE_USER_COUNT && queryRecorder.getBuffer().isEmpty()) {
+                if (userIndex == MORE_USER_COUNT && queryRecorder.getQueryBuffer().isEmpty()) {
                     queryRecorder.startRecording();
                 }
                 try (Split ignored = stopwatch.start()) {
