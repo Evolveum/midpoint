@@ -92,6 +92,11 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
  */
 public class SqaleRepositoryService extends SqaleServiceBase implements RepositoryService {
 
+    /**
+     * Name of the repository implementation, returned by {@link #getRepositoryType()}.
+     * While public, the value is often copied because this service class is implementation
+     * detail for the rest of the midPoint.
+     */
     public static final String REPOSITORY_IMPL_NAME = "Native";
 
     public static final int INITIAL_VERSION_NUMBER = 0;
