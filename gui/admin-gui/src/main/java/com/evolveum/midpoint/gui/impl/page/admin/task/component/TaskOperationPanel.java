@@ -41,8 +41,8 @@ import java.util.Collections;
 
 //TODO implement correctly
 @PanelType(name = "operation")
-@PanelInstance(identifier = "operation", applicableForType = TaskType.class,
-        display = @PanelDisplay(label = "pageTaskEdit.operation", order = 60))
+@PanelInstance(identifier = "operation",
+        display = @PanelDisplay(label = "pageTaskEdit.operation", order = 60))  //not visible for all tasks, only for WF related tasks
 public class TaskOperationPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
