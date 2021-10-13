@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -30,29 +32,25 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.assignment.AbstractRoleAssignmentPanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @PanelType(name = "gdprAssignments", experimental = true)
 @PanelInstance(identifier = "gdprAssignments",
         applicableForType = UserType.class,
         childOf = AssignmentHolderAssignmentPanel.class,
         display = @PanelDisplay(label = "FocusType.consents"))
-public class GdprAssignmentPanel<AH extends AssignmentHolderType> extends AbstractRoleAssignmentPanel {
+public class GdprAssignmentPanel extends AbstractAssignmentPanel<UserType> {
 
     private static final long serialVersionUID = 1L;
 
-    public GdprAssignmentPanel(String id, LoadableModel<PrismObjectWrapper<AH>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config) {
-        super(id, PrismContainerWrapperModel.fromContainerWrapper(assignmentContainerWrapperModel, AssignmentHolderType.F_ASSIGNMENT), config);
+    public GdprAssignmentPanel(String id, IModel<PrismObjectWrapper<UserType>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config) {
+        super(id, assignmentContainerWrapperModel, config);
     }
 
     @Override
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
-        columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getModel(), AssignmentType.F_LIFECYCLE_STATE, ColumnType.STRING, getPageBase()));
+        columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getContainerModel(), AssignmentType.F_LIFECYCLE_STATE, ColumnType.STRING, getPageBase()));
 
         columns.add(new CheckBoxColumn<>(createStringResource("AssignmentType.accepted")) {
 
@@ -96,13 +94,13 @@ public class GdprAssignmentPanel<AH extends AssignmentHolderType> extends Abstra
 //        super.addSelectedAssignmentsPerformed(target, assignmentsList, SchemaConstants.ORG_CONSENT, kind, intent);
 //    }
 
-    @Override
-    protected QName getPredefinedRelation() {
-        return SchemaConstants.ORG_CONSENT;
-    }
+//    @Override
+//    protected QName getPredefinedRelation() {
+//        return SchemaConstants.ORG_CONSENT;
+//    }
 
     protected ObjectQuery getCustomizeQuery() {
-        return getParentPage().getPrismContext().queryFor(AssignmentType.class)
+        return getPrismContext().queryFor(AssignmentType.class)
                 .block()
                 .item(AssignmentType.F_TARGET_REF)
                 .refRelation(SchemaConstants.ORG_CONSENT)
@@ -113,5 +111,10 @@ public class GdprAssignmentPanel<AH extends AssignmentHolderType> extends Abstra
     @Override
     protected List<ObjectTypes> getObjectTypesList() {
         return Arrays.asList(ObjectTypes.ROLE, ObjectTypes.ORG, ObjectTypes.SERVICE);
+    }
+
+    @Override
+    protected QName getAssignmentType() {
+        return AbstractRoleType.COMPLEX_TYPE;
     }
 }

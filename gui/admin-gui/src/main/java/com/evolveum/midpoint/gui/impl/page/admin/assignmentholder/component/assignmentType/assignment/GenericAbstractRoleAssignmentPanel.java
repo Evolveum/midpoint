@@ -28,17 +28,19 @@ import com.evolveum.midpoint.web.component.assignment.AbstractRoleAssignmentPane
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.model.IModel;
+
 @PanelType(name = "dataProtectionAssignments", experimental = true)
 @PanelInstance(identifier = "dataProtectionAssignments",
         applicableForType = FocusType.class,
         childOf = AssignmentHolderAssignmentPanel.class,
         display = @PanelDisplay(label = "pageAdminFocus.dataProtection"))
-public class GenericAbstractRoleAssignmentPanel<F extends FocusType> extends AbstractRoleAssignmentPanel<F> {
+public class GenericAbstractRoleAssignmentPanel<F extends FocusType> extends AbstractAssignmentPanel<F> {
 
     private static final long serialVersionUID = 1L;
 
-    public GenericAbstractRoleAssignmentPanel(String id, LoadableModel<PrismObjectWrapper<F>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config) {
-        super(id, PrismContainerWrapperModel.fromContainerWrapper(assignmentContainerWrapperModel, AssignmentHolderType.F_ASSIGNMENT), config);
+    public GenericAbstractRoleAssignmentPanel(String id, IModel<PrismObjectWrapper<F>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config) {
+        super(id, assignmentContainerWrapperModel, config);
     }
 
     @Override
