@@ -13,12 +13,15 @@ import java.util.*;
 import org.javasimon.Split;
 import org.javasimon.Stopwatch;
 import org.jetbrains.annotations.NotNull;
+import org.testng.SkipException;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
+import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResource;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.SqlRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -38,20 +41,25 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class MidScaleNewRepoTest extends SqaleRepoBaseTest
         implements PerformanceTestClassMixin {
 
-    public static final int RESOURCE_COUNT = 10;
+    public static final int RESOURCE_COUNT = 10; // shadow count = this * users
     public static final int BASE_USER_COUNT = 1000;
-    public static final int MORE_USER_COUNT = 10000;
+    public static final int MORE_USER_START = Integer.parseInt(System.getProperty("userStartIndex", "1"));
+    public static final int MORE_USER_COUNT = Integer.parseInt(System.getProperty("userEndIndex", "10000"));
     public static final int PEAK_USER_COUNT = 1000; // added both with and without assigned OID
-
-    public static final int FIND_COUNT = 1000;
 
     private static final Random RND = new Random();
 
     // maps name -> oid
     private final Map<String, String> resources = new LinkedHashMap<>();
-    private final Map<String, String> users = new LinkedHashMap<>();
+    private final List<String> userOidsToGet = new ArrayList<>();
 
     private final List<String> memInfo = new ArrayList<>();
+
+    // Value used a lot for one extension and rarely for another one.
+    private static final String TRICKY_VALUE = "tricky";
+    // Keys are defined in extension.xsd.
+    private static final String EXT_KEY_TRICKY = "string"; // uses tricky a lot
+    private static final String EXT_KEY_NORMAL = "string2"; // uses tricky rarely
 
     @BeforeClass
     public void initFullTextConfig() {
@@ -86,7 +94,7 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
     }
 
     @Test
-    public void test010InitResources() throws ObjectAlreadyExistsException, SchemaException {
+    public void test010InitResources() throws SchemaException {
         OperationResult operationResult = createOperationResult();
         Stopwatch stopwatch = stopwatch("resource.add", "Repository addObject(resource)");
         for (int resourceIndex = 1; resourceIndex <= RESOURCE_COUNT; resourceIndex++) {
@@ -99,6 +107,9 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
             }
             try (Split ignored = stopwatch.start()) {
                 repositoryService.addObject(resourceType.asPrismObject(), null, operationResult);
+            } catch (ObjectAlreadyExistsException e) {
+                QResource r = aliasFor(QResource.class);
+                resourceType.setOid(selectOne(r, r.nameOrig.eq(name)).oid.toString());
             }
             resources.put(name, resourceType.getOid());
         }
@@ -106,39 +117,61 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
     }
 
     @Test
-    public void test020AddBaseUsers() throws ObjectAlreadyExistsException, SchemaException {
+    public void test020AddBaseUsers() throws SchemaException {
+        if (MORE_USER_START > 1) {
+            throw new SkipException("Skipping, as we probably want to continue with more users");
+        }
         OperationResult operationResult = createOperationResult();
         Stopwatch stopwatch = stopwatch("user.add", "Repository addObject(user) - 1st batch");
         for (int userIndex = 1; userIndex <= BASE_USER_COUNT; userIndex++) {
             String name = String.format("user-%07d", userIndex);
-            UserType userType = new UserType(prismContext)
+            UserType user = new UserType(prismContext)
                     .name(PolyStringType.fromOrig(name))
                     .description(randomDescription(name));
+            addExtensionValues(user);
             if (userIndex == BASE_USER_COUNT) {
                 queryRecorder.clearBufferAndStartRecording();
             }
             try (Split ignored = stopwatch.start()) {
-                repositoryService.addObject(userType.asPrismObject(), null, operationResult);
+                repositoryService.addObject(user.asPrismObject(), null, operationResult);
+            } catch (ObjectAlreadyExistsException e) {
+                QUser u = aliasFor(QUser.class);
+                user.setOid(selectOne(u, u.nameOrig.eq(name)).oid.toString());
             }
-            users.put(name, userType.getOid());
+            if (userIndex % 10 == 0) {
+                userOidsToGet.add(user.getOid());
+            }
         }
         queryRecorder.stopRecording();
     }
 
+    private void addExtensionValues(ObjectType object) throws SchemaException {
+        object.extension(new ExtensionType(prismContext));
+        ExtensionType ext = object.getExtension();
+        double random = RND.nextDouble();
+        addExtensionValue(ext, EXT_KEY_TRICKY, random < 0.98 ? TRICKY_VALUE : "tricky-value-" + random);
+        addExtensionValue(ext, EXT_KEY_NORMAL, random < 0.002 ? TRICKY_VALUE : "normal-value-" + random);
+    }
+
     @Test
-    public void test030AddBaseShadows() throws ObjectAlreadyExistsException, SchemaException {
+    public void test030AddBaseShadows() throws SchemaException {
+        if (MORE_USER_START > 1) {
+            throw new SkipException("Skipping, as we probably want to continue with more users");
+        }
         OperationResult operationResult = createOperationResult();
         Stopwatch stopwatch = stopwatch("shadow.add", "Repository addObject(shadow) - 1st batch");
         for (int userIndex = 1; userIndex <= BASE_USER_COUNT; userIndex++) {
             for (Map.Entry<String, String> resourceEntry : resources.entrySet()) {
                 String name = String.format("shadow-%07d-at-%s", userIndex, resourceEntry.getKey());
-                ShadowType shadowType = createShadow(name, resourceEntry.getValue());
+                ShadowType shadow = createShadow(name, resourceEntry.getValue());
                 // for the last user, but only once for a single resource
                 if (userIndex == BASE_USER_COUNT && queryRecorder.getBuffer().isEmpty()) {
                     queryRecorder.startRecording();
                 }
                 try (Split ignored = stopwatch.start()) {
-                    repositoryService.addObject(shadowType.asPrismObject(), null, operationResult);
+                    repositoryService.addObject(shadow.asPrismObject(), null, operationResult);
+                } catch (ObjectAlreadyExistsException e) {
+                    // Ignoring
                 }
                 if (queryRecorder.isRecording()) {
                     // stop does not clear entries, so it will not be started again above
@@ -150,57 +183,70 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
     }
 
     @NotNull
-    private ShadowType createShadow(String shadowName, String resourceOid) {
-        return new ShadowType(prismContext)
+    private ShadowType createShadow(String shadowName, String resourceOid) throws SchemaException {
+        ShadowType shadow = new ShadowType(prismContext)
                 .name(PolyStringType.fromOrig(shadowName))
                 .description(randomDescription(shadowName))
                 .resourceRef(MiscSchemaUtil.createObjectReference(
                         resourceOid, ResourceType.COMPLEX_TYPE));
+        addExtensionValues(shadow); // attributes would work too, but are more complicated to set
+        return shadow;
     }
 
     @Test
     public void test110GetUser() throws SchemaException, ObjectNotFoundException {
+        if (MORE_USER_START > 1) {
+            throw new SkipException("Skipping, as we probably want to continue with more users");
+        }
         OperationResult operationResult = createOperationResult();
         Stopwatch stopwatch = stopwatch("user.get1", "Repository getObject() -> user, 1st test");
-        for (int i = 1; i <= FIND_COUNT; i++) {
-            String randomName = String.format("user-%07d", RND.nextInt(BASE_USER_COUNT) + 1);
-            if (i == FIND_COUNT) {
-                queryRecorder.startRecording();
-            }
+        queryRecorder.startRecording();
+        for (String userOid : userOidsToGet) {
             try (Split ignored = stopwatch.start()) {
                 assertThat(repositoryService.getObject(
-                        UserType.class, users.get(randomName), null, operationResult))
+                        UserType.class, userOid, null, operationResult))
                         .isNotNull();
+            }
+            if (queryRecorder.isRecording()) {
+                // stop does not clear entries, so it will not be started again above
+                queryRecorder.stopRecording();
             }
         }
         queryRecorder.stopRecording();
     }
 
     @Test
-    public void test210AddMoreUsers() throws ObjectAlreadyExistsException, SchemaException {
+//    @Test(enabled = false) // uncomment this if the users are all in to skip straight to the shadows
+    public void test210AddMoreUsers() throws SchemaException {
         OperationResult operationResult = createOperationResult();
         Stopwatch stopwatch = stopwatch("user.addMore", "Repository addObject(user) - 2nd batch");
-        for (int userIndex = 1; userIndex <= MORE_USER_COUNT; userIndex++) {
+        for (int userIndex = MORE_USER_START; userIndex <= MORE_USER_COUNT; userIndex++) {
             String name = String.format("user-more-%07d", userIndex);
-            UserType userType = new UserType(prismContext)
+            UserType user = new UserType(prismContext)
                     .name(PolyStringType.fromOrig(name))
                     .description(randomDescription(name));
+            addExtensionValues(user);
             if (userIndex == MORE_USER_COUNT) {
                 queryRecorder.startRecording();
             }
             try (Split ignored = stopwatch.start()) {
-                repositoryService.addObject(userType.asPrismObject(), null, operationResult);
+                repositoryService.addObject(user.asPrismObject(), null, operationResult);
+            } catch (ObjectAlreadyExistsException e) {
+                QUser u = aliasFor(QUser.class);
+                user.setOid(selectOne(u, u.nameOrig.eq(name)).oid.toString());
             }
-            users.put(name, userType.getOid());
+            if (userIndex % 100 == 0) {
+                userOidsToGet.add(user.getOid());
+            }
         }
         queryRecorder.stopRecording();
     }
 
     @Test
-    public void test230AddMoreShadows() throws ObjectAlreadyExistsException, SchemaException {
+    public void test230AddMoreShadows() throws SchemaException {
         OperationResult operationResult = createOperationResult();
         Stopwatch stopwatch = stopwatch("shadow.addMore", "Repository addObject(shadow) - 2nd batch");
-        for (int userIndex = 1; userIndex <= MORE_USER_COUNT; userIndex++) {
+        for (int userIndex = MORE_USER_START; userIndex <= MORE_USER_COUNT; userIndex++) {
             for (Map.Entry<String, String> resourceEntry : resources.entrySet()) {
                 String name = String.format("shadow-more-%07d-at-%s", userIndex, resourceEntry.getKey());
                 ShadowType shadowType = createShadow(name, resourceEntry.getValue());
@@ -210,34 +256,48 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
                 }
                 try (Split ignored = stopwatch.start()) {
                     repositoryService.addObject(shadowType.asPrismObject(), null, operationResult);
+                } catch (ObjectAlreadyExistsException e) {
+                    // Ignored
                 }
                 if (queryRecorder.isRecording()) {
                     queryRecorder.stopRecording();
                 }
+            }
+
+            // we need to free memory from time to time
+            if (userIndex % 10 == 0) {
+                compactOperationResult(operationResult);
+                clearPerformanceMonitor(); // to get rid of finished operations list
             }
         }
         queryRecorder.stopRecording();
     }
 
     @Test
-    public void test610AddPeakUsers() throws ObjectAlreadyExistsException, SchemaException {
+    public void test610AddPeakUsers() throws SchemaException {
         OperationResult operationResult = createOperationResult();
         Stopwatch stopwatch = stopwatch("user.addPeak", "Repository addObject(user) - 3rd batch");
         for (int userIndex = 1; userIndex <= PEAK_USER_COUNT; userIndex++) {
             String name = String.format("user-peak-%07d", userIndex);
-            UserType userType = new UserType(prismContext)
+            UserType user = new UserType(prismContext)
                     .name(PolyStringType.fromOrig(name))
                     .description(randomDescription(name));
+            addExtensionValues(user);
             try (Split ignored = stopwatch.start()) {
-                repositoryService.addObject(userType.asPrismObject(), null, operationResult);
+                repositoryService.addObject(user.asPrismObject(), null, operationResult);
+            } catch (ObjectAlreadyExistsException e) {
+                QUser u = aliasFor(QUser.class);
+                user.setOid(selectOne(u, u.nameOrig.eq(name)).oid.toString());
             }
-            users.put(name, userType.getOid());
+            if (userIndex % 10 == 0) {
+                userOidsToGet.add(user.getOid());
+            }
         }
         // no query recorder in this test
     }
 
     @Test
-    public void test611AddPeakShadows() throws ObjectAlreadyExistsException, SchemaException {
+    public void test611AddPeakShadows() throws SchemaException {
         OperationResult operationResult = createOperationResult();
         Stopwatch stopwatch = stopwatch("shadow.addPeak", "Repository addObject(shadow) - 3rd batch");
         for (int userIndex = 1; userIndex <= PEAK_USER_COUNT; userIndex++) {
@@ -246,6 +306,8 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
                 ShadowType shadowType = createShadow(name, resourceEntry.getValue());
                 try (Split ignored = stopwatch.start()) {
                     repositoryService.addObject(shadowType.asPrismObject(), null, operationResult);
+                } catch (ObjectAlreadyExistsException e) {
+                    // Ignored
                 }
             }
         }
@@ -253,20 +315,25 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
     }
 
     @Test
-    public void test615AddPeakUsersWithOid() throws ObjectAlreadyExistsException, SchemaException {
+    public void test615AddPeakUsersWithOid() throws SchemaException {
         OperationResult operationResult = createOperationResult();
         Stopwatch stopwatch = stopwatch("user.addPeakWithOid", "Repository addObject(user) - 4th batch");
         for (int userIndex = 1; userIndex <= PEAK_USER_COUNT; userIndex++) {
             String name = String.format("user-peak-oid-%07d", userIndex);
-            UserType userType = new UserType(prismContext)
+            UserType user = new UserType(prismContext)
                     // (not) assigning OID makes little/no difference for old repo
                     .oid(UUID.randomUUID().toString())
                     .name(PolyStringType.fromOrig(name))
                     .description(randomDescription(name));
             try (Split ignored = stopwatch.start()) {
-                repositoryService.addObject(userType.asPrismObject(), null, operationResult);
+                repositoryService.addObject(user.asPrismObject(), null, operationResult);
+            } catch (ObjectAlreadyExistsException e) {
+                QUser u = aliasFor(QUser.class);
+                user.setOid(selectOne(u, u.nameOrig.eq(name)).oid.toString());
             }
-            users.put(name, userType.getOid());
+            if (userIndex % 10 == 0) {
+                userOidsToGet.add(user.getOid());
+            }
         }
         // no query recorder in this test
     }
@@ -292,15 +359,15 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
     public void test710GetUserMore() throws SchemaException, ObjectNotFoundException {
         OperationResult operationResult = createOperationResult();
         Stopwatch stopwatch = stopwatch("user.get2", "Repository getObject() -> user, 2nd test");
-        for (int i = 1; i <= FIND_COUNT; i++) {
-            String randomName = String.format("user-more-%07d", RND.nextInt(MORE_USER_COUNT) + 1);
-            if (i == FIND_COUNT) {
-                queryRecorder.startRecording();
-            }
+        queryRecorder.startRecording();
+        for (String userOid : userOidsToGet) {
             try (Split ignored = stopwatch.start()) {
                 assertThat(repositoryService.getObject(
-                        UserType.class, users.get(randomName), null, operationResult))
+                        UserType.class, userOid, null, operationResult))
                         .isNotNull();
+            }
+            if (queryRecorder.isRecording()) {
+                queryRecorder.stopRecording();
             }
         }
         queryRecorder.stopRecording();
@@ -309,7 +376,7 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
     @Test
     public void test900PrintObjects() {
         display("resources = " + resources.size());
-        display("users = " + users.size());
+        display("users = " + userOidsToGet.size());
         // WIP: memInfo is not serious yet
         memInfo.forEach(System.out::println);
     }

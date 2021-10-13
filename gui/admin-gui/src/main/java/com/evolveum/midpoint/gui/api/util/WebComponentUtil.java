@@ -4041,18 +4041,16 @@ public final class WebComponentUtil {
         }
 
         ActivationStatusType status = activation.getEffectiveStatus();
-        if (ActivationStatusType.ENABLED == status) {
-            return null;
-        }
-
         IconType icon = new IconType();
         if (LockoutStatusType.LOCKED == activation.getLockoutStatus()) {
             icon.setCssClass(GuiStyleConstants.CLASS_LOCK_STATUS);
+        }  else if (ActivationStatusType.ENABLED == status) {
+            return null;
         } else if (ActivationStatusType.DISABLED == status) {
             icon.setCssClass(GuiStyleConstants.CLASS_BAN);
         } else if (ActivationStatusType.ARCHIVED == status) {
             icon.setCssClass(GuiStyleConstants.CLASS_ICON_NO_OBJECTS);
-        } else if (ActivationStatusType.ENABLED != status) {
+        } else {
             icon.setCssClass(GuiStyleConstants.CLASS_TEST_CONNECTION_MENU_ITEM);
         }
         if (icon.getCssClass() == null) {
