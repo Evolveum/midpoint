@@ -37,6 +37,17 @@ to a file, not its content, is the actual value.
             <importFolder>${midpoint.home}/import</importFolder>
         </webApplication>
         <repository>
+            <!--
+            Uncomment this section to use the new Native repository (and comment the rest).
+            For more see: https://docs.evolveum.com/midpoint/reference/repository/configuration/
+            Don't forget to switch Sql/Sqale audit service factory accordingly (lower in this config).
+            <type>native</type>
+            <jdbcUrl>jdbc:postgresql://localhost:5432/midpoint</jdbcUrl>
+            <jdbcUsername>midpoint</jdbcUsername>
+            <jdbcPassword>password</jdbcPassword>
+            -->
+
+            <!-- Old Generic repository configured for embedded H2 for quick start. -->
             <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
             <baseDir>${midpoint.home}</baseDir>
             <asServer>true</asServer>
@@ -46,7 +57,9 @@ to a file, not its content, is the actual value.
                 <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
             </auditService>
             <auditService>
+                <!-- Use SqlAuditServiceFactory for old generic repository and SqaleAuditServiceFactory for new Native one. -->
                 <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
+                <!--<auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>-->
             </auditService>
         </audit>
         <icf>
