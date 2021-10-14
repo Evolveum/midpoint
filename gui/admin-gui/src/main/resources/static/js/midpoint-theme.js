@@ -67,8 +67,12 @@ function showAjaxStatusSign() {
 
 function hideAjaxStatusSign() {
     document.getElementById('ajax_busy').style.visibility = 'hidden';
-    if (document.querySelector("[role='tooltip']") != null) {
-        document.querySelector("[role='tooltip']").style.visibility = 'hidden';
+    if (document.querySelectorAll("[role='tooltip']") != null) {
+        var tooltips = document.querySelectorAll("[role='tooltip']"), i;
+        for (i = 0; i < tooltips.length; ++i) {
+            tooltips[i].style.display = 'none';
+        }
+        // document.querySelectorAll("[role='tooltip']").style.display = 'none';
     };
 }
 
