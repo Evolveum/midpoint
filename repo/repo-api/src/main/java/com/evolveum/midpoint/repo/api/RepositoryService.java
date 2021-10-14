@@ -554,6 +554,11 @@ public interface RepositoryService {
      */
     @NotNull String getRepositoryType();
 
+    // Temporary, as always...
+    default boolean isNative() {
+        return getRepositoryType().equals("Native");
+    }
+
     /**
      * Runs a short, non-destructive repository self test.
      * This methods should never throw a (checked) exception. All the results
