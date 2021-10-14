@@ -21,6 +21,7 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.repo.sqlbase.TransactionIsolation;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 /**
@@ -35,6 +36,13 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     private static final String DEFAULT_JDBC_USERNAME = "midpoint";
     private static final String DEFAULT_JDBC_PASSWORD = "password";
     private static final String DEFAULT_FULL_OBJECT_FORMAT = PrismContext.LANG_JSON;
+
+    @Experimental
+    public static final String PROPERTY_DELTA_EXECUTION_RESULT = "deltaExecutionResult";
+    public static final String AUDIT_DELTA_EXECUTION_RESULT_FULL = "full";
+    public static final String AUDIT_DELTA_EXECUTION_RESULT_CLEANED_UP = "cleanedup";
+    public static final String AUDIT_DELTA_EXECUTION_RESULT_TOP = "top";
+    public static final String AUDIT_DELTA_EXECUTION_RESULT_NONE = "none";
 
     /**
      * We need at least two connections, because ext item/URI cache can start nested transaction
@@ -61,9 +69,6 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
 
     @NotNull private final Configuration configuration;
 
-    /** Database kind - either explicitly configured or derived from other options. */
-    private SupportedDatabase databaseType;
-
     // either dataSource or JDBC URL must be set
     private String dataSource;
     private String jdbcUrl;
@@ -86,6 +91,10 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     private int iterativeSearchByPagingBatchSize;
     private boolean createMissingCustomColumns;
 
+    // new repo audit specific
+    @Experimental
+    private String deltaExecutionResult;
+
     // Provided with configuration node "midpoint.repository".
     public SqaleRepositoryConfiguration(@NotNull Configuration configuration) {
         this.configuration = configuration;
@@ -98,7 +107,6 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
         jdbcUrl = configuration.getString(PROPERTY_JDBC_URL, DEFAULT_JDBC_URL);
         jdbcUsername = configuration.getString(PROPERTY_JDBC_USERNAME, DEFAULT_JDBC_USERNAME);
 
-        databaseType = DEFAULT_DATABASE;
         driverClassName = DEFAULT_DRIVER;
 
         String jdbcPasswordFile = configuration.getString(PROPERTY_JDBC_PASSWORD_FILE);
@@ -134,6 +142,9 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
         createMissingCustomColumns =
                 configuration.getBoolean(PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS, false);
 
+        deltaExecutionResult = configuration.getString(
+                PROPERTY_DELTA_EXECUTION_RESULT, AUDIT_DELTA_EXECUTION_RESULT_FULL).toLowerCase();
+
         validateConfiguration();
     }
 
@@ -147,7 +158,7 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     }
 
     public @NotNull SupportedDatabase getDatabaseType() {
-        return databaseType;
+        return DEFAULT_DATABASE;
     }
 
     public String getDataSource() {
@@ -218,7 +229,7 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
 
     @Override
     public boolean isUsing(SupportedDatabase db) {
-        return databaseType == db;
+        return DEFAULT_DATABASE == db;
     }
 
     @Override
@@ -280,5 +291,34 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     @Override
     public boolean isCreateMissingCustomColumns() {
         return createMissingCustomColumns;
+    }
+
+    /**
+     * Creates a copy of provided configuration for audit and applies override from config.xml.
+     * This is used when the same data source is used by audit and repository.
+     */
+    public static SqaleRepositoryConfiguration initForAudit(
+            @NotNull SqaleRepositoryConfiguration mainRepoConfig, Configuration auditConfig) {
+        SqaleRepositoryConfiguration config = new SqaleRepositoryConfiguration(auditConfig);
+        config.fullObjectFormat =
+                auditConfig.getString(PROPERTY_FULL_OBJECT_FORMAT, mainRepoConfig.fullObjectFormat)
+                        .toLowerCase();
+        config.iterativeSearchByPagingBatchSize = auditConfig.getInt(
+                PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE, mainRepoConfig.iterativeSearchByPagingBatchSize);
+        config.createMissingCustomColumns = auditConfig.getBoolean(
+                PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS, mainRepoConfig.createMissingCustomColumns);
+        config.deltaExecutionResult =
+                auditConfig.getString(PROPERTY_DELTA_EXECUTION_RESULT, mainRepoConfig.deltaExecutionResult)
+                        .toLowerCase();
+
+        // perf stats settings must be copied to allow proper perf monitoring of audit
+        config.performanceStatisticsFile = mainRepoConfig.performanceStatisticsFile;
+        config.performanceStatisticsLevel = mainRepoConfig.performanceStatisticsLevel;
+        return config;
+    }
+
+    @Experimental
+    public String getDeltaExecutionResult() {
+        return deltaExecutionResult;
     }
 }

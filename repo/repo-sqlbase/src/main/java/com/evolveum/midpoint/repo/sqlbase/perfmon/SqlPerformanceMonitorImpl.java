@@ -78,6 +78,7 @@ public class SqlPerformanceMonitorImpl implements PerformanceMonitor {
     @Override
     public void clearGlobalPerformanceInformation() {
         globalPerformanceInformation.clear();
+        finishedOperations.clear();
     }
 
     @Override

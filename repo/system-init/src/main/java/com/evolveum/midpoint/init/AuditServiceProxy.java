@@ -261,6 +261,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
         return new SearchResultMetadata();
     }
 
+    /** Support public (but non-API) method to obtain concrete implementation of audit service. */
     public <T extends AuditService> T getImplementation(Class<T> implementationType) {
         for (AuditService service : services) {
             if (implementationType.isInstance(service)) {

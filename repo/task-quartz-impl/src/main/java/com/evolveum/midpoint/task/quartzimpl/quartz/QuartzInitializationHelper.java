@@ -86,9 +86,6 @@ class QuartzInitializationHelper {
                 quartzProperties.put("org.quartz.dataSource." + myDs + ".URL", configuration.getJdbcUrl());
                 quartzProperties.put("org.quartz.dataSource." + myDs + ".user", configuration.getJdbcUser());
                 quartzProperties.put("org.quartz.dataSource." + myDs + ".password", configuration.getJdbcPassword());
-                // TODO if we want to manage connections? find out whether we really need connection pool size of thread pool + 3
-                //  as documented: http://www.quartz-scheduler.org/documentation/quartz-2.3.0/configuration/ConfigDataSources.html
-//                quartzProperties.put("org.quartz.dataSource." + myDs + ".maxConnections", configuration.getThreads() + CONNECTIONS_THREAD_OFFSET);
             }
 
             quartzProperties.put("org.quartz.jobStore.isClustered", configuration.isClustered() ? "true" : "false");

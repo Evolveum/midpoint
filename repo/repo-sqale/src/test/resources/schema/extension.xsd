@@ -41,6 +41,7 @@
         <xsd:sequence>
             <!-- values stored as JSON strings -->
             <xsd:element name="string" type="xsd:string"/>
+            <xsd:element name="string2" type="xsd:string"/>
             <xsd:element name="dateTime" type="xsd:dateTime"/>
             <xsd:element name="enum" type="c:BeforeAfterType"/>
 
@@ -113,7 +114,6 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <!-- TODO: review -->
     <xsd:complexType name="ShadowExtensionType">
         <xsd:annotation>
             <xsd:appinfo>
@@ -122,6 +122,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="string" type="xsd:string"/>
+            <xsd:element name="string2" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
 </xsd:schema>

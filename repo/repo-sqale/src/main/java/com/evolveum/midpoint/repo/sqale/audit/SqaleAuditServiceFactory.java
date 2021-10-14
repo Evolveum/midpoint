@@ -96,7 +96,7 @@ public class SqaleAuditServiceFactory implements AuditServiceFactory {
                 && configuration.getString(PROPERTY_DATASOURCE) == null) {
             LOGGER.info("SQL audit service will use default repository configuration.");
             return createSqaleRepoContext(
-                    sqaleRepositoryConfiguration,
+                    SqaleRepositoryConfiguration.initForAudit(sqaleRepositoryConfiguration, configuration),
                     repositoryDataSource,
                     schemaService);
         }

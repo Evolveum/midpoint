@@ -54,15 +54,16 @@ public class SqaleAuditSearchIterativeTest extends SqaleRepoBaseTest {
 
     private final long startTimestamp = System.currentTimeMillis();
 
+    private SqaleAuditService sqaleAuditService;
+    private SqlPerformanceMonitorImpl performanceMonitor;
+
     // alias for queries, can't be static/final, the mapping it's not yet initialized
     private QAuditEventRecord aer;
-    private SqlPerformanceMonitorImpl performanceMonitor;
 
     @BeforeClass
     public void initObjects() throws Exception {
-        performanceMonitor =
-                ((AuditServiceProxy) auditService).getImplementation(SqaleAuditService.class)
-                        .getPerformanceMonitor();
+        sqaleAuditService = ((AuditServiceProxy) auditService).getImplementation(SqaleAuditService.class);
+        performanceMonitor = sqaleAuditService.getPerformanceMonitor();
 
         aer = QAuditEventRecordMapping.get().defaultAlias();
         clearAudit();
@@ -91,7 +92,7 @@ public class SqaleAuditSearchIterativeTest extends SqaleRepoBaseTest {
     @BeforeMethod
     public void resetTestHandler() {
         testHandler.reset();
-        repositoryConfiguration.setIterativeSearchByPagingBatchSize(ITERATION_PAGE_SIZE);
+        sqaleAuditService.repositoryConfiguration().setIterativeSearchByPagingBatchSize(ITERATION_PAGE_SIZE);
     }
 
     @Test
@@ -152,7 +153,7 @@ public class SqaleAuditSearchIterativeTest extends SqaleRepoBaseTest {
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         pm.clearGlobalPerformanceInformation();
         given("total result count not multiple of the page size");
-        repositoryConfiguration.setIterativeSearchByPagingBatchSize(47);
+        sqaleAuditService.repositoryConfiguration().setIterativeSearchByPagingBatchSize(47);
 
         when("calling search iterative with null query");
         SearchResultMetadata metadata =
@@ -289,8 +290,7 @@ public class SqaleAuditSearchIterativeTest extends SqaleRepoBaseTest {
     }
 
     private int getConfiguredPageSize() {
-        return sqlRepoContext.getJdbcRepositoryConfiguration()
-                .getIterativeSearchByPagingBatchSize();
+        return sqaleAuditService.repositoryConfiguration().getIterativeSearchByPagingBatchSize();
     }
 
     private static class TestResultHandler implements AuditResultHandler {

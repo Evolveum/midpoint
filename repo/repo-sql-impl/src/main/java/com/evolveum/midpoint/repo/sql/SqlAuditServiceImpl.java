@@ -209,7 +209,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 DeltaConversionOptions options =
                         DeltaConversionOptions.createSerializeReferenceNames();
                 options.setEscapeInvalidCharacters(isEscapingInvalidCharacters(auditConfiguration));
-                String serializedDelta = DeltaConvertor.toObjectDeltaTypeXml(delta, options);
+                String serializedDelta = DeltaConvertor.serializeDelta(delta, options, PrismContext.LANG_XML);
 
                 // serializedDelta is transient, needed for changed items later
                 mAuditDelta.serializedDelta = serializedDelta;

@@ -63,6 +63,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     public static final String AUDIT_OP_PREFIX = SqaleAuditService.class.getSimpleName() + '.';
 
     private static final int QUERY_BUFFER_SIZE = 1000;
+    public static final String SYSTEM_PROPERTY_SKIP_DB_CLEAR = "skipDbClear";
 
     private static boolean cacheTablesCleared = false;
 
@@ -79,6 +80,12 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         queryRecorder = new SqlRecorder(QUERY_BUFFER_SIZE);
         sqlRepoContext.setQuerydslSqlListener(queryRecorder);
 
+        if (System.getProperty(SYSTEM_PROPERTY_SKIP_DB_CLEAR) == null) {
+            clearDatabase();
+        }
+    }
+
+    private void clearDatabase() {
         try (JdbcSession jdbcSession = startTransaction()) {
             // object delete cascades to sub-rows of the "object aggregate"
 
@@ -293,7 +300,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         OperationPerformanceInformation operationInfo = pmAllData.get(opKind);
         if (count != 0) {
             assertThat(operationInfo)
-                    .withFailMessage("OperationPerformanceInformation for opKind '%s'", opKind)
+                    .withFailMessage("OperationPerformanceInformation for opKind '%s' is missing!", opKind)
                     .isNotNull();
             assertThat(operationInfo.getInvocationCount()).isEqualTo(count);
             assertThat(operationInfo.getExecutionCount()).isEqualTo(count);
@@ -527,6 +534,13 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
                         .skipTransient(true)
                         .skipWhitespaces(true))
                 .serialize(containerable.asPrismContainerValue());
+    }
+
+    protected void compactOperationResult(OperationResult operationResult) {
+        operationResult.computeStatus();
+        operationResult.cleanupResultDeeply();
+        operationResult.setSummarizeSuccesses(true);
+        operationResult.summarize();
     }
 
     /**

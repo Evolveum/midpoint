@@ -25,6 +25,7 @@
             <jdbcUsername>midtest</jdbcUsername>
             <jdbcPassword>password</jdbcPassword>
 
+            <!-- See constants in SqlPerformanceMonitorImpl, 10 stores all finished operations -->
             <performanceStatisticsLevel>10</performanceStatisticsLevel>
             <performanceStatisticsFile>./target/performance.log</performanceStatisticsFile>
 
@@ -34,7 +35,10 @@
         <audit>
             <auditService>
                 <auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
-                <!-- TODO: this may be ignored by new repo, ext instead? -->
+                <!-- We can override format from main repo (JSON by default). -->
+                <!--<fullObjectFormat>xml</fullObjectFormat>-->
+                <!-- How to store execution operation results for delta: full, cleanedUp, top or none -->
+                <!--<deltaExecutionResult>top</deltaExecutionResult>-->
                 <customColumn>
                     <columnName>cus_foo</columnName>
                     <eventRecordPropertyName>foo</eventRecordPropertyName>

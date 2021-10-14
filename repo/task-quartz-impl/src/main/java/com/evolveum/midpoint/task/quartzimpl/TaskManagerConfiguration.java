@@ -58,7 +58,7 @@ public class TaskManagerConfiguration {
     private static final String JDBC_USER_CONFIG_ENTRY = "jdbcUser";
     private static final String JDBC_PASSWORD_CONFIG_ENTRY = "jdbcPassword";
     private static final String DATA_SOURCE_CONFIG_ENTRY = "dataSource";
-    private static final String USE_REPOSITORY_CONNECTION_PROVIDER_CONFIG_ENTRY = "useRepositoryConnectionProvider"; // experimental
+    private static final String USE_REPOSITORY_CONNECTION_PROVIDER_CONFIG_ENTRY = "useRepositoryConnectionProvider";
 
     private static final String SQL_SCHEMA_FILE_CONFIG_ENTRY = "sqlSchemaFile";
     private static final String CREATE_QUARTZ_TABLES_CONFIG_ENTRY = "createQuartzTables";
@@ -205,6 +205,8 @@ public class TaskManagerConfiguration {
     private String jdbcUser;
     private String jdbcPassword;
     private String dataSource;
+    // This saves 10 connections that are mostly idle and only usable for scheduler.
+    // Not good for old PG where it collides with strong trn serialization, but otherwise good.
     private boolean useRepositoryConnectionProvider;
     private boolean createQuartzTables;
 
@@ -444,7 +446,8 @@ public class TaskManagerConfiguration {
         createQuartzTables = taskManagerConf.getBoolean(CREATE_QUARTZ_TABLES_CONFIG_ENTRY, CREATE_QUARTZ_TABLES_DEFAULT);
         databaseIsEmbedded = jdbcConfig != null && jdbcConfig.isEmbedded();
 
-        useRepositoryConnectionProvider = taskManagerConf.getBoolean(USE_REPOSITORY_CONNECTION_PROVIDER_CONFIG_ENTRY, false);
+        useRepositoryConnectionProvider = taskManagerConf.getBoolean(
+                USE_REPOSITORY_CONNECTION_PROVIDER_CONFIG_ENTRY, repositoryService.isNative());
         if (useRepositoryConnectionProvider) {
             LOGGER.info("Using connection provider from repository (ignoring all the other database-related configuration)");
             if (jdbcConfig != null && jdbcConfig.isUsingH2()) {

@@ -85,7 +85,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
         tester.assertComponent(MAIN_PANEL, AssignmentHolderBasicPanel.class);
     }
 
-    @Test
+    @Test(enabled = false)
     public void test003testAddDelta() throws Exception {
         renderPage(PageUser.class);
 

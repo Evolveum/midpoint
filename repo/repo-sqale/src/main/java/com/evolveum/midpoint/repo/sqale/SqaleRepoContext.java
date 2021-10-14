@@ -198,7 +198,8 @@ public class SqaleRepoContext extends SqlRepoContext {
             // is safe in the context of operation result serialization.
             return createStringSerializer()
                     .options(SerializationOptions.createEscapeInvalidCharacters()
-                            .serializeUnsupportedTypesAsString(true))
+                            .serializeUnsupportedTypesAsString(true)
+                            .skipWhitespaces(true))
                     .serializeRealValue(operationResult, SchemaConstantsGenerated.C_OPERATION_RESULT)
                     .getBytes(StandardCharsets.UTF_8);
         } catch (SchemaException e) {
