@@ -222,7 +222,7 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
             canExitPage = !canContinueEditing;                            // no point in staying on page if we cannot continue editing (in synchronous case i.e. no progress table present)
         }
 
-        if (!getProgressPanel().isKeepDisplayingResults() && canExitPage) {
+        if ((isSaveInBackground() || !isKeepDisplayingResults()) && canExitPage) {
             showResult(result);
             redirectBack();
         } else {
@@ -230,6 +230,15 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
             showResult(result);
             target.add(getFeedbackPanel());
         }
+    }
+
+    private boolean isKeepDisplayingResults() {
+        return getProgressPanel() != null && getProgressPanel().isKeepDisplayingResults();
+    }
+
+    private boolean isSaveInBackground() {
+        return getOperationalButtonsPanel() != null
+                && getOperationalButtonsPanel().getExecuteChangeOptions().isSaveInBackground();
     }
 
     private void setTimezoneIfNeeded(OperationResult result) {
