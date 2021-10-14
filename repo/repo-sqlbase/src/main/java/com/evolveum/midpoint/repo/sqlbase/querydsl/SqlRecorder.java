@@ -6,9 +6,9 @@
  */
 package com.evolveum.midpoint.repo.sqlbase.querydsl;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.ArrayDeque;
 import java.util.List;
+import java.util.Queue;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.EvictingQueue;
@@ -35,15 +35,15 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @SuppressWarnings("UnstableApiUsage") // Guava EvictingQueue is @Beta, no problem
 public class SqlRecorder extends SqlLogger {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SqlRecorder.class);
+    public static final Trace LOGGER = TraceManager.getTrace(SqlRecorder.class);
 
-    private final Collection<QueryEntry> queryBuffer;
+    // not thread-safe, access is synchronized, but I'm not sure what can happen while iterated over
+    private final Queue<QueryEntry> queryBuffer;
 
     private volatile boolean recording;
 
     public SqlRecorder(int queryBufferSize) {
-        this.queryBuffer = Collections.synchronizedCollection(
-                EvictingQueue.create(queryBufferSize));
+        queryBuffer = EvictingQueue.create(queryBufferSize);
         recording = false;
     }
 
@@ -80,28 +80,33 @@ public class SqlRecorder extends SqlLogger {
                     .collect(Collectors.toList());
 
             if (recording) {
-                queryBuffer.add(new QueryEntry(sql, paramStrings));
+                bufferAdd(sql, paramStrings);
             }
             LOGGER.debug("{} {}\n PARAMS: {}",
                     recording ? "RECORDED" : "UNRECORDED",
                     sql, String.join(", ", paramStrings));
         } else {
             if (recording) {
-                queryBuffer.add(new QueryEntry(sql, List.of()));
+                bufferAdd(sql, List.of());
             }
             LOGGER.debug("{} {}", recording ? "RECORDED" : "UNRECORDED", sql);
         }
     }
 
-    public Collection<QueryEntry> getBuffer() {
-        return queryBuffer;
+    private synchronized void bufferAdd(String sql, List<String> paramStrings) {
+        queryBuffer.add(new QueryEntry(sql, paramStrings));
     }
 
-    public void clearBuffer() {
+    /** Returns shallow copy of the query buffer in synchronized manner. */
+    public synchronized Queue<QueryEntry> getQueryBuffer() {
+        return new ArrayDeque<>(queryBuffer);
+    }
+
+    public synchronized void clearBuffer() {
         queryBuffer.clear();
     }
 
-    public void clearBufferAndStartRecording() {
+    public synchronized void clearBufferAndStartRecording() {
         queryBuffer.clear();
         recording = true;
     }
@@ -120,9 +125,9 @@ public class SqlRecorder extends SqlLogger {
 
     public static class QueryEntry {
         public final String sql;
-        public final Collection<String> params;
+        public final List<String> params;
 
-        public QueryEntry(String sql, Collection<String> params) {
+        public QueryEntry(String sql, List<String> params) {
             this.sql = sql;
             this.params = params;
         }

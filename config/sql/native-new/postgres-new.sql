@@ -859,10 +859,10 @@ CREATE INDEX m_shadow_policySituation_idx ON m_shadow USING gin(policysituations
 CREATE INDEX m_shadow_ext_idx ON m_shadow USING gin(ext);
 CREATE INDEX m_shadow_attributes_idx ON m_shadow USING gin(attributes);
 CREATE INDEX m_shadow_fullTextInfo_idx ON m_shadow USING gin (fullTextInfo gin_trgm_ops);
+CREATE INDEX m_shadow_resourceRefTargetOid_idx ON m_shadow (resourceRefTargetOid);
 
 /*
 TODO: reconsider, especially boolean things like dead (perhaps WHERE in other indexes?)
-CREATE INDEX iShadowResourceRef ON m_shadow (resourceRefTargetOid);
 CREATE INDEX iShadowDead ON m_shadow (dead);
 CREATE INDEX iShadowKind ON m_shadow (kind);
 CREATE INDEX iShadowIntent ON m_shadow (intent);

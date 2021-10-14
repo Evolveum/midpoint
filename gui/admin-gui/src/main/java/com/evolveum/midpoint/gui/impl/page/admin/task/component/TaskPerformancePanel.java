@@ -28,15 +28,10 @@ import java.util.Collections;
 /**
  * @author semancik
  */
-//@PanelType(name = "performance")
 @PanelInstance(identifier = "performance", applicableForType = TaskType.class, applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "pageTask.performance.title", icon = GuiStyleConstants.CLASS_ICON_PERFORMANCE, order = 50))
 public class TaskPerformancePanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
-
-    private static final String ID_STATISTICS_PANEL = "statisticsPanel";
-
-    private static final Trace LOGGER = TraceManager.getTrace(TaskPerformancePanel.class);
 
     public TaskPerformancePanel(String id, TaskDetailsModel taskWrapperModel, ContainerPanelConfigurationType config) {
         super(id, taskWrapperModel, config);
@@ -44,9 +39,6 @@ public class TaskPerformancePanel extends AbstractObjectMainPanel<TaskType, Task
     }
 
    protected void initLayout() {
-//        StatisticsDtoModel statisticsDtoModel = new StatisticsDtoModel(getModel());
-//        StatisticsPanel statisticsPanel = new StatisticsPanel(ID_STATISTICS_PANEL, statisticsDtoModel);
-//        add(statisticsPanel);
     }
 
     @Override

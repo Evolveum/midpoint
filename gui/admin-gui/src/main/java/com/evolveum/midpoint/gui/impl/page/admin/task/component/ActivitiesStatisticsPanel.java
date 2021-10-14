@@ -68,7 +68,7 @@ public class ActivitiesStatisticsPanel extends AbstractObjectMainPanel<TaskType,
         super(id, model, config);
 
         statisticsModel = LoadableModel.create(
-                () -> ActivitiesStatisticsDto.fromTaskTree(getTask()),
+                () -> ActivitiesStatisticsDto.fromTaskTree(getObjectDetailsModels().getRootTaskModelObject()),
                 true);
     }
 

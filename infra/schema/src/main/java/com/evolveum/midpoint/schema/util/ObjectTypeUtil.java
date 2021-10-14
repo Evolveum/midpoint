@@ -859,7 +859,7 @@ public class ObjectTypeUtil {
                 //noinspection unchecked
                 def = prismContext.getSchemaRegistry().findItemDefinitionByElementName(entry.getKey());     // a bit of hack here
                 if (def == null) {
-                    throw new SchemaException("No definition of " + entry.getKey() + " in task extension");
+                    throw new SchemaException("No definition of " + entry.getKey() + " in the extension");
                 }
             }
             Item<PrismValue, ItemDefinition> extensionItem = def.instantiate();

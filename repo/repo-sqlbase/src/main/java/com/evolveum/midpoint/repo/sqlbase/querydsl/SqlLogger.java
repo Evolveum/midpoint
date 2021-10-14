@@ -72,7 +72,7 @@ public class SqlLogger extends SQLBaseListener {
         if (o == null) {
             return null; // unlikely
         } else if (o instanceof String) {
-            return '"' + (String) o + '"';
+            return '\'' + (String) o + '\'';
         } else if (o instanceof Null) {
             return "NULL";
         } else if (o.getClass() == byte[].class) {

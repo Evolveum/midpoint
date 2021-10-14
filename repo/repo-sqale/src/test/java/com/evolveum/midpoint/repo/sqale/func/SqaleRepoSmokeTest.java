@@ -13,8 +13,10 @@ import static com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPath
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.Queue;
 import java.util.UUID;
 
+import org.testng.SkipException;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -32,6 +34,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.SqlRecorder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -336,6 +339,52 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         assertThat(taskFromDb.asObjectable().getDiagnosticInformation())
                 .isNotEmpty()
                 .anyMatch(d -> d.getType().equals(SchemaConstants.TASK_THREAD_DUMP_URI));
+    }
+
+    @Test
+    public void test400SqlLogger() throws Exception {
+        if (!SqlRecorder.LOGGER.isDebugEnabled()) {
+            throw new SkipException("We need debug on SqlRecorder logger for this test");
+        }
+
+        OperationResult result = createOperationResult();
+
+        // INSERT + UPDATE
+        queryRecorder.clearBufferAndStartRecording();
+        String oid = repositoryService.addObject(
+                new UserType(prismContext).name("user" + getTestNumber()).asPrismObject(),
+                null, result);
+
+        // These assertions are quite implementation dependent, obviously.
+        Queue<SqlRecorder.QueryEntry> queryBuffer = queryRecorder.getQueryBuffer();
+        assertThat(queryBuffer).hasSize(2);
+        SqlRecorder.QueryEntry entry = queryBuffer.remove();
+        assertThat(entry.sql).startsWith("insert into m_user");
+
+        entry = queryBuffer.remove();
+        assertThat(entry.sql).startsWith("update m_user");
+        assertThat(entry.params.get(2)).isEqualTo(oid); // param for where oid = ...
+
+        // COUNT
+        queryRecorder.clearBufferAndStartRecording();
+        int count = repositoryService.countObjects(UserType.class, null, null, result);
+        assertThat(count).isGreaterThanOrEqualTo(1); // at least user from above should be there
+
+        queryBuffer = queryRecorder.getQueryBuffer();
+        assertThat(queryBuffer).hasSize(1);
+        entry = queryBuffer.remove();
+        assertThat(entry.sql).startsWith("select count(*)");
+
+        // normal select
+        queryRecorder.clearBufferAndStartRecording();
+        SearchResultList<PrismObject<UserType>> users =
+                repositoryService.searchObjects(UserType.class, null, null, result);
+        assertThat(users).isNotEmpty();
+
+        queryBuffer = queryRecorder.getQueryBuffer();
+        assertThat(queryBuffer).hasSize(1);
+        entry = queryBuffer.remove();
+        assertThat(entry.sql).startsWith("select u.oid, u.fullObject");
     }
 
     // region low-level tests

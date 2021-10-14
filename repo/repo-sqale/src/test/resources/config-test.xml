@@ -25,6 +25,7 @@
             <jdbcUsername>midtest</jdbcUsername>
             <jdbcPassword>password</jdbcPassword>
 
+            <!-- See constants in SqlPerformanceMonitorImpl, 10 stores all finished operations -->
             <performanceStatisticsLevel>10</performanceStatisticsLevel>
             <performanceStatisticsFile>./target/performance.log</performanceStatisticsFile>
 
