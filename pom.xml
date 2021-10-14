@@ -23,12 +23,17 @@
     - Test JARs of some modules are created, installed/deployed and used downstream (search for test-jar).
 
     VARIOUS MVN COMMANDS (with rough times on average notebook)
-    Note: Javadoc takes long time but it's only part of the "dist" profile (active by default).
-    Hence, "-Dmaven.javadoc.skip" is not necessary with "-P -dist".
-    Javadoc skip can still be useful when we want to build distribution package faster.
 
-    Quick developer's run without any tests, skipping distribution (~6m):
+    Quick developer's run without any tests, skipping distribution and documentation build (~5m):
     mvn clean install -P -dist -DskipTests
+    After this, it's possible to run midPoint WAR with: java -jar gui/admin-gui/target/midpoint-executable.war
+
+    Quick build of distribution without running tests, skipping documentation (~6m):
+    mvn clean install -P -docs -DskipTests
+    Generated distribution archives (ZIP and tar.gz) are under dist/target.
+
+    Quick build of everything without tests, not often useful, javadoc + apidocs add quite a lot time (~9m):
+    mvn clean install -DskipTests
 
     "Quick" build with unit tests only and checkstyle (~30m):
     mvn clean install -P -dist -DskipITs
@@ -2060,9 +2065,7 @@
         <profile>
             <id>dist</id>
             <activation>
-                <property>
-                    <name>!skipDist</name>
-                </property>
+                <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
                 <module>dist</module>
