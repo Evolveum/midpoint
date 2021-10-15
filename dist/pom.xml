@@ -21,11 +21,6 @@
 
     <name>midPoint Distribution</name>
 
-    <modules>
-        <module>midpoint-api</module>
-        <module>javadoc</module>
-    </modules>
-
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.gui</groupId>
@@ -116,4 +111,17 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>docs</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>midpoint-api</module>
+                <module>javadoc</module>
+            </modules>
+        </profile>
+    </profiles>
 </project>
