@@ -58,8 +58,9 @@ public interface AuditService {
 
     /**
      * Called when audit configuration is established or changed.
+     * Setting to null means to use default values for the settings.
      */
-    default void applyAuditConfiguration(SystemConfigurationAuditType configuration) {
+    default void applyAuditConfiguration(@Nullable SystemConfigurationAuditType configuration) {
     }
 
     /**

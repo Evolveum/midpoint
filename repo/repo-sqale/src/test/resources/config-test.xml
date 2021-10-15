@@ -37,8 +37,6 @@
                 <auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
                 <!-- We can override format from main repo (JSON by default). -->
                 <!--<fullObjectFormat>xml</fullObjectFormat>-->
-                <!-- How to store execution operation results for delta: full, cleanedUp, top or none -->
-                <!--<deltaExecutionResult>top</deltaExecutionResult>-->
                 <customColumn>
                     <columnName>cus_foo</columnName>
                     <eventRecordPropertyName>foo</eventRecordPropertyName>
