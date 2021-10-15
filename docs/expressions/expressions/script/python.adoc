@@ -1,5 +1,6 @@
 = Python Expressions
 :page-nav-title: Python
+:page-toc: top
 
 Python is a supported expression language in midPoint.
 Its language URL is:
@@ -22,7 +23,7 @@ MidPoint 4.4 was tested with Jython 2.7.2 but likely any latest stable version o
 This is the same directory where non-distributable JDBC drivers go, etc.
 Note, that this is not the same as `lib` directory in midPoint distribution ZIP.
 
-To be sure that Python scripting is enabled you can check the `midpoint.log` during the startup for line like this:
+To be sure that Python scripting is enabled you can check the `midpoint.log` during the startup for a line like this:
 ----
 2021-09-24 11:27:55,996 [] [main] INFO (com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator): Script engine for 'python' initialized in 3481 ms.
 ----

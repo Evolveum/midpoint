@@ -7,6 +7,7 @@
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2012-10-01T12:39:11.464+02:00
 :page-upkeep-status: green
+:page-toc: top
 
 Groovy is a supported expression language in midPoint.
 Its language URL is:
