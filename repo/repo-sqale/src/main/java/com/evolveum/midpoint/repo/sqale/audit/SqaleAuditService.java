@@ -73,8 +73,8 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
     private final SqlQueryExecutor sqlQueryExecutor;
 
     // set from SystemConfigurationAuditType
-    private boolean escapeIllegalCharacters;
-    private OperationResultDetailLevel deltaSuccessExecutionResult;
+    private boolean escapeIllegalCharacters = false;
+    @NotNull private OperationResultDetailLevel deltaSuccessExecutionResult = OperationResultDetailLevel.CLEANED_UP;
 
     public SqaleAuditService(
             SqaleRepoContext sqlRepoContext,
@@ -201,18 +201,23 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             }
 
             OperationResult executionResult = deltaOperation.getExecutionResult();
+            byte[] fullResultForCheckSum = null;
             if (executionResult != null) {
                 executionResult = processExecutionResult(executionResult);
 
                 OperationResultType operationResult = executionResult.createOperationResultType();
                 deltaRow.status = operationResult.getStatus();
+
+                // We need this byte[] for checksum later, even if we don't store it because of NONE.
+                // It shouldn't matter if it's cleaned-up or just top, because if it's the same
+                // as something else we don't need the same line in DB anyway.
+                fullResultForCheckSum = sqlRepoContext.createFullResult(operationResult);
+
                 // In other words "if (NOT (SUCCESS && store-NONE-is-set))..." or in other words
                 // "only do nothing if it is SUCCESS and config says to store NONE success result".
                 if (operationResult.getStatus() != OperationResultStatusType.SUCCESS
                         || deltaSuccessExecutionResult != OperationResultDetailLevel.NONE) {
-                    // Note that escaping invalid characters and using toString for unsupported
-                    // types is safe in the context of operation result serialization.
-                    deltaRow.fullResult = sqlRepoContext.createFullResult(operationResult);
+                    deltaRow.fullResult = fullResultForCheckSum;
                 }
             }
             deltaRow.resourceOid = SqaleUtils.oidToUUid(deltaOperation.getResourceOid());
@@ -224,7 +229,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                 deltaRow.resourceNameOrig = deltaOperation.getResourceName().getOrig();
                 deltaRow.resourceNameNorm = deltaOperation.getResourceName().getNorm();
             }
-            deltaRow.checksum = computeChecksum(deltaRow.delta, deltaRow.fullResult);
+            deltaRow.checksum = computeChecksum(deltaRow.delta, fullResultForCheckSum);
             return deltaRow;
         } catch (Exception ex) {
             logger.warn("Unexpected problem during audit delta conversion", ex);
@@ -250,7 +255,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                 }
                 break;
             default:
-                // full - nothing to do
+                // full or none - nothing to do here
         }
         return executionResult;
     }
