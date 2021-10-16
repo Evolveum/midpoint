@@ -20,7 +20,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
 
-public class SequenceTestFunctional extends SqaleRepoBaseTest {
+public class SequenceFunctionalTest extends SqaleRepoBaseTest {
 
     @Test
     public void test010ReturningValues() throws Exception {
