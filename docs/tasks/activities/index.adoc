@@ -1,7 +1,7 @@
 = Activities
+:toc:
 :page-since: "4.4"
 :page-upkeep-status: green
-:toc:
 
 == Introduction
 
@@ -35,7 +35,7 @@ the predefined composition logic. But those are really minor actions, not visibl
 However, in the future we may be able to define custom composition logic for predefined or even for
 custom composite activities.]
 
-image::activity-categorization.png[alt="Activity categorization", width=400]
+image::activity-categorization.png[alt="Activity categorization", width=600]
 
 === A Few Examples
 
