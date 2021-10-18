@@ -13,7 +13,7 @@ Here we describe how sets of resource objects are specified in link:index.adoc[a
 | `objectclass` | Class of objects to be processed. | TODO
 | `query` | Object query used to refine/replace the default query stemming from the above parameters. | None.
 | `queryApplication` | How should be resource object set query applied to the basic query stemming from
-`resourceRef` / `objectclass` / `kind` / `intent` specification. | TODO
+`resourceRef` / `objectclass` / `kind` / `intent` specification. | Depends on activity. E.g. `replace` for import from resource.
 | `searchOptions` | Search options to use. | No options.
 | `failedObjectsSelector` | Used for activities intended to re-process objects that failed to be processed by a "regular" activity
 that was run before. See link:../object-set-specification/#_failed_objects_selector[here]. | No failed objects selection. (Processing all objects.)
