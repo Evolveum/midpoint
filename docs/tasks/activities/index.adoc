@@ -1,0 +1,57 @@
+= Activities
+:page-since: "4.4"
+:page-upkeep-status: green
+
+== Introduction
+
+Since the beginning of midPoint, a _task_ represented something that should be done, like importing
+all accounts from a given resource. Such task could be created, executed, checked for the current
+status and progress, and so on. Gradually, tasks grew rich in features: multi-thread and multi-node
+processing, ability to suspend and resume (continuing where the work has stopped), various kinds
+of statistics, and error-reporting and handling options.
+
+Somewhere around midPoint 4.2 we have realized that a task is actually something that can have
+a rich internal structure: it can consist of distinct "parts". A typical example is reconciliation
+task that typically consists of operation completion, resource objects reconciliation, and remaining
+shadows reconciliation.
+
+In midPoint 4.4 we finally found a suitable conceptual model for the tasks and their work:
+the activities.
+
+== Activities
+
+An _activity_ describes the real work that should be carried out. It can be either simple or composite.
+_Simple activities_ consist of a single action, carried out on a set of input _items_ (zero, one,
+or more ones). _Composite activities_ consist of a set of other activities - again, either simple
+or composite.
+
+=== A Few Examples
+
+==== Example 1: User recomputation - a simple activity with a set of input items
+
+image::activity-user-recomputation.png[alt="User recomputation activity", width=400]
+
+This activity runs a `recomputation` action over a set of all users.
+
+==== Example 2: Non-iterative bulk action - a simple activity with no input items
+
+image::activity-non-iterative-bulk-action.png[width=400,alt="Non-iterative bulk action"]
+
+This activity runs a `nonIterativeScripting` action (i.e. non-iterative bulk action).
+The bulk action does not expect any input items. It simply runs a provided Groovy script (in this case).
+
+==== Example 3: Reconciliation - a (predefined) composite activity
+
+image::activity-reconciliation.png[width=900,alt="Reconciliation activity"]
+
+The reconciliation activity consists of a three sub-activities. They are partially dependent:
+the third one (remaining shadows reconciliation) depends on the second one (resource objects reconciliation).
+
+Each of the sub-activities has a different action, and a different item set.
+
+==== Example 4: User recomputation + custom bulk action - a (custom) composite activity
+
+image::activity-user-recomputation-with-custom-bulk-action.png[width=700,alt="User recomputation with bulk action"]
+
+
+
