@@ -148,15 +148,15 @@ in two separate sub-activities.
 | None.
 
 | `triggerScan`
-| Executes trigger scan on repository objects. Invokes trigger handlers for any triggers that have fire time <= `currentTime`.
-(Unlike validity scanner this one intentionally ignores `lastScanTimestamp`.)
+| Executes trigger scan on repository objects. Invokes trigger handlers for any triggers that have fire time less than or equal `currentTime`.
+(Unlike validity scanner, this one intentionally ignores `lastScanTimestamp`.)
 | Simple
 | `objects`
 | What link:../object-set-specification/[objects] to scan. If a query is present, the filter computed
 by the activity is added to it (as a conjunction).
 | All of `ObjectType`.
 
-| `shadowRefresh`
+| link:https://docs.evolveum.com/midpoint/reference/tasks/shadow-refresh-task/[`shadowRefresh`]
 | Looks for pending operations in shadows and updates their status.
 | Simple
 | `shadows`

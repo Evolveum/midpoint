@@ -1,0 +1,9 @@
+= Distribution
+
+Here we describe the definition of distribution for link:index.adoc[activities].
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning | Default
+|===

@@ -6,17 +6,17 @@
 == Introduction
 
 Since the beginning of midPoint, a _task_ represented something that should be done, like importing
-all accounts from a given resource. Such task could be created, executed, checked for the current
+all accounts from a given resource. Such tasks could be created, executed, checked for the current
 status and progress, and so on. Gradually, tasks grew rich in features: multi-thread and multi-node
 processing, ability to suspend and resume (continuing where the work has stopped), various kinds
 of statistics, and error-reporting and handling options.
 
-Somewhere around midPoint 4.2 we have realized that a task is actually something that can have
-a rich internal structure: it can consist of distinct "parts". A typical example is reconciliation
+Somewhere around midPoint 4.2, we have realized that a task is something that can have
+a rich internal structure: it can consist of distinct "parts". An example is the reconciliation
 task that typically consists of operation completion, resource objects reconciliation, and remaining
 shadows reconciliation.
 
-In midPoint 4.4 we finally found a suitable conceptual model for the tasks and their work:
+In midPoint 4.4 we finally have found a suitable conceptual model for the tasks and their work:
 the activities.
 
 == Activities
@@ -28,7 +28,7 @@ or more ones). Typical examples are recomputation, import from resource, or iter
 
 On the other hand, _composite activities_ consist of a set of other activities - again, either simple
 or composite. Composite activities can be _predefined_ (like reconciliation or cleanup) or
-_custom_. Note that composite activities do not have its own actions nor item sets. They are defined
+_custom_. Note that composite activities do not have their own actions nor item sets. They are defined
 solely by their constituent sub-activities.footnote:[This is not 100% true, as there may be
 some auxiliary actions, like recording a starting timestamp for reconciliation, that are built into
 the predefined composition logic. But those are really minor actions, not visible from the outside.
@@ -75,34 +75,17 @@ A definition of a simple (or predefined composite) activity contains the followi
 [%autowidth]
 |===
 | Section | Meaning
-| `work` | The work that is to be done. Contains the definition of the activity and the item set.
-Described in a link:work[separate document].
-| `executionMode` | Defines the overall mode of execution: link:execution-mode[`full`, `preview`, `dryRun`, `none`,
-`bucketAnalysis`].
-| `controlFlow` | Items like prerequisites, preconditions, error handling strategy, and so on.
-| `distribution` | Distribution of the work executed as part of this activity into threads, buckets, and worker tasks.
-| `reporting` | How various aspects of activity execution are reported, using logging, tracing,
+| link:work[`work`] | The work that is to be done. Contains the definition of the activity and the item set.
+| link:execution-mode[`executionMode`] | Defines the overall mode of execution: `full`, `preview`, `dryRun`, `none`,
+`bucketAnalysis`.
+| link:control-flow[`controlFlow`] | Items like prerequisites, preconditions, error handling strategy, and so on.
+| link:distribution[`distribution`] | Distribution of the work executed as part of this activity into threads, buckets, and worker tasks.
+| link:reporting[`reporting`] | How various aspects of activity execution are reported, using logging, tracing,
 profiling, reporting, and so on.
+| link:tailoring[`tailoring`] | Tailors the definition of individual sub-activities in a predefined composite activity.
 |===
 
-
-=== Configuring Predefined Composite Activities
-
-A predefined composite activity can contain the same sections as the simple activity definition.
-They provide the default values for the embedded simple activities.
-
-In addition to that, the definitions of individual sub-activities can be _tailored_ by providing explicit
-definition. For example, the resource objects reconciliation sub-activity can be distributed in a way
-different from the other sub-activities, defining buckets, worker tasks and worker threads.
-
-[%header]
-[%autowidth]
-|===
-| Section | Meaning
-| `tailoring` | Tailors the activity definition by changing specification (execution mode,
-flow of control, distribution) of existing sub-activities, or - in the future - by inserting
-sub-activity or sub-activities before or after existing ones.
-|===
+(More details are provided in the linked documents.)
 
 === Configuring Custom Composite Activities
 

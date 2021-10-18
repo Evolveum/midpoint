@@ -1,0 +1,9 @@
+= Reporting
+
+Here we describe the definition of reporting for link:index.adoc[activities].
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning | Default
+|===
