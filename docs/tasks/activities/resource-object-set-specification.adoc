@@ -16,7 +16,7 @@ Here we describe how sets of resource objects are specified in link:index.adoc[a
 `resourceRef` / `objectclass` / `kind` / `intent` specification. | TODO
 | `searchOptions` | Search options to use. | No options.
 | `failedObjectsSelector` | Used for activities intended to re-process objects that failed to be processed by a "regular" activity
-that was run before. See link:object-set-specification.adoc#_failed_objects_selector[here]. | No failed objects selection. (Processing all objects.)
+that was run before. See link:../object-set-specification/#_failed_objects_selector[here]. | No failed objects selection. (Processing all objects.)
 |===
 
 TODO describe the effect of various combinations, e.g.

@@ -35,7 +35,7 @@ the predefined composition logic. But those are really minor actions, not visibl
 However, in the future we may be able to define custom composition logic for predefined or even for
 custom composite activities.]
 
-image::activity-categorization.png[alt="Activity categorization"]
+image::activity-categorization.png[alt="Activity categorization", width=400]
 
 === A Few Examples
 
@@ -76,8 +76,8 @@ A definition of a simple (or predefined composite) activity contains the followi
 |===
 | Section | Meaning
 | `work` | The work that is to be done. Contains the definition of the activity and the item set.
-Described in a link:work.adoc[separate document].
-| `executionMode` | Defines the overall mode of execution: link:execution-mode.adoc[`full`, `preview`, `dryRun`, `none`,
+Described in a link:work[separate document].
+| `executionMode` | Defines the overall mode of execution: link:execution-mode[`full`, `preview`, `dryRun`, `none`,
 `bucketAnalysis`].
 | `controlFlow` | Items like prerequisites, preconditions, error handling strategy, and so on.
 | `distribution` | Distribution of the work executed as part of this activity into threads, buckets, and worker tasks.

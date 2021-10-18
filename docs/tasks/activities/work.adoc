@@ -11,7 +11,7 @@ As of midPoint 4.4, the following items are supported:
 .2+| `recomputation`
 .2+| Recomputes specified objects.
 | `objects`
-| What link:object-set-specification.adoc[objects] to recompute.
+| What link:../object-set-specification/[objects] to recompute.
 | All of `AssignmentHolderType`.
 
 | `executionOptions`
@@ -21,25 +21,25 @@ As of midPoint 4.4, the following items are supported:
 | `import`
 | Imports specified resource objects.
 | `resourceObjects`
-| What link:resource-object-set-specification.adoc[resource objects] to import.
+| What link:../resource-object-set-specification/[resource objects] to import.
 | This is obligatory parameter.
 
 | `reconciliation`
 | Reconciles specified resource objects.
 | `resourceObjects`
-| What link:resource-object-set-specification.adoc[resource objects] to reconcile.
+| What link:../resource-object-set-specification/[resource objects] to reconcile.
 | This is obligatory parameter.
 
 | `asynchronousUpdate`
 | Processes asynchronous updates for given resource objects (EXPERIMENTAL)
 | `updatedResourceObjects`
-| What link:resource-object-set-specification.adoc[resource objects] to receive updates for. (Not all configuration items are supported - TODO.)
+| What link:../resource-object-set-specification/[resource objects] to receive updates for. (Not all configuration items are supported - TODO.)
 | This is obligatory parameter.
 
 .3+| `liveSynchronization`
 .3+| Processes live synchronization events for give resource objects
 | `resourceObjects`
-| What link:resource-object-set-specification.adoc[resource objects] to synchronize.
+| What link:../resource-object-set-specification/[resource objects] to synchronize.
 | This is obligatory parameter.
 | `batchSize`
 | If a positive value of `N` is specified here, live synchronization fetches
