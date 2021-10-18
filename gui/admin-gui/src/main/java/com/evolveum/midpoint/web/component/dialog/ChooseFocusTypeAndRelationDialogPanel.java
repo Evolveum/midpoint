@@ -224,5 +224,9 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> imp
         return this;
     }
 
+    @Override
+    public StringResourceModel getTitle() {
+        return new StringResourceModel("ChooseFocusTypeDialogPanel.chooseType");
+    }
 
 }

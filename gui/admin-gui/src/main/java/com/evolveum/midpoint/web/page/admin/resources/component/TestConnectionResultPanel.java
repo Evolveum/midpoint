@@ -122,6 +122,11 @@ public class TestConnectionResultPanel extends BasePanel<List<OpResult>> impleme
         return this;
     }
 
+    @Override
+    public StringResourceModel getTitle() {
+        return new StringResourceModel("TestConnectionResultPanel.testConnection.result");
+    }
+
     public WebMarkupContainer getContentPanel() {
         return (WebMarkupContainer) get(ID_CONTENT_PANEL);
     }

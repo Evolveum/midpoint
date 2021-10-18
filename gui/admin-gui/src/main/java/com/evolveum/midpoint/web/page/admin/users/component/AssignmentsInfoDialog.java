@@ -38,6 +38,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
@@ -214,6 +215,12 @@ public abstract class AssignmentsInfoDialog extends BasePanel<List<AssignmentInf
     public Component getComponent() {
         return this;
     }
+
+    @Override
+    public StringResourceModel getTitle() {
+        return new StringResourceModel("AssignmentPreviewDialog.label");
+    }
+
 
     protected void addButtonClicked(AjaxRequestTarget target, List<AssignmentInfoDto> dtoList) {
     }

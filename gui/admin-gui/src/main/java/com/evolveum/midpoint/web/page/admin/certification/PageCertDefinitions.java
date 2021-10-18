@@ -26,6 +26,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -299,7 +300,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
     }
 
     private Popupable getDeleteDefinitionConfirmationPanel() {
-        return new ConfirmationPanel(getMainPopupBodyId(),
+        return new DeleteConfirmationPanel(getMainPopupBodyId(),
                 createDeleteConfirmString()) {
             @Override
             public void yesPerformed(AjaxRequestTarget target) {

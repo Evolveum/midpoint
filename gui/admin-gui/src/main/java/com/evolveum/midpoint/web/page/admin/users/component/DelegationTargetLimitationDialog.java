@@ -45,4 +45,9 @@ public class DelegationTargetLimitationDialog extends AssignmentsInfoDialog {
     protected boolean showCancelButton(){
         return true;
     }
+
+    @Override
+    public StringResourceModel getTitle() {
+        return new StringResourceModel("AssignmentPreviewDialog.delegationPreviewLabel");
+    }
 }

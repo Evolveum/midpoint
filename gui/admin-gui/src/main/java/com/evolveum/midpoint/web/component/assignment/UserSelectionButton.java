@@ -144,6 +144,11 @@ public abstract class UserSelectionButton extends BasePanel<List<UserType>> {
                 multipleUsersSelectionPerformed(target, selected);
             }
 
+            @Override
+            public StringResourceModel getTitle() {
+                return titleModel;
+            }
+
         };
         pageBase.showMainPopup(focusBrowser, target);
     }

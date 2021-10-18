@@ -18,6 +18,7 @@ import com.evolveum.midpoint.task.api.Task;
 
 import com.evolveum.midpoint.util.exception.*;
 
+import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -85,7 +86,7 @@ public class InternalsCountersPanel extends BasePanel<ListView<InternalCounters>
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        ConfirmationPanel confirmPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), createStringResource("InternalsCountersPanel.reset.confirm.message", counter.getOid(), counter.getPolicyRuleName())) {
+                        ConfirmationPanel confirmPanel = new DeleteConfirmationPanel(getPageBase().getMainPopupBodyId(), createStringResource("InternalsCountersPanel.reset.confirm.message", counter.getOid(), counter.getPolicyRuleName())) {
 
                             private static final long serialVersionUID = 1L;
 

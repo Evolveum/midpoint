@@ -13,6 +13,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.web.application.*;
+import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 
@@ -361,7 +362,7 @@ public class PageResources extends PageAdmin {
             return;
         }
 
-        ConfirmationPanel dialog = new ConfirmationPanel(((PageBase) getPage()).getMainPopupBodyId(),
+        ConfirmationPanel dialog = new DeleteConfirmationPanel(((PageBase) getPage()).getMainPopupBodyId(),
                 createDeleteConfirmString("pageResources.message.deleteResourceConfirm",
                         "pageResources.message.deleteResourcesConfirm")) {
             @Override

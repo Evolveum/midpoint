@@ -464,4 +464,8 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
     public Component getComponent() {
         return this;
     }
+
+    public StringResourceModel getTitle() {
+        return createStringResource("SearchPropertiesConfigPanel.title");
+    }
 }

@@ -364,5 +364,9 @@ public class DeleteAllPanel extends Panel  implements Popupable{
         return this;
     }
 
+    @Override
+    public StringResourceModel getTitle() {
+        return createStringResource("pageDebugList.dialog.title.deleteAll");
+    }
 }
 

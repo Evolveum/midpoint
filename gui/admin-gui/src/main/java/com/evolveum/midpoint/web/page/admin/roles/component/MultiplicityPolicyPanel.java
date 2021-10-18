@@ -220,4 +220,8 @@ public class MultiplicityPolicyPanel extends Panel implements Popupable {
         return this;
     }
 
+    @Override
+    public StringResourceModel getTitle() {
+        return new StringResourceModel("MultiplicityPolicyDialog.label");
+    }
 }
