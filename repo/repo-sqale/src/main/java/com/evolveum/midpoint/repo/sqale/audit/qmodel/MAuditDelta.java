@@ -27,7 +27,7 @@ public class MAuditDelta {
     public byte[] delta;
     public UUID deltaOid;
     public ChangeType deltaType;
-    public byte[] fullResult;
+    public byte[] fullResult; // not just full, can be cleaned-up, top or even none
     public String objectNameNorm;
     public String objectNameOrig;
     public UUID resourceOid;

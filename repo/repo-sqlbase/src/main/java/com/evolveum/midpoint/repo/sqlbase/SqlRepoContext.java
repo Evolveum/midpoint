@@ -151,9 +151,9 @@ public class SqlRepoContext {
         PrismContext prismContext = schemaService.prismContext();
         // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
         ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
-        T prismObject = prismContext.parserFor(serializedForm)
+        T value = createStringParser(serializedForm)
                 .context(parsingContext).parseRealValue(schemaType);
-        return new RepositoryObjectParseResult<>(parsingContext, prismObject);
+        return new RepositoryObjectParseResult<>(parsingContext, value);
     }
 
     @NotNull

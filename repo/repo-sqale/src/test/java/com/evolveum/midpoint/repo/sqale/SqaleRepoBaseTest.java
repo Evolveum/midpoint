@@ -510,11 +510,16 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
                 operationResult);
     }
 
+    /** Parses object from byte array form and returns its real value (not Prism structure). */
     @NotNull
-    protected <T extends Objectable> T parseFullObject(byte[] fullObject) throws SchemaException {
-        //noinspection unchecked
-        return (T) prismContext.parseObject(
-                new String(fullObject, StandardCharsets.UTF_8)).asObjectable();
+    protected <T> T parseFullObject(byte[] fullObject) {
+        try {
+            return prismContext.parserFor(new String(fullObject, StandardCharsets.UTF_8))
+                    .parseRealValue();
+        } catch (SchemaException e) {
+            // to support lambdas
+            throw new RuntimeException(e);
+        }
     }
 
     protected @NotNull Collection<SelectorOptions<GetOperationOptions>> retrieveGetOptions(ItemName... paths) {
