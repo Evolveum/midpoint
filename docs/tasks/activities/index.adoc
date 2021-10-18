@@ -21,9 +21,20 @@ the activities.
 == Activities
 
 An _activity_ describes the real work that should be carried out. It can be either simple or composite.
-_Simple activities_ consist of a single action, carried out on a set of input _items_ (zero, one,
-or more ones). _Composite activities_ consist of a set of other activities - again, either simple
-or composite.
+
+_Simple activities_ consist of a single _action_, carried out on a set of input _items_ (zero, one,
+or more ones). Typical examples are recomputation, import from resource, or iterative bulk action.
+
+On the other hand, _composite activities_ consist of a set of other activities - again, either simple
+or composite. Composite activities can be _predefined_ (like reconciliation or cleanup) or
+_custom_. Note that composite activities do not have its own actions nor item sets. They are defined
+solely by their constituent sub-activities.footnote:[This is not 100% true, as there may be
+some auxiliary actions, like recording a starting timestamp for reconciliation, that are built into
+the predefined composition logic. But those are really minor actions, not visible from the outside.
+However, in the future we may be able to define custom composition logic for predefined or even for
+custom composite activities.]
+
+image::activity-categorization.png[alt="Activity categorization"]
 
 === A Few Examples
 
@@ -52,6 +63,62 @@ Each of the sub-activities has a different action, and a different item set.
 ==== Example 4: User recomputation + custom bulk action - a (custom) composite activity
 
 image::activity-user-recomputation-with-custom-bulk-action.png[width=700,alt="User recomputation with bulk action"]
+
+== Configuring the Activities
+
+=== Configuring Simple Activities
+
+A definition of a simple activity contains the following sections:
+
+[%header]
+[%autowidth]
+|===
+| Section | Meaning
+| `work` | The work that is to be done. Contains the definition of the activity and the item set.
+| `executionMode` | Defines the overall mode of execution: `full`, `preview`, `dryRun`, `none`,
+`bucketAnalysis`.
+| `controlFlow` | Items like prerequisites, preconditions, error handling strategy, and so on.
+| `distribution` | Distribution of the work executed as part of this activity into threads, buckets, and worker tasks.
+| `reporting` | How various aspects of activity execution are reported, using logging, tracing,
+profiling, reporting, and so on.
+|===
+
+=== Configuring Predefined Composite Activities
+
+A predefined composite activity can contain the same sections as the simple activity definition.
+They provide the default values for the embedded simple activities.
+
+In addition to that, the definitions of individual sub-activities can be _tailored_ by providing explicit
+definition. For example, the resource objects reconciliation sub-activity can be distributed in a way
+different from the other sub-activities, defining buckets, worker tasks and worker threads.
+
+[%header]
+[%autowidth]
+|===
+| Section | Meaning
+| `tailoring` | Tailors the activity definition by changing specification (execution mode,
+flow of control, distribution) of existing sub-activities, or - in the future - by inserting
+sub-activity or sub-activities before or after existing ones.
+|===
+
+=== Configuring Custom Composite Activities
+
+In a current implementation, the custom composite activity definition contains just a single section:
+
+[%header]
+[%autowidth]
+|===
+| Section | Meaning
+| `composition` | Defines the composite activity as a set of its constituent sub-activities.
+|===
+
+NOTE: There is a `defaultWorkDefinition` item in the `composition` section, but it is not supported yet.
+It will be used to define a default work definition for the sub-activities. Neither we do not yet support
+inheriting the non-functional aspects (`executionMode`, `controlFlow`, `distribution`, `reporting`) from
+the composite to the sub-activities. Therefore, the sub-activities have to be fully defined, independently
+of each other.
+
+== Activities and Tasks
 
 
 
