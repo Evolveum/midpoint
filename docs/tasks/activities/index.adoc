@@ -1,6 +1,7 @@
 = Activities
 :page-since: "4.4"
 :page-upkeep-status: green
+:toc:
 
 == Introduction
 
@@ -75,76 +76,15 @@ A definition of a simple (or predefined composite) activity contains the followi
 |===
 | Section | Meaning
 | `work` | The work that is to be done. Contains the definition of the activity and the item set.
-| `executionMode` | Defines the overall mode of execution: `full`, `preview`, `dryRun`, `none`,
-`bucketAnalysis`.
+Described in a link:work.adoc[separate document].
+| `executionMode` | Defines the overall mode of execution: link:execution-mode.adoc[`full`, `preview`, `dryRun`, `none`,
+`bucketAnalysis`].
 | `controlFlow` | Items like prerequisites, preconditions, error handling strategy, and so on.
 | `distribution` | Distribution of the work executed as part of this activity into threads, buckets, and worker tasks.
 | `reporting` | How various aspects of activity execution are reported, using logging, tracing,
 profiling, reporting, and so on.
 |===
 
-==== The Work Section
-
-This section defines _what_ the activity should do (i.e. the action) and on what _items_ (the item set).
-As of midPoint 4.4, the following items are supported:
-
-[%header]
-[%autowidth]
-|===
-| Item | Meaning | Parameter | Meaning | Default
-
-.2+| `recomputation`
-.2+| Recomputes specified objects
-| `objects`
-| What objects to recompute: given by `type`, `query`, `searchOptions`, `useRepositoryDirectly`, and `failedObjectsSelector` items - described below
-| All of `AssignmentHolderType`
-
-| `executionOptions`
-| What options to use
-| `reconcile`
-
-| `import`
-| Imports specified resource objects
-| `resourceObjects`
-| What resource objects to import: given by `resourceRef`, `kind`, `intent`, `objectclass`, `query`, `queryApplication`, `searchOptions`, and `failedObjectsSelector` - described below
-| This is obligatory parameter.
-
-| `reconciliation`
-| Reconciles specified resource objects
-| `resourceObjects`
-| What resource objects to reconcile
-| This is obligatory parameter.
-
-| `asynchronousUpdate`
-| Processes asynchronous updates for given resource objects (EXPERIMENTAL)
-| `updatedResourceObjects`
-| What resource objects to receive updates for
-| This is obligatory parameter.
-
-.3+| `liveSynchronization`
-.3+| Processes live synchronization events for give resource objects
-| `resourceObjects`
-| What resource objects to synchronize
-| This is obligatory parameter.
-| `batchSize`
-| If a positive value of `N` is specified here, live synchronization fetches
-at most `N` records during each `provisioning.synchronize()` method execution - i.e. during
-any live sync task run. (Currently, it leaves unprocessed changes for the next live sync
-task run. This may change in the future.)
-
-*USE WITH CARE.* This feature assumes that the connector provides LiveSync capability
-with `preciseTokenValue` = `true`, i.e. that it assigns sync tokens to individual changes
-"incrementally", so it can resume live sync operation on each individual change. This
-can be the case of SQL connectors, but e.g. not for CSV or LDAP ones.
-| 0
-| `updateLiveSyncTokenInDryRun`
-| Indicates if the LiveSync token should be updated when running in dry run mode.
-If `false` (the default) then LiveSync will not update token to a new value, so it
-will process objects fetched on the next run (either dry or normal). If `true`, it
-will update the token, and therefore marks objects as processed.
-| `false`
-
-|===
 
 === Configuring Predefined Composite Activities
 
