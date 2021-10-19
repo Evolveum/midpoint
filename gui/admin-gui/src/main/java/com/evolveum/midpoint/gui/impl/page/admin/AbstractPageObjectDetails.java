@@ -348,7 +348,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private ContainerPanelConfigurationType findDefaultConfiguration(List<ContainerPanelConfigurationType> configs) {
         List<ContainerPanelConfigurationType> subConfigs = new ArrayList<>();
         for (ContainerPanelConfigurationType config : configs) {
-            if (BooleanUtils.isTrue(config.isDefault()) && isApplicableForOperation(config)) {
+            if (BooleanUtils.isTrue(config.isDefault()) && isApplicableForOperation(config) && WebComponentUtil.getElementVisibility(config.getVisibility())) {
                 return config;
             }
             subConfigs.addAll(config.getPanel());
