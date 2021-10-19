@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -63,6 +64,8 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
 
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
 
+    @Autowired private ClusterManager clusterManager;
+
     @PostConstruct
     public void initialize() throws Exception {
         OperationResult result = new OperationResult("initialize");
@@ -80,6 +83,7 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
                         .withNamePattern(ROLE_NAME_PATTERN)
                         .withCustomizer(this::setDiscriminator)
                         .execute(result));
+        clusterManager.startClusterManagerThread();
     }
 
     /**
@@ -497,13 +501,14 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
             then("reconcile workers");
 
             waitForChildrenBeRunning(root, 4, result);
-
+            then("children are running");
             var asserter= assertFourWorkers(root, "after reconciliation",
                     w1correct, w2correct, w3nodeB, w4nodeB,
                     true, false, true, false,
                     DN, DN, NB, NB, 6, result);
+            then("four workers present, two suspended");
             assertTwoWorkersSuspended(asserter, w3nodeA, w4nodeA, true, false, NA, NA);
-
+            then("reconciliation");
             assertReconResult("after reconciliation", resultMap,
                     2, 0, 0, 2, 2, 0);
 
