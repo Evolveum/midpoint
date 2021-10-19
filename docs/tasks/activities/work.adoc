@@ -1,16 +1,18 @@
-= Work Definition
+= Work Definition (Types of Activities)
 
 This section defines _what_ the activity should do (i.e. the action) and on what _items_ (the item set).
-As of midPoint 4.4, the following items are supported:
+As of midPoint 4.4, the following items are supported (MT means "Supports multi-threading", MN means "Support multi-node operation"):
 
 [%header]
 [%autowidth]
 |===
-| Item | Meaning | Activity type | Parameter | Meaning | Default
+| Item | Meaning | Activity type | MT | MN | Parameter | Meaning | Default
 
 .2+| `recomputation`
 .2+| Recomputes specified objects.
 .2+| Simple
+.2+| Y
+.2+| Y
 | `objects`
 | What link:../object-set-specification/[objects] to recompute.
 | All of `AssignmentHolderType`.
@@ -21,6 +23,8 @@ As of midPoint 4.4, the following items are supported:
 | `import`
 | Imports specified resource objects.
 | Simple
+| Y
+| Y
 | `resourceObjects`
 | What link:../resource-object-set-specification/[resource objects] to import.
 | This is obligatory parameter.
@@ -28,6 +32,8 @@ As of midPoint 4.4, the following items are supported:
 | `reconciliation`
 | Reconciles specified resource objects.
 | Predefined composite
+| Y
+| Y
 | `resourceObjects`
 | What link:../resource-object-set-specification/[resource objects] to reconcile.
 | This is obligatory parameter.
@@ -35,6 +41,8 @@ As of midPoint 4.4, the following items are supported:
 | `asynchronousUpdate`
 | Processes asynchronous updates for given resource objects (EXPERIMENTAL).
 | Simple
+| Y
+| N
 | `updatedResourceObjects`
 | What link:../resource-object-set-specification/[resource objects] to receive updates for. (Not all configuration items are supported - TODO.)
 | This is obligatory parameter.
@@ -42,6 +50,8 @@ As of midPoint 4.4, the following items are supported:
 .3+| `liveSynchronization`
 .3+| Processes live synchronization events for give resource objects.
 .3+| Simple
+| Y
+| N
 | `resourceObjects`
 | What link:../resource-object-set-specification/[resource objects] to synchronize.
 | This is obligatory parameter.
@@ -67,13 +77,17 @@ will update the token, and therefore marks objects as processed.
 | Cleans up obsolete objects: audit records, closed tasks, closed cases, closed certification
 campaigns, output reports, and dead nodes.
 | Predefined composite
+| N
+| N
 | `policies`
 | Cleanup policies to be used. (Specifying typically max. age and/or max. number of records to keep.)
 | Global cleanup policies defined in the system configuration.
 
 .2+| `reportExport`
-.2+| Exports any report in a "classical" way. Supports multithreading but not bucketing (multi-node mode).
+.2+| Exports any report in a "classical" way. (Does not support bucketing.)
 .2+| Simple
+.2+| Y
+.2+| N
 | `reportRef`
 | Definition of the report.
 | Obligatory.
@@ -82,8 +96,10 @@ campaigns, output reports, and dead nodes.
 | No parameters.
 
 .2+| `distributedReportExport`
-.2+| Exports report of repository objects or audit records. Supports bucketing (multi-node mode) and multithreading.
+.2+| Exports a report on repository objects or audit records.
 .2+| Predefined composite
+.2+| Y
+.2+| Y
 | `reportRef`
 | Definition of the report.
 | Obligatory.
@@ -92,8 +108,10 @@ campaigns, output reports, and dead nodes.
 | No parameters.
 
 .3+| `reportImport`
-.3+| Imports a report. Supports multithreading.
+.3+| Imports a report.
 .3+| Simple
+.2+| Y
+.2+| N
 | `reportRef`
 | Definition of the report.
 | Obligatory.
@@ -107,6 +125,8 @@ campaigns, output reports, and dead nodes.
 .2+| `iterativeScripting`
 .2+| Executes a script (a.k.a. bulk action) over a set of objects.
 .2+| Simple
+.2+| Y
+.2+| Y
 | `objects`
 | What link:../object-set-specification/[objects] to process.
 | All objects in repo.
@@ -118,6 +138,8 @@ but it is ignored.
 | `nonIterativeScripting`
 | Executes a script (a.k.a. bulk action) on an empty or explicitly specified input. NOTE: not implemented yet, but hopefully will be in 4.4.
 | Simple
+.2+| N
+.2+| N
 | `scriptExecutionRequest`
 | Script to execute (`ExecuteScriptType`). Contains scripting expression, `input`, options`, and `variables`.
 | Obligatory.
@@ -134,6 +156,8 @@ where `offset` is a value given in the explicit validity constraint (the `activa
 explicitly added triggered validity policy rule. Note that this is an *experimental* functionality.
 
 .3+| Predefined composite
+.3+| Y
+.3+| Y
 | `objects`
 | What link:../object-set-specification/[objects] to scan. If a query is present, the filter computed
 by the activity is added to it (as a conjunction).
@@ -151,6 +175,8 @@ in two separate sub-activities.
 | Executes trigger scan on repository objects. Invokes trigger handlers for any triggers that have fire time less than or equal `currentTime`.
 (Unlike validity scanner, this one intentionally ignores `lastScanTimestamp`.)
 | Simple
+| Y
+| Y
 | `objects`
 | What link:../object-set-specification/[objects] to scan. If a query is present, the filter computed
 by the activity is added to it (as a conjunction).
@@ -159,6 +185,8 @@ by the activity is added to it (as a conjunction).
 | link:https://docs.evolveum.com/midpoint/reference/tasks/shadow-refresh-task/[`shadowRefresh`]
 | Looks for pending operations in shadows and updates their status.
 | Simple
+| Y
+| Y
 | `shadows`
 | What link:../object-set-specification/[shadows] to process. If a query with filter is present, it _replaces_ the default query.
 If a query without filter is present, the default filter is "implanted" into it (reusing e.g. the ordering).
@@ -167,6 +195,8 @@ If a query without filter is present, the default filter is "implanted" into it 
 .3+| `changeExecution`
 .3+| Executes specified changes on specified objects.
 .3+| Simple
+.3+| Y
+.3+| Y
 | `objects`
 | What link:../object-set-specification/[objects] to process.
 | All of `ObjectType` (can be dangerous!)
@@ -180,6 +210,8 @@ If a query without filter is present, the default filter is "implanted" into it 
 | `reindexing`
 | Re-indexes specified repository objects.
 | Simple
+| Y
+| Y
 | `objects`
 | What link:../object-set-specification/[objects] to reindex.
 | All of `ObjectType`.
@@ -187,6 +219,8 @@ If a query without filter is present, the default filter is "implanted" into it 
 .2+| `shadowCleanup`
 .2+| Deletes all shadows that have not been updated for given time. (I.e. their `fullSynchronizationTimestamp` is either null or less or equal "current time - specified interval".)
 .2+| Simple
+.2+| Y
+.2+| Y
 | `shadows`
 | What link:../resource-object-set-specification/[shadows] to check. The task works only if given resource is not in maintenance mode. If a query is specified, it is always
 appended to the default time-scanning query.
@@ -198,6 +232,8 @@ appended to the default time-scanning query.
 | `objectIntegrityCheck`
 | x
 | Simple
+| Y
+| Y
 | x
 | x
 | x
@@ -205,6 +241,8 @@ appended to the default time-scanning query.
 | `shadowIntegrityCheck`
 | x
 | Simple
+| Y
+| Y
 | x
 | x
 | x
@@ -212,6 +250,8 @@ appended to the default time-scanning query.
 | `activityAutoScaling`
 | x
 | Simple
+| Y
+| Y
 | x
 | x
 | x
@@ -219,6 +259,8 @@ appended to the default time-scanning query.
 | `noOp`
 | x
 | Simple
+| Y
+| Y
 | x
 | x
 | x
@@ -226,6 +268,8 @@ appended to the default time-scanning query.
 | `extension`
 | x
 | Simple
+| -
+| -
 | x
 | x
 | x

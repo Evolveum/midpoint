@@ -102,6 +102,10 @@ the time interval when the error occurred.
 combined with failed object selector, and tries to process them. The errors occurring in
 this task can be later handled again.
 
+NOTE: For midPoint 4.4 please have look at
+link:/midpoint/reference/tasks/object-set-specification/#_failed_objects_selector[failed objects selector]
+in object set specification.
+
 === Triggers
 
 Another option is to automatically schedule any failed object for re-processing using _triggers_.

@@ -2,13 +2,57 @@
 
 Here we describe the definition of control flow for link:index.adoc[activities].
 
+Note that not all of these options are supported for all activities.
+Usually, activities marked as non-multi-threading capable (like cleanup) also do not support
+these options.
+
 [%header]
 [%autowidth]
 |===
 | Item | Meaning | Default
 
+| `processingOption`
+| Controls whether the specified activity is executed: if set to `skip`, the activity is skipped.
+| For simple activities, it is `process`. But for sub-activities in predefined composite activities,
+it may be different: e.g. the preview-related sub-activities in recomputation are skipped by default.
+
+| `bucketProcessingCondition`
+| Condition for processing or analysing specific buckets. (If present and if returns false, the
+bucket is marked as complete without any processing, and the next bucket is fetched.)
+| Processing all buckets.
+
+| `itemProcessingCondition`
+| Condition for processing specific items. (If present and if returns false,
+the item processing is skipped, and the next item is fetched.)
+| Processing all items.
+
+| `errorHandling`
+| Error handling strategy for this activity. (A preliminary description is link:https://docs.evolveum.com/midpoint/reference/tasks/task-error-handling/[here]. To be updated!)
+| Depends on specific activity.
+
+| `parallelExecution`
+| Whether the child activities should be executed in parallel.
+(This is applicable only to composite activities.)
+| `false`
+|===
+
+Items planned but *not implemented yet*:
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning | Default
 | `activityPrecondition`
 | An expression that governs whether the current activity should be executed or skipped,
 or whether the task should stop altogether. Should return a single value
 of `ActivityPreconditionOutputType`.
+| Pass.
+
+| `prerequisite`
+| Set of prerequisites i.e. activities that must be complete before this one can start.
+| The activity just before this one (the sequential processing).
+
+| `repeatedExecution`
+| Should be the activity re-executed when the task is restarted (e.g. resumed)?
+| -
 |===
