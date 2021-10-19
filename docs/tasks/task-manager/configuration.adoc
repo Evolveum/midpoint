@@ -7,6 +7,7 @@
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2020-01-28T19:18:01.617+01:00
 :page-upkeep-status: orange
+:page-toc: top
 
 == Basic information
 
@@ -40,27 +41,39 @@ Most frequently used configuration items are:
 |===
 | Item | Description | Default value
 
-| threads
+| `threads`
 | Number of threads that will be available for running tasks on this node.
 | 10
 
 
-| clustered
+| `clustered`
 | Whether this node is part of a cluster.
 If set to true, it implies the use of the JDBC job store.
 | `false`
 
 
-| jdbcJobStore
+| `jdbcJobStore`
 | Whether JDBC job store should be used.
 See the discussion below.
 | `true` if clustered, `false` otherwise
 
+| `useRepositoryConnectionProvider`
+| Whether JDBC job store should use the same connection provider (data source) as the main repository.
+
+This is `true` for the new Native repository by default unless `jdbcUrl` is also specified (see lower).
+It is easier to match the size of the repository connection pools on the cluster nodes with the
+connection limit of the databese this way.
+The total number of the connections in all the pools should not go above the database limit.
+Setting it to `false` creates dedicated connection pool for the scheduler which always uses
+10 additional connections for every node.
+
+*Do not set this with the old Generic repository* - the option is not supported for the old repository
+and in some cases causes problems because of transaction isolation levels.
+| `true` for new Native repository if `jdbcUrl` is not specified, `false` otherwise
 
 |===
 
-For more information how to setup task manager for a cluster, please see wiki:Clustering+/+high+availability+setup[this wiki article].
-
+For more information how to set up task manager for a cluster, please see link:/midpoint/reference/deployment/clustering-ha/[this article].
 
 == JDBC scheduler job store
 
@@ -82,33 +95,28 @@ Configuration parameters related to JDBC job store:
 |===
 | Item | Description | Default value
 
-| jdbcDriver
+| `jdbcDriver`
 | JDBC driver to use for the connection.
 | the value from repository configuration
 
-
-| jdbcUrl
+| `jdbcUrl`
 | URL used to connect to the database.
 | the value from repository configuration
 
-
-| jdbcUser, jdbcPassword
+| `jdbcUser`, `jdbcPassword`
 | Credentials used to connect to the database.
 | the value from repository configuration
 
-
-| dataSource
+| `dataSource`
 | Alternative way of obtaining the connection.
 | the value from repository configuration
 
-
-| sqlSchemaFile
+| `sqlSchemaFile`
 | Database schema of the Quartz-related tables in database.
 Normally you do not have to change this parameter.
 | derived from the kind of SQL database used for repository
 
-
-| jdbcDriverDelegateClass
+| `jdbcDriverDelegateClass`
 | Helper class used by Quartz scheduler to access the database.
 Normally you do not have to change this parameter.
 | derived from the kind of SQL database used for repository
@@ -126,14 +134,13 @@ When using default URL for H2 for SQL repository, midPoint will fill-in reasonab
 However, if you provide your own H2 database URL for the repository, do not forget to provide custom H2 URL for task manager as well, providing MVCC=TRUE.
 But overall, we recommend H2 only for demo and testing deployments, so usually there is no need to use JDBC job store with H2 altogether.
 
-
 == Less frequently used configuration items
 
 [%autowidth]
 |===
 |  Item | Description | Default value
 
-| useThreadInterrupt
+| `useThreadInterrupt`
 | How tasks are stopped, e.g. on node shutdown or on task suspend operation.
 Normally, the task is signaled to stop by setting its `canRun` flag to `false`. Task handler should periodically check this flag and act accordingly.
 However, there may be situations when `Thread.interrupt()` has to be used, for example when a long `Thread.sleep()` is invoked.
@@ -159,7 +166,7 @@ Available since midPoint 4.1.
 | 7500
 
 
-| quartzClusterCheckinGracePeriod
+| `quartzClusterCheckinGracePeriod`
 | After what time should other nodes consider a Quartz node to be "down".
 Specified in milliseconds.
 Increase if you experience "This scheduler instance (...) is still active but was recovered by another instance in the cluster.
@@ -168,7 +175,7 @@ See link:https://jira.evolveum.com/browse/MID-5500[MID-5500]. Available since mi
 | 7500
 
 
-| checkForTaskConcurrentExecution
+| `checkForTaskConcurrentExecution`
 | EXPERIMENTAL.
 An additional approximate check that task is not started at two nodes at once.
 (This can occur e.g. on unwanted Quartz node recovery described above.) Available since midPoint 4.1.
