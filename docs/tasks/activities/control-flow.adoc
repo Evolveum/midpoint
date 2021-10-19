@@ -2,9 +2,12 @@
 
 Here we describe the definition of control flow for link:../[activities].
 
-Note that not all of these options are supported for all activities.
-Usually, activities marked as non-multi-threading capable (like cleanup) also do not support
-these options.
+[NOTE]
+====
+Not all of these options are supported for all activities!
+Usually, activities that do not support multi-threading (like cleanup)
+also do not support these options.
+====
 
 [%header]
 [%autowidth]

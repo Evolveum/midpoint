@@ -2,6 +2,14 @@
 
 Here we describe the definition of distribution for link:../[activities].
 
+[NOTE]
+====
+Not all of these options are supported for all activities!
+Worker threads are supported only by activities marked as multi-thread-capable.
+Buckets, worker tasks, and auto-scaling are supported only by activities marked as multi-node-capable.
+The list of activities with these attributes is link:../work/[here].
+====
+
 The following configuration options are available:
 
 [%header]

@@ -232,8 +232,8 @@ appended to the default time-scanning query.
 | `objectIntegrityCheck`
 | x
 | Simple
-| Y
-| Y
+| N
+| N
 | x
 | x
 | x
@@ -241,8 +241,8 @@ appended to the default time-scanning query.
 | `shadowIntegrityCheck`
 | x
 | Simple
-| Y
-| Y
+| N
+| N
 | x
 | x
 | x
