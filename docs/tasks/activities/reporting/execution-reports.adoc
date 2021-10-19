@@ -102,7 +102,7 @@ After an item is processed (or skipped), midPoint can write a record into item-l
 [%header,format=csv]
 [%autowidth]
 |===
-#,name,displayName,type,oid,bucketSequentialNumber,outcome,outcome-qualifier,startTimestamp,startTimestamp-millis,endTimestamp,endTimestamp-millis,duration,errorMessage
+#,name,displayName,type,oid,bucket#,outcome,outcome-qualifier,startTimestamp,startTimestamp-millis,endTimestamp,endTimestamp-millis,duration,errorMessage
 0,ht,ht (ACCOUNT - default - AccountObjectClass),{http://midpoint.evolveum.com/xml/ns/public/common/common-3}ShadowType,e010c326-071a-4666-b791-4be5e8480527,1,SUCCESS,,2021-10-19T11:50:18.744+02:00,1634637018744,2021-10-19T11:50:18.832+02:00,1634637018832,88.09,
 1,guybrush,guybrush (ACCOUNT - default - AccountObjectClass),{http://midpoint.evolveum.com/xml/ns/public/common/common-3}ShadowType,22226666-2200-6666-6666-444400004444,1,SUCCESS,,2021-10-19T11:50:18.917+02:00,1634637018917,2021-10-19T11:50:19.028+02:00,1634637019028,110.6,
 2,daviejones,daviejones (ACCOUNT - default - AccountObjectClass),{http://midpoint.evolveum.com/xml/ns/public/common/common-3}ShadowType,bb6a968d-3a0c-4753-9b58-6c932b1a5245,1,SKIP,,2021-10-19T11:50:19.050+02:00,1634637019050,2021-10-19T11:50:19.051+02:00,1634637019051,0.29,
@@ -118,12 +118,12 @@ After an item is processed (or skipped), midPoint can write a record into item-l
 [%autowidth]
 |===
 | Column | Meaning | Note
-| `sequentialNumber` | Item sequential number. | Marked as `#` in the table above.
+| `sequentialNumber` | Item sequential number. | Marked as `#` in the sample above.
 | `name` | Item name (e.g. object name). |
 | `displayName` | Item display name (e.g. object display name). | If applicable.
 | `type` | Item type (e.g. object type). | If applicable.
 | `oid` | Item ID (e.g. object OID) | If applicable.
-| `bucketSequentialNumber` | Bucket sequential number. |
+| `bucketSequentialNumber` | Bucket sequential number. | Marked as `bucket#` in the sample above.
 | `outcome` | Outcome of the processing. | `SUCCESS`, `FAILURE`, or `SKIP`
 | `outcome-qualifier` | Outcome qualifier. | Always empty for now.
 | `startTimestamp` | When the item processing started. | ISO 8601
@@ -144,7 +144,7 @@ the source of unexpected delays in processing.
 [%header,format=csv]
 [%autowidth]
 |===
-#,itemName,itemOid,bucketSequentialNumber,identifier,resourceRef,resourceRef-name,objectClass,operation,status,message,size,startTimestamp,startTimestamp-millis,endTimestamp,endTimestamp-millis,duration
+#,itemName,itemOid,bucket#,identifier,resourceRef,resourceRef-name,objectClass,operation,status,message,size,startTimestamp,startTimestamp-millis,endTimestamp,endTimestamp-millis,duration
 1,guybrush,22226666-2200-6666-6666-444400004444,1,1634637018962-0-1,10000000-0000-0000-0000-000000000004,Dummy Resource,{http://midpoint.evolveum.com/xml/ns/public/resource/instance-3}AccountObjectClass,ICF_GET,,,,2021-10-19T11:50:18.962+02:00,1634637018962,2021-10-19T11:50:18.962+02:00,1634637018962,0.0
 1,guybrush,22226666-2200-6666-6666-444400004444,1,1634637018965-0-1,10000000-0000-0000-0000-000000000004,Dummy Resource,{http://midpoint.evolveum.com/xml/ns/public/resource/instance-3}AccountObjectClass,ICF_UPDATE,,,,2021-10-19T11:50:18.965+02:00,1634637018965,2021-10-19T11:50:18.965+02:00,1634637018965,0.0
 1,guybrush,22226666-2200-6666-6666-444400004444,1,1634637019003-0-1,10000000-0000-0000-0000-000000000004,Dummy Resource,{http://midpoint.evolveum.com/xml/ns/public/resource/instance-3}AccountObjectClass,ICF_GET,,,,2021-10-19T11:50:19.003+02:00,1634637019003,2021-10-19T11:50:19.004+02:00,1634637019004,1.0
@@ -162,7 +162,7 @@ the source of unexpected delays in processing.
 | `sequentialNumber` | Item sequential number. | Marked as `#` in the table above. May be missing if the operation was executed outside item process.
 | `itemName` | Item name (e.g. object name). | Empty if outside item processing.
 | `itemOid` | Item ID (e.g. object OID) | If applicable.
-| `bucketSequentialNumber` | Bucket sequential number. |
+| `bucketSequentialNumber` | Bucket sequential number. | Marked as `bucket#` in the sample above.
 | `identifier` | ConnId operation identifier. | May be correlated with an entry in midPoint log.
 | `resourceRef` | OID of the resource. |
 | `resourceRef-name` | Name of the resource. |
@@ -200,7 +200,7 @@ analysing the duration of internal midPoint operations.
 [%header,format=csv]
 [%autowidth]
 |===
-#,itemName,itemOid,bucketSequentialNumber,operation,qualifiers,operationKind,status,importance,asynchronousOperationReference,start,start-millis,end,end-millis,microseconds,cpuMicroseconds,invocationId,params,context,returns,token,messageCode,message,parent
+#,itemName,itemOid,bucket#,operation,qualifiers,operationKind,status,importance,asynchronousOperationReference,start,start-millis,end,end-millis,microseconds,cpuMicroseconds,invocationId,params,context,returns,token,messageCode,message,parent
 0,ht,e010c326-071a-4666-b791-4be5e8480527,1,com.evolveum.midpoint.repo.cache.RepositoryCache.searchObjects,FocusType,,SUCCESS,NORMAL,,2021-10-19T11:50:18.772+02:00,1634637018772,2021-10-19T11:50:18.774+02:00,1634637018774,1939,,11751,"query=[Q{REF: linkRef, PRV(oid=e010c326-071a-4666-b791-4be5e8480527, targetType=null, relation={http://prism.evolveum.com/xml/ns/public/query-3}any), null paging}]; type=[http://midpoint.evolveum.com/xml/ns/public/common/common-3#FocusType]",,objectsFound=[1],1000000000000001488,,,1000000000000001487
 0,ht,e010c326-071a-4666-b791-4be5e8480527,1,com.evolveum.midpoint.repo.api.RepositoryService.searchObjects,FocusType,,SUCCESS,NORMAL,,2021-10-19T11:50:18.772+02:00,1634637018772,2021-10-19T11:50:18.774+02:00,1634637018774,1704,,11752,"query=[Q{REF: linkRef, PRV(oid=e010c326-071a-4666-b791-4be5e8480527, targetType=null, relation={http://prism.evolveum.com/xml/ns/public/query-3}any), null paging}]; type=[com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType]",,,1000000000000001489,,,1000000000000001488
 0,ht,e010c326-071a-4666-b791-4be5e8480527,1,com.evolveum.midpoint.repo.cache.RepositoryCache.modifyObject,ShadowType,,SUCCESS,NORMAL,,2021-10-19T11:50:18.774+02:00,1634637018774,2021-10-19T11:50:18.779+02:00,1634637018779,5267,,11753,oid=[e010c326-071a-4666-b791-4be5e8480527]; type=[http://midpoint.evolveum.com/xml/ns/public/common/common-3#ShadowType],,,1000000000000001490,,,1000000000000001484
@@ -229,7 +229,7 @@ analysing the duration of internal midPoint operations.
 | `sequentialNumber` | Item sequential number. | Marked as `#` in the table above. May be missing if the operation was executed outside item process.
 | `itemName` | Item name (e.g. object name). | Empty if outside item processing.
 | `itemOid` | Item ID (e.g. object OID) | If applicable.
-| `bucketSequentialNumber` | Bucket sequential number. |
+| `bucketSequentialNumber` | Bucket sequential number. | Marked as `bucket#` in the sample above.
 
 | `operation`
 | Name of the operation.
@@ -242,7 +242,7 @@ analysing the duration of internal midPoint operations.
 | `operationKind`
 | Kind of operation (e.g. clockwork execution, mapping evaluation, repository access). To be used
 for easy navigation, result filtering, and so on.
-| Looks like not filled in currently. #FIXME#
+| Looks like currently not filled in. #FIXME#
 
 | `status`
 | Resulting status of the operation.
