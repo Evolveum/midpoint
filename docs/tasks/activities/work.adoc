@@ -50,8 +50,8 @@ As of midPoint 4.4, the following items are supported (MT means "Supports multi-
 .3+| `liveSynchronization`
 .3+| Processes live synchronization events for give resource objects.
 .3+| Simple
-| Y
-| N
+.3+| Y
+.3+| N
 | `resourceObjects`
 | What link:../resource-object-set-specification/[resource objects] to synchronize.
 | This is obligatory parameter.
@@ -110,8 +110,8 @@ campaigns, output reports, and dead nodes.
 .3+| `reportImport`
 .3+| Imports a report.
 .3+| Simple
-.2+| Y
-.2+| N
+.3+| Y
+.3+| N
 | `reportRef`
 | Definition of the report.
 | Obligatory.
@@ -138,8 +138,8 @@ but it is ignored.
 | `nonIterativeScripting`
 | Executes a script (a.k.a. bulk action) on an empty or explicitly specified input. NOTE: not implemented yet, but hopefully will be in 4.4.
 | Simple
-.2+| N
-.2+| N
+| N
+| N
 | `scriptExecutionRequest`
 | Script to execute (`ExecuteScriptType`). Contains scripting expression, `input`, options`, and `variables`.
 | Obligatory.
