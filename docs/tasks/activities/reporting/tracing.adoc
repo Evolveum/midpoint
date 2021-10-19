@@ -1,8 +1,7 @@
-= Activity Tracing
+= Tracing
+:page-experimental: true
 
 Here we configure the link:/midpoint/reference/diag/troubleshooting/troubleshooting-with-traces/[tracing feature] for the activity.
-
-WARNING: This feature is *experimental*.
 
 TIP: Unlike 4.3 and earlier, we can now provide more tracing configurations, e.g. brief tracing for each 10-th item, and in-depth
 tracing for each 100-th item.

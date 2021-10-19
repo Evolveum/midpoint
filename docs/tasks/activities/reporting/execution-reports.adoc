@@ -1,9 +1,139 @@
-== Activity Execution Reports
+= Execution Reports
+:page-experimental: true
 
-#TODO#
+An activity can provide a couple of reports about its execution. Their typical use is to
+improve the activity performance or gather other information about the activity execution.
+
+There are four kinds of reports, corresponding to the following configuration items:
 
 [%header]
 [%autowidth]
 |===
-| Item | Meaning | Default
+| Item | Meaning
+| `buckets`
+| Configuration of a report on individual buckets.
+| `items`
+| Configuration of a report on individual items.
+| `connIdOperations`
+| Configuration of a report on ConnId operations invoked.
+| `internalOperations`
+| Configuration of a report on internal midPoint operations invoked.
 |===
+
+== Report on Buckets
+
+After a bucket is processed (or analyzed), midPoint can write a record into bucket-level report.
+
+=== An Example
+
+[%header,format=csv]
+[%autowidth]
+|===
+#,content,content-from,content-to,size,itemsSuccessfullyProcessed,itemsFailed,itemsSkipped,startTimestamp,startTimestamp-millis,endTimestamp,endTimestamp-millis,duration
+1,[5-230004),5,230004,2935,2927,8,0,2021-10-08T11:00:19.015Z,1633690819015,2021-10-08T11:02:38.528Z,1633690958528,139513
+6,[1150000-1379999),1150000,1379999,2297,2291,6,0,2021-10-08T11:02:38.734Z,1633690958734,2021-10-08T11:04:35.088Z,1633691075088,116354
+10,[2069996-2299995),2069996,2299995,2061,2055,6,0,2021-10-08T11:04:35.239Z,1633691075239,2021-10-08T11:06:17.209Z,1633691177209,101970
+14,[2989992-3219991),2989992,3219991,3747,3734,13,0,2021-10-08T11:06:17.307Z,1633691177307,2021-10-08T11:09:25.689Z,1633691365689,188382
+18,[3909988-4139987),3909988,4139987,1462,1460,2,0,2021-10-08T11:09:25.791Z,1633691365791,2021-10-08T11:10:40.895Z,1633691440895,75104
+20,[4369986-4599985),4369986,4599985,1920,1919,1,0,2021-10-08T11:10:41.018Z,1633691441018,2021-10-08T11:12:15.892Z,1633691535892,94874
+23,[5059983-5289982),5059983,5289982,2426,2419,7,0,2021-10-08T11:12:15.987Z,1633691535987,2021-10-08T11:14:13.690Z,1633691653690,117703
+35,[7819971-8049970),7819971,8049970,505,499,6,0,2021-10-08T11:14:13.805Z,1633691653805,2021-10-08T11:14:38.003Z,1633691678003,24198
+38,[8509968-8739967),8509968,8739967,1468,1461,7,0,2021-10-08T11:14:38.093Z,1633691678093,2021-10-08T11:15:51.241Z,1633691751241,73148
+47,[10579959-10809958),10579959,10809958,17,15,2,0,2021-10-08T11:15:51.406Z,1633691751406,2021-10-08T11:15:52.899Z,1633691752899,1493
+|===
+
+=== Meaning of individual columns
+
+[%header]
+[%autowidth]
+|===
+| Column | Meaning | Note
+| `sequentialNumber` | Sequential number of the bucket. | Marked as `#` in the table above.
+| `content` | Symbolic description of the bucket content. | Not all buckets can be represented in this way.
+| `content-from` | Lower boundary of the bucket. | Not applicable to all buckets.
+| `content-to` | Upper boundary of the bucket. | Not applicable to all buckets.
+| `size` | Size of the bucket. | Not always determinable.
+| `itemsSuccessfullyProcessed` | Items from the bucket that were successfully processed. |
+| `itemsFailed` | Items that failed to be processed. |
+| `itemsSkipped` | Items that were skipped from processing. |
+| `startTimestamp` | When the processing of the bucket started. (Excludes the bucket acquisition.) | ISO 8601
+| `startTimestamp-millis` | When the processing of the bucket started. (Excludes the bucket acquisition.) | Milliseconds
+| `endTimestamp` | When the processing of the bucket finished. (Excludes the bucket completion marking.) | ISO 8601
+| `endTimestamp-millis` | When the processing of the bucket finished. (Excludes the bucket completion marking.) | Milliseconds
+| `duration` | The bucket processing duration. | Milliseconds
+|===
+
+== Configuration (Common to All Reports)
+
+The following structure is common to all reports: buckets, items, ConnId operations, and internal operations.
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning
+| `enabled` | If false, the report is (temporarily) disabled.
+| `recordFilter` | If specified, only records matching this filter will be put into the report.
+| `recordFilteringExpression` | If specified, only records for which this expression returns `true` are put into the report.
+(The expression expects `record` variable of the type listed below.)
+|===
+
+The `recordFilter` and `recordFilteringExpression` is used to reduce the number of rows in a report. As their input they expect
+the candidate record (row) that is to be written into the report. It is of the following type:
+
+[%header]
+[%autowidth]
+|===
+| Report type | Record type
+| Buckets | `BucketProcessingRecordType`
+| Items | `ItemProcessingRecordType`
+| ConnId operations | `ConnIdOperationRecordType`
+| Internal operations | `InternalOperationRecordType`
+|===
+
+A special use of buckets report is when link:../bucket-analysis/[bucket analysis] is done.
+
+== Report on Items
+
+After an item is processed (or skipped), midPoint can write a record into item-level report.
+
+=== An Example
+
+[%header,format=csv]
+[%autowidth]
+|===
+#,name,displayName,type,oid,bucketSequentialNumber,outcome,outcome-qualifier,startTimestamp,startTimestamp-millis,endTimestamp,endTimestamp-millis,duration,errorMessage
+0,ht,ht (ACCOUNT - default - AccountObjectClass),{http://midpoint.evolveum.com/xml/ns/public/common/common-3}ShadowType,e010c326-071a-4666-b791-4be5e8480527,1,SUCCESS,,2021-10-19T11:50:18.744+02:00,1634637018744,2021-10-19T11:50:18.832+02:00,1634637018832,88.09,
+1,guybrush,guybrush (ACCOUNT - default - AccountObjectClass),{http://midpoint.evolveum.com/xml/ns/public/common/common-3}ShadowType,22226666-2200-6666-6666-444400004444,1,SUCCESS,,2021-10-19T11:50:18.917+02:00,1634637018917,2021-10-19T11:50:19.028+02:00,1634637019028,110.6,
+2,daviejones,daviejones (ACCOUNT - default - AccountObjectClass),{http://midpoint.evolveum.com/xml/ns/public/common/common-3}ShadowType,bb6a968d-3a0c-4753-9b58-6c932b1a5245,1,SKIP,,2021-10-19T11:50:19.050+02:00,1634637019050,2021-10-19T11:50:19.051+02:00,1634637019051,0.29,
+3,calypso,calypso (ACCOUNT - default - AccountObjectClass),{http://midpoint.evolveum.com/xml/ns/public/common/common-3}ShadowType,a4793302-0624-42bd-9527-98a39ede2621,1,SKIP,,2021-10-19T11:50:19.055+02:00,1634637019055,2021-10-19T11:50:19.056+02:00,1634637019056,0.28,
+4,elaine,elaine (ACCOUNT - default - AccountObjectClass),{http://midpoint.evolveum.com/xml/ns/public/common/common-3}ShadowType,c0c010c0-d34d-b33f-f00d-22220004000e,1,SUCCESS,,2021-10-19T11:50:19.061+02:00,1634637019061,2021-10-19T11:50:19.191+02:00,1634637019191,129.55,
+5,rapp,rapp (ACCOUNT - default - AccountObjectClass),{http://midpoint.evolveum.com/xml/ns/public/common/common-3}ShadowType,c70312bb-a6fd-48d7-b2ed-303007a2e190,1,SUCCESS,,2021-10-19T11:50:19.206+02:00,1634637019206,2021-10-19T11:50:19.331+02:00,1634637019331,125.03,
+6,stan,stan (ACCOUNT - default - AccountObjectClass),{http://midpoint.evolveum.com/xml/ns/public/common/common-3}ShadowType,22220000-2200-0000-0000-444400004455,1,SUCCESS,,2021-10-19T11:50:19.348+02:00,1634637019348,2021-10-19T11:50:19.404+02:00,1634637019404,55.81,
+|===
+
+=== Meaning of Individual Columns
+
+[%header]
+[%autowidth]
+|===
+| Column | Meaning | Note
+| `sequentialNumber` | Item sequential number. | Marked as `#` in the table above.
+| `name` | Item name (e.g. object name). |
+| `displayName` | Item display name (e.g. object display name). | If applicable.
+| `type` | Item type (e.g. object type). | If applicable.
+| `oid` | Item ID (e.g. object OID) | If applicable.
+| `bucketSequentialNumber` | Bucket sequential number. |
+| `outcome` | Outcome of the processing. | `SUCCESS`, `FAILURE`, or `SKIP`
+| `outcome-qualifier` | Outcome qualifier. | Always empty for now.
+| `startTimestamp` | When the item processing started. | ISO 8601
+| `startTimestamp-millis` | When the item processing started. | Milliseconds
+| `endTimestamp` | When the item processing finished. | ISO 8601
+| `endTimestamp-millis` | When the item processing finished. | Milliseconds
+| `duration` | How long did the processing take? | Milliseconds; may be fractional.
+| `errorMessage` | Error message, if any. |
+|===
+
+== Report on ConnId Operations
+
+== Report on Internal MidPoint Operations
+

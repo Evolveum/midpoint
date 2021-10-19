@@ -1,4 +1,4 @@
-= Activity Logging
+= Logging
 
 This document defines how should the activity progress be logged.
 
@@ -25,6 +25,8 @@ This document defines how should the activity progress be logged.
 | `full`
 | Event should be logged fully. A couple of lines containing e.g. statistical information can be written.
 |===
+
+#TODO some examples#
 
 We are also thinking about the possibility of overriding specific logging levels for given activity,
 just like it is possible even today during tracing (e.g. log all model-impl issues at DEBUG level).

@@ -1,4 +1,5 @@
-= Activity Profiling
+= Dynamic Profiling
+:page-experimental: true
 
 Dynamic profiling is a predecessor to link:../tracing/[tracing]. It logs selected methods' execution directly to the log file.
 Usually, the tracing is more convenient. However, for completeness we keep this (older) method as well.
@@ -11,3 +12,5 @@ Usually, the tracing is more convenient. However, for completeness we keep this 
 | Conditions that must be fulfilled (any of them) before dynamic profiling is started.
 | Start profiling.
 |===
+
+#TODO example#
