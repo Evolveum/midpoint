@@ -75,6 +75,10 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
             virtualContainerSpec = context.findVirtualContainerConfiguration(parent.getPath());
         }
         if (virtualContainerSpec != null) {
+            //override default expanded settings
+            if (virtualContainerSpec.isExpanded() != null) {
+                containerValueWrapper.setExpanded(virtualContainerSpec.isExpanded());
+            }
             for (ItemWrapper<?, ?> child : children) {
                  if (childNotDefined(virtualContainerSpec, child)) {
                      continue;
@@ -84,6 +88,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
         } else {
             containerValueWrapper.addItems(children);
         }
+
         containerValueWrapper.setVirtualContainerItems(context.getVirtualItemSpecification());
         if (parent != null && context.getVirtualItemSpecification() != null) {
             parent.setVirtual(true);
