@@ -4,6 +4,8 @@
 This section describes how should the activity deal with item counting, i.e. determining "expected progress"
 for a bucket or overall. This value is necessary to determine the relative progress, especially if buckets are not used.
 
+Usually there's no need to change the default values.
+
 [%header]
 [%autowidth]
 |===
