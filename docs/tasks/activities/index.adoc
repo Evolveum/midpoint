@@ -106,5 +106,12 @@ of each other.
 
 == Activities and Tasks
 
+#TODO#
 
+== Migration from 4.3 and before
 
+#TODO#
+
+== GUI support
+
+#TODO#

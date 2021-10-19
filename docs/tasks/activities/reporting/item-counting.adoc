@@ -1,0 +1,9 @@
+== Activity Item Counting
+
+#TODO#
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning | Default
+|===
