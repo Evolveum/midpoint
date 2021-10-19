@@ -126,10 +126,14 @@
             <groupId>org.apache.velocity</groupId>
             <artifactId>velocity-engine-core</artifactId>
         </dependency>
-        <!-- Python is optional, must be provided in ${midpoint.home}/lib if desired. -->
+        <!--
+        Python is optional, must be provided in ${midpoint.home}/lib if desired.
+        For more see: https://docs.evolveum.com/midpoint/reference/expressions/expressions/script/python/
+        -->
         <dependency>
             <groupId>org.python</groupId>
             <artifactId>jython-standalone</artifactId>
+            <version>2.7.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -176,4 +180,52 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <!--
+            JavaScript/ECMAScript is optional. It is not provided with newer JDKs or distributed with midPoint.
+            If desired the JAR from this dependency can be provided in ${midpoint.home}/lib.
+            For more see: https://docs.evolveum.com/midpoint/reference/expressions/expressions/script/javascript/
+            -->
+            <id>javascript</id>
+            <activation>
+                <jdk>[15,)</jdk>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <!-- This one is needed by GUI too, so midPoint brings it in. -->
+                    <dependency>
+                        <groupId>org.ow2.asm</groupId>
+                        <artifactId>asm</artifactId>
+                        <version>${asm.version}</version>
+                    </dependency>
+                    <!-- The rest must be provided in midpoint.home manually if we want JavaScript/ECMAScript. -->
+                    <dependency>
+                        <groupId>org.ow2.asm</groupId>
+                        <artifactId>asm-commons</artifactId>
+                        <version>${asm.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.ow2.asm</groupId>
+                        <artifactId>asm-tree</artifactId>
+                        <version>${asm.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.ow2.asm</groupId>
+                        <artifactId>asm-util</artifactId>
+                        <version>${asm.version}</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+            <dependencies>
+                <dependency>
+                    <groupId>org.openjdk.nashorn</groupId>
+                    <artifactId>nashorn-core</artifactId>
+                    <version>15.3</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 </project>

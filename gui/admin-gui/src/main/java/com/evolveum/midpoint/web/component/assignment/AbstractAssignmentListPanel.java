@@ -12,6 +12,8 @@ import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -54,7 +56,7 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
     }
 
     public Popupable getDeleteAssignmentPopupContent(AssignmentEditorDto dto) {
-        return new ConfirmationPanel(getPageBase().getMainPopupBodyId(), new IModel<String>() {
+        return new DeleteConfirmationPanel(getPageBase().getMainPopupBodyId(), new IModel<String>() {
 
             private static final long serialVersionUID = 1L;
 

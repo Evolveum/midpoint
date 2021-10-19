@@ -17,6 +17,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -160,6 +161,11 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
                 RunReportPopupPanel runReportPopupPanel = new RunReportPopupPanel(getMainPopupBodyId(), report.asObjectable()) {
 
                     private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public StringResourceModel getTitle() {
+                        return createStringResource("PageReport.reportPreview");
+                    }
 
                     protected void runConfirmPerformed(AjaxRequestTarget target, PrismObject<ReportType> reportType, PrismContainer<ReportParameterType> reportParam) {
                         try {

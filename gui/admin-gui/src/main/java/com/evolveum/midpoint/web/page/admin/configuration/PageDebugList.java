@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 
+import com.evolveum.midpoint.web.component.dialog.*;
+
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -59,10 +61,6 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.TwoValueLinkPanel;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.dialog.DeleteAllDto;
-import com.evolveum.midpoint.web.component.dialog.DeleteAllPanel;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -847,7 +845,7 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private Popupable getDeleteConfirmationPanel() {
-        return new ConfirmationPanel(getMainPopupBodyId(), createDeleteConfirmString()) {
+        return new DeleteConfirmationPanel(getMainPopupBodyId(), createDeleteConfirmString()) {
             private static final long serialVersionUID = 1L;
 
             @Override

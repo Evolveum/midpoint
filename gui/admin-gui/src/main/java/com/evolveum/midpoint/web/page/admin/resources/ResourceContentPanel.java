@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
@@ -951,7 +952,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
             return;
         }
 
-        ConfirmationPanel dialog = new ConfirmationPanel(((PageBase) getPage()).getMainPopupBodyId(),
+        ConfirmationPanel dialog = new DeleteConfirmationPanel(((PageBase) getPage()).getMainPopupBodyId(),
                 createDeleteConfirmString(selected, "pageContentAccounts.message.deleteConfirmationSingle",
                         "pageContentAccounts.message.deleteConfirmation")) {
             @Override

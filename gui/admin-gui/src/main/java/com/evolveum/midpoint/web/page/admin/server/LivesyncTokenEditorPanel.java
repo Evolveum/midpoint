@@ -167,4 +167,9 @@ public class LivesyncTokenEditorPanel extends BasePanel<PrismObjectWrapper<TaskT
     public Component getComponent() {
         return this;
     }
+
+    @Override
+    public StringResourceModel getTitle() {
+        return createStringResource("LivesyncTokenEditorPanel.manage.token");
+    }
 }

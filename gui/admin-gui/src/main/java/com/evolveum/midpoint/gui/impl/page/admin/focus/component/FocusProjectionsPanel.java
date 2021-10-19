@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -121,7 +123,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
     protected void initLayout() {
 
-        IModel<Integer> deadShadows = new ReadOnlyModel<>(() -> countDeadShadows());
+        IModel<Integer> deadShadows = new ReadOnlyModel<>(this::countDeadShadows);
         Label label = new Label(ID_DEAD_SHADOWS, deadShadows);
         label.add(new VisibleBehaviour(() -> deadShadows.getObject() > 0));
         add(label);
@@ -863,7 +865,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
     }
 
     private Popupable getDeleteProjectionPopupContent(List<PrismContainerValueWrapper<ShadowType>> selected) {
-        ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
+        ConfirmationPanel dialog = new DeleteConfirmationPanel(getPageBase().getMainPopupBodyId(),
                 new IModel<String>() {
                     private static final long serialVersionUID = 1L;
 

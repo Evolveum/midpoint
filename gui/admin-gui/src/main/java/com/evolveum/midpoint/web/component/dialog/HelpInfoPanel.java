@@ -78,4 +78,8 @@ public class HelpInfoPanel extends Panel implements Popupable{
         return this;
     }
 
+    @Override
+    public StringResourceModel getTitle() {
+        return new StringResourceModel("ChangePasswordPanel.helpPopupTitle");
+    }
 }

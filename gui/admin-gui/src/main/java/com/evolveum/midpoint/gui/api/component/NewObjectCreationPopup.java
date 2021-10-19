@@ -20,6 +20,8 @@ import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 
+import org.apache.wicket.model.StringResourceModel;
+
 public abstract class NewObjectCreationPopup extends BasePanel<List<CompositedIconButtonDto>> implements Popupable {
 
     private static final String ID_BUTTON_CANCEL = "cancelButton";
@@ -91,4 +93,8 @@ public abstract class NewObjectCreationPopup extends BasePanel<List<CompositedIc
         return NewObjectCreationPopup.this;
     }
 
+    @Override
+    public StringResourceModel getTitle() {
+        return new StringResourceModel("");
+    }
 }

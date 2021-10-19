@@ -1047,6 +1047,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                         popupable.getWidthUnit(),
                         "" + (popupable.getHeight() > 0 ? popupable.getHeight() : ""), popupable.getHeightUnit())));
         dialog.setContent(popupable.getComponent());
+        dialog.setTitle(popupable.getTitle());
         dialog.open(target);
     }
 

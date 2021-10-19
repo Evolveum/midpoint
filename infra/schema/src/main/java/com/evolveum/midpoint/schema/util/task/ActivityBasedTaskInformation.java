@@ -153,6 +153,7 @@ class ActivityBasedTaskInformation extends TaskInformation {
         return ActivityTreeUtil.getAllLocalStates(task.getActivityState()).stream()
                 .filter(s -> s.getWorkState() instanceof LiveSyncWorkStateType)
                 .map(s -> ((LiveSyncWorkStateType) s.getWorkState()).getToken())
+                .filter(token -> token != null)
                 .findFirst().orElse(null);
     }
 }

@@ -1790,16 +1790,16 @@ public class OperationResult
         return result;
     }
 
-    public OperationResultType createOperationResultType() {
+    public @NotNull OperationResultType createOperationResultType() {
         return createOperationResultType(null);
     }
 
-    public OperationResultType createOperationResultType(Function<LocalizableMessage, String> resolveKeys) {
+    public @NotNull OperationResultType createOperationResultType(Function<LocalizableMessage, String> resolveKeys) {
         return createOperationResultBean(this, resolveKeys);
     }
 
-    private static OperationResultType createOperationResultBean(OperationResult opResult,
-            Function<LocalizableMessage, String> resolveKeys) {
+    private static @NotNull OperationResultType createOperationResultBean(
+            @NotNull OperationResult opResult, Function<LocalizableMessage, String> resolveKeys) {
         OperationResultType bean = new OperationResultType();
         bean.setOperationKind(opResult.getOperationKind());
         bean.setToken(opResult.getToken());
@@ -1845,7 +1845,9 @@ public class OperationResult
         }
 
         if (opResult.getUserFriendlyMessage() != null) {
-            LocalizableMessageType msg = LocalizationUtil.createLocalizableMessageType(opResult.getUserFriendlyMessage(), resolveKeys);
+            LocalizableMessageType msg =
+                    LocalizationUtil.createLocalizableMessageType(
+                            opResult.getUserFriendlyMessage(), resolveKeys);
             bean.setUserFriendlyMessage(msg);
         }
 

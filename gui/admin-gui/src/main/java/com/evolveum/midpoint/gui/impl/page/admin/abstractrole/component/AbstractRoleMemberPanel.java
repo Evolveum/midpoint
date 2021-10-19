@@ -64,7 +64,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleCompositedSearchItem;
 import com.evolveum.midpoint.web.page.admin.roles.SearchBoxConfigurationHelper;
-import com.evolveum.midpoint.web.page.admin.users.component.TreeTablePanel;
 import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -776,7 +775,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     protected List<QName> getSupportedMembersTabRelations() {
         List<QName> relations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getPageBase());
         List<QName> governance = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getPageBase());
-        governance.forEach(r -> relations.remove(r));
+        governance.forEach(relations::remove);
         return relations;
 //        return new AvailableRelationDto(relations, defaultRelationConfiguration);
     }
@@ -1149,6 +1148,11 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 TaskType recomputeTaskType = recomputeTask.asObjectable();
                 recomputeTaskType.getAssignment().add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value(), ObjectTypes.ARCHETYPE, getPrismContext()));
                 return recomputeTask;
+            }
+
+            @Override
+            public StringResourceModel getTitle() {
+                return createStringResource("pageUsers.message.confirmActionPopupTitle");
             }
 
             @Override

@@ -710,6 +710,11 @@ public class PageCertCampaigns extends PageAdminCertification {
             private static final long serialVersionUID = 1L;
 
             @Override
+            public StringResourceModel getTitle() {
+                return createStringResource("PageCertCampaigns.dialog.title.confirmCloseCampaign");
+            }
+
+            @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 closeSelectedCampaignsConfirmedPerformed(target);
             }
@@ -720,6 +725,11 @@ public class PageCertCampaigns extends PageAdminCertification {
     private Popupable getReiterateSelectedCampaignsConfirmationPanel() {
         return new ConfirmationPanel(getMainPopupBodyId(), createReiterateSelectedCampaignsConfirmString()) {
             private static final long serialVersionUID = 1L;
+
+            @Override
+            public StringResourceModel getTitle() {
+                return createStringResource("PageCertCampaigns.dialog.title.confirmReiterateCampaign");
+            }
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
@@ -741,6 +751,12 @@ public class PageCertCampaigns extends PageAdminCertification {
     private Popupable getDeleteSelectedCampaignsConfirmationPanel() {
         return new ConfirmationPanel(getMainPopupBodyId(), createDeleteSelectedCampaignsConfirmString()) {
             private static final long serialVersionUID = 1L;
+
+            @Override
+            public StringResourceModel getTitle() {
+                return createStringResource("PageCertCampaigns.dialog.title.confirmDeleteCampaign");
+            }
+
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 deleteSelectedCampaignsConfirmedPerformed(target);
@@ -812,6 +828,12 @@ public class PageCertCampaigns extends PageAdminCertification {
     private Popupable getCloseStageConfirmationPanel() {
         return new ConfirmationPanel(getMainPopupBodyId(), createCloseStageConfirmString()) {
             private static final long serialVersionUID = 1L;
+
+            @Override
+            public StringResourceModel getTitle() {
+                return createStringResource("PageCertCampaigns.dialog.title.confirmCloseStage");
+            }
+
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 closeStageConfirmedPerformed(target, relevantCampaign);
@@ -833,6 +855,12 @@ public class PageCertCampaigns extends PageAdminCertification {
     private Popupable getCloseCampaignConfirmationPanel() {
         return new ConfirmationPanel(getMainPopupBodyId(), createCloseCampaignConfirmString()) {
             private static final long serialVersionUID = 1L;
+
+            @Override
+            public StringResourceModel getTitle() {
+                return createStringResource("PageCertCampaigns.dialog.title.confirmCloseCampaign");
+            }
+
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 closeCampaignConfirmedPerformed(target, relevantCampaign);
@@ -844,6 +872,12 @@ public class PageCertCampaigns extends PageAdminCertification {
     private Popupable getReiterateCampaignConfirmationPanel() {
         return new ConfirmationPanel(getMainPopupBodyId(), createReiterateCampaignConfirmString()) {
             private static final long serialVersionUID = 1L;
+
+            @Override
+            public StringResourceModel getTitle() {
+                return createStringResource("PageCertCampaigns.dialog.title.confirmReiterateCampaign");
+            }
+
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 reiterateCampaignConfirmedPerformed(target, relevantCampaign);
@@ -861,6 +895,12 @@ public class PageCertCampaigns extends PageAdminCertification {
     private Popupable getDeleteCampaignConfirmationPanel() {
         return new ConfirmationPanel(getMainPopupBodyId(), createDeleteCampaignConfirmString()) {
             private static final long serialVersionUID = 1L;
+
+            @Override
+            public StringResourceModel getTitle() {
+                return createStringResource("PageCertCampaigns.dialog.title.confirmDeleteCampaign");
+            }
+
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 deleteCampaignConfirmedPerformed(target);

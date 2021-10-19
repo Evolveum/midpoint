@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import org.apache.catalina.util.ServerInfo;
@@ -536,7 +537,7 @@ public class PageAbout extends PageAdminConfiguration {
     }
 
     private Popupable getDeleteAllObjectsConfirmationPanel() {
-        return new ConfirmationPanel(getMainPopupBodyId(), createStringResource("PageAbout.message.deleteAllObjects")) {
+        return new DeleteConfirmationPanel(getMainPopupBodyId(), createStringResource("PageAbout.message.deleteAllObjects")) {
             private static final long serialVersionUID = 1L;
 
             @Override

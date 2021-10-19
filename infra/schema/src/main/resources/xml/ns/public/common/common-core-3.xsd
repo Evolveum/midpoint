@@ -14605,9 +14605,83 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="deltaSuccessExecutionResult" type="tns:OperationResultDetailLevel" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies how the successful operation result from delta execution is stored in the repository.
+                        Operation results from delta execution can take a lot of space and are often not that important
+                        if the result status is `success`.
+                        By default, the result is cleaned up from successful minor results, but there
+                        is also option to store only the top level result (root) without any subresults
+                        or even nothing at all.
+                        Finally, there is also option to store the original full result.
+
+                        [NOTE] This option only works for new Native repository audit.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                        <a:displayName>SystemConfigurationAuditEventRecordingType.deltaSuccessExecutionResult</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:simpleType name="OperationResultDetailLevel">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies what level of detail should be preserved in the operation result.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="full">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FULL"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Full operation result is preserved, no changes are made.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="cleanedUp">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLEANED_UP"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Operation result is cleaned up from minor successful subresults.
+                        Only first level subresults are cleaned up this way.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="top">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TOP"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Only the top level result (root) is preserved, all subresults are removed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Nothing is stored, just like no operation result (null) was provided.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="SystemConfigurationAuditEventRecordingPropertyType">
         <xsd:annotation>

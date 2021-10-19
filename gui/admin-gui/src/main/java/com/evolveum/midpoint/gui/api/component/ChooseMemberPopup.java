@@ -42,6 +42,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -522,5 +523,9 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
     protected QName getDefaultTargetType() {
         return RoleType.COMPLEX_TYPE;
+    }
+
+    public StringResourceModel getTitle(){
+        return createStringResource("TypedAssignablePanel.selectObjects");
     }
 }

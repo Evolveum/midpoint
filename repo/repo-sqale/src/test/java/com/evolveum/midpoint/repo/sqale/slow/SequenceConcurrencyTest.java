@@ -22,7 +22,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
 
-public class SequenceTestConcurrency extends SqaleRepoBaseTest {
+public class SequenceConcurrencyTest extends SqaleRepoBaseTest {
 
     private static final int STOP_TIMEOUT = 10_000;
 

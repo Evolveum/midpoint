@@ -104,5 +104,9 @@ public class OperationResultPopupPanel extends BasePanel<OperationResult> implem
         return this;
     }
 
+    @Override
+    public StringResourceModel getTitle() {
+        return new StringResourceModel("OperationResultPopupPanel.title");
+    }
 
 }

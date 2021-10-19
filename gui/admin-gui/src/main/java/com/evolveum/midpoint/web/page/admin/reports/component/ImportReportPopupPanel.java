@@ -285,4 +285,9 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
     public Component getComponent() {
         return this;
     }
+
+    @Override
+    public StringResourceModel getTitle() {
+        return createStringResource("ImportReportPopupPanel.title");
+    }
 }

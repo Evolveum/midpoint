@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.audit;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
+import static com.evolveum.midpoint.schema.util.SystemConfigurationAuditUtil.getDeltaSuccessExecutionResult;
 import static com.evolveum.midpoint.schema.util.SystemConfigurationAuditUtil.isEscapingInvalidCharacters;
 
 import java.io.ByteArrayInputStream;
@@ -16,6 +17,7 @@ import java.io.InputStream;
 import java.io.SequenceInputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.*;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -42,7 +44,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_ConditionEntry;
 import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.sqale.*;
 import com.evolveum.midpoint.repo.sqale.audit.qmodel.*;
@@ -60,10 +61,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
@@ -74,7 +72,9 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
 
     private final SqlQueryExecutor sqlQueryExecutor;
 
-    private volatile SystemConfigurationAuditType auditConfiguration;
+    // set from SystemConfigurationAuditType
+    private boolean escapeIllegalCharacters = false;
+    @NotNull private OperationResultDetailLevel deltaSuccessExecutionResult = OperationResultDetailLevel.CLEANED_UP;
 
     public SqaleAuditService(
             SqaleRepoContext sqlRepoContext,
@@ -171,7 +171,9 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             }
 
             MAuditDelta mAuditDelta = convertDelta(deltaOperation);
-            deltasByChecksum.put(mAuditDelta.checksum, mAuditDelta);
+            if (mAuditDelta != null) {
+                deltasByChecksum.put(mAuditDelta.checksum, mAuditDelta);
+            }
         }
         return deltasByChecksum.values();
     }
@@ -180,14 +182,14 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
      * Returns prepared audit delta row without PK columns which will be added later.
      * For normal repo this code would be in mapper, but here we know exactly what type we work with.
      */
-    private MAuditDelta convertDelta(ObjectDeltaOperation<?> deltaOperation) {
-        MAuditDelta deltaRow = new MAuditDelta();
+    private @Nullable MAuditDelta convertDelta(ObjectDeltaOperation<?> deltaOperation) {
         try {
+            MAuditDelta deltaRow = new MAuditDelta();
             ObjectDelta<? extends ObjectType> delta = deltaOperation.getObjectDelta();
             if (delta != null) {
                 DeltaConversionOptions options =
                         DeltaConversionOptions.createSerializeReferenceNames();
-                options.setEscapeInvalidCharacters(isEscapingInvalidCharacters(auditConfiguration));
+                options.setEscapeInvalidCharacters(escapeIllegalCharacters);
                 String serializedDelta = DeltaConvertor.serializeDelta(
                         delta, options, repositoryConfiguration().getFullObjectFormat());
 
@@ -199,18 +201,23 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             }
 
             OperationResult executionResult = deltaOperation.getExecutionResult();
+            byte[] fullResultForCheckSum = null;
             if (executionResult != null) {
                 executionResult = processExecutionResult(executionResult);
 
                 OperationResultType operationResult = executionResult.createOperationResultType();
-                if (operationResult != null) {
-                    deltaRow.status = operationResult.getStatus();
-                    if (!repositoryConfiguration().getDeltaExecutionResult().equals(
-                            SqaleRepositoryConfiguration.AUDIT_DELTA_EXECUTION_RESULT_NONE)) {
-                        // Note that escaping invalid characters and using toString for unsupported
-                        // types is safe in the context of operation result serialization.
-                        deltaRow.fullResult = sqlRepoContext.createFullResult(operationResult);
-                    }
+                deltaRow.status = operationResult.getStatus();
+
+                // We need this byte[] for checksum later, even if we don't store it because of NONE.
+                // It shouldn't matter if it's cleaned-up or just top, because if it's the same
+                // as something else we don't need the same line in DB anyway.
+                fullResultForCheckSum = sqlRepoContext.createFullResult(operationResult);
+
+                // In other words "if (NOT (SUCCESS && store-NONE-is-set))..." or in other words
+                // "only do nothing if it is SUCCESS and config says to store NONE success result".
+                if (operationResult.getStatus() != OperationResultStatusType.SUCCESS
+                        || deltaSuccessExecutionResult != OperationResultDetailLevel.NONE) {
+                    deltaRow.fullResult = fullResultForCheckSum;
                 }
             }
             deltaRow.resourceOid = SqaleUtils.oidToUUid(deltaOperation.getResourceOid());
@@ -222,19 +229,24 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                 deltaRow.resourceNameOrig = deltaOperation.getResourceName().getOrig();
                 deltaRow.resourceNameNorm = deltaOperation.getResourceName().getNorm();
             }
-            deltaRow.checksum = computeChecksum(deltaRow.delta, deltaRow.fullResult);
+            deltaRow.checksum = computeChecksum(deltaRow.delta, fullResultForCheckSum);
             return deltaRow;
         } catch (Exception ex) {
-            throw new SystemException("Problem during audit delta conversion", ex);
+            logger.warn("Unexpected problem during audit delta conversion", ex);
+            return null;
         }
     }
 
     private OperationResult processExecutionResult(OperationResult executionResult) {
-        switch (repositoryConfiguration().getDeltaExecutionResult()) {
-            case SqaleRepositoryConfiguration.AUDIT_DELTA_EXECUTION_RESULT_TOP:
+        if (!executionResult.isSuccess()) {
+            return executionResult; // not success, we don't touch it
+        }
+
+        switch (deltaSuccessExecutionResult) {
+            case TOP:
                 executionResult = executionResult.keepRootOnly();
                 break;
-            case SqaleRepositoryConfiguration.AUDIT_DELTA_EXECUTION_RESULT_CLEANED_UP:
+            case CLEANED_UP:
                 executionResult = executionResult.clone();
                 try {
                     executionResult.cleanupResult();
@@ -243,7 +255,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                 }
                 break;
             default:
-                // full - nothing to do
+                // full or none - nothing to do here
         }
         return executionResult;
     }
@@ -456,8 +468,9 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
     }
 
     @Override
-    public void applyAuditConfiguration(SystemConfigurationAuditType configuration) {
-        this.auditConfiguration = CloneUtil.clone(configuration);
+    public void applyAuditConfiguration(@Nullable SystemConfigurationAuditType configuration) {
+        escapeIllegalCharacters = isEscapingInvalidCharacters(configuration);
+        deltaSuccessExecutionResult = getDeltaSuccessExecutionResult(configuration);
     }
 
     @Override
