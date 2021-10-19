@@ -225,11 +225,7 @@ public class UserDetailsModel extends FocusDetailsModels<UserType> {
 
         return list;
     }
-
-    private PageBase getPageBase() {
-        return (PageBase) getModelServiceLocator();
-    }
-
+    
     public LoadableModel<List<AssignmentEditorDto>> getDelegationsModel() {
         return delegationsModel;
     }
