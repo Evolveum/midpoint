@@ -1,6 +1,6 @@
 = Tailoring
 
-Here we describe how to tailor predefined composite link:index.adoc[activities].
+Here we describe how to tailor predefined composite link:../[activities].
 
 In predefined composite activity, definitions of individual sub-activities can be _tailored_ in two ways:
 

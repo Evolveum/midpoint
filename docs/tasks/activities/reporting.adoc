@@ -1,6 +1,6 @@
 = Reporting
 
-Here we describe the definition of reporting for link:index.adoc[activities].
+Here we describe the definition of reporting for link:../[activities].
 
 [%header]
 [%autowidth]

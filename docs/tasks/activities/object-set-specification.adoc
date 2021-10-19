@@ -1,6 +1,6 @@
 = Object Set Specification
 
-Here we describe how sets of repository objects are specified in link:index.adoc[activities].
+Here we describe how sets of repository objects are specified in link:../[activities].
 (Represented by `ObjectSetType` type.)
 
 [%header]

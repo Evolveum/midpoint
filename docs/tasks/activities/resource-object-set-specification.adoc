@@ -1,6 +1,6 @@
 = Resource Object Set Specification
 
-Here we describe how sets of resource objects are specified in link:index.adoc[activities].
+Here we describe how sets of resource objects are specified in link:../[activities].
 (Represented by `ResourceObjectSetType` type.)
 
 [%header]
