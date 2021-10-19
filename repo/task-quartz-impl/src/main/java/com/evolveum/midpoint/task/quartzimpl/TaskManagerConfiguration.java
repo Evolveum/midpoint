@@ -446,8 +446,10 @@ public class TaskManagerConfiguration {
         createQuartzTables = taskManagerConf.getBoolean(CREATE_QUARTZ_TABLES_CONFIG_ENTRY, CREATE_QUARTZ_TABLES_DEFAULT);
         databaseIsEmbedded = jdbcConfig != null && jdbcConfig.isEmbedded();
 
+        String explicitJdbcUrl = taskManagerConf.getString(JDBC_URL_CONFIG_ENTRY, null);
         useRepositoryConnectionProvider = taskManagerConf.getBoolean(
-                USE_REPOSITORY_CONNECTION_PROVIDER_CONFIG_ENTRY, repositoryService.isNative());
+                USE_REPOSITORY_CONNECTION_PROVIDER_CONFIG_ENTRY,
+                repositoryService.isNative() && explicitJdbcUrl == null);
         if (useRepositoryConnectionProvider) {
             LOGGER.info("Using connection provider from repository (ignoring all the other database-related configuration)");
             if (jdbcConfig != null && jdbcConfig.isUsingH2()) {
@@ -457,7 +459,6 @@ public class TaskManagerConfiguration {
             jdbcDriver = taskManagerConf.getString(JDBC_DRIVER_CONFIG_ENTRY,
                     jdbcConfig != null ? jdbcConfig.getDriverClassName() : null);
 
-            String explicitJdbcUrl = taskManagerConf.getString(JDBC_URL_CONFIG_ENTRY, null);
             if (explicitJdbcUrl == null) {
                 if (jdbcConfig != null) {
                     if (jdbcConfig.isEmbedded()) {
