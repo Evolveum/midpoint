@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ContainerOfSystemConfigurationPanel;
 import com.evolveum.midpoint.prism.Containerable;
@@ -27,6 +28,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.progress.ProgressPanel;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -90,7 +93,7 @@ public abstract class PageAbstractSystemConfiguration extends PageAdminObjectDet
 
     @Override
     protected ObjectSummaryPanel<SystemConfigurationType> createSummaryPanel(IModel<SystemConfigurationType> summaryModel) {
-        return new SystemConfigurationSummaryPanel(ID_SUMMARY_PANEL, summaryModel, PageAbstractSystemConfiguration.this);
+        return new SystemConfigurationSummaryPanel(ID_SUMMARY_PANEL, summaryModel, WebComponentUtil.getSummaryPanelSpecification(SystemConfigurationType.class, getCompiledGuiProfile()));
     }
 
     @Override

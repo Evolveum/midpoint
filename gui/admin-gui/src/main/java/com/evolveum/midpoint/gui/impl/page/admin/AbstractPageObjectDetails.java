@@ -17,7 +17,7 @@ import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -48,9 +48,6 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extends ObjectDetailsModels<O>> extends PageBase {
 
@@ -491,5 +488,9 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     @Override
     protected void createBreadcrumb() {
         createInstanceBreadcrumb();
+    }
+
+    protected SummaryPanelSpecificationType getSummaryPanelSpecification() {
+        return getObjectDetailsModels().getSummaryPanelSpecification();
     }
 }

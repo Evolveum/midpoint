@@ -61,6 +61,6 @@ public class PageObjectTemplate extends PageAssignmentHolderDetails<ObjectTempla
 
     @Override
     protected Panel createSummaryPanel(String id, LoadableModel<ObjectTemplateType> summaryModel) {
-        return new ObjectTemplateSummaryPanel(id, summaryModel, this);
+        return new ObjectTemplateSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 }

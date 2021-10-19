@@ -14,6 +14,7 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
@@ -23,20 +24,27 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 
 public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectDetailsModels.class);
+
+    private static final String DOT_CLASS = ObjectDetailsModels.class.getName() + ".";
+    protected static final String OPERATION_LOAD_PARENT_ORG = DOT_CLASS + "loadParentOrgs";
 
     private ModelServiceLocator modelServiceLocator;
     private LoadableModel<PrismObject<O>> prismObjectModel;
@@ -91,10 +99,51 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
                 }
 
                 PrismObject<O> object = wrapper.getObject();
-//                loadParentOrgs(object);
+                loadParentOrgs(object);
                 return object.asObjectable();
             }
         };
+    }
+
+    private void loadParentOrgs(PrismObject<O> object) {
+        Task task = getModelServiceLocator().createSimpleTask(OPERATION_LOAD_PARENT_ORG);
+        OperationResult subResult = task.getResult();
+        // Load parent organizations (full objects). There are used in the
+        // summary panel and also in the main form.
+        // Do it here explicitly instead of using resolve option to have ability
+        // to better handle (ignore) errors.
+        for (ObjectReferenceType parentOrgRef : object.asObjectable().getParentOrgRef()) {
+
+            PrismObject<OrgType> parentOrg = null;
+            try {
+
+                parentOrg = getModelServiceLocator().getModelService().getObject(
+                        OrgType.class, parentOrgRef.getOid(), null, task, subResult);
+                LOGGER.trace("Loaded parent org with result {}", subResult.getLastSubresult());
+            } catch (AuthorizationException e) {
+                // This can happen if the user has permission to read parentOrgRef but it does not have
+                // the permission to read target org
+                // It is OK to just ignore it.
+                subResult.muteLastSubresultError();
+                PrismObject<? extends FocusType> taskOwner = task.getOwner(subResult);
+                LOGGER.debug("User {} does not have permission to read parent org unit {} (ignoring error)", taskOwner.getName(), parentOrgRef.getOid());
+            } catch (Exception ex) {
+                subResult.recordWarning(getPageBase().createStringResource("PageAdminObjectDetails.message.loadParentOrgs.warning", parentOrgRef.getOid()).getString(), ex);
+                LOGGER.warn("Cannot load parent org {}: {}", parentOrgRef.getOid(), ex.getMessage(), ex);
+            }
+
+            if (parentOrg != null) {
+                ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(parentOrg, getPrismContext());
+                ref.asReferenceValue().setObject(parentOrg);
+                object.asObjectable().getParentOrgRef().add(ref);
+            }
+        }
+        subResult.computeStatus();
+    }
+
+
+    protected PageBase getPageBase() {
+        return (PageBase) getModelServiceLocator();
     }
 
     protected GuiObjectDetailsPageType loadDetailsPageConfiguration(PrismObject<O> prismObject) {
@@ -276,5 +325,14 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
 
     public ItemStatus getObjectStatus() {
         return objectWrapperModel.getObject().getStatus();
+    }
+
+    public SummaryPanelSpecificationType getSummaryPanelSpecification() {
+        GuiObjectDetailsPageType detailsPageConfig = detailsPageConfigurationModel.getObject();
+        if (detailsPageConfig == null) {
+            return null;
+        }
+
+        return detailsPageConfig.getSummaryPanel();
     }
 }

@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -164,7 +166,7 @@ public class PageValuePolicy extends PageAdmin {
     protected void initLayout() {
         // TODO should be used if valuePolicyObject is edited
         ValuePolicySummaryPanel summaryPanel = new ValuePolicySummaryPanel(ID_SUMMARY_PANEL,
-                Model.of(valuePolicyModel.getObject().getObject().asObjectable()), this);
+                Model.of(valuePolicyModel.getObject().getObject().asObjectable()), WebComponentUtil.getSummaryPanelSpecification(ValuePolicyType.class, getCompiledGuiProfile()));
         add(summaryPanel);
 
         MidpointForm mainForm = new MidpointForm(ID_MAIN_FORM);

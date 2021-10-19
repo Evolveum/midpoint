@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 
@@ -38,8 +40,8 @@ public class CaseSummaryPanel extends ObjectSummaryPanel<CaseType> {
     private static final String DOT_CLASS = CaseSummaryPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_PARENT_CASE_DISPLAY_NAME = DOT_CLASS + "loadParentCaseDisplayName";
 
-    public CaseSummaryPanel(String id, IModel<CaseType> model, ModelServiceLocator serviceLocator) {
-        super(id, CaseType.class, model, serviceLocator);
+    public CaseSummaryPanel(String id, IModel<CaseType> model, SummaryPanelSpecificationType summaryPanelSpecificationType) {
+        super(id, CaseType.class, model, summaryPanelSpecificationType);
     }
 
     @Override

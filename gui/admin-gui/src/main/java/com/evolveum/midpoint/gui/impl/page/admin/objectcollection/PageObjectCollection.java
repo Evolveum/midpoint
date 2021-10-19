@@ -64,7 +64,7 @@ public class PageObjectCollection extends PageAssignmentHolderDetails<ObjectColl
 
     @Override
     protected Panel createSummaryPanel(String id, LoadableModel<ObjectCollectionType> summaryModel) {
-        return new ObjectCollectionSummaryPanel(id, summaryModel, this);
+        return new ObjectCollectionSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 
 }

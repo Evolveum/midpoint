@@ -53,7 +53,7 @@ public class PageCase extends PageAssignmentHolderDetails<CaseType, AssignmentHo
 
     @Override
     protected Panel createSummaryPanel(String id, LoadableModel<CaseType> summaryModel) {
-        return new CaseSummaryPanel(id, summaryModel, this);
+        return new CaseSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 
     @Override

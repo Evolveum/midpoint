@@ -9,8 +9,11 @@ package com.evolveum.midpoint.web.page.admin.archetype;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.wicket.Page;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -90,7 +93,7 @@ public class PageArchetype extends PageAdminAbstractRole<ArchetypeType> {
 
     @Override
     protected ObjectSummaryPanel<ArchetypeType> createSummaryPanel(IModel<ArchetypeType> summaryModel) {
-        return new ArchetypeSummaryPanel(ID_SUMMARY_PANEL, summaryModel, this);
+        return new ArchetypeSummaryPanel(ID_SUMMARY_PANEL, summaryModel, WebComponentUtil.getSummaryPanelSpecification(ArchetypeType.class, getCompiledGuiProfile()));
 
     }
 

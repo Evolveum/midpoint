@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import org.apache.wicket.model.IModel;
 
@@ -18,8 +19,8 @@ import org.apache.wicket.model.IModel;
  */
 public class ValuePolicySummaryPanel extends ObjectSummaryPanel<ValuePolicyType> {
 
-    public ValuePolicySummaryPanel(String id, IModel<ValuePolicyType> model, ModelServiceLocator serviceLocator) {
-        super(id, ValuePolicyType.class, model, serviceLocator);
+    public ValuePolicySummaryPanel(String id, IModel<ValuePolicyType> model, SummaryPanelSpecificationType summaryPanelSpecificationType) {
+        super(id, ValuePolicyType.class, model, summaryPanelSpecificationType);
     }
 
     @Override

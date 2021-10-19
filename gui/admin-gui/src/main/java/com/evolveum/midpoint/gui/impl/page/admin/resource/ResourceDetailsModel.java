@@ -54,10 +54,6 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         };
     }
 
-    private PageBase getPageBase() {
-        return (PageBase) getModelServiceLocator();
-    }
-
     private PrismContainerWrapper<ConnectorConfigurationType> createConfigContainerWrappers(OperationResult result) throws SchemaException {
 
         Task task = getModelServiceLocator().createSimpleTask(OPERATION_CREATE_CONFIGURATION_WRAPPERS);

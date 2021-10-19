@@ -1219,4 +1219,5 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     protected void processAdditionalFocalObjectsForPreview(Map<PrismObject<O>, ModelContext<? extends ObjectType>> modelContextMap) {
     }
+    
 }

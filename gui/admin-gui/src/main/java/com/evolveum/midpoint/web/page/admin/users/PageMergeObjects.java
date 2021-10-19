@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.users;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.application.Url;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -192,7 +193,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
     //TODO did it work before?
     @Override
     protected ObjectSummaryPanel createSummaryPanel(IModel summaryModel) {
-        UserSummaryPanel summaryPanel = new UserSummaryPanel(ID_SUMMARY_PANEL, getObjectModel(), this);
+        UserSummaryPanel summaryPanel = new UserSummaryPanel(ID_SUMMARY_PANEL, getObjectModel(), WebComponentUtil.getSummaryPanelSpecification(getCompileTimeClass(), getCompiledGuiProfile()));
         return summaryPanel;
     }
 

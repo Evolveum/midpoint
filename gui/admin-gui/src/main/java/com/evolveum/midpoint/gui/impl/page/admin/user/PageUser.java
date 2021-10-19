@@ -92,7 +92,7 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
 
     @Override
     protected Panel createSummaryPanel(String id, LoadableModel<UserType> summaryModel) {
-        return new UserSummaryPanel(id, summaryModel, PageUser.this);
+        return new UserSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 
     @Override

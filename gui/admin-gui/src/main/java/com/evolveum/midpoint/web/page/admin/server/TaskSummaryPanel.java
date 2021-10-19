@@ -16,6 +16,8 @@ import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUt
 import com.evolveum.midpoint.schema.util.task.LegacyTaskInformation;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
+
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -46,13 +48,13 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
     /** Keeps the pre-processed task information. */
     @NotNull private final NonEmptyLoadableModel<TaskInformation> taskInformationModel;
 
-    public TaskSummaryPanel(String id, IModel<TaskType> model, @NotNull IModel<TaskType> rootTaskModel, PageBase parentPage) {
-        super(id, TaskType.class, model, parentPage);
+    public TaskSummaryPanel(String id, IModel<TaskType> model, @NotNull IModel<TaskType> rootTaskModel, SummaryPanelSpecificationType summaryPanelSpecificationType) {
+        super(id, TaskType.class, model, summaryPanelSpecificationType);
         this.taskInformationModel = createTaskInformationModel(rootTaskModel, model);
     }
 
-    TaskSummaryPanel(String id, IModel<TaskType> model, PageBase parentPage) {
-        super(id, TaskType.class, model, parentPage);
+    TaskSummaryPanel(String id, IModel<TaskType> model, SummaryPanelSpecificationType summaryPanelSpecificationType) {
+        super(id, TaskType.class, model, summaryPanelSpecificationType);
         this.taskInformationModel = createFallbackTaskInformationModel(model);
     }
 

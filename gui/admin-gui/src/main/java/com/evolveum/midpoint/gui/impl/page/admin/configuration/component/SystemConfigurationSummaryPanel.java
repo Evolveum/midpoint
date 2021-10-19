@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -17,8 +19,8 @@ public class SystemConfigurationSummaryPanel extends ObjectSummaryPanel<SystemCo
 
     private static final long serialVersionUID = 1L;
 
-    public SystemConfigurationSummaryPanel(String id, IModel<SystemConfigurationType> model, ModelServiceLocator serviceLocator) {
-        super(id, SystemConfigurationType.class, model, serviceLocator);
+    public SystemConfigurationSummaryPanel(String id, IModel<SystemConfigurationType> model, SummaryPanelSpecificationType summaryPanelSpecificationType) {
+        super(id, SystemConfigurationType.class, model, summaryPanelSpecificationType);
     }
 
     @Override
