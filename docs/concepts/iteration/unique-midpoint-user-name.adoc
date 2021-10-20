@@ -137,7 +137,7 @@ In the following example, iterator is increasing sequentially and zero-padded:
 ----
 <objectTemplate>
 . . .
-    <iteration>
+    <iterationSpecification>
         <maxIterations>999</maxIterations>
         <tokenExpression>
             <script>
@@ -150,7 +150,7 @@ In the following example, iterator is increasing sequentially and zero-padded:
                 </code>
             </script>
         </tokenExpression>
-    </iteration>
+    </iterationSpecification>
 . . .
 </objectTemplate>
 ----
@@ -174,7 +174,7 @@ In the following example, iterator is random (1-999 to have at most three digits
 ----
 <objectTemplate>
 . . .
-    <iteration>
+    <iterationSpecification>
         <maxIterations>999</maxIterations>
         <tokenExpression>
             <script>
@@ -188,7 +188,7 @@ In the following example, iterator is random (1-999 to have at most three digits
                 </code>
             </script>
         </tokenExpression>
-    </iteration>
+    </iterationSpecification>
 . . .
 </objectTemplate>
 ----
