@@ -92,7 +92,7 @@ Following scripting hook removes all assignments from disabled users. Please not
 
             UserType user = (UserType) focus;
             ActivationStatusType administrativeStatus = user.getActivation().getAdministrativeStatus();
-            if (administrativeStatus == ActivationStatusType.DISABLED) {     
+            if (administrativeStatus == ActivationStatusType.DISABLED) {
 				changed = false;
                 for (AssignmentType assign : user.getAssignment()) {
                     assignmentDelta = ContainerDelta.createModificationDelete(UserType.F_ASSIGNMENT, UserType.class, prismContext, assign.clone());

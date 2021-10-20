@@ -142,12 +142,17 @@ Default is "true" (i.e. enabled).
 
 
 | _aspect name_
-| Configuration related to this particular aspect - available for standard aspects (listed in the table below).For example, such aspects can be enabled (by simply providing any configuration related to them) or disabled (by explicitly setting their enabled property to false).
+| Configuration related to this particular aspect - available for standard aspects (listed in the table below).
+For example, such aspects can be enabled (by simply providing any configuration related to them) or disabled (by explicitly setting their enabled property to false).
 Note that some aspects are enabled by default - they work even if not mentioned in the configuration.Some aspects can derive approval information (e.g. approverRef, approverExpression, approvalSchema, automaticallyApproved) from objects that they deal with.
 For example, add/modify role/resource assignment aspects pull these information from the respective Role, Org, or Resource object.
 However, other aspects (like addUserAspect) have no such data available.
-These require that this information is provided within the aspect configuration.Note that you can specify approverRef, approverExpression, approvalSchema, or automaticallyApproved attributes even for the aspects that take this information from role, org or resource.
-In this case, the information provided within the aspect configuration override the information contained in role/org/resource.*Beware, currently it is not possible to provide _<aspectName>_ configuration with no parameters.* This is due a to a problem in prism parsing.
+These require that this information is provided within the aspect configuration.
+Note that you can specify approverRef, approverExpression, approvalSchema, or automaticallyApproved attributes even for the aspects that take this information from role, org or resource.
+In this case, the information provided within the aspect configuration override the information contained in role/org/resource.
+
+*Beware, currently it is not possible to provide _<aspectName>_ configuration with no parameters.*
+This is due a to a problem in prism parsing.
 Use at least the following content: <enabled>true</enabled>.
 
 

@@ -82,10 +82,9 @@ MidPoint will try to create the `midpoint.home` directory if it does not already
 
 |===
 
-== `config.xml` file
+== Configuration file
 
 File `config.xml` located in `midpoint.home` directory is the initial midPoint configuration file.
-
 
 This is not to be confused with
 link:/midpoint/reference/concepts/system-configuration-object/[System Configuration Object]
