@@ -14,12 +14,12 @@
 
 MidPoint contains a simple full text search feature.
 Selected items can be indexed and then queries can be put against their content.
-More specifically,
+More specifically:
 
 . Any textual properties of midPoint objects can be designated as "full text search indexed" in system configuration.
 These can be either standard properties (e.g. user's given and family names) or extension properties.
 
-. When updating these objects, midPoint extracts content of these properties, normalizes it, and stores in a separate `m_object_text_info` table.
+. When updating these objects, midPoint extracts content of these properties, normalizes it, and stores in a separate `m_object.fullTextInfo` column (or a separate `m_object_text_info` table for the old Generic repository).
 Normalization consists of applying default PolyString normalizer that removes diacritics marks and converts all characters to lowercase.
 Also, during normalization, duplicate words are eliminated, in order to optimize space and processing speed.
 
@@ -99,9 +99,16 @@ This can be done by _About -> Reindex repository objects_ action.
 
 image::reindex.PNG[]
 
-The `m_object_text_info` table content will then look like this:
+The `m_object_text_info` table content (Generic repo) will then look like this:
 
 image::IMG_24022017_180501_0.png[]
+
+The same result (only with different colum names) can be achived by running the following SQL in the Native repository:
+
+[source,sql]
+----
+select oid, fulltextinfo from m_object
+----
 
 == Using it
 
@@ -128,3 +135,9 @@ for search are normalized before compared.
 E.g. "šiť" will also find word "sit" and anything containing the substring as well.
 
 These limitations apply at least up to version 4.4 and to both repository implementations.
+
+== See also
+
+* xref:/midpoint/reference/repository/native-postgresql/[Native PostgreSQL repository]
+
+* xref:/midpoint/reference/repository/generic/[Generic repository implementation] - not recommended from 4.4 on
