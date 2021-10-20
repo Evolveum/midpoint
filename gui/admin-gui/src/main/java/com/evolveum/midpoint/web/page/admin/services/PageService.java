@@ -6,7 +6,10 @@
  */
 package com.evolveum.midpoint.web.page.admin.services;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.application.Url;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -78,7 +81,7 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
 
     @Override
     protected FocusSummaryPanel<ServiceType> createSummaryPanel(IModel<ServiceType> summaryModel) {
-        return new ServiceSummaryPanel(ID_SUMMARY_PANEL, summaryModel, this);
+        return new ServiceSummaryPanel(ID_SUMMARY_PANEL, summaryModel, WebComponentUtil.getSummaryPanelSpecification(ServiceType.class, getCompiledGuiProfile()));
     }
 
     @Override

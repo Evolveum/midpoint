@@ -10,17 +10,14 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -28,8 +25,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
     private static final long serialVersionUID = -5077637168906420769L;
 
-    public UserSummaryPanel(String id, IModel<UserType> model, ModelServiceLocator serviceLocator) {
-        super(id, UserType.class, model, serviceLocator);
+    public UserSummaryPanel(String id, IModel<UserType> model, SummaryPanelSpecificationType summaryPanelSpecificationType) {
+        super(id, UserType.class, model, summaryPanelSpecificationType);
     }
 
     @Override

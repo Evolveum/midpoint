@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.*;
@@ -202,10 +203,11 @@ public class PageConnectorHosts extends PageAdmin {
             return;
         }
 
-        ConfirmationPanel dialog = new ConfirmationPanel(((PageBase) getPage()).getMainPopupBodyId(),
+        ConfirmationPanel dialog = new DeleteConfirmationPanel(((PageBase) getPage()).getMainPopupBodyId(),
                 createDeleteConfirmString("pageResources.message.deleteHostConfirm",
                         "pageResources.message.deleteHostsConfirm", false)) {
             private static final long serialVersionUID = 1L;
+
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 deleteHostConfirmedPerformed(target);

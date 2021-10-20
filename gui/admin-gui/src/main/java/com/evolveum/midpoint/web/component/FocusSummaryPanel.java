@@ -41,8 +41,8 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
     private static final String DOT_CLASS = FocusSummaryPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_PARENT_ORGS = DOT_CLASS + "activationTag";
 
-    public FocusSummaryPanel(String id, Class<O> type, final IModel<O> model, ModelServiceLocator serviceLocator) {
-        super(id, type, model, serviceLocator);
+    public FocusSummaryPanel(String id, Class<O> type, final IModel<O> model, SummaryPanelSpecificationType summaryPanelSpecification) {
+        super(id, type, model, summaryPanelSpecification);
     }
 
     @Override
@@ -161,19 +161,19 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
         return true;
     }
 
-    public static void addSummaryPanel(MarkupContainer parentComponent, PrismObject<FocusType> focus, String id, ModelServiceLocator serviceLocator) {
+    public static void addSummaryPanel(MarkupContainer parentComponent, PrismObject<FocusType> focus, String id, SummaryPanelSpecificationType summaryPanelSpecificationType) {
         if (focus.getCompileTimeClass().equals(UserType.class)) {
             parentComponent.add(new UserSummaryPanel(id,
-                    Model.of((UserType) focus.asObjectable()), serviceLocator));
+                    Model.of((UserType) focus.asObjectable()), summaryPanelSpecificationType));
         } else if (focus.getCompileTimeClass().equals(RoleType.class)) {
             parentComponent.add(new RoleSummaryPanel(id,
-                    Model.of((RoleType) focus.asObjectable()), serviceLocator));
+                    Model.of((RoleType) focus.asObjectable()), summaryPanelSpecificationType));
         } else if (focus.getCompileTimeClass().equals(OrgType.class)) {
             parentComponent.add(new OrgSummaryPanel(id,
-                    Model.of((OrgType) focus.asObjectable()), serviceLocator));
+                    Model.of((OrgType) focus.asObjectable()), summaryPanelSpecificationType));
         } else if (focus.getCompileTimeClass().equals(ServiceType.class)) {
             parentComponent.add(new ServiceSummaryPanel(id,
-                    Model.of((ServiceType) focus.asObjectable()), serviceLocator));
+                    Model.of((ServiceType) focus.asObjectable()), summaryPanelSpecificationType));
         }
     }
 }

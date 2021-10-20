@@ -11,6 +11,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdministrativeAvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -23,8 +25,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
     private static final long serialVersionUID = 1L;
 
-    public ResourceSummaryPanel(String id, IModel<ResourceType> model, ModelServiceLocator serviceLocator) {
-        super(id, ResourceType.class, model, serviceLocator);
+    public ResourceSummaryPanel(String id, IModel<ResourceType> model, SummaryPanelSpecificationType summaryPanelSpecificationType) {
+        super(id, ResourceType.class, model, summaryPanelSpecificationType);
     }
 
     @Override

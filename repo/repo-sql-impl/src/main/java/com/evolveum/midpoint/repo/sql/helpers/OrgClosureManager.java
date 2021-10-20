@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -1058,7 +1058,7 @@ public class OrgClosureManager {
 
     private void dumpOrgClosureTypeTable(Session session, String tableName) {
         NativeQuery<Object[]> q = session.createNativeQuery(
-                "select descendant_oid, ancestor_oid, val from " + tableName, Object[].class)
+                        "select descendant_oid, ancestor_oid, val from " + tableName, Object[].class)
                 .addScalar("descendant_oid", StringType.INSTANCE)
                 .addScalar("ancestor_oid", StringType.INSTANCE)
                 .addScalar("val", IntegerType.INSTANCE);
@@ -1070,30 +1070,28 @@ public class OrgClosureManager {
     }
 
     private void initializeOracleTemporaryTable() {
-        Session session = baseHelper.getSessionFactory().openSession();
-        NativeQuery<?> qCheck = session.createNativeQuery(
-                "select table_name from user_tables"
-                        + " where table_name = upper('" + TEMP_DELTA_TABLE_NAME_FOR_ORACLE + "')");
-        if (qCheck.list().isEmpty()) {
-            LOGGER.info("Creating temporary table {}", TEMP_DELTA_TABLE_NAME_FOR_ORACLE);
-            session.beginTransaction();
-            NativeQuery<?> qCreate = session.createNativeQuery(
-                    "CREATE GLOBAL TEMPORARY TABLE " + TEMP_DELTA_TABLE_NAME_FOR_ORACLE
-                            + "    (descendant_oid VARCHAR2(36 CHAR), "
-                            + "     ancestor_oid VARCHAR2(36 CHAR), "
-                            + "     val NUMBER (10, 0), "
-                            + "     PRIMARY KEY (descendant_oid, ancestor_oid)) "
-                            + "  ON COMMIT DELETE ROWS");
-            try {
+        try (Session session = baseHelper.getSessionFactory().openSession()) {
+            NativeQuery<?> qCheck = session.createNativeQuery(
+                    "select table_name from user_tables"
+                            + " where table_name = upper('" + TEMP_DELTA_TABLE_NAME_FOR_ORACLE + "')");
+            if (qCheck.list().isEmpty()) {
+                LOGGER.info("Creating temporary table {}", TEMP_DELTA_TABLE_NAME_FOR_ORACLE);
+                session.beginTransaction();
+                NativeQuery<?> qCreate = session.createNativeQuery(
+                        "CREATE GLOBAL TEMPORARY TABLE " + TEMP_DELTA_TABLE_NAME_FOR_ORACLE
+                                + "    (descendant_oid VARCHAR2(36 CHAR), "
+                                + "     ancestor_oid VARCHAR2(36 CHAR), "
+                                + "     val NUMBER (10, 0), "
+                                + "     PRIMARY KEY (descendant_oid, ancestor_oid)) "
+                                + "  ON COMMIT DELETE ROWS");
                 qCreate.executeUpdate();
                 session.getTransaction().commit();
-            } catch (RuntimeException e) {
-                String m = "Couldn't create temporary table " + TEMP_DELTA_TABLE_NAME_FOR_ORACLE + ". Please create the table manually.";
-                LoggingUtils.logException(LOGGER, m, e);
-                throw new SystemException(m, e);
             }
+        } catch (RuntimeException e) {
+            String m = "Couldn't create temporary table " + TEMP_DELTA_TABLE_NAME_FOR_ORACLE + ". Please create the table manually.";
+            LoggingUtils.logException(LOGGER, m, e);
+            throw new SystemException(m, e);
         }
-        session.close();
     }
 
     private List<ReferenceDelta> filterParentRefDeltas(Collection<? extends ItemDelta> modifications) {
@@ -1297,12 +1295,18 @@ public class OrgClosureManager {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) { return true; }
-            if (o == null || getClass() != o.getClass()) { return false; }
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
 
             Edge edge = (Edge) o;
 
-            if (!ancestor.equals(edge.ancestor)) { return false; }
+            if (!ancestor.equals(edge.ancestor)) {
+                return false;
+            }
             return descendant.equals(edge.descendant);
         }
 

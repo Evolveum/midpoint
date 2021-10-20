@@ -13,7 +13,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.application.Url;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -91,7 +94,7 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 
     @Override
     protected FocusSummaryPanel<OrgType> createSummaryPanel(IModel<OrgType> summaryModel) {
-        return new OrgSummaryPanel(ID_SUMMARY_PANEL, summaryModel, this);
+        return new OrgSummaryPanel(ID_SUMMARY_PANEL, summaryModel, WebComponentUtil.getSummaryPanelSpecification(OrgType.class, getCompiledGuiProfile()));
     }
 
     @Override

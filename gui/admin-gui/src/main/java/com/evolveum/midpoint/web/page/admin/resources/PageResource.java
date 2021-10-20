@@ -22,6 +22,8 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -335,7 +337,7 @@ public class PageResource extends PageAdmin {
 
     private ResourceSummaryPanel createResourceSummaryPanel() {
         ResourceSummaryPanel resourceSummaryPanel = new ResourceSummaryPanel(PANEL_RESOURCE_SUMMARY,
-                Model.of(resourceModel.getObject().asObjectable()), this);
+                Model.of(resourceModel.getObject().asObjectable()), WebComponentUtil.getSummaryPanelSpecification(ResourceType.class, getCompiledGuiProfile()));
         resourceSummaryPanel.setOutputMarkupId(true);
         return resourceSummaryPanel;
     }

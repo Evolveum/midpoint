@@ -5225,4 +5225,17 @@ public final class WebComponentUtil {
             return null;
         }
     }
+
+    /**
+     * only for 'old' object details pages. Should be removed after only new design will be present.
+     */
+    @Deprecated
+    public static <O extends ObjectType> SummaryPanelSpecificationType getSummaryPanelSpecification(Class<O> type, CompiledGuiProfile compiledGuiProfile) {
+        GuiObjectDetailsPageType guiObjectDetailsType = compiledGuiProfile.findObjectDetailsConfiguration(type);
+        if (guiObjectDetailsType == null) {
+            return null;
+        }
+        return guiObjectDetailsType.getSummaryPanel();
+    }
+
 }

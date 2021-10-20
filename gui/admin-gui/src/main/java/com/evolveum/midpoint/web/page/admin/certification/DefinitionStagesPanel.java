@@ -13,6 +13,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.StageDefinitionDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
@@ -111,7 +112,7 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
     }
 
     private void deletePerformed(AjaxRequestTarget target) {
-        ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), new IModel<String>() {
+        ConfirmationPanel dialog = new DeleteConfirmationPanel(getPageBase().getMainPopupBodyId(), new IModel<String>() {
                     @Override
                     public String getObject() {
                         StageDefinitionDto dto = getModelObject().get(tabPanel.getSelectedTab());

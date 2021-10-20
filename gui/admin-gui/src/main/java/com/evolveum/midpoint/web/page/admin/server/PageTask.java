@@ -128,7 +128,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     @Override
     protected ObjectSummaryPanel<TaskType> createSummaryPanel(IModel<TaskType> summaryModel) {
-        return new TaskSummaryPanel(ID_SUMMARY_PANEL, summaryModel, this);
+        return new TaskSummaryPanel(ID_SUMMARY_PANEL, summaryModel, WebComponentUtil.getSummaryPanelSpecification(TaskType.class, getCompiledGuiProfile()));
     }
 
     @Override

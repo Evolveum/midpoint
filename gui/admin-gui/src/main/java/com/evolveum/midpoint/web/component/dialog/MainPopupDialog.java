@@ -7,10 +7,16 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalDialog;
 import org.apache.wicket.extensions.ajax.markup.html.modal.theme.DefaultTheme;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -18,6 +24,8 @@ import org.apache.wicket.extensions.ajax.markup.html.modal.theme.DefaultTheme;
  */
 public class MainPopupDialog extends ModalDialog {
     private static final long serialVersionUID = 1L;
+
+    private static final String TITLE_ID = "title";
 
     public MainPopupDialog(String id) {
         super(id);
@@ -32,8 +40,8 @@ public class MainPopupDialog extends ModalDialog {
         setOutputMarkupPlaceholderTag(true);
     }
 
-    public Component getDialogComponent() {
-        return get("overlay").get("dialog");
+    public WebMarkupContainer getDialogComponent() {
+        return (WebMarkupContainer) get("overlay").get("dialog");
     }
 
     public Component getContentComponent() {
@@ -47,11 +55,12 @@ public class MainPopupDialog extends ModalDialog {
             sb.append(StringUtils.isEmpty(widthUnit) ? "px" : widthUnit);
             sb.append("; ");
         }
-//        if (StringUtils.isNotEmpty(height)) {
-//            sb.append("height: " + height);
-//            sb.append(StringUtils.isEmpty(heightUnit) ? "px" : heightUnit);
-//            sb.append("; ");
-//        }
         return sb.toString();
+    }
+
+    public void setTitle(StringResourceModel title) {
+        Label titleLabel = new Label(TITLE_ID, title);
+        titleLabel.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(title.getString())));
+        getDialogComponent().addOrReplace(titleLabel);
     }
 }

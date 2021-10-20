@@ -12,15 +12,12 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
-
-import java.io.Serializable;
 
 /**
  * Created by Honchar.
@@ -51,10 +48,6 @@ public class ConfirmationPanel extends Panel implements Popupable {
         }
         initLayout(message);
     }
-
-//    public boolean getLabelEscapeModelStrings() {
-//        return true;
-//    }
 
     public void setMessage(IModel<String> message) {
         Label label = (Label) get(ID_PANEL).get(ID_CONFIRM_TEXT);
@@ -143,6 +136,11 @@ public class ConfirmationPanel extends Panel implements Popupable {
     @Override
     public String getHeightUnit(){
         return "px";
+    }
+
+    @Override
+    public StringResourceModel getTitle() {
+        return ((PageBase)getPage()).createStringResource("pageUsers.message.confirmActionPopupTitle");
     }
 
     @Override

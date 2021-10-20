@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.objectCollection;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -107,7 +108,7 @@ public class PageObjectCollection extends PageAdminObjectDetails<ObjectCollectio
 
     @Override
     protected ObjectSummaryPanel<ObjectCollectionType> createSummaryPanel(IModel<ObjectCollectionType> summaryModel) {
-        return new ObjectCollectionSummaryPanel(ID_SUMMARY_PANEL, summaryModel, this);
+        return new ObjectCollectionSummaryPanel(ID_SUMMARY_PANEL, summaryModel, WebComponentUtil.getSummaryPanelSpecification(ObjectCollectionType.class, getCompiledGuiProfile()));
     }
 
     @Override

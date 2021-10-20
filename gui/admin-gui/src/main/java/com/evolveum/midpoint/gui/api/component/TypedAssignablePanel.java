@@ -547,4 +547,9 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
     protected List<ObjectTypes> getObjectTypesList() {
         return WebComponentUtil.createAssignableTypesList();
     }
+
+    @Override
+    public StringResourceModel getTitle() {
+        return PageBase.createStringResourceStatic(TypedAssignablePanel.this, "TypedAssignablePanel.selectObjects");
+    }
 }

@@ -15,6 +15,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 
+import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -165,7 +167,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
             @Override
             protected void populateItem(ListItem<PrismObject<FocusType>> item) {
-                FocusSummaryPanel.addSummaryPanel(item, item.getModelObject(), ID_MANAGER_SUMMARY, getPageBase());
+                FocusSummaryPanel.addSummaryPanel(item, item.getModelObject(), ID_MANAGER_SUMMARY, WebComponentUtil.getSummaryPanelSpecification(item.getModelObject().getCompileTimeClass(), getPageBase().getCompiledGuiProfile()));
             }
         };
         managerContainer.add(listView);
@@ -606,7 +608,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
     private void deleteNodePerformed(final SelectableBeanImpl<OrgType> orgToDelete, AjaxRequestTarget target) {
 
-        ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
+        ConfirmationPanel confirmationPanel = new DeleteConfirmationPanel(getPageBase().getMainPopupBodyId(),
                 new IModel<String>() {
 
                     private static final long serialVersionUID = 1L;

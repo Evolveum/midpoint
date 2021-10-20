@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web.page.admin.roles.component;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -21,8 +23,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 public class RoleSummaryPanel extends FocusSummaryPanel<RoleType> {
     private static final long serialVersionUID = 8087858942603720878L;
 
-    public RoleSummaryPanel(String id, IModel<RoleType> model, ModelServiceLocator serviceLocator) {
-        super(id, RoleType.class, model, serviceLocator);
+    public RoleSummaryPanel(String id, IModel<RoleType> model, SummaryPanelSpecificationType summaryPanelSpecificationType) {
+        super(id, RoleType.class, model, summaryPanelSpecificationType);
     }
 
     @Override

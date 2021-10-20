@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.page.admin.reports;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -17,6 +19,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -39,10 +42,6 @@ import com.evolveum.midpoint.web.page.admin.reports.component.ReportMainPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.ReportObjectsListPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.RunReportPopupPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 /**
  * @author lazyman
@@ -117,7 +116,7 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
 
     @Override
     protected ObjectSummaryPanel<ReportType> createSummaryPanel(IModel<ReportType> summaryModel) {
-        return new ReportSummaryPanel(ID_SUMMARY_PANEL, summaryModel, this);
+        return new ReportSummaryPanel(ID_SUMMARY_PANEL, summaryModel, WebComponentUtil.getSummaryPanelSpecification(ReportType.class, getCompiledGuiProfile()));
     }
 
     @Override
@@ -160,6 +159,11 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
                 RunReportPopupPanel runReportPopupPanel = new RunReportPopupPanel(getMainPopupBodyId(), report.asObjectable()) {
 
                     private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public StringResourceModel getTitle() {
+                        return createStringResource("PageReport.reportPreview");
+                    }
 
                     protected void runConfirmPerformed(AjaxRequestTarget target, PrismObject<ReportType> reportType, PrismContainer<ReportParameterType> reportParam) {
                         try {

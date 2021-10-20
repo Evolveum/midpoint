@@ -134,4 +134,8 @@ public abstract class ExpressionTypeSelectPopup extends BasePanel implements Pop
         return this;
     }
 
+    @Override
+    public StringResourceModel getTitle() {
+        return new StringResourceModel("ExpressionTypeSelectPopup.title");
+    }
 }

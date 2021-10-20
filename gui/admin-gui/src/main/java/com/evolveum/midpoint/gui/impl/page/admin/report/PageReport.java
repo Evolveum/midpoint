@@ -28,6 +28,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -85,7 +86,7 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
 
     @Override
     protected Panel createSummaryPanel(String id, LoadableModel<ReportType> summaryModel) {
-        return new ReportSummaryPanel(id, summaryModel, this);
+        return new ReportSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 
     @Override
@@ -156,6 +157,11 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
                     RunReportPopupPanel runReportPopupPanel = new RunReportPopupPanel(getMainPopupBodyId(), report.asObjectable()) {
 
                         private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public StringResourceModel getTitle() {
+                            return createStringResource("PageReport.reportPreview");
+                        }
 
                         protected void runConfirmPerformed(AjaxRequestTarget target, PrismObject<ReportType> report, PrismContainer<ReportParameterType> reportParam) {
                             runReport(report, reportParam);

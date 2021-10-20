@@ -263,4 +263,9 @@ public class ExportingPanel extends BasePanel<ExportingPanel> implements Popupab
     public Component getComponent() {
         return this;
     }
+
+    @Override
+    public StringResourceModel getTitle() {
+        return new StringResourceModel("ExportingPopupPanel.title");
+    }
 }

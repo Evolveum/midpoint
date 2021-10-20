@@ -40,6 +40,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.model.StringResourceModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -237,6 +238,11 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
     @Override
     public Component getComponent() {
         return this;
+    }
+
+    @Override
+    public StringResourceModel getTitle() {
+        return getPageBase().createStringResource("ResourceTasksPanel.definedTasks");
     }
 
 }
