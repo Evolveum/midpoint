@@ -11,6 +11,8 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
+
 import org.apache.wicket.model.IModel;
 
 /**
@@ -19,8 +21,8 @@ import org.apache.wicket.model.IModel;
 
 public class ObjectCollectionSummaryPanel extends ObjectSummaryPanel<ObjectCollectionType> {
 
-    public ObjectCollectionSummaryPanel(String id, IModel<ObjectCollectionType> model, ModelServiceLocator serviceLocator) {
-        super(id, ObjectCollectionType.class, model, serviceLocator);
+    public ObjectCollectionSummaryPanel(String id, IModel<ObjectCollectionType> model, SummaryPanelSpecificationType summaryPanelSpecificationType) {
+        super(id, ObjectCollectionType.class, model, summaryPanelSpecificationType);
     }
 
     @Override

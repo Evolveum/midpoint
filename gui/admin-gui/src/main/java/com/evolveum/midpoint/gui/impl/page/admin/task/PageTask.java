@@ -71,7 +71,7 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
 
     @Override
     protected Panel createSummaryPanel(String id, LoadableModel<TaskType> summaryModel) {
-        return new TaskSummaryPanel(id, summaryModel, getObjectDetailsModels().getRootTaskModel(), this);
+        return new TaskSummaryPanel(id, summaryModel, getObjectDetailsModels().getRootTaskModel(), getSummaryPanelSpecification());
     }
 
     @Override

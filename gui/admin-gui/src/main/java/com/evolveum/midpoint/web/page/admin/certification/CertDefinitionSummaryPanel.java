@@ -13,6 +13,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
+
 import org.apache.wicket.model.IModel;
 
 /**
@@ -22,8 +24,8 @@ public class CertDefinitionSummaryPanel extends ObjectSummaryPanel<AccessCertifi
     private static final long serialVersionUID = 1L;
 
     public CertDefinitionSummaryPanel(String id,
-            IModel<AccessCertificationDefinitionType> model, ModelServiceLocator serviceLocator) {
-        super(id, AccessCertificationDefinitionType.class, model, serviceLocator);
+            IModel<AccessCertificationDefinitionType> model, SummaryPanelSpecificationType summaryPanelSpecificationType) {
+        super(id, AccessCertificationDefinitionType.class, model, summaryPanelSpecificationType);
     }
 
     @Override

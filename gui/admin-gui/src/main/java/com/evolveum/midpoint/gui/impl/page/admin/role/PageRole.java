@@ -51,6 +51,6 @@ public class PageRole extends PageFocusDetails<RoleType, FocusDetailsModels<Role
 
     @Override
     protected Panel createSummaryPanel(String id, LoadableModel<RoleType> summaryModel) {
-        return new RoleSummaryPanel(id, summaryModel, PageRole.this);
+        return new RoleSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 }

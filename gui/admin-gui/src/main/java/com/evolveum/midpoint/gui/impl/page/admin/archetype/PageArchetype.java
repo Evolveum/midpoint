@@ -63,7 +63,7 @@ public class PageArchetype extends PageFocusDetails<ArchetypeType, FocusDetailsM
 
     @Override
     protected Panel createSummaryPanel(String id, LoadableModel<ArchetypeType> summaryModel) {
-        return new ArchetypeSummaryPanel(id, summaryModel, this);
+        return new ArchetypeSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 
 }

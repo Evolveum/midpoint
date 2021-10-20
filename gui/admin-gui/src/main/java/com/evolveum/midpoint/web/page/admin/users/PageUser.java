@@ -136,7 +136,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 
     @Override
     protected FocusSummaryPanel<UserType> createSummaryPanel(IModel<UserType> summaryModel) {
-        return new UserSummaryPanel(ID_SUMMARY_PANEL, summaryModel, this);
+        return new UserSummaryPanel(ID_SUMMARY_PANEL, summaryModel, WebComponentUtil.getSummaryPanelSpecification(UserType.class, getCompiledGuiProfile()));
     }
 
     protected void cancelPerformed() {

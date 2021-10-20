@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -22,8 +24,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 public class OrgSummaryPanel extends FocusSummaryPanel<OrgType> {
     private static final long serialVersionUID = -5457446213855746564L;
 
-    public OrgSummaryPanel(String id, IModel<OrgType> model, ModelServiceLocator serviceLocator) {
-        super(id, OrgType.class, model, serviceLocator);
+    public OrgSummaryPanel(String id, IModel<OrgType> model, SummaryPanelSpecificationType summaryPanelSpecificationType) {
+        super(id, OrgType.class, model, summaryPanelSpecificationType);
     }
 
     @Override

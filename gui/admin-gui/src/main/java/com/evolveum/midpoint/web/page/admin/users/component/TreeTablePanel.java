@@ -167,7 +167,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
             @Override
             protected void populateItem(ListItem<PrismObject<FocusType>> item) {
-                FocusSummaryPanel.addSummaryPanel(item, item.getModelObject(), ID_MANAGER_SUMMARY, getPageBase());
+                FocusSummaryPanel.addSummaryPanel(item, item.getModelObject(), ID_MANAGER_SUMMARY, WebComponentUtil.getSummaryPanelSpecification(item.getModelObject().getCompileTimeClass(), getPageBase().getCompiledGuiProfile()));
             }
         };
         managerContainer.add(listView);

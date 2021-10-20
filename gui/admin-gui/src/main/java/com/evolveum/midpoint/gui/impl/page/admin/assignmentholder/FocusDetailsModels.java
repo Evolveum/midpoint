@@ -71,10 +71,6 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
         };
     }
 
-    private PageBase getPageBase() {
-        return (PageBase) getModelServiceLocator();
-    }
-
     private List<ShadowWrapper> loadShadowWrappers() {
         LOGGER.trace("Loading shadow wrapper");
         long start = System.currentTimeMillis();

@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
@@ -344,7 +345,7 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 
     @Override
     protected ObjectSummaryPanel<SystemConfigurationType> createSummaryPanel(IModel<SystemConfigurationType> summaryModel) {
-        return new SystemConfigurationSummaryPanel(ID_SUMM_PANEL, summaryModel, this);
+        return new SystemConfigurationSummaryPanel(ID_SUMM_PANEL, summaryModel, WebComponentUtil.getSummaryPanelSpecification(SystemConfigurationType.class, getCompiledGuiProfile()));
     }
 
     @Override

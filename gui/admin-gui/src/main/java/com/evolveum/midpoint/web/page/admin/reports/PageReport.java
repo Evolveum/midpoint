@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.page.admin.reports;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -40,10 +42,6 @@ import com.evolveum.midpoint.web.page.admin.reports.component.ReportMainPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.ReportObjectsListPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.RunReportPopupPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 /**
  * @author lazyman
@@ -118,7 +116,7 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
 
     @Override
     protected ObjectSummaryPanel<ReportType> createSummaryPanel(IModel<ReportType> summaryModel) {
-        return new ReportSummaryPanel(ID_SUMMARY_PANEL, summaryModel, this);
+        return new ReportSummaryPanel(ID_SUMMARY_PANEL, summaryModel, WebComponentUtil.getSummaryPanelSpecification(ReportType.class, getCompiledGuiProfile()));
     }
 
     @Override

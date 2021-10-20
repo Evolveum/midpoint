@@ -12,6 +12,8 @@ import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
+
 import org.apache.wicket.model.IModel;
 
 /**
@@ -20,8 +22,8 @@ import org.apache.wicket.model.IModel;
 
 public class ReportSummaryPanel extends ObjectSummaryPanel<ReportType> {
 
-    public ReportSummaryPanel(String id, IModel<ReportType> model, ModelServiceLocator serviceLocator) {
-        super(id, ReportType.class, model, serviceLocator);
+    public ReportSummaryPanel(String id, IModel<ReportType> model, SummaryPanelSpecificationType summaryPanelSpecificationType) {
+        super(id, ReportType.class, model, summaryPanelSpecificationType);
     }
 
     @Override

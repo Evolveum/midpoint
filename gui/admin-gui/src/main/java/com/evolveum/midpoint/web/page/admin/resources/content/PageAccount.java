@@ -154,7 +154,7 @@ public class PageAccount extends PageAdmin {
     }
 
     private void initLayout() {
-        add(new ShadowSummaryPanel(ID_SUMMARY, Model.of(accountModel.getObject().getObject().asObjectable()), this));
+        add(new ShadowSummaryPanel(ID_SUMMARY, Model.of(accountModel.getObject().getObject().asObjectable()), WebComponentUtil.getSummaryPanelSpecification(ShadowType.class, getCompiledGuiProfile())));
 
 
         WebMarkupContainer protectedMessage = new WebMarkupContainer(ID_PROTECTED_MESSAGE);

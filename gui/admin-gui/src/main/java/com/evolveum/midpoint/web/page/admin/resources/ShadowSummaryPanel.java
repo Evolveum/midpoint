@@ -13,6 +13,8 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
+
 import org.apache.wicket.model.IModel;
 
 /**
@@ -22,8 +24,8 @@ public class ShadowSummaryPanel extends ObjectSummaryPanel<ShadowType> {
 
     private static final long serialVersionUID = 1L;
 
-    public ShadowSummaryPanel(String id, IModel<ShadowType> model, ModelServiceLocator locator) {
-        super(id, ShadowType.class, model, locator);
+    public ShadowSummaryPanel(String id, IModel<ShadowType> model, SummaryPanelSpecificationType summaryPanelSpecificationType) {
+        super(id, ShadowType.class, model, summaryPanelSpecificationType);
     }
 
     @Override

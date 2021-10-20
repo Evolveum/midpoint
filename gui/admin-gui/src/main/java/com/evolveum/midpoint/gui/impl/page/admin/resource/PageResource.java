@@ -61,7 +61,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     @Override
     protected Panel createSummaryPanel(String id, LoadableModel<ResourceType> summaryModel) {
         return new ResourceSummaryPanel(id,
-                summaryModel, this);
+                summaryModel, getSummaryPanelSpecification());
     }
 
     @Override

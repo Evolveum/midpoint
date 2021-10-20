@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.panel.ListMappingPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ObjectTemplateItemPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -99,7 +100,7 @@ public class PageObjectTemplate extends PageAdminObjectDetails<ObjectTemplateTyp
 
     @Override
     protected ObjectSummaryPanel<ObjectTemplateType> createSummaryPanel(IModel<ObjectTemplateType> summaryModel) {
-        return new ObjectTemplateSummaryPanel(ID_SUMMARY_PANEL, summaryModel, this);
+        return new ObjectTemplateSummaryPanel(ID_SUMMARY_PANEL, summaryModel, WebComponentUtil.getSummaryPanelSpecification(ObjectTemplateType.class, getCompiledGuiProfile()));
     }
 
     @Override

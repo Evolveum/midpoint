@@ -86,7 +86,7 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
 
     @Override
     protected Panel createSummaryPanel(String id, LoadableModel<ReportType> summaryModel) {
-        return new ReportSummaryPanel(id, summaryModel, this);
+        return new ReportSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 
     @Override

@@ -15,30 +15,21 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.prism.PrismContext;
-
-import com.evolveum.midpoint.prism.PrismObject;
-
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
-import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import javax.swing.text.html.Option;
 
 @Controller
 public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurationMergeManager {
@@ -110,7 +101,59 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
 
         mergedDetailsPage.getPanel().clear();
         mergedDetailsPage.getPanel().addAll(CloneUtil.cloneCollectionMembersWithoutIds(mergedPanels));
+
+        SummaryPanelSpecificationType mergedSummaryPanel = mergeSummaryPanels(mergedDetailsPage.getSummaryPanel(), compiledPageType.getSummaryPanel());
+        mergedDetailsPage.setSummaryPanel(mergedSummaryPanel);
+
         return mergedDetailsPage;
+    }
+
+    private SummaryPanelSpecificationType mergeSummaryPanels(SummaryPanelSpecificationType defaultSummaryPanelConfiguration, SummaryPanelSpecificationType compiledSummaryPanelConfiguration) {
+        if (compiledSummaryPanelConfiguration == null) {
+            return defaultSummaryPanelConfiguration;
+        }
+
+        if (defaultSummaryPanelConfiguration == null) {
+            return compiledSummaryPanelConfiguration;
+        }
+
+        SummaryPanelSpecificationType mergedSummaryPanel = defaultSummaryPanelConfiguration.cloneWithoutId();
+        GuiFlexibleLabelType mergedIdentifier = mergeSummaryPanelFlexibleLabel(defaultSummaryPanelConfiguration.getIdentifier(), compiledSummaryPanelConfiguration.getIdentifier());
+        mergedSummaryPanel.setIdentifier(mergedIdentifier);
+
+        GuiFlexibleLabelType mergedDisplayName = mergeSummaryPanelFlexibleLabel(defaultSummaryPanelConfiguration.getDisplayName(), compiledSummaryPanelConfiguration.getDisplayName());
+        mergedSummaryPanel.setIdentifier(mergedDisplayName);
+
+        GuiFlexibleLabelType mergedOrganization = mergeSummaryPanelFlexibleLabel(defaultSummaryPanelConfiguration.getOrganization(), compiledSummaryPanelConfiguration.getOrganization());
+        mergedSummaryPanel.setIdentifier(mergedOrganization);
+
+        GuiFlexibleLabelType mergedTitle1 = mergeSummaryPanelFlexibleLabel(defaultSummaryPanelConfiguration.getTitle1(), compiledSummaryPanelConfiguration.getTitle1());
+        mergedSummaryPanel.setIdentifier(mergedTitle1);
+
+        GuiFlexibleLabelType mergedTitle2 = mergeSummaryPanelFlexibleLabel(defaultSummaryPanelConfiguration.getTitle2(), compiledSummaryPanelConfiguration.getTitle2());
+        mergedSummaryPanel.setIdentifier(mergedTitle2);
+
+        GuiFlexibleLabelType mergedTitle3 = mergeSummaryPanelFlexibleLabel(defaultSummaryPanelConfiguration.getTitle3(), compiledSummaryPanelConfiguration.getTitle3());
+        mergedSummaryPanel.setIdentifier(mergedTitle3);
+
+        return mergedSummaryPanel;
+    }
+
+    private GuiFlexibleLabelType mergeSummaryPanelFlexibleLabel(GuiFlexibleLabelType defaultSummaryPanelIdentifier, GuiFlexibleLabelType compiledSummaryPanelIdentifier) {
+        if (compiledSummaryPanelIdentifier == null) {
+            return defaultSummaryPanelIdentifier.cloneWithoutId();
+        }
+
+        GuiFlexibleLabelType mergedFlexibleLabel = defaultSummaryPanelIdentifier.cloneWithoutId();
+        if (compiledSummaryPanelIdentifier.getVisibility() != null) {
+            mergedFlexibleLabel.setVisibility(compiledSummaryPanelIdentifier.getVisibility());
+        }
+
+        if (compiledSummaryPanelIdentifier.getExpression() != null) {
+            mergedFlexibleLabel.setExpression(compiledSummaryPanelIdentifier.getExpression());
+        }
+
+        return mergedFlexibleLabel;
     }
 
     @Override
@@ -268,6 +311,10 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
 
         if (currentContainer.getVisibility() == null) {
             mergedContainer.setVisibility(superContainer.getVisibility());
+        }
+
+        if (currentContainer.isExpanded() == null) {
+            mergedContainer.setExpanded(superContainer.isExpanded());
         }
 
         for (VirtualContainerItemSpecificationType virtualItem : superContainer.getItem()) {

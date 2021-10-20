@@ -12,6 +12,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.web.application.Url;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -151,7 +153,7 @@ public class PageCertDefinition extends PageAdminCertification {
     //region Layout
     private void initLayout() {
         CertDefinitionSummaryPanel summaryPanel = new CertDefinitionSummaryPanel(ID_SUMMARY_PANEL,
-                new PropertyModel<>(definitionModel, CertDefinitionDto.F_DEFINITION), this);
+                new PropertyModel<>(definitionModel, CertDefinitionDto.F_DEFINITION), WebComponentUtil.getSummaryPanelSpecification(AccessCertificationDefinitionType.class, getCompiledGuiProfile()));
         summaryPanel.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(definitionModel.getObject().getOldDefinition().getOid())));
         add(summaryPanel);
 
