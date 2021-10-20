@@ -59,7 +59,9 @@ public class NumericBucketContentFactory extends BaseBucketContentFactory<Numeri
         if (segmentationConfig.getBucketSize() != null) {
             return segmentationConfig.getBucketSize();
         } else if (segmentationConfig.getTo() != null && segmentationConfig.getNumberOfBuckets() != null) {
-            return segmentationConfig.getTo().subtract(getFrom()).divide(BigInteger.valueOf(segmentationConfig.getNumberOfBuckets()));
+            BigInteger[] bi = segmentationConfig.getTo().subtract(getFrom())
+                    .divideAndRemainder(BigInteger.valueOf(segmentationConfig.getNumberOfBuckets()));
+            return bi[1].equals(BigInteger.ZERO) ? bi[0] : bi[0].add(BigInteger.ONE);
         } else {
             throw new IllegalStateException("Neither numberOfBuckets nor to + bucketSize is specified");
         }
