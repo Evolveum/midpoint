@@ -170,7 +170,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     private static final int OPTIMIZED_BUCKETS_THRESHOLD = 8;
 
     protected static final int DEFAULT_TASK_WAIT_TIMEOUT = 250000;
-    protected static final long DEFAULT_TASK_SLEEP_TIME = 200;
+    protected static final long DEFAULT_TASK_SLEEP_TIME = 350;
     protected static final long DEFAULT_TASK_TREE_SLEEP_TIME = 1000;
 
     // Values used to check if something is unchanged or changed properly
@@ -294,6 +294,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
      * {@link MidpointTestContextWithTask} and stores it in thread-local variable for future access.
      * This implementation fully overrides version from {@link AbstractSpringTest}.
      */
+    @Override
     @BeforeMethod
     public void startTestContext(ITestResult testResult) throws SchemaException {
         Class<?> testClass = testResult.getMethod().getTestClass().getRealClass();
@@ -319,6 +320,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
      * Finish and destroy the test context, output duration and store the operation trace.
      * This implementation fully overrides (without use) the one from {@link AbstractSpringTest}.
      */
+    @Override
     @AfterMethod
     public void finishTestContext(ITestResult testResult) {
         MidpointTestContextWithTask context = MidpointTestContextWithTask.get();
@@ -1982,6 +1984,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         IntegrationTestTools.display(title, elements);
     }
 
+    @Override
     public void displayValue(String title, Object value) {
         PrismTestUtil.display(title, value);
     }
