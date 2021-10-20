@@ -12,7 +12,7 @@ Key is a path to element, starting at "midpoint", separated with "." - for examp
 -Dmidpoint.repository.asServer=false
 or
 -Dmidpoint.profilingEnabled=true
-See more: https://wiki.evolveum.com/display/midPoint/Overriding+config.xml+parameters
+See more: https://docs.evolveum.com/midpoint/reference/deployment/midpoint-home-directory/overriding-config-xml-parameters/
 
 It is also possible to read values from file - to do so:
 - use "_FILE" suffix for key element, e.g. keyStorePassword_FILE
