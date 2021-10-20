@@ -477,8 +477,8 @@ public abstract class AbstractActivityExecution<
         return getExecutionMode() == ExecutionModeType.NONE;
     }
 
-    public boolean isBucketsAnalysis() {
-        return getExecutionMode() == ExecutionModeType.BUCKETS_ANALYSIS;
+    public boolean isBucketAnalysis() {
+        return getExecutionMode() == ExecutionModeType.BUCKET_ANALYSIS;
     }
 
     public int getItemsProcessed() {

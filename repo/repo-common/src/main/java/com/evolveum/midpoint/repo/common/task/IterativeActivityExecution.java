@@ -377,7 +377,7 @@ public abstract class IterativeActivityExecution<
 
         prepareItemSourceForCurrentBucket(result);
 
-        if (isBucketsAnalysis()) {
+        if (isBucketAnalysis()) {
             return analyzeSingleBucket(result);
         } else {
             return executeSingleBucket(result);

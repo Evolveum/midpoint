@@ -11,17 +11,15 @@
     <name>task-single-recomputation</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-    <recurrence>single</recurrence>
 
     <activity>
         <work>
             <recomputation>
-                <objectSet>
-                    <objectType>UserType</objectType>
-                </objectSet>
+                <objects>
+                    <type>UserType</type>
+                </objects>
             </recomputation>
         </work>
-
         <distribution>
             <buckets>
                 <oidSegmentation/>
@@ -32,6 +30,5 @@
                 </workersPerNode>
             </workers>
         </distribution>
-
     </activity>
 </task>

@@ -485,7 +485,7 @@
             <xsd:element name="indestructible" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Protection againts accidental deletion.
+                        Protection against accidental deletion.
                         If set to true then this object cannot be deleted.
                         If the object needs to be deleted then it has to be modified first to reset this flag.
                     </xsd:documentation>

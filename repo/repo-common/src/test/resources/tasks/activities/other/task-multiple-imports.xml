@@ -13,17 +13,21 @@
             <activity>
                 <order>1</order>
                 <work>
-                    <importFromResource>
-                        <resourceRef oid="5e1b5367-ec67-404c-aff8-b958719b4d5b" />
-                    </importFromResource>
+                    <import>
+                        <resourceObjects>
+                            <resourceRef oid="5e1b5367-ec67-404c-aff8-b958719b4d5b" />
+                        </resourceObjects>
+                    </import>
                 </work>
             </activity>
             <activity>
                 <order>2</order>
                 <work>
-                    <importFromResource>
-                        <resourceRef oid="76fb3a9b-07a1-4d23-8fcb-1c273a75778e" />
-                    </importFromResource>
+                    <import>
+                        <resourceObjects>
+                            <resourceRef oid="76fb3a9b-07a1-4d23-8fcb-1c273a75778e" />
+                        </resourceObjects>
+                    </import>
                 </work>
             </activity>
         </composition>

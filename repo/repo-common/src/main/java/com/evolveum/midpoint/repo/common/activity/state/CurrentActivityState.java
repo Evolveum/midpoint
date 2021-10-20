@@ -97,7 +97,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
 
         ActivityReportingDefinition reportingDef = activityExecution.getActivity().getReportingDefinition();
         this.bucketsReport = new BucketsReport(reportingDef.getBucketsReportDefinition(), this,
-                activityExecution.isBucketsAnalysis() ? ANALYSIS : EXECUTION);
+                activityExecution.isBucketAnalysis() ? ANALYSIS : EXECUTION);
         this.itemsReport = new ItemsReport(reportingDef.getItemsReportDefinition(), this);
         this.connIdOperationsReport = new ConnIdOperationsReport(reportingDef.getConnIdOperationsReportDefinition(), this);
         this.internalOperationsReport = new InternalOperationsReport(reportingDef.getInternalOperationsReportDefinition(), this);
