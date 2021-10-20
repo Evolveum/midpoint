@@ -1,5 +1,6 @@
 = Using Native PostgreSQL Repository
 :page-toc: top
+:page-display-order: 1
 :page-nav-title: Usage
 :page-since: "4.4"
 
