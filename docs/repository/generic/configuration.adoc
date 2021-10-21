@@ -9,8 +9,8 @@
 
 [NOTE]
 This page describes Configuration for Generic repository.
-Since midPoint 4.4 we recommend using the new xref:../../native-postgresql/[Native repository].
-Configuration for Native repository is described xref:../../configuration.adoc[here].
+Since midPoint 4.4 we recommend using the new xref:../native-postgresql/[Native repository].
+Configuration for Native repository is described xref:../configuration.adoc[here].
 
 By default, the repository configuration is stored in the `$HOME/midpoint` directory of the user the application server runs as.
 This directory is further referenced to as `midpoint.home`.
@@ -335,7 +335,7 @@ Also configure `<tomcat-location>/conf/context.xml` file:
 
 == Index tuning
 
-Anything that is externalized into columns and related tables (like extensions, references, etc.) is effectively searchable using xref:../concepts/query/query-api/[].
+Anything that is externalized into columns and related tables (like extensions, references, etc.) is effectively searchable using xref:../../concepts/query/query-api/[].
 It is not possible to search for information stored only in the serialized form of the object.
 But _searchable_ and _efficiently searchable_ are two different things.
 
@@ -381,4 +381,4 @@ with function based indexes and midPoint cannot generate `WHERE` clause using th
 
 * link:https://evolveum.com/[Evolveum] - Team of IAM professionals who developed midPoint
 
-* xref:../../native-postgresql/[Native repository] - new repository recommended from version 4.4
+* xref:../native-postgresql/[Native repository] - new repository recommended from version 4.4
