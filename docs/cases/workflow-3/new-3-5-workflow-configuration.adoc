@@ -97,7 +97,7 @@ The configuration looks like this:
   <workflowConfiguration>
     <modelHookEnabled>true</modelHookEnabled>		<!-- this is the default -->
     <processCheckInterval>10</processCheckInterval> <!-- this is the default -->
-    <primaryChangeProcessor>
+    <primaryChangeProcessor>
       <enabled>true</enabled>						<!-- this is the default -->
     </primaryChangeProcessor>
   </workflowConfiguration>

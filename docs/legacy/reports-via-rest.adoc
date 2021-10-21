@@ -226,7 +226,7 @@ It returns the task, as can be seen from the invocation:
         <status>success</status>
         <token>1000000000000010750</token>
         ...
-     </apti:result>
+    </apti:result>
 </t:object>
 
 ----

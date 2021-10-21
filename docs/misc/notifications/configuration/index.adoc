@@ -42,7 +42,7 @@ For the time being, here we show a sample configuration, hopefully self-explanat
        . . .
     </server>
 
-    <defaultFrom>abc@gmail.com</defaultFrom>
+    <defaultFrom>abc@gmail.com</defaultFrom>
     <debug>true</debug>                                    <!-- standard javax.mail debugging; it is going to stdout (catalina.out)! -->
     <logToFile>mail-notifications.log</logToFile>        <!-- All notifications are logged to this file IN ADDITION TO sending them via mail. They are
                                                              logged in all cases: even if they eventually cannot be send. Implemented since 3.6.1. -->

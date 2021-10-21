@@ -50,7 +50,7 @@ public class MyTaskHandler implements TaskHandler {
     @Autowired(required=true)
     private TaskManager taskManager;
 
-    @PostConstruct
+    @PostConstruct
     private void initialize() {
         taskManager.registerHandler(HANDLER_URI, this);
     }

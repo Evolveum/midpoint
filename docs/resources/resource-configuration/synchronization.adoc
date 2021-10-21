@@ -279,7 +279,7 @@ The configuration also includes a lot of optional elements such as `kind`, `inte
 ----
 <resource>
  ...
- <synchronization>
+    <synchronization>
 
         <objectSynchronization>
             <name>Account sync policy</name>
@@ -424,7 +424,7 @@ This setup will create a new midPoint role when a new group is detected on the r
 ----
 <resource>
  ...
- <synchronization>
+    <synchronization>
         ...
         <objectSynchronization>
             <name>Group sync policy</name>
@@ -490,7 +490,7 @@ Please note the specification of `intent` in the `objectSynchronization` section
 .objectSynchronization condition example
 [source,xml]
 ----
-     <synchronization>
+    <synchronization>
         <objectSynchronization>
             <objectClass>ri:AccountObjectClass</objectClass>
             <kind>account</kind>
@@ -534,7 +534,7 @@ In that case a minimal synchronization section will do:
 
 [source,xml]
 ----
-     <synchronization>
+    <synchronization>
         <objectSynchronization>
             <name>sync group</name>
             <objectClass>ri:group</objectClass>

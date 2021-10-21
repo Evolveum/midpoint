@@ -199,7 +199,7 @@ The wiki:Shadow+Objects[shadows] in the old connector looked like this:
     <icfs:name>007</icfs:name>
     <icfs:uid>007</icfs:uid>
     <ri:username>foo</ri:username>
-    <ri:fullname>Foo Bar</ri:fullname>
+    <ri:fullname>Foo Bar</ri:fullname>
     ...
   </attributes>
 </shadow>

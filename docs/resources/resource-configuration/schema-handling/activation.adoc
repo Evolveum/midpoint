@@ -402,7 +402,7 @@ E.g. the following mapping will pre-provision a disabled account 5 days before u
 
 [source,xml]
 ----
-  <resource>
+<resource>
 	<schemaHandling>
 		<objectType>
 			...

@@ -14,7 +14,6 @@ Examples mentioned here use legacy (pre-3.5) approach to approvals configuration
 For a more up-to-date samples please visit wiki:Approval+examples[this page].
 ====
 
-
 == Basic how-to
 
 You can test the workflow module e.g. by importing the following files:
@@ -29,7 +28,6 @@ You can test the workflow module e.g. by importing the following files:
 
 Then you can try to add one of the sensitive roles to any user and see what happens.
 Details are described in the following sections.
-
 
 == Configuring approval processes
 
@@ -63,7 +61,6 @@ A role can have assigned one of the following (from simple to complex):
 When this role is to be added to a user, the administrator (oid 00000000-0000-0000-0000-000000000002) has to approve such an assignment.
 
 Now let's have a look at more complex scenario.
-
 
 === Multi-level approval structure - Sensitive Role 2
 
@@ -132,7 +129,6 @@ If he rejects, the level (and the whole process) is terminated without approval.
 . Second, _both_ system administrator and security manager have to approve the assignment.
 If one of them rejects, the whole process is terminated (even without waiting to get the opinion of the other one).
 
-
 === Dynamically defined approvers - Sensitive Role 3
 
 What if we would want to state that a request must be approved by a boss of the person who is to be assigned a role? In that case we have to use an expression to specify the approver, like in the following example.
@@ -143,19 +139,18 @@ What if we would want to state that a request must be approved by a boss of the 
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Sensitive Role 3</name>
     <approverExpression>
-        <description>Get user's managers (except the user itself)</description>
-        <script>
-            <code>midpoint.getManagersOidsExceptUser(object)</code>
-        </script>
-    </approverExpression>
+        <description>Get user's managers (except the user itself)</description>
+        <script>
+            <code>midpoint.getManagersOidsExceptUser(object)</code>
+        </script>
+    </approverExpression>
     <automaticallyApproved>
-        <description>If the user works in F0006 (Scumm Bar), the assignment of this role is automatically approved for him.</description>
-        <script>
-            <code>midpoint.isMemberOf(object, midpoint.getOrgByName("F0006").getOid())</code>
+        <description>If the user works in F0006 (Scumm Bar), the assignment of this role is automatically approved for him.</description>
+        <script>
+            <code>midpoint.isMemberOf(object, midpoint.getOrgByName("F0006").getOid())</code>
         </script>
     </automaticallyApproved>
- </role>
-
+</role>
 ----
 
 Actually, we show two independent features in this example:

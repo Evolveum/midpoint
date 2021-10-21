@@ -538,7 +538,7 @@ Allocated to (before escalation): Guybrush Threepwood (guybrush)
 
 Reason: Timed action
 
-Deadline: Sun Nov 19 12:50:30 CET 2017 (...) 
+Deadline: Sun Nov 19 12:50:30 CET 2017 (...)
 ----
 
 [source]

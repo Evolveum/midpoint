@@ -229,7 +229,7 @@ Example:
 
 [source,xml]
 ----
-                <postIterationCondition>
+                <postIterationCondition>
                     <variable>
                         <name>quote</name>
                         <path>$shadow/attributes/ri:quote</path>

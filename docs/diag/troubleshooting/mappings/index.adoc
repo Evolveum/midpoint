@@ -31,7 +31,7 @@ The basic flow goes like this:
 
 [source]
 ----
-Model -> Clockwork -+-> Projector -> Projector processors -> Mapping -> Expression  
+Model -> Clockwork -+-> Projector -> Projector processors -> Mapping -> Expression
                     +-> Provisioning -> ConnId framework -> Connector -> Resource
 ----
 
@@ -102,13 +102,13 @@ Clockwork has a very convenient wiki:Useful+Loggers[logging] output:
 ----
 ###[ CLOCKWORK SUMMARY ]######################################
 Triggered by focus primary delta ObjectDelta(UserType:c0c010c0-d34d-b33f-f00d-111111111111,MODIFY:
- PropertyDelta( / {.../common/common-3}organizationalUnit, REPLACE), PropertyDelta(metadata / {.../common/common-3}modifyTimestamp, REPLACE))
+ PropertyDelta( / {.../common/common-3}organizationalUnit, REPLACE), PropertyDelta(metadata / {.../common/common-3}modifyTimestamp, REPLACE))
 Focus: focus(user:c0c010c0-d34d-b33f-f00d-111111111111(jack))
 Projections (1):
- account(ID {.../connector/icf-1/resource-schema-3}uid = [ jack ], type 'default', resource:10000000-0000-0000-0000-000000000104(Dummy Resource Red)): KEEP
+ account(ID {.../connector/icf-1/resource-schema-3}uid = [ jack ], type 'default', resource:10000000-0000-0000-0000-000000000104(Dummy Resource Red)): KEEP
 Executed:
- ObjectDelta(UserType:c0c010c0-d34d-b33f-f00d-111111111111,MODIFY: PropertyDelta( / {.../common/common-3}organizationalUnit, REPLACE), PropertyDelta(metadata / {.../common/common-3}modifyTimestamp, REPLACE)): SUCCESS
- ObjectDelta(ShadowType:a3ebbe89-227b-42ff-9d00-f42bee3cf151,MODIFY: PropertyDelta(attributes / {.../resource/instance-3}ship, REPLACE), PropertyDelta(metadata / {.../common/common-3}modifyTimestamp, REPLACE)): SUCCESS
+ ObjectDelta(UserType:c0c010c0-d34d-b33f-f00d-111111111111,MODIFY: PropertyDelta( / {.../common/common-3}organizationalUnit, REPLACE), PropertyDelta(metadata / {.../common/common-3}modifyTimestamp, REPLACE)): SUCCESS
+ ObjectDelta(ShadowType:a3ebbe89-227b-42ff-9d00-f42bee3cf151,MODIFY: PropertyDelta(attributes / {.../resource/instance-3}ship, REPLACE), PropertyDelta(metadata / {.../common/common-3}modifyTimestamp, REPLACE)): SUCCESS
 ##############################################################
 ----
 
@@ -178,13 +178,13 @@ The lens context dump looks like this:
 
 [source]
 ----
- ---[ PROJECTOR (INITIAL) context projection values and credentials of resource:10000000-0000-0000-0000-000000000204(Dummy Resource Blue)(default) ]--------------------------------
+---[ PROJECTOR (INITIAL) context projection values and credentials of resource:10000000-0000-0000-0000-000000000204(Dummy Resource Blue)(default) ]--------------------------------
 LensContext: state=INITIAL, Wave(e=0,p=0,max=0), focus, 1 projections, 2 changes, fresh=true
   Channel: null
-  Options: null
+  Options: null
   Settings: assignments=FULL
   FOCUS:
-    User, oid=c0c010c0-d34d-b33f-f00d-111111111116, syncIntent=null
+    User, oid=c0c010c0-d34d-b33f-f00d-111111111116, syncIntent=null
       User old:
         user: (c0c010c0-d34d-b33f-f00d-111111111116, v5, UserType) name: guybrush .....
 ----

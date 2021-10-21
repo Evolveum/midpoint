@@ -32,7 +32,7 @@ The spelling alphabet transforms are stored in the object extensions, like this:
 .Org extension example
 [source,xml]
 ----
- <org>
+<org>
     <name>International</name>
     <extension>
         <e:transformDescription>International spelling alphabet</e:transformDescription>

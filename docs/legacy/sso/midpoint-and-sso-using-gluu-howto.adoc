@@ -75,7 +75,6 @@ ProxyRequests           Off
 ProxyPreserveHost       On
 ProxyPass               /midpoint       http://localhost:8080/midpoint
 ProxyPassReverse        /midpoint       http://localhost:8080/midpoint
- 
 ----
 
 

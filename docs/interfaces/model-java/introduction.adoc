@@ -125,7 +125,7 @@ As midPoint objects are identified by wiki:Object+ID[OID] it is also the most im
 
 [source,java]
 ----
- PrismObject<UserType> user = modelService.getObject(UserType.class, "6bb5c524-5c18-11e3-979a-001e8c717e5b", null, task, result);
+PrismObject<UserType> user = modelService.getObject(UserType.class, "6bb5c524-5c18-11e3-979a-001e8c717e5b", null, task, result);
 ----
 
 Once retrieved the object can be manipulated using any of the wiki:Prism+Objects[prism] "facets":
@@ -139,8 +139,8 @@ This works for any object of any type as long as you know wiki:Object+ID[OID]:
 
 [source,java]
 ----
- PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, "750e4d3a-5c18-11e3-8174-001e8c717e5b", null, task, result);
- PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, "399e161c-5c19-11e3-9cd0-001e8c717e5b", null, task, result);
+PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, "750e4d3a-5c18-11e3-8174-001e8c717e5b", null, task, result);
+PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, "399e161c-5c19-11e3-9cd0-001e8c717e5b", null, task, result);
 ----
 
 

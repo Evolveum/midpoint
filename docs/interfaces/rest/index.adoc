@@ -643,7 +643,7 @@ The source files used here for the samples can be found at our git link:https://
 
 [source,bash]
 ----
-curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST http://localhost:8080/midpoint/ws/rest/resources -d @pathToMidpointGit\samples\rest\opendj-resource-sync.xml -v
+curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST http://localhost:8080/midpoint/ws/rest/resources -d @pathToMidpointGit\samples\rest\opendj-resource-sync.xml -v
 ----
 
 
@@ -666,7 +666,7 @@ curl --user administrator:5ecr3t -X GET http://localhost:8080/midpoint/ws/rest/r
 .Get Object in JSON format
 [source,bash]
 ----
-curl --user administrator:5ecr3t -H "Accept: application/json"  -X GET https://demo.evolveum.com:443/midpoint/ws/rest/resources/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2
+curl --user administrator:5ecr3t -H "Accept: application/json" -X GET https://demo.evolveum.com:443/midpoint/ws/rest/resources/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2
 ----
 
 
