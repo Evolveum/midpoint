@@ -93,9 +93,14 @@ public class DataSourceFactory {
         if (configuration.getMaxLifetime() != null) {
             config.setMaxLifetime(configuration.getMaxLifetime());
         }
-
         if (configuration.getIdleTimeout() != null) {
             config.setIdleTimeout(configuration.getIdleTimeout());
+        }
+        if (configuration.getKeepaliveTime() != null) {
+            config.setKeepaliveTime(configuration.getKeepaliveTime());
+        }
+        if (configuration.getLeakDetectionThreshold() != null) {
+            config.setLeakDetectionThreshold(configuration.getLeakDetectionThreshold());
         }
 
         config.setIsolateInternalQueries(true);
