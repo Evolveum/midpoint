@@ -10,7 +10,7 @@
 [NOTE]
 This page describes Configuration for Generic repository.
 Since midPoint 4.4 we recommend using the new xref:../native-postgresql/[Native repository].
-Configuration for Native repository is described xref:../configuration.adoc[here].
+Configuration for Native repository is described xref:../configuration/[here].
 
 By default, the repository configuration is stored in the `$HOME/midpoint` directory of the user the application server runs as.
 This directory is further referenced to as `midpoint.home`.
@@ -130,13 +130,6 @@ Please, consult also your RDBMS documentation to see if this is necessary and no
 | maxPoolSize
 | Maximum # of connections in connection pool, if connection pool is not provided through dataSource.
 | 20
-
-| cacheMaxTTL
-| Option which can enable caching of selected object types (ConnectorType, ObjectTemplateType, SecurityPolicyType, SystemConfigurationType and ValuePolicyType).
-Objects are cached and reloaded only if object version doesn't match.
-Version check happens only after time to live (TTL) period has passed.
-Value in seconds.
-| 0
 
 | initializationFailTimeout
 | Hikari pool initialization failure timeout, in milliseconds.
@@ -374,6 +367,10 @@ index is good, and it also makes the index size smaller.
 [NOTE]
 This technique is not possible with midPoint and Oracle, because Oracle emulates partial indexes
 with function based indexes and midPoint cannot generate `WHERE` clause using the needed function.
+
+== See Also
+
+* xref:../native-postgresql/[Native repository] - new repository recommended from version 4.4
 
 == External links
 
