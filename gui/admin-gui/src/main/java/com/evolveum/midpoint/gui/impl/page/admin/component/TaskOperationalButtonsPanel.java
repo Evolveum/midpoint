@@ -84,6 +84,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
 
     private static final int REFRESH_INTERVAL = 2000;
     private Boolean refreshEnabled;
+    private boolean runEnabled = false;
 
     public TaskOperationalButtonsPanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> model) {
         super(id, model);
@@ -138,6 +139,15 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
     }
 
     private void saveAndRunPerformed(AjaxRequestTarget target) {
+        runEnabled = true;
+        try {
+            savePerformed(target);
+        } finally {
+            runEnabled = false;
+        }
+    }
+
+    private void setStateBeforeSave(AjaxRequestTarget target) {
         PrismObjectWrapper<TaskType> taskWrapper = getModelObject();
         try {
             setTaskInitialState(taskWrapper);
@@ -148,8 +158,12 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
             target.add(getPageBase().getFeedbackPanel());
             return;
         }
+    }
 
-        savePerformed(target);
+    @Override
+    protected void savePerformed(AjaxRequestTarget target) {
+        setStateBeforeSave(target);
+        super.savePerformed(target);
     }
 
     private void setTaskInitialState(PrismObjectWrapper<TaskType> taskWrapper) throws SchemaException {
@@ -159,7 +173,14 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
             throw new SchemaException("Task cannot be set as running, no execution status or scheduling status present");
         }
 
-        setTaskInitiallyRunning(executionState, schedulingState);
+        if (runEnabled) {
+            setTaskInitiallyRunning(executionState, schedulingState);
+        } else {
+            if (!ItemStatus.ADDED.equals(getModelObject().getStatus())) {
+                return;
+            }
+            setTaskInitiallySuspended(executionState, schedulingState);
+        }
     }
 
     private void setupOwner(PrismObjectWrapper<TaskType> taskWrapper) throws SchemaException {
@@ -186,6 +207,11 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
     private void setTaskInitiallyRunning(PrismPropertyWrapper<TaskExecutionStateType> executionState, PrismPropertyWrapper<TaskSchedulingStateType> schedulingState) throws SchemaException {
         executionState.getValue().setRealValue(TaskExecutionStateType.RUNNABLE);
         schedulingState.getValue().setRealValue(TaskSchedulingStateType.READY);
+    }
+
+    private void setTaskInitiallySuspended(PrismPropertyWrapper<TaskExecutionStateType> executionState, PrismPropertyWrapper<TaskSchedulingStateType> schedulingState) throws SchemaException {
+        executionState.getValue().setRealValue(TaskExecutionStateType.SUSPENDED);
+        schedulingState.getValue().setRealValue(TaskSchedulingStateType.SUSPENDED);
     }
 
     private void initLayout() {
