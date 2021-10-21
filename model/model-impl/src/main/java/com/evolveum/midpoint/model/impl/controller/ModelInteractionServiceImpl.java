@@ -1679,7 +1679,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             newTask.setExecutionState(RUNNABLE);
             newTask.setSchedulingState(READY);
             for (Item<?, ?> extensionItem : extensionItems) {
-                newTask.asPrismObject().getExtension().add(extensionItem.clone());
+                newTask.asPrismObject().getOrCreateExtension()
+                        .add(extensionItem.clone());
             }
             ObjectDelta<TaskType> taskAddDelta = DeltaFactory.Object.createAddDelta(newTask.asPrismObject());
             Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = modelService.executeChanges(singleton(taskAddDelta), null, opTask, result);
