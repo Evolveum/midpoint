@@ -32,8 +32,6 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     private static final String DEFAULT_DRIVER = "org.postgresql.Driver";
     private static final SupportedDatabase DEFAULT_DATABASE = SupportedDatabase.POSTGRESQL;
     private static final String DEFAULT_JDBC_URL = "jdbc:postgresql://localhost:5432/midpoint";
-    private static final String DEFAULT_JDBC_USERNAME = "midpoint";
-    private static final String DEFAULT_JDBC_PASSWORD = "password";
     private static final String DEFAULT_FULL_OBJECT_FORMAT = PrismContext.LANG_JSON;
 
     /**
@@ -93,7 +91,7 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
         dataSource = configuration.getString(PROPERTY_DATASOURCE);
 
         jdbcUrl = configuration.getString(PROPERTY_JDBC_URL, DEFAULT_JDBC_URL);
-        jdbcUsername = configuration.getString(PROPERTY_JDBC_USERNAME, DEFAULT_JDBC_USERNAME);
+        jdbcUsername = configuration.getString(PROPERTY_JDBC_USERNAME, null);
 
         driverClassName = DEFAULT_DRIVER;
 
@@ -106,7 +104,7 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
                         + jdbcPasswordFile + "': " + e.getMessage(), e);
             }
         } else {
-            jdbcPassword = configuration.getString(PROPERTY_JDBC_PASSWORD, DEFAULT_JDBC_PASSWORD);
+            jdbcPassword = configuration.getString(PROPERTY_JDBC_PASSWORD, null);
         }
 
         // maxPoolSize can't be smaller than MIN_POOL_SIZE_FLOOR
