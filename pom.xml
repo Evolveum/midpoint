@@ -412,6 +412,7 @@
             <dependency>
                 <groupId>com.zaxxer</groupId>
                 <artifactId>HikariCP</artifactId>
+                <!-- TODO: With JDK 11 upgrade to version 5.x is possible. -->
                 <version>4.0.3</version>
             </dependency>
             <dependency>
