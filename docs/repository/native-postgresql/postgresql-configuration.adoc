@@ -1,0 +1,22 @@
+= PostgreSQL Configuration
+:page-toc: top
+:page-display-order: 2
+:page-since: "4.4"
+
+This page will contain some tips how to configure PostgreSQL DB (e.g. sizing).
+
+== DB server sizing
+
+TODO
+
+== Connections
+
+TODO
+
+== Other configuration
+
+TODO
+
+== See Also
+
+* xref:../db-maintenance/[DB maintenance]
