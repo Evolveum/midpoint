@@ -1,0 +1,224 @@
+= DB maintenance
+:page-toc: top
+:page-display-order: 3
+:page-since: "4.4"
+
+== Setup
+
+Add to the end of `postgresql.conf`:
+
+----
+# this is necessary for pg_stat_statements extension
+shared_preload_libraries = 'pg_stat_statements'
+
+# this is to log all the queries, just be aware of the free disk space
+logging_collector = on
+log_directory = 'pg_log'
+log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+log_statement = 'all'
+log_line_prefix = '%m [%p] %h %a: '
+#log_connections = on
+#log_disconnections = on
+----
+
+== Queries
+
+// TODO this is various selects thrown here, need to sort it out and add some narrative
+
+[source,sql]
+----
+-- indexes for a table
+select * from pg_indexes where tablename = 'm_user';
+
+-- list of selects using the most time, change order to get other avg/max/calls to top
+-- NOTE: postgresql.conf must have (+restart): shared_preload_libraries = 'pg_stat_statements'
+-- Also first, to see pg_stat_statements table: CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+-- To reset collected statistics: select pg_stat_statements_reset();
+select
+    (total_exec_time / 1000 / 60)::numeric(20,4) as total_min, -- min as minutes here
+    mean_exec_time::numeric(20,2) as avg_ms,
+    max_exec_time::numeric(20,2) as max_ms,
+    calls,
+    (rows / calls)::numeric(20) as avg_rows,
+    (100.0 * shared_blks_hit / nullif(shared_blks_hit + shared_blks_read, 0))::numeric(20,2) AS hit_percent,
+    query
+from pg_stat_statements
+-- optional where to limit it to one database, if needed (e.g. shared/test DB)
+-- where dbid = (select oid from pg_database where datname = 'midpoint')
+order by 1 desc -- change order as necessary
+limit 50;
+
+-- show locks and related activities
+select l.locktype, l.mode, d.datname, c.relname,
+       l.pid, a.application_name, a.client_addr
+from pg_locks l
+join pg_stat_activity a on l.pid = a.pid
+join pg_database d on d.oid = l.database
+join pg_class c on c.oid = l.relation
+;
+
+-- shows activities waiting for locks, see https://wiki.postgresql.org/wiki/Lock_Monitoring for more
+select blocked_locks.pid as blocked_pid,
+    blocked_activity.usename as blocked_user,
+    blocking_locks.pid as blocking_pid,
+    blocking_activity.usename as blocking_user,
+    blocked_activity.query as blocked_statement,
+    blocking_activity.query as current_statement_in_blocking_process,
+    blocked_activity.application_name as blocked_application,
+    blocking_activity.application_name as blocking_application
+from pg_catalog.pg_locks blocked_locks
+join pg_catalog.pg_stat_activity blocked_activity on blocked_activity.pid = blocked_locks.pid
+join pg_catalog.pg_locks blocking_locks on blocking_locks.locktype = blocked_locks.locktype
+    and blocking_locks.database is not distinct from blocked_locks.database
+    and blocking_locks.relation is not distinct from blocked_locks.relation
+    and blocking_locks.page is not distinct from blocked_locks.page
+    and blocking_locks.tuple is not distinct from blocked_locks.tuple
+    and blocking_locks.virtualxid is not distinct from blocked_locks.virtualxid
+    and blocking_locks.transactionid is not distinct from blocked_locks.transactionid
+    and blocking_locks.classid is not distinct from blocked_locks.classid
+    and blocking_locks.objid is not distinct from blocked_locks.objid
+    and blocking_locks.objsubid is not distinct from blocked_locks.objsubid
+    and blocking_locks.pid != blocked_locks.pid
+join pg_catalog.pg_stat_activity blocking_activity on blocking_activity.pid = blocking_locks.pid
+where not blocked_locks.granted
+;
+
+-- showing all extension values exploded to rows (including multi-val)
+select oid, key, coalesce(aval, sval) val from (
+    select oid, key,
+        case when jsonb_typeof(value) = 'array' then value end avals,
+        case when jsonb_typeof(value) <> 'array' then value end sval
+    from m_user, jsonb_each(ext) fields
+) x left join jsonb_array_elements(avals) aval on true
+where oid = '0cbe39c7-c7af-4cf3-a334-098400284a0a'
+-- other conditions possible, but let's not run it on the whole table or order by ext values
+;
+
+-- list of client connections
+select pid, datname, usename, application_name, client_addr, backend_start, state
+from pg_stat_activity
+where client_addr is not null
+order by datname, usename, backend_start;
+
+-- list of connections aggregated
+select datname, usename, application_name, state, count(*)
+from pg_stat_activity
+where client_addr is not null
+group by datname, usename, application_name, state
+order by datname, usename, application_name, state;
+----
+
+Table sizes, vacuum, etc.
+
+[source,sql]
+----
+-- Find all tables and when they were last vacuumed/analyzed, either manually or automatically
+select relname, last_vacuum, last_autovacuum, last_analyze, last_autoanalyze
+from pg_stat_all_tables
+where schemaname = 'public'
+order by last_vacuum desc, last_autovacuum desc;
+
+-- Find any running processes that are doing autovacuum and which tables they're working on
+select pid,
+    age(query_start, clock_timestamp()),
+    usename,
+    query
+from pg_stat_activity
+where query != '<IDLE>' and query ilike '%vacuum%'
+order by query_start asc;
+
+-- show database size
+SELECT pg_size_pretty(pg_database_size('midpoint'));
+
+-- List largest objects separately (TOAST, table, index)
+SELECT
+    t.oid,
+    CASE
+        WHEN tft.relname IS NOT NULL
+        THEN tft.relname || ' (TOAST)'
+        ELSE t.relname
+    END AS object,
+    pg_size_pretty(pg_relation_size(t.oid)) AS size,
+    t.relkind,
+    t.reltuples::bigint as row_estimate,
+    t.relname as object_name
+FROM pg_class t
+    INNER JOIN pg_namespace ns ON ns.oid = t.relnamespace
+    -- table for toast
+    LEFT JOIN pg_class tft ON tft.reltoastrelid = t.oid
+    LEFT JOIN pg_namespace tftns ON tftns.oid = tft.relnamespace
+WHERE 'public' IN (ns.nspname, tftns.nspname)
+ORDER BY pg_relation_size(t.oid) DESC
+LIMIT 50;
+
+-- Find table/index sizes for all tables in a schema
+SELECT
+    oid, table_schema, table_name, row_estimate,
+    pg_size_pretty(total_bytes) AS total,
+    pg_size_pretty(table_bytes) AS table,
+    pg_size_pretty(toast_bytes) AS toast,
+    pg_size_pretty(index_bytes) AS index
+FROM (
+    SELECT *, total_bytes - index_bytes - COALESCE(toast_bytes, 0) AS table_bytes
+    FROM (
+        SELECT c.oid,
+            nspname AS table_schema,
+            relname AS table_name,
+            c.reltuples::bigint AS row_estimate,
+            pg_total_relation_size(c.oid) AS total_bytes,
+            pg_indexes_size(c.oid) AS index_bytes,
+            pg_total_relation_size(reltoastrelid) AS toast_bytes
+        FROM pg_class c
+        LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE relkind = 'r') a
+    ) a
+WHERE table_schema = 'public'
+ORDER BY total_bytes DESC;
+
+-- Display settings different from defaults
+SELECT name,source,setting FROM pg_settings
+WHERE source<>'default' AND source<>'override';
+
+-- Display all settings (equivalent to show all with more info)
+SELECT * FROM pg_settings;
+----
+
+== Troubleshooting
+
+When troubleshooting Postgres performance we need to check output of the following commands.
+First in bash or other shell:
+
+[source,bash]
+----
+df -h # disk sizes
+free # memory statistics, often useless on containers
+ps xau | grep -i postgres # what postgres process are running
+----
+
+In SQL:
+
+[source,sql]
+----
+CREATE EXTENSION pg_buffercache; -- required before first use to enable pg_buffercache
+
+-- What tables use memory buffers, pg_relation_size counts only table proper ("fork" they call it)
+-- while pg_table_size would count TOAST and few more structures too, which we don't care so much.
+-- Indexes are counted separately.
+-- See the docs for more: https://www.postgresql.org/docs/current/functions-admin.html#FUNCTIONS-ADMIN-DBSIZE
+WITH settings (shared_buffers) AS (SELECT setting FROM pg_settings WHERE name='shared_buffers')
+SELECT
+    c.relname,
+    pg_size_pretty(count(*) * 8192) as buffered,
+    100, count(*), (SELECT shared_buffers FROM settings)::integer,
+    round(100.0 * count(*) / (SELECT shared_buffers FROM settings)::integer, 2) AS buffers_percent,
+    least(round(100.0 * count(*) * 8192 / pg_relation_size(c.oid),1), 100) AS percent_of_table
+FROM pg_class c
+INNER JOIN pg_buffercache b ON b.relfilenode = c.relfilenode
+INNER JOIN pg_database d ON (b.reldatabase = d.oid AND d.datname = current_database())
+GROUP BY c.oid,c.relname
+ORDER BY count(*) DESC
+LIMIT 10;
+----
+
+Then the use the SQL commands from section above to obtain settings and list of the largest objects.
+After that any other relevant query depending on the situation - locks, vacuum info, etc.
