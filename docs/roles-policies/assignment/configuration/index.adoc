@@ -509,7 +509,7 @@ Assignment, all by itself, is a great and powerful mechanism.
 But it can get even better.
 One of the main purposes of the `assignment` structure is to contain parameters, e.g. parameters that are not related to the user or a role, but parameters that are related to the association of a user to a role.
 The usual assignment parameters are start and end dates of the assignment.
-This can be used in case an role is assigned to a user only for a specified amount of time, when a new employee record is created before he really joins the company, etc.
+This can be used in case a role is assigned to a user only for a specified amount of time, when a new employee record is created before he really joins the company, etc.
 Such approach is illustrated in the following example.
 The example specifies that Jack Sparrow will be assigned to role of a Captain, but only starting 30th of May 1623 AD.
 

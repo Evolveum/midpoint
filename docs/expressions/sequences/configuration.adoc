@@ -89,7 +89,7 @@ Sequence values are retrieved just once for each operation.
 The values are kept in wiki:Model+Context[Model Context] and re-used every time the expression is re-evaluated during that operation.
 This is a mechanism to avoid taking multiple values from the sequence.
 However, the assigned value is not explicitly remember across operations.
-Therefore is is strongly recommended to use sequences in _weak_ mappings.
+Therefore it is strongly recommended to use sequences in _weak_ mappings.
 
 The operation that retrieved a sequence value may fail before it can persistently store the object.
 In such a case midPoint will take care of returning the value back to the sequence for reclamation.

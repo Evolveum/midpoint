@@ -312,7 +312,7 @@ This is a very important feature that allows efficient evaluation of big role hi
 
 Marking role as idempotent is likely to result in huge performance improvements in systems with large role hierarchies.
 But there are also risks of incorrect evaluation of the roles.
-If an role is idempotent then is is also assumed that any roles included in this role are also idempotent.
+If a role is idempotent then it is also assumed that any roles included in this role are also idempotent.
 Therefore please take care when constructing role hierarchies.
 This property has a default value that indicates no idempotence.
 

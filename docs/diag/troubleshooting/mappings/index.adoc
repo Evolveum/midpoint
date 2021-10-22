@@ -622,7 +622,7 @@ But one way or another this is the best chance to learn what the connector is do
 If that fails you have to resort to packet sniffer and similar tools.
 
 Each connector has its own logger names.
-The most reliable way to find out what it is is to look at the connector documentation or connector source code.
+The most reliable way to find out what it is to look at the connector documentation or connector source code.
 But as rule of thumb the connectors usually use logger names matching their Java package.
 This is supposed to be the same as the package prefix used in the `connectorType` property (see wiki:ConnectorType[ConnectorType]), e.g. `com.evolveum.polygon.connector.ldap`.
 
