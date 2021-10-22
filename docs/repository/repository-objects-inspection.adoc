@@ -30,7 +30,7 @@ So, if you want to see how large are objects in your repository, import the foll
     <executionStatus>runnable</executionStatus>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/object-integrity-check/handler-3</handlerUri>
     <recurrence>single</recurrence>
-</task> 
+</task>
 ----
 
 You can restrict the objects to be included in the scope by using `objectQuery` extension item.
