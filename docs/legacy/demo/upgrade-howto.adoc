@@ -150,7 +150,7 @@ Once installed, you can access the manager webapp and the host-manager webapp en
     Install apache2 via command:    sudo apt-get install apache2 +
     \=================================================================================================================================================================
 
-. *Install**WinSCP* (commander variant) on local operation system because of need to transfer files between local operation system and midpoint VM located on Virtual box. +
+. *Install**WinSCP* (commander variant) on local operating system because of need to transfer files between local operating system and midpoint VM located on Virtual box. +
     \=================================================================================================================================================================
 
 . *Midpoint 3.0 configuration.* +

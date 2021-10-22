@@ -57,56 +57,57 @@ But if that's not possible or practical, make sure that all nodes have the same 
 
 Also, ensure your *system time is synchronized* across all node members (using NTP or similar service), otherwise strange behaviour may occur such as tasks restart on different nodes.
 
-
 == Other cluster configuration items (midPoint 4.0 and above)
 
 The main difference between 4.0 and previous versions is that since midPoint 4.0 the main mechanism for clusterwide task management is REST instead of JMX.
-(Although JMX is still supported, its use is now deprecated and users are strongly advised to switch to REST.) Configuration items are:
+
+You can use `config.xml` configuration parameters placed directly under the `<midpoint>` element (*Configuration parameter* in the table below).
+Alternatively, you can use the xref:/midpoint/reference/deployment/midpoint-home-directory/overriding-config-xml-parameters.adoc[command line options] `-Dkey=value` to set these parameters (*Command-line parameter* in the table below).
+
+Configuration items are:
 
 [%autowidth]
 |===
-| Command-line parameter | Configuration parameter | Meaning | Note
+| Command-line parameter | Configuration parameter | Description
 
-| -Dmidpoint.nodeId
-| <nodeId>
+| `-Dmidpoint.nodeId`
+| `nodeId`
 | The node identifier.
 The default is `DefaultNode` for non-clustered deployments.
 For clustered ones, either `nodeId` or `nodeIdSource` must be used.
-|
 
-| -Dmidpoint.nodeIdSource
-| <nodeIdSource>
+| `-Dmidpoint.nodeIdSource`
+| `nodeIdSource`
 | Source of the node identifier.
 It is applied if explicit node ID is not defined.
 The source can be either `hostname` meaning that the host name is used as the node identifier or `random` meaning that the random value for node ID is generated when the node is started.
-|
 
-| -Dmidpoint.hostName
-| <hostName>
+| `-Dmidpoint.hostName`
+| `hostName`
 | Overrides the local host name information.
-If not specified, the operation system is used to determine the host name.
-| Normally you do not need to specify this information.
+If not specified, the operatig system is used to determine the host name.
+
+Normally you do not need to specify this information.
 
 
-| -Dmidpoint.httpPort
-| <httpPort>
+| `-Dmidpoint.httpPort`
+| `httpPort`
 | Overrides the local HTTP port information.
 If not specified, Tomcat/Catalina JMX objects are queried to determine the HTTP port information.
 This information is used only to construct URL address used for intra-cluster communication (see below).
-| Normally you do not need to specify this information.
+
+Normally you do not need to specify this information.
+
+Use `-Dserver.port=xxx` instead to start midPoint using the right port.
 
 
-| -Dmidpoint.url
-| <url>
+| `-Dmidpoint.url`
+| `url`
 | Overrides the intra-cluster URL information (see below).
-| Normally you do not need to specify this information.
 
+Normally you do not need to specify this information.
 
 |===
-
-Note that you can either use the command line options (`-Dxxx=yyy`) to set these parameters or you can use `config.xml` to do that.
-In the latter case the configuration parameters are to be specified directly under the `<midpoint>` element.
-
 
 === How intra-cluster URL is determined
 
@@ -124,12 +125,9 @@ In order to minimize the configuration work needed while keeping the maximum lev
 
 .. `*$path*` for midPoint URL path (obtained dynamically from the servlet container)
 
-
-
 . computed based on protocol scheme (obtained dynamically from Tomcat JMX objects), host name, port, and servlet path, as `scheme://host:port/path`.
 
 When troubleshooting these mechanisms you can set logging for `com.evolveum.midpoint.task.quartzimpl.cluster.NodeRegistrar` (or the whole task manager module) to `DEBUG`.
-
 
 == Testing cluster on a single node
 
@@ -148,7 +146,6 @@ If you want to test the cluster on a single node (running on different ports, of
 |===
 
 It is supported since midPoint 3.9. See also link:https://github.com/Evolveum/midpoint/commit/17f7c259061e815284233d45f8d1f4820c587f3a[https://github.com/Evolveum/midpoint/commit/17f7c259061e815284233d45f8d1f4820c587f3a].
-
 
 == Configuring the cluster before midPoint 4.0
 
@@ -257,7 +254,6 @@ The pattern is specified in the system configuration object as present in the ex
 </systemConfiguration>
 ----
 
-
 === Troubleshooting JMX
 
 The following message(s) may appear in idm.log if there is a problem with JMX password:
@@ -288,7 +284,6 @@ The following message may appear if your clock is not synchronized between midPo
 ----
 2014-05-26 00:45:32,818 [TASKMANAGER] [QuartzScheduler_midPointScheduler-node02_ClusterManager] WARN (org.quartz.impl.jdbcjobstore.JobStoreTX): This scheduler instance (node02) is still active but was recovered by another instance in the cluster.  This may cause inconsistent behavior.
 ----
-
 
 == Using H2 when clustered
 
