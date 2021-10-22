@@ -1,5 +1,5 @@
-= Repository Configuration
-:page-wiki-name: Repository Configuration
+= Generic Repository Configuration
+:page-wiki-name: Generic Repository Configuration
 :page-wiki-id: 4882498
 :page-wiki-metadata-create-user: vix
 :page-wiki-metadata-create-date: 2012-08-06T14:55:55.920+02:00
@@ -377,5 +377,3 @@ with function based indexes and midPoint cannot generate `WHERE` clause using th
 * What is link:https://evolveum.com/midpoint/[midPoint Open Source Identity & Access Management]
 
 * link:https://evolveum.com/[Evolveum] - Team of IAM professionals who developed midPoint
-
-* xref:../native-postgresql/[Native repository] - new repository recommended from version 4.4
