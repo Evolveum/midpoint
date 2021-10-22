@@ -123,7 +123,7 @@ public class GuiProfileCompiler {
         }
         for (Authorization autz: sourceCollection) {
             if (authorizationTransformer == null) {
-                targetCollection.add(autz);
+                targetCollection.add(autz.clone());
             } else {
                 Collection<Authorization> transformedAutzs = authorizationTransformer.transform(autz);
                 if (transformedAutzs != null) {
