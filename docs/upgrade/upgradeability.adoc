@@ -88,7 +88,7 @@ The feature may be removed in any subsequent release after the release in which 
 MidPoint support is a paid service provided by Evolveum.
 *There is no free service* provided by Evolveum to support midPoint.
 
-However, there is a community communication channel that can be used to discuss midPoint-related topics, in a form of wiki:Mailing+Lists[public mailing lists]. This is community service, which means it is provided to the community by community.
+However, there is a community communication channel that can be used to discuss midPoint-related topics, in a form of xref:/community/mailing-lists/[public mailing lists]. This is community service, which means it is provided to the community by community.
 It is not provided by Evolveum.
 Evolveum only maintains the means of communication (mailing lists) and occasionally participates in the service.
 But there are absolutely no guarantees regarding any communication in midPoint community.

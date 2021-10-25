@@ -10,7 +10,7 @@
 
 // TODO: figure
 
-MidPoint has quite a rich link:http://wiki.evolveum.com/display/midPoint//UserType[user schema] with many attributes that are common for most IDM deployments.
+MidPoint has quite a rich xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[user schema] with many attributes that are common for most IDM deployments.
 But if there are attributes that are not really common the best option is to extend user schema.
 It is quite easy.
 The User schema is extended by adding appropriate XSD file to the midPoint installation.
