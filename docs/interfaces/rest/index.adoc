@@ -14,7 +14,7 @@
 *Status:* Public +
 *Stability:* [.green]#STABLE#, only backward-compatible changes expected +
 *Platform:* RESTful interface +
-*Dependencies:* link:/midpoint/reference/schema/[Data Model], Common schema, Query schema +
+*Dependencies:* xref:/midpoint/reference/schema/[Data Model], Common schema, Query schema +
 *Responsible person:* Katarina Bolemant
 
 == Description

@@ -55,5 +55,5 @@ This is preferable when there is only a small percentage of failed records.
 |===
 
 For more information about handling failed objects, please see
-link:/midpoint/reference/tasks/task-error-handling/[Task error handling] page. (It is a bit obsolete, though.
+xref:/midpoint/reference/tasks/task-error-handling/[Task error handling] page. (It is a bit obsolete, though.
 It will be updated eventually.)

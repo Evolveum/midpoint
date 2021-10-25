@@ -2,7 +2,7 @@
 :page-since: "4.3"
 :page-keywords: task, error, statistics, progress, 4.3, midScale
 
-Tasks are one of key areas of the link:/midpoint/projects/midscale/[midScale project] aimed
+Tasks are one of key areas of the xref:/midpoint/projects/midscale/[midScale project] aimed
 at significant improvement of midPoint scalability. It is natural that they have got a number
 of enhancements and new features in 4.3. Let us have a look at some of them.
 
@@ -62,7 +62,7 @@ about processed items (`operationStats/iterativeTaskInformation`) were restructu
 === Task Parts
 
 New conceptual model of task execution was conceived. It is not formalized and documented yet,
-but its basic features can be seen in the link:/midpoint/projects/midscale/design/tasks/[preliminary design document].
+but its basic features can be seen in the xref:/midpoint/projects/midscale/design/tasks/[preliminary design document].
 The new entity identified there is the _task part_. A task part can be viewed as a distinct action (e.g. a recomputation)
 executed on a set of objects covered by single midPoint query (e.g. all users).
 

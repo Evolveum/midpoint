@@ -75,7 +75,7 @@ and in some cases causes problems because of transaction isolation levels.
 
 |===
 
-For more information how to set up task manager for a cluster, please see link:/midpoint/reference/deployment/clustering-ha/[this article].
+For more information how to set up task manager for a cluster, please see xref:/midpoint/reference/deployment/clustering-ha/[this article].
 
 == JDBC scheduler job store
 

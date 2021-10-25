@@ -216,7 +216,7 @@ See the wiki:Service+Authorizations[Service Authorizations] page for similar lis
 
 == "Core" Authorizations
 
-MidPoint wiki:Architecture+and+Design[architecture] is designed with the wiki:IDM+Model+Subsystem[IDM Model component] in the centre.
+MidPoint xref:/midpoint/architecture/[architecture] is designed with the wiki:IDM+Model+Subsystem[IDM Model component] in the centre.
 This was designed with a purpose in mind.
 The IDM Model component is a brain of midPoint.
 It does all the policy processing, evaluates mappings, recomputes objects, wiki:Clockwork+and+Projector[projects values between objects] and does all the other things of identity management logic.

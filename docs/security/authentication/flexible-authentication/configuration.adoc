@@ -101,7 +101,7 @@ Let's say it is GUI for this example, so request is redirect to users page in GU
 
 == Basic configuration
 
-Flexible authentication is configured in link:/midpoint/reference/security/security-policy[Security Policy], which is used as global security policy in System Configuration.
+Flexible authentication is configured in xref:/midpoint/reference/security/security-policy[Security Policy], which is used as global security policy in System Configuration.
 Base tag is _<authentication>_.  Configuration consists of modules and sequences.
 Element `module` is basic building block of the configuration.
 Each element has a configuration of a particular authentication module instance such as internal password-based authentication, SAML authentication and so on.
@@ -1022,7 +1022,7 @@ However, not all configuration options are currently supported.
 
 * Flexible authentication is currently supported only for midPoint administration GUI.
 Only internal password authentication and SAML2 is officially supported.
-The rest of the functionality is considered to be link:/midpoint/versioning/experimental/[experimental].
+The rest of the functionality is considered to be xref:/midpoint/versioning/experimental/[experimental].
 
 * OpenID Connect protocol is not supported yet.
 
@@ -1049,11 +1049,11 @@ Multiple credentials are not supported.
 The reason for mentioning credential names the configuration schema is to have ability to extend midPoint functionality in the future.
 
 The implementation can be improved in the future.
-Please see link:/midpoint/features/planned/flexible-authentication/[Flexible Authentication Improvements] for the details.
+Please see xref:/midpoint/features/planned/flexible-authentication/[Flexible Authentication Improvements] for the details.
 
 
 == See Also
 
 * link:..[Flexible Authentication]
 
-* link:/midpoint/reference/security/security-policy[Security Policy Configuration]
+* xref:/midpoint/reference/security/security-policy[Security Policy Configuration]

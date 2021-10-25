@@ -43,7 +43,7 @@ Or it may be used as an icon to indicate the environment.
 Can be configured with imageUrl attribute or cssClass attribute.
 Please, be carefull with the width/height of the logo image, the preferable size is: width up to 300px, height up to 60px.You can either use URL or a relative path.
 For custom logos it's best to create a new directory `static-web` under you
-link:/midpoint/reference/deployment/midpoint-home-directory/[`midpoint.home`] directory and use a relative link.
+xref:/midpoint/reference/deployment/midpoint-home-directory/[`midpoint.home`] directory and use a relative link.
 
 | customerName
 | Short name of the organization that is end user of the midPoint deployment.
@@ -88,5 +88,5 @@ image::image2017-1-30-14-12-38.png[]
 
 == See also
 
-* link:/midpoint/reference/admin-gui/admin-gui-config/[Admin GUI Configuration]
-* link:/midpoint/reference/concepts/system-configuration-object/[System Configuration object]
+* xref:/midpoint/reference/admin-gui/admin-gui-config/[Admin GUI Configuration]
+* xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration object]

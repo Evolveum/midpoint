@@ -124,7 +124,7 @@ Following code fragment will create account only after focus has been fully enab
 
 == Examples
 
-There is a complete example in midPoint wiki:Integration+Tests[Integration Tests]:
+There is a complete example in midPoint xref:/midpoint/devel/testing/integration/[Integration Tests]:
 
 link:https://github.com/Evolveum/midpoint/blob/master/model/model-intest/src/test/resources/common/resource-dummy-red.xml[https://github.com/Evolveum/midpoint/blob/master/model/model-intest/src/test/resources/common/resource-dummy-red.xml]
 

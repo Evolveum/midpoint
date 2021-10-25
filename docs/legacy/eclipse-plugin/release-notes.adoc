@@ -12,7 +12,7 @@
 [WARNING]
 .ABANDONED
 ====
-MidPoint plugin for Eclipse for *abandoned*  in favor of link:/midpoint/studio/[MidPoint Studio], which is based on open source link:https://www.jetbrains.com/opensource/idea/[IntelliJ platform].
+MidPoint plugin for Eclipse for *abandoned*  in favor of xref:/midpoint/studio/[MidPoint Studio], which is based on open source link:https://www.jetbrains.com/opensource/idea/[IntelliJ platform].
 
 Although the Eclipse plugin was an efficient tool used broadly by the community, maintaining the plugin in Eclipse environment proved to be a challenge.
 Most of the midPoint developers migrated to link:https://www.jetbrains.com/opensource/idea/[IntelliJ platform], and the popularity of the platform was also indicated by our wiki:MidPoint+2019+Survey+Results[survey]. Therefore we have decided to abandon the old and de facto derelict Eclipse plugin.

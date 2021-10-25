@@ -55,7 +55,7 @@ in separate subtasks.
 == Buckets
 
 NOTE: Here will be a description of bucketing.
-For the time being, please refer to link:/midpoint/devel/design/multi-node-partitioned-and-stateful-tasks/[an older description].
+For the time being, please refer to xref:/midpoint/devel/design/multi-node-partitioned-and-stateful-tasks/[an older description].
 
 == Auto-scaling
 

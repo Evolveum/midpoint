@@ -209,7 +209,7 @@ REST interface is *WORK IN PROGRESS*. It will be released in midPoint version 3.
 
 * wiki:Interfaces[Interfaces]
 
-* wiki:Architecture+and+Design[Architecture and Design]
+* xref:/midpoint/architecture/[Architecture and Design]
 
 * wiki:IDM+Model+Interface[IDM Model Interface]
 

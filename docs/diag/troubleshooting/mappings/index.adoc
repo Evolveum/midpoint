@@ -41,7 +41,7 @@ image::9-2-lens-provisioning-structure.png[]
 
 
 
-wiki:Architecture+and+Design[MidPoint architecture] is designed in such a way that all important requests pass through the wiki:IDM+Model+Subsystem[IDM Model Subsystem]. This makes sure that all requests are processed consistently, that wiki:Authorization[authorization] is properly applied, that the request is wiki:Auditing[audited], etc.
+xref:/midpoint/architecture/[MidPoint architecture] is designed in such a way that all important requests pass through the wiki:IDM+Model+Subsystem[IDM Model Subsystem]. This makes sure that all requests are processed consistently, that wiki:Authorization[authorization] is properly applied, that the request is wiki:Auditing[audited], etc.
 
 Internal implementation of the wiki:IDM+Model+Subsystem[IDM Model Subsystem] heavily relies on wiki:Clockwork+and+Projector[Clockwork and Projector] components.
 The Clockwork drives processing of the request.

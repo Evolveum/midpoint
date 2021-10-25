@@ -295,7 +295,7 @@ E.g. the variables specific to assignment processing are described in the wiki:A
 
 == Alternative Variable Names and Missing Variables
 
-Although midPoint has wiki:Architecture+and+Design[solid architectural background] it is not a software where every little detail was defined by a big design upfront.
+Although midPoint has xref:/midpoint/architecture/[solid architectural background] it is not a software where every little detail was defined by a big design upfront.
 MidPoint is continuously evolving.
 And also the expression and mapping code is evolving.
 

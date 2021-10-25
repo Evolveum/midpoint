@@ -18,7 +18,7 @@ columns:
 == Contributing to Samples
 
 There is a link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/contrib[samples/contrib] directory that is dedicated to contributed samples.
-You are more than welcome to wiki:Code+Contribution+Guidelines[contribute] your samples there.
+You are more than welcome to xref:/community/development/code-contribution-guidelines/[contribute] your samples there.
 
 To contribute a sample, just create a directory that is reasonably unique for you.
 E.g. use your company name, your nick name or something similar.

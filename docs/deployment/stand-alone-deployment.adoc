@@ -25,11 +25,11 @@ It will listen on HTTP port 8080.
 [NOTE]
 The distribution archive contains a single directory (e.g. `midpoint-4.4`) which is safe to rename after unpacking.
 This directory is referred to as *midPoint installation directory* or simply *installation directory*.
-This is distinct from link:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory],
+This is distinct from xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory],
 or `midpoint.home`, which contains runtime configuration, logs, etc.
 
 Please have a look at the xref:/midpoint/quickstart/[] page for basic installation instruction for the purposes of midPoint evaluation or demo.
-See link:/midpoint/install/distribution/[Installing MidPoint Server] page for full installation instructions.
+See xref:/midpoint/install/distribution/[Installing MidPoint Server] page for full installation instructions.
 
 == Run Control
 
@@ -62,7 +62,7 @@ bin/midpoint.sh stop
 ----
 
 The `midpoint.sh` script may provide more run control and diagnostics capabilities in the future.
-See also link:/midpoint/install/midpoint-sh/[midpoint.sh page].
+See also xref:/midpoint/install/midpoint-sh/[midpoint.sh page].
 
 === Windows
 
@@ -129,10 +129,10 @@ The compiled files are platform-independent.
 
 
 | `var`
-| Default link:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory], also known as `midpoint.home`.
+| Default xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory], also known as `midpoint.home`.
 Initial configuration, cryptographic keys, log files and similar "variable" content.
 | Read-write
-| See link:/midpoint/reference/deployment/midpoint-home-directory/[MidPoint Home Directory].
+| See xref:/midpoint/reference/deployment/midpoint-home-directory/[MidPoint Home Directory].
 
 
 |
@@ -153,10 +153,10 @@ This information can be used to set up proper file system permission, e.g. in ca
 MidPoint comes with an embedded database engine (H2) that is perfectly suitable for testing and demo installations.
 This database will be used by midPoint after the installation.
 Therefore there is no need to set up a separate database if installing midPoint for the first time.
-The database files will be stored in link:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory].
+The database files will be stored in xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory].
 
 The database can later be changed to a full-scale database engine.
-The link:/midpoint/reference/repository/configuration/[Repository Configuration] page provides the instructions.
+The xref:/midpoint/reference/repository/configuration/[Repository Configuration] page provides the instructions.
 
 == Java Memory Setting and Other Options
 
@@ -184,4 +184,4 @@ However, it is deprecated, and it may be removed soon.
 
 * xref:/midpoint/quickstart/[]
 * xref:/midpoint/install/[]
-* link:/midpoint/reference/deployment/midpoint-home-directory/[MidPoint Home Directory]
+* xref:/midpoint/reference/deployment/midpoint-home-directory/[MidPoint Home Directory]

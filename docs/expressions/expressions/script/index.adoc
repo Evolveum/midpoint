@@ -115,20 +115,20 @@ For example, the following expression will evaluate to the content of the `fullN
 </code>
 ----
 
-See link:/midpoint/reference/expressions/expressions/[Expression] page for more generic information about the use of variables in expressions.
+See xref:/midpoint/reference/expressions/expressions/[Expression] page for more generic information about the use of variables in expressions.
 
 == Functions
 
-See link:/midpoint/reference/expressions/expressions/script/functions/midpoint/[MidPoint Script Library] for more details.
+See xref:/midpoint/reference/expressions/expressions/script/functions/midpoint/[MidPoint Script Library] for more details.
 
 == Absolute and Relative Script Expressions
 
-MidPoint always works with link:/midpoint/reference/concepts/relativity/[relative changes].
+MidPoint always works with xref:/midpoint/reference/concepts/relativity/[relative changes].
 MidPoint expressions are built for this mode of operation.
 The expression will receive every individual value on input and it has to transform that to output.
 MidPoint will take care of the logic around it.
-If the value was removed in the input, the result will be link:/midpoint/devel/prism/concepts/deltas/[delete delta].
-If the value was added in the input the result will be link:/midpoint/devel/prism/concepts/deltas/[add delta].
+If the value was removed in the input, the result will be xref:/midpoint/devel/prism/concepts/deltas/[delete delta].
+If the value was added in the input the result will be xref:/midpoint/devel/prism/concepts/deltas/[add delta].
 MidPoint takes care of all that.
 The administrator only needs to specify an expression that transforms one value.
 
@@ -151,7 +151,7 @@ On the other hand, in relative approach, each value in UID attribute would be pr
 
 The input to this script is a list of all input values.
 The output is a list of new values.
-MidPoint always operates in link:/midpoint/reference/concepts/relativity/[relative mode], therefore at the end of the evaluation midPoint will diff the value to create a link:/midpoint/devel/prism/concepts/deltas/[delta]. This does not change anything about that.
+MidPoint always operates in xref:/midpoint/reference/concepts/relativity/[relative mode], therefore at the end of the evaluation midPoint will diff the value to create a xref:/midpoint/devel/prism/concepts/deltas/[delta]. This does not change anything about that.
 However this mode of expression operation can be an advantage if you need to process all values as a group instead of processing every value one by one.
 E.g. in case that you want to choose a particular value or your algorithm depends on other values in some way.
 
@@ -169,7 +169,7 @@ The sandbox is not enforced from complexity and performance reasons, but it may 
 For the time being, please be very careful who can define expressions in midPoint.
 Do not allow any untrusted user to modify the expressions.
 
-See link:/midpoint/features/planned/script-expression-sandboxing/[Script Expression Sandboxing] for more details.
+See xref:/midpoint/features/planned/script-expression-sandboxing/[Script Expression Sandboxing] for more details.
 
 == Future
 
@@ -178,8 +178,8 @@ New expression languages may come in the future if there is a demand for them.
 
 == See Also
 
-* link:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
-* link:/midpoint/reference/expressions/expressions/[Expression]
+* xref:/midpoint/reference/expressions/expressions/[Expression]
 
-* link:/midpoint/reference/expressions/mappings/[Mapping]
+* xref:/midpoint/reference/expressions/mappings/[Mapping]

@@ -91,7 +91,7 @@ There are some mechanisms in midPoint that make localization of error messages p
 However, those mechanisms are still very limited.
 We would like to extend this functionality, but it needs to be done in a very sensitive way as overdoing this can ruin maintainability of midPoint code.
 And it makes no sense to have perfectly localized system if that system cannot be evolved and fixed efficiently.
-However, if you have any ideas or suggestions in this matter please wiki:Participation[contact us]. However, any non-trivial effort in this direction will require wiki:Subscriptions+and+Sponsoring[some funding].
+However, if you have any ideas or suggestions in this matter please xref:/community/[contact us]. However, any non-trivial effort in this direction will require wiki:Subscriptions+and+Sponsoring[some funding].
 
 
 == Plans and Limitations
@@ -118,4 +118,4 @@ MidPoint does not fully support such deployment and it is expected that a wiki:S
 
 * wiki:PolyString[PolyString]
 
-* wiki:Participation[Participation]
+* xref:/community/[Participation]

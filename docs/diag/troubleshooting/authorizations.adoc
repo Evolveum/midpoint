@@ -91,7 +91,7 @@ You will see processing of every operation, every authorization, evaluation of e
 Yes, this is no easy task.
 Troubleshooting is a hard work.
 And this is the best way that we have figured out to troubleshoot the authorizations.
-If you have any better idea we are wiki:Participation[more than open to suggestions].
+If you have any better idea we are xref:/community/[more than open to suggestions].
 
 
 == Get Operations

@@ -14,7 +14,7 @@ For old Generic repository configuration see xref:../generic/configuration/[this
 == Configuration overview
 
 By default, the repository configuration is stored in `config.xml` inside
-link:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory],
+xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory],
 also known as `midpoint.home`.
 
 This directory will be created upon the very first start of midPoint.
@@ -40,7 +40,7 @@ prepared in the comments.
 
 Configuring large-scale setup with multiple midPoint nodes requires more effort:
 
-* Check the link:/midpoint/reference/deployment/clustering-ha/[Clustering / high availability setup]
+* Check the xref:/midpoint/reference/deployment/clustering-ha/[Clustering / high availability setup]
 documentation for how to set up multiple midPoint nodes.
 
 * Tips about configuring the database can be found xref:../native-postgresql/postgresql-configuration/[here].
@@ -262,7 +262,7 @@ index is good, and it also makes the index size smaller.
 
 * xref:../native-postgresql/[Native PostgreSQL Repository]
 * xref:../generic/[Old Generic Repository]
-* link:/midpoint/reference/deployment/clustering-ha/[Clustering / high availability setup]
-* link:/midpoint/reference/repository/native-postgresql/migration/[Migration to Native PostgreSQL Repository]
+* xref:/midpoint/reference/deployment/clustering-ha/[Clustering / high availability setup]
+* xref:/midpoint/reference/repository/native-postgresql/migration/[Migration to Native PostgreSQL Repository]
 // TODO separate audit repository link
-* link:/midpoint/reference/tasks/task-manager/configuration/[Task Manager Configuration]
+* xref:/midpoint/reference/tasks/task-manager/configuration/[Task Manager Configuration]

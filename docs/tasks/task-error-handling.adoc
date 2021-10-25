@@ -64,7 +64,7 @@ resource vs. midPoint state inconsistency.
 
 == Error Handling in 4.3
 
-As part of the link:/midpoint/projects/midscale/[midScale project], we have experimentally implemented
+As part of the xref:/midpoint/projects/midscale/[midScale project], we have experimentally implemented
 two distinct task error handling mechanisms.
 
 === Operation Execution Records
@@ -103,7 +103,7 @@ combined with failed object selector, and tries to process them. The errors occu
 this task can be later handled again.
 
 NOTE: For midPoint 4.4 please have look at
-link:/midpoint/reference/tasks/object-set-specification/#_failed_objects_selector[failed objects selector]
+xref:/midpoint/reference/tasks/object-set-specification/#_failed_objects_selector[failed objects selector]
 in object set specification.
 
 === Triggers
