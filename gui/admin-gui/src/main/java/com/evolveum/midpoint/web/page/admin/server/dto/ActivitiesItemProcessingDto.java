@@ -32,28 +32,11 @@ public class ActivitiesItemProcessingDto implements Serializable {
 
     ActivitiesItemProcessingDto(@NotNull TreeNode<ActivityStateInContext> tree) {
         List<ActivityStateInContext> activityStates = tree.getAllDataDepthFirst();
-        boolean showBasicActivity = showBasicActivity(activityStates);
         for (ActivityStateInContext stateInContext : activityStates) {
-            if (hasItemProcessingInformation(stateInContext) && (showBasicActivity || isNotBasicActivity(stateInContext))) {
+            if (hasItemProcessingInformation(stateInContext) && (activityStates.size() <= 1 || !stateInContext.getActivityPath().isEmpty())) {
                 activities.add(new ActivityItemProcessingDto(stateInContext));
             }
         }
-    }
-
-    private boolean isNotBasicActivity(ActivityStateInContext stateInContext) {
-        return stateInContext.getActivityPath() != null && !stateInContext.getActivityPath().isEmpty();
-    }
-
-    private boolean showBasicActivity(List<ActivityStateInContext> activityStates) {
-        if (activityStates.size() < 2) {
-            return true;
-        }
-        for (ActivityStateInContext stContext : activityStates) {
-            if (isNotBasicActivity(stContext)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     @SuppressWarnings("unused") // accessed dynamically
