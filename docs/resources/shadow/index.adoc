@@ -43,7 +43,7 @@ Following figure illustrates the way how user, shadows and resource objects work
 User (`<user>`) and account shadow (`<account>`) are midPoint objects stored in midPoint identity repository.
 More precisely only the parts shown in black are stored in the repository, the parts shown in blue and fetched from the resource on demand.
 User and account shadow objects are _linked_. It means that the user is an _owner_ of the specified account.
-User and all owned accounts are wiki:Synchronization[synchronized] using wiki:Inbound+Mapping[inbound] and wiki:Outbound+Mapping[outbound] expressions.
+User and all owned accounts are xref:/midpoint/reference/synchronization/introduction/[synchronized] using wiki:Inbound+Mapping[inbound] and wiki:Outbound+Mapping[outbound] expressions.
 
 image::schemas-shadow.png[]
 
@@ -117,7 +117,7 @@ It may contain cached data as well, but that is not mandatory.
 ----
 
 Default namespace in both examples points to the wiki:MidPoint+Common+Schema[MidPoint Common Schema]. The `ds1` prefix is bound to the resource schema namespace, schema specific to the resource instance.
-See the wiki:Resource+Schema[Resource Schema] page for more details.
+See the xref:/midpoint/reference/resources/resource-schema/[Resource Schema] page for more details.
 
 
 == Resource Object
@@ -143,7 +143,7 @@ The operation that work with resource objects are not yet implemented in provisi
 
 === Resource Object Example
 
-Following example shows the same object but represented as resource object using wiki:Resource+Schema[Resource Schema]. This is really not a typical example, it is provided here only for comparison with the shadow object.
+Following example shows the same object but represented as resource object using xref:/midpoint/reference/resources/resource-schema/[Resource Schema]. This is really not a typical example, it is provided here only for comparison with the shadow object.
 
 .Resource Object
 [source,xml]
@@ -197,6 +197,6 @@ The connector will announce the identification mechanism in the xref:/midpoint/r
 
 * xref:/midpoint/reference/resources/resource-schema/[]
 
-* wiki:Resource+Schema+Handling[Resource Schema Handling]
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]
 
 * wiki:Resource+and+Connector+Schema+Explanation[Resource and Connector Schema Explanation]

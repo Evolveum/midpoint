@@ -12,7 +12,7 @@
 :page-upkeep-status: yellow
 
 
-MidPoint supports _partial multi-tenancy_. In fact, midPoint multi-tenancy is mostly just an extension of wiki:Organizational+Structure[organizational structure] features.
+MidPoint supports _partial multi-tenancy_. In fact, midPoint multi-tenancy is mostly just an extension of xref:/midpoint/reference/org/organizational-structure/[organizational structure] features.
 
 [TIP]
 .Partial multi-tenancy
@@ -173,8 +173,8 @@ In case that you are interested in any of those improvements you can use wiki:Su
 
 == See Also
 
-* wiki:Organizational+Structure[Organizational Structure]
+* xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]
 
-* wiki:Authorization[Authorization]
+* xref:/midpoint/reference/security/authorization/[Authorization]
 
 * wiki:Authorization+Configuration[Authorization Configuration]

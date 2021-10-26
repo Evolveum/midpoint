@@ -15,7 +15,7 @@ However, there are cases that this is not quite enough.
 There is often a case that a particular resource can have more than one resource with that kind/intent combination.
 An example can be an HR system that keeps a single record for every employment contract for a particular user.
 Therefore there may be multiple contracts during employee lifecycle, some of them valid, other already expired.
-We cannot use _intent_ to distinguish between them because all the intents have to be strictly defined in wiki:Resource+Schema+Handling[resource schema handling]. But in this case we do not know how many contracts the user can have, therefore there is no good way to define the intents.
+We cannot use _intent_ to distinguish between them because all the intents have to be strictly defined in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[resource schema handling]. But in this case we do not know how many contracts the user can have, therefore there is no good way to define the intents.
 
 MidPoint 4.0 introduced a new concept of wiki:Kind,+Intent+and+ObjectClass[tag] to distinguish such accounts.
 There may be as many accounts as needed as long as they have unique (resource, kind, intent, tag) combination (also known as _discriminator_). Unlike intent, tags are dynamically generated and they do not have to be defined beforehand.
@@ -24,7 +24,7 @@ There may be as many accounts as needed as long as they have unique (resource, k
 == Resource Configuration
 
 The use of "multiaccounts" feature is disabled by default.
-The ability to use allow multiple accounts and use tags needs to be explicitly enabled in wiki:Resource+Schema+Handling[resource schema handling] by using `multiplicity` element:
+The ability to use allow multiple accounts and use tags needs to be explicitly enabled in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[resource schema handling] by using `multiplicity` element:
 
 [source,xml]
 ----
@@ -146,7 +146,7 @@ But other assignments are managed manually.
 It is important to distinguish those assignments and properly set range of inbound mappings.
 Otherwise inbound mappings may overwrite assignments that are assigned manually or managed by other means.
 
-See wiki:Inbound+Mapping[Inbound Mapping] and wiki:Mapping[Mapping] pages for the details.
+See wiki:Inbound+Mapping[Inbound Mapping] and xref:/midpoint/reference/expressions/mappings/[Mapping] pages for the details.
 
 
 === Primary Accounts

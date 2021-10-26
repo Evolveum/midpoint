@@ -10,7 +10,7 @@
 :page-upkeep-status: yellow
 
 There are resources that natively support `administrativeStatus`wiki:Activation[activation property]. These resources can natively do enable/disable of accounts.
-There is nothing to do for these resources except for wiki:Resource+Schema+Handling:+Activation[setting up activation mappings].
+There is nothing to do for these resources except for xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[setting up activation mappings].
 
 But there are also resources that do not support the activation at all.
 Or at least not directly.
@@ -106,7 +106,7 @@ Just add this section to wiki:Resource+Capabilities[Resource Capabilities] secti
 Once this is configured midPoint will convert any enable/disable operations to the appropriate modification of `STATUS` table column.
 It also works in reverse: when midPoint reads the account it will check the `STATUS` column and convert it to the value of `administrativeStatus` property.
 
-Therefore all that needs to be done is wiki:Resource+Schema+Handling:+Activation[setting up activation mappings] for `administrativeStatus` property - exactly the same way as if the resource supported the capability in a native way.
+Therefore all that needs to be done is xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[setting up activation mappings] for `administrativeStatus` property - exactly the same way as if the resource supported the capability in a native way.
 There is no difference between native and simulated capability for midPoint mapping logic.
 
 
@@ -145,8 +145,8 @@ The rest is the same as in previous example.
 
 == See Also
 
-* wiki:Resource+Configuration[Resource Configuration]
+* xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]
 
 * wiki:Resource+Capabilities[Resource Capabilities]
 
-* wiki:Resource+Schema+Handling:+Activation[Resource Schema Handling: Activation]
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[Resource Schema Handling: Activation]

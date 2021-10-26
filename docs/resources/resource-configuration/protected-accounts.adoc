@@ -122,4 +122,4 @@ Support for this notation was removed in midPoint 4.0.
 
 == See Also
 
-* wiki:Resource+Configuration[Resource Configuration]
+* xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]

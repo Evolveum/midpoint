@@ -395,7 +395,7 @@ Note that `customerName` attribute from CRM account is copied to user's `organiz
 .. The first mapping computes user's full name (this information is not stored in CRM)
 
 .. The "Org mapping - organization member" is trying to look up an wiki:OrgType[Org] into which the user should belong.
-It is using a wiki:Object+Query[query] inside wiki:Expression[assignmentTargetSearch expression] to do so.
+It is using a wiki:Object+Query[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
 The expression inside the query is using the `organizationalUnit` value, e.g. in this case it would be "ultra1".
 
 .. The query finds no matching wiki:OrgType[Org.] The expression is set to `createOnDemand` therefore it will try to create the Org.
@@ -417,7 +417,7 @@ This meta-role contains `inducements` which specifies that a new `ou` and three 
 
 .... The projections are computed for an LDAP resource.
 The projections have a form of LDAP organizationalUnit and groupOfNames objects.
-This is defined in the wiki:Resource+Schema+Handling[schema handling] part of LDAP resource definition.
+This is defined in the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[schema handling] part of LDAP resource definition.
 Each inducement specifies an wiki:Kind,+Intent+and+ObjectClass[(kind, intent)] tuple which is used to locate a matching definition in the schemaHandling.
 
 .... The wiki:Outbound+Mapping[outbound mappings] are used to compute a correct DN for the new "ou" object in LDAP and all three "groupOfNames".
@@ -447,7 +447,7 @@ This just assigns the "Customer Admin Role" role `(role-customer-basic-admin.xml
 The role is assigned to midPoint users with `employeeType` attribute value "customer-admin".
 
 .. The "Delegated Administration role assignment" mapping in user template is processed.
-This just assigns the "Delegated Administration Role" role `(role-customer-authz-admin.xml`) . This role assigns midPoint wiki:Authorization[authorizations] only (no provisioning).
+This just assigns the "Delegated Administration Role" role `(role-customer-authz-admin.xml`) . This role assigns midPoint xref:/midpoint/reference/security/authorization/[authorizations] only (no provisioning).
 The role is assigned to midPoint users with `employeeType` attribute value "customer-admin".
 
 .. The "Basic Customer User role assignment" mapping in user template is processed.
@@ -534,7 +534,7 @@ If no address is entered, the administrator who is creating the new user is expe
 .. The first mapping computes user's full name
 
 .. The "Org mapping - organization member" is trying to look up an wiki:OrgType[Org] into which the user should belong.
-It is using a wiki:Object+Query[query] inside wiki:Expression[assignmentTargetSearch expression] to do so.
+It is using a wiki:Object+Query[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
 The expression inside the query is using the `organizationalUnit` value, e.g. in this case it would be "ultra1" and it was created before.
 The `organizationalUnit` attribute was set automatically by assigning the organization ("Add member").
 
@@ -545,7 +545,7 @@ This just assigns the "Customer Admin Role" role `(role-customer-basic-admin.xml
 The role is assigned to midPoint users with `employeeType` attribute value "customer-admin".
 
 .. The "Delegated Administration role assignment" mapping in user template is processed.
-This just assigns the "Delegated Administration Role" role `(role-customer-authz-admin.xml`) . This role assigns midPoint wiki:Authorization[authorizations] only (no provisioning).
+This just assigns the "Delegated Administration Role" role `(role-customer-authz-admin.xml`) . This role assigns midPoint xref:/midpoint/reference/security/authorization/[authorizations] only (no provisioning).
 The role is assigned to midPoint users with `employeeType` attribute value "customer-admin".
 
 .. The "Basic Customer User role assignment" mapping in user template is processed.
@@ -634,7 +634,7 @@ If no address is entered, the administrator who is creating the new user is expe
 .. The first mapping computes user's full name
 
 .. The "Org mapping - organization member" is trying to look up an wiki:OrgType[Org] into which the user should belong.
-It is using a wiki:Object+Query[query] inside wiki:Expression[assignmentTargetSearch expression] to do so.
+It is using a wiki:Object+Query[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
 The expression inside the query is using the `organizationalUnit` value, e.g. in this case it would be "ultra1" and it was created before.
 The `organizationalUnit` attribute was set automatically by assigning the organization ("Add member").
 

@@ -23,7 +23,7 @@ Organizations that follow security best practices are not using those accounts f
 Those accounts are usually reserved for emergency situations.
 Therefore there is not much need to manage those.
 The only real concern is to prohibit changes to those accounts.
-And midPoint has a wiki:Protected+Accounts[protected accounts] mechanism to make sure those accounts are not changed.
+And midPoint has a xref:/midpoint/reference/resources/resource-configuration/protected-accounts/[protected accounts] mechanism to make sure those accounts are not changed.
 That is usually good enough for majority of organizations.
 
 But there is a third type of accounts: service accounts.
@@ -107,6 +107,6 @@ See wiki:Service+Account+Management+Improvements[Service Account Management Impr
 
 * wiki:Generic+Synchronization[Generic Synchronization]
 
-* wiki:Protected+Accounts[Protected Accounts]
+* xref:/midpoint/reference/resources/resource-configuration/protected-accounts/[Protected Accounts]
 
 * wiki:Synchronization+Sorter[Synchronization Sorter]

@@ -14,7 +14,7 @@ There are three things that need to be correctly set up for the connector to wor
 
 . *Connector code* (the JAR file)
 
-. *Connector definition* (wiki:ConnectorType[ConnectorType]) as an object in midPoint repository.
+. *Connector definition* (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]) as an object in midPoint repository.
 
 . *Reference from resource definition* (wiki:ResourceType[ResourceType]) to the connector definition.
 
@@ -60,9 +60,9 @@ Therefore it is not practical to bundle all the connectors with midPoint.
 However using any compatible connector is easy:
 
 . *Download the connector code* (the JAR file).
-E.g. the connectors that we usually work with are listed in the wiki:Identity+Connectors[Identity Connectors] page.
+E.g. the connectors that we usually work with are listed in the xref:/connectors/connectors/[Identity Connectors] page.
 
-. *Deploy the connector*. Just place the JAR file in the wiki:MidPoint+Home+Directory[MidPoint Home Directory] in the `icf-connectors` subdirectory.
+. *Deploy the connector*. Just place the JAR file in the xref:/midpoint/reference/deployment/midpoint-home-directory/[MidPoint Home Directory] in the `icf-connectors` subdirectory.
 
 . *Restart midPoint*.
 
@@ -83,10 +83,10 @@ Then this specific version will always be available regardless of how midPoint i
 
 == Connector Definition
 
-*Connector definition* (wiki:ConnectorType[ConnectorType]) is an obeject in midPoint repository.
+*Connector definition* (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]) is an obeject in midPoint repository.
 These objects are normally created automatically by midPoint as part of the _connector discovery_ process.
 Discovery of local connectors happens automatically when midPoint is started.
-If there are any new connectors in the wiki:MidPoint+Home+Directory[MidPoint Home Directory] midPoint will create corresponding connector definitions for them.
+If there are any new connectors in the xref:/midpoint/reference/deployment/midpoint-home-directory/[MidPoint Home Directory] midPoint will create corresponding connector definitions for them.
 The discovery of remote connectors needs to be triggered explicitly (see below).
 
 The typical connector object looks like this:
@@ -122,7 +122,7 @@ Therefore we have decided not to delete the connector objects automatically and 
 
 Also the situation is complicated by remote connectors.
 These may not be available during midPoint start-up.
-And for remote connectors there is also explicit relation to the connector host (wiki:ConnectorHostType[ConnectorHostType]) that the connector definition must maintain.
+And for remote connectors there is also explicit relation to the connector host (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectorhosttype/[ConnectorHostType]) that the connector definition must maintain.
 
 
 == Connector Reference
@@ -140,7 +140,7 @@ This is a simple case of a `connectorRef` reference:
 </resource>
 ----
 
-This reference simply points to a connector definition (wiki:ConnectorType[ConnectorType]) that has an OID `2dee34c1-5a1b-4c53-bbb2-7dd5d8f45533`. This reference must point to an existing and valid connector definition.
+This reference simply points to a connector definition (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]) that has an OID `2dee34c1-5a1b-4c53-bbb2-7dd5d8f45533`. This reference must point to an existing and valid connector definition.
 This is the place that needs to be changed during wiki:Connector+Upgrade[Connector Upgrade].
 
 As connector objects are created automatically, it is not possible to predict the OIDs of the connector definitions.

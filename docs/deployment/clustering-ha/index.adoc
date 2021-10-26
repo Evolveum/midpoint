@@ -10,7 +10,7 @@
 
 == Introduction
 
-wiki:Task+Manager[Clustering / high availability] can be achieved by setting up two midPoint nodes working against common midPoint repository.
+xref:/midpoint/reference/tasks/task-manager/[Clustering / high availability] can be achieved by setting up two midPoint nodes working against common midPoint repository.
 
 image::failover.png[]
 
@@ -330,7 +330,7 @@ As a result, Quartz tables will be stored in the same database instance as midPo
 
 | dataSource
 | Uses specified data source to obtain DB connections.
-(See wiki:Repository+Configuration[Repository Configuration]).
+(See xref:/midpoint/reference/repository/configuration/[Repository Configuration]).
 
 
 |===

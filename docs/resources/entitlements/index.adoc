@@ -89,7 +89,7 @@ Regardless what kind of grouping and association mechanism is used midPoint pres
 
 == Association Definition
 
-Association of account and entitlement is defined in the wiki:Resource+Schema+Handling[Resource Schema Handling] section of wiki:Resource+Configuration[Resource Configuration]. Both object-to-subject and subject-to-object association directions are supported
+Association of account and entitlement is defined in the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] section of xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]. Both object-to-subject and subject-to-object association directions are supported
 
 Association is a relation between two parties: subject and object.
 Subject is the party that receives the entitlement (usually an account).
@@ -305,8 +305,8 @@ MidPoint will transparently process correct object retrieval and modification re
 Entitlements are resource objects.
 Therefore the component that closely communicates with the resource should be able to identify entitlements.
 This component is the connector.
-However current wiki:Identity+Connectors[Identity Connector Framework] does not support this functionality.
-Therefore the entitlements and associations needs to be manually defined in wiki:Resource+Schema+Handling[Resource Schema Handling]. However we are cooperating on evolution of the connector framework and introduction of connector entitlement support is quite high on our wishlist.
+However current xref:/connectors/connectors/[Identity Connector Framework] does not support this functionality.
+Therefore the entitlements and associations needs to be manually defined in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]. However we are cooperating on evolution of the connector framework and introduction of connector entitlement support is quite high on our wishlist.
 
 ====
 
@@ -325,7 +325,7 @@ But there is an important hard limitation: all the object types referenced from 
 
 MidPoint works with associations in almost the same way how it works with resource object attributes.
 The associations are not stored in midPoint (wiki:Shadow+Objects[Shadow Objects]). The associations are retrieved fresh from the resource.
-This applies to all parts of midPoint and particularly to wiki:Synchronization[synchronization] and the user interface.
+This applies to all parts of midPoint and particularly to xref:/midpoint/reference/synchronization/introduction/[synchronization] and the user interface.
 E.g. the user interface will retrieve the associations only when the resource object (account) on the projection tab is expanded.
 Exactly at the same time when attributes are retrieved.
 
@@ -354,7 +354,7 @@ The association mechanisms makes this very easy.
 
 Entitlements can be easily assigned to accounts by using the wiki:Assignment[assignment] mechanism.
 This allows the construction of roles that automatically associate user's accounts with appropriate groups.
-See wiki:Assignment+Configuration[Assignment Configuration] page for more details.
+See xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] page for more details.
 
 
 == Entitlement Membership Removal
@@ -436,4 +436,4 @@ Therefore we prefer the conservative approach and we rather maintain status quo.
 
 * wiki:Assignment[Assignment]
 
-* wiki:Resource+Schema+Handling[Resource Schema Handling]
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]

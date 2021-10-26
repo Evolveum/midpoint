@@ -421,7 +421,7 @@ The wiki:Inbound+Mapping[inbound expressions] from `schemaHandling` are used for
 This pre-populates the user entry.
 However, this may not populate all the properties of user entry.
 Therefore additional mechanisms are needed to make the new user look as required.
-The mechanism is called wiki:User+Synchronizer[User Synchronizer] and it is actually the same mechanism that is invoked for any other change, e.g. when a user is created from the GUI.
+The mechanism is called xref:/midpoint/architecture/archive/subsystems/model/user-synchronizer/[User Synchronizer] and it is actually the same mechanism that is invoked for any other change, e.g. when a user is created from the GUI.
 
 First step in processing of a new user is application of User Template.
 User template is a set of expressions that can be used to automatically construct a new user object and to keep it consistent through its lifetime.
@@ -469,7 +469,7 @@ An example is provided below.
 
 ----
 
-The user template specifies that the `fullName` has to be constructed by executing an wiki:Groovy+Expressions[Groovy script expression] that will concatenate the `givenName` and `familyName` properties.
+The user template specifies that the `fullName` has to be constructed by executing an xref:/midpoint/reference/expressions/expressions/script/groovy/[Groovy script expression] that will concatenate the `givenName` and `familyName` properties.
 That mapping is marked as `weak` therefore it will be executed only if the `fullName` does not have a value.
 Therefore this mapping will not be applied in our case, as the `fullName` attribute will be populated from the account using an `inbound` mapping in `schemaHandling`.
 
@@ -508,7 +508,7 @@ See wiki:Synchronization+Flavors[Synchronization Flavors] page for more details.
 
 == See Also
 
-* wiki:Synchronization[Synchronization]
+* xref:/midpoint/reference/synchronization/introduction/[Synchronization]
 
 * wiki:Synchronization+Situations[Synchronization Situations]
 
@@ -518,8 +518,8 @@ See wiki:Synchronization+Flavors[Synchronization Flavors] page for more details.
 
 * link:https://svn.evolveum.com/midpoint/trunk/infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd[Common XSD Schema] has a lot of in-line documentation.
 
-* wiki:Mappings+and+Expressions[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
 * wiki:XML+Object+Query[XML Object Query]
 
-* wiki:User+Synchronizer[User Synchronizer]
+* xref:/midpoint/architecture/archive/subsystems/model/user-synchronizer/[User Synchronizer]

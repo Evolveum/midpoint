@@ -26,7 +26,7 @@ These roles are then assigned to a users.
 This allows very scalable and maintainable authorization set-up.
 
 The following diagram illustrates an example of practical use of authorization statement in midPoint.
-It combines authorization, xref:/midpoint/reference/roles-policies/rbac/[RBAC] and wiki:Organizational+Structure[organizational structure] feature to create a delegated administration set-up.
+It combines authorization, xref:/midpoint/reference/roles-policies/rbac/[RBAC] and xref:/midpoint/reference/org/organizational-structure/[organizational structure] feature to create a delegated administration set-up.
 There is `CC Operator` role for call center operators.
 This role contains an authorization statement which allows modification of password (action=modify, item=credentials/password).
 This statement applies only to operations for which the object of the operation is a member `Example Inc.` organization.
@@ -46,4 +46,4 @@ The wiki:Authorization+Configuration[Authorization Configuration] pages provides
 
 * xref:/midpoint/reference/roles-policies/rbac/[]
 
-* wiki:Organizational+Structure[Organizational Structure]
+* xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]

@@ -157,7 +157,7 @@ Of course, complex scripting expressions may be used as well:
 Vast majority of provisioning scripts are coupled with provisioning operations.
 E.g. the scripts are executed before or after modification of an account.
 However, there are cases when a script has to be executed in an ad-hoc manner.
-For example there may be need to execute a provisioning script from wiki:Expression[expression] because the script is used to determine a value used by the expression.
+For example there may be need to execute a provisioning script from xref:/midpoint/reference/expressions/expressions/[expression] because the script is used to determine a value used by the expression.
 For that purpose there is executeAdHocProvisioningScript function in wiki:MidPoint+Script+Library[MidPoint Script Library]:
 
 [source,xml]
@@ -214,4 +214,4 @@ If a more generic script is required then a generic variable `$focus` can be use
 
 == See Also
 
-* wiki:Resource+Configuration[Resource Configuration]
+* xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]

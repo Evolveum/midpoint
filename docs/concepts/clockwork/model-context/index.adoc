@@ -8,7 +8,7 @@
 :page-upkeep-status: yellow
 
 Model context is a complex data structure that describes the context of computation in wiki:Clockwork+and+Projector[Clockwork and Projector] components.
-It is also used in wiki:Hooks[Hooks], wiki:Scripting+Hooks[Scripting Hooks], wiki:Workflows+(midPoint+3.x)[Workflows (midPoint 3.x)] and other components that take part in the computation.
+It is also used in wiki:Hooks[Hooks], xref:/midpoint/reference/concepts/clockwork/scripting-hooks/[Scripting Hooks], xref:/midpoint/reference/cases/workflow-3/[Workflows (midPoint 3.x)] and other components that take part in the computation.
 
 image::clockwork-projector-model-context.png[]
 

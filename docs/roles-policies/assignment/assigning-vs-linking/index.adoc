@@ -96,7 +96,7 @@ Similarly if there is a linked account that is not assigned midPoint will try to
 Even though assignments and links should be in accord there are situations that this is not desired.
 E.g. if an IDM solution is just deployed no accounts are assigned to users.
 There is usually a migration phase that is focusing just on mapping the reality without enforcing any policies.
-For that reason there is an wiki:Projection+Policy[option in the system configuration] to weaken enforcement of assignment-link consistency.
+For that reason there is an xref:/midpoint/reference/synchronization/projection-policy/[option in the system configuration] to weaken enforcement of assignment-link consistency.
 If such a case assigned accounts will still be created however accounts that are not assigned will *not* be removed.
 
 
@@ -104,8 +104,8 @@ If such a case assigned accounts will still be created however accounts that are
 
 * wiki:Assignment[Assignment]
 
-* wiki:Assignment+Configuration[Assignment Configuration]
+* xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration]
 
-* wiki:Projection+Policy[Projection Policy]
+* xref:/midpoint/reference/synchronization/projection-policy/[Projection Policy]
 
 * wiki:Assignment+vs+Inducement[Assignment vs Inducement]

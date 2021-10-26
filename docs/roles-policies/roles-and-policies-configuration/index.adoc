@@ -116,7 +116,7 @@ The mugs of all captains should come with owner's name on it, so no scurvy seado
 
 ****
 
-wiki:Mappings+and+Expressions[Mappings and expressions] are used to define dynamic implied account attributes.
+xref:/midpoint/reference/expressions/introduction/[Mappings and expressions] are used to define dynamic implied account attributes.
 wiki:Item+Path[Simple paths] are perhaps the most easy to use and most useful in common situations.
 There are also wiki:Script+Expression[scripting expressions] for more complex cases.
 The default expression language is Groovy, chosen for its similarity to Java.
@@ -158,10 +158,10 @@ The role is implying account on `Rum Supply System` resource.
 It is also implying that the attribute `mugSize` of such account should be set to value `BIG` and the attribute `mugName` should be set to the value of user property `givenName`. The figure above illustrate how the attribute values "flow" through the definitions.
 
 The figure above is somehow simplified.
-In fact the role definitions are using wiki:Mapping[mappings] to determine attribute values.
-It is the same mechanism that is used in wiki:Assignment[assignments] and wiki:Resource+Schema+Handling[resource schema handling section] therefore the same features and limitations apply here.
+In fact the role definitions are using xref:/midpoint/reference/expressions/mappings/[mappings] to determine attribute values.
+It is the same mechanism that is used in wiki:Assignment[assignments] and xref:/midpoint/reference/resources/resource-configuration/schema-handling/[resource schema handling section] therefore the same features and limitations apply here.
 Following diagram provides more detailed illustration of use of mappings in the roles.
-Each mapping has three parts: source, value constructor and target (see wiki:Mapping[Mapping]). However some of these parts can be determined by the context in which the mapping is used.
+Each mapping has three parts: source, value constructor and target (see xref:/midpoint/reference/expressions/mappings/[Mapping]). However some of these parts can be determined by the context in which the mapping is used.
 Therefore not all parts of the mapping needs to be present when constructing the roles.
 This is illustrated in the following diagram where the implicit parts of the mappings are marked by dashed outlines.
 The first mapping in the following diagram determines target the value of account `mugSize` attribute.
@@ -175,7 +175,7 @@ Mapping target is also determined implicitly by the context.
 
 image::rbac-5.png[]
 
-Please see the wiki:Mappings+and+Expressions[Mappings and Expressions] page for explanation of basic principles of mapping mechanism.
+Please see the xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions] page for explanation of basic principles of mapping mechanism.
 
 Implied account attributes usually do not need to define the entire set of account attributes.
 There may be other roles that may assign different attributes to the same account, more values to the same attributes of the account and even conflicting values.
@@ -221,7 +221,7 @@ The XML role definition is as follows:
 
 == Assignments
 
-Main article: wiki:Assignment[Assignment], wiki:Assignment+Configuration[Assignment Configuration]
+Main article: wiki:Assignment[Assignment], xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration]
 
 Assignment is a generic concept of associating user with the things that he should have or belong to.
 Assignment may associate user with a role, organizational unit or any other kind of object.
@@ -246,7 +246,7 @@ Roles are associated to to users using assignment as illustrated by the followin
 Although most assignments are as simple as the one above the assignments may be much more complex if needed.
 Assignments may be conditional, limited to a specific time period or provide parameters for the roles.
 
-See wiki:Assignment[Assignment] and wiki:Assignment+Configuration[Assignment Configuration] pages for more details about assignments.
+See wiki:Assignment[Assignment] and xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] pages for more details about assignments.
 
 
 == Inducements
@@ -357,7 +357,7 @@ If those conditions depend only on the environment or properties of the focus th
 
 * wiki:Assignment[Assignment]
 
-* wiki:Assignment+Configuration[Assignment Configuration]
+* xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration]
 
 * wiki:Assignment+vs+Inducement[Assignment vs Inducement]
 
@@ -367,4 +367,4 @@ If those conditions depend only on the environment or properties of the focus th
 
 * wiki:Roles,+Metaroles+and+Generic+Synchronization[Roles, Metaroles and Generic Synchronization]
 
-* wiki:Mappings+and+Expressions[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]

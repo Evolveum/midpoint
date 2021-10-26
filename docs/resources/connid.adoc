@@ -97,7 +97,7 @@ Note: XML representation of the objects is using URIs instead of arbitrary prefi
 Therefore the XML representation of ICF NAME and UID is `icfs:name` and `icfs:uid` (`icfs` is a namespace prefix that wiki:XML+Namespace+List[refers to actual URL]). Please take care not to confuse this with an actual _attribute_ named "uid" such as LDAP uid.
 The attribute is using a wiki:XML+Namespace+List[different namespace] and is usually denoted `ri:uid`.
 
-Tip: ICF NAME and ICF UID attributes may be "renamed" to a more user-friendly names using `displayName` clause in wiki:Resource+Schema+Handling[Resource Schema Handling]. This does not change the true nature of the attributes nor does it change the XML representation.
+Tip: ICF NAME and ICF UID attributes may be "renamed" to a more user-friendly names using `displayName` clause in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]. This does not change the true nature of the attributes nor does it change the XML representation.
 But it may improve user experience.
 
 

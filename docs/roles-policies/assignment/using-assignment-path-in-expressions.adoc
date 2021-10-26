@@ -119,4 +119,4 @@ Finally, any FocusType (e.g. UserType) assigned to Stamping role will have its f
 
 * wiki:Assignment+Path+Variables+Example[Assignment Path Variables Example]
 
-* wiki:Assignment+Configuration[Assignment Configuration]
+* xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration]

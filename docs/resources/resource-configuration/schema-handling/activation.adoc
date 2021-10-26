@@ -11,7 +11,7 @@
 
 == Introduction
 
-Activation part of resource object type definition is located in wiki:Resource+Schema+Handling[Resource Schema Handling] part of resource definition.
+Activation part of resource object type definition is located in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] part of resource definition.
 The activation part defines how the resource object is _activated_, i.e. whether it should or should not exist, whether it should be enabled, disabled or archived, etc.
 This part can be used to fine-tune activation and de-activation policies.
 E.g. it can be used to specify whether account should be deleted or disabled when it is unassigned from the user.
@@ -335,7 +335,7 @@ It may be changed to a fixed `true` value if the account should stay there even 
 
 == Mapping Time Constraints
 
-The wiki:Mapping[Mapping] can optionally have a time constraints.
+The xref:/midpoint/reference/expressions/mappings/[Mapping] can optionally have a time constraints.
 The time constraints means that the mapping will only be evaluated if certain time constraints are satisfied.
 E.g. a mapping that is only evaluated 30 days after the account is disabled.
 
@@ -487,6 +487,6 @@ E.g. the following mapping will pre-provision a disabled account 5 days before u
 
 * wiki:Activation[Activation]
 
-* wiki:Assignment+Configuration[Assignment Configuration]
+* xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration]
 
-* wiki:Resource+Schema+Handling[Resource Schema Handling]
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]

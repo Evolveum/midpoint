@@ -48,7 +48,7 @@ The default value for this property is `false`, therefore the roles must be expl
 
 == Workflows and Certification
 
-wiki:Workflows+(midPoint+3.x)[Workflows (midPoint 3.x)] and wiki:Access+Certification[access certification] fully support the concept of deputy.
+xref:/midpoint/reference/cases/workflow-3/[Workflows (midPoint 3.x)] and wiki:Access+Certification[access certification] fully support the concept of deputy.
 The deputies will have access to the workitems that are assigned to their delegators.
 The deputies can make decisions on these workitems and the decision will advance the workflow (or be recorded in access certification case) as if the delegator made the decision.
 

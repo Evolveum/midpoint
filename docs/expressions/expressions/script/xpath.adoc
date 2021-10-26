@@ -145,4 +145,4 @@ However, it may be the only feasible approach when XML normalization is used.
 
 == See Also
 
-* wiki:XPath2+Tutorial[XPath2 Tutorial]
+* xref:/midpoint/reference/legacy/xpath2/[XPath2 Tutorial]

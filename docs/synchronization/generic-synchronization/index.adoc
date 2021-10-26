@@ -41,7 +41,7 @@ Generic synchronization applies the same synchronization principles to all objec
 The powerful features that midPoint already has for user-account synchronization can be also applied to other synchronization schemes.
 The figure above shows the traditional way how accounts are linked to users.
 Therefore if a user is modified the modifications can be propagated to accounts.
-The same principle can also be used for other object types such as wiki:Organizational+Structure[Orgs] (midPoint organizational units) and groups.
+The same principle can also be used for other object types such as xref:/midpoint/reference/org/organizational-structure/[Orgs] (midPoint organizational units) and groups.
 Groups can be linked to an Org in midPoint.
 Therefore if the Org changes then the changes can be propagated to groups.
 This feature allows to re-use all the usual midPoint capabilities for unusual situations.
@@ -58,9 +58,9 @@ This simple mechanism is introducing a completely new dimension to midPoint RBAC
 
 * wiki:Entitlements[Entitlements]
 
-* wiki:Resource+Configuration[Resource Configuration]
+* xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]
 
-* wiki:Synchronization[Synchronization]
+* xref:/midpoint/reference/synchronization/introduction/[Synchronization]
 
 * wiki:Synchronization+Configuration[Synchronization Configuration]
 

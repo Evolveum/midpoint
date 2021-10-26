@@ -75,8 +75,8 @@ More mechanisms may be be added in the future (such as password synchronization)
 
 == See Also
 
-* wiki:Synchronization[Synchronization]
+* xref:/midpoint/reference/synchronization/introduction/[Synchronization]
 
-* wiki:Synchronization+Examples[Synchronization Examples]
+* xref:/midpoint/reference/synchronization/examples/[Synchronization Examples]
 
 * wiki:Connector+Development+Guide[Connector Development Guide - DiscoverySupport]

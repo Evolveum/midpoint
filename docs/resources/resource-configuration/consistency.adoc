@@ -18,14 +18,14 @@ Or you may use the option to wiki:Subscriptions+and+Sponsoring[sponsor] completi
 
 ====
 
-The `consistency` section of wiki:Resource+Configuration[Resource Configuration] contains configuration of various data consistency mechanisms and features.
+The `consistency` section of xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration] contains configuration of various data consistency mechanisms and features.
 This may include configuration of high-level operation retries and similar technical configuration.
 This section contains:
 
 * `*avoidDuplicateValues*`: When set to true, midPoint will try to avoid adding attribute values that are already there and remove values that are not there.
 Some resources do not tolerate such operations and they respond with errors.
 However midPoint cannot rely on transactions.
-MidPoint's wiki:Relativity[lock-free relativistic model] provides the necessary consistency, occasional redundant additions or deletions may happen.
+MidPoint's xref:/midpoint/reference/concepts/relativity/[lock-free relativistic model] provides the necessary consistency, occasional redundant additions or deletions may happen.
 If this option is turned on then midPoint will read the data from resource right before the operation and filter our any redundant changes.
 This requires additional operation and it increases the risk of inconsistencies.
 However it is the only practical option for some resources.
@@ -44,7 +44,7 @@ By default network errors are not considered critical, other errors are critical
 
 == Avoiding Duplicate Values
 
-MidPoint usually operates in a wiki:Relativity[relative] way.
+MidPoint usually operates in a xref:/midpoint/reference/concepts/relativity/[relative] way.
 Therefore midPoint does not look at the current account values very closely.
 What is important for midPoint is what attribute values are to be added or removed.
 Therefore it may happen that midPoint will try to add a value that is already present in the account.
@@ -65,6 +65,6 @@ But even avoidDuplicateValues is OK, despite the theoretical limitations. The  a
 
 == See Also
 
-* wiki:Resource+Configuration[Resource Configuration]
+* xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]
 
 * wiki:LDAP+Explanation[LDAP Explanation]

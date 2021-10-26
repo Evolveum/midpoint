@@ -49,7 +49,7 @@ All the versions of midPoint wiki:IDM+Model+Interface[IDM Model Interface] are o
 It means that they work with wiki:Basic+Data+Model[midPoint objects]. The interfaces are creating, reading (and searching), updating and deleting the objects.
 This is known as link:http://en.wikipedia.org/wiki/CRUD[CRUD] semantics.
 E.g. resource configuration is changed by modifying corresponding wiki:ResourceType[ResourceType] object, user is created by creating a new wiki:UserType[UserType] object and so on.
-All the interfaces are also using the wiki:Relativity[relative change model] by using wiki:Deltas[deltas] to define change to individual midPoint objects.
+All the interfaces are also using the xref:/midpoint/reference/concepts/relativity/[relative change model] by using wiki:Deltas[deltas] to define change to individual midPoint objects.
 
 Following table provides overview of interface operation groups and their availability in individual interfaces.
 

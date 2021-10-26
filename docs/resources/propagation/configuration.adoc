@@ -129,7 +129,7 @@ The propagation task will ignore all provisioning scripts.
 Subject-to-object associations are very likely to work properly, although this was not explicitly tested.
 Object-to-subject associations are currently not supported.
 
-* wiki:Consistency+mechanism[Consistency mechanism] support for propagated resources is currently limited.
+* xref:/midpoint/reference/synchronization/consistency/[Consistency mechanism] support for propagated resources is currently limited.
 We do not guarantee that consistency mechanisms will work for all the circumstances.
 
 * Application of this mechanism to anything other than manual and semi-manual resources is questionable.

@@ -364,4 +364,4 @@ image::confirmation-success.png[]
 
 * wiki:Custom+forms[Custom Forms]
 
-* wiki:Password+Policy[Password Policy]
+* xref:/midpoint/reference/security/credentials/password-policy/[Password Policy]

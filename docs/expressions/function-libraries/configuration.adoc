@@ -12,7 +12,7 @@
 == Introduction
 
 Function libraries are dedicated midPoint objects that contain set of reusable functions.
-The functions can be used in other wiki:Mappings+and+Expressions[mappings and expressions] in midPoint.
+The functions can be used in other xref:/midpoint/reference/expressions/introduction/[mappings and expressions] in midPoint.
 Function libraries can be used to group frequently-used parts of the code, therefore simplifying midPoint configuration and maintenance.
 
 TIP: Not to be confused with xref:../expressions/script/functions/[built-in scripting functions].
@@ -138,7 +138,7 @@ Definition of function library to use is done using element <libraryRef ..>. The
 Input parameters are defined using element <parameter>.
 It consists of the name and the value.
 Name of the parameter must be the same as it is defined for the function in the function library object.
-When you look on the example above showing the usage of the function evaluator and the example of the function library object, you can see that the parameter name _location_ coincide with the name of the parameter _location_ in the function _getLocality_. The value used for the parameter itself is wiki:Expression[expression]. So you can use each expression evaluator here to get a value for the parameter.
+When you look on the example above showing the usage of the function evaluator and the example of the function library object, you can see that the parameter name _location_ coincide with the name of the parameter _location_ in the function _getLocality_. The value used for the parameter itself is xref:/midpoint/reference/expressions/expressions/[expression]. So you can use each expression evaluator here to get a value for the parameter.
 E.g. in the example above the path expression evaluator is used to get the value from user's locality attribute.
 So at the end you can interpret the example above like calling the function _getLocality_ from the function _library_ identified by _the oid=c0c010c0-d34d-b33f-f00d-999999999999 _and passing the value of user's locality attribute as a parameter to this function.
 
@@ -189,6 +189,6 @@ Each time you want to call function defined in your function library, you must d
 
 * wiki:Basic+Data+Model[Basic Data Model]
 
-* wiki:Mappings+and+Expressions[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
-* wiki:Expression[Expression]
+* xref:/midpoint/reference/expressions/expressions/[Expression]

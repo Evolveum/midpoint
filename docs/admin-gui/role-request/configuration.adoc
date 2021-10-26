@@ -12,7 +12,7 @@
 
 == Role Catalog Configuration
 
-The prerequisite for a good user experience is usually proper configuration of wiki:Role+Catalog+Configuration[role catalog] and wiki:Authorization[authorizations]. The end-user role selection page will display only those roles that the currently-logged-in user can assign to himself.
+The prerequisite for a good user experience is usually proper configuration of wiki:Role+Catalog+Configuration[role catalog] and xref:/midpoint/reference/security/authorization/[authorizations]. The end-user role selection page will display only those roles that the currently-logged-in user can assign to himself.
 Therefore especially the proper use of `assign` authorization is crucial for proper functioning of this page.
 
 

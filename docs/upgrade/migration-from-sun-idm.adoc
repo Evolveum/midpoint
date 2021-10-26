@@ -338,4 +338,4 @@ Other roles then haven't included the resource directly but included the "login 
 
 Do not use this approach in midPoint.
 MidPoint has an elegant mechanism of wiki:Outbound+Mapping[outbound mappings] that can be used to set resource-global attribute values.
-The ability of a login role to "hold" the account in a disabled state can be done in a much easier way by using wiki:Resource+Schema+Handling:+Activation[activation existence mapping].
+The ability of a login role to "hold" the account in a disabled state can be done in a much easier way by using xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[activation existence mapping].

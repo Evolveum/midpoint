@@ -49,7 +49,7 @@ Groups, roles, teams - these are all multi-valued fields.
 Why have we chosen to only support unordered values? The reason is that ordered multi-valued fields are very rare in general, and even less common in identity management field.
 LDAP does not support ordering at all and this fact does not create any substantial problems.
 If we would choose to support ordered values we would need do a very bad trade-off.
-The support for ordering may substantially complicate the system especially while considering our wiki:Consistency+Model[consistency model]. It is not sufficient to simply add a value to the ordered field.
+The support for ordering may substantially complicate the system especially while considering our xref:/midpoint/architecture/concepts/consistency-model/[consistency model]. It is not sufficient to simply add a value to the ordered field.
 The operation needs to specify whether to add it as a first value, as a last value or somewhere in the middle.
 Merging of two operations on ordered values is not a trivial problem.
 That would mean that we would develop a lot of code, risk a lot of problems just to support the case that is by itself very rare.

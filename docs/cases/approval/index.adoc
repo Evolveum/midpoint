@@ -10,7 +10,7 @@
 :page-upkeep-status: red
 :page-upkeep-note: Old approvals vs new approvals
 
-Approval is perhaps the most frequently used type of wiki:Workflows+(midPoint+3.x)[workflow] in the IDM solutions.
+Approval is perhaps the most frequently used type of xref:/midpoint/reference/cases/workflow-3/[workflow] in the IDM solutions.
 It is used so often that the approval process has a special place in midPoint.
 The approval mechanisms are pre-defined and pre-configured in such a way that it is easy to implement majority of approval scenarios by simply using declarative approach.
 Workflow process modeling is almost never needed.
@@ -96,7 +96,7 @@ Although it was - in some form - present also in midPoint 3.4.1 and earlier (usi
 
 == See Also
 
-* wiki:Workflows+(midPoint+3.x)[Workflows (midPoint 3.x)]
+* xref:/midpoint/reference/cases/workflow-3/[Workflows (midPoint 3.x)]
 
 * wiki:Assignment[Assignment]
 

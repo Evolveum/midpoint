@@ -28,7 +28,7 @@ Archetypes make midPoint much more flexible without the need for complex customi
 Simply speaking _archetype_ is a well-defined object subtype.
 Employee, contractor, project, workgroup, application, ... each of them is an archetype.
 The idea is that archetype builds on top of existing midPoint types such as User, Org or Role.
-A _project_ is just a special case of wiki:Organizational+Structure[organizational unit]. As is _division_, _section_, _company_, _workgroup_ or any other concept that groups identities.
+A _project_ is just a special case of xref:/midpoint/reference/org/organizational-structure/[organizational unit]. As is _division_, _section_, _company_, _workgroup_ or any other concept that groups identities.
 An _application_ is a special case of wiki:Services[service]. As is _mobile device_, _printer_, _cloud service_, _web API endpoint_ and so on.
 All those concepts are just specializations of the object types that midPoint already has.
 And there is actually enormous advantage to reuse existing midPoint concepts.
@@ -74,7 +74,7 @@ But it can also be used for searching objects of a particular archetypes by the 
 [TIP]
 .Synergy
 ====
-Archetype functionality is a wiki:Synergistic+Features[synergistic feature]. It is designed to fit together with existing midPoint features, such as wiki:Advanced+Hybrid+RBAC[RBAC] and wiki:Organizational+Structure[organizational structure].
+Archetype functionality is a wiki:Synergistic+Features[synergistic feature]. It is designed to fit together with existing midPoint features, such as wiki:Advanced+Hybrid+RBAC[RBAC] and xref:/midpoint/reference/org/organizational-structure/[organizational structure].
 ====
 
 Archetype definition are wiki:Abstract+Role[abstract roles], which means they essentially work as a role.
@@ -146,7 +146,7 @@ See wiki:Archetype+Improvements+(Planned+Feature)[Archetype Improvements (Planne
 
 * wiki:Archetype+Improvements+(Planned+Feature)[Archetype Improvements (Planned Feature)]
 
-* wiki:Organizational+Structure[Organizational Structure]
+* xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]
 
 * wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
 

@@ -27,8 +27,8 @@ Collections and views are two concepts that are very related, but still somehow 
 There is a special object type (ObjectCollectionType) that is used to define a collection.
 It is first-class midPoint object.
 Collection defines which objects belong to the collection.
-The plan is that collections can be used in the entire midPoint system, e.g. collections can be used in wiki:Authorization[authorizations], wiki:Policy+Rules[policy rules] may be applied to them and so on.
-Some midPoint objects can act as an implicit collections, especially wiki:Archetypes[archetypes] and wiki:Organizational+Structure[organizational units]. Object collections are designed to be solid and stable.
+The plan is that collections can be used in the entire midPoint system, e.g. collections can be used in xref:/midpoint/reference/security/authorization/[authorizations], wiki:Policy+Rules[policy rules] may be applied to them and so on.
+Some midPoint objects can act as an implicit collections, especially wiki:Archetypes[archetypes] and xref:/midpoint/reference/org/organizational-structure/[organizational units]. Object collections are designed to be solid and stable.
 Something that midPoint policies can rely on.
 
 * *View* is a user interface concept.
@@ -97,7 +97,7 @@ Therefore is one definition changes, all the collections take notice.
 
 The use of collections in midPoint 4.0 is somehow limited.
 In future midPoint releases, Collections may be reused in authorizations and policy rules.
-E.g. It would be nice to use just "employees" as a criterion in wiki:Authorization[authorizations] instead of copying the search filter everywhere.
+E.g. It would be nice to use just "employees" as a criterion in xref:/midpoint/reference/security/authorization/[authorizations] instead of copying the search filter everywhere.
 Similarly this collection may be reused in policy rule specifications.
 In the future there may be scanner tasks that scan just the objects that belong to the collections, bulk actions for the collections and similar improvements.
 

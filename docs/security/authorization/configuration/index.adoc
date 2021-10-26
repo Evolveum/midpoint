@@ -59,7 +59,7 @@ A user that has a role with an authorization statement is automatically consider
 This allows very scalable and maintainable authorization set-up.
 
 The following diagram illustrates an example of practical use of authorization statement in midPoint.
-It combines authorization, wiki:Advanced+Hybrid+RBAC[RBAC] and wiki:Organizational+Structure[organizational structure] feature to create a delegated administration set-up.
+It combines authorization, wiki:Advanced+Hybrid+RBAC[RBAC] and xref:/midpoint/reference/org/organizational-structure/[organizational structure] feature to create a delegated administration set-up.
 There is `CC Operator` role for call center operators.
 This role contains an authorization statement which allows modification of password (action=modify, item=credentials/password).
 This statement applies only to operations for which the object of the operation is a member `Example Inc.` organization.
@@ -857,7 +857,7 @@ But this this behavior was chosen for compatibility reasons.
 {% include since.html since="3.7" %}
 ++++
 
-wiki:Expression[Expressions] can be used in authorization search filters:
+xref:/midpoint/reference/expressions/expressions/[Expressions] can be used in authorization search filters:
 
 [source,xml]
 ----
@@ -899,7 +899,7 @@ Expressions that use the `path` evaluator (as the one above) are usually very fa
 Even simple script expressions usually do not create any major issue.
 However, try to avoid placing complex or slow expressions into authorizations.
 Those are almost certain to have a severe negative impact on system performance.
-If you need complex computation, it is perhaps better to compute the value in wiki:Object+Template[object template] and place it into property of the object (e.g. user extension property).
+If you need complex computation, it is perhaps better to compute the value in xref:/midpoint/reference/expressions/object-template/[object template] and place it into property of the object (e.g. user extension property).
 Then use only the result of the computation stored in that property in authorization expressions.
 ====
 
@@ -1197,7 +1197,7 @@ Therefore even if it is present then the password field in the user form will st
 Therefore the only way how the user can change the password is to use credentials self-service page.
 And this page will require old user password (if it is set up to do it).
 
-The bottom line is that the specifics of password change interactions are implemented and enforced in the wiki:GUI+Subsystem[GUI]. wiki:IDM+Model+Subsystem[The Model] is only concerned whether the password change is allowed or denied, but it does not care about the actual process.
+The bottom line is that the specifics of password change interactions are implemented and enforced in the xref:/midpoint/architecture/archive/subsystems/gui/[GUI]. wiki:IDM+Model+Subsystem[The Model] is only concerned whether the password change is allowed or denied, but it does not care about the actual process.
 ====
 
 
@@ -1213,4 +1213,4 @@ The bottom line is that the specifics of password change interactions are implem
 
 * wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
 
-* wiki:Organizational+Structure[Organizational Structure]
+* xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]

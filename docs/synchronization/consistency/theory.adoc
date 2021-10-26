@@ -52,7 +52,7 @@ Even, if a message sent from one node to another is lost, the system must contin
 
 == Relative Changes
 
-Another important concept for the proposed mechanism is a wiki:Relativity[relative change model]. Relative change model is used to describe changes made to the objects.
+Another important concept for the proposed mechanism is a xref:/midpoint/reference/concepts/relativity/[relative change model]. Relative change model is used to describe changes made to the objects.
 Instead of sending the whole object even when only one of its attribute was changed, we send only the real change.
 The changes are computed with respect to the old object and the result of computation is the change description.
 

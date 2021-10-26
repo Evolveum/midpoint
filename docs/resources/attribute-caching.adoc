@@ -23,7 +23,7 @@ Therefore midPoint has an ability to cache the values of resource objects.
 == Enabling Caching
 
 The caching is turned off by default.
-It can be turned on in wiki:Resource+Configuration[Resource Configuration]:
+It can be turned on in xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]:
 
 [source,xml]
 ----
@@ -103,4 +103,4 @@ Therefore use this feature with care.
 
 == See Also
 
-* wiki:Resource+Configuration[Resource Configuration]
+* xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]

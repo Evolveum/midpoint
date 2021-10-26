@@ -59,7 +59,7 @@ Simply speaking the status indicates whether the operation is executing or wheth
 * Metadata, such as timestamps, attempt counter and so on.
 
 If an operation fails due to a communication issue, midPoint remembers that operation in _pending operations_ data structure and returns immediately.
-MidPoint will continue with other operations on other resources that could still be executed - unless there are wiki:Provisioning+Dependencies[provisioning dependencies] prohibiting that.
+MidPoint will continue with other operations on other resources that could still be executed - unless there are xref:/midpoint/reference/resources/provisioning-dependencies/[provisioning dependencies] prohibiting that.
 MidPoint will re-try the failed operation later.
 
 [TIP]
@@ -70,7 +70,7 @@ The same data structure is used for all asynchronous operations in midPoint, suc
 
 === Configuration
 
-Operation retries can be configured in wiki:Resource+Configuration[resource definition] in the `consistency` section.
+Operation retries can be configured in xref:/midpoint/reference/resources/resource-configuration/[resource definition] in the `consistency` section.
 However, it is often not necessary to provide any explicit configuration as midPoint has reasonable default settings.
 If a configuration is needed, it can be specified like this:
 
@@ -148,7 +148,7 @@ Main page: wiki:Shadow+Refresh+Task[Shadow Refresh Task]
 If the shadow refresh operation is left entirely to a chance then strange things may happen.
 Some shadows may not get refreshed for a long time.
 Therefore it is always a good idea to make sure that the shadows are refreshed periodically.
-This is often achieved by the means of a wiki:Synchronization[reconciliation process]. Reconciliation is forcing refresh of all shadows to make sure that all data in midPoint are up to date.
+This is often achieved by the means of a xref:/midpoint/reference/synchronization/introduction/[reconciliation process]. Reconciliation is forcing refresh of all shadows to make sure that all data in midPoint are up to date.
 However, reconciliation is quite a heavy-weight process.
 It may be an overkill to run reconciliation just to make sure pending operations are retried.
 Therefore there is also a lighter-weight refresh task.
@@ -225,12 +225,12 @@ If the account was created directly (not using assignment), the shadow is delete
 === Configuration
 
 For the discovery mechanism we do not need any additional settings.
-As discovery is yet another way how midPoint detects changes, all what you need is to have configured wiki:Synchronization[synchronization] part in the resource description.
+As discovery is yet another way how midPoint detects changes, all what you need is to have configured xref:/midpoint/reference/synchronization/introduction/[synchronization] part in the resource description.
 
 
 == Reconciliation
 
-wiki:Synchronization[Reconciliation process] (also called synchronization) is a standard way how identity management systems solve possible inconsistencies.
+xref:/midpoint/reference/synchronization/introduction/[Reconciliation process] (also called synchronization) is a standard way how identity management systems solve possible inconsistencies.
 It is used to scan external resource and find out changes that have been not applied yet because of some reason, e.q. when administrator made changes on external resource, synchronization was suspended.
 In the midPoint we use this standard reconciliation process, but we also add another option.
 In out reconciliation process we process not only changes from the external resource but also the changes from the local midPoint's repository.
@@ -250,9 +250,9 @@ However, the mechanism was revised and significantly updated in midPoint 3.9. Fo
 
 * wiki:Consistency+Theory[Consistency Theory]
 
-* wiki:Relativity[Relativity]
+* xref:/midpoint/reference/concepts/relativity/[Relativity]
 
-* wiki:Synchronization[Reconciliation process]
+* xref:/midpoint/reference/synchronization/introduction/[Reconciliation process]
 
 * wiki:Shadow+Refresh+Task[Shadow Refresh Task]
 

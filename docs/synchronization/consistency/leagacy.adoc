@@ -159,7 +159,7 @@ All what you need is to have configured synchronization part in the resource des
 
 == Reconciliation
 
-wiki:Synchronization[Reconciliation process] (also called synchronization) is a standard way how identity management systems solve possible inconsistencies.
+xref:/midpoint/reference/synchronization/introduction/[Reconciliation process] (also called synchronization) is a standard way how identity management systems solve possible inconsistencies.
 It is used to scan external resource and find out changes that have been not applied yet because of some reason, e.q. when administrator made changes on external resource, synchronization was suspended.
 In the midPoint we use this standard reconciliation process, but we also add another option.
 In out reconciliation process we process not only changes from the external resource but also the changes from the local midPoint's repository.
@@ -170,7 +170,7 @@ In the direction from midpoint's repository to external resource, we search thro
 
 This page describes consistency mechanism that was used in midPoint version 3.8 and earlier versions.
 This information is now *obsolete*. It is maintained for archival uses only.
-Consistency mechanism was significantly improved in midPoint 3.9. Please see wiki:Consistency+mechanism[Consistency mechanism] page for up-to-date information.
+Consistency mechanism was significantly improved in midPoint 3.9. Please see xref:/midpoint/reference/synchronization/consistency/[Consistency mechanism] page for up-to-date information.
 
 
 == See Also
@@ -179,8 +179,8 @@ Consistency mechanism was significantly improved in midPoint 3.9. Please see wik
 
 * wiki:Consistency+Theory[Consistency Theory]
 
-* wiki:Relativity[Relativity]
+* xref:/midpoint/reference/concepts/relativity/[Relativity]
 
-* wiki:Synchronization[Reconciliation process]
+* xref:/midpoint/reference/synchronization/introduction/[Reconciliation process]
 
 * wiki:Connector+Development+Guide[Connector Development Guide - DiscoverySupport]

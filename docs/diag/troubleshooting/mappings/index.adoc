@@ -12,7 +12,7 @@
 
 == Introduction
 
-This page describes the most efficient steps to find out what is wrong with your wiki:Mapping[mapping] setup.
+This page describes the most efficient steps to find out what is wrong with your xref:/midpoint/reference/expressions/mappings/[mapping] setup.
 The mappings are the most efficient mechanism to do almost everything in midPoint.
 Mapping mechanism is very powerful, but the mapping configuration and interactions may be get very complex.
 This page describes a method to use to figure out what is wrong, why the mappings are not behaving as expected and how to efficiently find where is the problem.
@@ -41,7 +41,7 @@ image::9-2-lens-provisioning-structure.png[]
 
 
 
-xref:/midpoint/architecture/[MidPoint architecture] is designed in such a way that all important requests pass through the wiki:IDM+Model+Subsystem[IDM Model Subsystem]. This makes sure that all requests are processed consistently, that wiki:Authorization[authorization] is properly applied, that the request is wiki:Auditing[audited], etc.
+xref:/midpoint/architecture/[MidPoint architecture] is designed in such a way that all important requests pass through the wiki:IDM+Model+Subsystem[IDM Model Subsystem]. This makes sure that all requests are processed consistently, that xref:/midpoint/reference/security/authorization/[authorization] is properly applied, that the request is xref:/midpoint/reference/security/audit/[audited], etc.
 
 Internal implementation of the wiki:IDM+Model+Subsystem[IDM Model Subsystem] heavily relies on wiki:Clockwork+and+Projector[Clockwork and Projector] components.
 The Clockwork drives processing of the request.
@@ -51,8 +51,8 @@ It does so in two big steps:
 E.g. Changes in user can be mapped to accounts and it is a responsibility of the projector to compute these (secondary) changes.
 Projector is a relatively big component.
 To make it maintainable it is internally divided to "processors".
-There is an InboundProcessor for wiki:Inbound+Mapping[inbound mappings], OutboundProcessor for wiki:Outbound+Mapping[outbound mappings], FocusProcessor that deals with wiki:Object+Template[object template] and so on.
-Each of the processors are invoking the same code to process wiki:Mapping[mappings]. The mapping code in turn invokes wiki:Expression[expression] code to run scripts, value generators, etc.
+There is an InboundProcessor for wiki:Inbound+Mapping[inbound mappings], OutboundProcessor for wiki:Outbound+Mapping[outbound mappings], FocusProcessor that deals with xref:/midpoint/reference/expressions/object-template/[object template] and so on.
+Each of the processors are invoking the same code to process xref:/midpoint/reference/expressions/mappings/[mappings]. The mapping code in turn invokes xref:/midpoint/reference/expressions/expressions/[expression] code to run scripts, value generators, etc.
 
 . Clockwork invokes provisioning to execute the changes.
 When projector computes the changes then Clockwork invokes wiki:Provisioning+Subsystem[Provisioning Subsystem] to execute the changes.
@@ -65,10 +65,10 @@ Normally projector is called to compute secondary (outbound) changes.
 Then these changes are executed.
 Then the projector is called again to process any side-effect inbound changes that might happen during the previous execution.
 We call this a wave.
-This can be repeated several times, e.g. if wiki:Provisioning+Dependencies[provisioning dependencies] are used.
+This can be repeated several times, e.g. if xref:/midpoint/reference/resources/provisioning-dependencies/[provisioning dependencies] are used.
 There are also hooks that can take place at some stages of the processing.
 The hooks may interrupt or change the processing.
-E.g. wiki:Workflows+(midPoint+3.x)[workflows] and wiki:Notifications[notifications] are implemented as hooks.
+E.g. xref:/midpoint/reference/cases/workflow-3/[workflows] and xref:/midpoint/reference/misc/notifications/[notifications] are implemented as hooks.
 However the simplified description is enough for basic understanding of the troubleshooting process.
 
 
@@ -195,7 +195,7 @@ The wiki:Model+Context[Model Context] page provides the details how is the model
 == Projector Branch
 
 The primary purpose of the Projector is to take input deltas (user changes or synchronization deltas), apply them to the current state and try to figure out what effects those changes have.
-There are many ways how the input deltas can influence the output: wiki:Inbound+Mapping[inbound mappings], wiki:Object+Template[object template], wiki:Advanced+Hybrid+RBAC[roles], wiki:Outbound+Mapping[outbound mappings], etc.
+There are many ways how the input deltas can influence the output: wiki:Inbound+Mapping[inbound mappings], xref:/midpoint/reference/expressions/object-template/[object template], wiki:Advanced+Hybrid+RBAC[roles], wiki:Outbound+Mapping[outbound mappings], etc.
 Each of these steps provide part of the data for the computation.
 Therefore also projector is internally divided into several "processors".
 Each of the processors takes care of one part of the computation:
@@ -203,7 +203,7 @@ Each of the processors takes care of one part of the computation:
 * Context Loader loader retrieves all the necessary information from midPoint repository and resources.
 E.g. it loads the current state of the user and accounts (if necessary).
 
-* Focus Processor takes care of applying changes to the wiki:Focus+and+Projections[focus] (usually wiki:UserType[UserType]). It takes care of wiki:Inbound+Mapping[Inbound Mapping] and wiki:Object+Template[Object Template] processing.
+* Focus Processor takes care of applying changes to the wiki:Focus+and+Projections[focus] (usually wiki:UserType[UserType]). It takes care of wiki:Inbound+Mapping[Inbound Mapping] and xref:/midpoint/reference/expressions/object-template/[Object Template] processing.
 It is internally composed from other processors such as InboundProcessor and ObjectTemplateProcessor and AssignmentProcessor.
 wiki:Advanced+Hybrid+RBAC[Roles and Orgs (RBAC)] is also pre-computed in this stage.
 Although we only care whether a specific wiki:Focus+and+Projections[projection] is legal or not.
@@ -227,7 +227,7 @@ But it will also be executed if we have already retrieved the values from the re
 
 
 This process is repeated in several waves if necessary, selecting the correct projections for each wave.
-Computation in waves is needed e.g. if there are wiki:Provisioning+Dependencies[provisioning dependencies] and the resources must be processed in a strict order.
+Computation in waves is needed e.g. if there are xref:/midpoint/reference/resources/provisioning-dependencies/[provisioning dependencies] and the resources must be processed in a strict order.
 However the computation is usually done at least in "one and a half wave".
 The last half-wave is added to make sure that the results of the provisioning operations are correctly reflected to the wiki:Focus+and+Projections[focus] by the means of wiki:Inbound+Mapping[inbound mappings].
 
@@ -268,13 +268,13 @@ You have been warned.
 
 Understanding Deltas and Triples in Projector
 
-MidPoint is based on wiki:Relativity[the principle of relative changes]. Therefore midPoint will deal with operations as if they add or remove something.
+MidPoint is based on xref:/midpoint/reference/concepts/relativity/[the principle of relative changes]. Therefore midPoint will deal with operations as if they add or remove something.
 Sometimes midPoint also cares about the values that are present in the property before the operation (e.g. for reconciliation), but added and removed values are much more important for midPoint.
 Therefore almost all Projector components work with wiki:Deltas[deltas] and wiki:Triple[triples]. The basic process is like this:
 
 . Input deltas are recorded in wiki:Model+Context[Model Context] as primary deltas or synchronization deltas
 
-. wiki:Mapping[Mappings] are evaluated.
+. xref:/midpoint/reference/expressions/mappings/[Mappings] are evaluated.
 Mappings take deltas as input.
 Mappings produce wiki:Triple[triples] for each affected values as output.
 
@@ -624,12 +624,12 @@ If that fails you have to resort to packet sniffer and similar tools.
 Each connector has its own logger names.
 The most reliable way to find out what it is to look at the connector documentation or connector source code.
 But as rule of thumb the connectors usually use logger names matching their Java package.
-This is supposed to be the same as the package prefix used in the `connectorType` property (see wiki:ConnectorType[ConnectorType]), e.g. `com.evolveum.polygon.connector.ldap`.
+This is supposed to be the same as the package prefix used in the `connectorType` property (see xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]), e.g. `com.evolveum.polygon.connector.ldap`.
 
 
 == Extra Tips
 
-* Enable wiki:Auditing[Auditing] to a log file, including the auditing details.
+* Enable xref:/midpoint/reference/security/audit/[Auditing] to a log file, including the auditing details.
 This will log all the deltas that are requested to execute from the user interface and other interfaces.
 Sometimes the problem is in the request delta.
 The audit is the easiest way to check that.
@@ -639,7 +639,7 @@ The audit is the easiest way to check that.
 
 * wiki:Troubleshooting+Connectors[Troubleshooting Connectors]
 
-* wiki:Mappings+and+Expressions[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
 * wiki:Usual+Troubleshooting+Steps[Usual Troubleshooting Steps]
 

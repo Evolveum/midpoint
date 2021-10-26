@@ -27,7 +27,7 @@ There can be two or more nodes in such a cluster.
 
 Technologies used:
 
-. For task load balancing, the link:http://www.quartz-scheduler.org[Quartz scheduler] is used (see wiki:Task+Manager[architectural description]).
+. For task load balancing, the link:http://www.quartz-scheduler.org[Quartz scheduler] is used (see xref:/midpoint/reference/tasks/task-manager/[architectural description]).
 
 . For load balancing for interactive users, standard link:http://tomcat.apache.org/tomcat-8.0-doc/balancer-howto.html[tomcat solution] is recommended.
 

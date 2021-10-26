@@ -133,4 +133,4 @@ This property can be set explicitly to force task cleanup after a specific inter
 
 * wiki:Variables+in+bulk+actions[Variables in bulk actions]
 
-* wiki:Task+Manager[Task Manager]
+* xref:/midpoint/reference/tasks/task-manager/[Task Manager]

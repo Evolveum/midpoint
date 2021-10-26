@@ -25,7 +25,7 @@ Therefore it is not possible to provide almost any built-in functionality to sup
 How should they be displayed in the user interface? Should users be able to assign them? What should be the effect it user assigns them? What rules should be applied to govern generic objects? What about authorizations, auditing, lifecycle, governance, ...
 
 There is a better solution in midPoint.
-MidPoint has several built-in object types such as wiki:Advanced+Hybrid+RBAC[roles], wiki:Organizational+Structure[orgs], and wiki:Services[services]. Those data types are built to be extensible and in fact, they are quite generic.
+MidPoint has several built-in object types such as wiki:Advanced+Hybrid+RBAC[roles], xref:/midpoint/reference/org/organizational-structure/[orgs], and wiki:Services[services]. Those data types are built to be extensible and in fact, they are quite generic.
 The role does not mean just "role in strict RBAC sense".
 In midPoint, the concept of "role" is much broader.
 MidPoint roles can easily be used to model RBAC roles, but also job categories, job titles/positions, qualifications, competency certifications, achievements - and even wiki:Consent+Management+(GDPR)[data protection consents]. Orgs and services can be used in a similar way:
@@ -37,11 +37,11 @@ MidPoint roles can easily be used to model RBAC roles, but also job categories, 
 | Role
 | wiki:Advanced+Hybrid+RBAC[RBAC roles] +
 wiki:Authorization+Roles[Authorization roles] +
-job category, job titles/position, qualification, competency certification, achievementwiki:Consent+Management+(GDPR)[consent]metarole
+job category, job titles/position, qualification, competency certification, achievement wiki:Consent+Management+(GDPR)[consent]metarole
 
 
 | Org
-| wiki:Organizational+Structure[Functional organization structure] (company, division, section) +
+| xref:/midpoint/reference/org/organizational-structure/[Functional organization structure] (company, division, section) +
 project, workgroup, team, ad-hoc group, task force, job responsibility group +
 Tenant (in multi-tenant configurations) +
 Location (office, campus, city, country) +
@@ -101,7 +101,7 @@ This has enormous advantages from the software engineering point of view.
 To cut the long story short it allows us to develop midPoint faster and to efficiently maintain it in a long run.
 However, this also means that object types are set during midPoint design and they cannot be easily changed at run-time.
 Once an object is a role, its type is set to `RoleType` and this cannot be changed.
-But the definition of RoleType can be extended, even at run-time, by using wiki:Custom+Schema+Extension[custom schema extension mechanism].
+But the definition of RoleType can be extended, even at run-time, by using xref:/midpoint/reference/schema/custom-schema-extension/[custom schema extension mechanism].
 
 There is yet another drawback: RBAC roles, authorization roles, job titles - they all have the same object type.
 They are all `RoleType`. How to tell them apart? There is also a mechanism for that: wiki:Archetypes[Archetypes]. Archetypes can be used to distinguish objects of the same type, customize its presentation and behavior.
@@ -117,7 +117,7 @@ Therefore it is defined just once and applied everywhere it is needed.
 
 All midPoint objects are extensible.
 Users, roles, orgs, services, resources, tasks - and even wiki:System+Configuration+Object[system configuration object]. System configuration object extension is in fact a very useful mechanism.
-Most wiki:Mappings+and+Expressions[expressions] have `configuration` variable available during expression evaluation.
+Most xref:/midpoint/reference/expressions/introduction/[expressions] have `configuration` variable available during expression evaluation.
 Therefore all the data placed into system configuration extension are available to expressions.
 This is a very elegant way how to set system-wide parameters (constants).
 
@@ -138,7 +138,7 @@ However, for the very rare cases when those concepts do not fit there is a `Gene
 </genericObject>
 ----
 
-You will need to define wiki:Custom+Schema+Extension[Custom Schema Extension] for `GenericObjectType` to make it work properly.
+You will need to define xref:/midpoint/reference/schema/custom-schema-extension/[Custom Schema Extension] for `GenericObjectType` to make it work properly.
 In this case, the customer schema extension will define property `foo` in namespace `http://example.com/my`.
 
 However, as far as we know this type was actually never used in practice.

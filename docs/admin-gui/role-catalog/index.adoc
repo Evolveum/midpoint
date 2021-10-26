@@ -33,8 +33,8 @@ image::role-request.png[]
 == Role Catalog for Administrators
 
 The second purpose of role catalog is to make *role administration* and management easy.
-Role catalog is essential just an wiki:Organizational+Structure[organizational structure] (see below).
-Therefore it can be used to set up wiki:Authorization[fine-graned authorizations and delegated administration] of the roles.
+Role catalog is essential just an xref:/midpoint/reference/org/organizational-structure/[organizational structure] (see below).
+Therefore it can be used to set up xref:/midpoint/reference/security/authorization/[fine-graned authorizations and delegated administration] of the roles.
 For example the application roles may be sorted to categories that represent applications and application modules.
 In that case the management of the application roles can be delegated to application or module owners.
 
@@ -52,7 +52,7 @@ See wiki:Role+Catalog+Configuration[Role Catalog Configuration] page for descrip
 
 * wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
 
-* wiki:Organizational+Structure[Organizational Structure]
+* xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]
 
 * wiki:Role+Catalog+Configuration[Role Catalog Configuration]
 

@@ -16,7 +16,7 @@ TODO: picture
 == Projector
 
 Projector is responsible for computing the changes.
-It is triggered by user changes in GUI, received by service or detected by wiki:Synchronization[synchronization]. Projector recomputes all the wiki:Synchronization+Policies[synchronization policies], applies all wiki:Mappings+and+Expressions[mappings and expressions], processes wiki:Advanced+Hybrid+RBAC[RBAC] role assignments and so on.
+It is triggered by user changes in GUI, received by service or detected by xref:/midpoint/reference/synchronization/introduction/[synchronization]. Projector recomputes all the wiki:Synchronization+Policies[synchronization policies], applies all xref:/midpoint/reference/expressions/introduction/[mappings and expressions], processes wiki:Advanced+Hybrid+RBAC[RBAC] role assignments and so on.
 However, projector is just computing the values.
 It is not yet executing them.
 The result of projector computations are stored in wiki:Model+Context[model context].
@@ -35,11 +35,11 @@ Projector reflects data from the focus to projections (using wiki:Outbound+Mappi
 
 Clockwork is a controller.
 Clockwork invokes projector to recompute everything that needs to be recomputed.
-Clockwork invokes wiki:Hooks[hooks] to further process the request (e.g. to route it through a wiki:Workflows+(midPoint+3.x)[workflow]). This happens several times.
+Clockwork invokes wiki:Hooks[hooks] to further process the request (e.g. to route it through a xref:/midpoint/reference/cases/workflow-3/[workflow]). This happens several times.
 Clockwork then proceeds to execute the changes.
-This may also happen several times if wiki:Provisioning+Dependencies[dependencies] are used.
+This may also happen several times if xref:/midpoint/reference/resources/provisioning-dependencies/[dependencies] are used.
 Clockwork handles execution errors.
-And at the end of execution it once again invokes hooks (e.g. to handle wiki:Notifications[notifications]).
+And at the end of execution it once again invokes hooks (e.g. to handle xref:/midpoint/reference/misc/notifications/[notifications]).
 
 
 == Clockwork States
@@ -66,7 +66,7 @@ The wiki:Model+Context[model context] is recomputed to reflect the changes from 
 The changes are executed after this state is completed.
 The hooks can use this state to inspect the values of projections.
 E.g. it is sometimes used to let system administrators approve the actual changes of account attributes before they are executed.
-The hooks can be invoked several times as this state may be processed several times when wiki:Provisioning+Dependencies[provisioning dependencies] are used.
+The hooks can be invoked several times as this state may be processed several times when xref:/midpoint/reference/resources/provisioning-dependencies/[provisioning dependencies] are used.
 
 * *FINAL* state.
 All the changes are executed.

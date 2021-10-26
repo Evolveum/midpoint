@@ -6,7 +6,7 @@
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2017-05-23T09:39:02.330+02:00
 
-To better illustrate meaning of variouswiki:Assignment+Configuration#AssignmentConfiguration-ConstructionVariables[ assignment-related variables] let us present an example.
+To better illustrate meaning of various wiki:Assignment+Configuration#AssignmentConfiguration-ConstructionVariables[ assignment-related variables] let us present an example.
 
 Here, user `jack` is being assigned a role `Pirate`. This role induces `Sailor`. Both `Pirate` and `Sailor` have assigned `MetaroleCrewMember`. This metarole induces `MetarolePerson`, which induces role `Human`. Each of these roles provides a construction (C1, C2, ..., C5) via an inducement of corresponding order (1 or 2).
 
@@ -22,7 +22,7 @@ So C3P is the evaluation of C3 on the path `jack -> Pirate -> MetaroleCrewMember
 
 [%autowidth]
 |===
-| Variable  | C1 (on Pirate) | C2 (on Sailor) | C3P (on M-CrewMember via Pirate) | C3S (on M-CrewMember via Sailor) | C4P (on M-Person via Pirate) | C4S (on M-Person via Sailor) | C5P (on Human via Pirate) | C5S (on Human via Sailor) 
+| Variable  | C1 (on Pirate) | C2 (on Sailor) | C3P (on M-CrewMember via Pirate) | C3S (on M-CrewMember via Sailor) | C4P (on M-Person via Pirate) | C4S (on M-Person via Sailor) | C5P (on Human via Pirate) | C5S (on Human via Sailor)
 
 | `assignment`
 8+| targetRef = role:Pirate, extension = ship:BlackPearl, weapon:pistol,mouth.
@@ -132,7 +132,7 @@ For completeness, let us show here also path variables present when evaluating c
 
 [%autowidth]
 |===
-| Variable  | Pirate | Sailor | MetaroleCrewMember via Pirate | MetaroleCrewMember via Sailor | MetarolePerson via Pirate | MetarolePerson via Sailor | Human via Pirate | Human via Sailor 
+| Variable  | Pirate | Sailor | MetaroleCrewMember via Pirate | MetaroleCrewMember via Sailor | MetarolePerson via Pirate | MetarolePerson via Sailor | Human via Pirate | Human via Sailor
 
 | `assignment`
 8+| targetRef = role:Pirate, extension = ship:BlackPearl, weapon:pistol,mouth.
@@ -231,7 +231,7 @@ image::assignments-variables-human-s.png[]
 
 [%autowidth]
 |===
-| Variable  | Pirate->Sailor | Pirate->MetaroleCrewMember | Sailor->MetaroleCrewMember | MCM->MP via Pirate | MCM->MP via Sailor | MP->Human via Pirate | MP->Human via Sailor 
+| Variable  | Pirate->Sailor | Pirate->MetaroleCrewMember | Sailor->MetaroleCrewMember | MCM->MP via Pirate | MCM->MP via Sailor | MP->Human via Pirate | MP->Human via Sailor
 
 | `assignment`
 7+| targetRef = role:Pirate, extension = ship:BlackPearl, weapon:pistol,mouth.
@@ -323,7 +323,7 @@ image::assignments-variables-human-s.png[]
 
 [%autowidth]
 |===
-| Abbreviation | Meaning 
+| Abbreviation | Meaning
 
 | P
 | Pirate

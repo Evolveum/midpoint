@@ -156,7 +156,7 @@ It produces values similar to "Jack Sparrow is the best pirate Caribbean has eve
     </assignment>
 ----
 
-An observant reader had surely noticed similarity with wiki:Outbound+Mapping[outbound mappings]. The same wiki:Mapping[mapping] principle is used in both outbound mappings and assignments.
+An observant reader had surely noticed similarity with wiki:Outbound+Mapping[outbound mappings]. The same xref:/midpoint/reference/expressions/mappings/[mapping] principle is used in both outbound mappings and assignments.
 Therefore the full scale of mapping capabilities can be used in assignments.
 
 The values specified by assignments are merged with other policies before the target resource object is provisioned or modified.
@@ -256,7 +256,7 @@ Therefore this kind of entitlement should work just fine even if the group is la
 ====
 
 There is also a more sophisticated way how to associate entitlements with accounts inside an assignment.
-There is a special-purpose `associationTargetSearch`wiki:Expression[expression evaluator] that allows significant flexibility.
+There is a special-purpose `associationTargetSearch`xref:/midpoint/reference/expressions/expressions/[expression evaluator] that allows significant flexibility.
 This type of expression is using a wiki:Object+Query[search query] to dynamically locate the entitlement shadow.
 Following example is looking up the group by name:
 
@@ -458,7 +458,7 @@ Therefore when the assignment is processed by midPoint a group `b0001` will be c
 
 Entitlement construction assignments are very similar to the account construction assignments.
 In fact the very same principles apply.
-Therefore for this approach to work well you need to do the same as for accounts: define entitlement in wiki:Resource+Schema+Handling[Resource Schema Handling] which usually includes some wiki:Outbound+Mapping[outbound mappings] to set group identifiers and other attributes.
+Therefore for this approach to work well you need to do the same as for accounts: define entitlement in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] which usually includes some wiki:Outbound+Mapping[outbound mappings] to set group identifiers and other attributes.
 The wiki:Entitlements[Entitlements] page has some examples how to do this.
 
 [TIP]
@@ -500,7 +500,7 @@ Simple role assignment is really a very simple thing:
 ----
 
 Almost all of  the power is in the role definition.
-The wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC] and wiki:Roles+and+Policies+Configuration[Roles and Policies Configuration] pages provide much more details about RBAC and role definitions.
+The wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC] and xref:/midpoint/reference/roles-policies/roles-and-policies-configuration/[Roles and Policies Configuration] pages provide much more details about RBAC and role definitions.
 
 
 == Parametric Assignments
@@ -616,25 +616,25 @@ See wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC] for more details.
 
 == Enforcement Modes
 
-Main article: wiki:Projection+Policy[Projection Policy]
+Main article: xref:/midpoint/reference/synchronization/projection-policy/[Projection Policy]
 
 There are many ways how to resolve the difference between the policy (assignments) and reality.
-The goal of wiki:Projection+Policy[enforcement modes] is to determine account _legality_. I.e. midPoint computes whether the specific account (or any other _projection_) is legal or illegal.
+The goal of xref:/midpoint/reference/synchronization/projection-policy/[enforcement modes] is to determine account _legality_. I.e. midPoint computes whether the specific account (or any other _projection_) is legal or illegal.
 An account is legal if there is a valid assignment for it or if an enforcement mode allows it.
 E.g. in FULL enforcement mode the account is legal only if there is a valid assignment.
 In NONE enforcement mode the account is legal anytime it exists regardless of the assignments.
 
-The legality of the account is then used by the wiki:Resource+Schema+Handling:+Activation[activation] mechanism to determine what to do with the account.
+The legality of the account is then used by the xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[activation] mechanism to determine what to do with the account.
 The activation usually deals with illegal accounts and determines whether to delete the account, disable it or do any other action.
 
 
 == Assignments and Mappings
 
-Assignments are often created automatically by midPoint mappings, especially in the wiki:Object+Template[object template]. It is perfectly possible to create assignments using a `value`wiki:Expression[expression evaluator.] However this method works well only for simple cases.
-Therefore there is a specialized `assignmentTargetSearch`wiki:Expression[expression evaluator] designed for the very specific purpose of creating assignments.
+Assignments are often created automatically by midPoint mappings, especially in the xref:/midpoint/reference/expressions/object-template/[object template]. It is perfectly possible to create assignments using a `value`xref:/midpoint/reference/expressions/expressions/[expression evaluator.] However this method works well only for simple cases.
+Therefore there is a specialized `assignmentTargetSearch`xref:/midpoint/reference/expressions/expressions/[expression evaluator] designed for the very specific purpose of creating assignments.
 It is using a wiki:Object+Query[search query] to dynamically locate assignment targets.
 It can be configured using inner expressions which makes it a very powerful mechanism.
-See wiki:Expression[Expression] page for more details.
+See xref:/midpoint/reference/expressions/expressions/[Expression] page for more details.
 
 
 == Referential Integrity
@@ -657,16 +657,16 @@ See wiki:Relaxed+Referential+Integrity[Relaxed Referential Integrity] page for m
 
 * wiki:Entitlements[Entitlements]
 
-* wiki:Projection+Policy[Projection Policy]
+* xref:/midpoint/reference/synchronization/projection-policy/[Projection Policy]
 
 * wiki:Assigning+vs+Linking[Assigning vs Linking]
 
 * wiki:Assignment+vs+Inducement[Assignment vs Inducement]
 
-* wiki:Resource+Schema+Handling:+Activation[Resource Schema Handling: Activation]
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[Resource Schema Handling: Activation]
 
 * wiki:Focus+and+Projections[Focus and Projections]
 
-* wiki:Expression[Expression], especially part about assignment expressions
+* xref:/midpoint/reference/expressions/expressions/[Expression], especially part about assignment expressions
 
 * wiki:Relaxed+Referential+Integrity[Relaxed Referential Integrity]

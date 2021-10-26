@@ -49,7 +49,7 @@ wiki:Policy+Rules[Policy rules] that apply to the roles are evaluated and enforc
 == Configuration
 
 The "catalog and shopping cart" user interface is ready made and as most parts of midPoint user interface it automatically adapts to midPoint configuration.
-For example wiki:Role+Catalog[role catalog] set up and wiki:Authorization[authorizations] are automatically precessed, therefore only those roles that are actually requestable by the user are displayed.
+For example wiki:Role+Catalog[role catalog] set up and xref:/midpoint/reference/security/authorization/[authorizations] are automatically precessed, therefore only those roles that are actually requestable by the user are displayed.
 However there are still few things that may need to be customized.
 The customization of this part of the user interface is described in wiki:Role+Request+and+Shopping+Cart+Configuration[Role Request and Shopping Cart Configuration] page.
 

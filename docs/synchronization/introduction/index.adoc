@@ -92,7 +92,7 @@ The policy configuration is essentially just a set of defined reactions for each
 
 == See Also
 
-* wiki:Synchronization+Examples[Synchronization Examples]
+* xref:/midpoint/reference/synchronization/examples/[Synchronization Examples]
 
 * wiki:Synchronization+Flavors[Synchronization Flavors]
 

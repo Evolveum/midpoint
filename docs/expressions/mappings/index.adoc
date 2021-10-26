@@ -27,7 +27,7 @@ Source defines where mapping gets its data.
 
 * *Expression* part defines how the data are transformed, generated or passed on to the "other side".
 This is the most flexible part of the mapping as it contains logic.
-There is a broad variety of possibilities that are described in the wiki:Expression[Expression] page.
+There is a broad variety of possibilities that are described in the xref:/midpoint/reference/expressions/expressions/[Expression] page.
 
 * *Target* part defines what to do with the results of the mapping, where the computed values should go.
 
@@ -44,7 +44,7 @@ The source definition tells mapping that the value of `employeeNumber` user prop
 
 The expression part contains a simple Groovy script that prepends the prefix `emp#` to the employee number value specified by the source definition.
 The expression part of the mapping is very flexible and there is a lot of way that can be used to transform a value, generate new value, use a fixed value, pass a value without any change and so on.
-Because expressions are so flexible they are documented in a separate wiki:Expression[Expression] page.
+Because expressions are so flexible they are documented in a separate xref:/midpoint/reference/expressions/expressions/[Expression] page.
 
 The target part defines how the result of the expression should be used.
 In this case the result is to be used as a `description` account attribute.
@@ -251,7 +251,7 @@ This source will be accessible under the name `lastName` in the mapping expressi
 
 Please note that the names of expression variables are QNames (strictly speaking).
 This usually makes little difference in practice, but may cause some issues with expression script languages that are name namespace-sensitive such as XPath.
-See wiki:Expression[Expression] page for more details.
+See xref:/midpoint/reference/expressions/expressions/[Expression] page for more details.
 
 
 === Mapping Domain
@@ -297,7 +297,7 @@ It is also useful if we want to provide output values only for some input values
 This cannot be easily achieved by using mapping condition, as the condition will activate or deactivate entire mapping.
 The condition does not work for individual values.
 
-The domain is very useful especially for automatic wiki:Assignment[assignment] expressions in wiki:Object+Template[object template].
+The domain is very useful especially for automatic wiki:Assignment[assignment] expressions in xref:/midpoint/reference/expressions/object-template/[object template].
 
 
 === Mapping Range
@@ -375,7 +375,7 @@ This is also known as _tolerant_ behavior.
 
 Expression is the part of the mapping that contains transformation logic.
 It can contain a script expression, direct path expression, fixed value expression, generator or other expression type.
-There are many possibilities and they are described in wiki:Expression[Expression] page.
+There are many possibilities and they are described in xref:/midpoint/reference/expressions/expressions/[Expression] page.
 
 All expression types work with _variables_ as an input.
 Mapping is passing all the _sources_ as expression variables.
@@ -526,7 +526,7 @@ Which is a similar behavior as if reference time was not set.
 
 === Condition
 
-Condition is a special kind of wiki:Expression[expression] in the mapping that influences whether the mapping will be applied or not.
+Condition is a special kind of xref:/midpoint/reference/expressions/expressions/[expression] in the mapping that influences whether the mapping will be applied or not.
 If a condition evaluates to `true` value the mapping will be applied.
 If it evaluates to `false` then the mapping is not considered to be active.
 The condition can be used to set conditional property values, conditionally assign roles, define mapping constraints and so on.
@@ -593,7 +593,7 @@ If you need to "turn off" the mapping completely, the proper way is to set the c
 
 == Examples
 
-Following example provides wiki:Outbound+Mapping[outbound] mapping that is using wiki:Mappings+and+Expressions[script expression] written in Groovy language.
+Following example provides wiki:Outbound+Mapping[outbound] mapping that is using xref:/midpoint/reference/expressions/introduction/[script expression] written in Groovy language.
 The expression concatenates two string literals and the value of `name` property from the `user` variable.
 The mapping in _weak_ which means it will only be applied if there is no value already present (it constructs _default_ value).
 
@@ -699,7 +699,7 @@ See also wiki:Mapping+Evaluation+Examples[Mapping Evaluation Examples] page.
 
 == Expression Evaluators
 
-See wiki:Expression[Expression] page.
+See xref:/midpoint/reference/expressions/expressions/[Expression] page.
 
 
 == Mapping Options
@@ -948,7 +948,7 @@ For example `assignmentTargetSearch` expressions will handle multi-valued input 
 
 Evaluation of each value separately is a very convenient from a configuration and customization point of view.
 However, there is even a much deeper reason for this approach.
-Evaluation of each value individually supports midPoint's wiki:Relativity[relativity principle]. This is best explained using an example.
+Evaluation of each value individually supports midPoint's xref:/midpoint/reference/concepts/relativity/[relativity principle]. This is best explained using an example.
 Let's have a mapping that transforms all input values to upper case:
 
 [source,xml]
@@ -1016,7 +1016,7 @@ But again, non-script expressions such as `assignmentTargetSearch` will follow t
 
 === Why are the expressions and conditions evaluated several times?
 
-The short answer is: because of wiki:Relativity[relativity]. The long answer is indeed quite long and it is perhaps best explained using an example.
+The short answer is: because of xref:/midpoint/reference/concepts/relativity/[relativity]. The long answer is indeed quite long and it is perhaps best explained using an example.
 Let's have the same mapping as above that transforms lowercase characters to uppercase.
 Now consider a situation when invar was changed from "a" to "b".
 Simple thinking would suggest that we need to execute the expression for the input of "b", which will give us "B" and that's it.
@@ -1085,7 +1085,7 @@ What that delta is applied to the target property value [A, B, C] the result is 
 Thanks to the relativity mapping conditions can be used to conditionally add values, but they work equally well for removing values.
 This may seem overly complicated at the first sight.
 But it has enormous benefits.
-For example this approach allows easy automatic assignment of roles in wiki:Object+Template[object template]. In that case the role assignment is the expression and the condition tells when the role should be assigned.
+For example this approach allows easy automatic assignment of roles in xref:/midpoint/reference/expressions/object-template/[object template]. In that case the role assignment is the expression and the condition tells when the role should be assigned.
 When that condition becomes `false` then the role is unassigned.
 And no special mechanism was needed to implement this.
 It is all given by the relativistic behavior of mappings.
@@ -1197,6 +1197,6 @@ If you are midPoint link:https://evolveum.com/services/[subscriber], you can req
 
 ==  See Also
 
-* wiki:Mappings+and+Expressions[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
 * wiki:Mapping+Evaluation+Examples[Mapping Evaluation Examples]

@@ -124,7 +124,7 @@ After successful post-authentication normal assignments are taken into account.
 
 == See Also
 
-* wiki:Authorization[Authorization]
+* xref:/midpoint/reference/security/authorization/[Authorization]
 
 * wiki:Authorization+Configuration[Authorization Configuration]
 

@@ -11,7 +11,7 @@
 :page-toc: top
 
 
-wiki:Resource+Configuration[Resource Configuration] contains a specialized section that defines the behaviour of wiki:Synchronization[synchronization] mechanisms for the resource.
+xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration] contains a specialized section that defines the behaviour of xref:/midpoint/reference/synchronization/introduction/[synchronization] mechanisms for the resource.
 This section specifies how midPoint reacts when a new synchronization event is detected, e.g. an event that account is created or deleted.
 The reaction may be to create a new user, delete or disable existing user, to ignore the even and so on.
 This is all defined in this configuration section.
@@ -20,7 +20,7 @@ The synchronization section is used only if there is an external or unexpected e
 I.e. this section defines a reaction to *external* events.
 This section will *not* be used for events that are initiated by midPoint itself (e.g. a role-based provisioning).
 
-The wiki:Synchronization[Synchronization] page provides a generic introduction to midPoint synchronization feature.
+The xref:/midpoint/reference/synchronization/introduction/[Synchronization] page provides a generic introduction to midPoint synchronization feature.
 This page describes how to configure a synchronization policy for a resource.
 
 
@@ -70,11 +70,11 @@ It can be used for a very fine-grain selection of applicable policies.
 
 * *correlation* and *confirmation* expressions are used to locate appropriate focal object and to determine object wiki:Synchronization+Situations[situation] (see wiki:Correlation+and+Confirmation+Expressions[Correlation and Confirmation Expressions]).
 
-* *objectTemplateRef* is a reference to a specific wiki:Object+Template[object template] to be used in this case (e.g. when new user is created as a reaction to an event).
+* *objectTemplateRef* is a reference to a specific xref:/midpoint/reference/expressions/object-template/[object template] to be used in this case (e.g. when new user is created as a reaction to an event).
 
 * *reconcile* flag indicates whether an explicit reconciliation is requested as a reaction to this event.
 
-* *opportunistic* flag indicates whether midPoint should try to link and synchronize objects whenever possible (e.g. even during operations on other objects, see wiki:Consistency+mechanism[Consistency mechanism]). This is on by default.
+* *opportunistic* flag indicates whether midPoint should try to link and synchronize objects whenever possible (e.g. even during operations on other objects, see xref:/midpoint/reference/synchronization/consistency/[Consistency mechanism]). This is on by default.
 
 * *reaction* section defines how midPoint should react to individual synchronization situations.
 
@@ -392,7 +392,7 @@ The `addFocus` action is used to force the creation of new user:
 ----
 
 The new empty user will be created and the account will be linked to it.
-wiki:Inbound+Mapping[Inbound mappings] and wiki:Object+Template[object template] can be used to populate the empty user.
+wiki:Inbound+Mapping[Inbound mappings] and xref:/midpoint/reference/expressions/object-template/[object template] can be used to populate the empty user.
 In fact one of these must be used e.g. to set correct name for the new user.
 
 Non-authorative resource will typically react to `unmatched` situation in a very different way.
@@ -526,7 +526,7 @@ The `synchronization` section may be required even if you are not explicitly syn
 You may need it even if there is no live sync running and you have no inbound mappings.
 MidPoint is always consulting the <configuration> section when it finds a new resource object.
 And that can happen even if you do not have any explicit synchronization.
-E.g. it can happen during  wiki:Expression[associationTargetSearch expression], it can even happen during ordinary listing of resource objects, it can happen when midPoint discovers new group that is already associated with an account, etc.
+E.g. it can happen during  xref:/midpoint/reference/expressions/expressions/[associationTargetSearch expression], it can even happen during ordinary listing of resource objects, it can happen when midPoint discovers new group that is already associated with an account, etc.
 If the resource behaves correctly and you do not plan to do anything special with these objects you do not need to specify synchronization section at all.
 But you might need to specify the sections if you need some special handling - especially if you need to sort out the objects to wiki:Kind,+Intent+and+ObjectClass[intents].
 
@@ -591,7 +591,7 @@ The `reconcile` flag is generally used only to explicitly _force_ reconciliation
 
 Standard midPoint synchronization code will also process assignments.
 Therefore even if the account is linked to the user by synchronization code it does not mean that it will not be deleted later by the standard synchronization code.
-This may easily happen if the account is not assigned (which is likely) and the wiki:Projection+Policy[projection policy] is set to a strict setting.
+This may easily happen if the account is not assigned (which is likely) and the xref:/midpoint/reference/synchronization/projection-policy/[projection policy] is set to a strict setting.
 Adjust the projection policy (e.g. by using legalization option) to resolve the situation.
 
 *Compatibility note*: The versions before 3.0 had a slightly different concept of reactions and the internal implementation was very different.
@@ -602,7 +602,7 @@ As the older versions did not have the `synchronize` flag the side effect is tha
 
 == See Also
 
-* wiki:Synchronization[Synchronization]
+* xref:/midpoint/reference/synchronization/introduction/[Synchronization]
 
 * wiki:Synchronization+Flavors[Synchronization Flavors]
 
@@ -610,8 +610,8 @@ As the older versions did not have the `synchronize` flag the side effect is tha
 
 * wiki:Channels[Channels]
 
-* wiki:Synchronization+Examples[Synchronization Examples]
+* xref:/midpoint/reference/synchronization/examples/[Synchronization Examples]
 
 * wiki:Correlation+and+Confirmation+Expressions[Correlation and Confirmation Expressions]
 
-* wiki:Consistency+mechanism[Consistency mechanism]
+* xref:/midpoint/reference/synchronization/consistency/[Consistency mechanism]

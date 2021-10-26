@@ -11,7 +11,7 @@
 
 == Relativity
 
-MidPoint mappings are designed to work correctly with the wiki:Relativity[relative change model] that is a fundamental principle of midPoint operation.
+MidPoint mappings are designed to work correctly with the xref:/midpoint/reference/concepts/relativity/[relative change model] that is a fundamental principle of midPoint operation.
 Simply speaking the mapping does not just maps the source values to the target values.
 It also maps the corresponding deltas.
 
@@ -198,7 +198,7 @@ For example:
 </item>
 ----
 
-This wiki:Object+Template[object template] mapping will set the organization property of a user to `ACME, Inc.` in case that the cost center code starts with letter A. Mapping expression is completely static literal value.
+This xref:/midpoint/reference/expressions/object-template/[object template] mapping will set the organization property of a user to `ACME, Inc.` in case that the cost center code starts with letter A. Mapping expression is completely static literal value.
 Yet the mapping is behaving in the usual relativistic way because there is an condition.
 When the condition becomes `true` then `ACME, Inc.` is added.
 When the condition becomes `false` then `ACME, Inc.` is removed.
@@ -220,7 +220,7 @@ But it cannot control other processing of that value that takes place in the map
 
 == Limitations
 
-While midPoint is built with wiki:Relativity[Relativity] in mind, this relativity is not complete.
+While midPoint is built with xref:/midpoint/reference/concepts/relativity/[Relativity] in mind, this relativity is not complete.
 MidPoint evolution, and especially financial and scheduling constraints, forced us to make compromises during midPoint development.
 This does not affect correctness of midPoint computation, but it may affect performance.
 The deployments that rely on a lightweight processing of large number of small changes may be affected.
@@ -229,8 +229,8 @@ Please see wiki:Complete+Relativity[Complete Relativity] page for more details.
 
 == See Also
 
-* wiki:Relativity[Relativity]
+* xref:/midpoint/reference/concepts/relativity/[Relativity]
 
-* wiki:Mappings+and+Expressions[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
 * wiki:Complete+Relativity[Complete Relativity]

@@ -25,7 +25,7 @@ An account is legal if there is a valid assignment for it or if an enforcement m
 E.g. in FULL enforcement mode the account is legal only if there is a valid assignment.
 In NONE enforcement mode the account is legal anytime it exists regardless of the assignments.
 
-The legality of the account is then used by the wiki:Resource+Schema+Handling:+Activation[activation] mechanism to determine what to do with the account.
+The legality of the account is then used by the xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[activation] mechanism to determine what to do with the account.
 The activation usually deals with illegal accounts and determines whether to delete the account, disable it or do any other action.
 
 
@@ -85,7 +85,7 @@ The projection policy can be configured at several layers:
 * Resource: the setting applies to all objects in that specific resource.
 Overrides system configuration
 
-* wiki:Resource+Schema+Handling[Resource Schema Handling] per objectType definition.
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] per objectType definition.
 Overrides resource and system configuration.
 
 The options can be set in System Configuration object as illustrated by following example:

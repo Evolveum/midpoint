@@ -88,7 +88,7 @@ Please see wiki:Complete+Relativity[Complete Relativity] page for more details.
 
 == See Also
 
-* wiki:Consistency+Model[Consistency Model]
+* xref:/midpoint/architecture/concepts/consistency-model/[Consistency Model]
 
 * wiki:Mapping+Relativity[Mapping Relativity]
 

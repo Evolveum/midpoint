@@ -49,7 +49,7 @@ It can be used to access the data using a variety of interfaces, parse and seria
 This is the basic framework of midPoint data therefore it is also used in all midPoint Java interfaces.
 Please have a look at xref:/midpoint/devel/prism/[Prism] page to get a generic introduction to the framework.
 
-MidPoint is designed to work with wiki:Relativity[relative change model.] This model is built deeply into the basic midPoint functionality.
+MidPoint is designed to work with xref:/midpoint/reference/concepts/relativity/[relative change model.] This model is built deeply into the basic midPoint functionality.
 Therefore it is obvious that also midPoint interfaces will work with wiki:Deltas[deltas]. Similarly to the objects the Java interfaces to midPoint are using deltas provided by xref:/midpoint/devel/prism/[prism framework]. Prism deltas are designed especially to work with prism objects and together they work a complete and elegant data representation and management solution.
 
 As midPoint is heavily relying on prism framework an instance of _prism context_ is sometimes needed to complete some tasks.
@@ -111,7 +111,7 @@ A common set of exceptions is defined in the wiki:Infrastructure+Subsystem[Infra
 Most of the exceptions are checked exceptions that define a specific circumstances (semantics) of the error.
 Therefore it is usually sufficient to react to (catch) a specific exception to handle the error.
 However the exception is only thrown if the whole operation fails or if an unexpected situation with unpredictable results occurs (e.g. out of memory error).
-More sophisticated error handling is possible by inspecting the wiki:OperationResult[Operation Result]. E.g. if a user is modified, the modification is reflected to several accounts using wiki:Mapping[mappings], some of account modification succeed and one of the account modification fails then an exception is *not* thrown.
+More sophisticated error handling is possible by inspecting the wiki:OperationResult[Operation Result]. E.g. if a user is modified, the modification is reflected to several accounts using xref:/midpoint/reference/expressions/mappings/[mappings], some of account modification succeed and one of the account modification fails then an exception is *not* thrown.
 In such case the the operation returns as in it would after a successful operation.
 Operation result structure will be filled with details of every significant sub-operation.
 The overall status will indicate _partial error_ and one of the sub-operations will be set to _fatal error_. As this structure is intended for human readability and machine processability it can be used for variety of purposes.

@@ -7,7 +7,7 @@
 :page-wiki-metadata-modify-date: 2012-11-26T15:27:58.648+01:00
 :page-upkeep-status: orange
 
-wiki:Synchronization[Synchronization] mechanism makes sure that the state of accounts corresponds to the state of the user that owns them with respect to the configured policies.
+xref:/midpoint/reference/synchronization/introduction/[Synchronization] mechanism makes sure that the state of accounts corresponds to the state of the user that owns them with respect to the configured policies.
 For this to work properly there needs to be a way how to set which user owns which account.
 Account wiki:Assigning+vs+Linking[linking] is used as a primary mechanisms for this.
 The links are created automatically when account is created as a consequence of user modification (e.g. a role is wiki:Assignment[assigned] to the user).
@@ -35,7 +35,7 @@ Therefore it can overcome the ambiguity of account username `jsparrow` by using 
 
 image::synchronization-correlation.png[]
 
-Correlation expression is in fact just a (parametric) search query, i.e. correlation expression is just a wiki:XML+Object+Query[search filter] with an wiki:Expression[expression] inside.
+Correlation expression is in fact just a (parametric) search query, i.e. correlation expression is just a wiki:XML+Object+Query[search filter] with an xref:/midpoint/reference/expressions/expressions/[expression] inside.
 See wiki:XML+Object+Query[XML Object Query] page for more details.
 
 If correlation expression matches no user then it is assumed that the account has no owner.

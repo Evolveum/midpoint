@@ -22,8 +22,8 @@ If you are midPoint Platform subscriber and this feature is within the goals of 
 
 == Motivation
 
-MidPoint wiki:Expression[expressions] are a very flexible tool that can be used to customize midPoint behavior almost to the extreme.
-Expressions are used everywhere: wiki:Mapping[mappings], role conditions, reports and all the way up to user interface customization.
+MidPoint xref:/midpoint/reference/expressions/expressions/[expressions] are a very flexible tool that can be used to customize midPoint behavior almost to the extreme.
+Expressions are used everywhere: xref:/midpoint/reference/expressions/mappings/[mappings], role conditions, reports and all the way up to user interface customization.
 This flexibility is a fundamental part of midPoint design and it work incredibly well.
 
 However, flexibility also has a dark side.
@@ -89,6 +89,6 @@ Please see wiki:Expression+Profiles:+Full+Implementation[Expression Profiles: Fu
 
 * xref:configuration.adoc[]
 
-* wiki:Mappings+and+Expressions[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
 * wiki:Security+Guide[Security Guide]

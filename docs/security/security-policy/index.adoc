@@ -233,11 +233,11 @@ The security policy object is usually referenced from wiki:System+Configuration+
 
 Security policy referenced in this way is considered to be a global security policy.
 It defines the setting for the whole system.
-Since midPoint 3.6 the security policy may also be specified for each wiki:Organizational+Structure[organizational unit].
+Since midPoint 3.6 the security policy may also be specified for each xref:/midpoint/reference/org/organizational-structure/[organizational unit].
 
 
 == See Also
 
 * wiki:Password-Related+Configuration[Password-Related Configuration]
 
-* wiki:Password+Policy[Password Policy]
+* xref:/midpoint/reference/security/credentials/password-policy/[Password Policy]

@@ -11,7 +11,7 @@
 
 == Synchronization
 
-One of the primary function of midPoint is to wiki:Synchronization[synchronize] data between objects residing on resources over the network.
+One of the primary function of midPoint is to xref:/midpoint/reference/synchronization/introduction/[synchronize] data between objects residing on resources over the network.
 MidPoint approach is to avoid the complexity of synchronization everything with everything.
 As the name of midPoint suggests there is always something in the middle.
 E.g. midPoint never synchronizes an account directly to another account.
@@ -45,7 +45,7 @@ image::focus-projection-2.png[]
 
 
 
-The projection shadows are then synchronized with the focus by using midPoint wiki:Synchronization[synchronization] mechanisms, mostly wiki:Inbound+Mapping[inbound mappings] and wiki:Outbound+Mapping[outbound mappings]:
+The projection shadows are then synchronized with the focus by using midPoint xref:/midpoint/reference/synchronization/introduction/[synchronization] mechanisms, mostly wiki:Inbound+Mapping[inbound mappings] and wiki:Outbound+Mapping[outbound mappings]:
 
 image::focus-projection-3.png[]
 
@@ -85,7 +85,7 @@ Projections are simply resource objects represented by wiki:Shadow+Objects[shado
 
 == See Also
 
-* wiki:Synchronization[Synchronization]
+* xref:/midpoint/reference/synchronization/introduction/[Synchronization]
 
 * wiki:Generic+Synchronization[Generic Synchronization]
 

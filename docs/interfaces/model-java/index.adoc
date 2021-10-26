@@ -24,7 +24,7 @@ This is the primary and most important midPoint interface.
 
 Implementation of this interface are enforcing a consistency of access control decisions and model, e.g. to enforcing Role-Based Access Control (RBAC) and other policies, making sure that the mappings are applied properly, etc.
 
-For general introduction to interface concepts please see wiki:Common+Interface+Concepts[Common Interface Concepts] page.
+For general introduction to interface concepts please see xref:/midpoint/architecture/concepts/common-interface-concepts/[Common Interface Concepts] page.
 
 There is also a web service version of this interface.
 See wiki:IDM+Model+Web+Service+Interface[IDM Model Web Service Interface] for description.

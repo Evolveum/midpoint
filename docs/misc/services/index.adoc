@@ -42,7 +42,7 @@ It can be said that working with services is divided into two parts:
 
 So, defining service means to create new object of type ServiceType.
 It is needed to fill required attributes and all other setting according to the service requirements.
-If the standard attributes defined in the schema for ServiceType are not satisfactory, wiki:Custom+Schema+Extension[extension schema] can be used.
+If the standard attributes defined in the schema for ServiceType are not satisfactory, xref:/midpoint/reference/schema/custom-schema-extension/[extension schema] can be used.
 The service provisioning is shown on the picture bellow.
 It consist of ServiceType, meta-role definition and the target system (resource) where the new service will be created.
 
@@ -67,7 +67,7 @@ It is planned to support automatic creation of resource definition for service.
 But for now, this step needs to be provided manually.
 E.g. if the new service defined and provisioned was some unix virtual machine (VM), you will probably want to manage also users for this new VM.
 It can be achieved by configuring UNIX Connector.
-There exists a lot of connector which can be used with midPoint (wiki:Identity+Connectors[listed here]). After the resource is created for the service, provisioning for users and their access right for the service can start.
+There exists a lot of connector which can be used with midPoint (xref:/connectors/connectors/[listed here]). After the resource is created for the service, provisioning for users and their access right for the service can start.
 
 image::userServiceAssignment.png[]
 
@@ -94,6 +94,6 @@ The brief comparison which object type to use in which situation can be also fin
 
 * wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
 
-* wiki:Organizational+Structure[Organizational Structure]
+* xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]
 
 * wiki:Roles,+Services+and+Orgs[Roles, Services and Orgs]

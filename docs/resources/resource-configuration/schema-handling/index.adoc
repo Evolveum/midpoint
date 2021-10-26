@@ -12,18 +12,18 @@
 
 == Introduction
 
-Resource Schema Handling is a definition of how the wiki:Resource+Schema[Resource Schema] is used by midPoint.
+Resource Schema Handling is a definition of how the xref:/midpoint/reference/resources/resource-schema/[Resource Schema] is used by midPoint.
 Simply speaking, Resource Schema Handling defines how the individual attributes should be named, whether they are readable or writeable, how to fill the values of such attributes if new account is being created, how to use the attributes if a change is detected on the resource, etc.
 
-The Resource Schema Handling is related to the wiki:Resource+Schema[Resource Schema], but there is a fundamental distinction:
+The Resource Schema Handling is related to the xref:/midpoint/reference/resources/resource-schema/[Resource Schema], but there is a fundamental distinction:
 
-* wiki:Resource+Schema[Resource Schema] specifies *capabilities of the Resource and Connector*. If does not define how the schema is used (although it may suggest it).
+* xref:/midpoint/reference/resources/resource-schema/[Resource Schema] specifies *capabilities of the Resource and Connector*. If does not define how the schema is used (although it may suggest it).
 
 *  specifies the *decisions of IDM administrators*. It defines how the Resource Schema is used by midPoint to implement parts of IDM logic, present the data to the user, etc.
 
 image::schemas-schemahandling-overview.png[]
 
-While wiki:Resource+Schema[Resource Schema] is usually generated from the Resource by the connector, the Resource Schema Handling must be manually defined by the IDM administrator.
+While xref:/midpoint/reference/resources/resource-schema/[Resource Schema] is usually generated from the Resource by the connector, the Resource Schema Handling must be manually defined by the IDM administrator.
 Adapting Resource Schema Handling is an substantial part of midPoint customization.
 
 Schema handling defines account types and entitlement types.
@@ -56,7 +56,7 @@ See the wiki:Kind,+Intent+and+ObjectClass[Kind, Intent and ObjectClass] page for
 
 === Object Class
 
-wiki:Resource+Schema[Object Class] is a type of the object how the _resource_ understands it.
+xref:/midpoint/reference/resources/resource-schema/[Object Class] is a type of the object how the _resource_ understands it.
 It is therefore a "technical" type of the resource object.
 Object classes are presented to midPoint by the connector.
 But midPoint usually does not know what to do with a specific object class, e.g. an LDAP objectclass `inetOrgPerson`. Therefore midPoint sorts out the object class to _kind_ and _intent_ as specified above.
@@ -73,7 +73,7 @@ See wiki:Kind,+Intent+and+ObjectClass[Kind, Intent and ObjectClass] page for mor
 Object type definition specifies a specific object type on the Resource should look like and how it should behave.
 The definition is identified by the (kind, intent) tuple.
 E.g. there is usually at least one definition for default account object type (kind=account, intent=default).
-The definition specifies what wiki:Resource+Schema[Object Class] to use for such objects, how to handle the attributes, how to determine attribute values, etc.
+The definition specifies what xref:/midpoint/reference/resources/resource-schema/[Object Class] to use for such objects, how to handle the attributes, how to determine attribute values, etc.
 
 The resource object definition specified using the `objectType` element in schema handling section.
 It contains:
@@ -93,7 +93,7 @@ Only a single intent can be marked as default for each object kind in the scope 
 
 * *Object Class* of the resource object.
 This object class will be used when resource objects of this type are created.
-It must refer to exiting definition in the wiki:Resource+Schema[Resource Schema]. This is the _structural_ (primary) object class of the object.
+It must refer to exiting definition in the xref:/midpoint/reference/resources/resource-schema/[Resource Schema]. This is the _structural_ (primary) object class of the object.
 It defines all its fundamental characteristics.
 There must be precisely one (structural) object class for each object.
 
@@ -133,7 +133,7 @@ It may also contain wiki:Inbound+Mapping[Inbound Mapping] but as most resources 
 
 
 
-* *wiki:Resource+Schema+Handling:+Activation[Activation]* handling defines how the activation status of the account is synchronized.
+* *xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[Activation]* handling defines how the activation status of the account is synchronized.
 It usually contains section for:
 
 ** *Existence mapping* determines when the object should and should not exist.
@@ -248,7 +248,7 @@ This is quite obvious, as the attribute cannot hold more than one value and ther
 In case of tolerant multi-value attributes, midPoint will not overwrite existing values.
 The values provided by midPoint will be added to existing values of the attribute.
 However, midPoint may delete existing value of the attribute even if that attribute is tolerant.
-MidPoint will do that in case that such value is removed from midPoint (e.g. by unassigning a role) and that such value was given by authoritative wiki:Mapping[mapping]. In this case midPoint cannot reliably distinguish whether this particular value was added to the resource by midPoint or whether the value existed in the account even before midPoint discovered it.
+MidPoint will do that in case that such value is removed from midPoint (e.g. by unassigning a role) and that such value was given by authoritative xref:/midpoint/reference/expressions/mappings/[mapping]. In this case midPoint cannot reliably distinguish whether this particular value was added to the resource by midPoint or whether the value existed in the account even before midPoint discovered it.
 But the usual case is that midPoint added the value and that is what midPoint will assume in this case.
 Therefore such value is removed even if the attribute is non-tolerant.
 If you want avoid removing the value then you can set the mapping to be non-authoritative.
@@ -279,7 +279,7 @@ Therefore please forgive us this little non-intuitive weirdness.
 
 === Mappings
 
-Perhaps the most powerful parts of the definition are wiki:Mapping[mappings] that take two slightly distinct forms:
+Perhaps the most powerful parts of the definition are xref:/midpoint/reference/expressions/mappings/[mappings] that take two slightly distinct forms:
 
 * *wiki:Outbound+Mapping[Outbound Mapping]* defines how the attribute value is created when the account is created or updated.
 It defines the data flow out of midPont to the resource.
@@ -484,8 +484,8 @@ In that case, attributes with numerically lowest adding priority would be used t
 == Resource Schema Annotations
 
 To make the job of IDM administrator easier, well-written connectors will provide reasonable default values for some of the schema handling parameters.
-Such defaults are specified in the wiki:Resource+Schema[Resource Schema] in a form of XSD annotations.
-See wiki:Resource+Schema[Resource Schema] for more details.
+Such defaults are specified in the xref:/midpoint/reference/resources/resource-schema/[Resource Schema] in a form of XSD annotations.
+See xref:/midpoint/reference/resources/resource-schema/[Resource Schema] for more details.
 
 In the extreme case the entire Resource Schema Handling part is optional.
 All the details may be default to values defined in the Resource Schema annotations.
@@ -494,7 +494,7 @@ But that is expected to be a very rare case.
 
 == See Also
 
-* wiki:Resource+Schema[Resource Schema]
+* xref:/midpoint/reference/resources/resource-schema/[Resource Schema]
 
 * wiki:Shadow+Objects[Shadow Objects]
 

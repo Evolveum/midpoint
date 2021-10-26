@@ -7,15 +7,15 @@
 :page-wiki-metadata-modify-date: 2019-12-06T10:14:33.583+01:00
 :page-upkeep-status: orange
 
-Synchronization tasks are midPoint wiki:Task[server tasks] that handle bulk wiki:Synchronization[synchronization] of midpoint objects.
+Synchronization tasks are midPoint wiki:Task[server tasks] that handle bulk xref:/midpoint/reference/synchronization/introduction/[synchronization] of midpoint objects.
 Synchronization tasks typically take care of scheduled user reconciliation or continuous live synchronization.
 But the tasks can be used in an ad-hoc manner to handle migration tasks such as initial user import or cleanup and administration tasks such as ad-hoc user recompute.
 
 [TIP]
 ====
-All the synchronization tasks are using the same wiki:Synchronization[synchronization mechanism]. See the wiki:Synchronization[Synchronization] page for an introduction.
+All the synchronization tasks are using the same xref:/midpoint/reference/synchronization/introduction/[synchronization mechanism]. See the xref:/midpoint/reference/synchronization/introduction/[Synchronization] page for an introduction.
 
-For all the synchronization tasks to work correctly the wiki:Synchronization+Configuration[synchronization section] of wiki:Resource+Configuration[resource configuration] must be set up properly.
+For all the synchronization tasks to work correctly the wiki:Synchronization+Configuration[synchronization section] of xref:/midpoint/reference/resources/resource-configuration/[resource configuration] must be set up properly.
 See wiki:Synchronization+Configuration[Synchronization Configuration] page for more details.
 ====
 
@@ -104,7 +104,7 @@ The following task will import all objects of `inetOrgPerson` object class from 
 
 == See Also
 
-* wiki:Synchronization[Synchronization]
+* xref:/midpoint/reference/synchronization/introduction/[Synchronization]
 
 * wiki:Synchronization+Configuration[Synchronization Configuration]
 

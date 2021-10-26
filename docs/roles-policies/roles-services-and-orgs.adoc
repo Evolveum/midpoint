@@ -18,7 +18,7 @@ Therefore this page explains what roles, services and orgs have in common and ho
 Roles give _privileges_ to users (or other objects).
 Roles enable users to do something that they would not be able to do without the role.
 Roles can be wiki:Advanced+Hybrid+RBAC[very flexible and dynamic]. There can be hierarchical roles, conditional roles, parametric roles, etc.
-Generally speaking roles can contain wiki:Mappings+and+Expressions[mappings and expressions] to create a very dynamic structures.
+Generally speaking roles can contain xref:/midpoint/reference/expressions/introduction/[mappings and expressions] to create a very dynamic structures.
 Roles can be personalized for each particular user, e.g. by using wiki:Assignment[assignment parameters].
 
 * *wiki:Services[Services]* are used to represent servers, mobile devices, printers, virtual machines, "things" (as in IoT) and other objects whose are not entirely users, orgs or roles.
@@ -26,7 +26,7 @@ Each service can also behave as a role.
 You can use service to define provisioning and access control rules, but you can also provision the services itself.
 
 
-* *wiki:Organizational+Structure[Orgs]* are used to _group_ users or other objects.
+* *xref:/midpoint/reference/org/organizational-structure/[Orgs]* are used to _group_ users or other objects.
 Orgs can be used to create a functional organization trees.
 Orgs can be used to create flat project-like structures.
 Orgs can be used to have both of these structures at the same time.
@@ -123,6 +123,6 @@ If a sub-org belongs to a super-org this does *not* mean that the sub-org automa
 
 * wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
 
-* wiki:Organizational+Structure[Organizational Structure]
+* xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]
 
 * wiki:Services[Services]

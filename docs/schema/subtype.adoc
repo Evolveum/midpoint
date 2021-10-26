@@ -11,7 +11,7 @@
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
-MidPoint has several built-in object types such as wiki:Advanced+Hybrid+RBAC[roles], wiki:Organizational+Structure[orgs], and wiki:Services[services]. Those object types may look innocent at the first sight.
+MidPoint has several built-in object types such as wiki:Advanced+Hybrid+RBAC[roles], xref:/midpoint/reference/org/organizational-structure/[orgs], and wiki:Services[services]. Those object types may look innocent at the first sight.
 They look like ordinary concepts that almost any other IDM system has.
 But there is much more under the surface.
 Roles, orgs, and services can act as a smart replacement for wiki:Generic+Objects[generic objects]. Roles, orgs, and services can be used to model a broad variety of object types: job categories, titles, projects, teams, responsibilities, locations, policy categories, devices, ...
@@ -19,7 +19,7 @@ Roles, orgs, and services can act as a smart replacement for wiki:Generic+Object
 Subtype is a schema property that can be used to distinguish those data types.
 It is simple, multi-valued property.
 Currently, there is just a very little logic associated with subtype.
-E.g. wiki:Object+Template[object template] can be applied on per-subtype-basis.
+E.g. xref:/midpoint/reference/expressions/object-template/[object template] can be applied on per-subtype-basis.
 However, as many midPoint mechanisms use search filters, subtype can be very useful.
 E.g. subtype can be easily used in authorizations, global policy rules and so on.
 

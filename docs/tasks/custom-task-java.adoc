@@ -7,7 +7,7 @@
 :page-wiki-metadata-modify-date: 2016-12-21T11:19:23.799+01:00
 :page-upkeep-status: yellow
 
-MidPoint wiki:Task+Manager[Task Manager] is designed for extensibility.
+MidPoint xref:/midpoint/reference/tasks/task-manager/[Task Manager] is designed for extensibility.
 It can manage any kind of task.
 Each task has two parts: The definition (TaskType object) and the code.
 
@@ -105,7 +105,7 @@ The task instance is passed as a parameter.
 
 == See Also
 
-* wiki:Task+Manager[Task Manager]
+* xref:/midpoint/reference/tasks/task-manager/[Task Manager]
 
 * wiki:Task+Manager+Interface[Task Manager Interface]
 

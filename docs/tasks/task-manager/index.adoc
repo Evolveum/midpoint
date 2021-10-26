@@ -284,7 +284,7 @@ More advanced installations could use *JDBC-based Quartz job store* - a store th
 
 === Task Manager Configuration and Administration
 
-This topic is discussed in detail in wiki:Administration+Interface[Administration Interface].
+This topic is discussed in detail in xref:/midpoint/guides/admin-gui-user-guide/[Administration Interface].
 
 
 === Authorizing specific operations

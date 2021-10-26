@@ -247,6 +247,6 @@ Use validity dates for that purpose.
 
 == See Also
 
-* wiki:Resource+Schema+Handling:+Activation[Resource Schema Handling: Activation]
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[Resource Schema Handling: Activation]
 
 * wiki:Object+Lifecycle[Object Lifecycle]

@@ -68,7 +68,7 @@ $focus/activation/administrativeStatus
 == Variable vs Source
 
 Every programmer knows what an variable is.
-But variables are usually too simple to handle the wiki:Relativity[relative change model] used in midPoint.
+But variables are usually too simple to handle the xref:/midpoint/reference/concepts/relativity/[relative change model] used in midPoint.
 In midPoint we do not just need to know that user property `organization` has a values `foo` and `bar`. What we need to know is that before the operation there was a value of `foo`. Even more important is to know the currently processed operation is adding the value of `bar`. Why we need that? There are two reasons:
 
 Firstly, the variables may be multi-value and in that case we want to  transform each value individually.
@@ -108,7 +108,7 @@ MidPoint will keep track which values are added and which are removed so the exp
 The expression will simply transform each value.
 MidPoint will do all the other complex stuff.
 
-The concept of source is specific to the concept of wiki:Mapping[mapping]. Mapping is the magic stuff that takes care of the complexity associated with the relative changes.
+The concept of source is specific to the concept of xref:/midpoint/reference/expressions/mappings/[mapping]. Mapping is the magic stuff that takes care of the complexity associated with the relative changes.
 Therefore sources can be used everywhere where the expression is inside a mapping (inbound, outbound, object template, ...). It cannot be used outside of the mapping (e.g. in correlation expression).
 In that case there is no relativistic change which means that the source is not needed at all and normal variables will do just fine.
 
@@ -217,7 +217,7 @@ It may be currently logged-in user (for synchronous operations) or owner of the 
 | everywhere
 |
 | Contains system configuration object.
-The wiki:Custom+Schema+Extension[extension] of system configuration may be used to contains system-wide configuration and constants.
+The xref:/midpoint/reference/schema/custom-schema-extension/[extension] of system configuration may be used to contains system-wide configuration and constants.
 
 
 | `iteration`
@@ -242,7 +242,7 @@ The actual value is determined by the iteration settings.
 |
 | Set to true if the processed projection is legal, i.e. when it should exist.
 The projection is usually legal if there is an wiki:Assignment[assignment] for it.
-But the projection may also be legal without an assignment, e.g. if wiki:Projection+Policy[assignment policy enforcement] is set to NONE.
+But the projection may also be legal without an assignment, e.g. if xref:/midpoint/reference/synchronization/projection-policy/[assignment policy enforcement] is set to NONE.
 
 
 | `assigned`
@@ -290,7 +290,7 @@ Used in the inbound script expression when there is a need to manage group membe
 
 In addition to these variables there are other special purpose variables.
 These are documented on a separate pages that document the mechanism.
-E.g. the variables specific to assignment processing are described in the wiki:Assignment+Configuration[Assignment Configuration] page.
+E.g. the variables specific to assignment processing are described in the xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] page.
 
 
 == Alternative Variable Names and Missing Variables
@@ -313,8 +313,8 @@ Please wiki:Creating+a+Bug+Report[report the bug]. We will fix that.
 
 == See Also
 
-* wiki:Expression[Expression]
+* xref:/midpoint/reference/expressions/expressions/[Expression]
 
-* wiki:Mapping[Mapping]
+* xref:/midpoint/reference/expressions/mappings/[Mapping]
 
 * wiki:Troubleshooting+Mappings[Troubleshooting Mappings]

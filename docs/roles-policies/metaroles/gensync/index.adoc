@@ -263,6 +263,6 @@ index -2 is the one before and so on.
 
 * wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
 
-* wiki:Roles+and+Policies+Configuration[Roles and Policies Configuration]
+* xref:/midpoint/reference/roles-policies/roles-and-policies-configuration/[Roles and Policies Configuration]
 
 * wiki:Assignment+vs+Inducement[Assignment vs Inducement]

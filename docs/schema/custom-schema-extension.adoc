@@ -155,7 +155,7 @@ A more complex schema examples are provided in the git link:https://github.com/E
 Currently the custom schema extension has to be available to midPoint at the startup time.
 Therefore it is not stored in the identity repository (database) and cannot be dynamically changed when the system is running.
 
-The schema files have to be placed in the `schema` subdirectory of wiki:MidPoint+Home+Directory[midpoint.home directory]. The name of the file does not matter as long as it ends with `.xsd` extension.
+The schema files have to be placed in the `schema` subdirectory of xref:/midpoint/reference/deployment/midpoint-home-directory/[midpoint.home directory]. The name of the file does not matter as long as it ends with `.xsd` extension.
 There also may be subdirectories.
 When MidPoint starts it scans the directory and all subdirectories and loads all the schemas that it finds there.
 

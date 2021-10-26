@@ -46,7 +46,7 @@ The simple approach leads to wiki:Role+Explosion[role explosion]. The roles need
 MidPoint role can also specific attributes for the account, e.g. a specific text in the account description field.
 Attribute values implied by the roles may be fixed (static), but that is usually not sufficient to avoid a role explosion problem.
 More frequently the implied attributes are derived from other values, e.g. fields of the User object.
-wiki:Mappings+and+Expressions[Mappings and expressions] are used to define dynamic implied account attributes.
+xref:/midpoint/reference/expressions/introduction/[Mappings and expressions] are used to define dynamic implied account attributes.
 The expression model is extensible, there are several supported scripting languages and even more expression languages may be added in the future.
 
 Implied account attributes usually do not need to define the entire set of account attributes.
@@ -75,7 +75,7 @@ MidPoint aims at substantial improvement in this field.
 
 Roles can naturally contain other roles therefore creating a role hierarchy.
 Role hierarchies can be quite complex both in their structure and embedded logic.
-As midPoint uses the wiki:Relativity[relative change model] it is quite easy to merge values from many roles and therefore it allows creation of very complex RBAC structures.
+As midPoint uses the xref:/midpoint/reference/concepts/relativity/[relative change model] it is quite easy to merge values from many roles and therefore it allows creation of very complex RBAC structures.
 Important parts of the hierarchy are exposed to the expressions in individual roles therefore the role hierarchies can be combined with parametric roles (see below) to support very complex and flexible RBAC-like models.
 
 image::rbac-6.png[]
@@ -124,13 +124,13 @@ But how does midPoint know on which resources the groups should be created? And 
 MidPoint already has a mechanism for this: RBAC. And by following wiki:Approach[midPoint approach] we try to apply existing mechanisms as much as possible and practical.
 Therefore we have applied the mechanism or roles to the roles themselves.
 Thus creating a concept of meta-roles (and meta-meta-roles and meta-meta-meta-roles, ...) This may sound crazy but it in fact a very elegant and powerful mechanism.
-See wiki:Roles+and+Policies+Configuration[Roles and Policies Configuration] and wiki:Generic+Synchronization[Generic Synchronization] for more details.
+See xref:/midpoint/reference/roles-policies/roles-and-policies-configuration/[Roles and Policies Configuration] and wiki:Generic+Synchronization[Generic Synchronization] for more details.
 
 
 == See Also
 
-* wiki:Roles+and+Policies+Configuration[Roles and Policies Configuration] section in wiki:Documentation[Documentation]
+* xref:/midpoint/reference/roles-policies/roles-and-policies-configuration/[Roles and Policies Configuration] section in wiki:Documentation[Documentation]
 
 * wiki:Assignment[Assignment]
 
-* wiki:Mappings+and+Expressions[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]

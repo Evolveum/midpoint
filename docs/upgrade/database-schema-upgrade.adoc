@@ -67,6 +67,6 @@ A notable exception is midPoint 4.1 that uses database schema version 4.0. So, i
 
 * wiki:Upgradeability[Upgradeability]
 
-* wiki:Upgrade+HOWTO[Upgrade HOWTO]
+* xref:/midpoint/reference/upgrade/upgrade-guide/[Upgrade HOWTO]
 
 * wiki:Database+schema+versioning[Database schema versioning]

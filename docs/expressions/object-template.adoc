@@ -13,7 +13,7 @@
 == Introduction
 
 Object template is an object that holds a set of rules how a specific object type (e.g. user) should be constructed.
-It usually contains wiki:Mappings+and+Expressions[mappings] that either compute user properties or assign accounts and roles to the user (usually with a condition).
+It usually contains xref:/midpoint/reference/expressions/introduction/[mappings] that either compute user properties or assign accounts and roles to the user (usually with a condition).
 
 User template can be used for a variety of very interesting identity management configuration.
 For example:
@@ -119,7 +119,7 @@ The power of midPoint is to have simple principles (such as object template) tha
 
 There is also another reason for *not* including account in object templates.
 The object template may be used even if the account is not available, e.g. when user is changed from the GUI.
-MidPoint is using wiki:Relativity[relative changes] therefore it is not always required to read all the accounts to process a change.
+MidPoint is using xref:/midpoint/reference/concepts/relativity/[relative changes] therefore it is not always required to read all the accounts to process a change.
 And in fact the account may not even be available (e.g. because resource is temporarily down).
 Therefore it would be a very inconvenient and inefficient if account attributes are used in object templates.
 
@@ -142,6 +142,6 @@ Inbound mappings will make sure that these data are as fresh as possible.
 
 == See Also
 
-* wiki:Mappings+and+Expressions[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
-* wiki:Synchronization+Examples[Synchronization Examples]
+* xref:/midpoint/reference/synchronization/examples/[Synchronization Examples]

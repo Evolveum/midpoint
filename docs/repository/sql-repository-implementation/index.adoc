@@ -32,7 +32,7 @@ It will use embedded H2 database which will be placed in `midpoint.home` folder.
 </configuration>
 ----
 
-For more complex configurations using different DB vendors see wiki:Repository+Configuration[Repository Configuration].
+For more complex configurations using different DB vendors see xref:/midpoint/reference/repository/generic/configuration/[Repository Configuration].
 
 == DB tables, structures
 

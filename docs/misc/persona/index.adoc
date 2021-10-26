@@ -65,7 +65,7 @@ Please see wiki:Persona+Configuration[Persona Configuration] page for configurat
 
 * wiki:Basic+Data+Model[Basic Data Model]
 
-* wiki:Mappings+and+Expressions[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
 * wiki:Kind,+Intent+and+ObjectClass[Kind, Intent and ObjectClass]
 

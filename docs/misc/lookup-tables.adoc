@@ -43,7 +43,7 @@ The label specifies the text that will be displayed to the user by midPoint user
 
 == Binding Lookup Table to a Property
 
-Lookup table can be bound to any property of any (wiki:Focus+and+Projections[focal]) object type by using wiki:Object+Template[object template]:
+Lookup table can be bound to any property of any (wiki:Focus+and+Projections[focal]) object type by using xref:/midpoint/reference/expressions/object-template/[object template]:
 
 .Object Template
 [source,xml]

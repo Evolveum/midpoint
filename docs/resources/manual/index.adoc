@@ -12,7 +12,7 @@
 
 == Manual Resource
 
-Manual resources, also known as off-line resources, are those resources that are not connected to midPoint by using wiki:Identity+Connectors[identity connector]. MidPoint cannot change such resources automatically.
+Manual resources, also known as off-line resources, are those resources that are not connected to midPoint by using xref:/connectors/connectors/[identity connector]. MidPoint cannot change such resources automatically.
 Provisioning to these resources rely on a manual work, typically executed by a system administrator.
 It works like this:
 
@@ -61,7 +61,7 @@ This means that midPoint has much more reliable information about the state of t
 Therefore midPoint can detect whether accounts has been illegally changed on the target system, whether the system administrator executed the operation correctly and so on.
 MidPoint can also automatically create new tickets for system administrators to fix inconsistencies between the policy and real state of the account in the target system.
 
-In theory any kind of ordinary wiki:Identity+Connectors[identity connector] can be combined with the manual connector to create a semi-manual resource.
+In theory any kind of ordinary xref:/connectors/connectors/[identity connector] can be combined with the manual connector to create a semi-manual resource.
 This is allowed by midPoint's unique wiki:Multi-Connector+Resource[multi-connector feature].
 
 

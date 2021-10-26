@@ -12,7 +12,7 @@
 
 MidPoint repository contains data about users, roles, resources, workflows, password policies and other midPoint state and configuration.
 MidPoint repository is midPoints own database, it is not directly shared with other systems.
-However, the entire point of midPoint is to (indirectly) wiki:Synchronization[synchronize] the data in the midPoint database to other systems.
+However, the entire point of midPoint is to (indirectly) xref:/midpoint/reference/synchronization/introduction/[synchronize] the data in the midPoint database to other systems.
 The way how the synchronization is done, how mappings and policies and applied and what is synchronized and what is not is determined by the relations of individual objects in the midPoint repository.
 This page describes how the repository is structured and explains the meaning of the most important repository concepts.
 
@@ -327,7 +327,7 @@ image::schemas-datamodel-resource.png[]
 
 
 Resource definition is perhaps the most important object from a point of view of midPoint administration and configuration.
-Significant part of midPoint functionality is controlled by wiki:Resource+Configuration[configuration of the resource definition].
+Significant part of midPoint functionality is controlled by xref:/midpoint/reference/resources/resource-configuration/[configuration of the resource definition].
 
 
 == Connector
@@ -338,7 +338,7 @@ xref:/connectors/[Connector] is a piece of code that is used to access the resou
 It is kind of a "driver" that talk to the resource using its native protocol and translates that to the data structures that are understood by midPoint.
 The connector is a piece of code in a form of Java JAR file that needs to be deployed together with midPoint.
 However there is also a corresponding object in midPoint repository that describes the connector.
-This object is known as wiki:ConnectorType[ConnectorType]. It is used in similar way as shadow objects are used.
+This object is known as xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]. It is used in similar way as shadow objects are used.
 It identifies the connector and indirectly assigns an OID to it.
 This is necessary especially for remote connectors.
 

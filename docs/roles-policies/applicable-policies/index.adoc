@@ -81,7 +81,7 @@ Secondly, we want the "applicable policies" to be neatly organized into categori
 And finally, there is no strict distinction between role and metarole in midPoint anyway.
 Therefore midPoint needs some mechanism to organize all the "applicable polices" meta-roles and categories.
 Fortunately, midPoint already has a mechanism for that, even though the mechanism may not be that obvious in this situation.
-The mechanism is wiki:Organizational+Structure[organizational structure]. This has additional benefit that the policy categories can be easily managed by using concepts of delegated administration which is common for organizational structures.
+The mechanism is xref:/midpoint/reference/org/organizational-structure/[organizational structure]. This has additional benefit that the policy categories can be easily managed by using concepts of delegated administration which is common for organizational structures.
 
 Therefore most of the work to set up applicable policies is to organize the metaroles into a simple organizational structure.
 On the Organization tree page you can see policy groups configured in the system configuration and their members (meta-roles with policy rules specified).

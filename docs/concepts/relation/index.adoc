@@ -9,8 +9,8 @@
 :page-since-improved: [ "3.5", "3.9" ]
 :page-liquid:
 
-Relation is a mechanism that specifies meaning or purpose of wiki:Object+References[object references].
-The relation is frequently used to specify the relation of object references of wiki:Assignment[assignment/inducement targets] and in the wiki:Organizational+Structure[organizational structure] management.
+Relation is a mechanism that specifies meaning or purpose of xref:/midpoint/reference/schema/object-references/[object references].
+The relation is frequently used to specify the relation of object references of wiki:Assignment[assignment/inducement targets] and in the xref:/midpoint/reference/org/organizational-structure/[organizational structure] management.
 For example a relation specifies whether a user is an ordinary member of the organizational unit or whether he is a manager of that unit.
 
 

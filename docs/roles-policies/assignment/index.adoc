@@ -130,12 +130,12 @@ Such assignment extensions can then be used as a parameters in the roles.
 Therefore a role assignment can specify details such as a department for which the role applies, the branch office, access zone in the building and so on.
 This _parametric_ RBAC structure is a good mechanism to fight the wiki:Role+Explosion[role explosion] problem.
 See wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC] for more details.
-The wiki:Assignment+Configuration[Assignment Configuration] page provides examples of such parametric assignments.
+The xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] page provides examples of such parametric assignments.
 
 
 == See Also
 
-* wiki:Assignment+Configuration[Assignment Configuration] page in Docuementation section
+* xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] page in Docuementation section
 
 * wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
 

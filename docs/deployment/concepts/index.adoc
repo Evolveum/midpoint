@@ -47,7 +47,8 @@ Therefore an external SQL database is usually needed for most midPoint deploymen
 
 Most of midPoint configuration is stored in the database.
 However for obvious reasons the database configuration needs to be outside the database.
-It is stored in the `config.xml` file in wiki:MidPoint+Home+Directory[midPoint home directory]. The wiki:Repository+Configuration[Repository Configuration] page describes the configuration of database access.
+It is stored in the `config.xml` file in xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory].
+The xref:/midpoint/reference/repository/configuration/[Repository Configuration] page describes the configuration of database access.
 
 
 == Connectors

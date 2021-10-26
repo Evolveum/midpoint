@@ -8,7 +8,7 @@
 :page-upkeep-status: yellow
 
 Although in most cases the model context lives in memory only, there are situations where it has to be stored persistently.
-A typical example is an wiki:Workflows+(midPoint+3.x)[approval workflow]: a user requests an operation that has to be made, but the operation (or some parts of it) may be subject of an approval.
+A typical example is an xref:/midpoint/reference/cases/workflow-3/[approval workflow]: a user requests an operation that has to be made, but the operation (or some parts of it) may be subject of an approval.
 Therefore, the whole model operation context has to be stored until the approval is obtained.
 Then it is revived, and the operation is allowed to continue.
 

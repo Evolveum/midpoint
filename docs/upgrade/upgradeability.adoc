@@ -104,4 +104,4 @@ Such fixes may be included in the next maintenance release.
 
 * wiki:Release+Process[Release Process]
 
-* wiki:Upgrade+HOWTO[Upgrade HOWTO]
+* xref:/midpoint/reference/upgrade/upgrade-guide/[Upgrade HOWTO]

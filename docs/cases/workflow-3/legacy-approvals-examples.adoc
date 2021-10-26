@@ -171,7 +171,7 @@ Because he is a member of F0006, you will see that even if approval process star
 
 Now let's have a look at expressions.
 
-Expression can be of any supported type, be it wiki:Script+Expression[script expression] or wiki:Expression[any other expression type].
+Expression can be of any supported type, be it wiki:Script+Expression[script expression] or xref:/midpoint/reference/expressions/expressions/[any other expression type].
 
 Concerning script expressions, there are the following variables available:
 

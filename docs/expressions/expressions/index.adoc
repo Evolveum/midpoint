@@ -14,7 +14,7 @@
 == Introduction
 
 Expression is a part of midPoint configuration that contains logic.
-It is used in wiki:Mapping[mappings], wiki:Correlation+and+Confirmation+Expressions[Correlation and Confirmation Expressions] and may be used in other parts later on.
+It is used in xref:/midpoint/reference/expressions/mappings/[mappings], wiki:Correlation+and+Confirmation+Expressions[Correlation and Confirmation Expressions] and may be used in other parts later on.
 Expressions are very flexible.
 They need to be flexible as expressions are the primary tool of customizing midPoint behavior.
 Expressions allow simple and efficient constructions that just pass or generate a value but they also allow invocation of complex scripts.
@@ -39,7 +39,7 @@ Each expression take a set of wiki:Expression+Variables[variables] as input.
 Each variable has a name and values.
 The values may also be "dynamic", not only specifying what the value is but also how it is being changed (delta).
 The expression than recomputes the variables to the output value, which may also be "dynamic".
-MidPoint expressions are designed and built especially to support the model of wiki:Relativity[relative changes].
+MidPoint expressions are designed and built especially to support the model of xref:/midpoint/reference/concepts/relativity/[relative changes].
 
 
 == Expression Evaluators
@@ -135,7 +135,7 @@ The As Is value is functionally almost identical to passing the value of `input`
 
 ----
 
-The As Is expression evaluator is the default evaluator that will be used if no expression is specified at all (e.g. in wiki:Mapping[mappings]).
+The As Is expression evaluator is the default evaluator that will be used if no expression is specified at all (e.g. in xref:/midpoint/reference/expressions/mappings/[mappings]).
 
 
 === Path
@@ -216,7 +216,7 @@ See wiki:Script+Expression[Script Expression] page for more details.
 === Generate
 
 The _generate_ constructor is used to generate a random value.
-The value is generated according to the wiki:Password+Policy[value policy]. If there is a value policy already associated with a target property then it is sufficient to specify just plain `<generate/>` element.
+The value is generated according to the xref:/midpoint/reference/security/credentials/password-policy/[value policy]. If there is a value policy already associated with a target property then it is sufficient to specify just plain `<generate/>` element.
 The applicable policy will be automatically determined and used.
 This usually applies to password policies.
 If no implicit policy is applicable to the target property or if a different policy is desired the policy may be overridden using `valuePolicyRef` element as illustrated below.
@@ -253,7 +253,7 @@ In case that you would like to change this behavior please specify the password 
 Mappings and expressions are often used to create wiki:Assignment[assignments]. Therefore there is a special-purpose expression evaluator that simplifies the way how assignments are created.
 The evaluator is using a wiki:Object+Query[query] to search for an target object in midPoint repository.
 When such object is found the evaluator creates an wiki:Assignment[assignment] for that target.
-This expression is especially useful in wiki:Object+Template[object templates.]
+This expression is especially useful in xref:/midpoint/reference/expressions/object-template/[object templates.]
 
 Following configuration snippet provides an example of assignment evaluator that looks for an wiki:OrgType[OrgType] target:
 
@@ -473,7 +473,7 @@ functionality:
 This sample creates a new wiki:OrgType[org] on demand and such org will be assigned to the user.
 However the new org itself will have an assignment.
 In this case it is an assignment to some kind of "TOP" organizational unit.
-This is usually what is required as we do not want to create new top-level organizational units every time (see wiki:Organizational+Structure[Organizational Structure] for more details).
+This is usually what is required as we do not want to create new top-level organizational units every time (see xref:/midpoint/reference/org/organizational-structure/[Organizational Structure] for more details).
 
 
 === Association Target Search

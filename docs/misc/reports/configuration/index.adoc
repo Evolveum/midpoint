@@ -220,7 +220,7 @@ To remove names of fields on all report pages except the 1st page in CSV report 
 
 == Security Of Report Expressions
 
-Reports often use wiki:Mappings+and+Expressions[expressions]. Expressions allow to customize midPoint behavior and they are essential for the success of midPoint deployments.
+Reports often use xref:/midpoint/reference/expressions/introduction/[expressions]. Expressions allow to customize midPoint behavior and they are essential for the success of midPoint deployments.
 However, the expressions are very powerful and they may even be too powerful for some use cases.
 The expressions can use general-purpose scripting languages such as Groovy or JavaScript.
 Therefore such expressions have almost unlimited capabilities.
@@ -237,7 +237,7 @@ Therefore do not let any unauthorized user to set up any kind of expression in m
 Some expression security can be achieved by using wiki:Expression+Profiles[expression profiles].  Expression profiles can be used to limit the capabilities of report expressions, e.g. to limit them to safe operations that just manipulate strings and basic data structures.
 This seems to work reasonably well for ordinary object-based reports.
 However, when it comes to audit reports, this solution may not be sufficient.
-wiki:Auditing[Audit records] are *not*  midPoint objects, they are just rows in ordinary relational table.
+xref:/midpoint/reference/security/audit/[Audit records] are *not*  midPoint objects, they are just rows in ordinary relational table.
 Therefore the usual midPoint mechanisms do not apply to them.
 E.g. they cannot be queries by using midPoint query mechanisms.
 There is a way how a "safe" expression can construct a string query for audit table.
@@ -251,7 +251,7 @@ There are no guarantees.
 Use at your own risk.
 
 In case that a secure audit reports are needed, the current recommendation is to make such reports outside of midPoint.
-The wiki:Auditing[structure of an audit table is documented] and it can be used for integration with data warehouse and/or SIEM systems.
+The xref:/midpoint/reference/security/audit/[structure of an audit table is documented] and it can be used for integration with data warehouse and/or SIEM systems.
 MidPoint is neither of those systems and it has no ambition to become one.
 Therefore such integration is likely to be required anyway to construct a complete information security solution.
 

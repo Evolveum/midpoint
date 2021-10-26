@@ -11,7 +11,7 @@
 :page-toc: top
 :page-upkeep-status: green
 
-MidPoint wiki:Authorization[authorizations] provide a very powerful mechanism for a fine-grained access control.
+MidPoint xref:/midpoint/reference/security/authorization/[authorizations] provide a very powerful mechanism for a fine-grained access control.
 This mechanism is quite simple in principle.
 But the configuration can get very complex especially if a sophisticated wiki:Advanced+Hybrid+RBAC[RBAC] structure is in place.
 Setting the authorization up is not entirely easy task.

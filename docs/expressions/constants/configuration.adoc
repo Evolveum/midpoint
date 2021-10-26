@@ -15,7 +15,7 @@ See wiki:Constants[Constants] page for motivation and general introduction to th
 
 == Configuration
 
-The constants are defined in the midPoint configuration file (config.xml) in wiki:MidPoint+Home+Directory[midPoint home directory]:
+The constants are defined in the midPoint configuration file (config.xml) in xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory]:
 
 [source,xml]
 ----
@@ -38,7 +38,7 @@ The constants are defined in the midPoint configuration file (config.xml) in wik
 
 == Use of Constants
 
-Constants are usually used in wiki:Expression[expressions]. There is a special `const` expression evaluator for easy use of the constants.
+Constants are usually used in xref:/midpoint/reference/expressions/expressions/[expressions]. There is a special `const` expression evaluator for easy use of the constants.
 For example a constant defined above may be easily used in the outbound mapping:
 
 [source,xml]
@@ -121,4 +121,4 @@ One such method may be specification of constant values in wiki:System+Configura
 
 * wiki:Constants[Constants]
 
-* wiki:Expression[Expression]
+* xref:/midpoint/reference/expressions/expressions/[Expression]

@@ -17,14 +17,14 @@ The shadow objects also contain wiki:Manual+Resource+Configuration[pending opera
 And there are also cases when the data model evolves and data in the "shadows" need to be updated.
 
 All such situations mean that shadow objects need to _refreshed_. Refresh means that midPoint makes sure that a shadow is internally consistent and to execute all operations that need to be executed in order to re-gain consistency.
-Shadow refresh will try to finish pending operations, e.g. wiki:Consistency+mechanism[re-try failed operations]. Refresh will update the status of wiki:Manual+Resource+and+ITSM+Integration[manual operations]. And so on.
+Shadow refresh will try to finish pending operations, e.g. xref:/midpoint/reference/synchronization/consistency/[re-try failed operations]. Refresh will update the status of wiki:Manual+Resource+and+ITSM+Integration[manual operations]. And so on.
 Refresh task will also make sure that application-level indexes for shadow objects are right.
 Therefore it can be useful in migration scenarios or in cases that system configuration was changed and stored data need to be updated.
 
 [NOTE]
 .Refresh and reconciliation
 ====
-Refresh is not the same thing as wiki:Synchronization[reconciliation]. Reconciliation is quite heavy-weight, trying to get the object from the resources, checking mappings and policies and so on.
+Refresh is not the same thing as xref:/midpoint/reference/synchronization/introduction/[reconciliation]. Reconciliation is quite heavy-weight, trying to get the object from the resources, checking mappings and policies and so on.
 On the other hand, refresh is designed to a _lightweight_ task.
 Refresh is going to execute operations that are easy and efficient, such as check whether shadow indexes are correct.
 When it comes to operations with the resources, refresh will only execute those operations that need to be executed.
@@ -37,7 +37,7 @@ The purpose of refresh is to make sure that shadow objects are right.
 
 == Refresh Task
 
-Shadow refresh happens during normal operation of midPoint, e.g. it will happen during wiki:Synchronization[reconciliation process]. However, sometimes it is preferable to execute just the refresh operation in a controlled manner.
+Shadow refresh happens during normal operation of midPoint, e.g. it will happen during xref:/midpoint/reference/synchronization/introduction/[reconciliation process]. However, sometimes it is preferable to execute just the refresh operation in a controlled manner.
 This may be achieved by shadow refresh task.
 
 Shadow refresh task is a lightweight task that executes shadow refresh on selected shadows.
@@ -131,4 +131,4 @@ Therefore it can usually be scheduled for quite a frequent execution, usually ex
 
 * wiki:Manual+Resource+and+ITSM+Integration[Manual Resource and ITSM Integration]
 
-* wiki:Consistency+mechanism[Consistency mechanism]
+* xref:/midpoint/reference/synchronization/consistency/[Consistency mechanism]

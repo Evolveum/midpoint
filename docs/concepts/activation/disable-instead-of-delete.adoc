@@ -22,7 +22,7 @@ And this can be quite easily achieved by adjusting the wiki:Activation[activatio
 
 This is a two-part solution.
 The first part of the solution is to keep the account from being deleted.
-Whether an account is created or deleted is determined by existence mapping in the activation part of wiki:Resource+Schema+Handling[Resource Schema Handling] definition.
+Whether an account is created or deleted is determined by existence mapping in the activation part of xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] definition.
 If the existence mapping returns true then the account will be kept alive (or created if it does not exist).
 If the existence mapping returns false then the account will be deleted.
 So, the first thing is to make sure that once the account is created it will never be deleted.
@@ -88,7 +88,7 @@ We need to adjust the mapping for administrative status to disable the account i
 That's it.
 The variable `legal` is a special-purpose variable that is available in the activation mappings.
 It is set to `true` if the account is legal.
-That means if there is a valid assignment for that account or if the account is allowed by any other policy (such as wiki:Projection+Policy[Projection Policy]). The `legal` variable is set to `false` if there is no "habeas corpus" for that account.
+That means if there is a valid assignment for that account or if the account is allowed by any other policy (such as xref:/midpoint/reference/synchronization/projection-policy/[Projection Policy]). The `legal` variable is set to `false` if there is no "habeas corpus" for that account.
 I.e. the account should not be there.
 What this mapping does is that it will simply pass the user's administrative status (which is stored in the `input` variable) in case that the account is legal.
 But it will always set the account status to disabled if the account is not legal.
@@ -136,6 +136,6 @@ It also has configuration to eventually delete the account after some time and a
 
 * wiki:Activation[Activation]
 
-* wiki:Resource+Schema+Handling:+Activation[Resource Schema Handling: Activation]
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[Resource Schema Handling: Activation]
 
 * wiki:Outbound+Mapping[Outbound Mapping]

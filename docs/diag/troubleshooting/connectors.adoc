@@ -263,7 +263,7 @@ If that fails you have to resort to packet sniffer and similar tools.
 Each connector has its own logger names.
 The most reliable way to find out what it is to look at the connector documentation or connector source code.
 But as rule of thumb the connectors usually use logger names matching their Java package.
-This is supposed to be the same as the package prefix used in the `connectorType` property (see wiki:ConnectorType[ConnectorType]), e.g. `com.evolveum.polygon.connector.ldap`.
+This is supposed to be the same as the package prefix used in the `connectorType` property (see xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]), e.g. `com.evolveum.polygon.connector.ldap`.
 
 
 == I Suspect a Connector Bug
@@ -330,7 +330,7 @@ com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil: DEBUG
 
 == Extra Tips
 
-* Enable wiki:Auditing[Auditing] to a log file, including the auditing details.
+* Enable xref:/midpoint/reference/security/audit/[Auditing] to a log file, including the auditing details.
 This will log all the deltas that are requested to execute from the user interface and other interfaces.
 Sometimes the problem is in the request delta.
 The audit is the easiest way to check that.

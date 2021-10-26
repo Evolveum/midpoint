@@ -120,6 +120,6 @@ The test is using sequences to assign Unix UID and GID numbers.
 
 * wiki:Sequences[Sequences]
 
-* wiki:Mappings+and+Expressions[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
 * wiki:Unix+Story+Test[Unix Story Test]

@@ -53,7 +53,7 @@ The spelling alphabet transforms are stored in the object extensions, like this:
 </org>
 ----
 
-As long as appropriate wiki:Custom+Schema+Extension[extension schema] is created and deployed to a midPoint instance, midPoint will automatically understand the data format.
+As long as appropriate xref:/midpoint/reference/schema/custom-schema-extension/[extension schema] is created and deployed to a midPoint instance, midPoint will automatically understand the data format.
 
 
 === User Interface

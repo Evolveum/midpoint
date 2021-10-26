@@ -13,13 +13,13 @@
 There is a difference between connector and resource in midPoint.
 Connector is a piece of code that is used to connect to a particular class of systems (e.g. "any LDAP server"). Resource is a specific system (e.g. "OpenLDAP server link:http://ldap.example.com[ldap.example.com]"). Obviously, every resource has to tell which connector it is supposed to use to reach that particular system.
 As both resources and connectors are midPoint objects this is quite easy.
-Resource contains wiki:Object+References[object reference] to the connector: `connectorRef`. Therefore when midPoint need to reach a particular resource it will fetch resource object from the repository, look at the connectorRef reference, look up referred connector object in the reposity and that connector object points to the connector code.
+Resource contains xref:/midpoint/reference/schema/object-references/[object reference] to the connector: `connectorRef`. Therefore when midPoint need to reach a particular resource it will fetch resource object from the repository, look at the connectorRef reference, look up referred connector object in the reposity and that connector object points to the connector code.
 
-The trouble is, that connector objects (wiki:ConnectorType[ConnectorType]) are not entirely ordinary objects.
+The trouble is, that connector objects (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]) are not entirely ordinary objects.
 These objects refer to the connector code that resides in midPoint servers or wiki:Connector+Server[connector servers]. Connector objects are usually generated automatically by midPoint servers during server startup.
 At that time midPoint looks for all the connectors that are locally available to that server.
 This essentially means looking for JAR files that contain connector code.
-When a connector is discovered then the server creates a new connector object (wiki:ConnectorType[ConnectorType]). And this automatic generation of connector objects is kind of a trouble.
+When a connector is discovered then the server creates a new connector object (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]). And this automatic generation of connector objects is kind of a trouble.
 Because those objects will have unpredicatable wiki:Object+ID[OIDs]. Therefore resource definitions (wiki:ResourceType[ResourceType]) cannot have fixed OIDs in their `connectorRef`s.
 
 Fortunately, midPoint has a mechanism how to resolve a reference dynamically when an object is imported.
@@ -39,7 +39,7 @@ Those are the connectors that are almost always used in any midPoint deployment.
 Such as LDAP, Active Directory or CSV connector.
 
 Most of the connectors are _unbundled_. This means they are not distributed with midPoint.
-These connectors must be downloaded separately and installed in wiki:MidPoint+Home+Directory[midPoint home directory] or in a wiki:Connector+Server[connector server]. The connectors are not bundled with midPoint for many reasons.
+These connectors must be downloaded separately and installed in xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory] or in a wiki:Connector+Server[connector server]. The connectors are not bundled with midPoint for many reasons.
 One of the reason is that many connectors are rarely used or even outright exotic.
 Bundling them all would make midPoint distribution too big.
 There are connectors that require third-party libraries to work and we simply cannot bundle them at all.
@@ -50,7 +50,7 @@ So you can use upgraded connectors that provide required features or fix outstan
 
 == Upgrade
 
-When a connector is upgraded, then new connector object (wiki:ConnectorType[ConnectorType]) is created for new connector version.
+When a connector is upgraded, then new connector object (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]) is created for new connector version.
 This is quite natural thing to do.
 ConnId framework can support several versions of the same connector running at the same time.
 And this is a very nice feature, as it allows gradual upgrades.

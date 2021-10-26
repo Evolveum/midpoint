@@ -17,7 +17,7 @@ Hence _inbound_ mapping.
 Inbound mappings are usually used to copy and transform data from authoritative sources to midPoint.
 E.g. inbound mappings are often used to populate new user object with data from HR system.
 
-Please see the wiki:Synchronization[Synchronization] page for a generic description of the synchronization process and the specific place where inbound mappings are used.
+Please see the xref:/midpoint/reference/synchronization/introduction/[Synchronization] page for a generic description of the synchronization process and the specific place where inbound mappings are used.
 
 
 == Input
@@ -274,7 +274,7 @@ See xref:/midpoint/reference/expressions/mappings/[] page for a detailed discuss
 The concept of range is not needed that often in other mappings.
 But it makes a lot of issues in inbound mappings.
 The reason for that is that inbound mappings are somehow different.
-They are not completely wiki:Relativity[relativistic].
+They are not completely xref:/midpoint/reference/concepts/relativity/[relativistic].
 
 Typical midPoint mapping is working with a wiki:Deltas[deltas]. The mapping knows what was changed and the mapping takes a full advantage of that.
 Therefore it will normally not change the things that should not be changed.
@@ -295,8 +295,8 @@ Fortunately, such feature is planned: wiki:Data+Provenance[Data Provenance]. If 
 
 == See Also
 
-* wiki:Mapping[Mapping]
+* xref:/midpoint/reference/expressions/mappings/[Mapping]
 
 * wiki:Outbound+Mapping[Outbound Mapping]
 
-* wiki:Synchronization[Synchronization]
+* xref:/midpoint/reference/synchronization/introduction/[Synchronization]
