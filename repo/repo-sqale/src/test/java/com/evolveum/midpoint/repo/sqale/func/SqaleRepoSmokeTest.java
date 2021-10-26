@@ -285,6 +285,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
                 repositoryService.getObject(UserType.class, userOid, photoOptions, result)
                         .asObjectable();
         assertThat(userWithPhoto.getJpegPhoto()).isEqualTo(new byte[] { 0, 1, 2 });
+        assertThat(userWithPhoto.asPrismObject().findProperty(FocusType.F_JPEG_PHOTO).isIncomplete()).isFalse();
     }
 
     @Test

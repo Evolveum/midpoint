@@ -17,6 +17,9 @@ import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
@@ -184,12 +187,19 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
     @Override
     public S toSchemaObject(Tuple row, Q entityPath, Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException {
-        S ret = super.toSchemaObject(row, entityPath, options);
-        if (SelectorOptions.hasToLoadPath(F_JPEG_PHOTO, options)) {
-            byte[] photo = row.get(entityPath.photo);
-            ret.setJpegPhoto(photo);
+        S focus = super.toSchemaObject(row, entityPath, options);
+
+        byte[] photo = row.get(entityPath.photo);
+        if (photo != null) {
+            PrismObject<?> focusPrismObject = focus.asPrismObject();
+            PrismProperty<byte[]> resultProperty =
+                    focusPrismObject.findOrCreateProperty(F_JPEG_PHOTO);
+            resultProperty.setRealValue(photo);
+            resultProperty.setIncomplete(false);
+        } else if (SelectorOptions.hasToLoadPath(F_JPEG_PHOTO, options)) {
+            PrismUtil.setPropertyNullAndComplete(focus.asPrismObject(), F_JPEG_PHOTO);
         }
-        return ret;
+        return focus;
     }
 
     @Override
