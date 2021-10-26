@@ -19,6 +19,9 @@ import com.querydsl.core.types.Path;
 import com.querydsl.core.types.dsl.ArrayPath;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.item.SinglePathItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
@@ -177,11 +180,17 @@ public class QTaskMapping
             Tuple row, QTask entityPath, Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException {
         TaskType task = super.toSchemaObject(row, entityPath, options);
-        // No need to check options, if it's in the tuple, we use it.
+        // We need to check options too for proper setting of incompleteness.
         byte[] fullResult = row.get(entityPath.fullResult);
         if (fullResult != null) {
-            task.setResult(
+            PrismObject<TaskType> taskPrismObject = task.asPrismObject();
+            PrismProperty<OperationResultType> resultProperty =
+                    taskPrismObject.findOrCreateProperty(TaskType.F_RESULT);
+            resultProperty.setRealValue(
                     parseSchemaObject(fullResult, "opResult", OperationResultType.class));
+            resultProperty.setIncomplete(false);
+        } else if (SelectorOptions.hasToLoadPath(F_RESULT, options)) {
+            PrismUtil.setPropertyNullAndComplete(task.asPrismObject(), TaskType.F_RESULT);
         }
         return task;
     }
