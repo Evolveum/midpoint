@@ -195,17 +195,6 @@ public class PagePostAuthentication extends PageAbstractFlow {
                 ObjectDelta<UserType> lifecycleDelta = getPrismContext().deltaFactory().object().createModificationDeleteProperty(UserType.class,
                         userModel.getObject().getOid(), UserType.F_LIFECYCLE_STATE,
                         getPostAuthenticationConfiguration().getRequiredLifecycleState());
-
-//                try {
-//                    if (getUserDelta().findItemDelta(SchemaConstants.PATH_PASSWORD_VALUE) != null) {
-//                        PrismProperty<Boolean> forceChangeProperty = userModel.getObject().asPrismObject().findProperty(SchemaConstants.PATH_PASSWORD_FORCE_CHANGE);
-//                        if (forceChangeProperty != null && !forceChangeProperty.isEmpty()) {
-//                            lifecycleDelta.addModificationDeleteProperty(SchemaConstants.PATH_PASSWORD_FORCE_CHANGE, forceChangeProperty.getRealValue());
-//                        }
-//                    }
-//                } catch (SchemaException e) {
-//                    LoggingUtils.logException(LOGGER, "Cannot create delete delta for property: force change", e);
-//                }
                 OperationResult opResult = new OperationResult(OPERATION_SAVE_USER);
                 Task task = createAnonymousTask(OPERATION_SAVE_USER);
                 WebModelServiceUtils.save(lifecycleDelta, opResult, task, PagePostAuthentication.this);

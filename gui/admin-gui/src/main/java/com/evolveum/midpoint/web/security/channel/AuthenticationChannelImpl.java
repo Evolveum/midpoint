@@ -111,4 +111,9 @@ public class AuthenticationChannelImpl implements AuthenticationChannel {
     public String getUrlSuffix() {
         return this.channel.getUrlSuffix();
     }
+
+    @Override
+    public boolean isPostAuthenticationEnabled() {
+        return false;
+    }
 }
