@@ -314,7 +314,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void setProgressImmediate(Long progress, OperationResult parentResult) {
+    public void setLegacyProgressImmediate(Long progress, OperationResult parentResult) {
         throw new UnsupportedOperationException();
     }
 
@@ -517,10 +517,6 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void findAndSetSubtasks(OperationResult result) throws SchemaException {
-    }
-
-    @Override
     public TaskWaitingReasonType getWaitingReason() {
         throw new UnsupportedOperationException();
     }
@@ -639,11 +635,6 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public WorkDistributionType getWorkManagement() {
-        return null;
-    }
-
-    @Override
     public TaskActivityStateType getWorkState() {
         return null;
     }
@@ -666,11 +657,6 @@ public class NullTaskImpl implements Task {
     @Override
     public ActivityStateType getActivityStateOrClone(ItemPath path) {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public TaskKindType getKind() {
-        return null;
     }
 
     @Override

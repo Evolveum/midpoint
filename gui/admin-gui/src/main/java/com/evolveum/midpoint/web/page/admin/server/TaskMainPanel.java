@@ -154,8 +154,8 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 //            @Override
 //            public WebMarkupContainer createPanel(String panelId) {
 //                // TODO FIX THIS after task schema change
-//                return new SingleContainerPanel<WorkDistributionType>(panelId,
-//                        PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_PARTS), WorkDistributionType.COMPLEX_TYPE) {
+//                return new SingleContainerPanel<ActivityDistributionDefinitionType>(panelId,
+//                        PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_PARTS), ActivityDistributionDefinitionType.COMPLEX_TYPE) {
 //
 //                    @Override
 //                    protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {

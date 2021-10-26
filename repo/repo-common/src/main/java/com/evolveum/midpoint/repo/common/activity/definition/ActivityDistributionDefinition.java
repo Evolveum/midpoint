@@ -25,17 +25,17 @@ public class ActivityDistributionDefinition implements DebugDumpable, Cloneable 
     /**
      * This bean is detached copy dedicated for this definition. It is therefore freely modifiable.
      */
-    @NotNull private WorkDistributionType bean;
+    @NotNull private ActivityDistributionDefinitionType bean;
 
-    private ActivityDistributionDefinition(@NotNull WorkDistributionType bean) {
+    private ActivityDistributionDefinition(@NotNull ActivityDistributionDefinitionType bean) {
         this.bean = bean;
     }
 
     @NotNull
     public static ActivityDistributionDefinition create(ActivityDefinitionType activityDefinitionBean,
             Supplier<Integer> workerThreadsSupplier) {
-        WorkDistributionType bean = activityDefinitionBean != null && activityDefinitionBean.getDistribution() != null ?
-                activityDefinitionBean.getDistribution().clone() : new WorkDistributionType(PrismContext.get());
+        ActivityDistributionDefinitionType bean = activityDefinitionBean != null && activityDefinitionBean.getDistribution() != null ?
+                activityDefinitionBean.getDistribution().clone() : new ActivityDistributionDefinitionType(PrismContext.get());
         if (bean.getWorkerThreads() == null) {
             bean.setWorkerThreads(workerThreadsSupplier.get());
         }

@@ -2447,13 +2447,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="iterativeTaskObjectProcessing">
+            <xsd:enumeration value="activityItemProcessing">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Object processing for iterative task.
+                        Item processing within an activity.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ITERATIVE_TASK_OBJECT_PROCESSING"/>
+                        <jaxb:typesafeEnumMember name="ACTIVITY_ITEM_PROCESSING"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

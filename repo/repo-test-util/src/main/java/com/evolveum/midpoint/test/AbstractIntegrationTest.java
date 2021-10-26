@@ -3028,7 +3028,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void setGlobalTracingOverride(@NotNull TracingProfileType profile) {
         List<TracingRootType> roots = Arrays.asList(
                 TracingRootType.CLOCKWORK_RUN,
-                TracingRootType.ITERATIVE_TASK_OBJECT_PROCESSING,
+                TracingRootType.ACTIVITY_ITEM_PROCESSING,
                 TracingRootType.ASYNCHRONOUS_MESSAGE_PROCESSING,
                 TracingRootType.LIVE_SYNC_CHANGE_PROCESSING,
                 TracingRootType.WORKFLOW_OPERATION

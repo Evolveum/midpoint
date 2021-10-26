@@ -1785,14 +1785,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="controlFlow" type="tns:ActivityControlFlowSpecificationType" minOccurs="0">
+            <xsd:element name="controlFlow" type="tns:ActivityControlFlowDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Items like prerequisites, preconditions, error handling strategy, and so on.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="distribution" type="tns:WorkDistributionType" minOccurs="0">
+            <xsd:element name="distribution" type="tns:ActivityDistributionDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Distribution of the work executed as part of this activity.
@@ -2130,20 +2130,21 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="controlFlow" type="tns:ActivityControlFlowSpecificationTailoringType" minOccurs="0">
+            <xsd:element name="controlFlow" type="tns:ActivityControlFlowDefinitionTailoringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Items like prerequisites, preconditions, error handling strategy, and so on.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="distribution" type="tns:WorkDistributionTailoringType" minOccurs="0">
+            <xsd:element name="distribution" type="tns:ActivityDistributionDefinitionTailoringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Distribution of the work executed as part of this activity.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <!-- TODO maybe we should create reporting definition tailoring type -->
             <xsd:element name="reporting" type="tns:ActivityReportingDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2155,7 +2156,7 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="ActivityControlFlowSpecificationTailoringType">
+    <xsd:complexType name="ActivityControlFlowDefinitionTailoringType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -2166,7 +2167,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ActivityControlFlowSpecificationType">
+            <xsd:extension base="tns:ActivityControlFlowDefinitionType">
                 <xsd:sequence>
                     <xsd:element name="tailoringMode" type="tns:TailoringModeType" minOccurs="0" default="overwrite">
                         <xsd:annotation>
@@ -2180,7 +2181,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="WorkDistributionTailoringType">
+    <xsd:complexType name="ActivityDistributionDefinitionTailoringType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -2191,7 +2192,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:WorkDistributionType">
+            <xsd:extension base="tns:ActivityDistributionDefinitionType">
                 <xsd:sequence>
                     <xsd:element name="tailoringMode" type="tns:TailoringModeType" minOccurs="0" default="overwrite">
                         <xsd:annotation>
@@ -2275,7 +2276,7 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="ActivityControlFlowSpecificationType">
+    <xsd:complexType name="ActivityControlFlowDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -3515,7 +3516,7 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="WorkDistributionType">
+    <xsd:complexType name="ActivityDistributionDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
                 Describes how we are going to distribute the work that is to be done:
@@ -6151,7 +6152,7 @@
                     <xsd:documentation>
                         Conditions that must be fulfilled (any of them) for the result of this tracing be written to the file.
 
-                        BEWARE! This condition is checked only for traces with the root of iterativeTaskObjectProcessing,
+                        BEWARE! This condition is checked only for traces with the root of activityItemProcessing,
                         i.e. those that were started right on the level of the iterative activity.
                     </xsd:documentation>
                     <xsd:appinfo>

@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -20,7 +19,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-@PanelType(name = "controlFlow", defaultContainerPath = "activity/controlFlow", defaultType = ActivityControlFlowSpecificationType.class)
+@PanelType(name = "controlFlow", defaultContainerPath = "activity/controlFlow", defaultType = ActivityControlFlowDefinitionType.class)
 @PanelInstance(identifier = "controlFlow", applicableForType = TaskType.class, childOf = TaskActivityPanel.class,
         display = @PanelDisplay(label = "ActivityDefinitionType.controlFlow", icon = GuiStyleConstants.CLASS_TASK_CONTROL_FLOW_ICON, order = 20))
 public class TaskControlFlowSpecificationPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> {
@@ -40,7 +39,7 @@ public class TaskControlFlowSpecificationPanel extends AbstractObjectMainPanel<T
     protected void initLayout() {
         SingleContainerPanel activityDefinitionPanel = new SingleContainerPanel(ID_MAIN_PANEL,
                 PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), ItemPath.create(TaskType.F_ACTIVITY, ActivityDefinitionType.F_CONTROL_FLOW)),
-                ActivityControlFlowSpecificationType.COMPLEX_TYPE);
+                ActivityControlFlowDefinitionType.COMPLEX_TYPE);
         add(activityDefinitionPanel);
 
     }

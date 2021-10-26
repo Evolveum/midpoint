@@ -124,7 +124,7 @@ class ItemProcessingMonitor<I> {
         TracingProfileType profile = configuredProfile != null ?
                 configuredProfile : activityRun.getBeans().tracer.getDefaultProfile();
         Collection<TracingRootType> points = !configuredPoints.isEmpty() ?
-                configuredPoints : List.of(TracingRootType.ITERATIVE_TASK_OBJECT_PROCESSING);
+                configuredPoints : List.of(TracingRootType.ACTIVITY_ITEM_PROCESSING);
 
         points.forEach(workerTask::addTracingRequest);
         workerTask.setTracingProfile(profile);
