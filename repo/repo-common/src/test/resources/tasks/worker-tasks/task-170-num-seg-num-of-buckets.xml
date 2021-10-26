@@ -37,8 +37,8 @@
                 <numericSegmentation>
                     <discriminator>extension/ext:discriminator</discriminator>
                     <numberOfBuckets>10</numberOfBuckets>
-                    <to>100</to>
                     <from>5</from>
+                    <to>100</to>
                 </numericSegmentation>
             </buckets>
             <workers>

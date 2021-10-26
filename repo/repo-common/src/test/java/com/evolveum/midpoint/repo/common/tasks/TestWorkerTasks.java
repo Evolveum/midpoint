@@ -84,6 +84,7 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
                         .withNamePattern(ROLE_NAME_PATTERN)
                         .withCustomizer(this::setDiscriminator)
                         .execute(result));
+
         clusterManager.startClusterManagerThread();
     }
 
@@ -769,6 +770,8 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
 
         mockRecorder.reset();
 
+        assumeNoExtraClusterNodes(result);
+
         // Although we have a lot of roles, buckets for this task cover only from 5 to 100.
         List<RoleType> roles = allRoles.subList(5, 100);
 
@@ -795,24 +798,24 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
                 .assertSuccess()
                 .loadSubtasksDeeply(result)
                 .progressInformation() // this is for the whole tree
-                .display()
-                .assertBuckets(10, 10)
-                .assertItems(95, null)
+                    .display()
+                    .assertBuckets(10, 10)
+                    .assertItems(95, null)
                 .end()
                 .assertSubtasks(2)
                 .subtask("Worker DefaultNode:1 for root activity in task-170")
-                .assertClosed()
-                .assertSuccess()
-                .rootItemProcessingInformation()
-                .display()
-                .end()
+                    .assertClosed()
+                    .assertSuccess()
+                    .rootItemProcessingInformation()
+                        .display()
+                    .end()
                 .end()
                 .subtask("Worker DefaultNode:2 for root activity in task-170")
-                .assertClosed()
-                .assertSuccess()
-                .rootItemProcessingInformation()
-                .display()
-                .end()
+                    .assertClosed()
+                    .assertSuccess()
+                    .rootItemProcessingInformation()
+                        .display()
+                    .end()
                 .end();
         // @formatter:on
     }
