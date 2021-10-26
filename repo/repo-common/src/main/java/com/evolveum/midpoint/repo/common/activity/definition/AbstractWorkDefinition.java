@@ -16,17 +16,17 @@ import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * IMPLEMENTATION NOTE: The children fields should be immutable!
+ * IMPLEMENTATION NOTE: The fields in sub-classes should be immutable! (TODO: why?)
  */
 public abstract class AbstractWorkDefinition implements WorkDefinition {
 
     @NotNull private ExecutionModeType executionMode = ExecutionModeType.FULL;
 
     /**
-     * TODO decide if the tailoring should be here or in {@link ActivityDefinition}.
-     *  The argument for being here is that it can add new sub-activities. The argument
-     *  for being there is that it modifies non-functional aspects of existing activities,
-     *  just like distribution, flow control, etc does.
+     * *TODO* decide if the tailoring should be here or in {@link ActivityDefinition}.
+     *   The argument for being here is that it can add new sub-activities. The argument
+     *   for being there is that it modifies non-functional aspects of existing activities,
+     *   just like distribution, flow control, etc does.
      */
     @NotNull private ActivityTailoring activityTailoring = new ActivityTailoring();
 

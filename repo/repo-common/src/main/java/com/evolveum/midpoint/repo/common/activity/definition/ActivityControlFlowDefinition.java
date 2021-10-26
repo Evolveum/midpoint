@@ -14,6 +14,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Defines control flow aspects of an activity: various preconditions, error handling, and so on.
+ */
 public class ActivityControlFlowDefinition implements DebugDumpable, Cloneable {
 
     /**

@@ -11,7 +11,8 @@ import static com.evolveum.midpoint.model.api.ModelExecuteOptions.fromModelExecu
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -21,13 +22,12 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
-import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
-import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
+import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
@@ -73,7 +73,7 @@ public class RecomputationActivityHandler
 
     @Override
     protected @NotNull ExecutionSupplier<ObjectType, MyWorkDefinition, RecomputationActivityHandler> getExecutionSupplier() {
-        return MyExecution::new;
+        return MyRun::new;
     }
 
     @Override
@@ -96,25 +96,25 @@ public class RecomputationActivityHandler
         return "recomputation";
     }
 
-    static class MyExecution extends
-            SearchBasedActivityExecution<ObjectType, MyWorkDefinition, RecomputationActivityHandler, AbstractActivityWorkStateType> {
+    static final class MyRun extends
+            SearchBasedActivityRun<ObjectType, MyWorkDefinition, RecomputationActivityHandler, AbstractActivityWorkStateType> {
 
-        MyExecution(
-                @NotNull ExecutionInstantiationContext<MyWorkDefinition, RecomputationActivityHandler> context,
+        MyRun(@NotNull ActivityRunInstantiationContext<MyWorkDefinition, RecomputationActivityHandler> context,
                 String shortName) {
             super(context, shortName);
+            setInstanceReady();
         }
 
         @Override
-        public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
-            return super.getDefaultReportingOptions()
-                    .enableActionsExecutedStatistics(true);
+        public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
+            return super.createReportingCharacteristics()
+                    .actionsExecutedStatisticsSupported(true);
         }
 
         @Override
         public boolean processItem(@NotNull ObjectType object,
                 @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult result)
-                throws CommonException, ActivityExecutionException {
+                throws CommonException, ActivityRunException {
             boolean simulate = isPreview();
             String action = simulate ? "Simulated recomputation" : "Recomputation";
 

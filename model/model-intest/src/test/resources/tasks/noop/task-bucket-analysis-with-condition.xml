@@ -38,9 +38,9 @@
             </buckets>
         </distribution>
         <reporting>
-            <executionReports>
+            <reports>
                 <buckets/>
-            </executionReports>
+            </reports>
         </reporting>
     </activity>
 </task>

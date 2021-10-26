@@ -7,9 +7,9 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
-import com.evolveum.midpoint.repo.common.task.IterativeActivityExecution;
-import com.evolveum.midpoint.repo.common.task.CorrelatableProcessingRequest;
-import com.evolveum.midpoint.repo.common.task.GenericProcessingRequest;
+import com.evolveum.midpoint.repo.common.activity.run.IterativeActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.processing.CorrelatableProcessingRequest;
+import com.evolveum.midpoint.repo.common.activity.run.processing.GenericProcessingRequest;
 
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 
@@ -25,8 +25,8 @@ public class InputReportLineProcessingRequest
         implements CorrelatableProcessingRequest {
 
     InputReportLineProcessingRequest(@NotNull InputReportLine item,
-            @NotNull IterativeActivityExecution<InputReportLine, ?, ?, ?> activityExecution) {
-        super(item.getLineNumber(), item, activityExecution);
+            @NotNull IterativeActivityRun<InputReportLine, ?, ?, ?> activityRun) {
+        super(item.getLineNumber(), item, activityRun);
     }
 
     @Override

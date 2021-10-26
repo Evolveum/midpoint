@@ -10,20 +10,21 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
-import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
-import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
+import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
+import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -67,7 +68,7 @@ public class IterativeScriptingActivityHandler
 
     @Override
     protected @NotNull ExecutionSupplier<ObjectType, MyWorkDefinition, IterativeScriptingActivityHandler> getExecutionSupplier() {
-        return MyExecutionSpecifics::new;
+        return MyRunSpecifics::new;
     }
 
     @Override
@@ -90,24 +91,25 @@ public class IterativeScriptingActivityHandler
         return "iterative-scripting";
     }
 
-    static class MyExecutionSpecifics extends
-            SearchBasedActivityExecution<ObjectType, MyWorkDefinition, IterativeScriptingActivityHandler, AbstractActivityWorkStateType> {
+    static final class MyRunSpecifics extends
+            SearchBasedActivityRun<ObjectType, MyWorkDefinition, IterativeScriptingActivityHandler, AbstractActivityWorkStateType> {
 
-        MyExecutionSpecifics(
-                @NotNull ExecutionInstantiationContext<MyWorkDefinition, IterativeScriptingActivityHandler> context, String shortName) {
+        MyRunSpecifics(
+                @NotNull ActivityRunInstantiationContext<MyWorkDefinition, IterativeScriptingActivityHandler> context, String shortName) {
             super(context, shortName);
+            setInstanceReady();
         }
 
         @Override
-        public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
-            return super.getDefaultReportingOptions()
-                    .enableActionsExecutedStatistics(true);
+        public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
+            return super.createReportingCharacteristics()
+                    .actionsExecutedStatisticsSupported(true);
         }
 
         @Override
         public boolean processItem(@NotNull ObjectType object,
                 @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult result)
-                throws CommonException, ActivityExecutionException {
+                throws CommonException, ActivityRunException {
             executeScriptOnObject(object, workerTask, result);
             return true;
         }

@@ -9,7 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows.task;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -53,10 +53,10 @@ public class PropagationActivityHandler implements ActivityHandler<PropagationWo
     }
 
     @Override
-    public AbstractActivityExecution<PropagationWorkDefinition, PropagationActivityHandler, ?> createExecution(
-            @NotNull ExecutionInstantiationContext<PropagationWorkDefinition, PropagationActivityHandler> context,
+    public AbstractActivityRun<PropagationWorkDefinition, PropagationActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<PropagationWorkDefinition, PropagationActivityHandler> context,
             @NotNull OperationResult result) {
-        return new PropagationActivityExecution(context);
+        return new PropagationActivityRun(context);
     }
 
     @Override

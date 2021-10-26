@@ -30,10 +30,10 @@
                 </work>
                 <executionMode>bucketAnalysis</executionMode>
                 <reporting>
-                    <executionReports>
+                    <reports>
                         <buckets/>
                         <items/>
-                    </executionReports>
+                    </reports>
                 </reporting>
             </activity>
             <activity>
@@ -79,10 +79,10 @@
                     </buckets>
                 </distribution>
                 <reporting>
-                    <executionReports>
+                    <reports>
                         <buckets/>
                         <items/>
-                    </executionReports>
+                    </reports>
                 </reporting>
             </activity>
             <activity>
@@ -125,10 +125,10 @@
                     </buckets>
                 </distribution>
                 <reporting>
-                    <executionReports>
+                    <reports>
                         <buckets/>
                         <items/>
-                    </executionReports>
+                    </reports>
                 </reporting>
             </activity>
         </composition>

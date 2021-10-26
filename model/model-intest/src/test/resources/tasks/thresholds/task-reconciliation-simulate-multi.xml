@@ -26,13 +26,13 @@
         </work>
         <tailoring>
             <change>
-                <reference>resourceObjectsSimulation</reference>
+                <reference>resourceObjectsPreview</reference>
                 <controlFlow>
                     <processingOption>process</processingOption>
                 </controlFlow>
             </change>
             <change>
-                <reference>remainingShadowsSimulation</reference>
+                <reference>remainingShadowsPreview</reference>
                 <controlFlow>
                     <processingOption>process</processingOption>
                 </controlFlow>

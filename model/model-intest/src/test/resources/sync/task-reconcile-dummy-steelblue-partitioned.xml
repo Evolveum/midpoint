@@ -31,12 +31,12 @@
             <subtasks/>
         </distribution>
         <reporting>
-            <executionReports>
+            <reports>
                 <buckets/>
                 <items/>
                 <connIdOperations/>
                 <internalOperations/>
-            </executionReports>
+            </reports>
         </reporting>
         <tailoring>
             <change>

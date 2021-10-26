@@ -25,8 +25,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 /**
  * Functionality that supports the activity execution that is going on within this task.
  *
- * This interface is used in those places in code that need to interact with the activity execution
- * but have no direct access to an object of type `AbstractActivityExecution`. The only thing they have
+ * This interface is used in those places in code that need to interact with the activity run
+ * but have no direct access to an object of type `AbstractActivityRun`. The only thing they have
  * is a {@link Task} that can provide instance of this interface to them (see {@link Task#getExecutionSupport()}).
  */
 public interface ExecutionSupport {
@@ -54,14 +54,14 @@ public interface ExecutionSupport {
     enum CountersGroup {
 
         /**
-         * Counters used to monitor policy rules thresholds in simulation mode.
+         * Counters used to monitor policy rules thresholds in "preview" execution mode.
          */
-        SIMULATION_MODE_POLICY_RULES(ActivityCounterGroupsType.F_SIMULATION_MODE_POLICY_RULES),
+        PREVIEW_MODE_POLICY_RULES(ActivityCounterGroupsType.F_PREVIEW_MODE_POLICY_RULES),
 
         /**
-         * Counters used to monitor policy rules thresholds in execution mode.
+         * Counters used to monitor policy rules thresholds in "full" execution mode.
          */
-        EXECUTION_MODE_POLICY_RULES(ActivityCounterGroupsType.F_EXECUTION_MODE_POLICY_RULES);
+        FULL_EXECUTION_MODE_POLICY_RULES(ActivityCounterGroupsType.F_FULL_EXECUTION_MODE_POLICY_RULES);
 
         @NotNull private final ItemName itemName;
 

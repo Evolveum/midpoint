@@ -10,7 +10,7 @@ import java.io.File;
 import java.util.List;
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.repo.common.task.work.BucketingConfigurationOverrides;
+import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingConfigurationOverrides;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;

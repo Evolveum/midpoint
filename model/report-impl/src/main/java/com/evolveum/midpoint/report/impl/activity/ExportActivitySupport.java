@@ -11,18 +11,16 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportDataRow;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportHeaderRow;
-import com.evolveum.midpoint.report.impl.controller.ReportDataSource;
 import com.evolveum.midpoint.report.impl.controller.ReportDataWriter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -41,12 +39,12 @@ public class ExportActivitySupport extends ReportActivitySupport {
 
     private SaveReportFileSupport saveSupport;
 
-    ExportActivitySupport(AbstractActivityExecution<?, ?, ?> activityExecution, ReportServiceImpl reportService,
+    ExportActivitySupport(AbstractActivityRun<?, ?, ?> activityRun, ReportServiceImpl reportService,
             ObjectResolver resolver, AbstractReportWorkDefinition workDefinition) {
-        super(activityExecution, reportService, resolver, workDefinition);
+        super(activityRun, reportService, resolver, workDefinition);
     }
 
-    void beforeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
+    void beforeExecution(OperationResult result) throws CommonException, ActivityRunException {
         super.beforeExecution(result);
         setupSaveSupport();
     }

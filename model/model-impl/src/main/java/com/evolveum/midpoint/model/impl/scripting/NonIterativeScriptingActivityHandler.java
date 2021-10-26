@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.repo.common.activity.run.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -19,12 +21,7 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.api.ScriptingService;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionResult;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
-import com.evolveum.midpoint.repo.common.activity.execution.LocalActivityExecution;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -77,35 +74,37 @@ public class NonIterativeScriptingActivityHandler
     }
 
     @Override
-    public AbstractActivityExecution<MyWorkDefinition, NonIterativeScriptingActivityHandler, ?> createExecution(
-            @NotNull ExecutionInstantiationContext<MyWorkDefinition, NonIterativeScriptingActivityHandler> context,
+    public AbstractActivityRun<MyWorkDefinition, NonIterativeScriptingActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<MyWorkDefinition, NonIterativeScriptingActivityHandler> context,
             @NotNull OperationResult result) {
-        return new MyActivityExecution(context);
+        return new MyActivityRun(context);
     }
 
-    static class MyActivityExecution
-            extends LocalActivityExecution<MyWorkDefinition, NonIterativeScriptingActivityHandler, AbstractActivityWorkStateType> {
+    final static class MyActivityRun
+            extends LocalActivityRun<MyWorkDefinition, NonIterativeScriptingActivityHandler, AbstractActivityWorkStateType> {
 
-        MyActivityExecution(
-                @NotNull ExecutionInstantiationContext<MyWorkDefinition, NonIterativeScriptingActivityHandler> context) {
+        MyActivityRun(
+                @NotNull ActivityRunInstantiationContext<MyWorkDefinition, NonIterativeScriptingActivityHandler> context) {
             super(context);
+            setInstanceReady();
         }
 
         @Override
-        public boolean doesSupportStatistics() {
-            return false;
+        public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
+            return super.createReportingCharacteristics()
+                    .statisticsSupported(false);
         }
 
         @Override
-        protected @NotNull ActivityExecutionResult executeLocal(OperationResult result)
-                throws ActivityExecutionException, CommonException {
+        protected @NotNull ActivityRunResult runLocally(OperationResult result)
+                throws ActivityRunException, CommonException {
             ExecuteScriptType executeScriptRequest = getWorkDefinition().getScriptExecutionRequest().clone();
             ScriptExecutionResult executionResult = getActivityHandler().scriptingService
                     .evaluateExpression(executeScriptRequest,
                             VariablesMap.emptyMap(), false, getRunningTask(), result);
             LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
             LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());
-            return standardExecutionResult();
+            return standardRunResult();
         }
     }
 

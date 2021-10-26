@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.repo.common.task.work.BucketingConfigurationOverrides;
+import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingConfigurationOverrides;
 import com.evolveum.midpoint.test.asserter.TaskAsserter;
 
 import org.springframework.beans.factory.annotation.Autowired;

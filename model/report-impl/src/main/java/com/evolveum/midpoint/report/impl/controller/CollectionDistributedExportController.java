@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.report.impl.controller;
 
-import com.evolveum.midpoint.report.impl.activity.ReportDataCreationActivityExecution;
+import com.evolveum.midpoint.report.impl.activity.ReportDataCreationActivityRun;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Controls the process of exporting collection-based reports.
  *
  * Currently the only use of this class is to be a "bridge" between the world of the activity framework
- * (represented mainly by {@link ReportDataCreationActivityExecution} class) and a set of cooperating
+ * (represented mainly by {@link ReportDataCreationActivityRun} class) and a set of cooperating
  * classes that implement the report export itself. However, in the future it may be used in other ways,
  * independently of the activity framework.
  *

@@ -17,6 +17,9 @@ import java.util.function.Supplier;
 
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
+/**
+ * Defines the distribution aspects of an activity: buckets, worker tasks, worker threads, subtasks, and so on.
+ */
 public class ActivityDistributionDefinition implements DebugDumpable, Cloneable {
 
     /**

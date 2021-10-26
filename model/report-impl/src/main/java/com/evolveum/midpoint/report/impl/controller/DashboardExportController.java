@@ -10,7 +10,7 @@ package com.evolveum.midpoint.report.impl.controller;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
-import com.evolveum.midpoint.report.impl.activity.ClassicDashboardReportExportActivityExecution;
+import com.evolveum.midpoint.report.impl.activity.ClassicDashboardReportExportActivityRun;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * Controls the process of exporting dashboard-based reports.
  *
  * Currently the only use of this class is to be a "bridge" between the world of the activity framework
- * (represented mainly by {@link ClassicDashboardReportExportActivityExecution} class) and a set of cooperating
+ * (represented mainly by {@link ClassicDashboardReportExportActivityRun} class) and a set of cooperating
  * classes that implement the report export itself. However, in the future it may be used in other ways,
  * independently of the activity framework.
  *

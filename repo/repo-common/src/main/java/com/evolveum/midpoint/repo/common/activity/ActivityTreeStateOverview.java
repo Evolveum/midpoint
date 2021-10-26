@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Objects;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -29,10 +30,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService.ModificationsSupplier;
-import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionResult;
-import com.evolveum.midpoint.repo.common.activity.execution.DistributingActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.execution.LocalActivityExecution;
-import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
@@ -64,31 +61,31 @@ public class ActivityTreeStateOverview {
     }
 
     /**
-     * Records the start of local activity execution in the tree overview.
+     * Records the start of local activity run in the tree overview.
      */
-    public void recordLocalExecutionStart(@NotNull LocalActivityExecution<?, ?, ?> execution, @NotNull OperationResult result)
-            throws ActivityExecutionException {
+    public void recordLocalRunStart(@NotNull LocalActivityRun<?, ?, ?> run, @NotNull OperationResult result)
+            throws ActivityRunException {
 
         modifyRootTask(taskBean -> {
-            boolean progressVisible = execution.shouldUpdateProgressInStateOverview();
+            boolean progressVisible = run.shouldUpdateProgressInStateOverview();
             ActivityStateOverviewType overview = getOrCreateStateOverview(taskBean);
-            ActivityStateOverviewType entry = findOrCreateEntry(overview, execution.getActivityPath());
-            if (execution.isWorker()) {
-                LOGGER.trace("Not updating global activity entry fields because we are the worker: {}", execution);
+            ActivityStateOverviewType entry = findOrCreateEntry(overview, run.getActivityPath());
+            if (run.isWorker()) {
+                LOGGER.trace("Not updating global activity entry fields because we are the worker: {}", run);
             } else {
                 entry.realizationState(ActivitySimplifiedRealizationStateType.IN_PROGRESS)
                         .resultStatus(OperationResultStatusType.IN_PROGRESS)
                         .progressInformationVisibility(progressVisible ? VISIBLE : HIDDEN)
-                        .persistence(execution.getActivity().getActivityStateDefinition().getPersistence());
+                        .persistence(run.getActivity().getActivityStateDefinition().getPersistence());
             }
             ActivityTaskStateOverviewType taskEntry =
-                    findOrCreateTaskEntry(entry, execution.getRunningTask().getSelfReference())
-                            .bucketsProcessingRole(execution.getActivityState().getBucketingRole())
-                            .executionState(ActivityTaskExecutionStateType.EXECUTING)
+                    findOrCreateTaskEntry(entry, run.getRunningTask().getSelfReference())
+                            .bucketsProcessingRole(run.getActivityState().getBucketingRole())
+                            .executionState(ActivityTaskExecutionStateType.RUNNING)
                             .node(beans.taskManager.getNodeId())
-                            .resultStatus(execution.getCurrentResultStatusBean());
-            if (progressVisible && execution.doesSupportProgress()) {
-                taskEntry.progress(execution.getActivityState().getLiveProgress().getOverview());
+                            .resultStatus(run.getCurrentResultStatusBean());
+            if (progressVisible && run.isProgressSupported()) {
+                taskEntry.progress(run.getActivityState().getLiveProgress().getOverview());
             }
             // bucket progress is updated on bucketing operations
             return createOverviewReplaceDeltas(overview);
@@ -98,19 +95,19 @@ public class ActivityTreeStateOverview {
     }
 
     /**
-     * Records the start of distributing (coordinator) activity realization (NOT execution).
-     * It sets the fields that are not set by workers in their local executions.
+     * Records the start of distributing (coordinator) activity realization (NOT run).
+     * It sets the fields that are not set by workers in their local runs.
      */
-    public void recordDistributingActivityRealizationStart(@NotNull DistributingActivityExecution<?, ?, ?> execution,
-            @NotNull OperationResult result) throws ActivityExecutionException {
+    public void recordDistributingActivityRealizationStart(@NotNull DistributingActivityRun<?, ?, ?> run,
+            @NotNull OperationResult result) throws ActivityRunException {
 
         modifyRootTask(taskBean -> {
             ActivityStateOverviewType overview = getOrCreateStateOverview(taskBean);
-            findOrCreateEntry(overview, execution.getActivityPath())
+            findOrCreateEntry(overview, run.getActivityPath())
                     .realizationState(ActivitySimplifiedRealizationStateType.IN_PROGRESS)
                     .resultStatus(OperationResultStatusType.IN_PROGRESS)
                     .progressInformationVisibility(VISIBLE) // workers are always in subtasks
-                    .persistence(execution.getActivity().getActivityStateDefinition().getPersistence());
+                    .persistence(run.getActivity().getActivityStateDefinition().getPersistence());
             // bucket progress is updated on bucketing operations
             return createOverviewReplaceDeltas(overview);
         }, result);
@@ -122,13 +119,12 @@ public class ActivityTreeStateOverview {
      *
      * (Note: We only add records here. We assume that no children are ever deleted.)
      */
-    public void recordChildren(@NotNull LocalActivityExecution<?, ?, ?> execution, List<Activity<?, ?>> children,
-            @NotNull OperationResult result)
-            throws ActivityExecutionException {
+    public void recordChildren(@NotNull LocalActivityRun<?, ?, ?> run, List<Activity<?, ?>> children,
+            @NotNull OperationResult result) throws ActivityRunException {
 
         modifyRootTask(taskBean -> {
             ActivityStateOverviewType overview = getOrCreateStateOverview(taskBean);
-            ActivityStateOverviewType entry = findOrCreateEntry(overview, execution.getActivityPath());
+            ActivityStateOverviewType entry = findOrCreateEntry(overview, run.getActivityPath());
             boolean changed = false;
             for (Activity<?, ?> child : children) {
                 var childEntry =
@@ -143,51 +139,51 @@ public class ActivityTreeStateOverview {
     }
 
     /**
-     * Records the finish of a local activity execution.
+     * Records the finish of a local activity run.
      *
-     * Note that execution result can be null only in the case of (very rare) uncaught exception.
+     * Note that run result can be null only in the case of (very rare) uncaught exception.
      */
-    public void recordLocalExecutionFinish(@NotNull LocalActivityExecution<?, ?, ?> execution,
-            @Nullable ActivityExecutionResult executionResult, @NotNull OperationResult result)
-            throws ActivityExecutionException {
+    public void recordLocalRunFinish(@NotNull LocalActivityRun<?, ?, ?> run,
+            @Nullable ActivityRunResult runResult, @NotNull OperationResult result)
+            throws ActivityRunException {
 
         modifyRootTask(taskBean -> {
-            boolean progressVisible = execution.shouldUpdateProgressInStateOverview();
+            boolean progressVisible = run.shouldUpdateProgressInStateOverview();
 
             ActivityStateOverviewType overview = getOrCreateStateOverview(taskBean);
-            ActivityStateOverviewType entry = findOrCreateEntry(overview, execution.getActivityPath());
-            if (execution.isWorker()) {
-                LOGGER.trace("Not updating global activity entry fields because we are the worker: {}", execution);
-            } else if (executionResult == null) {
-                LOGGER.trace("Execution result is null. This is strange, most probably an error. "
+            ActivityStateOverviewType entry = findOrCreateEntry(overview, run.getActivityPath());
+            if (run.isWorker()) {
+                LOGGER.trace("Not updating global activity entry fields because we are the worker: {}", run);
+            } else if (runResult == null) {
+                LOGGER.trace("Run result is null. This is strange, most probably an error. "
                         + "We won't update the realization state, only the result status");
                 entry.resultStatus(OperationResultStatusType.FATAL_ERROR);
             } else {
-                entry.setRealizationState(executionResult.getSimplifiedRealizationState());
-                entry.setResultStatus(executionResult.getOperationResultStatusBean());
+                entry.setRealizationState(runResult.getSimplifiedRealizationState());
+                entry.setResultStatus(runResult.getOperationResultStatusBean());
             }
             // bucket progress is updated on bucketing operations
-            findOrCreateTaskEntry(entry, execution.getRunningTask().getSelfReference())
-                    .progress(progressVisible && execution.doesSupportProgress() ?
-                            execution.getActivityState().getLiveProgress().getOverview() : null)
-                    .executionState(ActivityTaskExecutionStateType.NOT_EXECUTING)
-                    .resultStatus(execution.getCurrentResultStatusBean());
+            findOrCreateTaskEntry(entry, run.getRunningTask().getSelfReference())
+                    .progress(progressVisible && run.isProgressSupported() ?
+                            run.getActivityState().getLiveProgress().getOverview() : null)
+                    .executionState(ActivityTaskExecutionStateType.NOT_RUNNING)
+                    .resultStatus(run.getCurrentResultStatusBean());
             return createOverviewReplaceDeltas(overview);
         }, result);
     }
 
     /**
-     * Records the finish of distributing (coordinator) activity realization (NOT execution).
-     * It sets the fields that are not set by workers in their local executions.
+     * Records the finish of distributing (coordinator) activity realization (NOT run).
+     * It sets the fields that are not set by workers in their local runs.
      */
-    public void recordDistributingActivityRealizationFinish(@NotNull DistributingActivityExecution<?, ?, ?> execution,
-            @NotNull ActivityExecutionResult executionResult, @NotNull OperationResult result)
-            throws ActivityExecutionException {
+    public void recordDistributingActivityRealizationFinish(@NotNull DistributingActivityRun<?, ?, ?> run,
+            @NotNull ActivityRunResult runResult, @NotNull OperationResult result)
+            throws ActivityRunException {
         modifyRootTask(taskBean -> {
             ActivityStateOverviewType overview = getOrCreateStateOverview(taskBean);
-            findOrCreateEntry(overview, execution.getActivityPath())
-                    .realizationState(executionResult.getSimplifiedRealizationState())
-                    .resultStatus(executionResult.getOperationResultStatusBean());
+            findOrCreateEntry(overview, run.getActivityPath())
+                    .realizationState(runResult.getSimplifiedRealizationState())
+                    .resultStatus(runResult.getOperationResultStatusBean());
             // bucket progress is updated on bucketing operations
             return createOverviewReplaceDeltas(overview);
         }, result);
@@ -226,9 +222,9 @@ public class ActivityTreeStateOverview {
             @NotNull Holder<Boolean> changed) {
         activity.getTask().stream()
                 .filter(taskOverview -> task.getOid().equals(getOid(taskOverview.getTaskRef())))
-                .filter(taskOverview -> taskOverview.getExecutionState() == ActivityTaskExecutionStateType.EXECUTING)
+                .filter(taskOverview -> taskOverview.getExecutionState() == ActivityTaskExecutionStateType.RUNNING)
                 .forEach(taskOverview -> {
-                    taskOverview.setExecutionState(ActivityTaskExecutionStateType.NOT_EXECUTING);
+                    taskOverview.setExecutionState(ActivityTaskExecutionStateType.NOT_RUNNING);
                     // TODO in the future we can switch IN_PROGRESS result status to UNKNOWN. But not now.
                     changed.setValue(true);
                 });
@@ -243,32 +239,32 @@ public class ActivityTreeStateOverview {
      * of completed buckets), incorrect results may be stored in the overview. Therefore we use a hack
      * with {@link #isBefore(BucketProgressOverviewType, BucketProgressOverviewType)} method.
      */
-    public void updateBucketAndItemProgress(@NotNull LocalActivityExecution<?, ?, ?> execution,
+    public void updateBucketAndItemProgress(@NotNull LocalActivityRun<?, ?, ?> run,
             @NotNull BucketProgressOverviewType bucketProgress, @NotNull OperationResult result)
-            throws ActivityExecutionException {
+            throws ActivityRunException {
 
-        if (!execution.shouldUpdateProgressInStateOverview()) {
+        if (!run.shouldUpdateProgressInStateOverview()) {
             return;
         }
 
         modifyRootTask(taskBean -> {
             ActivityStateOverviewType overview = getOrCreateStateOverview(taskBean);
-            ActivityStateOverviewType entry = findOrCreateEntry(overview, execution.getActivityPath());
+            ActivityStateOverviewType entry = findOrCreateEntry(overview, run.getActivityPath());
             if (isBefore(bucketProgress, entry.getBucketProgress())) {
                 LOGGER.debug("Updated bucket progress ({}) is 'before' the stored one ({}) - not updating",
                         bucketProgress, entry.getBucketProgress());
             } else {
                 entry.setBucketProgress(bucketProgress.clone());
             }
-            findOrCreateTaskEntry(entry, execution.getRunningTask().getSelfReference())
-                    .progress(execution.doesSupportProgress() ?
-                            execution.getActivityState().getLiveProgress().getOverview() : null)
+            findOrCreateTaskEntry(entry, run.getRunningTask().getSelfReference())
+                    .progress(run.isProgressSupported() ?
+                            run.getActivityState().getLiveProgress().getOverview() : null)
                     .stalledSince((XMLGregorianCalendar) null)
-                    .resultStatus(execution.getCurrentResultStatusBean());
+                    .resultStatus(run.getCurrentResultStatusBean());
             return createOverviewReplaceDeltas(overview);
         }, result);
 
-        LOGGER.trace("Bucket and item progress updated in {}", execution);
+        LOGGER.trace("Bucket and item progress updated in {}", run);
         itemProgressUpdatedTimestamp = System.currentTimeMillis();
     }
 
@@ -279,31 +275,31 @@ public class ActivityTreeStateOverview {
                 bucket1.getCompleteBuckets() < bucket2.getCompleteBuckets();
     }
 
-    /** Assumes that the activity execution is still in progress. (I.e. also clear the "stalled since" flag.) */
-    public void updateItemProgressIfTimePassed(@NotNull LocalActivityExecution<?, ?, ?> execution, long interval,
+    /** Assumes that the activity run is still in progress. (I.e. also clear the "stalled since" flag.) */
+    public void updateItemProgressIfTimePassed(@NotNull LocalActivityRun<?, ?, ?> run, long interval,
             OperationResult result) throws SchemaException, ObjectNotFoundException {
 
-        if (!execution.shouldUpdateProgressInStateOverview() || !execution.doesSupportProgress()) {
-            LOGGER.trace("Item progress update skipped in {}", execution);
+        if (!run.shouldUpdateProgressInStateOverview() || !run.isProgressSupported()) {
+            LOGGER.trace("Item progress update skipped in {}", run);
             return;
         }
 
         if (System.currentTimeMillis() < itemProgressUpdatedTimestamp + interval) {
-            LOGGER.trace("Item progress update interval was not reached yet, skipping updating in {}", execution);
+            LOGGER.trace("Item progress update interval was not reached yet, skipping updating in {}", run);
             return;
         }
 
         modifyRootTaskUnchecked(taskBean -> {
             ActivityStateOverviewType overview = getOrCreateStateOverview(taskBean);
-            ActivityStateOverviewType entry = findOrCreateEntry(overview, execution.getActivityPath());
-            findOrCreateTaskEntry(entry, execution.getRunningTask().getSelfReference())
+            ActivityStateOverviewType entry = findOrCreateEntry(overview, run.getActivityPath());
+            findOrCreateTaskEntry(entry, run.getRunningTask().getSelfReference())
                     .stalledSince((XMLGregorianCalendar) null)
-                    .progress(execution.getActivityState().getLiveProgress().getOverview())
-                    .resultStatus(execution.getCurrentResultStatusBean());
+                    .progress(run.getActivityState().getLiveProgress().getOverview())
+                    .resultStatus(run.getCurrentResultStatusBean());
             return createOverviewReplaceDeltas(overview);
         }, result);
 
-        LOGGER.trace("Item progress updated in {}", execution);
+        LOGGER.trace("Item progress updated in {}", run);
         itemProgressUpdatedTimestamp = System.currentTimeMillis();
     }
 
@@ -319,7 +315,7 @@ public class ActivityTreeStateOverview {
             ActivityStateOverviewUtil.acceptStateOverviewVisitor(overview, state -> {
                 if (state.getRealizationState() == ActivitySimplifiedRealizationStateType.IN_PROGRESS) {
                     for (ActivityTaskStateOverviewType taskInfo : state.getTask()) {
-                        if (taskInfo.getExecutionState() == ActivityTaskExecutionStateType.EXECUTING &&
+                        if (taskInfo.getExecutionState() == ActivityTaskExecutionStateType.RUNNING &&
                                 taskOid.equals(getOid(taskInfo.getTaskRef()))) {
                             taskInfo.setStalledSince(XmlTypeConverter.createXMLGregorianCalendar(stalledSince));
                             changed.setValue(true);
@@ -339,12 +335,12 @@ public class ActivityTreeStateOverview {
      * Updates the realization state (including writing to the repository).
      */
     public void updateRealizationState(ActivityTreeRealizationStateType value, OperationResult result)
-            throws ActivityExecutionException {
+            throws ActivityRunException {
         try {
             rootTask.setItemRealValues(PATH_REALIZATION_STATE, value);
             rootTask.flushPendingModifications(result);
         } catch (CommonException e) {
-            throw new ActivityExecutionException("Couldn't update tree realization state", FATAL_ERROR, PERMANENT_ERROR, e);
+            throw new ActivityRunException("Couldn't update tree realization state", FATAL_ERROR, PERMANENT_ERROR, e);
         }
     }
 
@@ -352,7 +348,7 @@ public class ActivityTreeStateOverview {
         return rootTask.getPropertyRealValueOrClone(PATH_ACTIVITY_STATE_TREE, ActivityStateOverviewType.class);
     }
 
-    public void purge(OperationResult result) throws ActivityExecutionException {
+    public void purge(OperationResult result) throws ActivityRunException {
         updateActivityStateTree(
                 purgeStateRecursively(
                         getActivityStateTree()
@@ -366,12 +362,12 @@ public class ActivityTreeStateOverview {
      * Updates the activity state tree (including writing to the repository).
      */
     private void updateActivityStateTree(ActivityStateOverviewType value, OperationResult result)
-            throws ActivityExecutionException {
+            throws ActivityRunException {
         try {
             rootTask.setItemRealValues(PATH_ACTIVITY_STATE_TREE, value);
             rootTask.flushPendingModifications(result);
         } catch (CommonException e) {
-            throw new ActivityExecutionException("Couldn't update activity state tree", FATAL_ERROR, PERMANENT_ERROR, e);
+            throw new ActivityRunException("Couldn't update activity state tree", FATAL_ERROR, PERMANENT_ERROR, e);
         }
     }
 
@@ -407,11 +403,11 @@ public class ActivityTreeStateOverview {
     }
 
     private void modifyRootTask(@NotNull ModificationsSupplier<TaskType> modificationsSupplier, OperationResult result)
-            throws ActivityExecutionException {
+            throws ActivityRunException {
         try {
             modifyRootTaskUnchecked(modificationsSupplier, result);
         } catch (Exception e) {
-            throw new ActivityExecutionException("Couldn't update the activity tree", FATAL_ERROR, PERMANENT_ERROR, e);
+            throw new ActivityRunException("Couldn't update the activity tree", FATAL_ERROR, PERMANENT_ERROR, e);
         }
     }
 

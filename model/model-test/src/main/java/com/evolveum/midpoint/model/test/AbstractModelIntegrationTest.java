@@ -30,8 +30,9 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
-import com.evolveum.midpoint.repo.common.task.reports.ActivityExecutionReportUtil;
+import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
+import com.evolveum.midpoint.repo.common.activity.run.reports.ActivityReportUtil;
+import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskHandler;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 
 import com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource;
@@ -102,9 +103,8 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
-import com.evolveum.midpoint.repo.common.task.task.GenericTaskHandler;
-import com.evolveum.midpoint.repo.common.task.work.BucketingConfigurationOverrides;
-import com.evolveum.midpoint.repo.common.task.work.BucketingManager;
+import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingConfigurationOverrides;
+import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingManager;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -182,7 +182,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Autowired protected ModelDiagnosticService modelDiagnosticService;
     @Autowired protected DashboardService dashboardService;
     @Autowired protected ModelAuditService modelAuditService;
-    @Autowired protected GenericTaskHandler genericTaskHandler;
+    @Autowired protected ActivityBasedTaskHandler activityBasedTaskHandler;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -245,7 +245,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         BucketingConfigurationOverrides.setFreeBucketWaitIntervalOverride(100L);
 
         // We generally do not import all the archetypes for all kinds of tasks (at least not now).
-        genericTaskHandler.setAvoidAutoAssigningArchetypes(true);
+        activityBasedTaskHandler.setAvoidAutoAssigningArchetypes(true);
     }
 
     @Override
@@ -3341,7 +3341,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             public boolean check() throws CommonException {
                 Task freshRepoTask = taskManager.getTaskWithResult(taskOid, waitResult);
                 displaySingleTask("Repo task while waiting for progress reach " + progressToReach, freshRepoTask);
-                Long heartbeat = genericTaskHandler.heartbeat(freshRepoTask);
+                Long heartbeat = activityBasedTaskHandler.heartbeat(freshRepoTask);
                 if (heartbeat != null) {
                     displayValue("Heartbeat", heartbeat);
                 }
@@ -6594,7 +6594,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected @NotNull String getBucketReportDataOid(TaskType taskAfter, ActivityPath path) {
         return requireNonNull(
-                ActivityExecutionReportUtil.getReportDataOid(taskAfter.getActivityState(), path,
+                ActivityReportUtil.getReportDataOid(taskAfter.getActivityState(), path,
                         ActivityReportsType.F_BUCKETS, taskManager.getNodeId()),
                 () -> "no bucket report data in " + taskAfter + " (activity path " + path.toDebugName() + ")");
     }

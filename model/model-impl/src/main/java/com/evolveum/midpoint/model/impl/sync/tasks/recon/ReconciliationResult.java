@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClassSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionResult;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -32,8 +32,8 @@ public class ReconciliationResult implements DebugDumpable {
     private long resourceReconErrors;
     private long shadowReconCount;
 
-    static ReconciliationResult fromActivityExecution(@NotNull ReconciliationActivityExecution execution,
-            @NotNull ActivityExecutionResult executionResult) {
+    static ReconciliationResult fromActivityRun(@NotNull ReconciliationActivityRun execution,
+            @NotNull ActivityRunResult executionResult) {
         ReconciliationResult result = new ReconciliationResult();
         result.runResult = executionResult.createTaskRunResult();
         ResourceObjectClassSpecification resourceObjectClassSpecification = findTargetInfo(execution);
@@ -41,26 +41,26 @@ public class ReconciliationResult implements DebugDumpable {
             result.resource = resourceObjectClassSpecification.resource.asPrismObject();
             result.objectclassDefinition = resourceObjectClassSpecification.getObjectClassDefinition();
         }
-        OperationCompletionActivityExecution operationCompletionExecution = execution.getOperationCompletionExecution();
+        OperationCompletionActivityRun operationCompletionExecution = execution.getOperationCompletionExecution();
         if (operationCompletionExecution != null) {
             result.unOpsCount = operationCompletionExecution.getUnOpsCount();
         }
-        ResourceObjectsReconciliationActivityExecution resourceReconciliationExecution = execution.getResourceReconciliationExecution();
+        ResourceObjectsReconciliationActivityRun resourceReconciliationExecution = execution.getResourceReconciliationExecution();
         if (resourceReconciliationExecution != null) {
             result.resourceReconCount = resourceReconciliationExecution.getResourceReconCount();
             result.resourceReconErrors = resourceReconciliationExecution.getResourceReconErrors();
         }
-        RemainingShadowsActivityExecution remainingShadowsExecution = execution.getRemainingShadowsExecution();
+        RemainingShadowsActivityRun remainingShadowsExecution = execution.getRemainingShadowsExecution();
         if (remainingShadowsExecution != null) {
             result.shadowReconCount = remainingShadowsExecution.getShadowReconCount();
         }
         return result;
     }
 
-    private static ResourceObjectClassSpecification findTargetInfo(ReconciliationActivityExecution execution) {
-        for (PartialReconciliationActivityExecution partialActivityExecution : execution.getPartialActivityExecutionsList()) {
-            if (partialActivityExecution.objectClassSpec != null) {
-                return partialActivityExecution.objectClassSpec;
+    private static ResourceObjectClassSpecification findTargetInfo(ReconciliationActivityRun run) {
+        for (PartialReconciliationActivityRun partialActivityRun : run.getPartialActivityRunsList()) {
+            if (partialActivityRun.objectClassSpec != null) {
+                return partialActivityRun.objectClassSpec;
             }
         }
         return null;

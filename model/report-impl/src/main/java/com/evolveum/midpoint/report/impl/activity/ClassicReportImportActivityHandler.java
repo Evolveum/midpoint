@@ -7,12 +7,11 @@
 package com.evolveum.midpoint.report.impl.activity;
 
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
-import com.evolveum.midpoint.repo.common.task.PlainIterativeActivityExecution;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassicReportImportWorkDefinitionType;
@@ -55,10 +54,10 @@ public class ClassicReportImportActivityHandler
     }
 
     @Override
-    public AbstractActivityExecution<ClassicReportImportWorkDefinition, ClassicReportImportActivityHandler, ?> createExecution(
-            @NotNull ExecutionInstantiationContext<ClassicReportImportWorkDefinition, ClassicReportImportActivityHandler> context,
+    public AbstractActivityRun<ClassicReportImportWorkDefinition, ClassicReportImportActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<ClassicReportImportWorkDefinition, ClassicReportImportActivityHandler> context,
             @NotNull OperationResult result) {
-        return new ClassicReportImportActivityExecution(context);
+        return new ClassicReportImportActivityRun(context);
     }
 
     @Override

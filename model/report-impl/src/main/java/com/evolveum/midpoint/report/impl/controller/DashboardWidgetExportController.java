@@ -9,7 +9,7 @@ package com.evolveum.midpoint.report.impl.controller;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
-import com.evolveum.midpoint.report.impl.activity.ClassicDashboardReportExportActivityExecution;
+import com.evolveum.midpoint.report.impl.activity.ClassicDashboardReportExportActivityRun;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -28,7 +28,7 @@ import static com.evolveum.midpoint.report.impl.controller.CommonHtmlSupport.*;
  * Controls the process of exporting widgets of dashboard-based reports.
  *
  * Currently the only use of this class is to be a "bridge" between the world of the activity framework
- * (represented mainly by {@link ClassicDashboardReportExportActivityExecution} class) and a set of cooperating
+ * (represented mainly by {@link ClassicDashboardReportExportActivityRun} class) and a set of cooperating
  * classes that implement the report export itself. However, in the future it may be used in other ways,
  * independently of the activity framework.
  *

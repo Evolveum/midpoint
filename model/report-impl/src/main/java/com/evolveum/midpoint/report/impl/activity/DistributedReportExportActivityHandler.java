@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.activity.execution.CompositeActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.run.CompositeActivityRun;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -24,13 +24,13 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.activity.Activity;
-import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
-import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
-import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
+import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -72,10 +72,10 @@ public class DistributedReportExportActivityHandler
 
     @NotNull
     @Override
-    public CompositeActivityExecution<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler, ?> createExecution(
-            @NotNull ExecutionInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context,
+    public CompositeActivityRun<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context,
             @NotNull OperationResult result) {
-        return new CompositeActivityExecution<>(context);
+        return new CompositeActivityRun<>(context);
     }
 
     @Override
@@ -89,14 +89,14 @@ public class DistributedReportExportActivityHandler
         ArrayList<Activity<?, ?>> children = new ArrayList<>();
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
-                (context, result) -> new ReportDataCreationActivityExecution(context),
+                (context, result) -> new ReportDataCreationActivityRun(context),
                 this::createEmptyAggregatedDataObject,
                 (i) -> "data-creation",
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
-                (context, result) -> new ReportDataAggregationActivityExecution(context),
+                (context, result) -> new ReportDataAggregationActivityRun(context),
                 null,
                 (i) -> "data-aggregation",
                 ActivityStateDefinition.normal(),

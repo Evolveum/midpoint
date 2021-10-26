@@ -12,9 +12,9 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
-import com.evolveum.midpoint.repo.common.task.work.workers.WorkersReconciliation;
-import com.evolveum.midpoint.repo.common.task.work.workers.WorkersReconciliationOptions;
+import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
+import com.evolveum.midpoint.repo.common.activity.run.distribution.WorkersReconciliation;
+import com.evolveum.midpoint.repo.common.activity.run.distribution.WorkersReconciliationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -43,6 +43,9 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+/**
+ * Provides common functionality related to activities (something like {@link TaskManager} does for tasks).
+ */
 @Experimental
 @Component
 public class TaskActivityManager {

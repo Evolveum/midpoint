@@ -11,9 +11,9 @@ import com.evolveum.midpoint.model.api.ModelAuditService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -60,10 +60,10 @@ class ReportActivitySupport {
      */
     private CompiledObjectCollectionView compiledView;
 
-    ReportActivitySupport(AbstractActivityExecution<?, ?, ?> activityExecution, ReportServiceImpl reportService,
+    ReportActivitySupport(AbstractActivityRun<?, ?, ?> activityRun, ReportServiceImpl reportService,
             @NotNull ObjectResolver resolver, @NotNull AbstractReportWorkDefinition workDefinition) {
-        runningTask = activityExecution.getTaskExecution().getRunningTask();
-        beans = activityExecution.getTaskExecution().getBeans();
+        runningTask = activityRun.getTaskRun().getRunningTask();
+        beans = activityRun.getTaskRun().getBeans();
         this.reportService = reportService;
         this.resolver = resolver;
         this.workDefinition = workDefinition;
@@ -71,7 +71,7 @@ class ReportActivitySupport {
         modelService = reportService.getModelService();
     }
 
-    void beforeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
+    void beforeExecution(OperationResult result) throws CommonException, ActivityRunException {
         setupReportObject(result);
     }
 

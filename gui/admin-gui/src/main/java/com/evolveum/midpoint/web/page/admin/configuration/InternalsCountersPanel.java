@@ -6,33 +6,16 @@
  */
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-
-import com.evolveum.midpoint.util.exception.*;
-
-import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.repo.common.activity.CounterSpecification;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 
 public class InternalsCountersPanel extends BasePanel<ListView<InternalCounters>> {
 
@@ -42,17 +25,8 @@ public class InternalsCountersPanel extends BasePanel<ListView<InternalCounters>
     private static final String ID_COUNTER_LABEL = "counterLabel";
     private static final String ID_COUNTER_VALUE = "counterValue";
     private static final String ID_THRESHOLD_COUNTER = "thresholdCounter";
-    private static final String ID_THRESHOLD_COUNTERS_TABLE = "thresholdCountersTable";
-    private static final String ID_COUNTER_TASK_LABEL = "counterTask";
-    private static final String ID_COUNTER_POLICY_RULE_LABEL = "counterPolicyRule";
-    private static final String ID_COUNTER_COUNT_LABEL = "counterCount";
-    private static final String ID_RESET_THRESHOLD_COUNTER = "resetThresholdCounter";
 
-    private static final String DOT_CLASS = InternalsCountersPanel.class.getName() + ".";
-    private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadTaskByIdentifier";
-
-
-    public InternalsCountersPanel(String id) {
+    InternalsCountersPanel(String id) {
         super(id);
     }
 
@@ -65,47 +39,7 @@ public class InternalsCountersPanel extends BasePanel<ListView<InternalCounters>
         Label thresholdCounter = new Label(ID_THRESHOLD_COUNTER, createStringResource("InternalsCountersPanel.thresholds"));
         add(thresholdCounter);
 
-        ListView<CounterSpecification> thresholdCountersTable = new ListView<CounterSpecification>(ID_THRESHOLD_COUNTERS_TABLE, createThresholdCounterModel()) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void populateItem(ListItem<CounterSpecification> item) {
-                CounterSpecification counter = item.getModelObject();
-                Label task = new Label(ID_COUNTER_TASK_LABEL, createLabelModel(counter));
-                item.add(task);
-
-                Label policyRule = new Label(ID_COUNTER_POLICY_RULE_LABEL, counter.getPolicyRuleName());
-                item.add(policyRule);
-
-                Label count = new Label(ID_COUNTER_COUNT_LABEL, counter.getCount());
-                item.add(count);
-
-                AjaxLink<Void> resetCounter = new AjaxLink<Void>(ID_RESET_THRESHOLD_COUNTER) {
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        ConfirmationPanel confirmPanel = new DeleteConfirmationPanel(getPageBase().getMainPopupBodyId(), createStringResource("InternalsCountersPanel.reset.confirm.message", counter.getOid(), counter.getPolicyRuleName())) {
-
-                            private static final long serialVersionUID = 1L;
-
-                            public void yesPerformed(AjaxRequestTarget target) {
-                                getPageBase().getCounterManager().removeCounter(counter);
-                                target.add(InternalsCountersPanel.this);
-                            }
-                        };
-                        getPageBase().showMainPopup(confirmPanel, target);
-                        target.add(InternalsCountersPanel.this);
-                    }
-                };
-                item.add(resetCounter);
-            }
-
-        };
-        add(thresholdCountersTable);
-
-        ListView<InternalCounters> countersTable = new ListView<InternalCounters>(ID_COUNTERS_TABLE,
+        ListView<InternalCounters> countersTable = new ListView<>(ID_COUNTERS_TABLE,
                 Arrays.asList(InternalCounters.values())) {
             private static final long serialVersionUID = 1L;
 
@@ -130,38 +64,4 @@ public class InternalsCountersPanel extends BasePanel<ListView<InternalCounters>
         };
         add(countersTable);
     }
-
-    private IModel<String> createLabelModel(CounterSpecification counter) {
-        return () -> {
-            Task operationTask = getPageBase().createSimpleTask(OPERATION_LOAD_TASK);
-            OperationResult parentResult = operationTask.getResult();
-            PrismObject<TaskType> taskPrism = null;
-            try {
-                taskPrism  = getPageBase().getTaskService().getTaskByIdentifier(counter.getOid(), null, operationTask, parentResult);
-            } catch (SchemaException | CommunicationException | ExpressionEvaluationException | ObjectNotFoundException | ConfigurationException | SecurityViolationException e) {
-                parentResult.recordPartialError("Failed to load task with identifier: " + counter.getOid() + ". Reason: " + e.getMessage());
-            }
-
-            parentResult.computeStatusIfUnknown();
-            getPageBase().showResult(parentResult, false);
-
-            if (taskPrism == null) {
-                return counter.getOid();
-            }
-            return WebComponentUtil.getName(taskPrism) + "(" + counter.getOid() + ")";
-        };
-    }
-
-    private IModel<List<CounterSpecification>> createThresholdCounterModel() {
-        return new IModel<List<CounterSpecification>>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public List<CounterSpecification> getObject() {
-                Collection<CounterSpecification> thresholdCounters = getPageBase().getCounterManager().listCounters();
-                return new ArrayList<>(thresholdCounters);
-            }
-        };
-    }
-
 }

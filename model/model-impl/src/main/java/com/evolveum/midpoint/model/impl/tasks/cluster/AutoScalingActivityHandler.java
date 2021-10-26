@@ -7,10 +7,10 @@
 package com.evolveum.midpoint.model.impl.tasks.cluster;
 
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
-import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -45,10 +45,10 @@ public class AutoScalingActivityHandler
     }
 
     @Override
-    public AbstractActivityExecution<AutoScalingWorkDefinition, AutoScalingActivityHandler, ?> createExecution(
-            @NotNull ExecutionInstantiationContext<AutoScalingWorkDefinition, AutoScalingActivityHandler> context,
+    public AbstractActivityRun<AutoScalingWorkDefinition, AutoScalingActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<AutoScalingWorkDefinition, AutoScalingActivityHandler> context,
             @NotNull OperationResult result) {
-        return new AutoScalingActivityExecution(context);
+        return new AutoScalingActivityRun(context);
     }
 
     @Override
