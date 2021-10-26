@@ -938,6 +938,11 @@
                 <artifactId>connector-powershell</artifactId>
                 <version>1.1.1</version>
             </dependency>
+            <dependency>
+                <groupId>com.evolveum.polygon</groupId>
+                <artifactId>connector-ssh</artifactId>
+                <version>1.0</version>
+            </dependency>
             <!-- End connectors -->
 
             <dependency>
