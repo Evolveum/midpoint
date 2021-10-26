@@ -18,7 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BucketProcessingRecordType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.BucketsExecutionReportConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BucketsProcessingReportConfigurationType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +33,7 @@ public class BucketsReport extends AbstractReport {
 
     private static final ItemPath STATE_ITEM_PATH = ItemPath.create(ActivityStateType.F_REPORTS, ActivityReportsType.F_BUCKETS);
 
-    public BucketsReport(@Nullable BucketsExecutionReportConfigurationType definition,
+    public BucketsReport(@Nullable BucketsProcessingReportConfigurationType definition,
             @NotNull CurrentActivityState<?> activityState, @NotNull Kind kind) {
         super(definition, BucketProcessingRecordType.COMPLEX_TYPE, activityState, kind.itemsIncluded);
     }

@@ -11,25 +11,22 @@ import java.util.Collection;
 import java.util.List;
 
 import ch.qos.logback.classic.Level;
-
-import com.evolveum.midpoint.repo.common.activity.run.IterativeActivityRun;
-import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingConditionEvaluator.AdditionalVariableProvider;
-import com.evolveum.midpoint.task.api.Tracer;
-
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDefinition;
+import com.evolveum.midpoint.repo.common.activity.run.IterativeActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingConditionEvaluator.AdditionalVariableProvider;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProcessProfilingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProcessTracingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityProfilingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTracingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingRootType;
-
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Starts and stops tracing and [dynamic] profiling for item processing that is a part of activity run.
@@ -62,7 +59,7 @@ class ItemProcessingMonitor<I> {
     private Level originalProfilingLevel;
 
     /** Tracing configuration that was selected and applied (if any). */
-    @Nullable private ProcessTracingConfigurationType tracingConfigurationUsed;
+    @Nullable private ActivityTracingConfigurationType tracingConfigurationUsed;
 
     ItemProcessingMonitor(ItemProcessingGatekeeper<I> itemProcessingGatekeeper) {
         this.workerTask = itemProcessingGatekeeper.getWorkerTask();
@@ -82,7 +79,7 @@ class ItemProcessingMonitor<I> {
     }
 
     private void startProfilingIfNeeded(OperationResult result) {
-        ProcessProfilingConfigurationType profilingConfig = reportingDefinition.getProfilingConfiguration();
+        ActivityProfilingConfigurationType profilingConfig = reportingDefinition.getProfilingConfiguration();
         if (profilingConfig == null ||
                 conditionEvaluator.legacyIntervalRejects(profilingConfig.getInterval()) ||
                 !conditionEvaluator.anyItemReportingConditionApplies(profilingConfig.getBeforeItemCondition(), result)) {
@@ -93,7 +90,7 @@ class ItemProcessingMonitor<I> {
     }
 
     private void startTracingIfNeeded(OperationResult result) {
-        for (ProcessTracingConfigurationType tracingConfig : reportingDefinition.getTracingConfigurationsSorted()) {
+        for (ActivityTracingConfigurationType tracingConfig : reportingDefinition.getTracingConfigurationsSorted()) {
             if (conditionEvaluator.legacyIntervalRejects(tracingConfig.getInterval())) {
                 continue;
             }
@@ -114,7 +111,7 @@ class ItemProcessingMonitor<I> {
         OperationExecutionLogger.setLocalOperationInvocationLevelOverride(originalProfilingLevel);
     }
 
-    private void startTracing(@NotNull ProcessTracingConfigurationType tracingConfiguration) {
+    private void startTracing(@NotNull ActivityTracingConfigurationType tracingConfiguration) {
         tracingConfigurationUsed = tracingConfiguration;
 
         // This is on debug level because we may start tracing "just for sure" (with low overhead)

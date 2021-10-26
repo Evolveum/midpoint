@@ -86,7 +86,7 @@ public final class PropagationActivityRun
 
     @Override
     public boolean processItem(@NotNull ShadowType shadow,
-                               @NotNull ItemProcessingRequest<ShadowType> request, RunningTask workerTask, OperationResult result)
+            @NotNull ItemProcessingRequest<ShadowType> request, RunningTask workerTask, OperationResult result)
             throws CommonException {
         try {
             getActivityHandler().shadowsFacade.propagateOperations(resource, shadow.asPrismObject(), workerTask, result);

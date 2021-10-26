@@ -61,7 +61,7 @@ public abstract class AbstractReport {
     private CsvWriter csvWriter;
 
     /** Report definition. Must be non-null if the report is to be really used. */
-    private final AbstractExecutionReportConfigurationType definition;
+    private final AbstractActivityReportConfigurationType definition;
 
     /** State of the current activity. References to reports are stored there. */
     @NotNull private final CurrentActivityState<?> activityState;
@@ -81,12 +81,12 @@ public abstract class AbstractReport {
     /** Expression that decides if individual records should be accepted or rejected. */
     @Nullable private final ExpressionType recordFilteringExpression;
 
-    AbstractReport(@Nullable AbstractExecutionReportConfigurationType definition,
+    AbstractReport(@Nullable AbstractActivityReportConfigurationType definition,
             @NotNull QName recordTypeName, @NotNull CurrentActivityState<?> activityState) {
         this(definition, recordTypeName, activityState, List.of());
     }
 
-    AbstractReport(@Nullable AbstractExecutionReportConfigurationType definition, @NotNull QName recordTypeName,
+    AbstractReport(@Nullable AbstractActivityReportConfigurationType definition, @NotNull QName recordTypeName,
             @NotNull CurrentActivityState<?> activityState,
             @NotNull Collection<ItemName> itemsIncluded) {
         this.definition = definition;

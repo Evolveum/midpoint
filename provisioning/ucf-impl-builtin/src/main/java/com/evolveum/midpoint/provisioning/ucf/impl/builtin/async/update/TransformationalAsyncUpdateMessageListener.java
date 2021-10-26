@@ -101,7 +101,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
             OperationResultBuilder resultBuilder = OperationResult.createFor(OP_ON_MESSAGE);
             try {
 
-                ProcessTracingConfigurationType tracingConfig = connectorInstance.getConfiguration()
+                ActivityTracingConfigurationType tracingConfig = connectorInstance.getConfiguration()
                         .getProcessTracingConfiguration();
                 if (tracingConfig != null) {
                     int interval = defaultIfNull(tracingConfig.getInterval(), 1);

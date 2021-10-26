@@ -100,13 +100,13 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
     /**
      * Creates a detached tracing configuration from a task (if not null).
      */
-    private static @Nullable ProcessTracingConfigurationType createTracingDefinitionFromTask(Task task) {
+    private static @Nullable ActivityTracingConfigurationType createTracingDefinitionFromTask(Task task) {
         if (task == null) {
             return null;
         }
 
-        ProcessTracingConfigurationType bean =
-                task.getContainerableOrClone(SchemaConstants.MODEL_EXTENSION_TRACING, ProcessTracingConfigurationType.class);
+        ActivityTracingConfigurationType bean =
+                task.getContainerableOrClone(SchemaConstants.MODEL_EXTENSION_TRACING, ActivityTracingConfigurationType.class);
         if (bean != null) {
             return bean.clone();
         }
@@ -119,7 +119,7 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
         if (interval == null && tracingProfile == null && tracingRoots == null) {
             return null;
         } else {
-            ProcessTracingConfigurationType newBean = new ProcessTracingConfigurationType(PrismContext.get())
+            ActivityTracingConfigurationType newBean = new ActivityTracingConfigurationType(PrismContext.get())
                     .interval(interval)
                     .tracingProfile(CloneUtil.clone(tracingProfile));
             if (tracingRoots != null) {
@@ -129,7 +129,7 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
         }
     }
 
-    private static @Nullable ProcessProfilingConfigurationType createProfilingConfigurationFromTask(Task task) {
+    private static @Nullable ActivityProfilingConfigurationType createProfilingConfigurationFromTask(Task task) {
         if (task == null) {
             return null;
         }
@@ -138,21 +138,21 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
         if (interval == null) {
             return null;
         } else {
-            return new ProcessProfilingConfigurationType(PrismContext.get())
+            return new ActivityProfilingConfigurationType(PrismContext.get())
                     .interval(interval);
         }
     }
 
-    public @NotNull List<ProcessTracingConfigurationType> getTracingConfigurationsSorted() {
+    public @NotNull List<ActivityTracingConfigurationType> getTracingConfigurationsSorted() {
         var sorted = new ArrayList<>(bean.getTracing());
         sorted.sort(
                 comparing(
-                        ProcessTracingConfigurationType::getOrder,
+                        ActivityTracingConfigurationType::getOrder,
                         nullsLast(naturalOrder())));
         return sorted;
     }
 
-    public @Nullable ProcessProfilingConfigurationType getProfilingConfiguration() {
+    public @Nullable ActivityProfilingConfigurationType getProfilingConfiguration() {
         return bean.getProfiling();
     }
 
@@ -199,12 +199,12 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
         return bean;
     }
 
-    public BucketsExecutionReportConfigurationType getBucketsReportDefinition() {
+    public BucketsProcessingReportConfigurationType getBucketsReportDefinition() {
         ActivityReportsConfigurationType reports = bean.getReports();
         return reports != null ? reports.getBuckets() : null;
     }
 
-    public ItemsExecutionReportConfigurationType getItemsReportDefinition() {
+    public ItemsProcessingReportConfigurationType getItemsReportDefinition() {
         ActivityReportsConfigurationType reports = bean.getReports();
         return reports != null ? reports.getItems() : null;
     }

@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.repo.common.activity.run.reports;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsProcessingReportConfigurationType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -17,7 +19,6 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityReportsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsExecutionReportConfigurationType;
 
 public class ItemsReport extends AbstractReport {
 
@@ -25,7 +26,7 @@ public class ItemsReport extends AbstractReport {
 
     private static final int MAX_ERROR_MESSAGE_SIZE = 1000;
 
-    public ItemsReport(ItemsExecutionReportConfigurationType definition, @NotNull CurrentActivityState<?> activityState) {
+    public ItemsReport(ItemsProcessingReportConfigurationType definition, @NotNull CurrentActivityState<?> activityState) {
         super(definition, ItemProcessingRecordType.COMPLEX_TYPE, activityState);
     }
 
