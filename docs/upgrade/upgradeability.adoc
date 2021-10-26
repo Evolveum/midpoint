@@ -68,14 +68,14 @@ E.g. the upgrade path may look like this: 3.8  3.9  4.0 LTS  4.1  4.2. In other 
 * *Long-term support (LTS) path*: Upgrade path from one LTS release to a following LTS release: 4.0 LTS  4.4 LTS  5.0 LTS.
 This path is recommended for users that prefer stability over new features.
 
-Please see wiki:Long-Term+Support[Long-Term Support] page for the details.
+Please see xref:/support/long-term-support/[Long-Term Support] page for the details.
 
 
 == Support Duration
 
-Support is provided only to wiki:Subscriptions+and+Sponsoring[midPoint subscribers]. Support lifetimes are different for feature releases and long-term support (LTS) release.
+Support is provided only to xref:/support/subscription-sponsoring/[midPoint subscribers]. Support lifetimes are different for feature releases and long-term support (LTS) release.
 
-Please see wiki:Long-Term+Support[Long-Term Support] page for the details.
+Please see xref:/support/long-term-support/[Long-Term Support] page for the details.
 
 Some midPoint features may become obsolete over time.
 When a feature becomes obsolete it will be marked as *deprecated* but it is *not* removed immediately.

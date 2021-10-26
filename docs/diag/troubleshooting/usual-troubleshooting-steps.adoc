@@ -98,7 +98,7 @@ It is easy to make a configuration mistake.
 Therefore if you experience a problem it is most likely a configuration problem and not a product bug.
 But no software is ever perfect and bugs happen.
 If you have gone through all the relevant steps above and you suspect that what you see is not misconfiguration, error caused by external source (e.g. resource being down) or other thing that you can correct then it is a time to follow with a bug report.
-Please see the wiki:Creating+a+Bug+Report[Creating a Bug Report] page which describes how to create a good bug report.
+Please see the xref:/midpoint/reference/diag/creating-a-bug-report/[Creating a Bug Report] page which describes how to create a good bug report.
 
 
 == Aggressive Approach

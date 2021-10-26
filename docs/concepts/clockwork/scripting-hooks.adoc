@@ -13,7 +13,7 @@ E.g. a hook can be used to inset custom notification after an operation is compl
 
 Hooks are typically pieces of Java code that has to be compiled and assembled into midPoint.
 However there is also a lightweight way to create a hook using a scripting code.
-Each hook is simply a piece of wiki:Script+Expression[script code] that is executed at the specified moment in the midPoint recompute and execute flow (see wiki:Clockwork+and+Projector[Clockwork and Projector]). The code can influence the recomputation and execution by manipulating the wiki:Model+Context[model context], it can invoke wiki:Script+Expression+Functions[script expression functions], invoke external functions or do almost any other thing.
+Each hook is simply a piece of wiki:Script+Expression[script code] that is executed at the specified moment in the midPoint recompute and execute flow (see wiki:Clockwork+and+Projector[Clockwork and Projector]). The code can influence the recomputation and execution by manipulating the wiki:Model+Context[model context], it can invoke xref:/midpoint/reference/expressions/expressions/script/functions/[script expression functions], invoke external functions or do almost any other thing.
 
 
 == Scripting Hook Definition

@@ -45,7 +45,7 @@ But that may not be an immediate action.
 E.g. if the target resource is down then the account may be created later when the resource goes up.
 However, the operation to add the assignment to the user will finish almost immediately regardless of whether the account was or was not created.
 
-Note that the mechanism of wiki:Assignment[assignments] is actually the same concept that is used to model wiki:Advanced+Hybrid+RBAC[roles]. Simply speaking roles can be seen as indirect assignments.
+Note that the mechanism of wiki:Assignment[assignments] is actually the same concept that is used to model xref:/midpoint/reference/roles-policies/rbac/[roles]. Simply speaking roles can be seen as indirect assignments.
 
 
 == Link

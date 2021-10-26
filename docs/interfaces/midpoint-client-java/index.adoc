@@ -13,13 +13,13 @@ This page describers midPoint Java client library.
 The client library is designed to access midPoint functionality in a location-independent manner.
 E.g. this library can be used to access midPoint functionality from a third-party application, command-line tool, simple web form and so on.
 
-The client library is modeled in a way that reflects the structure of midPoint wiki:REST+API[REST API]. But the idea is that this library is location-independent and transport-independent.
+The client library is modeled in a way that reflects the structure of midPoint xref:/midpoint/reference/interfaces/rest/[REST API]. But the idea is that this library is location-independent and transport-independent.
 Therefore it can be theoretically implemented as a REST client, SOAP client or even as a thin wrapper library using local Java calls.
 
 [NOTE]
 .Partially implemented
 ====
-This feature is partially implemented. But there are some parts that are not completed. We are perfectly capable to implement, fix and finish the feature, just the funding for the work is needed. Please consider the possibility for wiki:Subscriptions+and+Sponsoring[supporting] development of this feature by means of midPoint Platform subscription. If you already are midPoint Platform subscriber and this feature is within the goals of your deployment you may be able to use your subscription to endorse implementation of this feature.
+This feature is partially implemented. But there are some parts that are not completed. We are perfectly capable to implement, fix and finish the feature, just the funding for the work is needed. Please consider the possibility for xref:/support/subscription-sponsoring/[supporting] development of this feature by means of midPoint Platform subscription. If you already are midPoint Platform subscriber and this feature is within the goals of your deployment you may be able to use your subscription to endorse implementation of this feature.
 ====
 
 == Design
@@ -36,7 +36,7 @@ E.g. an implementation that will access the REST service using HTTP and an imple
 
 image::client-architecture.png[]
 
-Structure and overall approach of the client library quite closely follows the structure of web resources in midPoint wiki:REST+API[REST API].
+Structure and overall approach of the client library quite closely follows the structure of web resources in midPoint xref:/midpoint/reference/interfaces/rest/[REST API].
 
 
 == Client Library Usage Examples
@@ -264,7 +264,7 @@ This will provide much better handling of schema definitions, object extensions,
 Implementation of phase 2 and 3 is roughly planned for the future.
 
 However, there is currently no specific plan when it will be implemented because there is no funding for this development yet.
-In case that you are interested in wiki:Subscriptions+and+Sponsoring[supporting] development of this feature, please consider activating link:https://evolveum.com/services/professional-support/[midPoint Platform subscription].
+In case that you are interested in xref:/support/subscription-sponsoring/[supporting] development of this feature, please consider activating link:https://evolveum.com/services/professional-support/[midPoint Platform subscription].
 ====
 
 
@@ -276,4 +276,4 @@ Stabilization, final release, full compatibility.
 
 == See Also
 
-* wiki:REST+API[REST API]
+* xref:/midpoint/reference/interfaces/rest/[REST API]

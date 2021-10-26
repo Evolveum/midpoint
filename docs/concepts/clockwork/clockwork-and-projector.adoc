@@ -16,7 +16,7 @@ TODO: picture
 == Projector
 
 Projector is responsible for computing the changes.
-It is triggered by user changes in GUI, received by service or detected by xref:/midpoint/reference/synchronization/introduction/[synchronization]. Projector recomputes all the wiki:Synchronization+Policies[synchronization policies], applies all xref:/midpoint/reference/expressions/introduction/[mappings and expressions], processes wiki:Advanced+Hybrid+RBAC[RBAC] role assignments and so on.
+It is triggered by user changes in GUI, received by service or detected by xref:/midpoint/reference/synchronization/introduction/[synchronization]. Projector recomputes all the wiki:Synchronization+Policies[synchronization policies], applies all xref:/midpoint/reference/expressions/introduction/[mappings and expressions], processes xref:/midpoint/reference/roles-policies/rbac/[RBAC] role assignments and so on.
 However, projector is just computing the values.
 It is not yet executing them.
 The result of projector computations are stored in wiki:Model+Context[model context].

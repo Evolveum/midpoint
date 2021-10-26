@@ -138,7 +138,7 @@ Send the gathered logfiles to the midPoint team with all the other relevant deta
 
 * If there is a form or other input tell us how it was filled in (e.g. an XML snippet used to import, etc.)
 
-* What kind of resource definition was used (we prefer if you replicate the problem with one of our link:https://svn.evolveum.com/midpoint/trunk/samples/[samples], see wiki:Creating+a+Bug+Report[Creating a Bug Report].
+* What kind of resource definition was used (we prefer if you replicate the problem with one of our link:https://svn.evolveum.com/midpoint/trunk/samples/[samples], see xref:/midpoint/reference/diag/creating-a-bug-report/[Creating a Bug Report].
 
 * Any other special settings that you feel can influence the outcome (custom schema, strange things in expressions, etc.)
 

@@ -31,11 +31,11 @@ Some connectors are already bundled with midPoint and their code is a part of mi
 Some connectors are already packaged (bundled) with midPoint.
 At the time of this writing it is:
 
-* wiki:LDAP+Connector[LDAP Connector]
+* xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector]
 
 * wiki:CSVFile+Connector+(legacy)[CSVFile Connector (legacy)]
 
-* wiki:DatabaseTable+Connector[DatabaseTable Connector]
+* xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable Connector]
 
 The JAR file for these connectors is part of midPoint distribution.
 Therefore these connectors are available automatically in any midPoint instance.

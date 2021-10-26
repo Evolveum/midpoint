@@ -134,7 +134,7 @@ The core (back-end) functionality is mostly in place (except for _cases_), there
 The goal was to enable functionality with custom ITSM integration plugin.
 However, that requires custom development.
 In practice this means that as of midPoint 3.6 these features are likely to work well only if Evolveum professional services are involved.
-If you are interesting in helping to finish those resources please consider a wiki:Subscriptions+and+Sponsoring[subscription]. These features could be fully productized in midPoint 3.7 given sufficient funding.
+If you are interesting in helping to finish those resources please consider a xref:/support/subscription-sponsoring/[subscription]. These features could be fully productized in midPoint 3.7 given sufficient funding.
 
 
 == Provisioning Propagation

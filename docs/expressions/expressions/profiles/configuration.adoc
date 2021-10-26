@@ -15,7 +15,7 @@
 This is a limited midPoint feature.
 This feature currently supports only some specific use-cases.
 We are perfectly capable to finish the feature, just the funding for the work is needed.
-Please consider the possibility for wiki:Subscriptions+and+Sponsoring[supporting] development of this feature by using midPoint Platform subscription.
+Please consider the possibility for xref:/support/subscription-sponsoring/[supporting] development of this feature by using midPoint Platform subscription.
 If you are midPoint Platform subscriber and this feature is within the goals of your deployment you may be able to use your subscription to endorse implementation of this feature.
 ====
 

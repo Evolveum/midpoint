@@ -53,10 +53,10 @@ image::focus-projection-3.png[]
 
 wiki:UserType[User] is the most common type of focal object.
 But it is not the only one.
-Since the wiki:Generic+Synchronization[generic synchronization] mechanism was introduced in midPoint version 3.0 there is a wider selection of focal objects to choose from.
+Since the xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization] mechanism was introduced in midPoint version 3.0 there is a wider selection of focal objects to choose from.
 E.g. an wiki:OrgType[Org] can be a focal object.
 The projections can also be of various types.
-E.g. it makes sense to synchronize wiki:OrgType[Orgs] to resource organizational units and groups (Note: a group is considered to be an resource wiki:Entitlements[entitlement]).
+E.g. it makes sense to synchronize wiki:OrgType[Orgs] to resource organizational units and groups (Note: a group is considered to be an resource xref:/midpoint/reference/resources/entitlements/[entitlement]).
 
 image::focus-projection-4.png[]
 
@@ -87,7 +87,7 @@ Projections are simply resource objects represented by wiki:Shadow+Objects[shado
 
 * xref:/midpoint/reference/synchronization/introduction/[Synchronization]
 
-* wiki:Generic+Synchronization[Generic Synchronization]
+* xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]
 
 * wiki:Clockwork+and+Projector[Clockwork and Projector]
 

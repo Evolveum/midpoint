@@ -13,7 +13,7 @@ Some of the connections are secured using SSL/TLS.
 In SSL/TLS connections the server side provides a certificate that needs to be validated on the client side.
 This means that midPoint needs to have a way how to check validity of the certificate provided by SSL/TLS server.
 MidPoint is using standard Java libraries to validate the certificate.
-Java security modules are using a _truststore_ mechanism which is closely related to wiki:Keystore+Configuration[keystore]. The truststore is a small database of trusted certificates.
+Java security modules are using a _truststore_ mechanism which is closely related to xref:/midpoint/reference/security/crypto/keystore-configuration/[keystore]. The truststore is a small database of trusted certificates.
 When a certificate needs to be validate Java libraries check if the certificate the authority that issues it is in the truststore.
 
 The following procedure describes how to get server certificate into the trustore which makes it a trusted certificate.
@@ -117,7 +117,7 @@ Restart midPoint and that's it.
 
 * Make sure that the correct keystore/truststore is used.
 By default connectors use JVM keystore unless it is overriden by JVM options.
-See wiki:Keystore+Configuration[Keystore Configuration] page for more details.
+See xref:/midpoint/reference/security/crypto/keystore-configuration/[Keystore Configuration] page for more details.
 
 * If an import of a .p7b formated certificate results in the following error: java.lang.Exception: Input not an X.509 certificate.
 You might try to convert the certificate to the .cer PEM format.
@@ -131,4 +131,4 @@ openssl pkcs7 -inform der -in mycert.p7b -out myconvertedcert.cer
 
 == See Also
 
-* wiki:Keystore+Configuration[Keystore Configuration]
+* xref:/midpoint/reference/security/crypto/keystore-configuration/[Keystore Configuration]

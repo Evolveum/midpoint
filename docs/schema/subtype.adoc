@@ -11,7 +11,7 @@
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
-MidPoint has several built-in object types such as wiki:Advanced+Hybrid+RBAC[roles], xref:/midpoint/reference/org/organizational-structure/[orgs], and wiki:Services[services]. Those object types may look innocent at the first sight.
+MidPoint has several built-in object types such as xref:/midpoint/reference/roles-policies/rbac/[roles], xref:/midpoint/reference/org/organizational-structure/[orgs], and wiki:Services[services]. Those object types may look innocent at the first sight.
 They look like ordinary concepts that almost any other IDM system has.
 But there is much more under the surface.
 Roles, orgs, and services can act as a smart replacement for wiki:Generic+Objects[generic objects]. Roles, orgs, and services can be used to model a broad variety of object types: job categories, titles, projects, teams, responsibilities, locations, policy categories, devices, ...
@@ -56,4 +56,4 @@ Therefore subtype is often combined with wiki:Using+Metaroles+for+Policy+Configu
 
 * wiki:Using+Metaroles+for+Policy+Configuration[Using Metaroles for Policy Configuration]
 
-* wiki:Generic+Synchronization[Generic Synchronization]
+* xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]

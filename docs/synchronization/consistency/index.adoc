@@ -256,4 +256,4 @@ However, the mechanism was revised and significantly updated in midPoint 3.9. Fo
 
 * wiki:Shadow+Refresh+Task[Shadow Refresh Task]
 
-* wiki:Connector+Development+Guide[Connector Development Guide - DiscoverySupport]
+* xref:/connectors/connid/1.x/connector-development-guide/[Connector Development Guide - DiscoverySupport]

@@ -14,10 +14,10 @@ Therefore they are very generic.
 And it is this generality that often causes confusion whether to use roles, services or orgs to achieve a particular goal.
 Therefore this page explains what roles, services and orgs have in common and how they are different:
 
-* *wiki:Advanced+Hybrid+RBAC[Roles]* are used to define _provisioning_ and _access control_ schemes.
+* *xref:/midpoint/reference/roles-policies/rbac/[Roles]* are used to define _provisioning_ and _access control_ schemes.
 Roles give _privileges_ to users (or other objects).
 Roles enable users to do something that they would not be able to do without the role.
-Roles can be wiki:Advanced+Hybrid+RBAC[very flexible and dynamic]. There can be hierarchical roles, conditional roles, parametric roles, etc.
+Roles can be xref:/midpoint/reference/roles-policies/rbac/[very flexible and dynamic]. There can be hierarchical roles, conditional roles, parametric roles, etc.
 Generally speaking roles can contain xref:/midpoint/reference/expressions/introduction/[mappings and expressions] to create a very dynamic structures.
 Roles can be personalized for each particular user, e.g. by using wiki:Assignment[assignment parameters].
 
@@ -121,7 +121,7 @@ If a sub-org belongs to a super-org this does *not* mean that the sub-org automa
 
 == See Also
 
-* wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
+* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
 
 * xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]
 

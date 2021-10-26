@@ -25,7 +25,7 @@ Therefore it is not possible to provide almost any built-in functionality to sup
 How should they be displayed in the user interface? Should users be able to assign them? What should be the effect it user assigns them? What rules should be applied to govern generic objects? What about authorizations, auditing, lifecycle, governance, ...
 
 There is a better solution in midPoint.
-MidPoint has several built-in object types such as wiki:Advanced+Hybrid+RBAC[roles], xref:/midpoint/reference/org/organizational-structure/[orgs], and wiki:Services[services]. Those data types are built to be extensible and in fact, they are quite generic.
+MidPoint has several built-in object types such as xref:/midpoint/reference/roles-policies/rbac/[roles], xref:/midpoint/reference/org/organizational-structure/[orgs], and wiki:Services[services]. Those data types are built to be extensible and in fact, they are quite generic.
 The role does not mean just "role in strict RBAC sense".
 In midPoint, the concept of "role" is much broader.
 MidPoint roles can easily be used to model RBAC roles, but also job categories, job titles/positions, qualifications, competency certifications, achievements - and even wiki:Consent+Management+(GDPR)[data protection consents]. Orgs and services can be used in a similar way:
@@ -35,7 +35,7 @@ MidPoint roles can easily be used to model RBAC roles, but also job categories, 
 | Object Type | Can be used to model
 
 | Role
-| wiki:Advanced+Hybrid+RBAC[RBAC roles] +
+| xref:/midpoint/reference/roles-policies/rbac/[RBAC roles] +
 wiki:Authorization+Roles[Authorization roles] +
 job category, job titles/position, qualification, competency certification, achievement wiki:Consent+Management+(GDPR)[consent]metarole
 
@@ -87,7 +87,7 @@ This can easily be modeled in midPoint.
 There may be policies that apply to the whole campus or country.
 If they properly configured then they can apply to whole hierarchy or subhierarchy.
 
-And of course, all the object types can be wiki:Generic+Synchronization[synchronized with resource objects].
+And of course, all the object types can be xref:/midpoint/reference/synchronization/generic-synchronization/[synchronized with resource objects].
 
 MidPoint approach to extensibility is not to start from dumb "generic objects".
 MidPoint starts from much smarter object types: roles, orgs, and services.
@@ -159,6 +159,6 @@ Simply speaking, midPoint does not really need the concept of special generic ob
 
 * wiki:Roles,+Metaroles+and+Generic+Synchronization[Roles, Metaroles and Generic Synchronization]
 
-* wiki:Generic+Synchronization[Generic Synchronization]
+* xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]
 
 * wiki:Subtype[Subtype]

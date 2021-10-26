@@ -14,7 +14,7 @@ There is nothing to do for these resources except for xref:/midpoint/reference/r
 
 But there are also resources that do not support the activation at all.
 Or at least not directly.
-Typical case it is a resource connected by wiki:DatabaseTable+Connector[DatabaseTable connector]. The DatabaseTable connector is very generic.
+Typical case it is a resource connected by xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable connector]. The DatabaseTable connector is very generic.
 And even if the table exposed by the connector does include a status column the connector does not know about it.
 Therefore it cannot provide this capability.
 But even though the connector does not provide this capability midPoint can.

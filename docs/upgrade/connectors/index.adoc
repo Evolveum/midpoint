@@ -87,7 +87,7 @@ The resources will not work at this moment, but there is nothing that would atte
 Use that moment to update connectorRef references.
 Then resume the tasks and let users in.
 
-. Use the power of wiki:Subscriptions+and+Sponsoring[platform subscription] to let us implement some smarter strategy.
+. Use the power of xref:/support/subscription-sponsoring/[platform subscription] to let us implement some smarter strategy.
 There are may possibilities how midPoint can be improved.
 E.g. we can support runtime or "upgrade-time" dynamic reference resolution.
 Or implement smart references that points to "latest connector version".
@@ -200,7 +200,7 @@ And this seems to be perfectly acceptable for many midPoint users.
 
 However, there is always a possibility to extend midPoint user interface.
 Especially some user interface to manage the connectors and assist connector upgrades would be useful.
-Evolveum offers wiki:Subscriptions+and+Sponsoring[subscription programs] that can be used to fill in missing midPoint functionality.
+Evolveum offers xref:/support/subscription-sponsoring/[subscription programs] that can be used to fill in missing midPoint functionality.
 
 
 == See Also

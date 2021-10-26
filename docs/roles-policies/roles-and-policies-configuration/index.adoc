@@ -353,7 +353,7 @@ If those conditions depend only on the environment or properties of the focus th
 
 == See Also
 
-* wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
+* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
 
 * wiki:Assignment[Assignment]
 

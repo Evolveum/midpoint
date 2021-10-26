@@ -486,7 +486,7 @@ This situation is similar to the one described in the previous example.
 
 == RBAC
 
-wiki:Advanced+Hybrid+RBAC[Role-based access control] gets processed in the _outbound_ phase.
+xref:/midpoint/reference/roles-policies/rbac/[Role-based access control] gets processed in the _outbound_ phase.
 The mappings in roles are processed similarly to the outbound mappings and at almost the same time.
 Similar principles that apply to outbound mappings apply to roles as well.
 

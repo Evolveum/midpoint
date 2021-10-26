@@ -38,13 +38,13 @@ This test includes following features and policies:
 
 * Use the HR organizational structure information to create midPoint wiki:OrgType[Orgs] on demand and therefore opportunistically synchronize organizational structure from HR to midPoint.
 
-* Replicate midPoint organizational structure to LDAP organizational structure (wiki:Generic+Synchronization[generic synchronization]).
+* Replicate midPoint organizational structure to LDAP organizational structure (xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization]).
 
 * wiki:Assignment[Assign] users to appropriate organizational units.
 
 * The assignment of users to organizational units is used to determine the LDAP organizationalUnit in which the user should be placed.
 
-* Use of xref:/midpoint/reference/expressions/object-template/[object template] and meta-role as a configuration of organizational structure wiki:Generic+Synchronization[generic synchronization] policy.
+* Use of xref:/midpoint/reference/expressions/object-template/[object template] and meta-role as a configuration of organizational structure xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization] policy.
 
 * The definition of "responsibilities" from the HR system is used to create midPoint roles dynamically.
 
@@ -334,7 +334,7 @@ But now we are getting back to the user ...
 We have processed first two mappings and we are going to process the rest of them.
 
 .. The "basic role" mapping in user template is processed.
-This just assigns the "Basic User" role `(role-basic.xml`) . This is a simple wiki:Advanced+Hybrid+RBAC[RBAC] role that assigns an LDAP account to the user.
+This just assigns the "Basic User" role `(role-basic.xml`) . This is a simple xref:/midpoint/reference/roles-policies/rbac/[RBAC] role that assigns an LDAP account to the user.
 
 .. The last mapping is not used.
 User has no "responsibilities" in this case.
@@ -391,7 +391,7 @@ Note that `responsibilities` attribute from HR account is copied to custom multi
 .. The "Org mapping" is not used as there is no `orgpath` in this case.
 
 .. The "basic role" mapping in user template is processed.
-This just assigns the "Basic User" role `(role-basic.xml`) . This is a simple wiki:Advanced+Hybrid+RBAC[RBAC] role that assigns an LDAP account to the user.
+This just assigns the "Basic User" role `(role-basic.xml`) . This is a simple xref:/midpoint/reference/roles-policies/rbac/[RBAC] role that assigns an LDAP account to the user.
 
 .. The "responsibility role assignment" mapping is processed.
 
@@ -486,7 +486,7 @@ This is simple operation.
 
 .. However, adding account to a group is tricky.
 In LDAP this means modification of the group and not the account.
-Fortunately midPoint has a smart wiki:Entitlements[entitlements] mechanism.
+Fortunately midPoint has a smart xref:/midpoint/reference/resources/entitlements/[entitlements] mechanism.
 The xref:/midpoint/reference/resources/resource-configuration/schema-handling/[schema handling] part of LDAP resource definition contains a definition of association between account and group which defines that the actual direction of the association is the other way around.
 MidPoint is quietly using that definition to automatically modify the group object right after the account is created.
 

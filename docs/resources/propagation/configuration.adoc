@@ -125,7 +125,7 @@ Current implementation of provisioning propagation was designed specifically to 
 * Provisioning scripts are currently not supported.
 The propagation task will ignore all provisioning scripts.
 
-* Support for wiki:Entitlements[entitlement associations] is limited.
+* Support for xref:/midpoint/reference/resources/entitlements/[entitlement associations] is limited.
 Subject-to-object associations are very likely to work properly, although this was not explicitly tested.
 Object-to-subject associations are currently not supported.
 

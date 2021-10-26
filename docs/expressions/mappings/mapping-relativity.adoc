@@ -103,7 +103,7 @@ This means that the script will be executed with non-null values only if there i
 If there are several mapping sources then the script still may be executed with `null` inputs, e.g. in case that one source is `null` while the others are non-null.
 In such a case this setting will make the script execution more efficient (skipping some executions) however proper checking for null values is still needed.
 
-There is also a convenient wiki:Script+Expression+Functions[script function]`basic.isEmpty()` that can provide null-safe check for empty value:
+There is also a convenient xref:/midpoint/reference/expressions/expressions/script/functions/[script function]`basic.isEmpty()` that can provide null-safe check for empty value:
 
 .Null-safe check for empty value
 [source,xml]

@@ -95,4 +95,4 @@ The following example shows configuration for _light recompute_ - recompute proc
 
 * wiki:Synchronization+Tasks[Synchronization Tasks]
 
-* wiki:Connector+Development+Guide[Connector Development Guide - DiscoverySupport]
+* xref:/connectors/connid/1.x/connector-development-guide/[Connector Development Guide - DiscoverySupport]

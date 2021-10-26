@@ -195,7 +195,7 @@ The wiki:Model+Context[Model Context] page provides the details how is the model
 == Projector Branch
 
 The primary purpose of the Projector is to take input deltas (user changes or synchronization deltas), apply them to the current state and try to figure out what effects those changes have.
-There are many ways how the input deltas can influence the output: wiki:Inbound+Mapping[inbound mappings], xref:/midpoint/reference/expressions/object-template/[object template], wiki:Advanced+Hybrid+RBAC[roles], wiki:Outbound+Mapping[outbound mappings], etc.
+There are many ways how the input deltas can influence the output: wiki:Inbound+Mapping[inbound mappings], xref:/midpoint/reference/expressions/object-template/[object template], xref:/midpoint/reference/roles-policies/rbac/[roles], wiki:Outbound+Mapping[outbound mappings], etc.
 Each of these steps provide part of the data for the computation.
 Therefore also projector is internally divided into several "processors".
 Each of the processors takes care of one part of the computation:
@@ -205,7 +205,7 @@ E.g. it loads the current state of the user and accounts (if necessary).
 
 * Focus Processor takes care of applying changes to the wiki:Focus+and+Projections[focus] (usually wiki:UserType[UserType]). It takes care of wiki:Inbound+Mapping[Inbound Mapping] and xref:/midpoint/reference/expressions/object-template/[Object Template] processing.
 It is internally composed from other processors such as InboundProcessor and ObjectTemplateProcessor and AssignmentProcessor.
-wiki:Advanced+Hybrid+RBAC[Roles and Orgs (RBAC)] is also pre-computed in this stage.
+xref:/midpoint/reference/roles-policies/rbac/[Roles and Orgs (RBAC)] is also pre-computed in this stage.
 Although we only care whether a specific wiki:Focus+and+Projections[projection] is legal or not.
 We do not process the projection attributes yet.
 
@@ -213,7 +213,7 @@ We do not process the projection attributes yet.
 
 * Then each wiki:Focus+and+Projections[projection] is processed individually:
 
-** Projection Values Processor will evaluate attribute values specified in wiki:Advanced+Hybrid+RBAC[roles and Orgs (RBAC)] and wiki:Outbound+Mapping[outbound mappings]. All the mappings are evaluated and the values are consolidated into deltas.
+** Projection Values Processor will evaluate attribute values specified in xref:/midpoint/reference/roles-policies/rbac/[roles and Orgs (RBAC)] and wiki:Outbound+Mapping[outbound mappings]. All the mappings are evaluated and the values are consolidated into deltas.
 
 ** Credentials Processor will take care of proper propagation of credentials, generating of passwords, etc.
 
@@ -451,7 +451,7 @@ MidPoint will use mapping name in logs and error messages.
 === Logging Inside Script Expressions
 
 If you find out the problem is somewhere inside a wiki:Script+Expression[Script Expression] code then there is way how to troubleshoot that.
-MidPoint has wiki:Script+Expression+Functions[script expression functions] that can be used to log messages from the scripting code.
+MidPoint has xref:/midpoint/reference/expressions/expressions/script/functions/[script expression functions] that can be used to log messages from the scripting code.
 It works like this:
 
 [source,groovy]
@@ -459,7 +459,7 @@ It works like this:
 log.error('The {} is broken, {} is to blame', resource, reason)
 ----
 
-See wiki:Script+Expression+Functions[Script Expression Functions] page for more details.
+See xref:/midpoint/reference/expressions/expressions/script/functions/[Script Expression Functions] page for more details.
 
 
 == Provisioning Branch
@@ -516,7 +516,7 @@ The sequence of events is usually roughly like this:
 It is used to determine correct connector type.
 
 . Provisioning computes additional operations needed to execute the delta.
-E.g. there may be wiki:Simulated+Disable+HOWTO[simulated activation] or wiki:Entitlements[entitlement associations] to process.
+E.g. there may be wiki:Simulated+Disable+HOWTO[simulated activation] or xref:/midpoint/reference/resources/entitlements/[entitlement associations] to process.
 
 . New instance of a connector is initialized by using the configuration in the resource definition.
 This is skipped if existing instance already exists.
@@ -531,7 +531,7 @@ The initialization may take some time.
 . Connector instance is used to carry out the operation specified in the delta.
 E.g. new LDAP account is created.
 
-. wiki:Entitlements[Entitlement associations] are processed again.
+. xref:/midpoint/reference/resources/entitlements/[Entitlement associations] are processed again.
 If the association operations require modification of other objects (typically groups) then these additional operations are executed.
 This also includes processing of referential integrity (if needed).
 
@@ -643,4 +643,4 @@ The audit is the easiest way to check that.
 
 * wiki:Usual+Troubleshooting+Steps[Usual Troubleshooting Steps]
 
-* wiki:Bugfixing+and+Support[Bugfixing and Support]
+* xref:/midpoint/devel/bugfixing/[Bugfixing and Support]

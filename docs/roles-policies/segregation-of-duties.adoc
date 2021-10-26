@@ -75,7 +75,7 @@ If the operation is approved then it proceeds.
 == Exclusion Class
 
 MidPoint does not have direct configuration for role exclusion classes (set of roles where each excludes all other roles from the same class or from different classes).
-However this configuration can easily be created an maintained by using wiki:Advanced+Hybrid+RBAC[role hierarchies] and wiki:Roles,+Metaroles+and+Generic+Synchronization[metaroles].
+However this configuration can easily be created an maintained by using xref:/midpoint/reference/roles-policies/rbac/[role hierarchies] and wiki:Roles,+Metaroles+and+Generic+Synchronization[metaroles].
 
 For example, the following example illustrates "exclusion class" between executive and controlling roles.
 The controlling metarole defines exclusion of all executive roles:

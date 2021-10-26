@@ -21,7 +21,7 @@ MidPoint development team takes security of midPoint very seriously.
 Security was an integral part of midPoint design since the day one.
 And security issues are always a priority, regardless of who and when reported them.
 
-MidPoint wiki:Support+Guidelines[support process] is prioritizing issues of the wiki:Subscriptions+and+Sponsoring[subscribers], which means that a non-subscribers usually has to wait a long time for their issue to get fixed.
+MidPoint wiki:Support+Guidelines[support process] is prioritizing issues of the xref:/support/subscription-sponsoring/[subscribers], which means that a non-subscribers usually has to wait a long time for their issue to get fixed.
 But that does not apply to security issues.
 Security issues are always addressed with highest priority, regardless whether they are reported by subscriber on non-subscriber.
 The reason is that a security issues has potential to affect everybody, even midPoint subscribers.
@@ -61,7 +61,7 @@ The fix is committed to master branch.
 Discovery of severe security issue (CVSS rating: critical)  usually means that new maintenance or patch releases of all supported versions will be published.
 However new releases are unlikely for a medium-severity issues (CVSS rating: high-medium).
 User are advised to use recent build from a wiki:Using+Support+Branch[support branch] for their release.
-In case that a wiki:Subscriptions+and+Sponsoring[subscriber] needs official release to deploy in their environment, such subscriber should contact Evolveum and a wiki:Development+Process[patch release] will be created in that case.
+In case that a xref:/support/subscription-sponsoring/[subscriber] needs official release to deploy in their environment, such subscriber should contact Evolveum and a wiki:Development+Process[patch release] will be created in that case.
 But this will not happen automatically for issues of medium and low severity.
 Low severity issues (CVSS rating: low) may not even get backported to support branches unless such action is explicitly requested by a subscriber.
 
@@ -226,7 +226,7 @@ Which means that the expressions can damage the system or compromise security of
 *Use the expressions with utmost care.*
 
 Currently, there are very little restraints for expression execution.
-The wiki:Script+Expression+Functions[expression functions] provided by midPoint usually check for proper authorizations.
+The xref:/midpoint/reference/expressions/expressions/script/functions/[expression functions] provided by midPoint usually check for proper authorizations.
 But as the expressions can use general-purpose languages, there is no obligation for the expressions to use those libraries.
 The expression can easily circumvent those weak protections.
 Therefore do not let any unauthorized user to set up any kind of expression in midPoint.
@@ -234,12 +234,12 @@ Therefore do not let any unauthorized user to set up any kind of expression in m
 
 Some expression security can be achieved by using wiki:Expression+Profiles[expression profiles]. However, the usefulness of this feature is currently limited.
 See wiki:Expression+Profile+Configuration[Expression Profile Configuration] page for details.
-Please consider using wiki:Subscriptions+and+Sponsoring[platform subscription] to  fund wiki:Expression+Profiles:+Full+Implementation[full implementation of expression profiles.]
+Please consider using xref:/support/subscription-sponsoring/[platform subscription] to  fund wiki:Expression+Profiles:+Full+Implementation[full implementation of expression profiles.]
 
 
 == Networking
 
-wiki:Stand-Alone+Deployment[Stand-alone deployment] of midPoint is supposed to expose only HTTP port 8080 by default.
+xref:/midpoint/reference/deployment/stand-alone-deployment/[Stand-alone deployment] of midPoint is supposed to expose only HTTP port 8080 by default.
 Other ports (e.g. H2 database port) may be exposed as well, depending on midPoint configuration and customization.
 
 MidPoint is not supposed to be directly exposed to unprotected network.
@@ -259,7 +259,7 @@ As such web container is not under the control of midPoint, midPoint is not resp
 
 == Security of MidPoint Services
 
-MidPoint is exposing remote services, such as wiki:REST+API[RESTful API]. Those services provide access to a significant part of midPoint functionality.
+MidPoint is exposing remote services, such as xref:/midpoint/reference/interfaces/rest/[RESTful API]. Those services provide access to a significant part of midPoint functionality.
 The services allow "raw" access to midPoint data, which means access that is not protected by the mechanisms of user interface.
 Significant harm can be done by using those services, as there are almost no safeguards with respect to robustness.
 E.g. the services will not ask for confirmation dialog, they will allow to delete objects that are in use and so on.

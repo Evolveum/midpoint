@@ -119,7 +119,7 @@ Note that innodb_large_prefix is "ON" by default since MariaDB 10.2.2 (and is de
 
 === Packet for query is too large
 
-When we're using new wiki:LDAP+Connector[LDAP Connector], usually generated resource schema in XML representation is bigger then default max_allowed_packet size in MariaDB. To increase this value, see documentation for your MariaDB version. In some cases this error is indicated as consequence for "No schema for resource" exception.
+When we're using new xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector], usually generated resource schema in XML representation is bigger then default max_allowed_packet size in MariaDB. To increase this value, see documentation for your MariaDB version. In some cases this error is indicated as consequence for "No schema for resource" exception.
 
 .Sample my.cnf configuration file
 [source,bash]

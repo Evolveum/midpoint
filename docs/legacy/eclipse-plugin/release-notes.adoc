@@ -15,7 +15,7 @@
 MidPoint plugin for Eclipse for *abandoned*  in favor of xref:/midpoint/tools/studio/[MidPoint Studio], which is based on open source link:https://www.jetbrains.com/opensource/idea/[IntelliJ platform].
 
 Although the Eclipse plugin was an efficient tool used broadly by the community, maintaining the plugin in Eclipse environment proved to be a challenge.
-Most of the midPoint developers migrated to link:https://www.jetbrains.com/opensource/idea/[IntelliJ platform], and the popularity of the platform was also indicated by our wiki:MidPoint+2019+Survey+Results[survey]. Therefore we have decided to abandon the old and de facto derelict Eclipse plugin.
+Most of the midPoint developers migrated to link:https://www.jetbrains.com/opensource/idea/[IntelliJ platform], and the popularity of the platform was also indicated by our xref:/community/surveys/midpoint-2019-survey/[survey]. Therefore we have decided to abandon the old and de facto derelict Eclipse plugin.
 There no plans to maintain the Eclipse plugin any further.
 You can go ahead and use it if it works for you, but there will be no further improvements, bug fixes or even security fixes.
 ====

@@ -79,4 +79,4 @@ More mechanisms may be be added in the future (such as password synchronization)
 
 * xref:/midpoint/reference/synchronization/examples/[Synchronization Examples]
 
-* wiki:Connector+Development+Guide[Connector Development Guide - DiscoverySupport]
+* xref:/connectors/connid/1.x/connector-development-guide/[Connector Development Guide - DiscoverySupport]

@@ -411,7 +411,7 @@ The new object will be populated by the values specified by inner expressions (i
 ====
  Please note that the assignment expressions are part of the expression and it also usually contains inner expressions.
 So we have expressions inside expressions.
-This may look confusing at the first moment but in fact it goes very well in line with wiki:Approach[midPoint approach] of reusability.
+This may look confusing at the first moment but in fact it goes very well in line with xref:/midpoint/introduction/approach/[midPoint approach] of reusability.
 We do not want to reinvent the same mechanism, we rather try to reuse what we already have.
 And this also creates a very powerful and flexible customization tool.
 

@@ -50,7 +50,7 @@ It is "inducting" the assignment in a different object.
 Assignments and inducements are internally identical.
 And in fact there was only an assignment which was used both directly and indirectly in previous midPoint versions (prior to version 2.2).
 This simple approach works well as long as we only deal with users and accounts.
-But the situation gets very complex once we allow roles and organizational units to have associated _shadows_ in a similar way that user has account _shadow_ (a.k.a. wiki:Generic+Synchronization[Generic Synchronization]). This is a very powerful feature.
+But the situation gets very complex once we allow roles and organizational units to have associated _shadows_ in a similar way that user has account _shadow_ (a.k.a. xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]). This is a very powerful feature.
 But for this feature to work well we had to refine and clean up the data model to allow for greater flexibility and expressive power.
 And therefore we need both (direct) assignment and (indirect) inducement.
 While it may seem a bit overcomplicated it greatly pays off on the side of flexibility and the ability to elegantly handle even very complex situations.
@@ -66,7 +66,7 @@ Unless you are creating a very complex setup there is a simple rule of the thumb
 
 * Roles have _inducements_
 
-You want to deviate from this rule usually only if wiki:Generic+Synchronization[Generic Synchronization] is used.
+You want to deviate from this rule usually only if xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization] is used.
 
 
 == Assignment and Inducement

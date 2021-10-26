@@ -41,7 +41,7 @@ The user simply selects the roles and clicks on the "request" button.
 What the user does not know is that in fact this starts an operation that adds new assignment to the user object wiki:UserType[UserType].
 
 * When that operation is evaluated, wiki:Clockwork+and+Projector[internal algorithms] in midPoint will analyze all the requested roles.
-MidPoint will evaluate wiki:Advanced+Hybrid+RBAC[role hierarchies], wiki:Roles,+Metaroles+and+Generic+Synchronization[metaroles], gather all the applicable wiki:Policy+Rules[policy rules] and apply default policies.
+MidPoint will evaluate xref:/midpoint/reference/roles-policies/rbac/[role hierarchies], wiki:Roles,+Metaroles+and+Generic+Synchronization[metaroles], gather all the applicable wiki:Policy+Rules[policy rules] and apply default policies.
 This determines how the role assignment needs to be approved - and by whom.
 This also determines whether the role can be assigned at all (e.g. whether it does not violate the wiki:Segregation+of+Duties[SoD constraints]).
 

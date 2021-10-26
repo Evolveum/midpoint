@@ -475,7 +475,7 @@ E.g. support for search bar configuration is not fully supported yet.
 
 * .. and other limitations, there are too many of them to list.
 
-While strictly speaking collections and views are not wiki:Experimental+Functionality[experimental functionality], the limitations are so severe that almost all support requests may turn out to be a feature/improvement requests instead of bug reports.
+While strictly speaking collections and views are not xref:/midpoint/versioning/experimental/[experimental functionality], the limitations are so severe that almost all support requests may turn out to be a feature/improvement requests instead of bug reports.
 Therefore *link:https://evolveum.com/services/professional-support/[midPoint Platform subscription] is strongly recommended* when using this functionality for production purposes.
 
 ++++

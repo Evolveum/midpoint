@@ -271,7 +271,7 @@ This is supposed to be the same as the package prefix used in the `connectorType
 So, you think you have found a connector bug.
 That may happen.
 No practical software is completely bug-free and the connectors are no exception.
-But before going to wiki:Creating+a+Bug+Report[report a bug] please spend some time diagnosing the issue.
+But before going to xref:/midpoint/reference/diag/creating-a-bug-report/[report a bug] please spend some time diagnosing the issue.
 Firstly, what looks like a connector bug may in fact be a misconfiguration.
 Secondly, if your bug report states justs "the connector is broken" then such a bug is very unlikely to ever get fixed.
 We need more data about the issue to fix it.
@@ -309,7 +309,7 @@ Enable full connector logging.
 And maybe logging of the underlying libraries.
 Try to figure out what is going on.
 
-. If everything fails then you can wiki:Creating+a+Bug+Report[report the issue]. However at this point it is almost sure that the issue will be very tricky.
+. If everything fails then you can xref:/midpoint/reference/diag/creating-a-bug-report/[report the issue]. However at this point it is almost sure that the issue will be very tricky.
 It is unlikely that the midPoint team will have time to address that issue unless you have an active xref:/support/subscription-sponsoring/[subscription].
 
 == Connector Exception Stack Trace
@@ -342,4 +342,4 @@ The audit is the easiest way to check that.
 
 * wiki:Usual+Troubleshooting+Steps[Usual Troubleshooting Steps]
 
-* wiki:Bugfixing+and+Support[Bugfixing and Support]
+* xref:/midpoint/devel/bugfixing/[Bugfixing and Support]

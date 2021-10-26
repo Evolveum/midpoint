@@ -11,14 +11,14 @@
 
 == Introduction
 
-wiki:Generic+Synchronization[Generic synchronization] is a powerful feature that distinguished midPoint from many traditional IDM systems.
+xref:/midpoint/reference/synchronization/generic-synchronization/[Generic synchronization] is a powerful feature that distinguished midPoint from many traditional IDM systems.
 Even though the generic synchronization itself is an interesting feature, what makes it incredibly powerful is the combination of generic synchronization with other midPoint features.
-This is especially true for a combination of generic synchronization with wiki:Advanced+Hybrid+RBAC[midPoint RBAC system]. This page describes how these two features work together to create simple and very powerful configuration schemes.
+This is especially true for a combination of generic synchronization with xref:/midpoint/reference/roles-policies/rbac/[midPoint RBAC system]. This page describes how these two features work together to create simple and very powerful configuration schemes.
 
 
 == Usual RBAC
 
-MidPoint wiki:Advanced+Hybrid+RBAC[RBAC mechanism] has all that one can expect from a provisioning RBAC structure.
+MidPoint xref:/midpoint/reference/roles-policies/rbac/[RBAC mechanism] has all that one can expect from a provisioning RBAC structure.
 The most frequently used feature is perhaps role hierarchy.
 The following diagrams provides an example of such role hierarchy.
 
@@ -35,7 +35,7 @@ All the _inducements_ from the entire role hierarchy are applied to the object t
 
 The wiki:Assignment+vs+Inducement[difference between assignment and inducement] may seem like an unnecessary complication.
 But it is not.
-The true power of this mechanism becomes obvious only when it is used together with wiki:Generic+Synchronization[generic synchronization]. Generic synchronization allow to synchronize almost all midPoint objects to the resources.
+The true power of this mechanism becomes obvious only when it is used together with xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization]. Generic synchronization allow to synchronize almost all midPoint objects to the resources.
 One typical use of generic synchronization is to synchronize midPoint roles with groups on the resource.
 E.g. we want to create an LDAP groups for some midPoint roles.
 Because wiki:Assignment[assignment] is a generic concept that applies to roles and org equally as it applies to users there is simple way how to do this: we add assignment with appropriate _group construction_ statement to every role that want to synchronize to LDAP.
@@ -113,7 +113,7 @@ The set-up which does this is illustrated in the following diagram.
 
 image::rbac-meta-4.png[]
 
-The `associationFromLink` expression is used to create an association between the account and the wiki:Entitlements[entitlement] (group) which creates a group membership.
+The `associationFromLink` expression is used to create an association between the account and the xref:/midpoint/reference/resources/entitlements/[entitlement] (group) which creates a group membership.
 As this is placed in a second-order inducement it will be applied to a user and therefore it will be the appropriate user account which will be added to the group.
 
 The complete configuration of the metarole looks like this:
@@ -261,7 +261,7 @@ index -2 is the one before and so on.
 
 == See Also
 
-* wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
+* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
 
 * xref:/midpoint/reference/roles-policies/roles-and-policies-configuration/[Roles and Policies Configuration]
 

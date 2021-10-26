@@ -7,7 +7,7 @@
 :page-wiki-metadata-modify-date: 2019-10-22T08:59:42.348+02:00
 :page-upkeep-status: yellow
 
-MidPoint is often deployed as a wiki:Stand-Alone+Deployment[stand-alone server] with an embedded Apache Tomcat container.
+MidPoint is often deployed as a xref:/midpoint/reference/deployment/stand-alone-deployment/[stand-alone server] with an embedded Apache Tomcat container.
 It is expected that such a server will listen on ports 80 (HTTP) and 443 (HTTPS).
 However, those are privileged ports.
 Only a privileged (root) process can bind to those ports in UNIX-like environments.

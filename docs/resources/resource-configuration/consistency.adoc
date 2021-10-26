@@ -14,7 +14,7 @@
 This section needs to be expanded.
 However, documentation work is similar to the development work in that it takes time and that it needs funding. +
 If you are midPoint link:https://evolveum.com/services/[subscriber], you can request that we complete this section and we will do that as soon as possible.
-Or you may use the option to wiki:Subscriptions+and+Sponsoring[sponsor] completion of midPoint documentation.
+Or you may use the option to xref:/support/subscription-sponsoring/[sponsor] completion of midPoint documentation.
 
 ====
 

@@ -112,4 +112,4 @@ The following task will import all objects of `inetOrgPerson` object class from 
 
 * wiki:Recompute+Task[Recompute Task]
 
-* wiki:Connector+Development+Guide[Connector Development Guide - DiscoverySupport]
+* xref:/connectors/connid/1.x/connector-development-guide/[Connector Development Guide - DiscoverySupport]

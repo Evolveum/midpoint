@@ -145,7 +145,7 @@ Modeling those as state changes would pollute both the server and the client cod
 Therefore we have decided not to follow strict REST guidelines here and to model those operations as RPC.
 
 ** *Global RPC operations:* Operations that do not deal with any specific object, operations that deal with broad selection of objects or simply operations that cannot be classified to any of the above categories.
-Typical example is an execution of a wiki:Bulk+actions+(midPoint+scripting+language)[bulk action].
+Typical example is an execution of a xref:/midpoint/reference/misc/bulk/[bulk action].
 
 
 

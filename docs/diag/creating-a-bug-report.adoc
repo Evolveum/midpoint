@@ -109,7 +109,7 @@ But sometimes too much non-relevant information may obscure the tiny problem tha
 
 * wiki:Usual+Troubleshooting+Steps[Usual Troubleshooting Steps]
 
-* wiki:Bugfixing+and+Support[Bugfixing and Support]
+* xref:/midpoint/devel/bugfixing/[Bugfixing and Support]
 
 *  xref:/support/bug-tracking-system/[]
 

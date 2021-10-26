@@ -275,7 +275,7 @@ This is especially important for add and delete operations.
 | RefinedObjectClassDefinition
 | outbound
 |
-| Contains a definition of the association target (wiki:Entitlements[entitlement]). Used in expressions that need to do advanced logic on associations and entitlements.
+| Contains a definition of the association target (xref:/midpoint/reference/resources/entitlements/[entitlement]). Used in expressions that need to do advanced logic on associations and entitlements.
 
 
 | `entitlement`
@@ -301,14 +301,14 @@ And also the expression and mapping code is evolving.
 
 Some variable names have alternatives.
 E.g. the `focus` variable can be often referred to as `user`. This is legacy of the humble beginnings of midPoint when midPoint can only process users and accounts.
-This is a long time ago and midPoint is now very wiki:Generic+Synchronization[generic]. Therefore also the variable names refer to generic concepts.
+This is a long time ago and midPoint is now very xref:/midpoint/reference/synchronization/generic-synchronization/[generic]. Therefore also the variable names refer to generic concepts.
 *Alternative variable names are not considered DEPRECATED*. Please, if you can try to avoid the use of the alternative names.
 They will work quite OK for some time.
 But sooner or later they are going to disappear.
 
 Due to midPoint history all the variables that are supposed to be universally available to all expressions may not be actually available in some cases.
 If you expect an variable to be available and it is not then you have probably found a bug.
-Please wiki:Creating+a+Bug+Report[report the bug]. We will fix that.
+Please xref:/midpoint/reference/diag/creating-a-bug-report/[report the bug]. We will fix that.
 
 
 == See Also

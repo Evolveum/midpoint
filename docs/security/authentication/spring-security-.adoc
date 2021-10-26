@@ -15,7 +15,7 @@
 .Unofficial functionality
 ====
 This functionality requires modification of midPoint build, or even modification of midPoint source code.
-Therefore it is not officially supported - unless the support is explicitly negotiated in wiki:Subscriptions+and+Sponsoring[subscription]. +
+Therefore it is not officially supported - unless the support is explicitly negotiated in xref:/support/subscription-sponsoring/[subscription]. +
 This configuration is unsupported from version 4.1. For the solution to this problem see wiki:Flexible+Authentication[Flexible Authentication] and wiki:Flexible+Authentication+Configuration[Flexible Authentication Configuration].
 ====
 

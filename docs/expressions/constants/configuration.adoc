@@ -114,7 +114,7 @@ Currently there is no way how to refresh the values when the constants change ex
 Resource wizard does not support expressions in resource configuration properties and it does not support `const` expression evaluator.
 
 Future midPoint versions will probably introduce several alternative methods to specify constant values.
-One such method may be specification of constant values in wiki:System+Configuration+Object[system configuration object]. If you are interested in this extension or you are affected by the current limitations then please consider a wiki:Subscriptions+and+Sponsoring[subscription].
+One such method may be specification of constant values in wiki:System+Configuration+Object[system configuration object]. If you are interested in this extension or you are affected by the current limitations then please consider a xref:/support/subscription-sponsoring/[subscription].
 
 
 == See Also

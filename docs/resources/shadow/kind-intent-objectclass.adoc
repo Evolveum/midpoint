@@ -29,7 +29,7 @@ MidPoint supports several *kinds* of resource objects:
 * *Account* resource objects represent identity of a person, either physical such as computer user or virtual such as _administrator_, _root_, _daemon_ or similar special-purpose identities.
 Accounts can be_wiki:Assigning+vs+Linking[linked]_ to the wiki:UserType[User] objects.
 
-* wiki:Entitlements[Entitlement] resource objects represent groupings or privileges of an *account*. Entitlement resource objects represent groups, resource-specific roles, access permissions or even organizational unit membership.
+* xref:/midpoint/reference/resources/entitlements/[Entitlement] resource objects represent groupings or privileges of an *account*. Entitlement resource objects represent groups, resource-specific roles, access permissions or even organizational unit membership.
 Entitlements are *associated* to an *account*.
 
 * other kinds of resource objects may be introduced later (e.g. organizational unit)
@@ -197,4 +197,4 @@ Therefore midPoint allows the two grouping mechanisms to coexist (and may keep t
 
 * xref:/midpoint/reference/resources/resource-schema/[Resource Schema]
 
-* wiki:Entitlements[Entitlements]
+* xref:/midpoint/reference/resources/entitlements/[Entitlements]

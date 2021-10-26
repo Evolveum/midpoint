@@ -32,7 +32,7 @@ By leveraging existing tools and integrating it with midPoint it is possible to 
 MidPoint service object is designed to represent logical or physical services or devices such as virtual machines, mobile devices, servers, printers, network devices, application containers ... and essentially almost anything else.
 
 Services in midPoint can be expressed using midPoints `ServiceType` objects.
-The usage and the structure for the ServiceType object is almost the same as wiki:Advanced+Hybrid+RBAC[midPoint roles] (wiki:RoleType[RoleType]). It means, you can define rules for provisioning, you can assign roles, wiki:Roles,+Metaroles+and+Generic+Synchronization[meta-roles, meta-meta-roles] to them etc.
+The usage and the structure for the ServiceType object is almost the same as xref:/midpoint/reference/roles-policies/rbac/[midPoint roles] (wiki:RoleType[RoleType]). It means, you can define rules for provisioning, you can assign roles, wiki:Roles,+Metaroles+and+Generic+Synchronization[meta-roles, meta-meta-roles] to them etc.
 The one difference is that using services in addition will provide also automatic creation of resource definition (in midPoint terminology it means the target systems, where the users are provisioned).
 It can be said that working with services is divided into two parts:
 
@@ -92,7 +92,7 @@ The brief comparison which object type to use in which situation can be also fin
 
 == See also
 
-* wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
+* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
 
 * xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]
 

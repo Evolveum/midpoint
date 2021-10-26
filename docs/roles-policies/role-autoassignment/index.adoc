@@ -103,7 +103,7 @@ The xref:/midpoint/reference/expressions/expressions/[Expression] page describes
 == Roles Within Roles
 
 There is sometimes a need to assign one role when another role is assigned.
-As midPoint has full support for wiki:Advanced+Hybrid+RBAC[role hierarchy] this is easily done by nesting the roles inside.
+As midPoint has full support for xref:/midpoint/reference/roles-policies/rbac/[role hierarchy] this is easily done by nesting the roles inside.
 If there is additional condition when the nested role is to be applied then the conditional role approach can be used.
 There are many ways how to implement this functionality.
 
@@ -121,4 +121,4 @@ MidPoint is a thorough system and it does not like conflicting policies.
 
 * xref:/midpoint/reference/expressions/expressions/[Expression]
 
-* wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
+* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]

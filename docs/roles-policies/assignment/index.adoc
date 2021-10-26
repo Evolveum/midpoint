@@ -77,7 +77,7 @@ The situation depicted in the diagram could be expressed in XML as:
 
 == Simple Account Assignment
 
-We expect that most midPoint deployments will use wiki:Advanced+Hybrid+RBAC[roles] to manage user accounts, entitlements and privileges.
+We expect that most midPoint deployments will use xref:/midpoint/reference/roles-policies/rbac/[roles] to manage user accounts, entitlements and privileges.
 However we understand that there is always a need to make an "exception" or a special case.
 Therefore it is possible to assign account to a user directly.
 
@@ -129,7 +129,7 @@ Such extension may contain any custom data and such data can be used in the expr
 Such assignment extensions can then be used as a parameters in the roles.
 Therefore a role assignment can specify details such as a department for which the role applies, the branch office, access zone in the building and so on.
 This _parametric_ RBAC structure is a good mechanism to fight the wiki:Role+Explosion[role explosion] problem.
-See wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC] for more details.
+See xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC] for more details.
 The xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] page provides examples of such parametric assignments.
 
 
@@ -137,6 +137,6 @@ The xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment
 
 * xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] page in Docuementation section
 
-* wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
+* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
 
 * wiki:Assigning+vs+Linking[Assigning vs Linking]

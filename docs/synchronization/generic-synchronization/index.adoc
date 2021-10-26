@@ -49,14 +49,14 @@ E.g. groups can be automatically created based on organizational structure.
 Such groups will correspond to departments, sections or projects.
 The groups can automatically be deleted when an Org is gone (e.g. a project is closed) limiting a "dead weight" in the corporate directory.
 The groups can also be synchronized with midPoint roles creating a access control structure consistent across the whole organization.
-And actually the extremely poweful wiki:Advanced+Hybrid+RBAC[RBAC] mechanism can also be reused for these unusual links creating a kind of meta-roles.
+And actually the extremely poweful xref:/midpoint/reference/roles-policies/rbac/[RBAC] mechanism can also be reused for these unusual links creating a kind of meta-roles.
 E.g. and Org itself can be assigned to a meta-role which defines in which systems the corresponding groups has to be created for this Org.
 This simple mechanism is introducing a completely new dimension to midPoint RBAC structures.
 
 
 == See Also
 
-* wiki:Entitlements[Entitlements]
+* xref:/midpoint/reference/resources/entitlements/[Entitlements]
 
 * xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]
 

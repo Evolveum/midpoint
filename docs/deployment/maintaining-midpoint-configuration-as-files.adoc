@@ -225,7 +225,7 @@ In most of our projects, we need to create and maintain configuration at least f
 
 Resource Wizard is a part of midPoint GUI which has been implemented to simplify creation of resources without using samples.
 The OID is automatically generated and the connection parameters are dynamically created using connector schema after the connector for the resource is selected.
-As midPoint evolved during and after creation of resource wizard (e.g. wiki:Generic+Synchronization[generic synchronization], wiki:Entitlements[entitlements]wiki:Entitlements[ and associations]), the resource configuration using the wizard became "less simple" than we anticipated.
+As midPoint evolved during and after creation of resource wizard (e.g. xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization], xref:/midpoint/reference/resources/entitlements/[entitlements]xref:/midpoint/reference/resources/entitlements/[ and associations]), the resource configuration using the wizard became "less simple" than we anticipated.
 That's why we intend to further change and simplify the resource wizard in the future midPoint releases.
 
 Best practice is using the resource wizard for basic resource configuration.

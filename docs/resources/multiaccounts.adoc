@@ -122,7 +122,7 @@ It is always better to find some kind of identifier in the account data to be us
 
 MidPoint lacks convenient support for tags as ordinary numbers.
 This is somehow done by purpose, to avoid the temptation.
-However, we might be willing to implement it given sufficient wiki:Subscriptions+and+Sponsoring[funding].
+However, we might be willing to implement it given sufficient xref:/support/subscription-sponsoring/[funding].
 
 ====
 
@@ -324,7 +324,7 @@ Once set, the tag is considered to be fixed.
 It is not updated when resource object is renamed.
 It is not updated when owner is changed.
 
-All those limitations can be removed with appropriate wiki:Subscriptions+and+Sponsoring[platform subscription].
+All those limitations can be removed with appropriate xref:/support/subscription-sponsoring/[platform subscription].
 
 
 == See Also

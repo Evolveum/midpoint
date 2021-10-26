@@ -74,7 +74,7 @@ But it can also be used for searching objects of a particular archetypes by the 
 [TIP]
 .Synergy
 ====
-Archetype functionality is a wiki:Synergistic+Features[synergistic feature]. It is designed to fit together with existing midPoint features, such as wiki:Advanced+Hybrid+RBAC[RBAC] and xref:/midpoint/reference/org/organizational-structure/[organizational structure].
+Archetype functionality is a wiki:Synergistic+Features[synergistic feature]. It is designed to fit together with existing midPoint features, such as xref:/midpoint/reference/roles-policies/rbac/[RBAC] and xref:/midpoint/reference/org/organizational-structure/[organizational structure].
 ====
 
 Archetype definition are wiki:Abstract+Role[abstract roles], which means they essentially work as a role.
@@ -148,6 +148,6 @@ See wiki:Archetype+Improvements+(Planned+Feature)[Archetype Improvements (Planne
 
 * xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]
 
-* wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
+* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
 
 * wiki:Services[Services]

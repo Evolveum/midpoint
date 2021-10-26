@@ -415,7 +415,7 @@ This can easily be achieved using a `deleteShadow` action:
 === Group Synchronization Example
 
 MidPoint synchronization capability goes beyond simple user-account synchronization.
-MidPoint has a wiki:Generic+Synchronization[generic synchronization] capability that can be used to synchronize almost any type of objects.
+MidPoint has a xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization] capability that can be used to synchronize almost any type of objects.
 The following example shows a configuration to synchronize groups (resource objects) and roles (midPoint objects).
 This setup will create a new midPoint role when a new group is detected on the resource.
 

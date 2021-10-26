@@ -80,7 +80,7 @@ Therefore the schema will not be polluted by the unfortunate ICF concepts of wik
 
 All midPoint versions up to wiki:Release+3.1.1[Release 3.1.1] used the Legacy+JNDI+LDAP+Connector[legacy SunICF/OpenICF LDAP connector]. This connector was bundled inside midPoint.
 
-All midPoint versions starting from wiki:Release+3.2[Release 3.2] are using the new wiki:LDAP+Connector[LDAP Connector]. This connector is bundled inside midPoint.
+All midPoint versions starting from wiki:Release+3.2[Release 3.2] are using the new xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector]. This connector is bundled inside midPoint.
 
 Starting from wiki:Release+3.2[Release 3.2] the legacy connector is no longer included inside midPoint.
 But it still can be used if the connector JAR file is downloaded and deployed.
@@ -356,7 +356,7 @@ Therefore please plan the migration to the new connector accordingly.
 
 == See Also
 
-* wiki:LDAP+Connector[LDAP Connector]
+* xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector]
 
 * Legacy+JNDI+LDAP+Connector[Legacy LDAP Connector]
 

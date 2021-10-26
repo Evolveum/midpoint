@@ -11,7 +11,7 @@
 :page-upkeep-status: yellow
 
 One of the drawbacks of the general RBAC models is that there is usually a large number of roles to choose from.
-MidPoint wiki:Advanced+Hybrid+RBAC[advanced hybrid RBAC model] can keep the number of roles at reasonable level.
+MidPoint xref:/midpoint/reference/roles-policies/rbac/[advanced hybrid RBAC model] can keep the number of roles at reasonable level.
 But even in that case there is usually hundreds or even thousands of roles if the organization is considerably complex.
 We need to keep this number of roles manageable for both the end users and administrators.
 Therefore midPoint implements a concept of _role catalog_ to organize the roles into categories.
@@ -50,7 +50,7 @@ See wiki:Role+Catalog+Configuration[Role Catalog Configuration] page for descrip
 
 == See Also
 
-* wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
+* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
 
 * xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]
 

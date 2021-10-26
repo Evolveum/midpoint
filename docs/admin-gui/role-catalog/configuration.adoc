@@ -48,6 +48,6 @@ The roleCatalogRef reference above points to the wiki:OrgType[org] which is the 
 
 * wiki:Role+Request+and+Shopping+Cart+Configuration[Role Request and Shopping Cart Configuration]
 
-* wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
+* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
 
 * xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]

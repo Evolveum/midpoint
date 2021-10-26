@@ -23,7 +23,7 @@ The encryption key is *not* stored in the database (storing encrypted data at th
 The key is stored in standard Java JCE keystore that is located in midPoint home directory by default.
 It can be achieved by `keytool` utility.
 
-See wiki:Keystore+Configuration[Keystore Configuration] page for more information about midPoint keystore.
+See xref:/midpoint/reference/security/crypto/keystore-configuration/[Keystore Configuration] page for more information about midPoint keystore.
 
 
 == Managing The Keys

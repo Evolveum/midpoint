@@ -26,7 +26,7 @@ The following figure illustrates the concept and the wiki:Assigning+vs+Linking[A
 image::assignments-link-1.png[]
 
 Assignments are not special to a wiki:UserType[user object]. Any wiki:Focus+and+Projections[focal] object can have assignments.
-This mechanism is used to implement wiki:Generic+Synchronization[generic synchronization]. Please also note that roles contain _inducement_ that is related to the concept of assignment and it actually has a very same structure.
+This mechanism is used to implement xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization]. Please also note that roles contain _inducement_ that is related to the concept of assignment and it actually has a very same structure.
 Every piece of assignment definition described on this page can also be applied to inducement definition.
 However the purpose and behaviour of inducement is quite different.
 See wiki:Assignment+vs+Inducement[Assignment vs Inducement] page for a detailed explanation.
@@ -69,14 +69,14 @@ Therefore if such account is deleted sometime later midPoint will try to re-crea
 
 Most of the construction assignments assign accounts.
 However there may be several account types: default account, administration account, testing account, ... The assignment may also assign a very different kinds of objects.
-E.g. in wiki:Generic+Synchronization[generic synchronization] cases an assignment may assign an wiki:Entitlements[entitlement] (e.g. a group) to midPoint wiki:RoleType[role.] The `kind` and `intent` elements in the construction part define what resource object is actually assigned.
+E.g. in xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization] cases an assignment may assign an xref:/midpoint/reference/resources/entitlements/[entitlement] (e.g. a group) to midPoint wiki:RoleType[role.] The `kind` and `intent` elements in the construction part define what resource object is actually assigned.
 See wiki:Kind,+Intent+and+ObjectClass[Kind, Intent and ObjectClass] page for more details.
 If no kind and intent are specified then the assignment assigns default account on the specified resource.
 
 Please not that there is a substantial difference between assigning an _account_ to a group and assigning an entitlement (e.g. a group) to a _user_. The former case is what is usually desired: a provisioned account (resource object) is assigned to an existing group (also resource object).
-The later case is a very devious (ab)use of wiki:Generic+Synchronization[generic synchronization]. Assigning an entitlement to a _user_ causes that a new group will be created for this user and it will be linked to a user.
+The later case is a very devious (ab)use of xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization]. Assigning an entitlement to a _user_ causes that a new group will be created for this user and it will be linked to a user.
 This is most like what you do *not* want.
-See the wiki:Entitlements[Entitlements] page for more details.
+See the xref:/midpoint/reference/resources/entitlements/[Entitlements] page for more details.
 
 
 === Attributes
@@ -169,13 +169,13 @@ Do not overuse the ability of assignments to enforce attribute values.
 Assignments usually specify exceptions to the policies.
 The lower is the number of exceptions the more consistent the policies are.
 Consistent policies are easier to maintain.
-Care should be taken even if this ability is used in a form of wiki:Advanced+Hybrid+RBAC[role inducements]. Some legacy IDM systems had no other way how to define a policy for attribute values than roles.
+Care should be taken even if this ability is used in a form of xref:/midpoint/reference/roles-policies/rbac/[role inducements]. Some legacy IDM systems had no other way how to define a policy for attribute values than roles.
 Therefore some IDM engineers have tendency to abuse RBAC mechanisms to define global policies.
 This is *not* the case with midPoint.
 MidPoint has a clean and elegant mechanism for specifying resource-global policies: wiki:Outbound+Mapping[outbound mappings].
 
 *Rule of the thumb:*wiki:Outbound+Mapping[Outbound mappings] should be used to set attribute values if possible.
-If not then wiki:Advanced+Hybrid+RBAC[role inducements] should be used.
+If not then xref:/midpoint/reference/roles-policies/rbac/[role inducements] should be used.
 Specifying attribute values in assignments should be used only if no other mechanisms is sufficient to implement the policy.
 
 ====
@@ -215,7 +215,7 @@ If no strength is specified then the construction defaults to _strong_.
 
 === Entitlement Associations
 
-wiki:Entitlements[Entitlements] are resource objects that represent groups, privileges, resource roles or similar objects that can be associated to accounts.
+xref:/midpoint/reference/resources/entitlements/[Entitlements] are resource objects that represent groups, privileges, resource roles or similar objects that can be associated to accounts.
 Similarly to attribute values, assignments can also specify entitlement associations.
 The simplest way how to specify entitlement association in an assignment is to directly specify entitlement's wiki:Shadow+Objects[shadow]wiki:Object+ID[OID:]
 
@@ -246,7 +246,7 @@ This account will be associated with the group represented by shadow with OID `2
 [TIP]
 .Entitlements are resource objects
 ====
-Please keep in mind that wiki:Entitlements[entitlements] are resource objects such as groups, privileges or ACLs.
+Please keep in mind that xref:/midpoint/reference/resources/entitlements/[entitlements] are resource objects such as groups, privileges or ACLs.
 As all resource objects the entitlements are represented by wiki:Shadow+Objects[shadow objects] in midPoint.
 Therefore the entitlements are referred to by using OID of such shadow objects.
 This is the preferred way how to bind assignment to a specific entitlement.
@@ -425,7 +425,7 @@ This variable is present also in target filtering expressions.
 ++++
 
 
-Things are getting a bit more complex when wiki:Generic+Synchronization[generic synchronization] feature is used.
+Things are getting a bit more complex when xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization] feature is used.
 In such a case we may want to create groups based on midPoint organizational units.
 The same assignment mechanism that is used for user-account pair can be also used in this case.
 In this specific case we want to create an assignment that is placed inside an wiki:OrgType[Org] object.
@@ -452,14 +452,14 @@ Following assignment is added to the wiki:OrgType[Org] object:
     </assignment>
 ----
 
-This assignment states that an wiki:Entitlements[entitlement] (which is a resource object) should be created.
+This assignment states that an xref:/midpoint/reference/resources/entitlements/[entitlement] (which is a resource object) should be created.
 This entitlement is of `group` type (specified by `intent` settings).
 Therefore when the assignment is processed by midPoint a group `b0001` will be created on the resource.
 
 Entitlement construction assignments are very similar to the account construction assignments.
 In fact the very same principles apply.
 Therefore for this approach to work well you need to do the same as for accounts: define entitlement in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] which usually includes some wiki:Outbound+Mapping[outbound mappings] to set group identifiers and other attributes.
-The wiki:Entitlements[Entitlements] page has some examples how to do this.
+The xref:/midpoint/reference/resources/entitlements/[Entitlements] page has some examples how to do this.
 
 [TIP]
 .Intent
@@ -478,14 +478,14 @@ Please be very careful when working with assignments and roles.
 Roles usually contain *inducement* as such inducements should not apply to a role but it should apply to users that have this role.
 However as wiki:RoleType[RoleType] is a wiki:Focus+and+Projections[focal object] it is perfectly legal for a role to contain an *assignment*. Such assignment applies to a role itself and it can be used e.g. to create a group as a representation of the role.
 See wiki:Assignment+vs+Inducement[Assignment vs Inducement] page for more details.
-Also have a look at wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC] page for an interesting discussion of meta-roles.
+Also have a look at xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC] page for an interesting discussion of meta-roles.
 
 
 == Role Assignments
 
 Role assignments are "indirect" assignments.
 E.g. a role is assigned to a user and such role contains a collection of constructions that applies to the user.
-Obviously a role can be assigned to many users therefore creating an wiki:Advanced+Hybrid+RBAC[RBAC] structure.
+Obviously a role can be assigned to many users therefore creating an xref:/midpoint/reference/roles-policies/rbac/[RBAC] structure.
 
 image::assignments-role-1.png[]
 
@@ -500,7 +500,7 @@ Simple role assignment is really a very simple thing:
 ----
 
 Almost all of  the power is in the role definition.
-The wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC] and xref:/midpoint/reference/roles-policies/roles-and-policies-configuration/[Roles and Policies Configuration] pages provide much more details about RBAC and role definitions.
+The xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC] and xref:/midpoint/reference/roles-policies/roles-and-policies-configuration/[Roles and Policies Configuration] pages provide much more details about RBAC and role definitions.
 
 
 == Parametric Assignments
@@ -611,7 +611,7 @@ Such extension may contain any custom data and such data can be used in the expr
 Such assignment extensions can then be used as a parameters in the roles.
 Therefore a role assignment can specify details such as a department for which the role applies, the branch office, access zone in the building and so on.
 This _parametric_ RBAC structure is a good mechanism to fight the wiki:Role+Explosion[role explosion] problem.
-See wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC] for more details.
+See xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC] for more details.
 
 
 == Enforcement Modes
@@ -653,9 +653,9 @@ See wiki:Relaxed+Referential+Integrity[Relaxed Referential Integrity] page for m
 
 * wiki:Assignment[Assignment] feature description
 
-* wiki:Generic+Synchronization[Generic Synchronization]
+* xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]
 
-* wiki:Entitlements[Entitlements]
+* xref:/midpoint/reference/resources/entitlements/[Entitlements]
 
 * xref:/midpoint/reference/synchronization/projection-policy/[Projection Policy]
 

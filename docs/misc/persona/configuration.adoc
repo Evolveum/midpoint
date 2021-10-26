@@ -303,7 +303,7 @@ Other combinations may work under some circumstances, but they are not tested an
 ====
 This is an incomplete feature of midPoint and/or of other related components.
 We are perfectly capable to implement, fix and finish the feature, just the funding for the work is needed.
-Please consider the possibility for wiki:Subscriptions+and+Sponsoring[sponsoring] development of this feature.
+Please consider the possibility for xref:/support/subscription-sponsoring/[sponsoring] development of this feature.
 If you are midPoint platform subscriber and this feature is withing the goals of your deployment you may be able to use your subscription to endorse implementation of this feature.
 ====
 

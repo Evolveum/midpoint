@@ -191,9 +191,9 @@ We do not rule out even the extension and update of this interface in case there
 
 == REST Interface
 
-Main article: wiki:REST+API[REST API]
+Main article: xref:/midpoint/reference/interfaces/rest/[REST API]
 
-MidPoint wiki:REST+API[REST] interface is a RESTful HTTP-based interface.
+MidPoint xref:/midpoint/reference/interfaces/rest/[REST] interface is a RESTful HTTP-based interface.
 It is designed in accord with so-called RESTful service architecture.
 Each midPoint object is presented as a web resource identified by URL.
 The objects are fetched using HTTP GET operation by using a proper URL.
@@ -215,4 +215,4 @@ REST interface is *WORK IN PROGRESS*. It will be released in midPoint version 3.
 
 * wiki:IDM+Model+Web+Service+Interface[IDM Model Web Service Interface]
 
-* wiki:REST+API[REST API]
+* xref:/midpoint/reference/interfaces/rest/[REST API]

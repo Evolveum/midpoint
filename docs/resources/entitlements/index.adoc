@@ -40,7 +40,7 @@ That's the reason for unified entitlement support in midPoint.
 MidPoint can manage all groups in a uniform way regardless of the grouping mechanism that the resource is using.
 All that is needed is a handful of configuration lines.
 And the nightmare is over.
-Especially when entitlements are combined with the power of wiki:Assignment[assignments] and wiki:Generic+Synchronization[generic synchronization].
+Especially when entitlements are combined with the power of wiki:Assignment[assignments] and xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization].
 
 To be completely honest, even though midPoint support for entitlements is quite powerful it is still at its beginning.
 The entitlements are supported in midPoint core engine but the GUI support is currently very limited.
@@ -432,7 +432,7 @@ Therefore we prefer the conservative approach and we rather maintain status quo.
 
 * wiki:Shadow+Objects[Shadow Objects]
 
-* wiki:Generic+Synchronization[Generic Synchronization]
+* xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]
 
 * wiki:Assignment[Assignment]
 

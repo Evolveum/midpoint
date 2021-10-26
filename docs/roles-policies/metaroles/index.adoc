@@ -10,7 +10,7 @@
 :page-keywords: [ 'metarole', 'meta-role', 'metaroles', 'meta-roles', 'meta' ]
 :page-upkeep-status: yellow
 
-MidPoint wiki:Advanced+Hybrid+RBAC[roles] are usually applied to users.
+MidPoint xref:/midpoint/reference/roles-policies/rbac/[roles] are usually applied to users.
 But midPoint roles are universal.
 The roles can be applied to almost any midPoint object.
 Roles can be applied to users, organizations, services and even to roles themselves.

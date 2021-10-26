@@ -75,7 +75,7 @@ In fact, workflow engines in other IDM systems are often (ab)used to implement f
 And this is often the only way how to implement something in closed-source systems.
 But midPoint is different.
 The midPoint way is to implement the feature in midPoint core  and then reuse it many times.
-We even have a special wiki:Subscriptions+and+Sponsoring["platform subscription"] model to support this approach from a business side.
+We even have a special xref:/support/subscription-sponsoring/["platform subscription"] model to support this approach from a business side.
 In addition to that midPoint already has plenty of better mechanisms for customization: mappings, expressions, hooks and so on.
 The result is, that no midPoint subscriber had no need to abuse the workflow engine.
 
