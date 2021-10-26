@@ -173,6 +173,4 @@ discusses old and new repository and our support strategy.
 * xref:/midpoint/reference/repository/configuration/[Repository Configuration]
 // TODO separate audit repository link
 * xref:/midpoint/reference/tasks/task-manager/configuration/[Task Manager Configuration]
-* xref:/midpoint/reference/repository/db/postgresq/[PostgreSQL - old repo], see parts about
-separate audit and Performance tuning.
-// TODO and migrate them here
+// TODO and migrate them here - db/postgres parts about perf tuning, or to maintenance or pg config?
