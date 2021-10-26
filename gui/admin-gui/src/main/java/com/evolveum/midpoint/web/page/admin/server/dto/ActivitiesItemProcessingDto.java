@@ -31,8 +31,9 @@ public class ActivitiesItemProcessingDto implements Serializable {
     @NotNull private final List<ActivityItemProcessingDto> activities = new ArrayList<>();
 
     ActivitiesItemProcessingDto(@NotNull TreeNode<ActivityStateInContext> tree) {
-        for (ActivityStateInContext stateInContext : tree.getAllDataDepthFirst()) {
-            if (hasItemProcessingInformation(stateInContext)) {
+        List<ActivityStateInContext> activityStates = tree.getAllDataDepthFirst();
+        for (ActivityStateInContext stateInContext : activityStates) {
+            if (hasItemProcessingInformation(stateInContext) && (activityStates.size() <= 1 || !stateInContext.getActivityPath().isEmpty())) {
                 activities.add(new ActivityItemProcessingDto(stateInContext));
             }
         }

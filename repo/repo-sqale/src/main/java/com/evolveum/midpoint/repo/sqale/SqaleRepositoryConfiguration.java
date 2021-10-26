@@ -67,11 +67,13 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
 
     private String driverClassName;
 
+    private long initializationFailTimeout;
     private int minPoolSize;
     private int maxPoolSize;
     private Long maxLifetime;
     private Long idleTimeout;
-    private long initializationFailTimeout;
+    private Long keepaliveTime;
+    private Long leakDetectionThreshold;
 
     private String fullObjectFormat;
 
@@ -114,6 +116,10 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
         minPoolSize = configuration.getInt(PROPERTY_MIN_POOL_SIZE, Math.min(DEFAULT_MIN_POOL_SIZE, maxPoolSize));
         maxLifetime = configuration.getLong(PROPERTY_MAX_LIFETIME, null);
         idleTimeout = configuration.getLong(PROPERTY_IDLE_TIMEOUT, null);
+        keepaliveTime = configuration.getLong(PROPERTY_KEEPALIVE_TIME, null);
+        // 0 to disable, which is also HikariCP default
+        leakDetectionThreshold = configuration.getLong(PROPERTY_LEAK_DETECTION_THRESHOLD, null);
+        // 1ms is also HikariCP default, we use "long" for it so it must be set
         initializationFailTimeout = configuration.getLong(PROPERTY_INITIALIZATION_FAIL_TIMEOUT, 1L);
 
         fullObjectFormat = configuration.getString(PROPERTY_FULL_OBJECT_FORMAT, DEFAULT_FULL_OBJECT_FORMAT)
@@ -249,6 +255,16 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     @Override
     public long getInitializationFailTimeout() {
         return initializationFailTimeout;
+    }
+
+    @Override
+    public Long getKeepaliveTime() {
+        return keepaliveTime;
+    }
+
+    @Override
+    public Long getLeakDetectionThreshold() {
+        return leakDetectionThreshold;
     }
 
     @Override

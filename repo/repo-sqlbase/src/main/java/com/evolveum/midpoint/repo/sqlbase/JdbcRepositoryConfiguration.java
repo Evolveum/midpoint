@@ -25,6 +25,8 @@ public interface JdbcRepositoryConfiguration {
     String PROPERTY_MAX_POOL_SIZE = "maxPoolSize";
     String PROPERTY_MAX_LIFETIME = "maxLifetime";
     String PROPERTY_IDLE_TIMEOUT = "idleTimeout";
+    String PROPERTY_KEEPALIVE_TIME = "keepaliveTime";
+    String PROPERTY_LEAK_DETECTION_THRESHOLD = "leakDetectionThreshold";
     String PROPERTY_INITIALIZATION_FAIL_TIMEOUT = "initializationFailTimeout";
 
     String PROPERTY_USE_ZIP = "useZip";
@@ -76,12 +78,19 @@ public interface JdbcRepositoryConfiguration {
         return null;
     }
 
+    // For HikariCP config see: https://github.com/brettwooldridge/HikariCP#gear-configuration-knobs-baby
+    // All times are in ms.
     long getInitializationFailTimeout();
-
     int getMinPoolSize();
     int getMaxPoolSize();
     Long getMaxLifetime();
     Long getIdleTimeout();
+    default Long getKeepaliveTime() {
+        return null;
+    }
+    default Long getLeakDetectionThreshold() {
+        return null;
+    }
 
     boolean isUseZip();
     boolean isUseZipAudit();

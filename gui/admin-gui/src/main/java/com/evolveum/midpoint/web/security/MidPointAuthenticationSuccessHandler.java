@@ -74,6 +74,10 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
                 if (mpAuthentication.isAuthenticated()) {
                     urlSuffix = mpAuthentication.getAuthenticationChannel().getPathAfterSuccessfulAuthentication();
                     mpAuthentication.getAuthenticationChannel().postSuccessAuthenticationProcessing();
+                    if (mpAuthentication.getAuthenticationChannel().isPostAuthenticationEnabled()) {
+                        getRedirectStrategy().sendRedirect(request, response, urlSuffix);
+                        return;
+                    }
                 } else {
                     urlSuffix = mpAuthentication.getAuthenticationChannel().getPathDuringProccessing();
                 }
@@ -105,6 +109,7 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
         } else {
             setDefaultTargetUrl(urlSuffix);
         }
+
         super.onAuthenticationSuccess(request, response, authentication);
     }
 

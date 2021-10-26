@@ -32,11 +32,15 @@ public class GuiAuthenticationChannel extends AuthenticationChannelImpl {
     }
 
     public String getPathAfterSuccessfulAuthentication() {
-        if (WebModelServiceUtils.isPostAuthenticationEnabled(taskManager, modelInteractionService)) {
+        if (isPostAuthenticationEnabled()) {
                 return "/self/postAuthentication";
         }
 
         return super.getPathAfterSuccessfulAuthentication();
     }
 
+    @Override
+    public boolean isPostAuthenticationEnabled() {
+        return WebModelServiceUtils.isPostAuthenticationEnabled(taskManager, modelInteractionService);
+    }
 }
