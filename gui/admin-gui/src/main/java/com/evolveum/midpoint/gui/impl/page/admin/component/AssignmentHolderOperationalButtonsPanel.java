@@ -53,6 +53,7 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolderType> extends OperationalButtonsPanel<AH> {
 
@@ -85,7 +86,7 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
         };
         changeArchetype.showTitleAsLabel(true);
         changeArchetype.add(new VisibleBehaviour(() -> !getModelObject().isReadOnly() && isEditingObject()
-                && getObjectArchetypeRef() != null && CollectionUtils.isNotEmpty(getArchetypeOidsListToAssign())));
+                && getObjectArchetypeRef() != null)); // && CollectionUtils.isNotEmpty(getArchetypeOidsListToAssign())));
         changeArchetype.add(AttributeAppender.append("class", "btn-default btn-sm"));
         repeatingView.add(changeArchetype);
     }
@@ -225,9 +226,7 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
         List<String> oidsList = new ArrayList<>();
         try {
             List<ArchetypeType> filteredArchetypes = getPageBase().getModelInteractionService().getFilteredArchetypesByHolderType(obj, result);
-            if (filteredArchetypes != null) {
-                filteredArchetypes.forEach(archetype -> oidsList.add(archetype.getOid()));
-            }
+            oidsList = filteredArchetypes.stream().map(filteredArchetype -> filteredArchetype.getOid()).collect(Collectors.toList());
         } catch (SchemaException ex) {
             result.recordPartialError(ex.getLocalizedMessage());
             LOGGER.error("Couldn't load assignment target specification for the object {} , {}", obj.getName(), ex.getLocalizedMessage());

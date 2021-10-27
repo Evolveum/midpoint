@@ -265,9 +265,14 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         if (getProjectionsModel() == null) {
             return 0;
         }
+
+        if (!getProjectionsModel().isLoaded()) {
+            return WebComponentUtil.countLinkForDeadShadows(getObjectWrapper().getObject().asObjectable().getLinkRef());
+        }
+
         List<ShadowWrapper> projectionWrappers = getProjectionsModel().getObject();
         if (projectionWrappers == null) {
-                return 0;
+            return 0;
         }
 
         int dead = 0;

@@ -5021,6 +5021,17 @@ public final class WebComponentUtil {
         return count;
     }
 
+    public static int countLinkForDeadShadows(Collection<ObjectReferenceType> refs) {
+        int count = 0;
+        for (ObjectReferenceType ref : refs) {
+            if (QNameUtil.match(ref.getRelation(), SchemaConstants.ORG_RELATED)) {
+                count++;
+            }
+            continue;
+        }
+        return count;
+    }
+
     public static List<DisplayableValue<?>> getAllowedValues(SearchFilterParameterType parameter, PageBase pageBase) {
         List<DisplayableValue<?>> allowedValues = new ArrayList<>();
 

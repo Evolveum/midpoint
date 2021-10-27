@@ -1458,6 +1458,7 @@
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:displayName>GuiObjectListViewType.includeDefaultColumns</a:displayName>
+                                <a:since>4.4</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
