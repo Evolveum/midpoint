@@ -113,7 +113,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         table.setOutputMarkupId(true);
         tableContainer.add(table);
         box.add(tableContainer);
-        table.add(new AjaxSelfUpdatingTimerBehavior(Duration.seconds(computeRefreshInterval())) {
+        table.add(new AjaxSelfUpdatingTimerBehavior(Duration.ofSeconds(computeRefreshInterval())) {
             @Override
             protected boolean shouldTrigger() {
                 return isAutoRefreshEnabled();
