@@ -63,7 +63,7 @@ Please see wiki:Persona+Configuration[Persona Configuration] page for configurat
 
 == See Also
 
-* wiki:Basic+Data+Model[Basic Data Model]
+* xref:/midpoint/reference/schema/data-model-essentials/[Basic Data Model]
 
 * xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 

@@ -40,7 +40,7 @@ Persona construction looks like this:
 Meaning of individual setting is as follows:
 
 * `targetType`: Type of the persona object.
-Usually wiki:UserType[UserType].
+Usually xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[UserType].
 
 * `targetSubtype`: Subtype of the persona.
 In case of UserType personas this setting specifies the value of `employeeType` property of the resulting persona.

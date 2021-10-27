@@ -43,7 +43,7 @@ This "catalog and shopping cart" paradigm is quite natural for most end users an
 When all the requested roles are in the shopping cart the user can "buy" them.
 This starts the role request process.
 First, the shopping cart content is checked for any potential conflicts and policy violations, such as wiki:Segregation+of+Duties[segregation of duties] violations.
-wiki:Policy+Rules[Policy rules] that apply to the roles are evaluated and enforced and the request is routed through an wiki:Approval[approval process] as specified by the policy.
+xref:/midpoint/reference/roles-policies/policy-rules/[Policy rules] that apply to the roles are evaluated and enforced and the request is routed through an wiki:Approval[approval process] as specified by the policy.
 
 
 == Configuration

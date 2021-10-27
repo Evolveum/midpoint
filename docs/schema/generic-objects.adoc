@@ -157,7 +157,7 @@ Simply speaking, midPoint does not really need the concept of special generic ob
 
 * wiki:Using+Metaroles+for+Policy+Configuration[Using Metaroles for Policy Configuration]
 
-* wiki:Roles,+Metaroles+and+Generic+Synchronization[Roles, Metaroles and Generic Synchronization]
+* xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]
 
 * xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]
 

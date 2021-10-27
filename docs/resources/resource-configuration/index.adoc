@@ -13,7 +13,7 @@ It configures connection to wiki:Terminology[resource], resource object classes 
 
 Resource definition is an ordinary object in midPoint repository.
 Therefore it has its xref:/midpoint/devel/prism/concepts/object-identifier/[OID] and a name that has to be unique across all defined resources.
-The type of the object is wiki:ResourceType[ResourceType] and the internal structure is quite complex.
+The type of the object is xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType] and the internal structure is quite complex.
 Resource definition consists of several parts:
 
 [%autowidth,cols="h,1,1"]
@@ -132,7 +132,7 @@ For the connector to work properly it needs configuration.
 Such configuration specifies name of host where the resource resides, TCP/IP port number, technical account that should be used to connect to it, password for that account, database table name, directory root, filenames, etc.
 
 Configuration properties are different for each connector type.
-The names and types of the properties are defined by the wiki:Resource+and+Connector+Schema+Explanation[connector schema] that is stored in xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[connector object].
+The names and types of the properties are defined by the xref:/midpoint/reference/resources/resource-schema/explanation/[connector schema] that is stored in xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[connector object].
 
 It may not be easy to create correct resource configuration by hand.
 Probably the best way is to start from samples.
@@ -158,7 +158,7 @@ Probably the best way is to start from samples.
 
 ----
 
-See wiki:Resource+and+Connector+Schema+Explanation[Resource and Connector Schema Explanation] for a detailed description how the dynamic schemas work together.
+See xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation] for a detailed description how the dynamic schemas work together.
 
 
 === Resource Schema
@@ -228,12 +228,12 @@ There are used for internal midPoint optimizations.
 
 ----
 
-Please note that while you can see most of the original LDAP attributes there (`cn`, `sn`, `givenName`, ...) some of the attributes are not really from LDAP (`icfs:name`, `icfs:uid`). These attributes are built-in wiki:OpenICF[OpenICF] attributes.
+Please note that while you can see most of the original LDAP attributes there (`cn`, `sn`, `givenName`, ...) some of the attributes are not really from LDAP (`icfs:name`, `icfs:uid`). These attributes are built-in xref:/connectors/connid/1.x/openicf/[OpenICF] attributes.
 While we always prefer to use native attribute names it is not practical in this case as ICF hides the attributes from midPoint.
 Similarly for the `inetOrgPerson` objectclass versus ICF `ACCOUNT`{}objectclass (see xref:/connectors/connid/1.x/icf-issues/[ICF Issues] for more details).
 
 See xref:/midpoint/reference/resources/resource-schema/[Resource Schema] for more details.
-See wiki:Resource+and+Connector+Schema+Explanation[Resource and Connector Schema Explanation] for a detailed description how the dynamic schemas work together.
+See xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation] for a detailed description how the dynamic schemas work together.
 
 
 === Schema Handling
@@ -603,9 +603,9 @@ It contains two important subsections:
 
 * *Correlation* and *confirmation* expressions are used for locating an owner of an account.
 E.g. if an unknown account was found then there are expressions evaluated to find a user that is owner of this account.
-The result of the expressions, the operation and the existence of the owner determines a wiki:Synchronization+Situations[situation].TODO: differences between correlation/confirmation.
+The result of the expressions, the operation and the existence of the owner determines a xref:/midpoint/reference/synchronization/situations/[situation].TODO: differences between correlation/confirmation.
 
-* *Reactions* define how midPoint will behave in a specific wiki:Synchronization+Situations[synchronization situation]. The reaction may specify that a new account has to be linked to a user (e.g. if the owner was found) or disabled (if it was not).
+* *Reactions* define how midPoint will behave in a specific xref:/midpoint/reference/synchronization/situations/[synchronization situation]. The reaction may specify that a new account has to be linked to a user (e.g. if the owner was found) or disabled (if it was not).
 Default reaction is to do nothing.
 
 The following is an example of synchronization configuration from OpenDJ advanced sync sample:
@@ -794,13 +794,13 @@ The samples have in-line comments to make it easier to understand them.
 
 == See Also
 
-* wiki:ResourceType[ResourceType]
+* xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType]
 
 * xref:/midpoint/reference/resources/resource-schema/[Resource Schema]
 
 * xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
-* wiki:Resource+and+Connector+Schema+Explanation[Resource and Connector Schema Explanation]
+* xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation]
 
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]
 

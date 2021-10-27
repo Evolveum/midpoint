@@ -36,7 +36,7 @@ The policy is determined by examining objectClass, kind, intent and evaluating a
 
 . Appropriate *reaction* is found and executed.
 
-Synchronization policy applies to all wiki:Synchronization+Flavors[synchronization flavors] by default.
+Synchronization policy applies to all xref:/midpoint/reference/synchronization/flavors/[synchronization flavors] by default.
 The idea is that midPoint will react to any change always in the same way regardless of how the change was detected.
 This mechanisms helps to keep policies simple and consistent.
 However if an exception from this rule is needed it can be configured e.g. by using a channel limitation (see below).
@@ -60,7 +60,7 @@ Only objects of this object class will be processed by this definition.
 This is also used to determine the correct object synchronization policy, e.g. if more than one policy for a specific object class is used.
 
 * *focusType* defines a focal type that corresponds to this resource object.
-It is used together with correlation and confirmation expressions to determine wiki:Synchronization+Situations[situation] and also influences the following reaction.
+It is used together with correlation and confirmation expressions to determine xref:/midpoint/reference/synchronization/situations/[situation] and also influences the following reaction.
 
 * *enabled* flag specifies whether to use this policy or not.
 It can be used to temporarily turn off a specific part of a configuration.
@@ -68,7 +68,7 @@ It can be used to temporarily turn off a specific part of a configuration.
 * *condition* is an expression which has to evaluate to true for the policy to be used.
 It can be used for a very fine-grain selection of applicable policies.
 
-* *correlation* and *confirmation* expressions are used to locate appropriate focal object and to determine object wiki:Synchronization+Situations[situation] (see wiki:Correlation+and+Confirmation+Expressions[Correlation and Confirmation Expressions]).
+* *correlation* and *confirmation* expressions are used to locate appropriate focal object and to determine object xref:/midpoint/reference/synchronization/situations/[situation] (see wiki:Correlation+and+Confirmation+Expressions[Correlation and Confirmation Expressions]).
 
 * *objectTemplateRef* is a reference to a specific xref:/midpoint/reference/expressions/object-template/[object template] to be used in this case (e.g. when new user is created as a reaction to an event).
 
@@ -81,11 +81,11 @@ It can be used for a very fine-grain selection of applicable policies.
 
 == Situations
 
-Main article: wiki:Synchronization+Situations[Synchronization Situations]
+Main article: xref:/midpoint/reference/synchronization/situations/[Synchronization Situations]
 
 When midPoint detects an synchronization event it  is categorized into one of the _situations_. The _situation_ describes how the change relates to the midPoint state regarding the changed resource object (account), user and the midPoint policies.
-MidPoint is using wiki:Assigning+vs+Linking[links] and wiki:Correlation+and+Confirmation+Expressions[correlation and confirmation expressions] to determine a situation.
-The wiki:Synchronization+Situations[Synchronization Situations] page describes the details.
+MidPoint is using xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[links] and wiki:Correlation+and+Confirmation+Expressions[correlation and confirmation expressions] to determine a situation.
+The xref:/midpoint/reference/synchronization/situations/[Synchronization Situations] page describes the details.
 
 
 == Channels
@@ -604,9 +604,9 @@ As the older versions did not have the `synchronize` flag the side effect is tha
 
 * xref:/midpoint/reference/synchronization/introduction/[Synchronization]
 
-* wiki:Synchronization+Flavors[Synchronization Flavors]
+* xref:/midpoint/reference/synchronization/flavors/[Synchronization Flavors]
 
-* wiki:Synchronization+Situations[Synchronization Situations]
+* xref:/midpoint/reference/synchronization/situations/[Synchronization Situations]
 
 * wiki:Channels[Channels]
 

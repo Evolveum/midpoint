@@ -20,7 +20,7 @@ These objects refer to the connector code that resides in midPoint servers or xr
 At that time midPoint looks for all the connectors that are locally available to that server.
 This essentially means looking for JAR files that contain connector code.
 When a connector is discovered then the server creates a new connector object (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]). And this automatic generation of connector objects is kind of a trouble.
-Because those objects will have unpredicatable xref:/midpoint/devel/prism/concepts/object-identifier/[OIDs]. Therefore resource definitions (wiki:ResourceType[ResourceType]) cannot have fixed OIDs in their `connectorRef`s.
+Because those objects will have unpredicatable xref:/midpoint/devel/prism/concepts/object-identifier/[OIDs]. Therefore resource definitions (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType]) cannot have fixed OIDs in their `connectorRef`s.
 
 Fortunately, midPoint has a mechanism how to resolve a reference dynamically when an object is imported.
 Therefore the usual practice is that the resourceRef does not contain fixed OID.
@@ -207,4 +207,4 @@ Evolveum offers xref:/support/subscription-sponsoring/[subscription programs] th
 
 * wiki:Connector+Setup[Connector Setup]
 
-* wiki:Resource+and+Connector+Schema+Explanation[Resource and Connector Schema Explanation]
+* xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation]

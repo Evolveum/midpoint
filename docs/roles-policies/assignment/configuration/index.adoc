@@ -10,7 +10,7 @@
 
 == Introduction
 
-Assignment is a generic concept of associating user (or other wiki:Focus+and+Projections[focal object]) with the things that he should have or belong to.
+Assignment is a generic concept of associating user (or other xref:/midpoint/reference/schema/focus-and-projections/[focal object]) with the things that he should have or belong to.
 Assignment may associate user with an account, role, organizational unit or similar objects.
 Accounts and roles are the most common things that assignments are used for.
 
@@ -21,15 +21,15 @@ E.g. an account is assigned to a user, but such account cannot be created becaus
 Assignment represents the desired state.
 The actual state of system as seen by midPoint is represented by links and shadow objects.
 It is a responsibility of IDM system to reconcile these two states and also real state of the target resource.
-The following figure illustrates the concept and the wiki:Assigning+vs+Linking[Assigning vs Linking] page describes it in more details.
+The following figure illustrates the concept and the xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[Assigning vs Linking] page describes it in more details.
 
 image::assignments-link-1.png[]
 
-Assignments are not special to a wiki:UserType[user object]. Any wiki:Focus+and+Projections[focal] object can have assignments.
+Assignments are not special to a xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[user object]. Any xref:/midpoint/reference/schema/focus-and-projections/[focal] object can have assignments.
 This mechanism is used to implement xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization]. Please also note that roles contain _inducement_ that is related to the concept of assignment and it actually has a very same structure.
 Every piece of assignment definition described on this page can also be applied to inducement definition.
 However the purpose and behaviour of inducement is quite different.
-See wiki:Assignment+vs+Inducement[Assignment vs Inducement] page for a detailed explanation.
+See xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement] page for a detailed explanation.
 
 The assignment mechanism is a very powerful one.
 But with great power comes a great responsibility.
@@ -69,7 +69,7 @@ Therefore if such account is deleted sometime later midPoint will try to re-crea
 
 Most of the construction assignments assign accounts.
 However there may be several account types: default account, administration account, testing account, ... The assignment may also assign a very different kinds of objects.
-E.g. in xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization] cases an assignment may assign an xref:/midpoint/reference/resources/entitlements/[entitlement] (e.g. a group) to midPoint wiki:RoleType[role.] The `kind` and `intent` elements in the construction part define what resource object is actually assigned.
+E.g. in xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization] cases an assignment may assign an xref:/midpoint/reference/resources/entitlements/[entitlement] (e.g. a group) to midPoint xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[role.] The `kind` and `intent` elements in the construction part define what resource object is actually assigned.
 See wiki:Kind,+Intent+and+ObjectClass[Kind, Intent and ObjectClass] page for more details.
 If no kind and intent are specified then the assignment assigns default account on the specified resource.
 
@@ -326,7 +326,7 @@ In this case we can use algorithm to determine the name of the entitlement (grou
 
 If an assignment like this appears in a role, it will use the name of the role to determine a group name.
 Therefore if the name of the role is `foo`, it will look for group with name `group-foo`. This may not be very useful on its own.
-But when it is combined with a wiki:Roles,+Metaroles+and+Generic+Synchronization[metarole] mechanism then it becomes an extremely powerful tool.
+But when it is combined with a xref:/midpoint/reference/roles-policies/metaroles/gensync/[metarole] mechanism then it becomes an extremely powerful tool.
 
 
 === Construction Variables
@@ -428,7 +428,7 @@ This variable is present also in target filtering expressions.
 Things are getting a bit more complex when xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization] feature is used.
 In such a case we may want to create groups based on midPoint organizational units.
 The same assignment mechanism that is used for user-account pair can be also used in this case.
-In this specific case we want to create an assignment that is placed inside an wiki:OrgType[Org] object.
+In this specific case we want to create an assignment that is placed inside an xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] object.
 This assignment will state that a group that represents the Org should be created on the resource.
 The situation looks like this:
 
@@ -436,9 +436,9 @@ image::assignments-construction-entitlement-1.png[]
 
 
 
-The `B0001`wiki:OrgType[Org] object represents an organizational unit in midPoint.
-As the wiki:OrgType[Org] is an wiki:Focus+and+Projections[focal object] it can have assignments.
-Following assignment is added to the wiki:OrgType[Org] object:
+The `B0001`xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] object represents an organizational unit in midPoint.
+As the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] is an xref:/midpoint/reference/schema/focus-and-projections/[focal object] it can have assignments.
+Following assignment is added to the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] object:
 
 .Simple construction assignment
 [source,xml]
@@ -476,8 +476,8 @@ And this is usually specified by using wiki:Kind,+Intent+and+ObjectClass[intent]
 
 Please be very careful when working with assignments and roles.
 Roles usually contain *inducement* as such inducements should not apply to a role but it should apply to users that have this role.
-However as wiki:RoleType[RoleType] is a wiki:Focus+and+Projections[focal object] it is perfectly legal for a role to contain an *assignment*. Such assignment applies to a role itself and it can be used e.g. to create a group as a representation of the role.
-See wiki:Assignment+vs+Inducement[Assignment vs Inducement] page for more details.
+However as xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[RoleType] is a xref:/midpoint/reference/schema/focus-and-projections/[focal object] it is perfectly legal for a role to contain an *assignment*. Such assignment applies to a role itself and it can be used e.g. to create a group as a representation of the role.
+See xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement] page for more details.
 Also have a look at xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC] page for an interesting discussion of meta-roles.
 
 
@@ -651,7 +651,7 @@ See wiki:Relaxed+Referential+Integrity[Relaxed Referential Integrity] page for m
 
 == See Also
 
-* wiki:Assignment[Assignment] feature description
+* xref:/midpoint/reference/roles-policies/assignment/[Assignment] feature description
 
 * xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]
 
@@ -659,13 +659,13 @@ See wiki:Relaxed+Referential+Integrity[Relaxed Referential Integrity] page for m
 
 * xref:/midpoint/reference/synchronization/projection-policy/[Projection Policy]
 
-* wiki:Assigning+vs+Linking[Assigning vs Linking]
+* xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[Assigning vs Linking]
 
-* wiki:Assignment+vs+Inducement[Assignment vs Inducement]
+* xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement]
 
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[Resource Schema Handling: Activation]
 
-* wiki:Focus+and+Projections[Focus and Projections]
+* xref:/midpoint/reference/schema/focus-and-projections/[Focus and Projections]
 
 * xref:/midpoint/reference/expressions/expressions/[Expression], especially part about assignment expressions
 

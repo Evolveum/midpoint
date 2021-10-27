@@ -27,7 +27,7 @@ While xref:/midpoint/reference/resources/resource-schema/[Resource Schema] is us
 Adapting Resource Schema Handling is an substantial part of midPoint customization.
 
 Schema handling defines account types and entitlement types.
-Accounts are data records representing user on the Resource, entitlements are objects that can be assigned to accounts (such as groups, roles, privileges, team membership, etc.). See wiki:Basic+Data+Model[Basic Data Model] for the introduction to these concepts.
+Accounts are data records representing user on the Resource, entitlements are objects that can be assigned to accounts (such as groups, roles, privileges, team membership, etc.). See xref:/midpoint/reference/schema/data-model-essentials/[Basic Data Model] for the introduction to these concepts.
 
 
 == Resource Object Type Definition

@@ -78,7 +78,7 @@ There are four basic synchronization flavors:
 
 * *Discovery*: Opportunistic reaction to a change discovered during an unrelated operation.
 
-See wiki:Synchronization+Flavors[Synchronization Flavors] page for more details.
+See xref:/midpoint/reference/synchronization/flavors/[Synchronization Flavors] page for more details.
 
 
 == Synchronization Policies
@@ -94,6 +94,6 @@ The policy configuration is essentially just a set of defined reactions for each
 
 * xref:/midpoint/reference/synchronization/examples/[Synchronization Examples]
 
-* wiki:Synchronization+Flavors[Synchronization Flavors]
+* xref:/midpoint/reference/synchronization/flavors/[Synchronization Flavors]
 
-* wiki:Synchronization+Situations[Synchronization Situations]
+* xref:/midpoint/reference/synchronization/situations/[Synchronization Situations]

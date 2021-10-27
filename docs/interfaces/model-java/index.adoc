@@ -27,7 +27,7 @@ Implementation of this interface are enforcing a consistency of access control d
 For general introduction to interface concepts please see xref:/midpoint/architecture/concepts/common-interface-concepts/[Common Interface Concepts] page.
 
 There is also a web service version of this interface.
-See wiki:IDM+Model+Web+Service+Interface[IDM Model Web Service Interface] for description.
+See xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface] for description.
 
 
 == History
@@ -124,7 +124,7 @@ Update to adapt to midPoint 3.0 changes.
 
 | 0.1
 | September 2011
-| Initial version derived from wiki:IDM+Model+Web+Service+Interface[IDM Model Web Service Interface]
+| Initial version derived from xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface]
 | Radovan Semancik
 
 

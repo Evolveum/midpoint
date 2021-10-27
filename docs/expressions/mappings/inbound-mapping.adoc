@@ -11,7 +11,7 @@
 
 == Introduction
 
-Inbound mapping is a xref:/midpoint/reference/expressions/mappings/[mapping] that transforms data from a wiki:Focus+and+Projections[projection] (e.g. an account) on the resource side to a wiki:Focus+and+Projections[focal object] (e.g. a user) on the midPoint side.
+Inbound mapping is a xref:/midpoint/reference/expressions/mappings/[mapping] that transforms data from a xref:/midpoint/reference/schema/focus-and-projections/[projection] (e.g. an account) on the resource side to a xref:/midpoint/reference/schema/focus-and-projections/[focal object] (e.g. a user) on the midPoint side.
 Therefore it maps data in the direction which points _into_ midPoint.
 Hence _inbound_ mapping.
 Inbound mappings are usually used to copy and transform data from authoritative sources to midPoint.

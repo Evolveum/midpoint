@@ -143,6 +143,6 @@ And so on.
 
 == See Also
 
-* wiki:Assignment[Assignment]
+* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
 
 * xref:/midpoint/reference/expressions/object-template/[Object Template]

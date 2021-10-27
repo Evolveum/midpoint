@@ -16,7 +16,7 @@ There are three things that need to be correctly set up for the connector to wor
 
 . *Connector definition* (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]) as an object in midPoint repository.
 
-. *Reference from resource definition* (wiki:ResourceType[ResourceType]) to the connector definition.
+. *Reference from resource definition* (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType]) to the connector definition.
 
 
 == Connector Code
@@ -127,7 +127,7 @@ And for remote connectors there is also explicit relation to the connector host 
 
 == Connector Reference
 
-Each resource definition (wiki:ResourceType[ResourceType]) must point to a connector that it is supposed to use.
+Each resource definition (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType]) must point to a connector that it is supposed to use.
 This is a simple case of a `connectorRef` reference:
 
 .Connector reference (fixed OID)

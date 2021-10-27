@@ -14,7 +14,7 @@
 
 _Mapping_ is a mechanism that is used at many places through midPoint to map value of a source property (or properties) to a target property.
 It is a very flexible mechanism that allows to use expressions (including scripting), direct variable references, value generators and other _evaluators_ for the value.
-It is used for example in wiki:Outbound+Mapping[outbound mapping], wiki:Inbound+Mapping[inbound mapping], wiki:Assignment[assignments], xref:/midpoint/reference/roles-policies/rbac/[roles] and so on.
+It is used for example in wiki:Outbound+Mapping[outbound mapping], wiki:Inbound+Mapping[inbound mapping], xref:/midpoint/reference/roles-policies/assignment/[assignments], xref:/midpoint/reference/roles-policies/rbac/[roles] and so on.
 
 
 === The Basics
@@ -225,7 +225,7 @@ givenName
 ====
 The variable `$focus` and `$projection` were introduced in midPoint 3.0 as a consequence of the xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization] feature.
 The objects that the expression works with might no longe be just user or account.
-Therefore a generic concepts of wiki:Focus+and+Projections[focus and projections] were introduced and the variable names were changed to reflect that.
+Therefore a generic concepts of xref:/midpoint/reference/schema/focus-and-projections/[focus and projections] were introduced and the variable names were changed to reflect that.
 The old variables `$user` and `$account` can still be used, but their use is deprecated.
 ====
 
@@ -297,7 +297,7 @@ It is also useful if we want to provide output values only for some input values
 This cannot be easily achieved by using mapping condition, as the condition will activate or deactivate entire mapping.
 The condition does not work for individual values.
 
-The domain is very useful especially for automatic wiki:Assignment[assignment] expressions in xref:/midpoint/reference/expressions/object-template/[object template].
+The domain is very useful especially for automatic xref:/midpoint/reference/roles-policies/assignment/[assignment] expressions in xref:/midpoint/reference/expressions/object-template/[object template].
 
 
 === Mapping Range

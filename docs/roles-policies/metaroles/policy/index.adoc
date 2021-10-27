@@ -9,18 +9,18 @@
 
 == Introduction
 
-MidPoint is very flexible system, especially when it comes to wiki:Approval[approval] and other wiki:Policy+Rules[policies]. But the flexibility comes at a cost.
+MidPoint is very flexible system, especially when it comes to wiki:Approval[approval] and other xref:/midpoint/reference/roles-policies/policy-rules/[policies]. But the flexibility comes at a cost.
 Policy definition can be quite complex.
 Some of this complexity is inherent and cannot really be avoided.
 But once the policies are created then it should be quite easy to apply them to individual objects such as users and roles.
 Fortunately, the mechanism of metaroles can be used exactly for this purpose.
 
 The basic idea is to express the policies in a form of metaroles. For example the policy that drives role assignment through an approval will be expressed in "approval by manager" metarole.
-This metarole will contain all the wiki:Policy+Rules[policy rules] necessary to express the approval policy.
+This metarole will contain all the xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] necessary to express the approval policy.
 Those policy rules may be quite complex, but they are all conveniently packed into the metarole.
 All that remains is to assign the metarole to an object to which it should apply - which is usually a role.
 So, we end up with a role with an assignment to a another role.
-And that is what we call wiki:Roles,+Metaroles+and+Generic+Synchronization[metarole]. The situation looks like this:
+And that is what we call xref:/midpoint/reference/roles-policies/metaroles/gensync/[metarole]. The situation looks like this:
 
 image::assignments-rbac-policy-metarole.png[]
 
@@ -30,7 +30,7 @@ It was perhaps just created.
 And now we want to apply the usual approval policy to this role.
 The usual approval policy is specified in the "Approval by manager metarole".
 This metarole specifies all the necessary policy rules.
-But those rules are specified inside wiki:Assignment+vs+Inducement[inducement]. Therefore the policy rules do not apply to the role which contains them, i.e. the rules do not apply to the "Approval by manager metarole".
+But those rules are specified inside xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[inducement]. Therefore the policy rules do not apply to the role which contains them, i.e. the rules do not apply to the "Approval by manager metarole".
 Those policy rules will apply to any object that has the metarole assigned.
 In this case it is the `Supervisor` role.
 The `Supervisor` role will be affected by the policy rules.
@@ -137,4 +137,4 @@ Role approver is determined by examining all the users that have this role assig
 
 * wiki:Applicable+Policy+Configuration[Applicable Policy Configuration]
 
-* wiki:Roles,+Metaroles+and+Generic+Synchronization[Roles, Metaroles and Generic Synchronization]
+* xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]

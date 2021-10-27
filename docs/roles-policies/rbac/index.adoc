@@ -51,7 +51,7 @@ The expression model is extensible, there are several supported scripting langua
 
 Implied account attributes usually do not need to define the entire set of account attributes.
 There may be other roles that may assign different attributes to the same account, more values to the same attributes of the account and even conflicting values.
-The account may also have existing attributes that are managed by "native" tools (outside IDM) or there may be exceptions from the RBAC policy specified for that account using attribute specification in wiki:Assignment[assignments].
+The account may also have existing attributes that are managed by "native" tools (outside IDM) or there may be exceptions from the RBAC policy specified for that account using attribute specification in xref:/midpoint/reference/roles-policies/assignment/[assignments].
 
 
 === Implied Account Entitlements
@@ -131,6 +131,6 @@ See xref:/midpoint/reference/roles-policies/roles-and-policies-configuration/[Ro
 
 * xref:/midpoint/reference/roles-policies/roles-and-policies-configuration/[Roles and Policies Configuration] section in xref:/midpoint/[Documentation]
 
-* wiki:Assignment[Assignment]
+* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
 
 * xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]

@@ -25,7 +25,7 @@ Please see xref:configuration.adoc[] page for configuration details.
 
 * xref:configuration.adoc[]
 
-* wiki:Basic+Data+Model[Basic Data Model]
+* xref:/midpoint/reference/schema/data-model-essentials/[Basic Data Model]
 
 * xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 

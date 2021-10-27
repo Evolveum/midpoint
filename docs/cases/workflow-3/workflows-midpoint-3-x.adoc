@@ -12,7 +12,7 @@
 .MidPoint 3.9 or earlier
 ====
 This page applies to midPoint 3.9 or earlier.
-Embedded workflow engine was removed in midPoint 4.0 and midPoint is now completely wiki:Workflowless[workflowless]. If you still need manual processes as part of IDM interactions please see wiki:Policy-based+approvals[Policy-based approvals] and wiki:Workflow+Integration[Workflow Integration].
+Embedded workflow engine was removed in midPoint 4.0 and midPoint is now completely xref:/midpoint/reference/cases/workflowless/[workflowless]. If you still need manual processes as part of IDM interactions please see xref:/midpoint/reference/cases/approval/policy-based-approvals/[Policy-based approvals] and xref:/midpoint/features/planned/external-workflow-integration/[Workflow Integration].
 ====
 
 
@@ -75,11 +75,11 @@ However, this option should be needed to use in only rare situations.
 
 . wiki:Approvals+examples+(legacy)[Approvals examples (legacy)]
 
-. wiki:Workflow+Management[Architectural description of the Workflow component]
+. xref:/midpoint/architecture/archive/subsystems/model/workflow-3/[Architectural description of the Workflow component]
 
 .. wiki:Workflow+Auditing[Workflow auditing]
 
-. wiki:Legacy+(pre-3.5)+workflow+configuration[System manager's view on workflows (i.e. workflow configuration)]
+. xref:/midpoint/reference/cases/workflow-3/legacy-pre-3-5-workflow-configuration/[System manager's view on workflows (i.e. workflow configuration)]
 
 . Notes
 

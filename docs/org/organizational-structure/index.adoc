@@ -14,7 +14,7 @@ MidPoint has a native support for organizational structures.
 The organizational structure model implemented in midPoint is very flexible.
 Although the organizational structure model is primarily designed and optimized to support hierarchical organizational trees it is quite flexible to accommodate even other organization structure types.
 
-Organizational structure is composed of objects called _orgs_ (see wiki:OrgType[OrgType]). An _org_ is a universal grouping mechanism.
+Organizational structure is composed of objects called _orgs_ (see xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[OrgType]). An _org_ is a universal grouping mechanism.
 Its purpose is to group other objects and orgs.
 Orgs usually represent organizations, divisions, departments, sections, workgroups, projects, teams, subteams, ad-hoc groups, domains, realms or similar organizational division units.
 Orgs are designed to "nest" inside other orgs hence creating an organizational hierarchy.
@@ -83,7 +83,7 @@ It may be used to distinguish group owners and administrators from other members
 
 == Creating Organizational Structure
 
-Organizational structure is composed of org objects (wiki:OrgType[OrgType]). Therefore the organizational structure is created by creating appropriate org objects and linking them into a structure by using `parentOrgRef` references.
+Organizational structure is composed of org objects (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[OrgType]). Therefore the organizational structure is created by creating appropriate org objects and linking them into a structure by using `parentOrgRef` references.
 Part of an organizational structure is illustrated in the following diagram.
 
 image::org-4.png[]
@@ -207,7 +207,7 @@ The references are internally backed by indexing structures that make it very ef
 But there is price to pay for this efficiency.
 The `parentOrgRef` references are very simple and quite static.
 There is no (direct) way how to specify conditional or temporary membership in an org just by using `parentOrgRef`. Doing so would complicate the system to the point that it would no longer be efficient or maintainable.
-But conditional and temporary membership is something for which wiki:Assignment[assignments] were designed.
+But conditional and temporary membership is something for which xref:/midpoint/reference/roles-policies/assignment/[assignments] were designed.
 Therefore the plain organizational structure is combined with assignments to get the benefits of both mechanisms.
 
 image::org-5.png[]
@@ -262,6 +262,6 @@ If a user is assigned to such org the org behaves as a role and automatically co
 
 == See Also
 
-* wiki:Assignment[Assignment]
+* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
 
 * xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]

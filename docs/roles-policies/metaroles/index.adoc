@@ -72,7 +72,7 @@ Thats what metarole can do.
 
 == See Also
 
-* wiki:Roles,+Metaroles+and+Generic+Synchronization[Roles, Metaroles and Generic Synchronization]
+* xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]
 
 * wiki:Using+Metaroles+for+Policy+Configuration[Using Metaroles for Policy Configuration]
 

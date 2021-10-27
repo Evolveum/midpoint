@@ -36,11 +36,11 @@ This test includes following features and policies:
 
 * Create LDAP accounts (basic outbound provisioning).
 
-* Use the HR organizational structure information to create midPoint wiki:OrgType[Orgs] on demand and therefore opportunistically synchronize organizational structure from HR to midPoint.
+* Use the HR organizational structure information to create midPoint xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Orgs] on demand and therefore opportunistically synchronize organizational structure from HR to midPoint.
 
 * Replicate midPoint organizational structure to LDAP organizational structure (xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization]).
 
-* wiki:Assignment[Assign] users to appropriate organizational units.
+* xref:/midpoint/reference/roles-policies/assignment/[Assign] users to appropriate organizational units.
 
 * The assignment of users to organizational units is used to determine the LDAP organizationalUnit in which the user should be placed.
 
@@ -271,11 +271,11 @@ Note that `orgpath` attribute from HR account is copied to custom `orgpath` prop
 
 .. The first mapping computes user's full name (this information is not stored in HR)
 
-.. The "Org mapping" is trying to look up an wiki:OrgType[Org] into which the user should belong.
+.. The "Org mapping" is trying to look up an xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] into which the user should belong.
 It is using a wiki:Object+Query[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
 The expression inside the query is using the first segment of the `orgpath` as a value, e.g. in this case it would be "Freelance".
 
-.. The query finds no matching wiki:OrgType[Org.] The expression is set to `createOnDemand` therefore it will try to create the Org.
+.. The query finds no matching xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org.] The expression is set to `createOnDemand` therefore it will try to create the Org.
 A new empty Org object is created in memory.
 Then the `populateItem` expressions are used to fill in this object.
 Please note how the `orgpath` value is copied from the user extension to the extension of the new Org object.
@@ -299,7 +299,7 @@ It will use `populateItem` expressions to fill it in and it will call itself to 
 
 ... The Org object template has another mapping.
 This mapping assigns a meta-role (`role-meta-replicated-org.xml`) to each created orgstruct.
-This meta-role contains `inducement` which specifies that a new `ou` resource object should be created as a wiki:Focus+and+Projections[projection] for each Org.
+This meta-role contains `inducement` which specifies that a new `ou` resource object should be created as a xref:/midpoint/reference/schema/focus-and-projections/[projection] for each Org.
  +
 
 
@@ -313,16 +313,16 @@ The `orgpath` property is once again used to compute a correct DN.
 
 .... LDAP organizationalUnit object is created.
 
-.... Note: midPoint wiki:OrgType[Orgs] are created in a correct order (from top to bottom) because of recursion in the org object template.
-MidPoint tries to complete the creation of each wiki:OrgType[Org] object before returning.
-This means that corresponding LDAP organizationalUnit is created before midPoint returns and completes the creation of lower wiki:OrgType[Org] object.
+.... Note: midPoint xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Orgs] are created in a correct order (from top to bottom) because of recursion in the org object template.
+MidPoint tries to complete the creation of each xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] object before returning.
+This means that corresponding LDAP organizationalUnit is created before midPoint returns and completes the creation of lower xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] object.
 This also means that LDAP organiazationalUnit objects are created in the correct order (top-to-bottom).
 
 
 
 ... Org object is now created in MidPoint.
 Also all its parents are (recursivelly) created.
-And as they all have the meta-role, corresponding LDAP organizationalUnit wiki:Focus+and+Projections[projection] is created for each of them.
+And as they all have the meta-role, corresponding LDAP organizationalUnit xref:/midpoint/reference/schema/focus-and-projections/[projection] is created for each of them.
 
 ... Note: the user is not yet assigned to this org structure.
 The user does not even exists yet.
@@ -342,7 +342,7 @@ User has no "responsibilities" in this case.
 .. User template processing finishes.
 The user now has a full name and two assignments:
 
-... Assignement to the "Freelance" wiki:OrgType[Org.]
+... Assignement to the "Freelance" xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org.]
 
 ... Assignement of the "Basic User" role.
 
@@ -395,14 +395,14 @@ This just assigns the "Basic User" role `(role-basic.xml`) . This is a simple xr
 
 .. The "responsibility role assignment" mapping is processed.
 
-... The mapping is trying to look up a wiki:RoleType[Role] which the user should have assigned.
+... The mapping is trying to look up a xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[Role] which the user should have assigned.
 It is using a wiki:Object+Query[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
 The expression inside the query is using the value of `responsibility` property from user extension to look up the role.
 The query is constructed in a such a way that this value should match with the value of `responsibility` property in role extension.
 Note that there are two properties that should match: the (multi-valued) `responsibility` in user extension and the (single-valued) `responsibility` in role extension.
 The mapping is smart enough to take care of handling multiple values of the property if they are present.
 
-... The query finds no matching wiki:RoleType[Role]. The expression is set to `createOnDemand` therefore it will try to create the role.
+... The query finds no matching xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[Role]. The expression is set to `createOnDemand` therefore it will try to create the role.
 A new empty role object is created in memory.
 Then the `populateItem` expressions are used to fill in this object.
 Please note how the `responsibility` value is used to construct a name of the new role.
@@ -415,7 +415,7 @@ The `R_` prefix is used to avoid collistion with other roles in the system.
 
 .... The role object template has only one mapping which assigns a meta-role `role-meta-responsibility.xml` to the newly created role.
 
-.... The meta-role contains an inducement which specifies that a wiki:Focus+and+Projections[projection] should be created for the role on the LDAP resource.
+.... The meta-role contains an inducement which specifies that a xref:/midpoint/reference/schema/focus-and-projections/[projection] should be created for the role on the LDAP resource.
 The projection should be a group entitlement.
 This is specified by wiki:Kind,+Intent+and+ObjectClass[(kind, intent)] tuple which points to the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[schema handling] part of LDAP resource definition.
 
@@ -429,7 +429,7 @@ It will be interesting a little while later.
 
 .... Role provisioning is finished.
 The role is created in midPoint repository.
-A group is created on LDAP as a wiki:Focus+and+Projections[projection] of that role: `cn=R_canibalism,ou=groups,dc=example,dc=com`. The group is empty for now.
+A group is created on LDAP as a xref:/midpoint/reference/schema/focus-and-projections/[projection] of that role: `cn=R_canibalism,ou=groups,dc=example,dc=com`. The group is empty for now.
 
 
 

@@ -9,7 +9,7 @@
 :page-since: "3.8"
 :page-upkeep-status: yellow
 
-MidPoint is very flexible system, especially when it comes to wiki:Approval[approval] and other wiki:Policy+Rules[policies]. But the flexibility comes at a cost.
+MidPoint is very flexible system, especially when it comes to wiki:Approval[approval] and other xref:/midpoint/reference/roles-policies/policy-rules/[policies]. But the flexibility comes at a cost.
 Policy definition can be quite complex.
 Some of this complexity is inherent and cannot really be avoided.
 But once the policies are created then it should be quite easy to apply them to individual objects such as users and roles.
@@ -24,7 +24,7 @@ This page describes configuration details.
 Applicable policies are defined as meta-roles.
 If the policy is applied (e.g. by checking a check-box) then corresponding meta-role is assigned.
 The policies are sorted into policy groups.
-Policy groups are just wiki:OrgType[Orgs]. Any meta-role which is a member of the org is considered to be part of the policy group.
+Policy groups are just xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Orgs]. Any meta-role which is a member of the org is considered to be part of the policy group.
 The policy groups (orgs) needs to be referred from system configuration.
 Therefore the complete configuration may look like this:
 
@@ -131,6 +131,6 @@ Therefore display names can be used almost freely to provide a meaningful inform
 
 * wiki:Using+Metaroles+for+Policy+Configuration[Using Metaroles for Policy Configuration]
 
-* wiki:Policy+Rules[Policy Rules]
+* xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
 
-* wiki:Roles,+Metaroles+and+Generic+Synchronization[Roles, Metaroles and Generic Synchronization]
+* xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]

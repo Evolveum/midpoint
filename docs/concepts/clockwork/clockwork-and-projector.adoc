@@ -21,9 +21,9 @@ However, projector is just computing the values.
 It is not yet executing them.
 The result of projector computations are stored in wiki:Model+Context[model context].
 
-Projector distinguished objects into two categories: wiki:Focus+and+Projections[Focus and Projections]
+Projector distinguished objects into two categories: xref:/midpoint/reference/schema/focus-and-projections/[Focus and Projections]
 
-* *Focus* which is typically wiki:UserType[user]. Focus is the object which is central to the recomputation.
+* *Focus* which is typically xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[user]. Focus is the object which is central to the recomputation.
 The object that links to all the projections.
 
 * *Projection* which is typically an account (represented by xref:/midpoint/reference/resources/shadow/[shadow]).
@@ -84,7 +84,7 @@ TODO: more details
 
 * wiki:Model+Context[Model Context]
 
-* wiki:Focus+and+Projections[Focus and Projections]
+* xref:/midpoint/reference/schema/focus-and-projections/[Focus and Projections]
 
 * wiki:Hooks[Hooks]
 

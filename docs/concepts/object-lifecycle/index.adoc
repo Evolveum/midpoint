@@ -89,7 +89,7 @@ In these states the object will not be active even if the activation administrat
 
 == Assignment Lifecycle
 
-The same lifecycle property is also present in wiki:Assignment[assignment] and inducement.
+The same lifecycle property is also present in xref:/midpoint/reference/roles-policies/assignment/[assignment] and inducement.
 The meaning of the lifecycle states is equivalent to object lifecycle:
 
 [%autowidth]

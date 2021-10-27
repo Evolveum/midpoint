@@ -394,11 +394,11 @@ Note that `customerName` attribute from CRM account is copied to user's `organiz
 
 .. The first mapping computes user's full name (this information is not stored in CRM)
 
-.. The "Org mapping - organization member" is trying to look up an wiki:OrgType[Org] into which the user should belong.
+.. The "Org mapping - organization member" is trying to look up an xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] into which the user should belong.
 It is using a wiki:Object+Query[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
 The expression inside the query is using the `organizationalUnit` value, e.g. in this case it would be "ultra1".
 
-.. The query finds no matching wiki:OrgType[Org.] The expression is set to `createOnDemand` therefore it will try to create the Org.
+.. The query finds no matching xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org.] The expression is set to `createOnDemand` therefore it will try to create the Org.
 A new empty Org object is created in memory.
 Then the `populateItem` expressions are used to fill in this object.
 Please note how the `organizationalUnit` value is copied from the user to the `name` and `organization` value is copied from the user to the `displayName` of the new Org object..
@@ -412,7 +412,7 @@ This organization already exists, so no more recursive organizational structure 
 
 ... The Org object template has another mapping.
 This mapping assigns a meta-role (`metarole-org.xml`) to each created orgstruct.
-This meta-role contains `inducements` which specifies that a new `ou` and three groups should be created as a wiki:Focus+and+Projections[projections] for each Org. +
+This meta-role contains `inducements` which specifies that a new `ou` and three groups should be created as a xref:/midpoint/reference/schema/focus-and-projections/[projections] for each Org. +
 
 
 .... The projections are computed for an LDAP resource.
@@ -457,7 +457,7 @@ The role is assigned to midPoint users with `employeeType` attribute values "cus
 .. User template processing finishes.
 The user now has a full name and several assignments:
 
-... Assignement to the "ultra1" wiki:OrgType[Org.]
+... Assignement to the "ultra1" xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org.]
 
 ... Assignement of the "Customer User Role" role.
 
@@ -533,7 +533,7 @@ If no address is entered, the administrator who is creating the new user is expe
 
 .. The first mapping computes user's full name
 
-.. The "Org mapping - organization member" is trying to look up an wiki:OrgType[Org] into which the user should belong.
+.. The "Org mapping - organization member" is trying to look up an xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] into which the user should belong.
 It is using a wiki:Object+Query[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
 The expression inside the query is using the `organizationalUnit` value, e.g. in this case it would be "ultra1" and it was created before.
 The `organizationalUnit` attribute was set automatically by assigning the organization ("Add member").
@@ -555,7 +555,7 @@ The role is assigned to midPoint users with `employeeType` attribute values "cus
 .. User template processing finishes.
 The user now has a full name and several assignments:
 
-... Assignement to the "ultra1" wiki:OrgType[Org.] (because of "Add member" action in GUI)
+... Assignement to the "ultra1" xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org.] (because of "Add member" action in GUI)
 
 ... Assignement of the "Customer User Role" role.
 
@@ -633,7 +633,7 @@ If no address is entered, the administrator who is creating the new user is expe
 
 .. The first mapping computes user's full name
 
-.. The "Org mapping - organization member" is trying to look up an wiki:OrgType[Org] into which the user should belong.
+.. The "Org mapping - organization member" is trying to look up an xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] into which the user should belong.
 It is using a wiki:Object+Query[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
 The expression inside the query is using the `organizationalUnit` value, e.g. in this case it would be "ultra1" and it was created before.
 The `organizationalUnit` attribute was set automatically by assigning the organization ("Add member").
@@ -651,7 +651,7 @@ The role is assigned to midPoint users with `employeeType` attribute values "cus
 .. User template processing finishes.
 The user now has a full name and two assignments:
 
-... Assignement to the "ultra1" wiki:OrgType[Org.] (because of "Add member" action in GUI)
+... Assignement to the "ultra1" xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org.] (because of "Add member" action in GUI)
 
 ... Assignement of the "Customer User Role" role.
 

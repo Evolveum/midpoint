@@ -27,18 +27,18 @@ image::rbac-meta-1.png[]
 All the _construction_ definitions placed inside inducements are applied to the user almost as if they are directly assigned.
 Therefore the user will efficiently have _constructions_ for four accounts which in turn means that four accounts will be created for this particular user.
 
-What is important here is wiki:Assignment+vs+Inducement[the difference between assignment and inducement]: the _inducements_ are not applied directly.
+What is important here is xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[the difference between assignment and inducement]: the _inducements_ are not applied directly.
 All the _inducements_ from the entire role hierarchy are applied to the object that contains _assignment_. Which is a user.
 
 
 == Metarole
 
-The wiki:Assignment+vs+Inducement[difference between assignment and inducement] may seem like an unnecessary complication.
+The xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[difference between assignment and inducement] may seem like an unnecessary complication.
 But it is not.
 The true power of this mechanism becomes obvious only when it is used together with xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization]. Generic synchronization allow to synchronize almost all midPoint objects to the resources.
 One typical use of generic synchronization is to synchronize midPoint roles with groups on the resource.
 E.g. we want to create an LDAP groups for some midPoint roles.
-Because wiki:Assignment[assignment] is a generic concept that applies to roles and org equally as it applies to users there is simple way how to do this: we add assignment with appropriate _group construction_ statement to every role that want to synchronize to LDAP.
+Because xref:/midpoint/reference/roles-policies/assignment/[assignment] is a generic concept that applies to roles and org equally as it applies to users there is simple way how to do this: we add assignment with appropriate _group construction_ statement to every role that want to synchronize to LDAP.
 But there is a drawback: this needs to be specified in every role.
 This is simple to do if there is just a single group type with simple static mappings.
 But that is not an realistic case.
@@ -265,4 +265,4 @@ index -2 is the one before and so on.
 
 * xref:/midpoint/reference/roles-policies/roles-and-policies-configuration/[Roles and Policies Configuration]
 
-* wiki:Assignment+vs+Inducement[Assignment vs Inducement]
+* xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement]

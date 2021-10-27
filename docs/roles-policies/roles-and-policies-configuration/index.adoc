@@ -31,7 +31,7 @@ Basic role structure is illustrated in a following diagram.
 image::rbac-1.png[]
 
 The diagram illustrates the basic mechanism of roles.
-Users are assigned to the roles using a mechanism called wiki:Assignment[assignment] (see below).
+Users are assigned to the roles using a mechanism called xref:/midpoint/reference/roles-policies/assignment/[assignment] (see below).
 Roles define access rights on a specific set of resources.
 The figure illustrates a situation that can be described as:
 
@@ -159,7 +159,7 @@ It is also implying that the attribute `mugSize` of such account should be set t
 
 The figure above is somehow simplified.
 In fact the role definitions are using xref:/midpoint/reference/expressions/mappings/[mappings] to determine attribute values.
-It is the same mechanism that is used in wiki:Assignment[assignments] and xref:/midpoint/reference/resources/resource-configuration/schema-handling/[resource schema handling section] therefore the same features and limitations apply here.
+It is the same mechanism that is used in xref:/midpoint/reference/roles-policies/assignment/[assignments] and xref:/midpoint/reference/resources/resource-configuration/schema-handling/[resource schema handling section] therefore the same features and limitations apply here.
 Following diagram provides more detailed illustration of use of mappings in the roles.
 Each mapping has three parts: source, value constructor and target (see xref:/midpoint/reference/expressions/mappings/[Mapping]). However some of these parts can be determined by the context in which the mapping is used.
 Therefore not all parts of the mapping needs to be present when constructing the roles.
@@ -179,7 +179,7 @@ Please see the xref:/midpoint/reference/expressions/introduction/[Mappings and E
 
 Implied account attributes usually do not need to define the entire set of account attributes.
 There may be other roles that may assign different attributes to the same account, more values to the same attributes of the account and even conflicting values.
-The account may also have existing attributes that are managed by "native" tools (outside IDM) or there may be exceptions from the RBAC policy specified for that account using attribute specification in wiki:Assignment[assignments].
+The account may also have existing attributes that are managed by "native" tools (outside IDM) or there may be exceptions from the RBAC policy specified for that account using attribute specification in xref:/midpoint/reference/roles-policies/assignment/[assignments].
 
 
 === Implied Account Entitlements
@@ -221,7 +221,7 @@ The XML role definition is as follows:
 
 == Assignments
 
-Main article: wiki:Assignment[Assignment], xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration]
+Main article: xref:/midpoint/reference/roles-policies/assignment/[Assignment], xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration]
 
 Assignment is a generic concept of associating user with the things that he should have or belong to.
 Assignment may associate user with a role, organizational unit or any other kind of object.
@@ -246,12 +246,12 @@ Roles are associated to to users using assignment as illustrated by the followin
 Although most assignments are as simple as the one above the assignments may be much more complex if needed.
 Assignments may be conditional, limited to a specific time period or provide parameters for the roles.
 
-See wiki:Assignment[Assignment] and xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] pages for more details about assignments.
+See xref:/midpoint/reference/roles-policies/assignment/[Assignment] and xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] pages for more details about assignments.
 
 
 == Inducements
 
-Main article: wiki:Assignment+vs+Inducement[Assignment vs Inducement]
+Main article: xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement]
 
 Simply speaking inducements are indirect assignments.
 Unlike assignments inducements do *not* apply to the object in which they are specified.
@@ -267,7 +267,7 @@ Unless you are creating a very complex setup there is a simple rule of the thumb
 
 * Roles have _inducements_
 
-See wiki:Assignment+vs+Inducement[Assignment vs Inducement] for more details.
+See xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement] for more details.
 
 
 == Role Hierarchy
@@ -287,7 +287,7 @@ See wiki:Roles,+Services+and+Orgs[Roles, Services and Orgs]
 
 == Meta-Roles
 
-See wiki:Roles,+Metaroles+and+Generic+Synchronization[Roles, Metaroles and Generic Synchronization]
+See xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]
 
 
 == Idempotent Roles
@@ -355,16 +355,16 @@ If those conditions depend only on the environment or properties of the focus th
 
 * xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
 
-* wiki:Assignment[Assignment]
+* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
 
 * xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration]
 
-* wiki:Assignment+vs+Inducement[Assignment vs Inducement]
+* xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement]
 
 * wiki:Roles,+Services+and+Orgs[Roles, Services and Orgs]
 
 * wiki:RBAC+Best+Practice[RBAC Best Practice]
 
-* wiki:Roles,+Metaroles+and+Generic+Synchronization[Roles, Metaroles and Generic Synchronization]
+* xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]
 
 * xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]

@@ -64,6 +64,6 @@ This simple mechanism is introducing a completely new dimension to midPoint RBAC
 
 * wiki:Synchronization+Configuration[Synchronization Configuration]
 
-* wiki:Assignment[Assignment]
+* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
 
-* wiki:Focus+and+Projections[Focus and Projections]
+* xref:/midpoint/reference/schema/focus-and-projections/[Focus and Projections]

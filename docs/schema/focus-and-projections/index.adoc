@@ -51,12 +51,12 @@ image::focus-projection-3.png[]
 
 
 
-wiki:UserType[User] is the most common type of focal object.
+xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[User] is the most common type of focal object.
 But it is not the only one.
 Since the xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization] mechanism was introduced in midPoint version 3.0 there is a wider selection of focal objects to choose from.
-E.g. an wiki:OrgType[Org] can be a focal object.
+E.g. an xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] can be a focal object.
 The projections can also be of various types.
-E.g. it makes sense to synchronize wiki:OrgType[Orgs] to resource organizational units and groups (Note: a group is considered to be an resource xref:/midpoint/reference/resources/entitlements/[entitlement]).
+E.g. it makes sense to synchronize xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Orgs] to resource organizational units and groups (Note: a group is considered to be an resource xref:/midpoint/reference/resources/entitlements/[entitlement]).
 
 image::focus-projection-4.png[]
 
@@ -67,15 +67,15 @@ image::focus-projection-4.png[]
 
 Following object types may act as a focus:
 
-* wiki:UserType[User]
+* xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[User]
 
-* wiki:RoleType[Role]
+* xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[Role]
 
-* wiki:OrgType[Organization]
+* xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Organization]
 
 * wiki:Services[Service]
 
-The common thing that all focal objects have are wiki:Assignment[assignments] and the ability to be owners of xref:/midpoint/reference/resources/shadow/[shadow objects] (they have an ability to wiki:Assigning+vs+Linking[link]).
+The common thing that all focal objects have are xref:/midpoint/reference/roles-policies/assignment/[assignments] and the ability to be owners of xref:/midpoint/reference/resources/shadow/[shadow objects] (they have an ability to xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[link]).
 
 
 === Projections

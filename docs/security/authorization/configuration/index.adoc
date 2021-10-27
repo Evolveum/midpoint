@@ -32,7 +32,7 @@ The meaning of individual elements in the triple is as follows:
 Simply speaking it is the user that starts an action by accessing a GUI page, clicking on a button and so on.
 Subject is usually currently logged-in user.
 But it may also by the owner of a non-interactive task, client identity for a service and so on.
-Subject is always a wiki:UserType[midPoint User object] (identified by OID).
+Subject is always a xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[midPoint User object] (identified by OID).
 
 * *Action* is the activity or operation that is initiated by subject.
 It can be access to a GUI page, operation to modify an object, access to a service, etc.
@@ -315,7 +315,7 @@ Secondly this authorization is using an `owner` clause to define object.
 This is necessary because this authorization applies to different object than previous authorizations.
 Previous authorizations applied to a user as an object.
 But this authorization applies to a shadow.
-It is important to realize that change of one object can result in a change of a different object, e.g. as wiki:Focus+and+Projections[data are mapped between focus and projections]. And authorizations needs to be set up accordingly.
+It is important to realize that change of one object can result in a change of a different object, e.g. as xref:/midpoint/reference/schema/focus-and-projections/[data are mapped between focus and projections]. And authorizations needs to be set up accordingly.
 
 
 === actionsObject Authorization Actions
@@ -534,7 +534,7 @@ See also wiki:Archetypes[Archetypes].
 
 === Object Selection by Organization Structure Membership
 
-Authorization applies only to objects that are members of a specific wiki:OrgType[Org]. In the following case it only applies to member of Org identified by OID `1f82e908-0072-11e4-9532-001e8c717e5b`.
+Authorization applies only to objects that are members of a specific xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org]. In the following case it only applies to member of Org identified by OID `1f82e908-0072-11e4-9532-001e8c717e5b`.
 
 [source,xml]
 ----
@@ -609,7 +609,7 @@ Authorization applies only to objects that have an owner which is specified by i
   </authorization>
 ----
 
-The object owner is its wiki:Focus+and+Projections[focal object]. E.g. typical owner of account shadows is a user to whom the accounts are linked.
+The object owner is its xref:/midpoint/reference/schema/focus-and-projections/[focal object]. E.g. typical owner of account shadows is a user to whom the accounts are linked.
 
 E.g. the following example only applies to objects that have owner who is a full-time employee:
 
@@ -842,7 +842,7 @@ There is an authorization clause `orderConstraints` that controls whether author
 
 This authorization applies both to assignments and inducements.
 The differentiator between assignment and inducement is so called _order_. Order of zero means assignment.
-Order of one or more means inducement (see wiki:Roles,+Metaroles+and+Generic+Synchronization[Roles, Metaroles and Generic Synchronization] page for more details).
+Order of one or more means inducement (see xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization] page for more details).
 The `orderConstraints` clause can be used to set min/max for order therefore limiting authorization to assignment, inducements or both.
 
 The default behavior of assignment/inducement authorizations is to apply only to assignments.

@@ -107,6 +107,6 @@ The task instance is passed as a parameter.
 
 * xref:/midpoint/reference/tasks/task-manager/[Task Manager]
 
-* wiki:Task+Manager+Interface[Task Manager Interface]
+* xref:/midpoint/architecture/archive/subsystems/repo/task-manager/task-manager-interface/[Task Manager Interface]
 
 * wiki:Task+Manager+Configuration[Task Manager Configuration]

@@ -15,7 +15,7 @@ Change of schema is usually the only thing that is needed to customize the way h
 E.g. if a new account attribute appears on the resource all that is needed is to refresh the cached xref:/midpoint/reference/resources/resource-schema/[resource schema]. MidPoint will automatically use the schema to display account forms in the user interface, it will automatically use input field that is appropriate for the attribute type, it will automatically indicate whether the attribute is optional, mandatory, single-value or multi-value, it will display a proper label and so on.
 
 Similar behavior can be seen for all the other parts of midPoint.
-E.g. the fields of user form are determined from the schema of wiki:UserType[UserType], the resource configuration in the resource wizard is wiki:Resource+and+Connector+Schema+Explanation[driven by the connector schema] and so on.
+E.g. the fields of user form are determined from the schema of xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[UserType], the resource configuration in the resource wizard is xref:/midpoint/reference/resources/resource-schema/explanation/[driven by the connector schema] and so on.
 
 == Customizing the Schema
 
@@ -184,7 +184,7 @@ This layer can be used as an elegant mechanism to correct such errors.
 
 == Object Template
 
-Similarly as resource schema handling is used to modify the resource schema, xref:/midpoint/reference/expressions/object-template/[object template] can be used to modify the schema of wiki:Focus+and+Projections[focal objects] (wiki:UserType[UserType], wiki:RoleType[RoleType], wiki:OrgType[OrgType]). The following example shows user template that is used to hide the `additionalName` property from the schema.
+Similarly as resource schema handling is used to modify the resource schema, xref:/midpoint/reference/expressions/object-template/[object template] can be used to modify the schema of xref:/midpoint/reference/schema/focus-and-projections/[focal objects] (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[UserType], xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[RoleType], xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[OrgType]). The following example shows user template that is used to hide the `additionalName` property from the schema.
 
 .Modifying schema in object template
 [source,xml]
@@ -303,6 +303,6 @@ Large number of authorizations might cause a scalability problem.
 
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]
 
-* wiki:Basic+Data+Model[Basic Data Model]
+* xref:/midpoint/reference/schema/data-model-essentials/[Basic Data Model]
 
 * wiki:Authorization+Configuration[Authorization Configuration]

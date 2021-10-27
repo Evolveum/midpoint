@@ -14,7 +14,7 @@ image::clockwork-projector-model-context.png[]
 
 
 
-The model context is putting together the wiki:Focus+and+Projections["focus" and "projections"] that belong together.
+The model context is putting together the xref:/midpoint/reference/schema/focus-and-projections/["focus" and "projections"] that belong together.
 Focus is usually a user, projections are accounts.
 In such a case the model context groups together a user with all the accounts are associated with that accounts.
 These are usually accounts that are linked to the user.
@@ -27,10 +27,10 @@ Model Context has three parts (see wiki:Clockwork+and+Projector[Clockwork and Pr
 These can be accessed by methods invoked directly on the ModelContext.
 
 * *Focus* part which contains information about focal object.
-There is at most one focus (see wiki:Focus+and+Projections[Focus and Projections]).
+There is at most one focus (see xref:/midpoint/reference/schema/focus-and-projections/[Focus and Projections]).
 
 * *Projection* part which contains information about each projection.
-There may be multiple projections (see wiki:Focus+and+Projections[Focus and Projections]).
+There may be multiple projections (see xref:/midpoint/reference/schema/focus-and-projections/[Focus and Projections]).
 
 Focus and projection parts have similar structure.
 Both of these parts contain:
@@ -76,4 +76,4 @@ It is serialized in an upgradeable data format (currently XML) which allows runn
 
 * wiki:Clockwork+and+Projector[Clockwork and Projector]
 
-* wiki:Focus+and+Projections[Focus and Projections]
+* xref:/midpoint/reference/schema/focus-and-projections/[Focus and Projections]

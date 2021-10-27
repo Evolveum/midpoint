@@ -9,7 +9,7 @@
 :page-upkeep-status: yellow
 :page-toc: top
 
-Admin GUI configuration is a specialized data structure that is present in wiki:System+Configuration+Object[system configuration object], in all the role-like objects (roles, orgs, services) and also in the wiki:UserType[user objects]. The admin GUI configuration structure influences how to user interface is displayed.
+Admin GUI configuration is a specialized data structure that is present in wiki:System+Configuration+Object[system configuration object], in all the role-like objects (roles, orgs, services) and also in the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[user objects]. The admin GUI configuration structure influences how to user interface is displayed.
 Despite its name it applies both to the self-service part and administration part of the user interface.
 
 
@@ -40,7 +40,7 @@ However the compatibility will be maintained and this setting will also remain h
 
 == How It Works
 
-The same admin GUI configuration structure may be specified in wiki:System+Configuration+Object[system configuration object], in all the role-like objects (roles, orgs, services) and also in the wiki:UserType[user objects] (starting from midPoint v 4.1: in all AssignmentHolderType objects).
+The same admin GUI configuration structure may be specified in wiki:System+Configuration+Object[system configuration object], in all the role-like objects (roles, orgs, services) and also in the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[user objects] (starting from midPoint v 4.1: in all AssignmentHolderType objects).
 When a specific user logs in, midPoint will process all of user's roles to check for applicable authorizations.
 At the same time midPoint also compiles the effective admin GUI configuration.
 Following algorithm is used:
@@ -60,7 +60,7 @@ The system global definition is merged with the definition from all the roles.
 
 
 
-* Admin GUI config provided in the wiki:UserType[user object] is applied last (if present).
+* Admin GUI config provided in the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[user object] is applied last (if present).
 
 The resulting merged configuration is used to display the user interface for a particular user.
 

@@ -144,7 +144,7 @@ All basic types of objects are defined in file common-2a.xsd that can be downloa
 | Object Type | XML Schema Name | Purpose
 
 | User
-| wiki:UserType[UserType]
+| xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[UserType]
 | Represents a physical user of the system.
 
 
@@ -164,7 +164,7 @@ Now Shadow (2.2 version) contains property `kind` that can be set to value _acco
 
 
 | Resource
-| wiki:ResourceType[ResourceType]
+| xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType]
 | Represents a system or component external to midPoint, a system which we manage.
 
 
@@ -307,7 +307,7 @@ All the account on all the resources are presented in the same form and the pres
 
 == Resource
 
-Resource definition (also known as wiki:ResourceType[ResourceType]) is an object in midPoint repository that describes an resource.
+Resource definition (also known as xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType]) is an object in midPoint repository that describes an resource.
 It describes quite a lot of aspects of the resource therefore it is quite a complex object.
 It usually contains:
 
@@ -355,7 +355,7 @@ Main article: link:http://wiki.evolveum.com/display/midPoint/midPoint+RBAC[midPo
 
 TODO
 
-For more details see wiki:RoleType[RoleType].
+For more details see xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[RoleType].
 
 
 == More Documentation

@@ -21,7 +21,7 @@ The alphabet setting should also be configurable by using a convenient user inte
 == Implementation
 
 The basic idea is to store the transform table in an extension schema of appropriate midPoint object.
-In this case the appropriate object is an wiki:OrgType[organizational unit] that represents the spelling alphabet.
+In this case the appropriate object is an xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[organizational unit] that represents the spelling alphabet.
 The alphabet is activated by assigning user to this organizational unit.
 
 
@@ -90,7 +90,7 @@ MidPoint is configured to use this class as a custom form in the wiki:Admin+GUI+
 ----
 
 When a user with this operator role logs in, midPoint will process this extra user interface configuration.
-The configuration instructs midPoint to extend the usual user interface of wiki:OrgType[OrgType] objects with a new tab.
+The configuration instructs midPoint to extend the usual user interface of xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[OrgType] objects with a new tab.
 The tab will be labeled "Transform" and the tab is implemented using the `ConfigurationTableTabPanel` class.
 The tab will render a convenient user interface to configure the transform tables:
 
@@ -121,7 +121,7 @@ We will do all the smart things in custom code.
 
 === Mapping
 
-Actual transformation of the data is implemented in a wiki:Roles,+Metaroles+and+Generic+Synchronization[metarole]. All organizational units that contain specific transform tables are assigned to this metaroles.
+Actual transformation of the data is implemented in a xref:/midpoint/reference/roles-policies/metaroles/gensync/[metarole]. All organizational units that contain specific transform tables are assigned to this metaroles.
 The transformation algorithm is the same for all the organizational units, just the transformation table is different.
 Therefore it makes sense to implement and configure the algorithm in just a single place.
 And a metarole is a perfect place to do that.

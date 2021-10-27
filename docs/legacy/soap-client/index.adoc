@@ -9,7 +9,7 @@
 
 [WARNING]
 ====
-wiki:IDM+Model+Web+Service+Interface[IDM Model Web Service Interface] was deprecated in midPoint 4.0. Therefore the sample client does not bring any substantial value.
+xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface] was deprecated in midPoint 4.0. Therefore the sample client does not bring any substantial value.
 The client may even encourage the users to use deprecated SOAP functionality.
 Therefore all the SOAP clients were removed from midPoint 4.0.
 ====
@@ -26,10 +26,10 @@ Therefore there are no special requirements on the build system when using the M
 Embedding the client into the application is a simple matter of taking the `model-client-*.jar` and placing it on application classpath.
 The model client JAR file can be obtained as a result of midPoint source code build process (`model/model-client/target/model-client-*.jar`).
 
-The semantics of model web service client library corresponds to the definition of wiki:IDM+Model+Web+Service+Interface[IDM Model Web Service Interface]. There is also a wiki:Model+Web+Service+Client+Sample[sample code] that demonstrates the usage of the model client library.
+The semantics of model web service client library corresponds to the definition of xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface]. There is also a wiki:Model+Web+Service+Client+Sample[sample code] that demonstrates the usage of the model client library.
 
 == See Also
 
 * wiki:Model+Web+Service+Client+Sample[Model Web Service Client Sample]
 
-* wiki:IDM+Model+Web+Service+Interface[IDM Model Web Service Interface]
+* xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface]

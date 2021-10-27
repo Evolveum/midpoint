@@ -36,7 +36,7 @@ MidPoint has features that can be used to support _partial tenant isolation_.
 
 == Tenant Organization
 
-Tenant is defines as an wiki:OrgType[org object] that has `tenant` flag set to true:
+Tenant is defines as an xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[org object] that has `tenant` flag set to true:
 
 [source,xml]
 ----

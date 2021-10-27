@@ -88,7 +88,7 @@ It is able to provide approvals in standard situations with almost no configurat
 It allows calling arbitrary BPMN process in any phase of model operation execution.
 Please note that this change processor is still quite experimental.
 
-More information on change processors is in the wiki:Workflow+Management[architectural description of workflow module].
+More information on change processors is in the xref:/midpoint/architecture/archive/subsystems/model/workflow-3/[architectural description of workflow module].
 
 The configuration looks like this:
 

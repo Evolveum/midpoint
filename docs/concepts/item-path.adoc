@@ -9,7 +9,7 @@
 Item path is a simple syntax for addressing properties, containers, references, attributes and similar items in xref:/midpoint/devel/prism/[prism] data structures used in midPoint.
 I.e. it can address items in users, accounts, roles, assignments and in almost any midPoint data structure.
 The item path syntax is quite similar to XML XPath but it is much simpler.
-It is frequently used in xref:/midpoint/reference/expressions/introduction/[mappings and expressions], wiki:XML+Object+Query[search queries], etc.
+It is frequently used in xref:/midpoint/reference/expressions/introduction/[mappings and expressions], xref:/midpoint/reference/concepts/query/xml-query-language/[search queries], etc.
 
 The generic syntax of item path is as follows:
 

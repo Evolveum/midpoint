@@ -18,7 +18,7 @@ For an introduction to the role catalog concept please see wiki:Role+Catalog[Rol
 
 Simply speaking, role catalog is just an xref:/midpoint/reference/org/organizational-structure/[organizational structure] structure.
 However, instead of divisions and sections the role catalog is composed of _categories_. And instead of member users there are _roles_. But apart from that the role catalog is just ordinary organizational structure.
-The categories are ordinary wiki:OrgType[org objects]. The roles are assigned to the categories in exactly the same way as users are assigned to organizational structure.
+The categories are ordinary xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[org objects]. The roles are assigned to the categories in exactly the same way as users are assigned to organizational structure.
 Remember: MidPoint can have any number of organizational structures and the role catalog is just one of them.
 There may even be several role catalogs at the same time as any midPoint object can be assigned to any number of orgs.
 However, the current limitation is that only one role catalog will be presented to end users.
@@ -39,7 +39,7 @@ The root of this role catalog needs to be configured in the wiki:System+Configur
 </systemConfiguration>
 ----
 
-The roleCatalogRef reference above points to the wiki:OrgType[org] which is the root of the role catalog.
+The roleCatalogRef reference above points to the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[org] which is the root of the role catalog.
 
 
 == See Also

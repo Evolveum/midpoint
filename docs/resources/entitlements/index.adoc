@@ -40,7 +40,7 @@ That's the reason for unified entitlement support in midPoint.
 MidPoint can manage all groups in a uniform way regardless of the grouping mechanism that the resource is using.
 All that is needed is a handful of configuration lines.
 And the nightmare is over.
-Especially when entitlements are combined with the power of wiki:Assignment[assignments] and xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization].
+Especially when entitlements are combined with the power of xref:/midpoint/reference/roles-policies/assignment/[assignments] and xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization].
 
 To be completely honest, even though midPoint support for entitlements is quite powerful it is still at its beginning.
 The entitlements are supported in midPoint core engine but the GUI support is currently very limited.
@@ -352,7 +352,7 @@ The association mechanisms makes this very easy.
 
 == Assigning Entitlements
 
-Entitlements can be easily assigned to accounts by using the wiki:Assignment[assignment] mechanism.
+Entitlements can be easily assigned to accounts by using the xref:/midpoint/reference/roles-policies/assignment/[assignment] mechanism.
 This allows the construction of roles that automatically associate user's accounts with appropriate groups.
 See xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] page for more details.
 
@@ -434,6 +434,6 @@ Therefore we prefer the conservative approach and we rather maintain status quo.
 
 * xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]
 
-* wiki:Assignment[Assignment]
+* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
 
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]

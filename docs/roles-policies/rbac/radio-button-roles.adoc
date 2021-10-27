@@ -17,11 +17,11 @@ We want only one of them to be assigned at a time.
 
 This configuration is based on three midPoint mechanisms:
 
-. wiki:Policy+Rules[Policy Rules] that implement (almost) ordinary wiki:Segregation+of+Duties[role exclusion].
+. xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules] that implement (almost) ordinary wiki:Segregation+of+Duties[role exclusion].
 
 . The "prune" policy action.
 
-. Clever use of wiki:Roles,+Metaroles+and+Generic+Synchronization[metarole] to define the radio button class.
+. Clever use of xref:/midpoint/reference/roles-policies/metaroles/gensync/[metarole] to define the radio button class.
 
 First step is to define exclusion for all the individual "button" roles.
 This is easy to do with policy rules.
@@ -108,6 +108,6 @@ And at the end of the operation only one quota role remains assigned to the user
 
 * wiki:Segregation+of+Duties[Segregation of Duties]
 
-* wiki:Policy+Rules[Policy Rules]
+* xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
 
-* wiki:Roles,+Metaroles+and+Generic+Synchronization[Roles, Metaroles and Generic Synchronization]
+* xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]

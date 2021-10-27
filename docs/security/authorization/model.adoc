@@ -80,14 +80,14 @@ Each individual created object also needs to pass through authorization for `add
 
 
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign
-| wiki:Focus+and+Projections[Focal object] that receives the assignment (e.g. a user)
+| xref:/midpoint/reference/schema/focus-and-projections/[Focal object] that receives the assignment (e.g. a user)
 | Object which is the target of assignment (e.g. Role or Org)
 | Allows to create a new assignment (see note below)
 | Allows to invoke `executeChanges` operation with modify deltas for specified objects that add assignment to specified targets
 
 
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign
-| wiki:Focus+and+Projections[Focal object] from which the assignment is removed (e.g. a user)
+| xref:/midpoint/reference/schema/focus-and-projections/[Focal object] from which the assignment is removed (e.g. a user)
 | Object which is the target of assignment (e.g. Role or Org)
 | Allows to delete existing assignment (see note below)
 | Allows to invoke `executeChanges` operation with modify deltas for specified objects that add assignment to specified targets

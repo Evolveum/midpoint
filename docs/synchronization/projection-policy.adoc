@@ -11,16 +11,16 @@
 
 There are several ways how accounts can be provisioned and managed:
 
-* Link accounts to users (wiki:Assigning+vs+Linking[link])
+* Link accounts to users (xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[link])
 
-* Assign accounts to user directly or using xref:/midpoint/reference/roles-policies/rbac/[roles]. (wiki:Assigning+vs+Linking[assignment])
+* Assign accounts to user directly or using xref:/midpoint/reference/roles-policies/rbac/[roles]. (xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[assignment])
 
 There is a major difference between these two approaches from the policy point of view.
-The *links* describe actual situation (what _is_) while *assignments* describe the policy (what _should be_). This is discussed in detail in wiki:Assigning+vs+Linking[Assigning vs Linking].
+The *links* describe actual situation (what _is_) while *assignments* describe the policy (what _should be_). This is discussed in detail in xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[Assigning vs Linking].
 
 There are many ways how to resolve the difference between the policy (assignments) and reality.
 Assignment enforcement modes are used to control this part of midPoint behaviour.
-The goal of enforcement modes is to determine account _legality_ of wiki:Focus+and+Projections[projections]. I.e. midPoint computes whether the specific account (or any other _projection_) is legal or illegal.
+The goal of enforcement modes is to determine account _legality_ of xref:/midpoint/reference/schema/focus-and-projections/[projections]. I.e. midPoint computes whether the specific account (or any other _projection_) is legal or illegal.
 An account is legal if there is a valid assignment for it or if an enforcement mode allows it.
 E.g. in FULL enforcement mode the account is legal only if there is a valid assignment.
 In NONE enforcement mode the account is legal anytime it exists regardless of the assignments.
@@ -101,7 +101,7 @@ The options can be set in System Configuration object as illustrated by followin
 </systemConfiguration>
 ----
 
-The option can be set in wiki:ResourceType[resource definition]:
+The option can be set in xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[resource definition]:
 
 [source,xml]
 ----

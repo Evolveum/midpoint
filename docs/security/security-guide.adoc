@@ -140,7 +140,7 @@ Please see wiki:Password+Storage+Configuration[Password Storage Configuration] p
 === Storing Encrypted Passwords
 
 The default behavior of midPoint is to store user's password in an encrypted form.
-When user password is seen by midPoint, it is stored in the wiki:UserType[User object] in a form of `ProtectedString` data type.
+When user password is seen by midPoint, it is stored in the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[User object] in a form of `ProtectedString` data type.
 The default configuration is to encrypt the value of all `ProtectedString`s before storing them in the database.
 The encryption is reversible, therefore if midPoint needs the password at any later time it still has access to it.
 Therefore the problem of creating a new account can be easily solved.

@@ -139,4 +139,4 @@ The xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment
 
 * xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
 
-* wiki:Assigning+vs+Linking[Assigning vs Linking]
+* xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[Assigning vs Linking]

@@ -102,7 +102,7 @@ But it may be difficult to handle for humans, as humans incline more to readable
 Therefore there is a way how to make system administrator's job easier and make the external import files more readable and maintainable.
 
 An object that is being imported to midPoint can use an alternative way how to specify a reference.
-It may specify a wiki:XML+Object+Query[search filter] instead of OID.
+It may specify a xref:/midpoint/reference/concepts/query/xml-query-language/[search filter] instead of OID.
 The search filter will be executed during import.
 If it matches an existing object, the OID of that object will be placed into the reference instead of the search filter.
 This creates a permanent link based on OID.

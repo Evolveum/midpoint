@@ -32,12 +32,12 @@ Official releases have the last number set to zero.
 
 == Connector Configuration Schema
 
-TODO .. in the meantime see wiki:Resource+and+Connector+Schema+Explanation[Resource and Connector Schema Explanation].
+TODO .. in the meantime see xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation].
 
 
 == Connectors and Resource Schema
 
-TODO .. in the meantime see wiki:Resource+and+Connector+Schema+Explanation[Resource and Connector Schema Explanation].
+TODO .. in the meantime see xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation].
 
 
 === NAME and UID
@@ -94,8 +94,8 @@ We are working with the OpenICF team to somehow make it more user friendly to us
 But for now we have to live with ICF NAME and ICF UID.
 
 Note: XML representation of the objects is using URIs instead of arbitrary prefixes (such as underscores) to denote namespaces.
-Therefore the XML representation of ICF NAME and UID is `icfs:name` and `icfs:uid` (`icfs` is a namespace prefix that wiki:XML+Namespace+List[refers to actual URL]). Please take care not to confuse this with an actual _attribute_ named "uid" such as LDAP uid.
-The attribute is using a wiki:XML+Namespace+List[different namespace] and is usually denoted `ri:uid`.
+Therefore the XML representation of ICF NAME and UID is `icfs:name` and `icfs:uid` (`icfs` is a namespace prefix that xref:/midpoint/devel/xml-namespace-list/[refers to actual URL]). Please take care not to confuse this with an actual _attribute_ named "uid" such as LDAP uid.
+The attribute is using a xref:/midpoint/devel/xml-namespace-list/[different namespace] and is usually denoted `ri:uid`.
 
 Tip: ICF NAME and ICF UID attributes may be "renamed" to a more user-friendly names using `displayName` clause in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]. This does not change the true nature of the attributes nor does it change the XML representation.
 But it may improve user experience.

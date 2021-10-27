@@ -180,14 +180,14 @@ In other expressions that have a single source this variable has the same value 
 | subclasses of `FocusType`
 | inbound, outbound, object template, assignments
 | `user`
-| Represents wiki:Focus+and+Projections[focal object] which is usually a user.
+| Represents xref:/midpoint/reference/schema/focus-and-projections/[focal object] which is usually a user.
 
 
 | `projection`
 | `ShadowType`
 | inbound, outbound, assigments (construction)
 | `account, shadow`
-| Represents wiki:Focus+and+Projections[projection] in a form of xref:/midpoint/reference/resources/shadow/[shadow]. This is usually the account.
+| Represents xref:/midpoint/reference/schema/focus-and-projections/[projection] in a form of xref:/midpoint/reference/resources/shadow/[shadow]. This is usually the account.
 
 
 | `resource`
@@ -241,7 +241,7 @@ The actual value is determined by the iteration settings.
 | activation mappings
 |
 | Set to true if the processed projection is legal, i.e. when it should exist.
-The projection is usually legal if there is an wiki:Assignment[assignment] for it.
+The projection is usually legal if there is an xref:/midpoint/reference/roles-policies/assignment/[assignment] for it.
 But the projection may also be legal without an assignment, e.g. if xref:/midpoint/reference/synchronization/projection-policy/[assignment policy enforcement] is set to NONE.
 
 

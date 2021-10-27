@@ -73,7 +73,7 @@ This is a significant improvement over original Sun ICF.
 It is licensed under the terms of Apache License 2.0. The source code is maintained on link:https://github.com/Evolveum/connector-ldap[GitHub]. The development is coordinated with the development of xref:/midpoint/reference/resources/connid/[ConnId] framework.
 
 * One of the major advantage of the new connector is support for native attribute names.
-Therefore the schema will not be polluted by the unfortunate ICF concepts of wiki:OpenICF[__ACCOUNT__, __NAME__ and __UID__]. The connector will present real attribute names such as "entryUUID" and "dn" and real object class names such as "inetOrgPerson".
+Therefore the schema will not be polluted by the unfortunate ICF concepts of xref:/connectors/connid/1.x/openicf/[__ACCOUNT__, __NAME__ and __UID__]. The connector will present real attribute names such as "entryUUID" and "dn" and real object class names such as "inetOrgPerson".
 
 
 == LDAP Connectors in midPoint

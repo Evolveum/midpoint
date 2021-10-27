@@ -148,4 +148,4 @@ In fact it is ignored by most expression languages.
 
 == See Also
 
-* wiki:Diagnostics+Abbreviations[Diagnostics Abbreviations]
+* xref:/midpoint/reference/diag/diagnostics-abbreviations/[Diagnostics Abbreviations]

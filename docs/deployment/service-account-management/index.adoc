@@ -54,7 +54,7 @@ Service accounts are linked to those wiki:Services[service definitions] in midPo
 Therefore it will be clear which account belongs to which service (even if the service needs accounts in many systems).
 The wiki:Services[service] in midPoint is a very flexible object.
 It can do almost all of the tricks that user, org and role can.
-Therefore it may have an owner, its lifecycle can be managed, it may be subject to wiki:Policy+Rules[policy rules] and so on.
+Therefore it may have an owner, its lifecycle can be managed, it may be subject to xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] and so on.
 This is a very natural, smooth and extremely powerful way to manage services and service accounts.
 
 image::service-accounts.png[]
@@ -82,7 +82,7 @@ However, the service-specific processes are not implemented.
 Of course, service accounts may have different mappings than ordinary accounts.
 However, as account type (_intent_) is determined very early in account processing there may be change that mappings from person accounts may be accidentally used on service accounts that are mis-detected.
 
-* There is an issues with wiki:Assigning+vs+Linking[assigning vs linking]. Service accounts are often just linked to the services and not assigned.
+* There is an issues with xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[assigning vs linking]. Service accounts are often just linked to the services and not assigned.
 The processes that handle those transitions for service accounts are missing.
 
 * Service itself can be subject to xref:/midpoint/reference/roles-policies/certification/[certification] processes.

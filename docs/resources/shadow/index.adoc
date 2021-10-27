@@ -76,7 +76,7 @@ We also wanted to make sure that the shadow objects will not get confused with t
 
 === Resource Object Shadow Example
 
-Following form of shadow object is provided by the wiki:Provisioning+Service+Interface[Provisioning Service Interface]. It has most of the interesting attributes that were probably freshly fetched from the resource.
+Following form of shadow object is provided by the xref:/midpoint/architecture/archive/subsystems/provisioning/provisioning-service-interface/[Provisioning Service Interface]. It has most of the interesting attributes that were probably freshly fetched from the resource.
 
 .Shadow object when retrieved from provisioning
 [source,xml]
@@ -199,4 +199,4 @@ The connector will announce the identification mechanism in the xref:/midpoint/r
 
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]
 
-* wiki:Resource+and+Connector+Schema+Explanation[Resource and Connector Schema Explanation]
+* xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation]

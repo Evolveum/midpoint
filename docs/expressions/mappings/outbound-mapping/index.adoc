@@ -56,7 +56,7 @@ Following table summarizes the variables available to outbound expressions.
 
 | `user` +
 _root node_
-| wiki:UserType[UserType]
+| xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[UserType]
 | User associated with the account.
 This is the most common source of data for outbound expressions.
 

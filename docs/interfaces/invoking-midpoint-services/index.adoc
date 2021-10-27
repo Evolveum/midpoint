@@ -46,9 +46,9 @@ It is easy to do basic operation in all the interfaces.
 Advanced operations may be more tricky do to but they are still mostly practically possible to do.
 
 All the versions of midPoint wiki:IDM+Model+Interface[IDM Model Interface] are object-oriented.
-It means that they work with wiki:Basic+Data+Model[midPoint objects]. The interfaces are creating, reading (and searching), updating and deleting the objects.
+It means that they work with xref:/midpoint/reference/schema/data-model-essentials/[midPoint objects]. The interfaces are creating, reading (and searching), updating and deleting the objects.
 This is known as link:http://en.wikipedia.org/wiki/CRUD[CRUD] semantics.
-E.g. resource configuration is changed by modifying corresponding wiki:ResourceType[ResourceType] object, user is created by creating a new wiki:UserType[UserType] object and so on.
+E.g. resource configuration is changed by modifying corresponding xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType] object, user is created by creating a new xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[UserType] object and so on.
 All the interfaces are also using the xref:/midpoint/reference/concepts/relativity/[relative change model] by using wiki:Deltas[deltas] to define change to individual midPoint objects.
 
 Following table provides overview of interface operation groups and their availability in individual interfaces.
@@ -162,11 +162,11 @@ There are some information and examples how to use this interface:
 
 == Web Service Interface
 
-Main article: wiki:IDM+Model+Web+Service+Interface[IDM Model Web Service Interface]
+Main article: xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface]
 
-wiki:IDM+Model+Web+Service+Interface[IDM Model Web Service Interface] is a SOAP-based web service interface to midPoint.
+xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface] is a SOAP-based web service interface to midPoint.
 It provides operations that are very similar to Java-based wiki:IDM+Model+Interface[IDM Model Interface], however there are some necessary adjustments.
-The wiki:IDM+Model+Web+Service+Interface[IDM Model Web Service Interface] is strongly RPC-based as this approach is dictated by the technology (SOAP, WSDL).
+The xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface] is strongly RPC-based as this approach is dictated by the technology (SOAP, WSDL).
 Also input-output objects (pass-by-reference) cannot be used and the use of callbacks is beyond practical usability therefore the interface is slightly simplified to overcome these limitations.
 The objects and deltas are expected to be presented as XML objects.
 Full WSDL and XSD definitions are available.
@@ -179,7 +179,7 @@ There are few examples of the interface use:
 * wiki:Model+Web+Service+Client+Sample[Model Web Service Client Sample] describes a sample code which is part of midPoint source code.
 This sample code is using model client library to invoke midPoint web service.
 
-Note: wiki:IDM+Model+Web+Service+Interface[IDM Model Web Service Interface] is still "version 1" interface.
+Note: xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface] is still "version 1" interface.
 While the other interfaces were updated to midPoint version 2 releases this interface remains in roughly the state as it was in midPoint version 1 releases.
 One of the reasons is compatibility.
 Basic midPoint architecture haven't changed much from version 1 to version 2 and therefore we have decided it is not worth to update this interface and that it is better to keep it in the same "XML" spirit of midPoint version 1 (this is SOAP which means it is heavily based on XML anyway).
@@ -213,6 +213,6 @@ REST interface is *WORK IN PROGRESS*. It will be released in midPoint version 3.
 
 * wiki:IDM+Model+Interface[IDM Model Interface]
 
-* wiki:IDM+Model+Web+Service+Interface[IDM Model Web Service Interface]
+* xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface]
 
 * xref:/midpoint/reference/interfaces/rest/[REST API]

@@ -21,7 +21,7 @@
 
 === Working With Objects
 
-This interface mostly work with midPoint objects as described in our xref:/midpoint/reference/schema/[Data Model]. Please see the wiki:Basic+Data+Model[Basic Data Model] page for a quick introduction to the data model.
+This interface mostly work with midPoint objects as described in our xref:/midpoint/reference/schema/[Data Model]. Please see the xref:/midpoint/reference/schema/data-model-essentials/[Basic Data Model] page for a quick introduction to the data model.
 The xref:/midpoint/reference/schema/[Data Model] page expands on that and provides more details.
 Almost all state and configuration changes in midPoint are done by creating, modifying and deleting midPoint objects.
 
@@ -35,7 +35,7 @@ The xref:/midpoint/devel/prism/concepts/object-identifier/[OID] is a string, usu
 This interface provides a *unified view* of the objects.
 It means that the user of IDM Model Interface does not need to care about where the data resides.
 Some data reside in the midPoint repository (e.g. relational database).
-These are typically objects that represent wiki:UserType[users] or configuration objects.
+These are typically objects that represent xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[users] or configuration objects.
 Other objects reside partially in midPoint repository and partially on remote resources (e.g. xref:/midpoint/reference/resources/shadow/[Shadow Objects]). However this distinction is mostly hidden from the user of IDM Model Interface.
 This interface provides uniform access to all objects regardless of how and where are they stored.
 You can simply read an object and the implementation will figure out how to do that.
@@ -107,7 +107,7 @@ It describes what parts of the operation failed and provides a rich diagnostics 
 The operation result is used to *indicate both fatal (complete) and partial failures*. The analysis of the operation result may also provide debugging data about the operation itself (e.g. for debugging the policies and configuration).
 
 The exceptions are "standardized" through the system.
-A common set of exceptions is defined in the wiki:Infrastructure+Subsystem[Infrastructure Subsystem] and these exceptions are reused by all midPoint interfaces if possible.
+A common set of exceptions is defined in the xref:/midpoint/architecture/archive/subsystems/infra/[Infrastructure Subsystem] and these exceptions are reused by all midPoint interfaces if possible.
 Most of the exceptions are checked exceptions that define a specific circumstances (semantics) of the error.
 Therefore it is usually sufficient to react to (catch) a specific exception to handle the error.
 However the exception is only thrown if the whole operation fails or if an unexpected situation with unpredictable results occurs (e.g. out of memory error).
@@ -155,7 +155,7 @@ The key to search methods is wiki:Object+Query[midPoint query language]. This qu
 It may be slightly complex to construct but there are convenient factory methods that can be used for this purpose.
 The following example shows how a simple query is constructed and used in a search.
 Factory methods `createObjectQuery` and `createEqual` are used to construct a simple query.
-The query describes objects for which the `name` property (specified as `ResourceType.F_NAME`) equals to wiki:PolyString[PolyString]`"My Resource`". Once executed this will return all such wiki:ResourceType[ResourceType] objects (which obviously is at most one object as `name` property is unique across all the resources).
+The query describes objects for which the `name` property (specified as `ResourceType.F_NAME`) equals to wiki:PolyString[PolyString]`"My Resource`". Once executed this will return all such xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType] objects (which obviously is at most one object as `name` property is unique across all the resources).
 
 [source,java]
 ----
