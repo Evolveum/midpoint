@@ -75,6 +75,15 @@ public class ResourceAttributeWrapperFactoryImpl<T> extends ItemWrapperFactoryIm
     @Override
     public void registerWrapperPanel(ResourceAttributeWrapper<T> wrapper) {
         getRegistry().registerWrapperPanel(new QName("ResourceAttributeDefinition"), ResourceAttributeDefinitionPanel.class);
-
     }
+
+    @Override
+    protected boolean canCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
+        if (!super.canCreateWrapper(def, status, context, isEmptyValue)) {
+            return false;
+        }
+
+        return isEmptyValue ? context.isCreateIfEmpty() : true;
+    }
+
 }

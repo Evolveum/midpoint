@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.web.component.data;
 
+import java.time.Duration;
 import java.util.List;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import org.apache.wicket.util.time.Duration;
 
 /**
  * @author Viliam Repan (lazyman)
