@@ -1,0 +1,15 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      oid="d4b1fa25-4436-4f0c-a2a1-727a536b60e3">
+    <name>approver-of-role-being-disabled</name>
+    <assignment>
+        <targetRef oid="4835efdc-6fee-438b-bb09-fd428a200dbb" type="RoleType" relation="org:approver"/>
+    </assignment>
+</user>

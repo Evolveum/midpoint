@@ -97,7 +97,7 @@ public class AssignmentPolicyAspectPart {
             trace = null;
         }
         try {
-            DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = ((LensContext<?>) ctx.modelContext)
+            DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = ((LensContext<?>) ctx.modelContext)
                     .getEvaluatedAssignmentTriple();
             LOGGER.trace("Processing evaluatedAssignmentTriple:\n{}", DebugUtil.debugDumpLazily(evaluatedAssignmentTriple));
             if (evaluatedAssignmentTriple == null) {
@@ -176,7 +176,8 @@ public class AssignmentPolicyAspectPart {
         }
 
         // Let's construct the approval schema plus supporting triggered approval policy rule information
-        ApprovalSchemaBuilder.Result approvalSchemaResult = createSchemaWithRules(triggeredApprovalActionRules, assignmentMode,
+        // Here we also treat default "rules" when no policy rules match.
+        ApprovalSchemaBuilder.Result approvalSchemaResult = createSchemaWithRules(triggeredApprovalActionRules,
                 evaluatedAssignment, ctx, result);
         if (approvalSchemaHelper.shouldBeSkipped(approvalSchemaResult.schemaType)) {
             return null;
@@ -271,7 +272,7 @@ public class AssignmentPolicyAspectPart {
                     verb, newAssignment, newAssignment.getThisTargetPolicyRules().size(), triggeredApprovalActionRules.size());
             for (EvaluatedPolicyRule t : triggeredApprovalActionRules) {
                 LOGGER.debug(" - Approval actions: {}", t.getEnabledActions(ApprovalPolicyActionType.class));
-                for (EvaluatedPolicyRuleTrigger trigger : t.getTriggers()) {
+                for (EvaluatedPolicyRuleTrigger<?> trigger : t.getTriggers()) {
                     LOGGER.debug("   - {}", trigger);
                 }
             }
@@ -279,15 +280,15 @@ public class AssignmentPolicyAspectPart {
     }
 
     private ApprovalSchemaBuilder.Result createSchemaWithRules(List<EvaluatedPolicyRule> triggeredApprovalRules,
-            PlusMinusZero assignmentMode, @NotNull EvaluatedAssignment<?> evaluatedAssignment, ModelInvocationContext ctx,
+            @NotNull EvaluatedAssignment<?> evaluatedAssignment, ModelInvocationContext<?> ctx,
             OperationResult result) throws SchemaException {
 
         PrismObject<?> targetObject = evaluatedAssignment.getTarget();
         ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(main, approvalSchemaHelper);
 
         // default policy action (only if adding)
-        if (triggeredApprovalRules.isEmpty() && assignmentMode == PLUS
-                && configurationHelper.getUseDefaultApprovalPolicyRules(ctx.wfConfiguration) != DefaultApprovalPolicyRulesUsageType.NEVER) {
+        if (triggeredApprovalRules.isEmpty() && evaluatedAssignment.isBeingAdded() &&
+                configurationHelper.getUseDefaultApprovalPolicyRules(ctx.wfConfiguration) != DefaultApprovalPolicyRulesUsageType.NEVER) {
             if (builder.addPredefined(targetObject, RelationKindType.APPROVER, result)) {
                 LOGGER.trace("Added default approval action, as no explicit one was found for {}", evaluatedAssignment);
             }
@@ -353,10 +354,9 @@ public class AssignmentPolicyAspectPart {
     }
 
     // creates an ObjectDelta that will be executed after successful approval of the given assignment
-    @SuppressWarnings("unchecked")
     private ObjectDelta<? extends FocusType> assignmentToDelta(Class<? extends Objectable> focusClass,
             AssignmentType assignmentType, boolean assignmentRemoved, String objectOid) throws SchemaException {
-        PrismContainerValue value = assignmentType.clone().asPrismContainerValue();
+        PrismContainerValue<?> value = assignmentType.clone().asPrismContainerValue();
         S_ValuesEntry item = prismContext.deltaFor(focusClass)
                 .item(FocusType.F_ASSIGNMENT);
         S_ItemEntry op = assignmentRemoved ? item.delete(value) : item.add(value);

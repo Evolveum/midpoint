@@ -615,4 +615,16 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     public PlusMinusZero getAbsoluteMode() {
         return origin.getAbsoluteMode();
     }
+
+    public boolean isBeingAdded() {
+        return origin.isBeingAdded();
+    }
+
+    public boolean isBeingDeleted() {
+        return origin.isBeingDeleted();
+    }
+
+    public boolean isBeingKept() {
+        return origin.isBeingKept();
+    }
 }
