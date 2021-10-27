@@ -8,8 +8,8 @@
 package com.evolveum.midpoint.report.impl.activity;
 
 import com.evolveum.midpoint.repo.common.activity.Activity;
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
-import com.evolveum.midpoint.repo.common.task.PlainIterativeActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+import com.evolveum.midpoint.repo.common.activity.run.PlainIterativeActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -41,17 +41,17 @@ class ImportActivitySupport extends ReportActivitySupport {
      */
     private ReportDataType reportData;
 
-    ImportActivitySupport(PlainIterativeActivityExecution<InputReportLine, ClassicReportImportWorkDefinition,
-            ClassicReportImportActivityHandler, ?> activityExecution) {
-        super(activityExecution,
-                activityExecution.getActivity().getHandler().reportService,
-                activityExecution.getActivity().getHandler().objectResolver,
-                activityExecution.getActivity().getWorkDefinition());
-        activity = activityExecution.getActivity();
+    ImportActivitySupport(PlainIterativeActivityRun<InputReportLine, ClassicReportImportWorkDefinition,
+                ClassicReportImportActivityHandler, ?> activityRun) {
+        super(activityRun,
+                activityRun.getActivity().getHandler().reportService,
+                activityRun.getActivity().getHandler().objectResolver,
+                activityRun.getActivity().getWorkDefinition());
+        activity = activityRun.getActivity();
     }
 
     @Override
-    void beforeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
+    void beforeExecution(OperationResult result) throws CommonException, ActivityRunException {
         super.beforeExecution(result);
         setupReportDataObject(result);
     }

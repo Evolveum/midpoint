@@ -17,6 +17,7 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ER
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR;
 
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.schema.util.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +30,6 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -52,7 +52,7 @@ public class SyncTaskHelper {
 
     public <O extends ObjectType> ResourceSearchSpecification createSearchSpecification(
             ResourceObjectSetType set, Task task, OperationResult opResult)
-            throws ActivityExecutionException, SchemaException {
+            throws ActivityRunException, SchemaException {
 
         ResourceObjectClassSpecification resourceObjectClassSpecification =
                 createObjectClassSpecInternal(set, false, task, opResult);
@@ -66,7 +66,7 @@ public class SyncTaskHelper {
             } else if (set.getQueryApplication() == ResourceObjectSetQueryApplicationModeType.APPEND) {
                 query = ObjectQueryUtil.addConjunctions(customQuery, basicQuery.getFilter());
             } else {
-                throw new ActivityExecutionException("Unsupported query application mode: " + set.getQueryApplication(),
+                throw new ActivityRunException("Unsupported query application mode: " + set.getQueryApplication(),
                         FATAL_ERROR, PERMANENT_ERROR);
             }
         } else {
@@ -82,7 +82,7 @@ public class SyncTaskHelper {
     @NotNull
     public ResourceObjectClassSpecification createObjectClassSpec(@NotNull ResourceObjectSetType resourceObjectSet,
             Task task, OperationResult opResult)
-            throws ActivityExecutionException {
+            throws ActivityRunException {
         ResourceObjectClassSpecification objectClassSpec =
                 createObjectClassSpecInternal(resourceObjectSet, true, task, opResult);
 
@@ -93,7 +93,7 @@ public class SyncTaskHelper {
     @NotNull
     private ResourceObjectClassSpecification createObjectClassSpecInternal(@NotNull ResourceObjectSetType resourceObjectSet,
             boolean checkForMaintenance, Task task, OperationResult opResult)
-            throws ActivityExecutionException {
+            throws ActivityRunException {
 
         String resourceOid = getResourceOid(resourceObjectSet);
         ResourceType resource = getResource(resourceOid, task, opResult);
@@ -107,7 +107,7 @@ public class SyncTaskHelper {
         try {
             objectClass = ModelImplUtils.determineObjectClassNew(refinedSchema, resourceObjectSet, task); // TODO source
         } catch (SchemaException e) {
-            throw new ActivityExecutionException("Schema error", FATAL_ERROR, PERMANENT_ERROR, e);
+            throw new ActivityRunException("Schema error", FATAL_ERROR, PERMANENT_ERROR, e);
         }
         if (objectClass == null) {
             LOGGER.debug("Processing all object classes");
@@ -120,7 +120,7 @@ public class SyncTaskHelper {
 
     @NotNull
     public ResourceObjectClassSpecification createObjectClassSpecForShadow(ShadowType shadow, Task task, OperationResult opResult)
-            throws ActivityExecutionException, SchemaException {
+            throws ActivityRunException, SchemaException {
         String resourceOid = ShadowUtil.getResourceOid(shadow);
         ResourceType resource = getResource(resourceOid, task, opResult);
         checkNotInMaintenance(resource);
@@ -136,48 +136,48 @@ public class SyncTaskHelper {
                 resource, refinedSchema, objectClass);
     }
 
-    public @NotNull String getResourceOid(ResourceObjectSetType set) throws ActivityExecutionException {
+    public @NotNull String getResourceOid(ResourceObjectSetType set) throws ActivityRunException {
         String resourceOid = set.getResourceRef() != null ? set.getResourceRef().getOid() : null;
         if (resourceOid == null) {
-            throw new ActivityExecutionException("No resource OID specified", FATAL_ERROR, PERMANENT_ERROR);
+            throw new ActivityRunException("No resource OID specified", FATAL_ERROR, PERMANENT_ERROR);
         }
         return resourceOid;
     }
 
-    private @NotNull ResourceType getResource(String resourceOid, Task task, OperationResult opResult) throws ActivityExecutionException {
+    private @NotNull ResourceType getResource(String resourceOid, Task task, OperationResult opResult) throws ActivityRunException {
         try {
             return provisioningService
                     .getObject(ResourceType.class, resourceOid, createReadOnlyCollection(), task, opResult)
                     .asObjectable();
         } catch (ObjectNotFoundException ex) {
             // This is bad. The resource does not exist. Permanent problem.
-            throw new ActivityExecutionException("Resource " + resourceOid + " not found", FATAL_ERROR, PERMANENT_ERROR, ex);
+            throw new ActivityRunException("Resource " + resourceOid + " not found", FATAL_ERROR, PERMANENT_ERROR, ex);
         } catch (SchemaException ex) {
             // Not sure about this. But most likely it is a misconfigured resource or connector
             // It may be worth to retry. Error is fatal, but may not be permanent.
-            throw new ActivityExecutionException("Resource " + resourceOid + " has a schema problem", FATAL_ERROR, TEMPORARY_ERROR, ex);
+            throw new ActivityRunException("Resource " + resourceOid + " has a schema problem", FATAL_ERROR, TEMPORARY_ERROR, ex);
         } catch (CommunicationException ex) {
-            throw new ActivityExecutionException("Communication error while getting resource " + resourceOid, FATAL_ERROR, TEMPORARY_ERROR, ex);
+            throw new ActivityRunException("Communication error while getting resource " + resourceOid, FATAL_ERROR, TEMPORARY_ERROR, ex);
         } catch (RuntimeException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | Error ex) {
             // RuntimeException: Can be anything ... but we can't recover from that.
             // It is most likely a programming error. Does not make much sense to retry.
             // Other exceptions: basically the same.
-            throw new ActivityExecutionException("Error while getting resource " + resourceOid, FATAL_ERROR, PERMANENT_ERROR, ex);
+            throw new ActivityRunException("Error while getting resource " + resourceOid, FATAL_ERROR, PERMANENT_ERROR, ex);
         }
     }
 
-    private @NotNull RefinedResourceSchema getRefinedResourceSchema(ResourceType resource) throws ActivityExecutionException {
+    private @NotNull RefinedResourceSchema getRefinedResourceSchema(ResourceType resource) throws ActivityRunException {
         RefinedResourceSchema refinedSchema;
         try {
             refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
         } catch (SchemaException e) {
-            throw new ActivityExecutionException("Schema error during processing account definition", FATAL_ERROR, PERMANENT_ERROR, e);
+            throw new ActivityRunException("Schema error during processing account definition", FATAL_ERROR, PERMANENT_ERROR, e);
         }
 
         if (refinedSchema != null) {
             return refinedSchema;
         } else {
-            throw new ActivityExecutionException("No refined schema defined. Probably some configuration problem.", FATAL_ERROR,
+            throw new ActivityRunException("No refined schema defined. Probably some configuration problem.", FATAL_ERROR,
                     PERMANENT_ERROR);
         }
     }
@@ -185,9 +185,9 @@ public class SyncTaskHelper {
     /**
      * This method is to be used on the activity start. So it should fail gracefully - maintenance is not a fatal error here.
      */
-    static void checkNotInMaintenance(ResourceType resource) throws ActivityExecutionException {
+    static void checkNotInMaintenance(ResourceType resource) throws ActivityRunException {
         if (isInMaintenance(resource)) {
-            throw new ActivityExecutionException("Resource is in maintenance", HANDLED_ERROR, TEMPORARY_ERROR);
+            throw new ActivityRunException("Resource is in maintenance", HANDLED_ERROR, TEMPORARY_ERROR);
         }
     }
 }

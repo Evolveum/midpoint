@@ -9,7 +9,7 @@ package com.evolveum.midpoint.testing.story;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;

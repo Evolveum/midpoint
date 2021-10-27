@@ -7,9 +7,9 @@
 package com.evolveum.midpoint.report.impl.activity;
 
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
@@ -57,29 +57,29 @@ public class ClassicReportExportActivityHandler
     }
 
     @Override
-    public AbstractActivityExecution<ClassicReportExportWorkDefinition, ClassicReportExportActivityHandler, ?> createExecution(
-            @NotNull ExecutionInstantiationContext<ClassicReportExportWorkDefinition, ClassicReportExportActivityHandler> context,
+    public AbstractActivityRun<ClassicReportExportWorkDefinition, ClassicReportExportActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<ClassicReportExportWorkDefinition, ClassicReportExportActivityHandler> context,
             @NotNull OperationResult result) {
         return resolveExecution(context, result);
     }
 
-    private AbstractActivityExecution<ClassicReportExportWorkDefinition, ClassicReportExportActivityHandler, ?> resolveExecution(
-            ExecutionInstantiationContext<ClassicReportExportWorkDefinition, ClassicReportExportActivityHandler> context,
+    private AbstractActivityRun<ClassicReportExportWorkDefinition, ClassicReportExportActivityHandler, ?> resolveExecution(
+            ActivityRunInstantiationContext<ClassicReportExportWorkDefinition, ClassicReportExportActivityHandler> context,
             OperationResult result) {
         @NotNull ClassicReportExportWorkDefinition workDefinition = context.getActivity().getWorkDefinition();
         ReportType report;
         try {
             report = reportService.getObjectResolver().resolve(workDefinition.getReportRef(), ReportType.class,
-                    null, "resolving report", context.getTaskExecution().getRunningTask(), result);
+                    null, "resolving report", context.getTaskRun().getRunningTask(), result);
         } catch (CommonException e) {
             throw new IllegalArgumentException(e);
         }
 
         if (report.getDashboard() != null) {
-            return new ClassicDashboardReportExportActivityExecution(context);
+            return new ClassicDashboardReportExportActivityRun(context);
         }
         if (report.getObjectCollection() != null) {
-            return new ClassicCollectionReportExportActivityExecution(context);
+            return new ClassicCollectionReportExportActivityRun(context);
         }
         LOGGER.error("Report don't contains engine");
         throw new IllegalArgumentException("Report don't contains engine");

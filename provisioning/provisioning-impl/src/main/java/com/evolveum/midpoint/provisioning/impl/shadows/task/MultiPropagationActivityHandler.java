@@ -9,7 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows.task;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -19,15 +19,12 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
-/**
- * TODO
- */
 @Component
 public class MultiPropagationActivityHandler implements ActivityHandler<MultiPropagationWorkDefinition, MultiPropagationActivityHandler> {
 
@@ -52,10 +49,10 @@ public class MultiPropagationActivityHandler implements ActivityHandler<MultiPro
     }
 
     @Override
-    public AbstractActivityExecution<MultiPropagationWorkDefinition, MultiPropagationActivityHandler, ?> createExecution(
-            @NotNull ExecutionInstantiationContext<MultiPropagationWorkDefinition, MultiPropagationActivityHandler> context,
+    public AbstractActivityRun<MultiPropagationWorkDefinition, MultiPropagationActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<MultiPropagationWorkDefinition, MultiPropagationActivityHandler> context,
             @NotNull OperationResult result) {
-        return new MultiPropagationActivityExecution(context);
+        return new MultiPropagationActivityRun(context);
     }
 
     @Override

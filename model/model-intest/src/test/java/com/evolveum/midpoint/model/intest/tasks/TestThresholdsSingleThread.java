@@ -31,7 +31,7 @@ public class TestThresholdsSingleThread extends TestThresholdsSingleTask {
     @Override
     void additionalTest100RepeatedExecutionAsserts(ActivityStateAsserter<TaskAsserter<Void>> asserter) {
         asserter
-                .simulationModePolicyRulesCounters()
+                .previewModePolicyRulesCounters()
                     .assertCounter(ruleAddId, USER_ADD_ALLOWED + 2)
                 .end()
                 .progress()
@@ -53,7 +53,7 @@ public class TestThresholdsSingleThread extends TestThresholdsSingleTask {
     @Override
     void additionalTest200RepeatedExecutionAsserts(ActivityStateAsserter<TaskAsserter<Void>> asserter) {
         asserter
-                .simulationModePolicyRulesCounters()
+                .previewModePolicyRulesCounters()
                     .assertCounter(ruleModifyCostCenterId, USER_MODIFY_ALLOWED + 2)
                 .end()
                 .itemProcessingStatistics()
@@ -64,7 +64,7 @@ public class TestThresholdsSingleThread extends TestThresholdsSingleTask {
     @Override
     void additionalTest400RepeatedExecutionAsserts(ActivityStateAsserter<TaskAsserter<Void>> asserter) {
         asserter
-                .simulationModePolicyRulesCounters()
+                .previewModePolicyRulesCounters()
                     .display()
                     .assertCounter(ruleDeleteId, USER_DELETE_ALLOWED + 2)
                 .end();

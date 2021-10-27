@@ -1647,7 +1647,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public void refreshPrincipal(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         try {
             MidPointPrincipal principal = guiProfiledPrincipalManager.getPrincipalByOid(oid, clazz);
-            securityContextManager.setupPreAuthenticatedSecurityContext(principal);
+            Authentication authentication = securityContextManager.getAuthentication();
+            if (authentication instanceof MidpointAuthentication) {
+                ((MidpointAuthentication) authentication).setPrincipal(principal);
+            } else {
+                securityContextManager.setupPreAuthenticatedSecurityContext(principal);
+            }
         } catch (Throwable e) {
             LOGGER.error("Cannot refresh authentication for user identified with" + oid);
             throw e;
@@ -1679,7 +1684,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             newTask.setExecutionState(RUNNABLE);
             newTask.setSchedulingState(READY);
             for (Item<?, ?> extensionItem : extensionItems) {
-                newTask.asPrismObject().getExtension().add(extensionItem.clone());
+                newTask.asPrismObject().getOrCreateExtension()
+                        .add(extensionItem.clone());
             }
             ObjectDelta<TaskType> taskAddDelta = DeltaFactory.Object.createAddDelta(newTask.asPrismObject());
             Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = modelService.executeChanges(singleton(taskAddDelta), null, opTask, result);

@@ -9,9 +9,6 @@ package com.evolveum.midpoint.common.configuration.api;
 import org.apache.commons.configuration2.Configuration;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author mamut
- */
 public interface MidpointConfiguration {
 
     // Names of system properties. Note that they are also copied into config.xml-loaded configuration.
@@ -27,8 +24,6 @@ public interface MidpointConfiguration {
     // Other commonly-used configuration properties
     String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
     String MIDPOINT_NODE_ID_SOURCE_PROPERTY = "midpoint.nodeIdSource";
-    @Deprecated // Remove in 4.4
-    String MIDPOINT_JMX_HOST_NAME_PROPERTY = "midpoint.jmxHostName";
     String MIDPOINT_URL_PROPERTY = "midpoint.url";
     String MIDPOINT_HOST_NAME_PROPERTY = "midpoint.hostName";
     String MIDPOINT_HTTP_PORT_PROPERTY = "midpoint.httpPort";

@@ -9,21 +9,22 @@ package com.evolveum.midpoint.model.impl.cleanup;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
-import com.evolveum.midpoint.model.impl.tasks.scanner.ScanActivityExecution;
+import com.evolveum.midpoint.model.impl.tasks.scanner.ScanActivityRun;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
-import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
-import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
-import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
+import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
@@ -60,10 +61,10 @@ public class ShadowRefreshActivityHandler
     }
 
     @Override
-    public AbstractActivityExecution<MyWorkDefinition, ShadowRefreshActivityHandler, ?> createExecution(
-            @NotNull ExecutionInstantiationContext<MyWorkDefinition, ShadowRefreshActivityHandler> context,
+    public AbstractActivityRun<MyWorkDefinition, ShadowRefreshActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<MyWorkDefinition, ShadowRefreshActivityHandler> context,
             @NotNull OperationResult result) {
-        return new MyActivityExecution(context);
+        return new MyActivityRun(context);
     }
 
     @Override
@@ -75,7 +76,7 @@ public class ShadowRefreshActivityHandler
     public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
         return new ActivityStateDefinition<>(
                 ScanWorkStateType.COMPLEX_TYPE,
-                ActivityStatePersistenceType.PERPETUAL_EXCEPT_STATISTICS // TODO deduplicate with persistentStatistics(false)
+                ActivityStatePersistenceType.PERPETUAL_EXCEPT_STATISTICS
         );
     }
 
@@ -84,11 +85,12 @@ public class ShadowRefreshActivityHandler
         return ARCHETYPE_OID;
     }
 
-    public static class MyActivityExecution
-            extends ScanActivityExecution<ShadowType, MyWorkDefinition, ShadowRefreshActivityHandler> {
+    public static final class MyActivityRun
+            extends ScanActivityRun<ShadowType, MyWorkDefinition, ShadowRefreshActivityHandler> {
 
-        MyActivityExecution(@NotNull ExecutionInstantiationContext<MyWorkDefinition, ShadowRefreshActivityHandler> context) {
+        MyActivityRun(@NotNull ActivityRunInstantiationContext<MyWorkDefinition, ShadowRefreshActivityHandler> context) {
             super(context, "Shadow refresh");
+            setInstanceReady();
         }
 
         @Override
@@ -97,12 +99,9 @@ public class ShadowRefreshActivityHandler
         }
 
         @Override
-        public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
-            // Non-persistent statistics is a temporary solution for MID-6934.
-            // We should decide whether we want to have aggregate statistics for this kind of tasks.
-            return super.getDefaultReportingOptions()
-                    .enableActionsExecutedStatistics(true)
-                    .persistentStatistics(false);
+        public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
+            return super.createReportingCharacteristics()
+                    .actionsExecutedStatisticsSupported(true);
         }
 
         @Override
@@ -121,7 +120,7 @@ public class ShadowRefreshActivityHandler
         @Override
         public boolean processItem(@NotNull ShadowType object,
                 @NotNull ItemProcessingRequest<ShadowType> request, RunningTask workerTask, OperationResult result)
-                throws CommonException, ActivityExecutionException {
+                throws CommonException, ActivityRunException {
             getModelBeans().provisioningService.refreshShadow(object.asPrismObject(), null, workerTask, result);
             return true;
         }

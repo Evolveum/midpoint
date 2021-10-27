@@ -8,13 +8,13 @@
 package com.evolveum.midpoint.schema.util.task.work;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDistributionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDistributionDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
 
 public class ActivityDefinitionUtil {
 
-    public static @NotNull WorkDistributionType findOrCreateDistribution(ActivityDefinitionType activity) {
+    public static @NotNull ActivityDistributionDefinitionType findOrCreateDistribution(ActivityDefinitionType activity) {
         if (activity.getDistribution() != null) {
             return activity.getDistribution();
         } else {

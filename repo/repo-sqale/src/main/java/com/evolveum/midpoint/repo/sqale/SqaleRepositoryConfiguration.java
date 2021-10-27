@@ -32,8 +32,6 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     private static final String DEFAULT_DRIVER = "org.postgresql.Driver";
     private static final SupportedDatabase DEFAULT_DATABASE = SupportedDatabase.POSTGRESQL;
     private static final String DEFAULT_JDBC_URL = "jdbc:postgresql://localhost:5432/midpoint";
-    private static final String DEFAULT_JDBC_USERNAME = "midpoint";
-    private static final String DEFAULT_JDBC_PASSWORD = "password";
     private static final String DEFAULT_FULL_OBJECT_FORMAT = PrismContext.LANG_JSON;
 
     /**
@@ -69,11 +67,13 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
 
     private String driverClassName;
 
+    private long initializationFailTimeout;
     private int minPoolSize;
     private int maxPoolSize;
     private Long maxLifetime;
     private Long idleTimeout;
-    private long initializationFailTimeout;
+    private Long keepaliveTime;
+    private Long leakDetectionThreshold;
 
     private String fullObjectFormat;
 
@@ -93,7 +93,7 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
         dataSource = configuration.getString(PROPERTY_DATASOURCE);
 
         jdbcUrl = configuration.getString(PROPERTY_JDBC_URL, DEFAULT_JDBC_URL);
-        jdbcUsername = configuration.getString(PROPERTY_JDBC_USERNAME, DEFAULT_JDBC_USERNAME);
+        jdbcUsername = configuration.getString(PROPERTY_JDBC_USERNAME, null);
 
         driverClassName = DEFAULT_DRIVER;
 
@@ -106,7 +106,7 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
                         + jdbcPasswordFile + "': " + e.getMessage(), e);
             }
         } else {
-            jdbcPassword = configuration.getString(PROPERTY_JDBC_PASSWORD, DEFAULT_JDBC_PASSWORD);
+            jdbcPassword = configuration.getString(PROPERTY_JDBC_PASSWORD, null);
         }
 
         // maxPoolSize can't be smaller than MIN_POOL_SIZE_FLOOR
@@ -116,6 +116,10 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
         minPoolSize = configuration.getInt(PROPERTY_MIN_POOL_SIZE, Math.min(DEFAULT_MIN_POOL_SIZE, maxPoolSize));
         maxLifetime = configuration.getLong(PROPERTY_MAX_LIFETIME, null);
         idleTimeout = configuration.getLong(PROPERTY_IDLE_TIMEOUT, null);
+        keepaliveTime = configuration.getLong(PROPERTY_KEEPALIVE_TIME, null);
+        // 0 to disable, which is also HikariCP default
+        leakDetectionThreshold = configuration.getLong(PROPERTY_LEAK_DETECTION_THRESHOLD, null);
+        // 1ms is also HikariCP default, we use "long" for it so it must be set
         initializationFailTimeout = configuration.getLong(PROPERTY_INITIALIZATION_FAIL_TIMEOUT, 1L);
 
         fullObjectFormat = configuration.getString(PROPERTY_FULL_OBJECT_FORMAT, DEFAULT_FULL_OBJECT_FORMAT)
@@ -251,6 +255,16 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     @Override
     public long getInitializationFailTimeout() {
         return initializationFailTimeout;
+    }
+
+    @Override
+    public Long getKeepaliveTime() {
+        return keepaliveTime;
+    }
+
+    @Override
+    public Long getLeakDetectionThreshold() {
+        return leakDetectionThreshold;
     }
 
     @Override

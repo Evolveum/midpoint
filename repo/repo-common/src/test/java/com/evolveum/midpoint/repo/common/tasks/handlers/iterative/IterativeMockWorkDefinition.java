@@ -7,12 +7,12 @@
 
 package com.evolveum.midpoint.repo.common.tasks.handlers.iterative;
 
-import static com.evolveum.midpoint.repo.common.tasks.handlers.composite.MockComponentActivityExecution.NS_EXT;
+import static com.evolveum.midpoint.repo.common.tasks.handlers.composite.MockComponentActivityRun.NS_EXT;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.task.work.segmentation.content.NumericIntervalBucketUtil.Interval;
+import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.content.NumericIntervalBucketUtil.Interval;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
 
 import com.google.common.base.MoreObjects;

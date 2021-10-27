@@ -13,13 +13,13 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ER
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType.F_REPORT_DATA_REF;
 
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.Activity;
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
-import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import com.evolveum.midpoint.util.MiscUtil;
@@ -39,23 +39,22 @@ class DistributedReportExportActivitySupport extends ExportActivitySupport {
      */
     private ObjectReferenceType globalReportDataRef;
 
-    DistributedReportExportActivitySupport(AbstractActivityExecution<?, ?, ?> activityExecution,
-            Activity<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> activity
-    ) {
-        super(activityExecution,
+    DistributedReportExportActivitySupport(AbstractActivityRun<?, ?, ?> activityRun,
+            Activity<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> activity) {
+        super(activityRun,
                 activity.getHandler().reportService,
                 activity.getHandler().objectResolver,
                 activity.getWorkDefinition());
         this.activity = activity;
     }
 
-    void beforeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
+    void beforeExecution(OperationResult result) throws CommonException, ActivityRunException {
         super.beforeExecution(result);
         globalReportDataRef = fetchGlobalReportDataRef(result);
     }
 
     private @NotNull ObjectReferenceType fetchGlobalReportDataRef(OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ActivityExecutionException {
+            throws SchemaException, ObjectNotFoundException, ActivityRunException {
         ActivityState activityState =
                 ActivityState.getActivityStateUpwards(
                         activity.getPath().allExceptLast(),
@@ -65,7 +64,7 @@ class DistributedReportExportActivitySupport extends ExportActivitySupport {
                         result);
         ObjectReferenceType globalReportDataRef = activityState.getWorkStateReferenceRealValue(F_REPORT_DATA_REF);
         if (globalReportDataRef == null) {
-            throw new ActivityExecutionException("No global report data reference in " + activityState,
+            throw new ActivityRunException("No global report data reference in " + activityState,
                     FATAL_ERROR, PERMANENT_ERROR);
         }
         return globalReportDataRef;

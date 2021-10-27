@@ -408,6 +408,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         OperationResult result = task.getResult();
 
         ObjectQuery query = createSamAccountNameQuery(ACCOUNT_JACK_SAM_ACCOUNT_NAME);
+        display("SamAccountName query:\n" + query.debugDump());
 
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
@@ -619,7 +620,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         } else {
             // TODO: Why 14? Why not 1?
-            assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 10);  // 14?
+            assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 9);  // 14?
         }
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
@@ -2277,7 +2278,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         // THEN
         then();
 
-        assertUsers(11);
+        assertUsers(getNumberOfAllAccounts() + 2); // all accounts + administrator + ?
 
         // TODO: better asserts
 

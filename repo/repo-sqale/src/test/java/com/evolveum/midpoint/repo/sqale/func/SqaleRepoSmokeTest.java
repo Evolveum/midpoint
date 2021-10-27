@@ -11,11 +11,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import static com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase.DEFAULT_SCHEMA_NAME;
 
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Queue;
 import java.util.UUID;
 
+import org.testng.Assert;
 import org.testng.SkipException;
 import org.testng.annotations.Test;
 
@@ -49,7 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Contains a few tests doing stuff all over the repository including a few lower level
  * (sub-repo-API) tests around Querydsl and our adaptation of it.
- * Each test method is completely self contained.
+ * Each test method is completely self-contained.
  */
 public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
 
@@ -283,6 +285,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
                 repositoryService.getObject(UserType.class, userOid, photoOptions, result)
                         .asObjectable();
         assertThat(userWithPhoto.getJpegPhoto()).isEqualTo(new byte[] { 0, 1, 2 });
+        assertThat(userWithPhoto.asPrismObject().findProperty(FocusType.F_JPEG_PHOTO).isIncomplete()).isFalse();
     }
 
     @Test
@@ -431,6 +434,16 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         assertThat(row.ext).isNull();
         // but we never set fullObject to null, so this is a good test for doing so with byte[]
         assertThat(row.photo).isNull();
+    }
+
+    @Test
+    public void test999ConnectionIsValidCheck() {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession()) {
+            // Just to see that it works, this is used for keepalive (if set for HikariCP).
+            jdbcSession.connection().isValid(10);
+        } catch (SQLException e) {
+            Assert.fail("Failing isValid check on JDBC connection", e);
+        }
     }
     // endregion
 }

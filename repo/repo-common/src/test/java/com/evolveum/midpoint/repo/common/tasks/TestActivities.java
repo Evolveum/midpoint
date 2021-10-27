@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.common.tasks;
 import static com.evolveum.midpoint.repo.common.tasks.handlers.CommonMockActivityHelper.EXECUTION_COUNT_NAME;
 
 import static com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTaskExecutionStateType.NOT_EXECUTING;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTaskExecutionStateType.NOT_RUNNING;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,10 +22,10 @@ import java.util.stream.IntStream;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.activity.handlers.NoOpActivityHandler;
-import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
-import com.evolveum.midpoint.repo.common.task.reports.ActivityExecutionReportUtil;
-import com.evolveum.midpoint.repo.common.task.reports.SimpleReportReader;
-import com.evolveum.midpoint.repo.common.task.work.BucketingConfigurationOverrides;
+import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
+import com.evolveum.midpoint.repo.common.activity.run.reports.ActivityReportUtil;
+import com.evolveum.midpoint.repo.common.activity.run.reports.SimpleReportReader;
+import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingConfigurationOverrides;
 import com.evolveum.midpoint.schema.statistics.ActionsExecutedInformationUtil;
 import com.evolveum.midpoint.schema.util.task.*;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionUtil;
@@ -696,7 +696,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                         .itemProcessingStatistics()
                             .assertTotalCounts(5, 0, 0)
                             .assertLastSuccessObjectName("5")
-                            .assertExecutions(1)
+                            .assertRuns(1)
                         .end()
                         .synchronizationStatistics()
                             .display()
@@ -777,7 +777,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                         .itemProcessingStatistics()
                             .assertTotalCounts(12, 0, 0)
                             .assertLastSuccessObjectName("12")
-                            .assertExecutions(1)
+                            .assertRuns(1)
                         .end()
                         .synchronizationStatistics()
                             .display()
@@ -856,7 +856,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                         .end()
                         .itemProcessingStatistics()
                             .assertTotalCounts(100, 0, 0)
-                            .assertExecutions(1)
+                            .assertRuns(1)
                         .end()
                         .synchronizationStatistics()
                             .display()
@@ -934,7 +934,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                         .end()
                         .itemProcessingStatistics()
                             .assertTotalCounts(100, 0, 0)
-                            .assertExecutions(1)
+                            .assertRuns(1)
                         .end()
                         .assertBucketManagementStatisticsOperations(3);
 
@@ -1005,7 +1005,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                             .end()
                             .itemProcessingStatistics()
                                 .assertTotalCounts(0, 0, 0)
-                                .assertExecutions(1)
+                                .assertRuns(1)
                             .end()
                             .synchronizationStatistics()
                                 .display()
@@ -1032,7 +1032,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                             .itemProcessingStatistics()
                                 .assertTotalCounts(1, 0, 0)
                                 .assertLastSuccessObjectName("administrator")
-                                .assertExecutions(1)
+                                .assertRuns(1)
                             .end()
                             .synchronizationStatistics()
                                 .display()
@@ -1064,7 +1064,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                                 .end()
                                 .itemProcessingStatistics()
                                     .assertTotalCounts(10, 0, 0)
-                                    .assertExecutions(1)
+                                    .assertRuns(1)
                                 .end()
                                 .synchronizationStatistics()
                                     .display()
@@ -1093,7 +1093,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                                 .itemProcessingStatistics()
                                     .assertTotalCounts(1, 0, 0)
                                     .assertLastSuccessObjectName("administrator")
-                                    .assertExecutions(1)
+                                    .assertRuns(1)
                                 .end()
                             .end()
                         .end()
@@ -1106,7 +1106,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                             .end()
                             .itemProcessingStatistics()
                                 .assertTotalCounts(100, 0, 0)
-                                .assertExecutions(1)
+                                .assertRuns(1)
                             .end()
                             .assertBucketManagementStatisticsOperations(3)
                         .end()
@@ -1117,44 +1117,44 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertComplete()
                     .assertSuccess()
                     .assertProgressHidden()
-                    .assertSingleTask(TASK_180_BUCKETED_TREE.oid, NOT_EXECUTING)
+                    .assertSingleTask(TASK_180_BUCKETED_TREE.oid, NOT_RUNNING)
                     .assertChildren(4)
                     .child("first")
                         .assertComplete()
                         .assertSuccess()
                         .assertProgressHidden()
-                        .assertSingleTask(TASK_180_BUCKETED_TREE.oid, NOT_EXECUTING)
+                        .assertSingleTask(TASK_180_BUCKETED_TREE.oid, NOT_RUNNING)
                     .end()
                     .child("second")
                         .assertComplete()
                         .assertSuccess()
                         .assertProgressHidden()
-                        .assertSingleTask(TASK_180_BUCKETED_TREE.oid, NOT_EXECUTING)
+                        .assertSingleTask(TASK_180_BUCKETED_TREE.oid, NOT_RUNNING)
                     .end()
                     .child("composition:1")
                         .assertComplete()
                         .assertSuccess()
                         .assertProgressHidden()
-                        .assertSingleTask(TASK_180_BUCKETED_TREE.oid, NOT_EXECUTING)
+                        .assertSingleTask(TASK_180_BUCKETED_TREE.oid, NOT_RUNNING)
                         .assertChildren(2)
                         .child("third-A")
                             .assertComplete()
                             .assertSuccess()
                             .assertProgressHidden()
-                            .assertSingleTask(TASK_180_BUCKETED_TREE.oid, NOT_EXECUTING)
+                            .assertSingleTask(TASK_180_BUCKETED_TREE.oid, NOT_RUNNING)
                         .end()
                         .child("third-B")
                             .assertComplete()
                             .assertSuccess()
                             .assertProgressHidden()
-                            .assertSingleTask(TASK_180_BUCKETED_TREE.oid, NOT_EXECUTING)
+                            .assertSingleTask(TASK_180_BUCKETED_TREE.oid, NOT_RUNNING)
                         .end()
                     .end()
                     .child("fourth")
                         .assertComplete()
                         .assertSuccess()
                         .assertProgressHidden()
-                        .assertSingleTask(TASK_180_BUCKETED_TREE.oid, NOT_EXECUTING)
+                        .assertSingleTask(TASK_180_BUCKETED_TREE.oid, NOT_RUNNING)
                     .end();
         // @formatter:on
 
@@ -1336,7 +1336,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         // @formatter:on
 
         // TODO improve this code
-        String secondOid = ActivityExecutionReportUtil.getReportDataOid(task1.getWorkState(), ActivityPath.fromId("second"),
+        String secondOid = ActivityReportUtil.getReportDataOid(task1.getWorkState(), ActivityPath.fromId("second"),
                 ActivityReportsType.F_BUCKETS, taskManager.getNodeId());
         assertThat(secondOid).as("second buckets report OID").isNotNull();
         try (var reader = SimpleReportReader.createForLocalReportData(
@@ -1400,7 +1400,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                             .itemProcessingStatistics()
                                 .assertTotalCounts(0, 1, 0)
                                 .assertLastFailureObjectName("#1")
-                                .assertExecutions(1)
+                                .assertRuns(1)
                             .end()
                         .end()
                         .child("composition:1")
@@ -1498,7 +1498,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                             .itemProcessingStatistics()
                                 .assertTotalCounts(0, 2, 0)
                                 .assertLastFailureObjectName("#1")
-                                .assertExecutions(2)
+                                .assertRuns(2)
                             .end()
                         .end()
                         .child("composition:1")
@@ -1595,7 +1595,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                                 .assertTotalCounts(1, 2, 0)
                                 .assertLastSuccessObjectName("#1")
                                 .assertLastFailureObjectName("#1")
-                                .assertExecutions(3)
+                                .assertRuns(3)
                             .end()
                         .end()
                         .child("composition:1")
@@ -1621,7 +1621,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                                 .itemProcessingStatistics()
                                     .assertTotalCounts(0, 1, 0)
                                     .assertLastFailureObjectName("#2.2")
-                                    .assertExecutions(1)
+                                    .assertRuns(1)
                                 .end()
                             .end()
                         .end()
@@ -1872,7 +1872,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .subtaskForPath(ActivityPath.empty())
                     .display("child")
                     .activityState()
-                        .assertRole(ActivityExecutionRoleType.DELEGATE)
+                        .assertRole(TaskRoleType.DELEGATE)
                         .assertLocalRoot(ActivityPath.empty())
                         .rootActivity()
                             .assertComplete()
@@ -1883,7 +1883,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                             .end()
                             .itemProcessingStatistics()
                                 .assertTotalCounts(1, 0, 0)
-                                .assertExecutions(1)
+                                .assertRuns(1)
                             .end()
                             .workStateExtension()
                                 .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1)
@@ -1960,11 +1960,11 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertRealizationInProgress()
                     .assertStatusInProgress()
                     .assertProgressHidden()
-                    .assertSingleTask(TASK_210_SUSPENDING_COMPOSITE_WITH_SUBTASKS.oid, NOT_EXECUTING)
+                    .assertSingleTask(TASK_210_SUSPENDING_COMPOSITE_WITH_SUBTASKS.oid, NOT_RUNNING)
                     .child("mock-simple:1")
                         .assertRealizationInProgress()
                         .assertFatalError()
-                        .assertSingleTask(oidOfSubtask1, NOT_EXECUTING)
+                        .assertSingleTask(oidOfSubtask1, NOT_RUNNING)
                         .assertItemsProgress(null, 1)
                     .end()
                 .end()
@@ -2075,11 +2075,11 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertRealizationInProgress()
                     .assertStatusInProgress()
                     .assertProgressHidden()
-                    .assertSingleTask(TASK_210_SUSPENDING_COMPOSITE_WITH_SUBTASKS.oid, NOT_EXECUTING)
+                    .assertSingleTask(TASK_210_SUSPENDING_COMPOSITE_WITH_SUBTASKS.oid, NOT_RUNNING)
                     .child("mock-simple:1")
                         .assertRealizationInProgress()
                         .assertFatalError()
-                        .assertSingleTask(oidOfSubtask1, NOT_EXECUTING)
+                        .assertSingleTask(oidOfSubtask1, NOT_RUNNING)
                         .assertItemsProgress(null, 2)
                     .end()
                 .end()
@@ -2200,29 +2200,29 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertRealizationInProgress()
                     .assertStatusInProgress()
                     .assertProgressHidden()
-                    .assertSingleTask(TASK_210_SUSPENDING_COMPOSITE_WITH_SUBTASKS.oid, NOT_EXECUTING)
+                    .assertSingleTask(TASK_210_SUSPENDING_COMPOSITE_WITH_SUBTASKS.oid, NOT_RUNNING)
                     .child("mock-simple:1")
                         .assertComplete()
                         .assertSuccess()
-                        .assertSingleTask(oidOfSubtask1, NOT_EXECUTING)
+                        .assertSingleTask(oidOfSubtask1, NOT_RUNNING)
                         .assertItemsProgress(null, 3)
                     .end()
                     .child("composition:1")
                         .assertRealizationInProgress()
                         .assertStatusInProgress()
-                        .assertSingleTask(oidOfSubtask2Holder.getValue(), NOT_EXECUTING)
+                        .assertSingleTask(oidOfSubtask2Holder.getValue(), NOT_RUNNING)
                         .assertProgressVisible()
                         .assertNoItemsProgress()
                         .child("mock-simple:1")
                             .assertComplete()
                             .assertSuccess()
-                            .assertSingleTask(oidOfSubtask21Holder.getValue(), NOT_EXECUTING)
+                            .assertSingleTask(oidOfSubtask21Holder.getValue(), NOT_RUNNING)
                             .assertItemsProgress(null, 1)
                         .end()
                         .child("mock-simple:2")
                             .assertRealizationInProgress()
                             .assertFatalError()
-                            .assertSingleTask(oidOfSubtask22Holder.getValue(), NOT_EXECUTING)
+                            .assertSingleTask(oidOfSubtask22Holder.getValue(), NOT_RUNNING)
                             .assertItemsProgress(null, 1)
                         .end()
                         .child("mock-simple:3")
@@ -2518,7 +2518,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                             .itemProcessingStatistics()
                                 .assertTotalCounts(1, 0, 0)
                                 .assertLastSuccessObjectName("id1:opening")
-                                .assertExecutions(1)
+                                .assertRuns(1)
                             .end()
                         .end()
                     .end()
@@ -2537,7 +2537,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                             .itemProcessingStatistics()
                                 .assertTotalCounts(1, 0, 0)
                                 .assertLastSuccessObjectName("id1:closing")
-                                .assertExecutions(0) // because of perpetual persistence of state
+                                .assertRuns(0) // because of perpetual persistence of state
                             .end()
                         .end()
                     .end()

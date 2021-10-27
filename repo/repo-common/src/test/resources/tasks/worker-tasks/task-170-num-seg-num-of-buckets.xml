@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="33b0f9bb-15bd-4f64-bd08-11aad034e77q"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>task-170</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <extension>
+                <ext:searchIterativeMock>
+                    <ext:objectSet>
+                        <type>RoleType</type>
+                        <query>
+                            <q:filter>
+                                <q:substring>
+                                    <q:path>name</q:path>
+                                    <q:value>test-role-</q:value>
+                                    <q:anchorStart>true</q:anchorStart>
+                                </q:substring>
+                            </q:filter>
+                        </query>
+                    </ext:objectSet>
+                </ext:searchIterativeMock>
+            </extension>
+        </work>
+        <distribution>
+            <buckets>
+                <numericSegmentation>
+                    <discriminator>extension/ext:discriminator</discriminator>
+                    <numberOfBuckets>10</numberOfBuckets>
+                    <from>5</from>
+                    <to>100</to>
+                </numericSegmentation>
+            </buckets>
+            <workers>
+                <workersPerNode>
+                    <count>2</count>
+                </workersPerNode>
+            </workers>
+            <workerThreads>4</workerThreads>
+        </distribution>
+    </activity>
+</task>

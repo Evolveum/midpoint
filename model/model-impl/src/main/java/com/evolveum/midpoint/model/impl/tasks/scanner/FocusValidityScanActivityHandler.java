@@ -6,14 +6,14 @@
  */
 package com.evolveum.midpoint.model.impl.tasks.scanner;
 
-import static com.evolveum.midpoint.model.impl.tasks.scanner.FocusValidityScanPartialExecution.ScanScope.*;
+import static com.evolveum.midpoint.model.impl.tasks.scanner.FocusValidityScanPartialRun.ScanScope.*;
 
 import java.util.ArrayList;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
-import com.evolveum.midpoint.repo.common.activity.execution.CompositeActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
+import com.evolveum.midpoint.repo.common.activity.run.CompositeActivityRun;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -23,8 +23,8 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 @Component
@@ -47,10 +47,10 @@ public class FocusValidityScanActivityHandler
     }
 
     @Override
-    public AbstractActivityExecution<FocusValidityScanWorkDefinition, FocusValidityScanActivityHandler, ?> createExecution(
-            @NotNull ExecutionInstantiationContext<FocusValidityScanWorkDefinition, FocusValidityScanActivityHandler> context,
+    public AbstractActivityRun<FocusValidityScanWorkDefinition, FocusValidityScanActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<FocusValidityScanWorkDefinition, FocusValidityScanActivityHandler> context,
             @NotNull OperationResult result) {
-        return new CompositeActivityExecution<>(context);
+        return new CompositeActivityRun<>(context);
     }
 
     @Override
@@ -64,7 +64,7 @@ public class FocusValidityScanActivityHandler
             case SINGLE_QUERY:
                 children.add(EmbeddedActivity.create(
                         parentActivity.getDefinition().clone(),
-                        (context, result) -> new FocusValidityScanPartialExecution(context, COMBINED),
+                        (context, result) -> new FocusValidityScanPartialRun(context, COMBINED),
                         null,
                         (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_FULL_ID,
                         stateDef,
@@ -73,14 +73,14 @@ public class FocusValidityScanActivityHandler
             case SEPARATE_OBJECT_AND_ASSIGNMENT_QUERIES:
                 children.add(EmbeddedActivity.create(
                         parentActivity.getDefinition().clone(),
-                        (context, result) -> new FocusValidityScanPartialExecution(context, OBJECTS),
+                        (context, result) -> new FocusValidityScanPartialRun(context, OBJECTS),
                         null,
                         (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_OBJECTS_ID,
                         stateDef,
                         parentActivity));
                 children.add(EmbeddedActivity.create(
                         parentActivity.getDefinition().clone(),
-                        (context, result) -> new FocusValidityScanPartialExecution(context, ASSIGNMENTS),
+                        (context, result) -> new FocusValidityScanPartialRun(context, ASSIGNMENTS),
                         null,
                         (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_ASSIGNMENTS_ID,
                         stateDef,

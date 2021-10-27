@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.api.RepositoryObjectDiagnosticData;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
@@ -524,7 +525,7 @@ public class ObjectRetriever {
                     photoProperty.setRealValue(photo);
                     photoProperty.setIncomplete(false);
                 } else {
-                    setPropertyNullAndComplete(prismObject, FocusType.F_JPEG_PHOTO);
+                    PrismUtil.setPropertyNullAndComplete(prismObject, FocusType.F_JPEG_PHOTO);
                 }
             }
         } else if (ShadowType.class.equals(prismObject.getCompileTimeClass())) {
@@ -563,7 +564,7 @@ public class ObjectRetriever {
 
                     prismObject.setPropertyRealValue(TaskType.F_RESULT_STATUS, resultType.getStatus());
                 } else {
-                    setPropertyNullAndComplete(prismObject, TaskType.F_RESULT);
+                    PrismUtil.setPropertyNullAndComplete(prismObject, TaskType.F_RESULT);
                 }
             }
         }
@@ -579,14 +580,6 @@ public class ObjectRetriever {
 
         ObjectTypeUtil.normalizeAllRelations(prismObject, relationRegistry);
         return prismObject;
-    }
-
-    private <T extends ObjectType> void setPropertyNullAndComplete(PrismObject<T> prismObject, ItemPath path) {
-        PrismProperty<?> photoProperty = prismObject.findProperty(path);
-        if (photoProperty != null) {
-            photoProperty.setRealValue(null);
-            photoProperty.setIncomplete(false);
-        }
     }
 
     private <T extends ObjectType> void loadIndexOnlyItemsIfNeeded(PrismObject<T> prismObject,

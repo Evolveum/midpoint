@@ -87,7 +87,6 @@ import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.activity.CounterManager;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -290,8 +289,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     @SpringBean private GuiComponentRegistry registry;
     @SpringBean private DefaultGuiConfigurationCompiler guiConfigurationRegistry;
 
-    @SpringBean private CounterManager counterManager;
-
     @SpringBean private ClusterExecutionHelper clusterExecutionHelper;
 
     @SpringBean private AdminGuiConfigurationMergeManager adminGuiConfigurationMergeManager;
@@ -396,10 +393,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     @Override
     public LocalizationService getLocalizationService() {
         return localizationService;
-    }
-
-    public CounterManager getCounterManager() {
-        return counterManager;
     }
 
     @Contract(pure = true)

@@ -73,7 +73,7 @@ public class CommandLineScriptExecutor {
         LOGGER.debug("Prepared shell code: {}", preparedCode);
 
         CommandLineRunner runner = new CommandLineRunner(preparedCode, result);
-        runner.setExectionMethod(scriptType.getExecutionMethod());
+        runner.setExecutionMethod(scriptType.getExecutionMethod());
 
         runner.execute();
 

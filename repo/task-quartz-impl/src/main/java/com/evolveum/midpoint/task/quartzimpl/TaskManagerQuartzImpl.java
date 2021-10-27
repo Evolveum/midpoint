@@ -696,16 +696,6 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
         handlerRegistry.unregisterHandler(uri);
     }
 
-    @Override
-    public void registerAdditionalHandlerUri(@NotNull String uri, @NotNull TaskHandler handler) {
-        handlerRegistry.registerAdditionalHandlerUri(uri, handler);
-    }
-
-    @Override
-    public void registerDeprecatedHandlerUri(@NotNull String uri, @NotNull TaskHandler handler) {
-        handlerRegistry.registerDeprecatedHandlerUri(uri, handler);
-    }
-
     public TaskHandler getHandler(String uri) {
         return handlerRegistry.getHandler(uri);
     }

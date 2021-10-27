@@ -11,6 +11,7 @@ import static java.util.Objects.requireNonNull;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -20,7 +21,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -107,7 +107,7 @@ public class ResourceObjectClassSpecification implements DebugDumpable {
         }
     }
 
-    public void checkNotInMaintenance() throws ActivityExecutionException {
+    public void checkNotInMaintenance() throws ActivityRunException {
         SyncTaskHelper.checkNotInMaintenance(resource);
     }
 

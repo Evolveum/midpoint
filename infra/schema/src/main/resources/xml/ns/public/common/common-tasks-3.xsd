@@ -271,7 +271,7 @@
                                 etc.
 
                                 Note that activity-based tasks do not need a handler URI. They are executed under
-                                the generic activity execution task handler.
+                                the activity-based task handler.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -307,14 +307,14 @@
                     <xsd:element name="lastRunStartTimestamp" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                The time when the task execution was last started.
+                                The time when the task run was last started.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="lastRunFinishTimestamp" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                The time when the (last) task execution was finished, successfully or unsuccessfully.
+                                The time when the (last) task run was finished, successfully or unsuccessfully.
                                 (If node crashes, this attribute is not updated.)
                             </xsd:documentation>
                         </xsd:annotation>
@@ -342,7 +342,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 The time when the task should start again, according to the task's defined schedule.
-                                (Null if no further execution is scheduled.)
+                                (Null if no further run is scheduled.)
                                 Ad-hoc (retry) run times, like those stemming from unsatisfied execution constraints, are NOT
                                 considered here. They are covered by nextRetryTimestamp property.
 
@@ -371,7 +371,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Relative metric of task progress. The meaning of this attribute
-                                is specific to particular task handler. Mostly obsoleted by activity execution framework.
+                                is specific to particular task handler. Mostly obsoleted by activity framework.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>TaskType.progress</a:displayName>
@@ -428,8 +428,8 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Whether a recurring task is bound tightly to one node (having allocated
-                                a thread on this node for the whole time of task execution) or it should
-                                by dynamically placed on any suitable node when its execution time comes.
+                                a thread on this node for the whole time of task run) or it should
+                                by dynamically placed on any suitable node when its run time comes.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -759,7 +759,7 @@
                     <xsd:documentation>
                         Expected total progress for this activity (comprising all buckets, if the activity is bucketed).
                         May or may not be known. Currently only very experimental. (Must be explicitly turned on,
-                        and not supported for coordinator-workers scenarios.)
+                        and not supported for worker tasks.)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1322,7 +1322,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 Whether a recurring task is bound tightly to one node (having allocated
-                a thread on this node for the whole time of task execution) or it should
+                a thread on this node for the whole time of task run) or it should
                 by dynamically placed on any suitable node when its execution time comes.
             </xsd:documentation>
         </xsd:annotation>
@@ -1330,7 +1330,7 @@
             <xsd:enumeration value="loose">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The task is exclusively assigned to a specific node only during its execution.
+                        The task is exclusively assigned to a specific node only during its run.
 
                         The thread is allocated only for the minimal amount of time.
 
@@ -1781,18 +1781,18 @@
             <xsd:element name="executionMode" type="tns:ExecutionModeType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Execution mode for this activity: dryRun, simulate, execute, bucketsAnalysis.
+                        Execution mode for this activity: full, preview, dryRun, none, bucketAnalysis.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="controlFlow" type="tns:ActivityControlFlowSpecificationType" minOccurs="0">
+            <xsd:element name="controlFlow" type="tns:ActivityControlFlowDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Items like prerequisites, preconditions, error handling strategy, and so on.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="distribution" type="tns:WorkDistributionType" minOccurs="0">
+            <xsd:element name="distribution" type="tns:ActivityDistributionDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Distribution of the work executed as part of this activity.
@@ -1803,7 +1803,7 @@
             <xsd:element name="reporting" type="tns:ActivityReportingDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How various aspects of activity execution are reported, using logging, tracing,
+                        How various aspects of activity run are reported, using logging, tracing,
                         profiling, reporting, and so on.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -1835,35 +1835,35 @@
                 <xsd:element name="recomputation" type="tns:RecomputationWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            TODO
+                            Recomputes specified objects.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="import" type="tns:ImportWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            TODO
+                            Imports specified resource objects.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="reconciliation" type="tns:ReconciliationWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            TODO
+                            Reconciles specified resource objects.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="asynchronousUpdate" type="tns:AsyncUpdateWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            TODO
+                            Processes asynchronous updates for given resource objects
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="liveSynchronization" type="tns:LiveSyncWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            TODO
+                            Processes live synchronization events for give resource objects.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
@@ -1875,14 +1875,10 @@
                     </xsd:annotation>
                 </xsd:element>
 
-                <!-- Temporarily disabled because of inability to map from legacy handler URI (report/handler-3) to
-                     both export and import activities -->
-
                 <xsd:element name="reportExport" type="tns:ClassicReportExportWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Exports report of any containerable (either from audit or from the repository).
-                            Supports multithreading but not bucketing (multi-node mode).
+                            Exports any report in a "classical" way. Supports multithreading but not bucketing (multi-node mode).
                         </xsd:documentation>
                         <xsd:appinfo>
                             <a:displayName>WorkDefinitionsType.reportExport</a:displayName>
@@ -1902,7 +1898,7 @@
                 <xsd:element name="distributedReportExport" type="tns:DistributedReportExportWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Exports report of repository objects. Supports bucketing (multi-node mode) and multithreading.
+                            Exports report of repository objects or audit reports. Supports bucketing (multi-node mode) and multithreading.
                         </xsd:documentation>
                         <xsd:appinfo>
                             <a:displayName>WorkDefinitionsType.distributedReportExport</a:displayName>
@@ -1912,49 +1908,56 @@
                 <xsd:element name="iterativeScripting" type="tns:IterativeScriptingWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            TODO
+                            Executes a script (a.k.a. bulk action) over a set of objects.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="nonIterativeScripting" type="tns:NonIterativeScriptingWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Executes a script (a.k.a. bulk action) on an empty or explicitly specified input.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="focusValidityScan" type="tns:FocusValidityScanWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            TODO
+                            Executes validity scan on focal objects.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="triggerScan" type="tns:TriggerScanWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            TODO
+                            Executes trigger scan on repository objects.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="shadowRefresh" type="tns:ShadowRefreshWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            TODO
+                            Looks for pending operations in shadows and updates their status.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="changeExecution" type="tns:ChangeExecutionWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            TODO
+                            Executes specified changes on specified objects.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="reindexing" type="tns:ReindexingWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            TODO
+                            Re-indexes specified repository objects.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="shadowCleanup" type="tns:ShadowCleanupWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            TODO
+                            Deletes all shadows that have not been updated for given time.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
@@ -1994,22 +1997,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="ActivityMonitoringDefinitionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                How the activity is monitored, e.g. using tracing or dynamic profiling.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.4</a:since>
-                <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -2143,20 +2130,21 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="controlFlow" type="tns:ActivityControlFlowSpecificationTailoringType" minOccurs="0">
+            <xsd:element name="controlFlow" type="tns:ActivityControlFlowDefinitionTailoringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Items like prerequisites, preconditions, error handling strategy, and so on.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="distribution" type="tns:WorkDistributionTailoringType" minOccurs="0">
+            <xsd:element name="distribution" type="tns:ActivityDistributionDefinitionTailoringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Distribution of the work executed as part of this activity.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <!-- TODO maybe we should create reporting definition tailoring type -->
             <xsd:element name="reporting" type="tns:ActivityReportingDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2168,7 +2156,7 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="ActivityControlFlowSpecificationTailoringType">
+    <xsd:complexType name="ActivityControlFlowDefinitionTailoringType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -2179,7 +2167,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ActivityControlFlowSpecificationType">
+            <xsd:extension base="tns:ActivityControlFlowDefinitionType">
                 <xsd:sequence>
                     <xsd:element name="tailoringMode" type="tns:TailoringModeType" minOccurs="0" default="overwrite">
                         <xsd:annotation>
@@ -2193,7 +2181,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="WorkDistributionTailoringType">
+    <xsd:complexType name="ActivityDistributionDefinitionTailoringType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -2204,7 +2192,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:WorkDistributionType">
+            <xsd:extension base="tns:ActivityDistributionDefinitionType">
                 <xsd:sequence>
                     <xsd:element name="tailoringMode" type="tns:TailoringModeType" minOccurs="0" default="overwrite">
                         <xsd:annotation>
@@ -2288,7 +2276,7 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="ActivityControlFlowSpecificationType">
+    <xsd:complexType name="ActivityControlFlowDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -2300,15 +2288,6 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="activityPrecondition" type="tns:ExpressionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Precondition: an expression that governs whether the current activity should be executed or skipped,
-                        or whether the task should stop altogether. Should return a single value
-                        of ActivityPreconditionOutputType.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="bucketProcessingCondition" type="tns:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2328,17 +2307,28 @@
             <xsd:element name="processingOption" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Define if the specified activity is executed.
+                        Controls whether the specified activity is executed.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="prerequisite" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+            <!--<xsd:element name="activityPrecondition" type="tns:ExpressionType" minOccurs="0">-->
+            <!--    <xsd:annotation>-->
+            <!--        <xsd:documentation>-->
+            <!--            Precondition: an expression that governs whether the current activity should be executed or skipped,-->
+            <!--            or whether the task should stop altogether. Should return a single value-->
+            <!--            of ActivityPreconditionOutputType.-->
+
+            <!--            NOT SUPPORTED YET.-->
+            <!--        </xsd:documentation>-->
+            <!--    </xsd:annotation>-->
+            <!--</xsd:element>-->
+            <!--<xsd:element name="prerequisite" type="xsd:string" minOccurs="0" maxOccurs="unbounded">-->
+            <!--    <xsd:annotation>-->
+            <!--        <xsd:documentation>-->
+            <!--            Set of prerequisites i.e. activities that must be complete before this one can start. NOT SUPPORTED YET.-->
+            <!--        </xsd:documentation>-->
+            <!--    </xsd:annotation>-->
+            <!--</xsd:element>-->
             <xsd:element name="errorHandling" type="tns:TaskErrorHandlingStrategyType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2346,14 +2336,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="repeatedExecution" type="tns:ActivityRepeatedExecutionStrategyType" minOccurs="0" default="never">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Should be the activity re-executed when the task is restarted (e.g. resumed)?
-                        NOT IMPLEMENTED YET.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+            <!--<xsd:element name="repeatedExecution" type="tns:ActivityRepeatedExecutionStrategyType" minOccurs="0" default="never">-->
+            <!--    <xsd:annotation>-->
+            <!--        <xsd:documentation>-->
+            <!--            Should be the activity re-executed when the task is restarted (e.g. resumed)?-->
+            <!--            NOT IMPLEMENTED YET.-->
+            <!--        </xsd:documentation>-->
+            <!--    </xsd:annotation>-->
+            <!--</xsd:element>-->
             <xsd:element name="parallelExecution" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2555,7 +2545,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="BUCKETS_ANALYSIS"/>
+                        <jaxb:typesafeEnumMember name="BUCKET_ANALYSIS"/>
                         <a:since>4.4</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -2563,10 +2553,12 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:simpleType name="TaskPartPreconditionOutputType">
+    <xsd:simpleType name="ActivityPreconditionOutputType">
         <xsd:annotation>
             <xsd:documentation>
-                Output of task part precondition expression. Describes how to continue with task execution.
+                Output of activity precondition expression. Describes how to continue with parent activity run.
+
+                THIS IS AN UNIMPLEMENTED DRAFT.
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
@@ -2578,7 +2570,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Part should be executed. This is the default value.
+                            Activity should be executed. This is the default value.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -2590,7 +2582,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Part evaluation should be skipped.
+                            Activity run should be skipped.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -2602,7 +2594,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Task should stop with a permanent error.
+                            Parent activity should stop with a permanent error.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -2614,7 +2606,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Task should stop with a temporary error.
+                            Parent activity should stop with a temporary error.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -2658,8 +2650,8 @@
     <xsd:complexType name="TaskActivityStateType">
         <xsd:annotation>
             <xsd:documentation>
-                Describes the task work state: what has been processed, what is being processed and what is yet to be done.
-                Useful for work distribution as well as for stateful suspend+resume feature.
+                Describes the state of the activity or activities embedded in the task (and its subtasks - in the
+                case of a root task).
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -2680,28 +2672,29 @@
             <xsd:element name="localRoot" type="tns:ActivityPathType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        In what part of the activity tree the execution in this task should start.
+                        Activity that is the local root for this task. I.e. what part of the activity tree
+                        is executed within this task.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="localRootActivityExecutionRole" type="tns:ActivityExecutionRoleType" minOccurs="0">
+            <xsd:element name="taskRole" type="tns:TaskRoleType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Role of the task in the local root activity execution.
+                        Role of the task in the run of the local root activity.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="activity" type="tns:ActivityStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Work state for individual activities, organized in the tree.
+                        State of individual activities, organized in a tree. Rooted at local root activity.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="tree" type="tns:ActivityTreeStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Describes the state of an activity tree. Present only on the root task.
+                        Describes the state of an activity tree. Present only in the root task.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2767,18 +2760,19 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="executionStartTimestamp" type="xsd:dateTime" minOccurs="0">
+            <xsd:element name="runStartTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        When did the current (or last) execution start?
+                        When did the current (or last) run start?
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="executionEndTimestamp" type="xsd:dateTime" minOccurs="0">
+            <xsd:element name="runEndTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        When did the current (or last) execution end? If null, this means that the current execution
-                        is in progress.
+                        When did the current (or last) run end? If null, this means that the current run is in progress.
+                        Note that this is different from the last finish timestamp in tasks, which is set to the previous
+                        run value even if the new run is in progress.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2913,7 +2907,7 @@
             <xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Operation result status of this activity execution.
+                        Operation result status of this activity run.
 
                         If an activity realization is in progress (all tasks being run, or some of them stopped, or even
                         all of the tasks stopped - but with work not being complete), here is either IN_PROGRESS
@@ -2934,11 +2928,11 @@
                         the result can be determined by taking into account success/failure status of items
                         processed.)
 
-                        For a delegated activity here is the result of the delegate execution (not the delegating one).
+                        For a delegated activity here is the result of the delegate run (not the delegating one).
 
                         For a simple (non-distributed, non-delegated) activity the result stored here is related
                         to the result in the "task" field. However, there can be situations where this result is IN_PROGRESS,
-                        but the result in the "task" field is not IN_PROGRESS (because the activity execution stopped).
+                        but the result in the "task" field is not IN_PROGRESS (because the activity run stopped).
                         In any case, these results should not contradict each other.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -2953,10 +2947,10 @@
             <xsd:element name="task" type="tns:ActivityTaskStateOverviewType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Information about activity execution within a task or tasks.
+                        Information about activity run within a task or tasks.
 
-                        However, not all executions are represented here: Delegating and distributing executions
-                        are not mentioned. Only local executions have their representation here.
+                        However, not all runs are represented here: Delegating and distributing runs
+                        are not mentioned. Only local ones have their representation here.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2988,7 +2982,7 @@
     <xsd:simpleType name="ActivityRealizationStateType">
         <xsd:annotation>
             <xsd:documentation>
-                Execution state of an activity.
+                Realization state of an activity.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.4</a:since>
@@ -3191,7 +3185,7 @@
     <xsd:complexType name="ActivityTaskStateOverviewType">
         <xsd:annotation>
             <xsd:documentation>
-                State of the local activity execution in an individual task.
+                State of the local activity run in an individual task.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.4</a:since>
@@ -3227,14 +3221,14 @@
             <xsd:element name="executionState" type="tns:ActivityTaskExecutionStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Is the activity really executing now?
+                        Is the activity really running now?
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="stalledSince" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If not null, this property denotes since what time is this activity execution (in given task) stalled.
+                        If not null, this property denotes since what time is this activity run (in given task) stalled.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3248,7 +3242,7 @@
             <xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Result of this execution. Regarding IN_PROGRESS interpretation: it is currently
+                        Result of this run. Regarding IN_PROGRESS interpretation: it is currently
                         similar to the one in "resultStatus" field of the containing activity entry.
                         (I.e. as long as an activity is not complete, it may indicate this fact using IN_PROGRESS
                         status here. However, it may also indicate errors using PARTIAL/FATAL ERROR status.)
@@ -3348,7 +3342,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:simpleType name="ActivityExecutionRoleType">
+    <xsd:simpleType name="TaskRoleType">
         <xsd:annotation>
             <xsd:documentation>
                 Role of the task in the execution of the local root activity.
@@ -3393,23 +3387,23 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="executing">
+            <xsd:enumeration value="running">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Activity in the task is executing. (Or stalled.)
+                        Activity in the task is running. (Or stalled.)
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="EXECUTING"/>
+                        <jaxb:typesafeEnumMember name="RUNNING"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="notExecuting">
+            <xsd:enumeration value="notRunning">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Activity in the task is not executing. (Might be complete or just interrupted.)
+                        Activity in the task is not running. (Might be complete or just interrupted.)
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="NOT_EXECUTING"/>
+                        <jaxb:typesafeEnumMember name="NOT_RUNNING"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -3522,7 +3516,7 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="WorkDistributionType">
+    <xsd:complexType name="ActivityDistributionDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
                 Describes how we are going to distribute the work that is to be done:
@@ -5181,10 +5175,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="execution" type="tns:ActivityExecutionRecordType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="run" type="tns:ActivityRunRecordType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Information about individual activity executions. Needed e.g. to compute real throughput.
+                        Information about individual activity runs. Needed e.g. to compute real throughput.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -5192,10 +5186,10 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="ActivityExecutionRecordType">
+    <xsd:complexType name="ActivityRunRecordType">
         <xsd:annotation>
             <xsd:documentation>
-                Information about individual activity execution. Needed e.g. to compute real throughput.
+                Information about individual activity run. Needed e.g. to compute real throughput.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:experimental>true</a:experimental>
@@ -5207,14 +5201,14 @@
             <xsd:element name="startTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        When the execution started.
+                        When the run started.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="endTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        When the execution ended (or current time, in order to avoid information loss).
+                        When the run ended (or current time, in order to avoid information loss).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -5647,7 +5641,7 @@
     <xsd:complexType name="FailedObjectsSelectorType">
         <xsd:annotation>
             <xsd:documentation>
-                Selects objects that were failed to be processed in previous task run(s).
+                Selects objects that were failed to be processed in previous activity run(s).
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.3</a:since>
@@ -5859,7 +5853,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="tracing" type="tns:ProcessTracingConfigurationType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="tracing" type="tns:ActivityTracingConfigurationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Specifies when and how should be the activity execution traced.
@@ -5869,7 +5863,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="profiling" type="tns:ProcessProfilingConfigurationType" minOccurs="0">
+            <xsd:element name="profiling" type="tns:ActivityProfilingConfigurationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Specifies when and how should be the activity execution dynamically profiled.
@@ -5880,10 +5874,10 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="executionReports" type="tns:ActivityExecutionReportsConfigurationType" minOccurs="0">
+            <xsd:element name="reports" type="tns:ActivityReportsConfigurationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Configures specific activity execution reports: on buckets, items, and so on.
+                        Configures specific activity reports: on buckets, items, and so on.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.4</a:since>
@@ -5942,14 +5936,14 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Should the activity execution try to determine expected total progress (usually by counting
-                        objects before processing)? Currently not supported for coordinator-workers scenarios.
+                        objects before processing)? Currently not supported for worker tasks.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="cacheOverallSize" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Should we cache expected total progress between activity executions? (Meaning when suspending
+                        Should we cache expected total progress between activity runs? (Meaning when suspending
                         and resuming an activity.)
                     </xsd:documentation>
                 </xsd:annotation>
@@ -5995,7 +5989,6 @@
                     <xsd:documentation>
                         The activity counts the items only if the item source resides in repository
                         (the idea is that repository searches are faster than resource object searches).
-                        Currently available only for search-based activities.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="WHEN_IN_REPOSITORY"/>
@@ -6007,7 +6000,6 @@
                     <xsd:documentation>
                         The activity counts the items only if the item source resides in repository
                         and the activity is not bucketed.
-                        Currently available only for search-based activities.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="WHEN_IN_REPOSITORY_AND_NOT_BUCKETED"/>
@@ -6054,7 +6046,6 @@
                     <xsd:documentation>
                         The activity counts the items only if the item source resides in repository
                         (the idea is that repository searches are faster than resource object searches).
-                        Currently available only for search-based activities.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="WHEN_IN_REPOSITORY"/>
@@ -6094,9 +6085,6 @@
 
                         The interval should be such that its value divided by the number of workers should yield
                         a reasonable time (e.g. no less than a couple of seconds).
-
-                        Note that the time to update is checked only after regular task progress is updated
-                        (each 3000 milliseconds by default). So there's no use in setting a value less than this.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -6111,11 +6099,12 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="ProcessTracingConfigurationType">
+    <xsd:complexType name="ActivityTracingConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
                 Configuration for tracing execution of an iterative activity.
-                TODO rename this type
+                Currently used also for tracing handling of asynchronous updates.
+                (Although not all its features are used there!)
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.0.1</a:since>
@@ -6163,7 +6152,7 @@
                     <xsd:documentation>
                         Conditions that must be fulfilled (any of them) for the result of this tracing be written to the file.
 
-                        BEWARE! This condition is checked only for traces with the root of iterativeTaskObjectProcessing,
+                        BEWARE! This condition is checked only for traces with the root of activityItemProcessing,
                         i.e. those that were started right on the level of the iterative activity.
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -6194,9 +6183,9 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="processTracingConfiguration" type="tns:ProcessTracingConfigurationType"/>
+    <xsd:element name="activityTracingConfiguration" type="tns:ActivityTracingConfigurationType"/>
 
-    <xsd:complexType name="ProcessProfilingConfigurationType">
+    <xsd:complexType name="ActivityProfilingConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
             </xsd:documentation>
@@ -6219,7 +6208,7 @@
             <xsd:element name="beforeItemCondition" type="tns:BeforeItemConditionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Conditions that must be fulfilled (any of them) before this configuration is applied.
+                        Conditions that must be fulfilled (any of them) before dynamic profiling is started.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>"Before item" condition</a:displayName>
@@ -6229,12 +6218,12 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="processProfilingConfiguration" type="tns:ProcessProfilingConfigurationType"/>
+    <xsd:element name="activityProfilingConfiguration" type="tns:ActivityProfilingConfigurationType"/>
 
-    <xsd:complexType name="ActivityExecutionReportsConfigurationType">
+    <xsd:complexType name="ActivityReportsConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
-                Defines specific activity execution reports.
+                Defines specific activity-related reports.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:experimentaL>true</a:experimentaL>
@@ -6243,14 +6232,14 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="buckets" type="tns:BucketsExecutionReportConfigurationType" minOccurs="0">
+            <xsd:element name="buckets" type="tns:BucketsProcessingReportConfigurationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Configuration for "buckets" report.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="items" type="tns:ItemsExecutionReportConfigurationType" minOccurs="0">
+            <xsd:element name="items" type="tns:ItemsProcessingReportConfigurationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Configuration for "items" report.
@@ -6274,12 +6263,12 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="activityExecutionReportsConfiguration" type="tns:ActivityExecutionReportsConfigurationType" />
+    <xsd:element name="activityReportsConfiguration" type="tns:ActivityReportsConfigurationType" />
 
-    <xsd:complexType name="AbstractExecutionReportConfigurationType">
+    <xsd:complexType name="AbstractActivityReportConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
-                Common configuration for activity execution reports.
+                Common configuration for activity-related reports.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:experimentaL>true</a:experimentaL>
@@ -6313,7 +6302,7 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="BucketsExecutionReportConfigurationType">
+    <xsd:complexType name="BucketsProcessingReportConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
                 Defines report on buckets processing.
@@ -6325,13 +6314,13 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractExecutionReportConfigurationType">
+            <xsd:extension base="tns:AbstractActivityReportConfigurationType">
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="bucketsExecutionReportConfiguration" type="tns:BucketsExecutionReportConfigurationType" />
+    <xsd:element name="bucketsProcessingReportConfiguration" type="tns:BucketsProcessingReportConfigurationType" />
 
-    <xsd:complexType name="ItemsExecutionReportConfigurationType">
+    <xsd:complexType name="ItemsProcessingReportConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
                 Defines report on items processing.
@@ -6343,11 +6332,11 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractExecutionReportConfigurationType">
+            <xsd:extension base="tns:AbstractActivityReportConfigurationType">
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="itemsExecutionReportConfiguration" type="tns:ItemsExecutionReportConfigurationType" />
+    <xsd:element name="itemsProcessingReportConfiguration" type="tns:ItemsProcessingReportConfigurationType" />
 
     <xsd:complexType name="ConnIdOperationsReportConfigurationType">
         <xsd:annotation>
@@ -6361,7 +6350,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractExecutionReportConfigurationType">
+            <xsd:extension base="tns:AbstractActivityReportConfigurationType">
                 <xsd:sequence>
                     <xsd:element name="beforeItemCondition" type="tns:BeforeItemConditionType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
@@ -6393,7 +6382,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractExecutionReportConfigurationType">
+            <xsd:extension base="tns:AbstractActivityReportConfigurationType">
                 <xsd:sequence>
                     <xsd:element name="fastFilter" type="tns:InternalOperationRecordFastFilterType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
@@ -6513,7 +6502,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Expression that is evaluated. If returns false, the report is not being created or collected.
-                        Variables available: "request", "item". After execution, also "operation" (containing e.g. duration
+                        Variables available: "request", "item". After processing, also "operation" (containing e.g. duration
                         or status) and "operationResult" are available.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -6626,7 +6615,7 @@
             <xsd:enumeration value="full">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Event should be logged full. A couple of lines containing e.g. statistical information can be written.
+                        Event should be logged fully. A couple of lines containing e.g. statistical information can be written.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="FULL"/>
@@ -6744,7 +6733,7 @@
     <xsd:complexType name="ObjectSetType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Specifies a set of repository objects to be processed.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:experimental>true</a:experimental>
@@ -6809,10 +6798,10 @@
             <xsd:element name="resourceRef" type="tns:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Resource against which we want to execute the synchronization.
+                        Resource against which we want to execute the activity.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>SynchronizationParametersType.resourceRef</a:displayName>
+                        <a:displayName>ResourceObjectSetType.resourceRef</a:displayName>
                         <a:objectReferenceTargetType>c:ResourceType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -6820,7 +6809,7 @@
             <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Kind of objects to be processed. TODO default value
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -6911,7 +6900,7 @@
     <xsd:complexType name="RecomputationWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Recomputes specified objects.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:experimental>true</a:experimental>
@@ -6920,9 +6909,8 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractWorkDefinitionType">
+            <xsd:extension base="tns:ObjectSetBasedWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="objects" type="tns:ObjectSetType" minOccurs="0"/>
                     <xsd:element name="executionOptions" type="tns:ModelExecuteOptionsType" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
@@ -6950,6 +6938,27 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="iterativeScriptingWorkDefinition" type="tns:IterativeScriptingWorkDefinitionType"/>
+
+    <xsd:complexType name="NonIterativeScriptingWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="scriptExecutionRequest" type="s:ExecuteScriptType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="nonIterativeScriptingWorkDefinition" type="tns:NonIterativeScriptingWorkDefinitionType"/>
 
     <xsd:complexType name="FocusValidityScanWorkDefinitionType">
         <xsd:annotation>
@@ -7076,9 +7085,8 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractWorkDefinitionType">
+            <xsd:extension base="tns:ObjectSetBasedWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="objects" type="tns:ObjectSetType" minOccurs="0"/>
                     <xsd:element name="delta" type="t:ObjectDeltaType" minOccurs="0"/>
                     <xsd:element name="executionOptions" type="tns:ModelExecuteOptionsType" minOccurs="0"/>
                 </xsd:sequence>
@@ -7119,7 +7127,13 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="objects" type="tns:ObjectSetType" minOccurs="0"/>
+                    <xsd:element name="objects" type="tns:ObjectSetType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                What objects should be processed by the activity.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -7330,7 +7344,6 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <!-- currently unused -->
     <xsd:complexType name="ClassicReportExportWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -7418,7 +7431,7 @@
     <xsd:complexType name="AbstractWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Marker type for task part parameters.
+                Marker type for an activity work definition.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -7430,10 +7443,10 @@
     </xsd:complexType>
     <xsd:element name="abstractWorkDefinition" type="tns:AbstractWorkDefinitionType" />
 
-    <xsd:complexType name="ResourceBasedWorkDefinitionType">
+    <xsd:complexType name="PropagationWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Work definition for the propagation activity.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:experimental>true</a:experimental>
@@ -7447,7 +7460,7 @@
                     <xsd:element name="resourceRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Reference to the resource to which this activity is related to.
+                                Reference to the resource on which we want to execute provisioning propagation.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
@@ -7455,27 +7468,6 @@
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="resourceBasedWorkDefinition" type="tns:ResourceBasedWorkDefinitionType"/>
-
-    <xsd:complexType name="PropagationWorkDefinitionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:experimental>true</a:experimental>
-                <a:container>true</a:container>
-                <a:since>4.4</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:ResourceBasedWorkDefinitionType">
-                <!--<xsd:sequence>-->
-                <!--    <xsd:element name="shadows" type="tns:ObjectSetType" minOccurs="0"/>-->
-                <!--</xsd:sequence>-->
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -7990,17 +7982,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="simulationModePolicyRules" type="tns:ActivityCounterGroupType" minOccurs="0">
+            <xsd:element name="previewModePolicyRules" type="tns:ActivityCounterGroupType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Counters for policy rules in simulation mode.
+                        Counters for policy rules in preview mode.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="executionModePolicyRules" type="tns:ActivityCounterGroupType" minOccurs="0">
+            <xsd:element name="fullExecutionModePolicyRules" type="tns:ActivityCounterGroupType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Counters for policy rules in execution mode.
+                        Counters for policy rules in full execution mode.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -8530,14 +8522,14 @@
             <xsd:element name="startTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        When the bucket processing started. (Excludes the bucket acquisition.)
+                        When the item processing started.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="endTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        When the bucket processing finished. (Excludes the bucket completion marking.)
+                        When the item processing finished.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

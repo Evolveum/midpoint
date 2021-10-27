@@ -27,7 +27,7 @@
             </reconciliation>
         </work>
         <reporting>
-            <executionReports>
+            <reports>
 
                 <!-- This will produce (full) report on buckets processing. One bucket = one row. -->
                 <buckets/>
@@ -97,7 +97,7 @@
                         </expression>
                     </afterItemCondition>
                 </internalOperations>
-            </executionReports>
+            </reports>
         </reporting>
     </activity>
 </task>

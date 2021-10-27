@@ -21,7 +21,7 @@ import org.springframework.test.context.ContextConfiguration;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
-import com.evolveum.midpoint.repo.common.task.work.BucketingManager;
+import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingManager;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;

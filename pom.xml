@@ -201,7 +201,7 @@
         <selenium.version>3.141.59</selenium.version>
         <slf4j.version>1.7.30</slf4j.version>
         <logback.version>1.2.3e1</logback.version>
-        <spring-security.version>5.6.0-M3</spring-security.version>
+        <spring-security.version>5.6.0-RC1</spring-security.version>
         <opensaml.version>4.1.1</opensaml.version>
         <cache2k.version>2.0.0.Final</cache2k.version>
         <testng.version>7.4.0</testng.version>
@@ -937,6 +937,11 @@
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-powershell</artifactId>
                 <version>1.1.1</version>
+            </dependency>
+            <dependency>
+                <groupId>com.evolveum.polygon</groupId>
+                <artifactId>connector-ssh</artifactId>
+                <version>1.0</version>
             </dependency>
             <!-- End connectors -->
 

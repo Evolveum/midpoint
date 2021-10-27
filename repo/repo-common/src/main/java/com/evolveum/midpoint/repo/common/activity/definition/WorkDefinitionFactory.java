@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.activity.definition;
 
-import com.evolveum.midpoint.repo.common.task.task.GenericTaskHandler;
+import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskHandler;
 import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
@@ -26,10 +26,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Creates {@link WorkDefinition} instances from their serialized form,
+ * either "new" (activity definition bean) or "legacy" (task extension).
+ */
 @Component
 public class WorkDefinitionFactory {
 
-    @Autowired GenericTaskHandler genericTaskHandler;
+    @Autowired ActivityBasedTaskHandler activityBasedTaskHandler;
 
     private final Map<QName, WorkDefinitionSupplier> byTypeName = new ConcurrentHashMap<>();
     private final Map<String, WorkDefinitionSupplier> byLegacyHandlerUri = new ConcurrentHashMap<>();
@@ -41,7 +45,7 @@ public class WorkDefinitionFactory {
         byTypeName.put(typeName, supplier);
         if (legacyHandlerUri != null) {
             byLegacyHandlerUri.put(legacyHandlerUri, supplier);
-            genericTaskHandler.registerLegacyHandlerUri(legacyHandlerUri);
+            activityBasedTaskHandler.registerLegacyHandlerUri(legacyHandlerUri);
         }
     }
 
@@ -49,7 +53,7 @@ public class WorkDefinitionFactory {
         byTypeName.remove(typeName);
         if (legacyHandlerUri != null) {
             byLegacyHandlerUri.remove(legacyHandlerUri);
-            genericTaskHandler.unregisterLegacyHandlerUri(legacyHandlerUri);
+            activityBasedTaskHandler.unregisterLegacyHandlerUri(legacyHandlerUri);
         }
     }
 

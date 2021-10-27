@@ -17,8 +17,8 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.api.LiveSyncToken;
 import com.evolveum.midpoint.provisioning.api.LiveSyncTokenStorage;
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.state.CurrentActivityState;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -33,10 +33,10 @@ public class ActivityTokenStorageImpl implements LiveSyncTokenStorage {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityTokenStorageImpl.class);
 
-    @NotNull private final AbstractActivityExecution<?, ?, ?> activityExecution;
+    @NotNull private final AbstractActivityRun<?, ?, ?> activityRun;
 
-    ActivityTokenStorageImpl(@NotNull AbstractActivityExecution<?, ?, ?> activityExecution) {
-        this.activityExecution = activityExecution;
+    ActivityTokenStorageImpl(@NotNull AbstractActivityRun<?, ?, ?> activityRun) {
+        this.activityRun = activityRun;
     }
 
     @Override
@@ -55,11 +55,11 @@ public class ActivityTokenStorageImpl implements LiveSyncTokenStorage {
     }
 
     private Object getValueFromActivity() {
-        return activityExecution.getActivityState().getWorkStatePropertyRealValue(LiveSyncWorkStateType.F_TOKEN, Object.class);
+        return activityRun.getActivityState().getWorkStatePropertyRealValue(LiveSyncWorkStateType.F_TOKEN, Object.class);
     }
 
     private Object getValueFromTaskExtension() {
-        Object tokenValue = activityExecution.getRunningTask().getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
+        Object tokenValue = activityRun.getRunningTask().getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
         LOGGER.trace("Initial token from the task: {}", SchemaDebugUtil.prettyPrintLazily(tokenValue));
         return tokenValue;
     }
@@ -67,7 +67,7 @@ public class ActivityTokenStorageImpl implements LiveSyncTokenStorage {
     @Override
     public void setToken(LiveSyncToken token, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        CurrentActivityState<?> activityState = activityExecution.getActivityState();
+        CurrentActivityState<?> activityState = activityRun.getActivityState();
         if (token != null) {
             Object tokenValue = token.getValue();
             PrismPropertyDefinition<?> tokenDefinition = createDefinition(tokenValue);

@@ -7,35 +7,24 @@
 
 package com.evolveum.midpoint.repo.common.activity.definition;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityCompositionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Definition for pure composite activity.
  */
 public class CompositeWorkDefinition extends AbstractWorkDefinition {
 
-    private final ActivityCompositionType composition;
+    @NotNull private final ActivityCompositionType composition;
 
-    CompositeWorkDefinition(ActivityCompositionType composition) {
+    CompositeWorkDefinition(@NotNull ActivityCompositionType composition) {
         this.composition = composition;
     }
 
-    public ActivityCompositionType getComposition() {
+    public @NotNull ActivityCompositionType getComposition() {
         return composition;
-    }
-
-    public List<ActivityDefinition<?>> createChildDefinitions(WorkDefinitionFactory workDefinitionFactory) throws SchemaException {
-        List<ActivityDefinition<?>> definitions = new ArrayList<>();
-        for (ActivityDefinitionType activityDefinitionBean : composition.getActivity()) {
-            definitions.add(ActivityDefinition.createChild(activityDefinitionBean, workDefinitionFactory));
-        }
-        return definitions;
     }
 
     @Override

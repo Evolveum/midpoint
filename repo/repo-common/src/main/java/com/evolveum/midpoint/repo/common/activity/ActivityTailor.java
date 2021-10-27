@@ -20,6 +20,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Tailors (modifies) an activity according to specified {@link ActivityTailoring}.
+ */
 class ActivityTailor {
 
     @NotNull private final Activity<?, ?> activity;

@@ -14,7 +14,7 @@ import java.util.Date;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -28,13 +28,13 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
-import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
-import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
+import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -83,7 +83,7 @@ public class ShadowCleanupActivityHandler
 
     @Override
     protected @NotNull ExecutionSupplier<ShadowType, MyWorkDefinition, ShadowCleanupActivityHandler> getExecutionSupplier() {
-        return MyExecution::new;
+        return MyRun::new;
     }
 
     @Override
@@ -106,26 +106,26 @@ public class ShadowCleanupActivityHandler
         return "shadow-cleanup";
     }
 
-    public static class MyExecution extends
-            SearchBasedActivityExecution<ShadowType, MyWorkDefinition, ShadowCleanupActivityHandler, AbstractActivityWorkStateType> {
+    public static final class MyRun extends
+            SearchBasedActivityRun<ShadowType, MyWorkDefinition, ShadowCleanupActivityHandler, AbstractActivityWorkStateType> {
 
         private ResourceObjectClassSpecification resourceObjectClassSpecification;
 
-        MyExecution(
-                @NotNull ExecutionInstantiationContext<MyWorkDefinition, ShadowCleanupActivityHandler> context,
+        MyRun(@NotNull ActivityRunInstantiationContext<MyWorkDefinition, ShadowCleanupActivityHandler> context,
                 String shortName) {
             super(context, shortName);
+            setInstanceReady();
         }
 
         @Override
-        public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
-            return super.getDefaultReportingOptions()
-                    .enableActionsExecutedStatistics(true)
+        public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
+            return super.createReportingCharacteristics()
+                    .actionsExecutedStatisticsSupported(true)
                     .skipWritingOperationExecutionRecords(true); // because the shadows are deleted anyway
         }
 
         @Override
-        public void beforeExecution(OperationResult result) throws ActivityExecutionException, CommonException {
+        public void beforeRun(OperationResult result) throws ActivityRunException, CommonException {
 
             ResourceObjectSetType resourceObjectSet = getWorkDefinition().getResourceObjectSetSpecification();
             RunningTask runningTask = getRunningTask();

@@ -9,63 +9,55 @@ package com.evolveum.midpoint.repo.common.activity.definition;
 
 import java.util.function.Supplier;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Definition of an activity. It is analogous to ActivityDefinitionType, but contains the complete information
- * about particular activity in the context of given task.
+ * Definition of an activity.
+ *
+ * It is analogous to (and primarily filled-in from) `ActivityDefinitionType`, but contains
+ * the complete information about particular activity in the context of given task.
  */
 public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpable, Cloneable {
 
-    private final String identifierFromDefinition;
+    /**
+     * This is how the user want to identify the activity. If not provided, the identifier is generated automatically.
+     */
+    private final String explicitlyDefinedIdentifier;
 
-    /** Currently not tailorable. */
+    /** The work definition. Currently not tailorable. */
     @NotNull private final WD workDefinition;
 
-    /** Tailorable. */
+    /** The control flow aspects. Tailorable. */
     @NotNull private final ActivityControlFlowDefinition controlFlowDefinition;
 
-    /** Tailorable. */
+    /** The distribution aspects. Tailorable. */
     @NotNull private final ActivityDistributionDefinition distributionDefinition;
 
     /** Definition for activity reporting. Tailorable. */
     @NotNull private final ActivityReportingDefinition reportingDefinition;
 
-    /**
-     * Reporting options specified for specific activity. These are merged with default reporting options
-     * hardcoded in activity execution code.
-     *
-     * Currently not tailorable.
-     */
-    @NotNull private final ActivityReportingDefinitionType specificReportingOptions;
-
     @NotNull private final WorkDefinitionFactory workDefinitionFactory;
 
-    private ActivityDefinition(String identifierFromDefinition,
+    private ActivityDefinition(String explicitlyDefinedIdentifier,
             @NotNull WD workDefinition,
             @NotNull ActivityControlFlowDefinition controlFlowDefinition,
             @NotNull ActivityDistributionDefinition distributionDefinition,
             @NotNull ActivityReportingDefinition reportingDefinition,
-            @NotNull ActivityReportingDefinitionType specificReportingOptions,
             @NotNull WorkDefinitionFactory workDefinitionFactory) {
-        this.identifierFromDefinition = identifierFromDefinition;
+        this.explicitlyDefinedIdentifier = explicitlyDefinedIdentifier;
         this.workDefinition = workDefinition;
         this.controlFlowDefinition = controlFlowDefinition;
         this.distributionDefinition = distributionDefinition;
         this.reportingDefinition = reportingDefinition;
-        this.specificReportingOptions = specificReportingOptions;
         this.workDefinitionFactory = workDefinitionFactory;
     }
 
@@ -95,24 +87,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
                 controlFlowDefinition,
                 distributionDefinition,
                 reportingDefinition,
-                getReportingOptionsCloned(bean, rootTask),
                 factory);
-    }
-
-    private static @NotNull ActivityReportingDefinitionType getReportingOptionsCloned(ActivityDefinitionType bean, Task task) {
-        if (bean != null && bean.getReporting() != null) {
-            return bean.getReporting().clone();
-        }
-
-        if (task != null) {
-            ActivityReportingDefinitionType fromTask =
-                    task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_REPORTING_OPTIONS);
-            if (fromTask != null) {
-                return fromTask.clone();
-            }
-        }
-
-        return new ActivityReportingDefinitionType(PrismContext.get());
     }
 
     /**
@@ -122,30 +97,32 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
      * beans all the way up.
      */
     public static ActivityDefinition<?> createChild(@NotNull ActivityDefinitionType bean,
-            @NotNull WorkDefinitionFactory workDefinitionFactory)
-            throws SchemaException {
-        AbstractWorkDefinition definition = createFromBean(bean, workDefinitionFactory);
+            @NotNull WorkDefinitionFactory workDefinitionFactory) {
+        try {
+            AbstractWorkDefinition definition = createFromBean(bean, workDefinitionFactory);
 
-        // TODO enhance with defaultWorkDefinition
-        if (definition == null) {
-            throw new SchemaException("Child work definition is not present for " + bean);
+            // TODO enhance with defaultWorkDefinition
+            if (definition == null) {
+                throw new SchemaException("Child work definition is not present for " + bean);
+            }
+
+            definition.setExecutionMode(determineExecutionMode(bean, () -> ExecutionModeType.FULL));
+            definition.addTailoringFrom(bean);
+
+            ActivityControlFlowDefinition controlFlowDefinition = ActivityControlFlowDefinition.create(bean);
+            ActivityDistributionDefinition distributionDefinition = ActivityDistributionDefinition.create(bean, () -> null);
+            ActivityReportingDefinition monitoringDefinition = ActivityReportingDefinition.create(bean, null);
+
+            return new ActivityDefinition<>(
+                    bean.getIdentifier(),
+                    definition,
+                    controlFlowDefinition,
+                    distributionDefinition,
+                    monitoringDefinition,
+                    workDefinitionFactory);
+        } catch (SchemaException e) {
+            throw new IllegalArgumentException("Couldn't create activity definition from a bean: " + e.getMessage(), e);
         }
-
-        definition.setExecutionMode(determineExecutionMode(bean, () -> ExecutionModeType.FULL));
-        definition.addTailoringFrom(bean);
-
-        ActivityControlFlowDefinition controlFlowDefinition = ActivityControlFlowDefinition.create(bean);
-        ActivityDistributionDefinition distributionDefinition = ActivityDistributionDefinition.create(bean, () -> null);
-        ActivityReportingDefinition monitoringDefinition = ActivityReportingDefinition.create(bean, null);
-
-        return new ActivityDefinition<>(
-                bean.getIdentifier(),
-                definition,
-                controlFlowDefinition,
-                distributionDefinition,
-                monitoringDefinition,
-                getReportingOptionsCloned(bean, null),
-                workDefinitionFactory);
     }
 
     @NotNull
@@ -246,8 +223,8 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         return sb.toString();
     }
 
-    public String getIdentifier() {
-        return identifierFromDefinition;
+    public String getExplicitlyDefinedIdentifier() {
+        return explicitlyDefinedIdentifier;
     }
 
     public void applyChangeTailoring(@NotNull ActivityTailoringType tailoring) {
@@ -275,21 +252,16 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     public ActivityDefinition<WD> clone() {
         //noinspection unchecked
         return new ActivityDefinition<>(
-                identifierFromDefinition,
+                explicitlyDefinedIdentifier,
                 (WD) workDefinition.clone(),
                 controlFlowDefinition.clone(),
                 distributionDefinition.clone(),
                 reportingDefinition.clone(),
-                specificReportingOptions.clone(),
                 workDefinitionFactory);
     }
 
     public @NotNull ActivityReportingDefinition getReportingDefinition() {
         return reportingDefinition;
-    }
-
-    public @NotNull ActivityReportingDefinitionType getSpecificReportingOptions() {
-        return specificReportingOptions;
     }
 
     public @Nullable FailedObjectsSelectorType getFailedObjectsSelector() {

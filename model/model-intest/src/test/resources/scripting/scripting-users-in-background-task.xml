@@ -6,66 +6,63 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <task xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         oid="79dacdf7-2bc9-4eef-9c63-08d53d2392c3">
     <name>Change description task template</name>
-    <extension>
-        <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
-            <s:pipeline>
-                <s:search>
-                    <s:type>c:UserType</s:type>
-                    <s:query>
-                        <q:filter>
-                            <q:equal>
-                                <q:path>name</q:path>
-                                <c:expression>
-                                    <c:path>$userName</c:path>
-                                </c:expression>
-                            </q:equal>
-                        </q:filter>
-                    </s:query>
-                </s:search>
-                <s:execute>
-                    <s:script>
-                        <code>
-                            import com.evolveum.midpoint.xml.ns._public.common.common_3.*
-
-                            log.info('Modifying user {}', input)
-                            def deltas = midpoint.deltaFor(UserType.class)
-                            .item(UserType.F_DESCRIPTION)
-                            .replace(userDescription)
-                            .asObjectDeltas(input.oid)
-                            log.info('Change:\n{}', deltas.iterator().next().debugDump())
-                            midpoint.executeChanges(deltas, null)
-                        </code>
-                    </s:script>
-                </s:execute>
-            </s:pipeline>
-            <s:variables>
-                <s:variable>
-                    <s:name>userName</s:name>
-                    <s:expression>
-                        <c:path>$task/extension/userName</c:path>
-                    </s:expression>
-                </s:variable>
-                <s:variable>
-                    <s:name>userDescription</s:name>
-                    <s:expression>
-                        <c:path>$task/extension/userDescription</c:path>
-                    </s:expression>
-                </s:variable>
-            </s:variables>
-        </scext:executeScript>
-    </extension>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionState>waiting</executionState>      <!-- this is just a template, therefore it should not be executed -->
-
-    <category>BulkActions</category>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-3</handlerUri>
+    <executionState>waiting</executionState> <!-- this is just a template, therefore it should not be executed -->
     <cleanupAfterCompletion>PT1S</cleanupAfterCompletion>
-    <recurrence>single</recurrence>
+    <activity>
+        <work>
+            <nonIterativeScripting>
+                <scriptExecutionRequest>
+                    <s:pipeline>
+                        <s:search>
+                            <s:type>UserType</s:type>
+                            <s:query>
+                                <q:filter>
+                                    <q:equal>
+                                        <q:path>name</q:path>
+                                        <expression>
+                                            <path>$userName</path>
+                                        </expression>
+                                    </q:equal>
+                                </q:filter>
+                            </s:query>
+                        </s:search>
+                        <s:execute>
+                            <s:script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.*
 
+                                    log.info('Modifying user {}', input)
+                                    def deltas = midpoint.deltaFor(UserType.class)
+                                            .item(UserType.F_DESCRIPTION)
+                                            .replace(userDescription)
+                                            .asObjectDeltas(input.oid)
+                                    log.info('Change:\n{}', deltas.iterator().next().debugDump())
+                                    midpoint.executeChanges(deltas, null)
+                                </code>
+                            </s:script>
+                        </s:execute>
+                    </s:pipeline>
+                    <s:variables>
+                        <s:variable>
+                            <s:name>userName</s:name>
+                            <s:expression>
+                                <path>$task/extension/userName</path>
+                            </s:expression>
+                        </s:variable>
+                        <s:variable>
+                            <s:name>userDescription</s:name>
+                            <s:expression>
+                                <path>$task/extension/userDescription</path>
+                            </s:expression>
+                        </s:variable>
+                    </s:variables>
+                </scriptExecutionRequest>
+            </nonIterativeScripting>
+        </work>
+    </activity>
 </task>

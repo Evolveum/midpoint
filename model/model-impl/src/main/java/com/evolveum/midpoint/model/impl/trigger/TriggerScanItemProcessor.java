@@ -50,13 +50,13 @@ public class TriggerScanItemProcessor {
 
     /**
      * Triggers that were processed by this handler (during execution of this trigger task).
-     * This field could reside also in {@link TriggerScanActivityExecution} but here it is closer to the usage site.
+     * This field could reside also in {@link TriggerScanActivityRun} but here it is closer to the usage site.
      */
     @NotNull private final ProcessedTriggers processedTriggers = new ProcessedTriggers();
-    @NotNull private final TriggerScanActivityExecution activityExecution;
+    @NotNull private final TriggerScanActivityRun activityRun;
 
-    TriggerScanItemProcessor(@NotNull TriggerScanActivityExecution activityExecution) {
-        this.activityExecution = activityExecution;
+    TriggerScanItemProcessor(@NotNull TriggerScanActivityRun activityRun) {
+        this.activityRun = activityRun;
     }
 
     public boolean processObject(@NotNull ObjectType object, @NotNull RunningTask workerTask,
@@ -90,7 +90,7 @@ public class TriggerScanItemProcessor {
             }
             if (!isHot(timestamp)) {
                 LOGGER.debug("Trigger {} is not hot (timestamp={}, thisScanTimestamp={}, lastScanTimestamp={}) - skipping also the triggers after that",
-                        trigger, timestamp, activityExecution.getThisScanTimestamp(), activityExecution.getLastScanTimestamp());
+                        trigger, timestamp, activityRun.getThisScanTimestamp(), activityRun.getLastScanTimestamp());
                 return;
             }
             String handlerUri = trigger.getHandlerUri();
@@ -108,7 +108,7 @@ public class TriggerScanItemProcessor {
                 continue;
             }
             LOGGER.debug("Going to fire trigger {} in {}: id={}, ts={}", handlerUri, object, trigger.getId(), timestamp);
-            TriggerHandler handler = activityExecution.getActivityHandler().getTriggerHandler(handlerUri);
+            TriggerHandler handler = activityRun.getActivityHandler().getTriggerHandler(handlerUri);
             if (handler == null) {
                 LOGGER.warn("No registered trigger handler for URI {} in {}", handlerUri, trigger);
                 continue;
@@ -177,7 +177,7 @@ public class TriggerScanItemProcessor {
     }
 
     private boolean isHot(XMLGregorianCalendar timestamp) {
-        return activityExecution.getThisScanTimestamp().compare(timestamp) != DatatypeConstants.LESSER;
+        return activityRun.getThisScanTimestamp().compare(timestamp) != DatatypeConstants.LESSER;
     }
 
     private void removeTriggers(PrismObject<? extends ObjectType> object, Collection<TriggerType> triggers, Task task,
@@ -191,7 +191,7 @@ public class TriggerScanItemProcessor {
         // This is detached result. It will not take part of the task result. We do not really care.
         OperationResult result = new OperationResult(TriggerScanActivityHandler.class.getName() + ".removeTriggers");
         try {
-            activityExecution.getModelBeans().cacheRepositoryService
+            activityRun.getModelBeans().cacheRepositoryService
                     .modifyObject(requireNonNull(object.getCompileTimeClass()), object.getOid(), modifications, result);
             result.computeStatus();
             task.recordObjectActionExecuted(object, ChangeType.MODIFY, null);

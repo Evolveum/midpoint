@@ -10,12 +10,12 @@ import java.util.ArrayList;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
 
-import com.evolveum.midpoint.repo.common.activity.execution.CompositeActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
-import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+import com.evolveum.midpoint.repo.common.activity.run.CompositeActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
+import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.tasks.handlers.AbstractMockActivityHandler;
 
 import com.evolveum.midpoint.repo.common.tasks.handlers.CommonMockActivityHelper;
@@ -30,14 +30,14 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 /**
- * TODO
+ * Activity handler for the "composite mock" activity.
  */
 @Component
 public class CompositeMockActivityHandler
@@ -66,10 +66,10 @@ public class CompositeMockActivityHandler
 
     @NotNull
     @Override
-    public AbstractActivityExecution<CompositeMockWorkDefinition, CompositeMockActivityHandler, ?> createExecution(
-            @NotNull ExecutionInstantiationContext<CompositeMockWorkDefinition, CompositeMockActivityHandler> context,
+    public AbstractActivityRun<CompositeMockWorkDefinition, CompositeMockActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<CompositeMockWorkDefinition, CompositeMockActivityHandler> context,
             @NotNull OperationResult result) {
-        return new CompositeActivityExecution<>(context);
+        return new CompositeActivityRun<>(context);
     }
 
     @Override
@@ -80,7 +80,7 @@ public class CompositeMockActivityHandler
         if (workDefinition.isOpeningEnabled()) {
             children.add(EmbeddedActivity.create(
                     parentActivity.getDefinition().clone(),
-                    (context, result) -> new MockOpeningActivityExecution(context),
+                    (context, result) -> new MockOpeningActivityRun(context),
                     this::runBeforeExecution,
                     (i) -> "opening",
                     ActivityStateDefinition.normal(),
@@ -89,7 +89,7 @@ public class CompositeMockActivityHandler
         if (workDefinition.isClosingEnabled()) {
             children.add(EmbeddedActivity.create(
                     parentActivity.getDefinition().clone(),
-                    (context, result) -> new MockClosingActivityExecution(context),
+                    (context, result) -> new MockClosingActivityRun(context),
                     this::runBeforeExecution,
                     (i) -> "closing",
                     ActivityStateDefinition.perpetual(),

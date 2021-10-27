@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
@@ -13,13 +13,13 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
-import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
-import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
+import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -75,7 +75,7 @@ public class ObjectIntegrityCheckActivityHandler
 
     @Override
     protected @NotNull ExecutionSupplier<ObjectType, MyWorkDefinition, ObjectIntegrityCheckActivityHandler> getExecutionSupplier() {
-        return MyExecution::new;
+        return MyRun::new;
     }
 
     @Override
@@ -98,20 +98,20 @@ public class ObjectIntegrityCheckActivityHandler
         return "object-integrity-check";
     }
 
-    static class MyExecution extends
-            SearchBasedActivityExecution<ObjectType, MyWorkDefinition, ObjectIntegrityCheckActivityHandler, AbstractActivityWorkStateType> {
+    static final class MyRun extends
+            SearchBasedActivityRun<ObjectType, MyWorkDefinition, ObjectIntegrityCheckActivityHandler, AbstractActivityWorkStateType> {
 
         final ObjectStatistics objectStatistics = new ObjectStatistics();
 
-        MyExecution(
-                @NotNull ExecutionInstantiationContext<MyWorkDefinition, ObjectIntegrityCheckActivityHandler> context,
+        MyRun(@NotNull ActivityRunInstantiationContext<MyWorkDefinition, ObjectIntegrityCheckActivityHandler> context,
                 String shortName) {
             super(context, shortName);
+            setInstanceReady();
         }
 
         @Override
-        public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
-            return super.getDefaultReportingOptions()
+        public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
+            return super.createReportingCharacteristics()
                     .logErrors(false) // we do log errors ourselves
                     .skipWritingOperationExecutionRecords(true); // because of performance
         }
@@ -129,12 +129,12 @@ public class ObjectIntegrityCheckActivityHandler
         }
 
         @Override
-        public void beforeExecution(OperationResult result) {
+        public void beforeRun(OperationResult result) {
             ensureNoWorkerThreads();
         }
 
         @Override
-        public void afterExecution(OperationResult result) throws ActivityExecutionException, CommonException {
+        public void afterRun(OperationResult result) throws ActivityRunException, CommonException {
             getActivityHandler().dumpStatistics(
                     objectStatistics,
                     getWorkDefinition().histogramColumns);
@@ -143,7 +143,7 @@ public class ObjectIntegrityCheckActivityHandler
         @Override
         public boolean processItem(@NotNull ObjectType object,
                 @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult parentResult)
-                throws CommonException, ActivityExecutionException {
+                throws CommonException, ActivityRunException {
             OperationResult result = parentResult.createMinorSubresult(OP_PROCESS_ITEM);
             try {
                 objectStatistics.record(object);

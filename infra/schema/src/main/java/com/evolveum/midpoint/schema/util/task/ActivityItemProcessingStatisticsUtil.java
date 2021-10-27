@@ -269,17 +269,17 @@ public class ActivityItemProcessingStatisticsUtil {
             @NotNull ActivityItemProcessingStatisticsType delta) {
         addProcessed(sum.getProcessed(), delta.getProcessed());
         addCurrent(sum.getCurrent(), delta.getCurrent());
-        addExecutionRecords(sum, delta);
+        addRunRecords(sum, delta);
     }
 
-    private static void addExecutionRecords(@NotNull ActivityItemProcessingStatisticsType sum,
+    private static void addRunRecords(@NotNull ActivityItemProcessingStatisticsType sum,
             @NotNull ActivityItemProcessingStatisticsType delta) {
-        List<ActivityExecutionRecordType> nonOverlappingRecords =
-                new WallClockTimeComputer(sum.getExecution(), delta.getExecution())
+        List<ActivityRunRecordType> nonOverlappingRecords =
+                new WallClockTimeComputer(sum.getRun(), delta.getRun())
                         .getNonOverlappingRecords();
-        sum.getExecution().clear();
+        sum.getRun().clear();
         nonOverlappingRecords.sort(Comparator.comparing(r -> XmlTypeConverter.toMillis(r.getStartTimestamp())));
-        sum.getExecution().addAll(CloneUtil.cloneCollectionMembersWithoutIds(nonOverlappingRecords));
+        sum.getRun().addAll(CloneUtil.cloneCollectionMembersWithoutIds(nonOverlappingRecords));
     }
 
     /** Adds `processed` items information */

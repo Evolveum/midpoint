@@ -13,7 +13,7 @@ import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
 
-import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;

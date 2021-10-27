@@ -9,15 +9,13 @@ package com.evolveum.midpoint.repo.common.activity;
 
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 
 import org.jetbrains.annotations.NotNull;
 
 /**
  * This is an activity that can be instantiated in standalone way (i.e. as a root). It has to have a handler.
- *
- * @param <WD>
- * @param <AH>
  */
 public class StandaloneActivity<WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>>
         extends Activity<WD, AH> {
@@ -56,7 +54,7 @@ public class StandaloneActivity<WD extends WorkDefinition, AH extends ActivityHa
     }
 
     @Override
-    protected @NotNull ExecutionSupplier<WD, AH> getLocalExecutionSupplier() {
+    protected @NotNull ActivityRunSupplier<WD, AH> getLocalRunSupplier() {
         return handler;
     }
 

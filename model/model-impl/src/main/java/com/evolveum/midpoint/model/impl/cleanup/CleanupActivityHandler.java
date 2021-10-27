@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
-import com.evolveum.midpoint.repo.common.activity.execution.CompositeActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
+import com.evolveum.midpoint.repo.common.activity.run.CompositeActivityRun;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -28,7 +28,7 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -61,10 +61,10 @@ public class CleanupActivityHandler
     }
 
     @Override
-    public @NotNull CompositeActivityExecution<CleanupWorkDefinition, CleanupActivityHandler, ?> createExecution(
-            @NotNull ExecutionInstantiationContext<CleanupWorkDefinition, CleanupActivityHandler> context,
+    public @NotNull CompositeActivityRun<CleanupWorkDefinition, CleanupActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<CleanupWorkDefinition, CleanupActivityHandler> context,
             @NotNull OperationResult result) {
-        return new CompositeActivityExecution<>(context);
+        return new CompositeActivityRun<>(context);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class CleanupActivityHandler
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
                 (context, result) ->
-                        new CleanupPartialActivityExecution<>(
+                        new CleanupPartialActivityRun<>(
                                 context, Part.AUDIT_RECORDS, CleanupPoliciesType::getAuditRecords,
                                 (p, task, result1) -> auditService.cleanupAudit(p, result1)),
                 null,
@@ -86,9 +86,10 @@ public class CleanupActivityHandler
                 stateDef,
                 parentActivity));
 
-        children.add(EmbeddedActivity.create(parentActivity.getDefinition().clone(),
+        children.add(EmbeddedActivity.create(
+                parentActivity.getDefinition().clone(),
                 (context, result) ->
-                        new CleanupPartialActivityExecution<>(
+                        new CleanupPartialActivityRun<>(
                                 context, Part.CLOSED_TASKS, CleanupPoliciesType::getClosedTasks,
                                 (p, task, result1) -> taskManager.cleanupTasks(p, task, result1)),
                 null,
@@ -96,9 +97,10 @@ public class CleanupActivityHandler
                 stateDef,
                 parentActivity));
 
-        children.add(EmbeddedActivity.create(parentActivity.getDefinition().clone(),
+        children.add(EmbeddedActivity.create(
+                parentActivity.getDefinition().clone(),
                 (context, result) ->
-                        new CleanupPartialActivityExecution<>(
+                        new CleanupPartialActivityRun<>(
                                 context, Part.CLOSED_CASES, CleanupPoliciesType::getClosedCases,
                                 this::cleanupCases),
                 null,
@@ -106,9 +108,10 @@ public class CleanupActivityHandler
                 stateDef,
                 parentActivity));
 
-        children.add(EmbeddedActivity.create(parentActivity.getDefinition().clone(),
+        children.add(EmbeddedActivity.create(
+                parentActivity.getDefinition().clone(),
                 (context, result) ->
-                        new CleanupPartialActivityExecution<>(
+                        new CleanupPartialActivityRun<>(
                                 context, Part.DEAD_NODES, CleanupPoliciesType::getDeadNodes,
                                 (p, task, result1) -> taskManager.cleanupNodes(p, task, result1)),
                 null,
@@ -116,9 +119,10 @@ public class CleanupActivityHandler
                 stateDef,
                 parentActivity));
 
-        children.add(EmbeddedActivity.create(parentActivity.getDefinition().clone(),
+        children.add(EmbeddedActivity.create(
+                parentActivity.getDefinition().clone(),
                 (context, result) ->
-                        new CleanupPartialActivityExecution<>(
+                        new CleanupPartialActivityRun<>(
                                 context, Part.OUTPUT_REPORTS, CleanupPoliciesType::getOutputReports,
                                 (p, task, result1) -> cleanupReports(p, result1)),
                 null,
@@ -126,9 +130,10 @@ public class CleanupActivityHandler
                 stateDef,
                 parentActivity));
 
-        children.add(EmbeddedActivity.create(parentActivity.getDefinition().clone(),
+        children.add(EmbeddedActivity.create(
+                parentActivity.getDefinition().clone(),
                 (context, result) ->
-                        new CleanupPartialActivityExecution<>(
+                        new CleanupPartialActivityRun<>(
                                 context, Part.CLOSED_CERTIFICATION_CAMPAIGNS, CleanupPoliciesType::getClosedCertificationCampaigns,
                                 (p, task, result1) -> certificationService.cleanupCampaigns(p, task, result1)),
                 null,

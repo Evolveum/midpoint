@@ -9,16 +9,16 @@ package com.evolveum.midpoint.repo.common.activity.handlers;
 
 import java.util.ArrayList;
 
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.repo.common.activity.Activity;
-import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.CandidateIdentifierFormatter;
-import com.evolveum.midpoint.repo.common.activity.ExecutionSupplier;
+import com.evolveum.midpoint.repo.common.activity.ActivityRunSupplier;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -27,14 +27,14 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 /**
  * Spring component that ensures handling activity invocations.
  *
- * It is really minimalistic: its only responsibility is to instantiate appropriate {@link AbstractActivityExecution} object.
+ * It is really minimalistic: its only responsibility is to instantiate appropriate {@link AbstractActivityRun} object.
  *
  * The naming is derived from the {@link TaskHandler}, to which it is conceptually somewhat similar.
  */
 @Component
 @Experimental
 public interface ActivityHandler<WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>>
-        extends ExecutionSupplier<WD, AH>, CandidateIdentifierFormatter {
+        extends ActivityRunSupplier<WD, AH>, CandidateIdentifierFormatter {
 
     default ArrayList<Activity<?,?>> createChildActivities(Activity<WD, AH> activity) throws SchemaException {
         return new ArrayList<>();

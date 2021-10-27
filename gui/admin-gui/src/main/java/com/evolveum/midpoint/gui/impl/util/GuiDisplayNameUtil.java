@@ -227,7 +227,7 @@ public class GuiDisplayNameUtil {
     //TODO improve
     public static String getDisplayName(ActivityDefinitionType partitionDefinition) {
 //        Integer index = partitionDefinition.getIndex();
-//        WorkDistributionType workManagementType = partitionDefinition.getWorkManagement();
+//        ActivityDistributionDefinitionType workManagementType = partitionDefinition.getWorkManagement();
 //
 //        String string = "";
 //        if (index != null) {

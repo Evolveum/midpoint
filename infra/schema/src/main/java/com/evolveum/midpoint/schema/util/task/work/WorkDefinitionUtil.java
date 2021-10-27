@@ -42,6 +42,7 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getReportImport());
         addTypedParameters(values, definitions.getDistributedReportExport());
         addTypedParameters(values, definitions.getIterativeScripting());
+        addTypedParameters(values, definitions.getNonIterativeScripting());
         addTypedParameters(values, definitions.getFocusValidityScan());
         addTypedParameters(values, definitions.getTriggerScan());
         addTypedParameters(values, definitions.getShadowRefresh());

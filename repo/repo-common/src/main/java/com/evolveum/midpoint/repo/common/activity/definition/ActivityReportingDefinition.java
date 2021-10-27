@@ -9,7 +9,10 @@ package com.evolveum.midpoint.repo.common.activity.definition;
 
 import static java.util.Comparator.*;
 
+import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.prism.Containerable;
+
+import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
 
 import com.google.common.base.MoreObjects;
 import org.apache.commons.collections4.CollectionUtils;
@@ -28,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Defines monitoring features of the activity, like tracing and profiling.
+ * Defines reporting features of the activity, like logging, tracing, profiling, and reports.
  */
 public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
 
@@ -37,8 +40,18 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
      */
     @NotNull private ActivityReportingDefinitionType bean;
 
+    /** Default values for various reporting options. Specified for concrete activity run. */
+    @NotNull private Lazy<ActivityReportingCharacteristics> reportingCharacteristics =
+            Lazy.from(ActivityReportingCharacteristics::new);
+
     private ActivityReportingDefinition(@NotNull ActivityReportingDefinitionType bean) {
         this.bean = bean;
+    }
+
+    public ActivityReportingDefinition(@NotNull ActivityReportingDefinitionType bean,
+            @NotNull Lazy<ActivityReportingCharacteristics> reportingCharacteristics) {
+        this.bean = bean;
+        this.reportingCharacteristics = reportingCharacteristics;
     }
 
     /**
@@ -51,11 +64,15 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
                         definitionBean.getReporting().clone() :
                         new ActivityReportingDefinitionType(PrismContext.get());
 
+        if (bean.getLogging() == null) {
+            bean.setLogging(createLoggingConfigurationFromTask(task));
+        }
+
         if (bean.getTracing().isEmpty()) {
             CollectionUtils.addIgnoreNull(bean.getTracing(), createTracingDefinitionFromTask(task));
         }
 
-        if (bean.getProfiling() != null) {
+        if (bean.getProfiling() == null) {
             bean.setProfiling(createProfilingConfigurationFromTask(task));
         }
 
@@ -63,15 +80,33 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
     }
 
     /**
-     * Creates a detached configuration from a task (if not null).
+     * Creates a detached logging configuration from a task (if not null).
      */
-    private static @Nullable ProcessTracingConfigurationType createTracingDefinitionFromTask(Task task) {
+    private static @Nullable ActivityLoggingOptionsType createLoggingConfigurationFromTask(Task task) {
         if (task == null) {
             return null;
         }
 
-        ProcessTracingConfigurationType bean =
-                task.getContainerableOrClone(SchemaConstants.MODEL_EXTENSION_TRACING, ProcessTracingConfigurationType.class);
+        ActivityReportingDefinitionType bean =
+                task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_REPORTING_OPTIONS);
+
+        if (bean != null && bean.getLogging() != null) {
+            return bean.getLogging().clone();
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Creates a detached tracing configuration from a task (if not null).
+     */
+    private static @Nullable ActivityTracingConfigurationType createTracingDefinitionFromTask(Task task) {
+        if (task == null) {
+            return null;
+        }
+
+        ActivityTracingConfigurationType bean =
+                task.getContainerableOrClone(SchemaConstants.MODEL_EXTENSION_TRACING, ActivityTracingConfigurationType.class);
         if (bean != null) {
             return bean.clone();
         }
@@ -84,7 +119,7 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
         if (interval == null && tracingProfile == null && tracingRoots == null) {
             return null;
         } else {
-            ProcessTracingConfigurationType newBean = new ProcessTracingConfigurationType(PrismContext.get())
+            ActivityTracingConfigurationType newBean = new ActivityTracingConfigurationType(PrismContext.get())
                     .interval(interval)
                     .tracingProfile(CloneUtil.clone(tracingProfile));
             if (tracingRoots != null) {
@@ -94,7 +129,7 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
         }
     }
 
-    private static @Nullable ProcessProfilingConfigurationType createProfilingConfigurationFromTask(Task task) {
+    private static @Nullable ActivityProfilingConfigurationType createProfilingConfigurationFromTask(Task task) {
         if (task == null) {
             return null;
         }
@@ -103,21 +138,21 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
         if (interval == null) {
             return null;
         } else {
-            return new ProcessProfilingConfigurationType(PrismContext.get())
+            return new ActivityProfilingConfigurationType(PrismContext.get())
                     .interval(interval);
         }
     }
 
-    public @NotNull List<ProcessTracingConfigurationType> getTracingConfigurationsSorted() {
+    public @NotNull List<ActivityTracingConfigurationType> getTracingConfigurationsSorted() {
         var sorted = new ArrayList<>(bean.getTracing());
         sorted.sort(
                 comparing(
-                        ProcessTracingConfigurationType::getOrder,
+                        ActivityTracingConfigurationType::getOrder,
                         nullsLast(naturalOrder())));
         return sorted;
     }
 
-    public @Nullable ProcessProfilingConfigurationType getProfilingConfiguration() {
+    public @Nullable ActivityProfilingConfigurationType getProfilingConfiguration() {
         return bean.getProfiling();
     }
 
@@ -133,7 +168,10 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
     public String toString() {
         return "logging: " + size(bean.getLogging()) + " item(s), "
                 + "tracing: " + bean.getTracing().size() + " configuration(s), "
-                + "profiling: " + (bean.getProfiling() != null ? "present" : "absent");
+                + "profiling: " + (bean.getProfiling() != null ? "present" : "absent")
+                + "reports: " + size(bean.getReports()) + " item(s), "
+                + "state overview: " + size(bean.getStateOverview()) + " item(s), "
+                + "item counting: " + size(bean.getItemCounting()) + " item(s)";
     }
 
     private int size(Containerable containerable) {
@@ -148,30 +186,36 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public ActivityReportingDefinition clone() {
-        return new ActivityReportingDefinition(bean.clone());
+        return new ActivityReportingDefinition(
+                bean.clone(),
+                Lazy.instant(reportingCharacteristics.get().clone())); // This clone is not strictly necessary.
+    }
+
+    public void applyDefaults(Lazy<ActivityReportingCharacteristics> lazyDefaults) {
+        reportingCharacteristics = lazyDefaults;
     }
 
     public @NotNull ActivityReportingDefinitionType getBean() {
         return bean;
     }
 
-    public BucketsExecutionReportConfigurationType getBucketsReportDefinition() {
-        ActivityExecutionReportsConfigurationType reports = bean.getExecutionReports();
+    public BucketsProcessingReportConfigurationType getBucketsReportDefinition() {
+        ActivityReportsConfigurationType reports = bean.getReports();
         return reports != null ? reports.getBuckets() : null;
     }
 
-    public ItemsExecutionReportConfigurationType getItemsReportDefinition() {
-        ActivityExecutionReportsConfigurationType reports = bean.getExecutionReports();
+    public ItemsProcessingReportConfigurationType getItemsReportDefinition() {
+        ActivityReportsConfigurationType reports = bean.getReports();
         return reports != null ? reports.getItems() : null;
     }
 
     public ConnIdOperationsReportConfigurationType getConnIdOperationsReportDefinition() {
-        ActivityExecutionReportsConfigurationType reports = bean.getExecutionReports();
+        ActivityReportsConfigurationType reports = bean.getReports();
         return reports != null ? reports.getConnIdOperations() : null;
     }
 
     public InternalOperationsReportConfigurationType getInternalOperationsReportDefinition() {
-        ActivityExecutionReportsConfigurationType reports = bean.getExecutionReports();
+        ActivityReportsConfigurationType reports = bean.getReports();
         return reports != null ? reports.getInternalOperations() : null;
     }
 
@@ -189,5 +233,53 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
     private @Nullable ActivityStateOverviewProgressUpdateModeType getStateOverviewProgressUpdateModeRaw() {
         return bean.getStateOverview() != null ?
                 bean.getStateOverview().getProgressUpdateMode() : null;
+    }
+
+    /** How should be bucket completion logged? (none/brief/full) */
+    public @NotNull ActivityEventLoggingOptionType getBucketCompletionLogging() {
+        ActivityLoggingOptionsType logging = bean.getLogging();
+        if (logging != null && logging.getBucketCompletion() != null) {
+            return logging.getBucketCompletion();
+        } else {
+            return reportingCharacteristics.get().getBucketCompletionLoggingDefault();
+        }
+    }
+
+    /** How should be item completion logged? (none/brief/full) */
+    public @NotNull ActivityEventLoggingOptionType getItemCompletionLogging() {
+        ActivityLoggingOptionsType logging = bean.getLogging();
+        if (logging != null && logging.getItemCompletion() != null) {
+            return logging.getItemCompletion();
+        } else {
+            return reportingCharacteristics.get().getItemCompletionLoggingDefault();
+        }
+    }
+
+    public @NotNull ActivityItemCountingOptionType getDetermineBucketSize() {
+        ActivityItemCountingConfigurationType itemCounting = bean.getItemCounting();
+        if (itemCounting != null && itemCounting.getDetermineBucketSize() != null) {
+            return itemCounting.getDetermineBucketSize();
+        } else {
+            return reportingCharacteristics.get().getDetermineBucketSizeDefault();
+        }
+    }
+
+    public @NotNull ActivityOverallItemCountingOptionType getDetermineOverallSize() {
+        ActivityItemCountingConfigurationType itemCounting = bean.getItemCounting();
+        if (itemCounting != null && itemCounting.getDetermineOverallSize() != null) {
+            return itemCounting.getDetermineOverallSize();
+        } else {
+            return reportingCharacteristics.get().getDetermineOverallSizeDefault();
+        }
+    }
+
+    /** Whether we should use the "expected total" (overall size) information if already present. */
+    public boolean isCacheOverallSize() {
+        ActivityItemCountingConfigurationType itemCounting = bean.getItemCounting();
+        if (itemCounting != null && itemCounting.isCacheOverallSize() != null) {
+            return itemCounting.isCacheOverallSize();
+        } else {
+            return false;
+        }
     }
 }

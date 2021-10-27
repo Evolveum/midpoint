@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.repo.common.task.work.BucketingConfigurationOverrides;
+import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingConfigurationOverrides;
 import com.evolveum.midpoint.test.asserter.TaskAsserter;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +47,7 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
     private static final TestResource<TaskType> TASK_140_WORKERS_UPDATE = new TestResource<>(TEST_DIR, "task-140-workers-update.xml", "8ef8e606-3c3e-45c7-bca7-e64eb47de1e4");
     private static final TestResource<TaskType> TASK_150_WORKERS_MOVE = new TestResource<>(TEST_DIR, "task-150-workers-move.xml", "f3efb438-c573-4631-bbff-ba9e09b3ae03");
     private static final TestResource<TaskType> TASK_160_WORKERS_ADD_DELETE = new TestResource<>(TEST_DIR, "task-160-workers-add-delete.xml", "9e94e921-d319-422a-b9d6-9e98d9034975");
+    private static final TestResource<TaskType> TASK_170_NUMBER_SEGMENTATION_NUMBER_OF_BUCKETS = new TestResource<>(TEST_DIR, "task-170-num-seg-num-of-buckets.xml", "33b0f9bb-15bd-4f64-bd08-11aad034e77q");
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
@@ -83,6 +84,7 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
                         .withNamePattern(ROLE_NAME_PATTERN)
                         .withCustomizer(this::setDiscriminator)
                         .execute(result));
+
         clusterManager.startClusterManagerThread();
     }
 
@@ -756,5 +758,65 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
                 .item(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ACTIVITY,
                         ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_SCAVENGER).replace(value)
                 .asItemDeltas());
+    }
+
+    /**
+     * Checks the generation number of buckets and real number of buckets. Exists definition for numberOfBuckets + from + to.
+     */
+    @Test
+    public void test170NumberSegmentationNumberOfBuckets() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        mockRecorder.reset();
+
+        assumeNoExtraClusterNodes(result);
+
+        // Although we have a lot of roles, buckets for this task cover only from 5 to 100.
+        List<RoleType> roles = allRoles.subList(5, 100);
+
+        when();
+        Task root = taskAdd(TASK_170_NUMBER_SEGMENTATION_NUMBER_OF_BUCKETS, result);
+
+        then();
+        try {
+            waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+
+            root.refresh(result);
+            assertTaskTreeAfter170(root, result);
+            assertExecutions(roles, 1);
+        } finally {
+            suspendAndDeleteTasks(root.getOid());
+        }
+    }
+
+    private void assertTaskTreeAfter170(Task root, OperationResult result) throws SchemaException {
+        // @formatter:off
+        assertTask(root, "after run")
+                .display()
+                .assertClosed()
+                .assertSuccess()
+                .loadSubtasksDeeply(result)
+                .progressInformation() // this is for the whole tree
+                    .display()
+                    .assertBuckets(10, 10)
+                    .assertItems(95, null)
+                .end()
+                .assertSubtasks(2)
+                .subtask("Worker DefaultNode:1 for root activity in task-170")
+                    .assertClosed()
+                    .assertSuccess()
+                    .rootItemProcessingInformation()
+                        .display()
+                    .end()
+                .end()
+                .subtask("Worker DefaultNode:2 for root activity in task-170")
+                    .assertClosed()
+                    .assertSuccess()
+                    .rootItemProcessingInformation()
+                        .display()
+                    .end()
+                .end();
+        // @formatter:on
     }
 }

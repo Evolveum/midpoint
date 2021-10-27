@@ -647,18 +647,6 @@ public interface TaskManager {
      */
     void unregisterHandler(String uri);
 
-    /**
-     * Registers additional handler URI for a given handler.
-     * The difference from registerHandler() is that these additional URIs are not returned when searching for a handler
-     * matching a given task category.
-     */
-    void registerAdditionalHandlerUri(@NotNull String uri, @NotNull TaskHandler handler);
-
-    /**
-     * Registers additional (deprecated) handler URI for a given handler.
-     */
-    void registerDeprecatedHandlerUri(@NotNull String uri, @NotNull TaskHandler handler);
-
     void registerTaskDeletionListener(TaskDeletionListener listener);
 
     void setDefaultHandlerUri(String uri);
@@ -666,11 +654,6 @@ public interface TaskManager {
     //endregion
 
     //region TODO
-//    /**
-//     * TODO. EXPERIMENTAL.
-//     */
-//    TaskHandler createAndRegisterPartitioningTaskHandler(String handlerUri, Function<Task, TaskPartitionsDefinition> partitioningStrategy);
-
     /**
      * EXPERIMENTAL. Relaxes some assumptions on cluster structure e.g. that IP addresses of cluster members must be different.
      * To be used for demonstration/testing only. Avoid using in production environments.
@@ -688,6 +671,7 @@ public interface TaskManager {
 
     String getTaskThreadsDump(String taskOid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
 
+    // TODO what to do with this method?
     String recordTaskThreadsDump(String taskOid, String cause, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
             ObjectAlreadyExistsException;
 
