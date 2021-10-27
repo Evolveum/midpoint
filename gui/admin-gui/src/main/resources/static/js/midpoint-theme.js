@@ -22,13 +22,13 @@ $(window).on('load', function() {
     });
 });
 
-$(document).ready(function() {
-    $("#div").fadeOut();
-    $('html, body').css({
-        overflow: 'hidden',
-        height: '100%'
-    });
-});
+// $(document).ready(function() {
+//     $("#div").fadeOut();
+//     $('html, body').css({
+//         overflow: 'hidden',
+//         height: '100%'
+//     });
+// });
 
 // I'm not sure why sidebar has 15px padding -> and why I had to use 10px constant here [lazyman]
 function fixContentHeight() {
@@ -65,7 +65,7 @@ function initAjaxStatusSigns() {
         showAjaxStatusSign();
     });
     Wicket.Event.subscribe('/ajax/call/complete', function( attributes, jqXHR, textStatus) {
-        hideAjaxStatusSignAndUnblock();
+        hideAjaxStatusSign();
     });
 }
 
@@ -86,11 +86,11 @@ function hideAjaxStatusSign() {
 
 function hideAjaxStatusSignAndUnblock() {
     hideAjaxStatusSign();
-    $("#div").fadeIn();
-    $('html, body').css({
-        overflow: 'auto',
-        height: 'auto'
-    });
+    // $("#div").fadeIn();
+    // $('html, body').css({
+    //     overflow: 'auto',
+    //     height: 'auto'
+    // });
 }
 
 /**
