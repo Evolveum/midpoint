@@ -14,7 +14,7 @@
 This functionality requires modification of midPoint build, or even modification of midPoint source code.
 Therefore it is not officially supported - unless the support is explicitly negotiated in xref:/support/subscription-sponsoring/[subscription].
 
-The real solution to this problem would be wiki:Flexible+Authentication[Flexible Authentication]. MidPoint xref:/support/subscription-sponsoring/[platform subscription] could be used to fund improvements in midPoint authentication mechanisms.
+The real solution to this problem would be xref:/midpoint/reference/security/authentication/flexible-authentication/[Flexible Authentication]. MidPoint xref:/support/subscription-sponsoring/[platform subscription] could be used to fund improvements in midPoint authentication mechanisms.
 ====
 
 

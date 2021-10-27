@@ -42,7 +42,7 @@ There is no read-ahead.
 The writes are always going to the resource (synchronously): read-through, write-through.
 There is no cache eviction (but old information is overwritten if newer information is available).
 
-If caching is turned on then midPoint will start to cache the data in wiki:Shadow+Objects[Shadow Objects]. The caches are build gradually as midPoint reads the objects.
+If caching is turned on then midPoint will start to cache the data in xref:/midpoint/reference/resources/shadow/[Shadow Objects]. The caches are build gradually as midPoint reads the objects.
 If you need to populate the caches with information you have to make an operation that is searching all the objects.
 E.g. reconciliation or similar operation should do the trick.
 
@@ -79,7 +79,7 @@ However if the search discovers any object that does not have cached data then i
 
 == Caching Metadata in Shadows
 
-wiki:Shadow+Objects[Shadow Objects] contain `cachingMetadata` property.
+xref:/midpoint/reference/resources/shadow/[Shadow Objects] contain `cachingMetadata` property.
 This property can be used to determine whether the returned shadow represents fresh or cached data:
 
 * If no `cachingMetadata` property is present in the shadow then the data are fresh.

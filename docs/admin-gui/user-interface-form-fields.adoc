@@ -163,7 +163,7 @@ Therefore it applies both to GUI and also the web service interface and also to 
 
 
 | model
-| Model layer means application of schema constraints inside the wiki:IDM+Model+Subsystem[IDM Model Subsystem]. This is the value that the midPoint identity management logic will be using.
+| Model layer means application of schema constraints inside the xref:/midpoint/architecture/archive/subsystems/model/[IDM Model Subsystem]. This is the value that the midPoint identity management logic will be using.
 It will be used by mappings and similar mechanisms.E.g. LDAP attributes `uid`, `cn`, `sn` are formally multi-valued in the LDAP schema.
 But vast majority of systems are using them as single-valued attributes.
 Setting multiple values for these attributes can easily ruin interoperability.
@@ -274,7 +274,7 @@ There are two variables available to the expression:
 
 == Refined Schema
 
-The native schema (xref:/midpoint/reference/resources/resource-schema/[Resource Schema] or a static wiki:Data+Model[Data Model]) is merged together with limitations in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[resource schema handling] and xref:/midpoint/reference/expressions/object-template/[object template] to create a _refined schema_. The refined schema defines the effective schema that applies to current midPoint configuration.
+The native schema (xref:/midpoint/reference/resources/resource-schema/[Resource Schema] or a static xref:/midpoint/reference/schema/[Data Model]) is merged together with limitations in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[resource schema handling] and xref:/midpoint/reference/expressions/object-template/[object template] to create a _refined schema_. The refined schema defines the effective schema that applies to current midPoint configuration.
 The concept of refined schema is not directly visible to the midPoint user.
 But it is refined schema that is used to display user interface forms, evaluate mappings and so on.
 The concept of refined schema is used all over the midPoint internal implementation, therefore it might be mentioned in the documentation, issues or samples.

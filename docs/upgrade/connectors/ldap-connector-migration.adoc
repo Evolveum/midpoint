@@ -11,8 +11,8 @@
 
 In 2014 the "state of the art" for connectors in open source provisioning was the legacy of Identity Connector Framework (ICF) created by Sun Microsystems.
 This is still perhaps the best option for supporting identity connectors that is available to the open world.
-However, the Sun ICF framework is wiki:ICF+Issues[flawed]. It was poorly designed and the framework issues are also reflected to the connectors.
-Projects such as wiki:ConnId[ConnId] are working towards the improvement of the Sun ICF.
+However, the Sun ICF framework is xref:/connectors/connid/1.x/icf-issues/[flawed]. It was poorly designed and the framework issues are also reflected to the connectors.
+Projects such as xref:/midpoint/reference/resources/connid/[ConnId] are working towards the improvement of the Sun ICF.
 And there is a reasonable success.
 However one thing is the improvement of the framework and a slightly different thing is improvement of the connectors.
 The connectors often significantly lack behind the framework capabilities.
@@ -66,11 +66,11 @@ And we can easily add support for the missing features as the Apache Directory A
 In fact, this has already happened.
 We have contributed VLV support to the Apache Directory API project.
 
-* The new connector is designed and built to natively support new features of wiki:ConnId[ConnId]. Therefore the connector has natural support for paging, partial searches, auxiliary object classes, native attribute names, etc.
+* The new connector is designed and built to natively support new features of xref:/midpoint/reference/resources/connid/[ConnId]. Therefore the connector has natural support for paging, partial searches, auxiliary object classes, native attribute names, etc.
 This is a significant improvement over original Sun ICF.
 
 * The new connector is completely open.
-It is licensed under the terms of Apache License 2.0. The source code is maintained on link:https://github.com/Evolveum/connector-ldap[GitHub]. The development is coordinated with the development of wiki:ConnId[ConnId] framework.
+It is licensed under the terms of Apache License 2.0. The source code is maintained on link:https://github.com/Evolveum/connector-ldap[GitHub]. The development is coordinated with the development of xref:/midpoint/reference/resources/connid/[ConnId] framework.
 
 * One of the major advantage of the new connector is support for native attribute names.
 Therefore the schema will not be polluted by the unfortunate ICF concepts of wiki:OpenICF[__ACCOUNT__, __NAME__ and __UID__]. The connector will present real attribute names such as "entryUUID" and "dn" and real object class names such as "inetOrgPerson".
@@ -267,7 +267,7 @@ The wiki:Configuration+Samples[Configuration Samples] are located at the usual p
 
 === Shadows
 
-The wiki:Shadow+Objects[shadows] in the old connector looked like this:
+The xref:/midpoint/reference/resources/shadow/[shadows] in the old connector looked like this:
 
 .Shadow: Legacy LDAP connector
 [source]
@@ -360,4 +360,4 @@ Therefore please plan the migration to the new connector accordingly.
 
 * Legacy+JNDI+LDAP+Connector[Legacy LDAP Connector]
 
-* wiki:ICF+Issues[ICF Issues]
+* xref:/connectors/connid/1.x/icf-issues/[ICF Issues]

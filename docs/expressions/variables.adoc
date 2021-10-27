@@ -187,7 +187,7 @@ In other expressions that have a single source this variable has the same value 
 | `ShadowType`
 | inbound, outbound, assigments (construction)
 | `account, shadow`
-| Represents wiki:Focus+and+Projections[projection] in a form of wiki:Shadow+Objects[shadow]. This is usually the account.
+| Represents wiki:Focus+and+Projections[projection] in a form of xref:/midpoint/reference/resources/shadow/[shadow]. This is usually the account.
 
 
 | `resource`

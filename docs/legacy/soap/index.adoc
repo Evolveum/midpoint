@@ -14,7 +14,7 @@
 *Status:* Public +
 *Stability:* OBSOLETE +
 *Platform:* WSDL +
-*Dependencies:*wiki:Data+Model[Data Model], Common schema, Query schema +
+*Dependencies:*xref:/midpoint/reference/schema/[Data Model], Common schema, Query schema +
 *Responsible person:* Radovan Semancik
 
 

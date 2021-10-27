@@ -11,7 +11,7 @@
 == Introduction
 
 New midPoint releases usually bring new features.
-New features usually require the extension of midPoint wiki:Data+Model[data model] to use them.
+New features usually require the extension of midPoint xref:/midpoint/reference/schema/[data model] to use them.
 The changes of data model usually require extension of the schema of the database that stores midPoint objects.
 This is the usual routine for most midPoint wiki:Upgradeability[upgrades].
 

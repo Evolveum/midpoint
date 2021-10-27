@@ -34,7 +34,7 @@ image::synchronization-modification.png[]
 
 The change to the first account is detected by the live synchronization or reconciliation logic of midPoint.
 The method of change detection does not really matter.
-As the change is detected, the provisioning component makes sure the corresponding wiki:MidPoint+Common+Schema[AccountShadow] object is updated in midPoint repository (see wiki:Common+Data+Model[Common Data Model]). Account Shadow usually contains only identifiers and therefore it should be already up-to-date in this case.
+As the change is detected, the provisioning component makes sure the corresponding xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/[AccountShadow] object is updated in midPoint repository (see wiki:Common+Data+Model[Common Data Model]). Account Shadow usually contains only identifiers and therefore it should be already up-to-date in this case.
 
 The following XML snippet contains the Account Shadow object as it was stored in the midPoint repository before the change was detected.
 You can see that there are only identifiers, no data.
@@ -54,7 +54,7 @@ You can see that there are only identifiers, no data.
 
 ----
 
-The synchronization logic in the wiki:Provisioning+Subsystem[provisioning subsystem] will issue a change notification that is picked up by the wiki:IDM+Model+Subsystem[IDM model]. IDM model will try to figure out what's going on (so called _wiki:Synchronization+Situations[situation]_, it is described in the second example below).
+The synchronization logic in the xref:/midpoint/architecture/archive/subsystems/provisioning/[provisioning subsystem] will issue a change notification that is picked up by the xref:/midpoint/architecture/archive/subsystems/model/[IDM model]. IDM model will try to figure out what's going on (so called _wiki:Synchronization+Situations[situation]_, it is described in the second example below).
 In this case it simply means that the IDM model will check if the account has an _owner_, that means whether it is already wiki:Assigning+vs+Linking[linked to a user]. This example assumes that it has an owner, so locating appropriate user object is straightforward.
 
 Following XML snippet shows a user object.
@@ -249,7 +249,7 @@ image::synchronization-creation.png[]
 
 
 The synchronization logic of midPoint detects that a new account is created in the first Resource.
-Because the account is new there is no Account Shadow object in midPoint repository and therefore the provisioning component will create new wiki:MidPoint+Common+Schema[AccountShadow] object before doing anything else.
+Because the account is new there is no Account Shadow object in midPoint repository and therefore the provisioning component will create new xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/[AccountShadow] object before doing anything else.
 
 The following XML snippet contains the Account Shadow object that is created in the IDM repository right after the change is detected.
 
@@ -268,7 +268,7 @@ The following XML snippet contains the Account Shadow object that is created in 
 
 ----
 
-The synchronization logic in the wiki:Provisioning+Subsystem[provisioning subsystem] then issues a change notification that is picked up by the wiki:IDM+Model+Subsystem[IDM model]. The responsibility of the model subsystem is to react to this change notification.
+The synchronization logic in the xref:/midpoint/architecture/archive/subsystems/provisioning/[provisioning subsystem] then issues a change notification that is picked up by the xref:/midpoint/architecture/archive/subsystems/model/[IDM model]. The responsibility of the model subsystem is to react to this change notification.
 Model does this in two steps.
 Firstly it determines what's the state of the midPoint repository as compared to the new information fetched from the resource, determining a _wiki:Synchronization+Situations[situation]_. Secondly, it consults the synchronization policy to find out how to react to the situation.
 
@@ -514,7 +514,7 @@ See wiki:Synchronization+Flavors[Synchronization Flavors] page for more details.
 
 * wiki:Synchronization+Flavors[Synchronization Flavors]
 
-* wiki:Data+Model[Data Model]
+* xref:/midpoint/reference/schema/[Data Model]
 
 * link:https://svn.evolveum.com/midpoint/trunk/infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd[Common XSD Schema] has a lot of in-line documentation.
 

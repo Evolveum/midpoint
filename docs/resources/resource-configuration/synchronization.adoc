@@ -569,7 +569,7 @@ As usual the default midPoint action is "do nothing".
 Therefore midPoint will do nothing unless a synchronization reaction is explicitly set up.
 This default setting limits potential damage that midPoint might cause during system setup, experiments and tests.
 
-MidPoint is transparently managing wiki:Shadow+Objects[object shadows] in the identity repository all the time.
+MidPoint is transparently managing xref:/midpoint/reference/resources/shadow/[object shadows] in the identity repository all the time.
 This mechanism is independent of synchronization policy, situations or reactions.
 This has to be done independently as the shadows are just a cache of the real state of the resource.
 Therefore a new shadow will be created automatically for each new account even if no policy or reaction is defined.

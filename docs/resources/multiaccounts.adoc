@@ -50,12 +50,12 @@ Each of the objects needs to be distinguished by a wiki:Kind,+Intent+and+ObjectC
 == Generating Tag Values
 
 Value of wiki:Kind,+Intent+and+ObjectClass["tag"] is used to distinguish resource objects that have the same kind/intent combination.
-Similarly to kind and intent, the tag is stored in wiki:Shadow+Objects[shadow object]. Tags are generated only for those shadows where tag is needed.
+Similarly to kind and intent, the tag is stored in xref:/midpoint/reference/resources/shadow/[shadow object]. Tags are generated only for those shadows where tag is needed.
 Which means that tags are generated only when the "multiaccounts" configuration is enabled and only for those object types where it is needed.
 The tag values are generated at the same time as kind and intent.
 Which means that the tag is generated in synchronization code for the inbound direction.
 
-The default tag value is OID of the wiki:Shadow+Objects[shadow]. This is a convenient value to use, as it is permanent and globally unique.
+The default tag value is OID of the xref:/midpoint/reference/resources/shadow/[shadow]. This is a convenient value to use, as it is permanent and globally unique.
 Therefore it should work well even if account ownership is changed.
 
 
@@ -101,7 +101,7 @@ Fortunately, there is an easy way how to generate tag values by using an express
 </resource>
 ----
 
-The expression will get the wiki:Shadow+Objects[shadow] filled with all the attribute values set in variable `projection`. Responsibility of the expression is to return a tag value.
+The expression will get the xref:/midpoint/reference/resources/shadow/[shadow] filled with all the attribute values set in variable `projection`. Responsibility of the expression is to return a tag value.
 The expression is invoked only when tag value is not know.
 Once the tag is set, it is considered to be fixed.
 Therefore choose the expression algorithm wisely.

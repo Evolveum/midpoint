@@ -170,7 +170,7 @@ Max age is the time how long is the nonce valid and valuePolicyRef is reference 
 == Self-Registration And Custom Form
 
 It is (probably) more than welcome to support definition of custom form when talking about self-registration process.
-With introducing wiki:Custom+forms[custom forms] in midPoint they can be also used with the self-registration.
+With introducing xref:/midpoint/reference/admin-gui/custom-forms/[custom forms] in midPoint they can be also used with the self-registration.
 All what is needed is to reference to the concrete form in the self-registration configuration as in the example below
 
 .Self registration with custom form
@@ -362,6 +362,6 @@ image::confirmation-success.png[]
 
 == See also
 
-* wiki:Custom+forms[Custom Forms]
+* xref:/midpoint/reference/admin-gui/custom-forms/[Custom Forms]
 
 * xref:/midpoint/reference/security/credentials/password-policy/[Password Policy]

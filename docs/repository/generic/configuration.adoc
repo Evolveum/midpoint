@@ -83,7 +83,8 @@ Please see *Schema creation and updating* section later.
 
 | dataSource
 | Uses JNDI DataSource loading, when this option is defined in configuration, then *jdbcUsername*, *jdbcPassword*, *jdbcUrl* and *driverClassName* don't need to be present.
-E.g. <dataSource>link:http://javacomp[java:comp/env/jdbc/midpoint]</dataSource>
+
+Example: `<dataSource>java:comp/env/jdbc/midpoint</dataSource>`
 |
 
 | jdbcUsername

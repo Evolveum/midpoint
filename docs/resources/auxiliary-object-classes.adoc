@@ -11,7 +11,7 @@
 :page-upkeep-status: yellow
 
 
-Type of every wiki:Shadow+Objects[resource objects] that midPoint deals is defined by its wiki:Kind,+Intent+and+ObjectClass[object class]. The object class defines the basic structure of the object: whether it is account, group or organizational unit.
+Type of every xref:/midpoint/reference/resources/shadow/[resource objects] that midPoint deals is defined by its wiki:Kind,+Intent+and+ObjectClass[object class]. The object class defines the basic structure of the object: whether it is account, group or organizational unit.
 But some resources also have additional object classes that can extend the objects with additional attributes.
 We refer to these additional object classes as _auxiliary object classes_.
 

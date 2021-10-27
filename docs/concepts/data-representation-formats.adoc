@@ -8,8 +8,8 @@
 :page-description: Use of XML, JSON, YAML and other formats in midPoint.
 :page-upkeep-status: green
 
-midPoint is using objects composed of properties and containers, known as wiki:Prism+Objects[Prism Objects].
-MidPoint wiki:Data+Model[Data Model] specifies how the objects look like, what properties and containers they have, what are the types and multiplicities of the data and so on.
+midPoint is using objects composed of properties and containers, known as xref:/midpoint/devel/prism/[Prism Objects].
+MidPoint xref:/midpoint/reference/schema/[Data Model] specifies how the objects look like, what properties and containers they have, what are the types and multiplicities of the data and so on.
 This is an abstract data structure that is used in all parts of midPoint.
 This internal data structure are converted to _data representation formats_ such as JSON, YAML or XML when needed.
 
@@ -58,7 +58,7 @@ MidPoint user may choose any of them.
 == Objects Are Not Documents
 
 Although the midPoint objects are represented in XML, JSON and YAML, they must not be considered XML or JSON _documents_.
-MidPoint objects are composed of (potentially multi-valued) properties and containers (wiki:Prism+Objects[Prism Objects]), not XML elements or JSON hashmaps.
+MidPoint objects are composed of (potentially multi-valued) properties and containers (xref:/midpoint/devel/prism/[Prism Objects]), not XML elements or JSON hashmaps.
 There are also some subtle differences.
 E.g. midPoint does not maintain ordering of values, while XML and JSON do maintain the ordering.
 Ordering of elements is significant in XML, but it is not significant for midPoint.
@@ -134,5 +134,5 @@ There will certainly be more JSON and YAML in the documentation, samples and tes
 == See Also
 
 * xref:/midpoint/devel/axiom[Axiom]
-* wiki:Data+Model[Data Model]
+* xref:/midpoint/reference/schema/[Data Model]
 * wiki:Archetypes[]

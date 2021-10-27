@@ -12,7 +12,7 @@
 *Status:* Public +
 *Stability: *STABLE +
 *Platform:* Java +
-*Dependencies:*wiki:Data+Model[Data Model], Common schema +
+*Dependencies:*xref:/midpoint/reference/schema/[Data Model], Common schema +
 *Responsible person:* Radovan Semancik
 
 

@@ -65,7 +65,7 @@ Following table lists commonly-used archetypes and their mapping to primary midP
 == Archetype Definition
 
 Archetype definition is a special midPoint object (ArchetypeType).
-Being a midPoint object, archetype has an natural persistent identifier: wiki:Object+ID[OID]. OID of the archetype definition is also identifier of archetype itself.
+Being a midPoint object, archetype has an natural persistent identifier: xref:/midpoint/devel/prism/concepts/object-identifier/[OID]. OID of the archetype definition is also identifier of archetype itself.
 Each object of that archetype will contain archetype definition OID.
 E.g. every employee will contain OID of _employee archetype definition_ object.
 This OID is used internally by midPoint to process archetypes.

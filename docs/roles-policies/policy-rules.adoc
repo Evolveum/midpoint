@@ -266,4 +266,4 @@ This mechanism was only partially implemented in midPoint 3.5.
 
 * wiki:Segregation+of+Duties[Segregation of Duties]
 
-* wiki:Radio+Button+Roles[Radio Button Roles]
+* xref:/midpoint/reference/roles-policies/rbac/radio-button-roles/[Radio Button Roles]

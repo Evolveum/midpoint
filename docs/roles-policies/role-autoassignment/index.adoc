@@ -108,7 +108,7 @@ If there is additional condition when the nested role is to be applied then the 
 There are many ways how to implement this functionality.
 
 Sometimes there is a need to unassign a role when another role is assigned.
-wiki:Segregation+of+Duties[Role exclusion] mechanism may be used to implement this approach, as illustrated by wiki:Radio+Button+Roles[Radio Button Roles] example.
+wiki:Segregation+of+Duties[Role exclusion] mechanism may be used to implement this approach, as illustrated by xref:/midpoint/reference/roles-policies/rbac/radio-button-roles/[Radio Button Roles] example.
 However, care must be taken if this is to be combined with role autoassignment as it is easy to set up a conflicting policies.
 MidPoint is a thorough system and it does not like conflicting policies.
 

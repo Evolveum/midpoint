@@ -16,11 +16,11 @@ As both resources and connectors are midPoint objects this is quite easy.
 Resource contains xref:/midpoint/reference/schema/object-references/[object reference] to the connector: `connectorRef`. Therefore when midPoint need to reach a particular resource it will fetch resource object from the repository, look at the connectorRef reference, look up referred connector object in the reposity and that connector object points to the connector code.
 
 The trouble is, that connector objects (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]) are not entirely ordinary objects.
-These objects refer to the connector code that resides in midPoint servers or wiki:Connector+Server[connector servers]. Connector objects are usually generated automatically by midPoint servers during server startup.
+These objects refer to the connector code that resides in midPoint servers or xref:/connectors/connid/1.x/connector-server/[connector servers]. Connector objects are usually generated automatically by midPoint servers during server startup.
 At that time midPoint looks for all the connectors that are locally available to that server.
 This essentially means looking for JAR files that contain connector code.
 When a connector is discovered then the server creates a new connector object (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]). And this automatic generation of connector objects is kind of a trouble.
-Because those objects will have unpredicatable wiki:Object+ID[OIDs]. Therefore resource definitions (wiki:ResourceType[ResourceType]) cannot have fixed OIDs in their `connectorRef`s.
+Because those objects will have unpredicatable xref:/midpoint/devel/prism/concepts/object-identifier/[OIDs]. Therefore resource definitions (wiki:ResourceType[ResourceType]) cannot have fixed OIDs in their `connectorRef`s.
 
 Fortunately, midPoint has a mechanism how to resolve a reference dynamically when an object is imported.
 Therefore the usual practice is that the resourceRef does not contain fixed OID.
@@ -39,7 +39,7 @@ Those are the connectors that are almost always used in any midPoint deployment.
 Such as LDAP, Active Directory or CSV connector.
 
 Most of the connectors are _unbundled_. This means they are not distributed with midPoint.
-These connectors must be downloaded separately and installed in xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory] or in a wiki:Connector+Server[connector server]. The connectors are not bundled with midPoint for many reasons.
+These connectors must be downloaded separately and installed in xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory] or in a xref:/connectors/connid/1.x/connector-server/[connector server]. The connectors are not bundled with midPoint for many reasons.
 One of the reason is that many connectors are rarely used or even outright exotic.
 Bundling them all would make midPoint distribution too big.
 There are connectors that require third-party libraries to work and we simply cannot bundle them at all.

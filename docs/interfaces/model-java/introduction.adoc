@@ -21,22 +21,22 @@
 
 === Working With Objects
 
-This interface mostly work with midPoint objects as described in our wiki:Data+Model[Data Model]. Please see the wiki:Basic+Data+Model[Basic Data Model] page for a quick introduction to the data model.
-The wiki:Data+Model[Data Model] page expands on that and provides more details.
+This interface mostly work with midPoint objects as described in our xref:/midpoint/reference/schema/[Data Model]. Please see the wiki:Basic+Data+Model[Basic Data Model] page for a quick introduction to the data model.
+The xref:/midpoint/reference/schema/[Data Model] page expands on that and provides more details.
 Almost all state and configuration changes in midPoint are done by creating, modifying and deleting midPoint objects.
 
-Each midPoint objects has a type and an wiki:Object+ID[OID]. These two pieces of information are all you need to read a midPoint object.
+Each midPoint objects has a type and an xref:/midpoint/devel/prism/concepts/object-identifier/[OID]. These two pieces of information are all you need to read a midPoint object.
 This is what identifies an object.
 And both type and OID are immutable.
 Once set these cannot be changed.
 The type is represented as Java class in this interface.
-The wiki:Object+ID[OID] is a string, usually in a form of link:http://en.wikipedia.org/wiki/UUID[UUID].
+The xref:/midpoint/devel/prism/concepts/object-identifier/[OID] is a string, usually in a form of link:http://en.wikipedia.org/wiki/UUID[UUID].
 
 This interface provides a *unified view* of the objects.
 It means that the user of IDM Model Interface does not need to care about where the data resides.
 Some data reside in the midPoint repository (e.g. relational database).
 These are typically objects that represent wiki:UserType[users] or configuration objects.
-Other objects reside partially in midPoint repository and partially on remote resources (e.g. wiki:Shadow+Objects[Shadow Objects]). However this distinction is mostly hidden from the user of IDM Model Interface.
+Other objects reside partially in midPoint repository and partially on remote resources (e.g. xref:/midpoint/reference/resources/shadow/[Shadow Objects]). However this distinction is mostly hidden from the user of IDM Model Interface.
 This interface provides uniform access to all objects regardless of how and where are they stored.
 You can simply read an object and the implementation will figure out how to do that.
 And the implementation will take care of merging the data from several sources, process meta-data, data caching, type conversion and any other mechanism that needs to take place to work with the data.
@@ -44,7 +44,7 @@ And the implementation will take care of merging the data from several sources, 
 
 === Prism Objects and Deltas
 
-Almost all business data are represented in midPoint in a form of wiki:Prism+Objects[Prism Objects]. wiki:Prism+Objects[Prism] is somehow lightweight and very powerful data representation framework.
+Almost all business data are represented in midPoint in a form of xref:/midpoint/devel/prism/[Prism Objects]. xref:/midpoint/devel/prism/[Prism] is somehow lightweight and very powerful data representation framework.
 It can be used to access the data using a variety of interfaces, parse and serialize using multiple data formats (e.g. XML and JSON) and so on.
 This is the basic framework of midPoint data therefore it is also used in all midPoint Java interfaces.
 Please have a look at xref:/midpoint/devel/prism/[Prism] page to get a generic introduction to the framework.
@@ -121,21 +121,21 @@ It can be used to display detailed error information to the user, to automatical
 == Reading Objects
 
 Reading objects is the simplest and perhaps also the most often used operation.
-As midPoint objects are identified by wiki:Object+ID[OID] it is also the most important parameter in the invocation:
+As midPoint objects are identified by xref:/midpoint/devel/prism/concepts/object-identifier/[OID] it is also the most important parameter in the invocation:
 
 [source,java]
 ----
 PrismObject<UserType> user = modelService.getObject(UserType.class, "6bb5c524-5c18-11e3-979a-001e8c717e5b", null, task, result);
 ----
 
-Once retrieved the object can be manipulated using any of the wiki:Prism+Objects[prism] "facets":
+Once retrieved the object can be manipulated using any of the xref:/midpoint/devel/prism/[prism] "facets":
 
 [source,java]
 ----
 String empNo = user.asObjectable().getEmployeeNumber(); // returns the value of user's employeeNumber property
 ----
 
-This works for any object of any type as long as you know wiki:Object+ID[OID]:
+This works for any object of any type as long as you know xref:/midpoint/devel/prism/concepts/object-identifier/[OID]:
 
 [source,java]
 ----
@@ -146,7 +146,7 @@ PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, "399e
 
 == Searching Objects
 
-If you want to do anything interesting with a midPoint object you need to know its wiki:Object+ID[OID]. Most methods need an OID to be able to work properly.
+If you want to do anything interesting with a midPoint object you need to know its xref:/midpoint/devel/prism/concepts/object-identifier/[OID]. Most methods need an OID to be able to work properly.
 Perhaps the only real exception are _search_ methods.
 These methods are designed to obtain midPoint objects even without knowing their OID.
 In fact these methods are often used to find out OID of an object to be used in other midPoint operations.
@@ -190,7 +190,7 @@ modelService.searchObjectsIterative(UserType.class, query, handler, null, task, 
 Unlike other interfaces the MidPoint Java API uses a single method for all changes.
 The method is called `executeChanges` and it takes a collection of wiki:Deltas[deltas] as its argument.
 The trick is to correctly construct the deltas.
-Deltas are part of the wiki:Prism+Objects[Prism] framework that is used in midPoint to represent data.
+Deltas are part of the xref:/midpoint/devel/prism/[Prism] framework that is used in midPoint to represent data.
 
 
 === Creating Objects
@@ -302,7 +302,7 @@ TODO: options: partial reads, resolve, paging, ...
 
 * wiki:IDM+Model+Interface[IDM Model Interface]
 
-* wiki:Prism+Objects[Prism Objects]
+* xref:/midpoint/devel/prism/[Prism Objects]
 
 * wiki:Using+Prism+Objects[Using Prism Objects]
 

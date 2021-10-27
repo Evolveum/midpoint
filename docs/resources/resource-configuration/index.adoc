@@ -12,7 +12,7 @@ Resource definition is perhaps the most important part of link:https://evolveum.
 It configures connection to wiki:Terminology[resource], resource object classes and attributes (xref:/midpoint/reference/resources/resource-schema/[resource schema]), mapping of these attributes to the midPoint user model, resource capabilities, password policies, etc.
 
 Resource definition is an ordinary object in midPoint repository.
-Therefore it has its wiki:Object+ID[OID] and a name that has to be unique across all defined resources.
+Therefore it has its xref:/midpoint/devel/prism/concepts/object-identifier/[OID] and a name that has to be unique across all defined resources.
 The type of the object is wiki:ResourceType[ResourceType] and the internal structure is quite complex.
 Resource definition consists of several parts:
 
@@ -230,7 +230,7 @@ There are used for internal midPoint optimizations.
 
 Please note that while you can see most of the original LDAP attributes there (`cn`, `sn`, `givenName`, ...) some of the attributes are not really from LDAP (`icfs:name`, `icfs:uid`). These attributes are built-in wiki:OpenICF[OpenICF] attributes.
 While we always prefer to use native attribute names it is not practical in this case as ICF hides the attributes from midPoint.
-Similarly for the `inetOrgPerson` objectclass versus ICF `ACCOUNT`{}objectclass (see wiki:ICF+Issues[ICF Issues] for more details).
+Similarly for the `inetOrgPerson` objectclass versus ICF `ACCOUNT`{}objectclass (see xref:/connectors/connid/1.x/icf-issues/[ICF Issues] for more details).
 
 See xref:/midpoint/reference/resources/resource-schema/[Resource Schema] for more details.
 See wiki:Resource+and+Connector+Schema+Explanation[Resource and Connector Schema Explanation] for a detailed description how the dynamic schemas work together.

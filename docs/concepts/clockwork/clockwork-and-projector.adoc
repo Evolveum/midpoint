@@ -26,7 +26,7 @@ Projector distinguished objects into two categories: wiki:Focus+and+Projections[
 * *Focus* which is typically wiki:UserType[user]. Focus is the object which is central to the recomputation.
 The object that links to all the projections.
 
-* *Projection* which is typically an account (represented by wiki:Shadow+Objects[shadow]).
+* *Projection* which is typically an account (represented by xref:/midpoint/reference/resources/shadow/[shadow]).
 
 Projector reflects data from the focus to projections (using wiki:Outbound+Mapping[outbound mappings]) and also from the projections to the focus (using wiki:Inbound+Mapping[inbound mappings]). This happens as many times as necessary to get a complete computation result.
 

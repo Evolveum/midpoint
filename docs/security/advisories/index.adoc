@@ -33,7 +33,7 @@
 
 
 | 4
-| wiki:Security+Advisory:+AD+and+LDAP+connectors+do+not+check+certificate+validity[AD and LDAP connectors do not check certificate validity]
+| xref:/midpoint/reference/security/advisories/004-ad-and-ldap-connectors-do-not-check-certificate-validity/[AD and LDAP connectors do not check certificate validity]
 | 17 Apr 2019
 | High
 | LDAP and Active Directory connectors are not properly checking TLS/SSL certificate validity.

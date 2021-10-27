@@ -51,7 +51,7 @@ image::serviceDefinition.png[]
 
 Service objects in midPoint act as wiki:Focus+and+Projections[focal objects]. It is expected that wiki:Focus+and+Projections[projections] of the service objects will be objects that represent the services on the resource.
 In the above example the service foo.example.com is modeled as service object in midPoint.
-When all the provisioning is done then the midPoint service object will have a projection (wiki:Shadow+Objects[shadow]) in the OpenStack resource.
+When all the provisioning is done then the midPoint service object will have a projection (xref:/midpoint/reference/resources/shadow/[shadow]) in the OpenStack resource.
 This project will represent the virtual machine that was created in the open stack.
 Of course, as any other focal object service can have many projections.
 Therefore the virtual machine may have additional projections that may represent network connections, it may automatically provision the configuration to the network and system management software and so on.

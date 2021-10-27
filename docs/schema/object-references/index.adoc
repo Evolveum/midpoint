@@ -7,7 +7,7 @@
 :page-wiki-metadata-modify-date: 2019-04-03T09:16:31.153+02:00
 :page-upkeep-status: yellow
 
-The wiki:Data+Model[data model] consists of numerous objects that represents common identity management concepts such as user or account.
+The xref:/midpoint/reference/schema/[data model] consists of numerous objects that represents common identity management concepts such as user or account.
 There is a need to _link_ these objects to denote relationship between objects.
 For example, an account may belong to a user, therefore account object has to be linked to a user object.
 Object references are implementing this kind of linking.
@@ -16,7 +16,7 @@ The basic mechanism of object references is described on this page.
 
 == Object References
 
-The objects are linked by using wiki:Object+ID[Object Identifier (OID)] as a linking reference.
+The objects are linked by using xref:/midpoint/devel/prism/concepts/object-identifier/[Object Identifier (OID)] as a linking reference.
 OID is system-wide unique, immutable and has a good chance to also be globally-unique.
 That makes it almost ideal linking identifier.
 
@@ -35,7 +35,7 @@ This is expected, as the account may belong to a different user.
 In this specific case it is a job of a xref:/midpoint/reference/synchronization/examples/[synchronization process] to renew the link as needed.
 
 The specific case show above means that the account _belongs_ to user `jack`, but the links may have various meanings.
-The meaning depends on the property (XML tag) that contains the link and it is described in the wiki:Data+Model[data model]. Following example illustrate various meanings of links and also how the link can be "cascaded".
+The meaning depends on the property (XML tag) that contains the link and it is described in the xref:/midpoint/reference/schema/[data model]. Following example illustrate various meanings of links and also how the link can be "cascaded".
 
 image::object-references-ref-cascade.png[]
 
@@ -139,9 +139,9 @@ We rather chose to allow for some inconsistency - and create processes that shou
 
 == See Also
 
-* wiki:Data+Model[Data Model]
+* xref:/midpoint/reference/schema/[Data Model]
 
-* wiki:Object+ID[Object ID]
+* xref:/midpoint/devel/prism/concepts/object-identifier/[Object ID]
 
 * xref:/midpoint/reference/synchronization/examples/[Synchronization Examples]
 

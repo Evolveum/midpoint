@@ -63,7 +63,7 @@ These expressions are the essential glue that can pass midPoint values to the pr
 As provisioning script languages are connector-specific, also argument passing and formatting is connector specific.
 There may even be several ways how to pass arguments to the script (e.g. as command-line parameters or script variables).
 See the connector documentation for details.
-For example, for xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector/[Active Directory Connector (LDAP)] read also wiki:Powershell+Support+in+AD/LDAP+Connector[Powershell Support in AD/LDAP Connector] for information how the arguments can be passed.
+For example, for xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector/[Active Directory Connector (LDAP)] read also xref:/connectors/resources/active-directory/powershell/[Powershell Support in AD/LDAP Connector] for information how the arguments can be passed.
 
 
 === Criticality

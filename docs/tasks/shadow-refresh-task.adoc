@@ -11,7 +11,7 @@
 
 == Introduction
 
-There are situations, when wiki:Shadow+Objects[shadow objects] do not entirely reflect the reality.
+There are situations, when xref:/midpoint/reference/resources/shadow/[shadow objects] do not entirely reflect the reality.
 Such situations are to be expected, as those "shadows" are actually copies of the data that originate from other systems.
 The shadow objects also contain wiki:Manual+Resource+Configuration[pending operation data] that naturally change in time.
 And there are also cases when the data model evolves and data in the "shadows" need to be updated.

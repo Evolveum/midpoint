@@ -33,7 +33,7 @@ This gives good flexibility to the midPoint deployment and to the architecture o
 However there are typical limitations that are inherent to all remote interfaces such as serialization, communication overhead, difficult to use callbacks, etc.
 Therefore remote interfaces are less convenient to use.
 
-Both local and remote interfaces expose roughly the same functionality and the invocation end up in the same midPoint code (in wiki:IDM+Model+Subsystem[IDM Model Subsystem]). Form this point of view these interfaces are roughly equivalent.
+Both local and remote interfaces expose roughly the same functionality and the invocation end up in the same midPoint code (in xref:/midpoint/architecture/archive/subsystems/model/[IDM Model Subsystem]). Form this point of view these interfaces are roughly equivalent.
 However the remote interfaces are typically adapted to the typical way how individual technology is used.
 E.g. REST interface is designed in a very clean RESTful fashion (very web-like "resource-oriented" architecture).
 Therefore the operations are segregated for each object individually.
@@ -144,7 +144,7 @@ It can be seen as the *primary* midpoint interface.
 This interface can be used to create users, assign account and roles, modify accounts, redefine roles, configure resources and invoke almost any other midPoint feature.
 The interface is using native Java classes and takes full advantage of this environment.
 E.g. input-output (pass-by-reference) objects are used for tasks and results, callbacks are used and so on.
-The objects and deltas are expected to be provided in the form of wiki:Prism+Objects[Prism Objects].
+The objects and deltas are expected to be provided in the form of xref:/midpoint/devel/prism/[Prism Objects].
 
 This interface is ideal for use from code that is local to the midPoint instance (runs in the same JVM), e.g. parts of midPoint such as GUI, plug-ins and hook implementations, custom compile-time add-ons and customization or scripts running midPoint mappings and expressions.
 
@@ -200,7 +200,7 @@ The objects are fetched using HTTP GET operation by using a proper URL.
 The objects are modified by using HTTP POST, PUT and PATCH operation on the same (or similar) URL.
 The objects are presented in XML and (in later versions) JSON.
 Formal interface definition is not available as there is no practical way to do this (RESTful interfaces are said to be self-describing).
-However informal documentation is (will be) available and there is also a wiki:Data+Model[schema] that describes the structure of individual objects.
+However informal documentation is (will be) available and there is also a xref:/midpoint/reference/schema/[schema] that describes the structure of individual objects.
 
 REST interface is *WORK IN PROGRESS*. It will be released in midPoint version 3.0.
 

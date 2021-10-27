@@ -53,7 +53,7 @@ However even this basic support is enough to avoid deployment nightmares.
 It is important to remember that entitlement is a *resource object*. Entitlement resides on the resource.
 It is *not* an object that is maintained by midPoint.
 Entitlements only reflect the reality on the resource.
-Similarly to all other resource-side object the entitlement is represented in midPoint only as a wiki:Shadow+Objects[shadow].
+Similarly to all other resource-side object the entitlement is represented in midPoint only as a xref:/midpoint/reference/resources/shadow/[shadow].
 
 image::schemas-entitlement-1.png[]
 
@@ -62,7 +62,7 @@ image::schemas-entitlement-1.png[]
 
 The primary purpose of an entitlement is to be associated with accounts (*not* users!). E.g. an account can be added as a member of a group.
 This is realized in midPoint by associating a "group entitlement" with user's account.
-MidPoint wiki:Provisioning+Subsystem[provisioning component] modifies the resource in appropriate way to add account to a group.
+MidPoint xref:/midpoint/architecture/archive/subsystems/provisioning/[provisioning component] modifies the resource in appropriate way to add account to a group.
 Similarly to other shadow-related operations midPoint then forgets about it.
 The information remains only on the resource.
 When such association happens the situation looks like this:
@@ -72,7 +72,7 @@ image::schemas-entitlement-2.png[]
 Similarly to accounts midPoint always reads fresh data from the resource when dealing with entitlements.
 Therefore midPoint does not need to remember the association.
 It can read it directly from the resource anytime.
-And that's exactly what midPoint does when an account wiki:Shadow+Objects[shadow] is retrieved:
+And that's exactly what midPoint does when an account xref:/midpoint/reference/resources/shadow/[shadow] is retrieved:
 
 image::schemas-entitlement-3.png[]
 
@@ -324,7 +324,7 @@ But there is an important hard limitation: all the object types referenced from 
 === Association Behavior in MidPoint
 
 MidPoint works with associations in almost the same way how it works with resource object attributes.
-The associations are not stored in midPoint (wiki:Shadow+Objects[Shadow Objects]). The associations are retrieved fresh from the resource.
+The associations are not stored in midPoint (xref:/midpoint/reference/resources/shadow/[Shadow Objects]). The associations are retrieved fresh from the resource.
 This applies to all parts of midPoint and particularly to xref:/midpoint/reference/synchronization/introduction/[synchronization] and the user interface.
 E.g. the user interface will retrieve the associations only when the resource object (account) on the projection tab is expanded.
 Exactly at the same time when attributes are retrieved.
@@ -430,7 +430,7 @@ Therefore we prefer the conservative approach and we rather maintain status quo.
 
 == See Also
 
-* wiki:Shadow+Objects[Shadow Objects]
+* xref:/midpoint/reference/resources/shadow/[Shadow Objects]
 
 * xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]
 

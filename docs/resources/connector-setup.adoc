@@ -33,7 +33,7 @@ At the time of this writing it is:
 
 * xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector]
 
-* wiki:CSVFile+Connector+(legacy)[CSVFile Connector (legacy)]
+* xref:/connectors/connectors/com.evolveum.polygon.csvfile.CSVFileConnector/[CSVFile Connector (legacy)]
 
 * xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable Connector]
 
@@ -184,7 +184,7 @@ As the search filter in the reference is not executed for objects that are alrea
 
 TODO
 
-See also wiki:Connector+Server[Connector Server]
+See also xref:/connectors/connid/1.x/connector-server/[Connector Server]
 
 
 == Upgrade Procedure
@@ -194,8 +194,8 @@ See wiki:Connector+Upgrade[Connector Upgrade] page.
 
 == See Also
 
-* wiki:ConnId[ConnId]
+* xref:/midpoint/reference/resources/connid/[ConnId]
 
 * wiki:Connector+Upgrade[Connector Upgrade]
 
-* wiki:Connector+Server[Connector Server]
+* xref:/connectors/connid/1.x/connector-server/[Connector Server]

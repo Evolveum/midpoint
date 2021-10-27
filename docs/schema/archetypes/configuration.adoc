@@ -39,7 +39,7 @@ Archetypes define character and behavior of "archetyped" objects in `archetypePo
 This part of archetype definition specifies what icons, color and labels to use, which templates to apply and so on.
 
 Archetypes work like wiki:Abstract+Role[abstract roles], therefore all objects that need to be "archetyped" can be simply assigned to an archetype.
-Being a midPoint object, archetype has an natural persistent identifier: wiki:Object+ID[OID]. OID of the archetype definition is also identifier of archetype itself.
+Being a midPoint object, archetype has an natural persistent identifier: xref:/midpoint/devel/prism/concepts/object-identifier/[OID]. OID of the archetype definition is also identifier of archetype itself.
 Each object of that archetype will contain archetype definition OID in `archetypeRef` reference:
 
 [source,xml]

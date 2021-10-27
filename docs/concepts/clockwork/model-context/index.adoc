@@ -61,7 +61,7 @@ MidPoint assumes that this delta was already executed and all it can do is to re
 It is used as an input to the computation.
 This delta will *not* be executed again.
 
-All the objects and deltas are in wiki:Prism+Objects[prism representation].
+All the objects and deltas are in xref:/midpoint/devel/prism/[prism representation].
 
 
 == Implementation Notes

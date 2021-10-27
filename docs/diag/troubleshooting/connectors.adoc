@@ -16,7 +16,7 @@
 
 This page describes the way how to diagnose connector-related problems.
 
-MidPoint is using the wiki:ConnId[ConnId] connector framework.
+MidPoint is using the xref:/midpoint/reference/resources/connid/[ConnId] connector framework.
 Every connector is running in this framework.
 It means that midPoint calls the ConnId framework and the framework calls the connector.
 Therefore when it comes to troubleshooting connector problems there are several places where a problem can occur and also several places where you can get diagnostic data:
@@ -230,7 +230,7 @@ You may also need to enable logging of the libraries that come with the connecto
 You can examine these if you look in the `lib` directory inside the connector JAR file.
 
 Some connectors have really good logging, such as the LDAP connector (and its subclasses).
-The LDAP connector will log all the LDAP operations if you set the `com.evolveum.polygon.connector.ldap.OperationLog` logger to `DEBUG` level (also see wiki:LDAP+Connector+Troubleshooting[LDAP Connector Troubleshooting]):
+The LDAP connector will log all the LDAP operations if you set the `com.evolveum.polygon.connector.ldap.OperationLog` logger to `DEBUG` level (also see xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/troubleshooting/[LDAP Connector Troubleshooting]):
 
 [source]
 ----

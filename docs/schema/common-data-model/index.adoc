@@ -28,14 +28,14 @@ image::synchronization-overview.png[]
 
 == User in the Center
 
-MidPoint provides a concept of an wiki:MidPoint+Common+Schema[User] that acts as a central point in the data model.
+MidPoint provides a concept of an xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/[User] that acts as a central point in the data model.
 In midPoint we try to map everything to the User and from the User, efficiently creating a _common identity schema_ from a User object.
 The User object has properties common to vast majority of IDM deployments, such as first name, last name, e-mail address and so on.
 The User object is also extensible, so custom fields can be easily added to it.
 
 image::synchronization-user.png[]
 
-The User object is one of the objects of midPoint wiki:Data+Model[Data Model] that is built on top of wiki:Prism+Objects[Prism Objects]. MidPoint data model is a kind of _common denominator_ model.
+The User object is one of the objects of midPoint xref:/midpoint/reference/schema/[Data Model] that is built on top of xref:/midpoint/devel/prism/[Prism Objects]. MidPoint data model is a kind of _common denominator_ model.
 It is designed to suit almost all systems that the midPoint will integrate with - source systems, target systems and even identity repositories.
 The midPoint model is based on multi-valued properties grouped into objects, limited to properties with unordered values.
 This model is sufficient for vast majority of IDM cases, it is rich enough to be able to work with it in midPoint code and yet it is simple enough to be easy to map to other models.
@@ -65,7 +65,7 @@ Accounts, groups and similar data structures reside on the resource.
 E.g. LDAP account is an LDAP object stored in the LDAP server datastore.
 MidPoint can access such objects (using xref:/connectors/[connectors]) and work with them.
 But working with such objects is difficult.
-E.g. they do not have wiki:Object+ID[OID] and therefore cannot be directly linked to other objects in midPoint repository.
+E.g. they do not have xref:/midpoint/devel/prism/concepts/object-identifier/[OID] and therefore cannot be directly linked to other objects in midPoint repository.
 Even identification of such objects is difficult as every resource may use different type of identifier.
 The resource may also go down which will make accounts and groups inaccessible to midPoint.
 Therefore we need to replicate part of the data in the midPoint repository in a form of _shadow objects_.
@@ -85,13 +85,13 @@ E.g. an account shadow that represents an LDAP account contains `DN` or `EntryUU
 Shadow representing UNIX system account contains account username or UID number.
 And so on.
 
-Account shadow are then linked to the user by ordinary midPoint linking using wiki:Object+ID[OID]. This indicates that a user _owns_ an account.
+Account shadow are then linked to the user by ordinary midPoint linking using xref:/midpoint/devel/prism/concepts/object-identifier/[OID]. This indicates that a user _owns_ an account.
 
 image::synchronization-user-account.png[]
 
 
 
-See wiki:Shadow+Objects[Shadow Objects] for more information.
+See xref:/midpoint/reference/resources/shadow/[Shadow Objects] for more information.
 
 
 == Other Common Models
@@ -137,6 +137,6 @@ It was used as a guiding principle while creating a specific midPoint data model
 
 == See Also
 
-* wiki:Data+Model[Data Model]
+* xref:/midpoint/reference/schema/[Data Model]
 
 * wiki:IDM+Means+Integration[IDM Means Integration]

@@ -14,7 +14,7 @@ It also contains version of wiki:IDM+Model+Interface[IDM Model Interface] method
 == IDM Model Interface Functions
 
 Following functions directly invoke the operations of wiki:IDM+Model+Interface[IDM Model Interface].The library provides a simplified versions of the operations which are easier to use from scripts.
-The library implementation automatically supplies some required arguments (such as `task` and `result`), provide automatic type conversion and they are also designed to work with the form of wiki:Prism+Objects[prism objects] that is typically used in scripts (the JAXB-like compiled form).
+The library implementation automatically supplies some required arguments (such as `task` and `result`), provide automatic type conversion and they are also designed to work with the form of xref:/midpoint/devel/prism/[prism objects] that is typically used in scripts (the JAXB-like compiled form).
 Therefore use of these functions from scripts is quite seamless.
 
 

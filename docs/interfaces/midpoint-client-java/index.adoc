@@ -29,7 +29,7 @@ The applications should only access the library interface, allowing several impl
 This may be very useful during evolution of the client library for several reasons.
 Firstly the underlying technology will evolve.
 Initial implementation is a simple one based on JAXB.
-But later on when wiki:Prism+Objects[prism] is fully separated from midPoint we will switch the implementation to prism-based one.
+But later on when xref:/midpoint/devel/prism/[prism] is fully separated from midPoint we will switch the implementation to prism-based one.
 Secondly, there may be several implementations of the API at the same time.
 E.g. an implementation that will access the REST service using HTTP and an implementation that will go directly to the Java local wiki:IDM+Model+Interface[IDM Model Interface]. Therefore the same application code can be deployed remotely and also co-located with midPoint in the same web application.
 
@@ -254,7 +254,7 @@ The client was released shortly after midPoint 4.1 release.
 
 === Phase 2
 
-When wiki:Prism+Objects[prism library] gets separated from midPoint we can switch this REST client library implementation to use Prism instead of JAXB.
+When xref:/midpoint/devel/prism/[prism library] gets separated from midPoint we can switch this REST client library implementation to use Prism instead of JAXB.
 This will provide much better handling of schema definitions, object extensions, support for JSON/YAML and so on.
 
 

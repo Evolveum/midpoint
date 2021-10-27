@@ -168,7 +168,7 @@ However, current user interface support for tenancy is the same as support for o
 This is sufficient for many multi-tenant deployments.
 But there is definitely a room for improvement.
 
-In case that you are interested in any of those improvements you can use xref:/support/subscription-sponsoring/[midPoint subscription] to place those improvements on wiki:Roadmap[midPoint roadmap].
+In case that you are interested in any of those improvements you can use xref:/support/subscription-sponsoring/[midPoint subscription] to place those improvements on xref:/midpoint/roadmap/[midPoint roadmap].
 
 
 == See Also

@@ -61,7 +61,7 @@ Such functions are used mostly for diagnostics and troubleshooting.
 |===
 
 All functions in this library log an entry into the system logs.
-Ordinary midPoint wiki:Logging[logging] system is used.
+Ordinary midPoint xref:/midpoint/reference/diag/logging/[logging] system is used.
 The log entries are recorded using `com.evolveum.midpoint.expression` logger.
 The functions have arguments using the link:http://www.slf4j.org/[SLF4J] style: The first argument is a format string.
 Each occurrence of `{}` in the format string is replaced with the argument that follows the format string.

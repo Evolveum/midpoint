@@ -216,7 +216,7 @@ See the wiki:Service+Authorizations[Service Authorizations] page for similar lis
 
 == "Core" Authorizations
 
-MidPoint xref:/midpoint/architecture/[architecture] is designed with the wiki:IDM+Model+Subsystem[IDM Model component] in the centre.
+MidPoint xref:/midpoint/architecture/[architecture] is designed with the xref:/midpoint/architecture/archive/subsystems/model/[IDM Model component] in the centre.
 This was designed with a purpose in mind.
 The IDM Model component is a brain of midPoint.
 It does all the policy processing, evaluates mappings, recomputes objects, wiki:Clockwork+and+Projector[projects values between objects] and does all the other things of identity management logic.
@@ -335,7 +335,7 @@ Since midPoint 3.9 this is a short-cut for get and search authorizations (see be
 
 | Get
 | `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get`
-| Getting objects by wiki:Object+ID[OID]. This authorizations applies to read operations where one specific object is retrieved. +
+| Getting objects by xref:/midpoint/devel/prism/concepts/object-identifier/[OID]. This authorizations applies to read operations where one specific object is retrieved. +
 Note: This authorization also applies to search results.
 While the search authorization governs what can be searched for and how the search filter can be specified, individual results of the search are _reduced_ by using get authorization.
 E.g. the properties of the object for which there is no get authorization are removed.
@@ -401,7 +401,7 @@ Up until midPoint 3.9 there was only one _read_ authorization that governed all 
 Since midPoint 3.9 there are two related, but distinct operations: _get_ and _search_.
 
 _Get_ authorization governs operations when a single specific object is retrieved.
-This is usually the `getObject()` operation that retrieves objects by their wiki:Object+ID[object identifier (OID)]. This is perhaps the most frequently used operation in midPoint.
+This is usually the `getObject()` operation that retrieves objects by their xref:/midpoint/devel/prism/concepts/object-identifier/[object identifier (OID)]. This is perhaps the most frequently used operation in midPoint.
 It is used almost everywhere: when accounts, roles and organizational units of a specific user are retrieved, when midPoint gets information about approvers, owners, resources referenced from tasks and so on.
 This usually happens when midPoint follows _object references_ (e.g. links).
 
@@ -1046,7 +1046,7 @@ Especially if there is a large number of them and they are complex.
 And security best practice effectively prohibits to provide any useful error messages to the user in case that the access is denied.
 Therefore troubleshooting of authorization issues can be quite a demanding task - as any security engineer undoubtedly knows.
 However we have tried to make this task easier by implementing an authorization trace.
-In this mode midPoint will trace processing of all authorization statements and record that in the wiki:Logging[logfiles]. The trace can be enabled by setting the following log levels:
+In this mode midPoint will trace processing of all authorization statements and record that in the xref:/midpoint/reference/diag/logging/[logfiles]. The trace can be enabled by setting the following log levels:
 
 [%autowidth]
 |===
@@ -1197,7 +1197,7 @@ Therefore even if it is present then the password field in the user form will st
 Therefore the only way how the user can change the password is to use credentials self-service page.
 And this page will require old user password (if it is set up to do it).
 
-The bottom line is that the specifics of password change interactions are implemented and enforced in the xref:/midpoint/architecture/archive/subsystems/gui/[GUI]. wiki:IDM+Model+Subsystem[The Model] is only concerned whether the password change is allowed or denied, but it does not care about the actual process.
+The bottom line is that the specifics of password change interactions are implemented and enforced in the xref:/midpoint/architecture/archive/subsystems/gui/[GUI]. xref:/midpoint/architecture/archive/subsystems/model/[The Model] is only concerned whether the password change is allowed or denied, but it does not care about the actual process.
 ====
 
 

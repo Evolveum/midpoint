@@ -496,7 +496,7 @@ But that is expected to be a very rare case.
 
 * xref:/midpoint/reference/resources/resource-schema/[Resource Schema]
 
-* wiki:Shadow+Objects[Shadow Objects]
+* xref:/midpoint/reference/resources/shadow/[Shadow Objects]
 
 * wiki:Resource+Schema+Mapping[Resource Schema Mapping]
 

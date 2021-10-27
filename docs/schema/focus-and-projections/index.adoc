@@ -38,7 +38,7 @@ image::focus-projection-1.png[]
 
 The real situation is slightly more complex.
 As _projections_ are resource objects it is inconvenient to work with them directly.
-Therefore they are represented by wiki:Shadow+Objects[shadows] which is the usual way how midpoint represents all resource objects.
+Therefore they are represented by xref:/midpoint/reference/resources/shadow/[shadows] which is the usual way how midpoint represents all resource objects.
 Shadows can be conveniently linked to focal objects as it is illustrated in the following diagram:
 
 image::focus-projection-2.png[]
@@ -75,12 +75,12 @@ Following object types may act as a focus:
 
 * wiki:Services[Service]
 
-The common thing that all focal objects have are wiki:Assignment[assignments] and the ability to be owners of wiki:Shadow+Objects[shadow objects] (they have an ability to wiki:Assigning+vs+Linking[link]).
+The common thing that all focal objects have are wiki:Assignment[assignments] and the ability to be owners of xref:/midpoint/reference/resources/shadow/[shadow objects] (they have an ability to wiki:Assigning+vs+Linking[link]).
 
 
 === Projections
 
-Projections are simply resource objects represented by wiki:Shadow+Objects[shadow objects]. The shadows contain information about wiki:Kind,+Intent+and+ObjectClass[kind and intent] that are used in synchronization algorithm to sort out projections of the same focal object.
+Projections are simply resource objects represented by xref:/midpoint/reference/resources/shadow/[shadow objects]. The shadows contain information about wiki:Kind,+Intent+and+ObjectClass[kind and intent] that are used in synchronization algorithm to sort out projections of the same focal object.
 
 
 == See Also

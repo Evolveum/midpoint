@@ -103,7 +103,7 @@ But it may improve user experience.
 
 == ConnId Issues
 
-Although there are several wiki:ICF+Issues[known and painful issues in ICF design] there are not critical.
+Although there are several xref:/connectors/connid/1.x/icf-issues/[known and painful issues in ICF design] there are not critical.
 There are many exiting ICF-comaptible connectors developed by several independent companies in the scope of several projects.
 The benefits of ICF greatly outweighs the drawbacks.
 Therefore we have chosen to stick with ConnId as the primary provisioning framework in midPoint.

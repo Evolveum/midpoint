@@ -19,7 +19,7 @@ This page describes how the repository is structured and explains the meaning of
 [TIP]
 ====
 The description of a data model presented here is simplified.
-For the full description of the model please see wiki:Data+Model[Data Model] page and the documentation inside the schema files (XSD).
+For the full description of the model please see xref:/midpoint/reference/schema/[Data Model] page and the documentation inside the schema files (XSD).
 ====
 
 
@@ -34,7 +34,7 @@ image::schemas2-datamodel-user.png[]
 
 
 
-Each object is uniquely identified by wiki:Object+ID[object identifier (OID)]. The object identifier is _immutable_ which means that it cannot change.
+Each object is uniquely identified by xref:/midpoint/devel/prism/concepts/object-identifier/[object identifier (OID)]. The object identifier is _immutable_ which means that it cannot change.
 Never ever.
 This rule gives each object a unique identity that is not lost even if the object is renamed or moved (and renames are quite frequent in practice).
 The OIDs are assigned to an object when the object is created in the midPoint repository.
@@ -265,7 +265,7 @@ However identifiers are essential for midPoint functionality as they are used to
 Accounts are stored in the resource and are *not* in the midPoint repository.
 Therefore it is very difficult to maintain a link between user (which is a midPoint object) and an account (which is not).
 
-MidPoint resolves this difficulty by using wiki:Shadow+Objects[shadow objects] or "shadows" for short.
+MidPoint resolves this difficulty by using xref:/midpoint/reference/resources/shadow/[shadow objects] or "shadows" for short.
 Shadows are ordinary objects in midPoint repository that mirror some of the account characteristics.
 The most important piece of information stored in the shadow is an identifier (or identifiers) of an account that it mirrors.
 
@@ -360,15 +360,15 @@ For more details see wiki:RoleType[RoleType].
 
 == More Documentation
 
-The wiki:Data+Model[Data Model] page provides in-depth description of the data model design principles and purpose (although it may be slightly outdated).
+The xref:/midpoint/reference/schema/[Data Model] page provides in-depth description of the data model design principles and purpose (although it may be slightly outdated).
 
-The wiki:SchemaDoc[SchemaDoc] page contains links to data model documentation that is automatically generated from schema files.
+The xref:/midpoint/reference/schema/schemadoc/[SchemaDoc] page contains links to data model documentation that is automatically generated from schema files.
 
 
 == See Also
 
-* wiki:Data+Model[Data Model]
+* xref:/midpoint/reference/schema/[Data Model]
 
-* wiki:Shadow+Objects[Shadow Objects]
+* xref:/midpoint/reference/resources/shadow/[Shadow Objects]
 
-* wiki:SchemaDoc[SchemaDoc]
+* xref:/midpoint/reference/schema/schemadoc/[SchemaDoc]

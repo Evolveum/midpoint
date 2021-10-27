@@ -471,7 +471,7 @@ It goes "one level deeper" than usual and the inducement is applied to the user 
 This is our case.
 
 .. The second-order inducement includes an interesting expression: xref:/midpoint/reference/expressions/expressions/[associationFromLink expression]. This kind of expression is used to associate the user account (which is still to be created) and the entitlement which is linked to the role (it is a projection of the role).
-The use of this expression is associating the two resource objects dynamically, without any need to specify their wiki:Object+ID[OID]s or names.
+The use of this expression is associating the two resource objects dynamically, without any need to specify their xref:/midpoint/devel/prism/concepts/object-identifier/[OID]s or names.
 MidPoint already has all the information it needs.
 It is hidden in the labyrinth of assignments and links.
 The associationFromLink expression is using that information to construct the correct association.

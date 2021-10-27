@@ -99,7 +99,7 @@ In case that you are running midPoint cluster this configuration needs to be app
 
 == See Also
 
-* wiki:Logging[Logging]
+* xref:/midpoint/reference/diag/logging/[Logging]
 
 * xref:/midpoint/reference/diag/initial-logging/[Initial Logging Setup HOWTO]
 

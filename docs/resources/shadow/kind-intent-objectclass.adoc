@@ -11,7 +11,7 @@
 
 
 Kind, intent and ObjectClass are three terms that are very frequently used in midPoint.
-These terms define a type of resource object (or wiki:Shadow+Objects[shadow]). The _kind_ and _intent_ are midPoint terms.
+These terms define a type of resource object (or xref:/midpoint/reference/resources/shadow/[shadow]). The _kind_ and _intent_ are midPoint terms.
 They define how midPoint is _using_ the object, how midPoint understands its role in the system.
 The _objectClass_ is a native type by which the resource recognizes the object.
 
@@ -67,7 +67,7 @@ Accounts that are not used in the "multi" mode do not have any value for tag.
 
 === Shadow Objects
 
-Kind, intent and tag are stored in wiki:Shadow+Objects[shadow objects]. Those are midPoint internal concepts.
+Kind, intent and tag are stored in xref:/midpoint/reference/resources/shadow/[shadow objects]. Those are midPoint internal concepts.
 They are *not* passed to the connector.
 They are translated to the _object class_ which is then passed to the connector.
 

@@ -89,20 +89,20 @@ It is usually used for connectors that require local access to files such as lin
 
 image::Connector-Server-Deployment.png[]
 
-See wiki:Java+Connector+Server[Java Connector Server] page for more details and for installation instructions.
+See xref:/connectors/connid/1.x/connector-server/java/[Java Connector Server] page for more details and for installation instructions.
 
 ==== .NET Remote Connector Server
 
-.NET Remote Connector Server is a wiki:Connector+Server[Connector Server] that runs on Windows machines using the .NET framework.
+.NET Remote Connector Server is a xref:/connectors/connid/1.x/connector-server/[Connector Server] that runs on Windows machines using the .NET framework.
 Perhaps the only practical purpose of this connector server is to provide environment for Windows-specific connectors.
-Connectors such as wiki:Legacy+Active+Directory+Connector+(.NET)[Legacy Active Directory Connector (.NET)] require proprietary libraries that are only available on Microsoft platforms (.NET) and cannot be used from Java.
+Connectors such as xref:/connectors/connectors/Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector/[Legacy Active Directory Connector (.NET)] require proprietary libraries that are only available on Microsoft platforms (.NET) and cannot be used from Java.
 Therefore midPoint cannot use such libraries in a local connector (or remote Java connector for that matter) and a .NET-based remote connector server is required.
 
 image::Remote-Connector-Server-Deployment.png[]
 
 
 
-See wiki:.NET+Connector+Server[.NET Connector Server] page for more details and for installation instructions.
+See xref:/connectors/connid/1.x/connector-server/dotnet/[.NET Connector Server] page for more details and for installation instructions.
 
 == Reverse Proxy
 

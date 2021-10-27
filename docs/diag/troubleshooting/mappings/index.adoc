@@ -23,7 +23,7 @@ This page describes a method to use to figure out what is wrong, why the mapping
 It is essential to understand how mappings are executed in midPoint.
 Otherwise it is very easy to get lost during troubleshooting.
 MidPoint is a comprehensive system that deals with a very complex problems of data synchronization.
-MidPoint can be set to wiki:Logging[a very fine logging]. But this will produce an ocean of logging entries and it is extremely difficult to find anything meaningful in such an information overload.
+MidPoint can be set to xref:/midpoint/reference/diag/logging/[a very fine logging]. But this will produce an ocean of logging entries and it is extremely difficult to find anything meaningful in such an information overload.
 Therefore the best strategy is to selectively turn on and off the logging only in some parts of the system.
 
 To do this efficiently one needs to know how are the mappings processed in midPoint.
@@ -41,9 +41,9 @@ image::9-2-lens-provisioning-structure.png[]
 
 
 
-xref:/midpoint/architecture/[MidPoint architecture] is designed in such a way that all important requests pass through the wiki:IDM+Model+Subsystem[IDM Model Subsystem]. This makes sure that all requests are processed consistently, that xref:/midpoint/reference/security/authorization/[authorization] is properly applied, that the request is xref:/midpoint/reference/security/audit/[audited], etc.
+xref:/midpoint/architecture/[MidPoint architecture] is designed in such a way that all important requests pass through the xref:/midpoint/architecture/archive/subsystems/model/[IDM Model Subsystem]. This makes sure that all requests are processed consistently, that xref:/midpoint/reference/security/authorization/[authorization] is properly applied, that the request is xref:/midpoint/reference/security/audit/[audited], etc.
 
-Internal implementation of the wiki:IDM+Model+Subsystem[IDM Model Subsystem] heavily relies on wiki:Clockwork+and+Projector[Clockwork and Projector] components.
+Internal implementation of the xref:/midpoint/architecture/archive/subsystems/model/[IDM Model Subsystem] heavily relies on wiki:Clockwork+and+Projector[Clockwork and Projector] components.
 The Clockwork drives processing of the request.
 It does so in two big steps:
 
@@ -55,8 +55,8 @@ There is an InboundProcessor for wiki:Inbound+Mapping[inbound mappings], Outboun
 Each of the processors are invoking the same code to process xref:/midpoint/reference/expressions/mappings/[mappings]. The mapping code in turn invokes xref:/midpoint/reference/expressions/expressions/[expression] code to run scripts, value generators, etc.
 
 . Clockwork invokes provisioning to execute the changes.
-When projector computes the changes then Clockwork invokes wiki:Provisioning+Subsystem[Provisioning Subsystem] to execute the changes.
-Provisioning internally invokes the wiki:ConnId[ConnId connector framework]. ConnId dispatches the invocation to a proper connector code, which executes the operation on the resource.
+When projector computes the changes then Clockwork invokes xref:/midpoint/architecture/archive/subsystems/provisioning/[Provisioning Subsystem] to execute the changes.
+Provisioning internally invokes the xref:/midpoint/reference/resources/connid/[ConnId connector framework]. ConnId dispatches the invocation to a proper connector code, which executes the operation on the resource.
 
 This description is somehow simplified.
 The reality is much more complex.
@@ -552,7 +552,7 @@ Much better approach is to start from the connector operations by using the Conn
 
 === Tracing ConnId Operations
 
-Mail article: wiki:Troubleshooting+Connectors[Troubleshooting Connectors]
+Mail article: xref:/midpoint/reference/diag/troubleshooting/connectors/[Troubleshooting Connectors]
 
 The ConnId connector framework stand between midPoint and the connectors.
 It knows about every operation that midPoint invokes on every connector and it knows about all the return values.
@@ -582,16 +582,16 @@ If the operation does not make sense then the problem is usually in the provisio
 
 However, the operation is logged by the ConnId framework on relatively high level and the operation is still quite abstract.
 If you need more details about what really gets executed you have to rely on the connector logging.
-See wiki:Troubleshooting+Connectors[Troubleshooting Connectors] for more details.
+See xref:/midpoint/reference/diag/troubleshooting/connectors/[Troubleshooting Connectors] for more details.
 
 
 === Connector Traces
 
-Mail article: wiki:Troubleshooting+Connectors[Troubleshooting Connectors]
+Mail article: xref:/midpoint/reference/diag/troubleshooting/connectors/[Troubleshooting Connectors]
 
 Most connectors log at least some information about the operations.
 Some connectors are really good, such as the LDAP connector (and its subclasses).
-The LDAP connector will log all the LDAP operations if you set the `com.evolveum.polygon.connector.ldap.OperationLog` logger to `DEBUG` level (also see wiki:LDAP+Connector+Troubleshooting[LDAP Connector Troubleshooting]):
+The LDAP connector will log all the LDAP operations if you set the `com.evolveum.polygon.connector.ldap.OperationLog` logger to `DEBUG` level (also see xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/troubleshooting/[LDAP Connector Troubleshooting]):
 
 [source]
 ----
@@ -637,7 +637,7 @@ The audit is the easiest way to check that.
 
 == See Also
 
-* wiki:Troubleshooting+Connectors[Troubleshooting Connectors]
+* xref:/midpoint/reference/diag/troubleshooting/connectors/[Troubleshooting Connectors]
 
 * xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 

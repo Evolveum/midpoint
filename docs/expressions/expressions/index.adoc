@@ -156,7 +156,7 @@ Following constructor is referencing the `name` property in the object stored in
 The path expression may seem equivalent to the XPath script expression (see below).
 However there are several important differences.
 The XPath expression constructor is much slower as it needs to invoke XPath language interpreter.
-The path constructor is following the path through wiki:Prism+Objects[prism objects] directly which is much faster.
+The path constructor is following the path through xref:/midpoint/devel/prism/[prism objects] directly which is much faster.
 This also allows the path constructor to follow the modification mode (delta) of the source property which is very useful in some situations.
 Therefore as a rule of the thumb the path constructor should always be preferred if it is possible to use it.
 
@@ -278,7 +278,7 @@ Following configuration snippet provides an example of assignment evaluator that
 This assignment target search expression will look for objects of type wiki:OrgType[OrgType] in midPoint repository.
 It will look up the objects by `name` property.
 The name of the object should be the same as the value of `organizationalUnit` variable.
-If such an object is found than an appropriate wiki:Assignment[assignment] structure is created, the wiki:Object+ID[OID] of the org object is placed inside it.
+If such an object is found than an appropriate wiki:Assignment[assignment] structure is created, the xref:/midpoint/devel/prism/concepts/object-identifier/[OID] of the org object is placed inside it.
 
 [TIP]
 .Search expression evaluators and includeNullInputs

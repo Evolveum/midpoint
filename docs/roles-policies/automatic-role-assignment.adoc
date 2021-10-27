@@ -137,7 +137,7 @@ MidPoint will take care that all of them are evaluated and that the results are 
 == Advanced Techniques
 
 There are more tricks that can be used for role assignment.
-E.g. the target (role or org) can be dynamically created on demand (see wiki:OrgSync+Story+Test[OrgSync Story Test]). Mapping domain and range can be used for more complex cases.
+E.g. the target (role or org) can be dynamically created on demand (see xref:/midpoint/reference/samples/story-tests/orgsync/[OrgSync Story Test]). Mapping domain and range can be used for more complex cases.
 And so on.
 
 

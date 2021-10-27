@@ -145,7 +145,7 @@ _Resource Object Definition_ is mean to be synonym for _Object Class_ in some of
 
 Following XSD snippet provides an example of object class definition.
 The example shows how LDAP `person` object class could be presented in the resource schema.
-The example shows a schema presented by ICF connector, therefore some attributes are mangled into tha ICF mandatory format (e.g. LDAP DN is mangled into ICF `pass:[__NAME__]` which is presented in the resource schema as `icfs:name`). See wiki:ICF+Issues[ICF Issues].
+The example shows a schema presented by ICF connector, therefore some attributes are mangled into tha ICF mandatory format (e.g. LDAP DN is mangled into ICF `pass:[__NAME__]` which is presented in the resource schema as `icfs:name`). See xref:/connectors/connid/1.x/icf-issues/[ICF Issues].
 
 .Object Class Example
 [source,xml]
@@ -248,7 +248,7 @@ Some annotations are authoritative information, some are just suggestions (defau
 [TIP]
 .Prism Annotations
 ====
-Please see also the wiki:Prism+Schema[Prism Schema] that may also be applicable here.
+Please see also the xref:/midpoint/devel/prism/schema/[Prism Schema] that may also be applicable here.
 
 ====
 
@@ -406,9 +406,9 @@ TODO
 
 == See Also
 
-* wiki:Shadow+Objects[Shadow Objects]
+* xref:/midpoint/reference/resources/shadow/[Shadow Objects]
 
-* wiki:Data+Model[Data Model]
+* xref:/midpoint/reference/schema/[Data Model]
 
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]
 

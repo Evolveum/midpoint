@@ -149,7 +149,7 @@ Also please note how the simulated activation capability is configured in the CS
 == Grace Period
 
 The basic principle of the manual and semi-manual connector operation is that midPoint remembers the deltas of operations in progress.
-The deltas are kept in the wiki:Shadow+Objects[shadow objects]. When the operation is finished (case/ticket is closed) then the operation is applied to the cached values and the delta is not needed any more.
+The deltas are kept in the xref:/midpoint/reference/resources/shadow/[shadow objects]. When the operation is finished (case/ticket is closed) then the operation is applied to the cached values and the delta is not needed any more.
 Therefore such deltas are deleted by default.
 However there are two cases when such deltas may be needed:
 

@@ -51,7 +51,7 @@ But it is not.
 In fact it is one of the most difficult parts of software lifecycle management.
 Especially when it comes to upgrades of such a complex and flexible piece of software as all Identity Management products tend to be.
 We have done our best in midPoint to support smooth upgradeability.
-We have a support for wiki:Prism+Objects[data structures] that are wiki:Repository+Subsystem[independent of actual database structure]. We have support for namespaces which reduces the risk of conflicting extensions and new midPoint features.
+We have a support for xref:/midpoint/devel/prism/[data structures] that are wiki:Repository+Subsystem[independent of actual database structure]. We have support for namespaces which reduces the risk of conflicting extensions and new midPoint features.
 The namespaces also properly support data format versioning.
 And many more features that are unique in both identity management field and also in open source software in general.
 These features contribute to a *relatively easy upgrades*. But upgrades are never completely easy.

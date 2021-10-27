@@ -85,7 +85,7 @@ Although Sun adapters and ICF connectors have different API, our team is skilled
 Sun IDM was well-known for representing the data in XML.
 This was great for exporting, transforming and importing data. +
  +
-Evolveum midPoint also uses XML for representing data, but internally, unique wiki:Prism+Objects[Prism] object concept is used, enabling more data representation formats in the future (e.g. JSON).
+Evolveum midPoint also uses XML for representing data, but internally, unique xref:/midpoint/devel/prism/[Prism] object concept is used, enabling more data representation formats in the future (e.g. JSON).
 Currently all objects can be exported and imported as XML objects. +
  +
 The XML data representation is different in Sun IDM and midPoint, but as the product concepts are similar, once the user data is exported from Sun IDM, it can be transformed and imported to midPoint.

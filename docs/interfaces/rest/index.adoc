@@ -154,7 +154,7 @@ Typical example is an execution of a xref:/midpoint/reference/misc/bulk/[bulk ac
 
 According to REST architectural style the web resources should be created by PUT operation.
 However, this assumes that the client knows the URI and therefore it is not very practical.
-E.g. URI of most midPoint objects contains wiki:Object+ID[Object ID], which may or may not be provided by the client.
+E.g. URI of most midPoint objects contains xref:/midpoint/devel/prism/concepts/object-identifier/[Object ID], which may or may not be provided by the client.
 In case that the OID is server-generated the PUT operation is out of question.
 But even if the OID is client-generated this would expect that the client knows how to construct an URI, which is not very RESTful.
 Therefore the PUT operation is not very practical.

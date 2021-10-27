@@ -175,13 +175,13 @@ The mapping is a focus mapping that transforms one focal property (`fullName` of
 ----
 
 As the data are placed in object extension, midPoint does not have compile-time classes (such as UserType or AssignmentType) for such data available.
-Therefore the mapping itself is using operations on wiki:Prism+Objects[prism objects] to get access to the data.
+Therefore the mapping itself is using operations on xref:/midpoint/devel/prism/[prism objects] to get access to the data.
 This is slightly less convenient than using the compile-time classes, but it does the job.
 
 The transform table configuration is taken from the `immediateRole` role variable.
 In a metarole context, this is the role (or organizational unit) to which the metarole applies.
 Which, in our case, is the organizational unit that holds the transformation table.
-Once we got the table in a form of a wiki:Prism+Objects[prism conatiner] (as `transformContainer` variable) all that is needed is to combine operations on prism objects with ordinary Groovy string operations to produce transformed output value.
+Once we got the table in a form of a xref:/midpoint/devel/prism/[prism conatiner] (as `transformContainer` variable) all that is needed is to combine operations on prism objects with ordinary Groovy string operations to produce transformed output value.
 
 [TIP]
 ====

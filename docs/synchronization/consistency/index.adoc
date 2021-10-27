@@ -46,7 +46,7 @@ This object contains some additional information that make it clear what went wr
 
 === Pending Operations
 
-Operations that cannot be executed immediately (synchronously) are stored in wiki:Shadow+Objects[shadow objects] in a form of _pending operations_. Pending operation is a data structure that contains details about unfinished operation.
+Operations that cannot be executed immediately (synchronously) are stored in xref:/midpoint/reference/resources/shadow/[shadow objects] in a form of _pending operations_. Pending operation is a data structure that contains details about unfinished operation.
 This data structure contains:
 
 * wiki:Deltas[Delta] describing the operation

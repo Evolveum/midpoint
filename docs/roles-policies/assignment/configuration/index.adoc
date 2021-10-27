@@ -60,7 +60,7 @@ The very simple form of construction assignment is provided below.
     </assignment>
 ----
 
-This construction specifies that an _account_ should be created on resource identified by wiki:Object+ID[OID]`c0c010c0-d34d-b33f-f00d-333345454545`. When this assignment is processed then such account will be created (if it does not exist already) and linked to the user that has this assignment.
+This construction specifies that an _account_ should be created on resource identified by xref:/midpoint/devel/prism/concepts/object-identifier/[OID]`c0c010c0-d34d-b33f-f00d-333345454545`. When this assignment is processed then such account will be created (if it does not exist already) and linked to the user that has this assignment.
 The assignment is a kind of permanent policy.
 Therefore if such account is deleted sometime later midPoint will try to re-create the account as long as the assignment is there.
 
@@ -217,7 +217,7 @@ If no strength is specified then the construction defaults to _strong_.
 
 xref:/midpoint/reference/resources/entitlements/[Entitlements] are resource objects that represent groups, privileges, resource roles or similar objects that can be associated to accounts.
 Similarly to attribute values, assignments can also specify entitlement associations.
-The simplest way how to specify entitlement association in an assignment is to directly specify entitlement's wiki:Shadow+Objects[shadow]wiki:Object+ID[OID:]
+The simplest way how to specify entitlement association in an assignment is to directly specify entitlement's xref:/midpoint/reference/resources/shadow/[shadow]xref:/midpoint/devel/prism/concepts/object-identifier/[OID:]
 
 .Entitlement association using entitlement shadow OID
 [source,xml]
@@ -247,7 +247,7 @@ This account will be associated with the group represented by shadow with OID `2
 .Entitlements are resource objects
 ====
 Please keep in mind that xref:/midpoint/reference/resources/entitlements/[entitlements] are resource objects such as groups, privileges or ACLs.
-As all resource objects the entitlements are represented by wiki:Shadow+Objects[shadow objects] in midPoint.
+As all resource objects the entitlements are represented by xref:/midpoint/reference/resources/shadow/[shadow objects] in midPoint.
 Therefore the entitlements are referred to by using OID of such shadow objects.
 This is the preferred way how to bind assignment to a specific entitlement.
 The OIDs are designed to be immutable and midPoint will try to maintain the shadow (and its OID) even if the entitlement is renamed.
