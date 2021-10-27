@@ -46,7 +46,7 @@ public class ActivityControlFlowDefinition implements DebugDumpable, Cloneable {
         return bean.debugDump(indent);
     }
 
-    public TaskErrorHandlingStrategyType getErrorHandlingStrategy() {
+    public ActivityErrorHandlingStrategyType getErrorHandlingStrategy() {
         return bean.getErrorHandling();
     }
 

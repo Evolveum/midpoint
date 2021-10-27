@@ -374,7 +374,7 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         return ActivityPath.fromList(identifiers);
     }
 
-    public TaskErrorHandlingStrategyType getErrorHandlingStrategy() {
+    public ActivityErrorHandlingStrategyType getErrorHandlingStrategy() {
         // TODO implement inheritance of the error handling strategy among activities
         return definition.getControlFlowDefinition().getErrorHandlingStrategy();
     }
@@ -383,7 +383,7 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         definition.applyChangeTailoring(tailoring);
     }
 
-    void applySubtaskTailoring(@NotNull ActivitySubtaskSpecificationType subtaskSpecification) {
+    void applySubtaskTailoring(@NotNull ActivitySubtaskDefinitionType subtaskSpecification) {
         definition.applySubtaskTailoring(subtaskSpecification);
     }
 

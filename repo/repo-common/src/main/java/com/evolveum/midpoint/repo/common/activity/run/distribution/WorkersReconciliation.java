@@ -88,7 +88,7 @@ public class WorkersReconciliation {
 
     private ActivityStateType coordinatorActivityState;
 
-    private WorkersManagementType workersConfigBean;
+    private WorkersDefinitionType workersDefinitionBean;
 
     private ExpectedSetup expectedSetup;
 
@@ -143,7 +143,7 @@ public class WorkersReconciliation {
                 return reconciliationResult;
             }
 
-            expectedSetup = ExpectedSetup.create(activity, workersConfigBean, beans, coordinatorTask, rootTask, result);
+            expectedSetup = ExpectedSetup.create(activity, workersDefinitionBean, beans, coordinatorTask, rootTask, result);
             shouldBeWorkers = expectedSetup.getWorkers();
             int startingShouldBeWorkersCount = shouldBeWorkers.size();
 
@@ -207,8 +207,8 @@ public class WorkersReconciliation {
         ActivityDistributionDefinition distributionDefinition = activity.getDistributionDefinition();
 
         // We will eventually remove this constraint, to be able to convert distributed to non-distributed tasks.
-        workersConfigBean = distributionDefinition.getWorkers();
-        argCheck(workersConfigBean != null, "Activity %s in %s (%s) has no workers defined",
+        workersDefinitionBean = distributionDefinition.getWorkers();
+        argCheck(workersDefinitionBean != null, "Activity %s in %s (%s) has no workers defined",
                 activityPath, rootTask, coordinatorTask);
 
         coordinatorActivityState = ActivityStateUtil.getActivityState(coordinatorTask.getActivitiesStateOrClone(), activityPath);
@@ -391,8 +391,8 @@ public class WorkersReconciliation {
     private void createWorkers(OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException {
 
-        Map<WorkerCharacterization, WorkerTasksPerNodeConfigurationType> perNodeConfigurationMap =
-                expectedSetup.getWorkersConfiguration();
+        Map<WorkerCharacterization, WorkersPerNodeDefinitionType> perNodeDefinitionMap =
+                expectedSetup.getWorkersDefinition();
 
         WorkerState workerState = shouldCreateSuspended(options) ?
                 WorkerState.SUSPENDED : determineWorkerState();
@@ -402,7 +402,7 @@ public class WorkersReconciliation {
             if (isScavenging() && !shouldBeWorker.scavenger) {
                 LOGGER.trace("Skipping creation of non-scavenger, as we are in scavenging phase: {}", shouldBeWorker);
             } else {
-                createWorker(shouldBeWorker, perNodeConfigurationMap, workerState, result);
+                createWorker(shouldBeWorker, perNodeDefinitionMap, workerState, result);
                 count++;
             }
         }
@@ -432,7 +432,7 @@ public class WorkersReconciliation {
     }
 
     private void createWorker(WorkerCharacterization workerCharacterization,
-            Map<WorkerCharacterization, WorkerTasksPerNodeConfigurationType> perNodeConfigurationMap,
+            Map<WorkerCharacterization, WorkersPerNodeDefinitionType> perNodeDefinitionMap,
             WorkerState workerState, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException {
         TaskType worker = new TaskType(beans.prismContext);
@@ -440,8 +440,8 @@ public class WorkersReconciliation {
         if (workerCharacterization.group != null) {
             worker.beginExecutionConstraints().group(workerCharacterization.group).end();
         }
-        applyDeltas(worker, workersConfigBean.getOtherDeltas());
-        applyDeltas(worker, perNodeConfigurationMap.get(workerCharacterization).getOtherDeltas());
+        applyDeltas(worker, workersDefinitionBean.getOtherDeltas());
+        applyDeltas(worker, perNodeDefinitionMap.get(workerCharacterization).getOtherDeltas());
 
         worker.setExecutionState(workerState.executionState);
         worker.setSchedulingState(workerState.schedulingState);

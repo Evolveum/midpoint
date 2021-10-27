@@ -11,7 +11,7 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitiesTailoringType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySubtaskSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySubtaskDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTailoringType;
 
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +31,7 @@ public class ActivityTailoring implements Cloneable {
      * It is so common that it doesn't need to be defined via tailoring, but can be
      * specified simply in parent task distribution section.
      */
-    private ActivitySubtaskSpecificationType subtasksForChildren;
+    private ActivitySubtaskDefinitionType subtasksForChildren;
 
     ActivityTailoring() {
     }
@@ -66,7 +66,7 @@ public class ActivityTailoring implements Cloneable {
         return changes;
     }
 
-    public ActivitySubtaskSpecificationType getSubtasksForChildren() {
+    public ActivitySubtaskDefinitionType getSubtasksForChildren() {
         return subtasksForChildren;
     }
 

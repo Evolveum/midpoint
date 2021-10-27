@@ -35,7 +35,8 @@ public class InternalOperationsReport extends AbstractReport {
 
     @NotNull private final List<FastFilter> fastFilters = new ArrayList<>();
 
-    public InternalOperationsReport(InternalOperationsReportConfigurationType definition, @NotNull CurrentActivityState<?> activityState) {
+    public InternalOperationsReport(InternalOperationsReportDefinitionType definition,
+            @NotNull CurrentActivityState<?> activityState) {
         super(definition, InternalOperationRecordType.COMPLEX_TYPE, activityState);
         if (definition != null) {
             definition.getFastFilter()

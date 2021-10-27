@@ -101,17 +101,17 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
             OperationResultBuilder resultBuilder = OperationResult.createFor(OP_ON_MESSAGE);
             try {
 
-                ActivityTracingConfigurationType tracingConfig = connectorInstance.getConfiguration()
+                ActivityTracingDefinitionType tracing = connectorInstance.getConfiguration()
                         .getProcessTracingConfiguration();
-                if (tracingConfig != null) {
-                    int interval = defaultIfNull(tracingConfig.getInterval(), 1);
+                if (tracing != null) {
+                    int interval = defaultIfNull(tracing.getInterval(), 1);
                     boolean matches = interval > 0 && messageNumber % interval == 0;
                     if (matches) {
-                        task.setTracingProfile(tracingConfig.getTracingProfile());
-                        if (tracingConfig.getTracingPoint().isEmpty()) {
+                        task.setTracingProfile(tracing.getTracingProfile());
+                        if (tracing.getTracingPoint().isEmpty()) {
                             task.addTracingRequest(TracingRootType.ASYNCHRONOUS_MESSAGE_PROCESSING);
                         } else {
-                            tracingConfig.getTracingPoint().forEach(task::addTracingRequest);
+                            tracing.getTracingPoint().forEach(task::addTracingRequest);
                         }
                     }
                 }

@@ -234,7 +234,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         applyExecutionModeTailoring(tailoring);
     }
 
-    public void applySubtaskTailoring(@NotNull ActivitySubtaskSpecificationType subtaskSpecification) {
+    public void applySubtaskTailoring(@NotNull ActivitySubtaskDefinitionType subtaskSpecification) {
         distributionDefinition.applySubtaskTailoring(subtaskSpecification);
     }
 

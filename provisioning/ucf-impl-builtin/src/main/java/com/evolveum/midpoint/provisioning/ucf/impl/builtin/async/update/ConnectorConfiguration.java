@@ -23,7 +23,7 @@ public class ConnectorConfiguration {
     private AsyncUpdateSourcesType sources;
     private ExpressionType transformExpression;
     private AsyncUpdateErrorHandlingActionType errorHandlingAction;
-    private ActivityTracingConfigurationType processTracingConfiguration;
+    private ActivityTracingDefinitionType processTracingConfiguration;
 
     @ConfigurationItem
     public AsyncUpdateSourcesType getSources() {
@@ -53,11 +53,11 @@ public class ConnectorConfiguration {
     }
 
     @ConfigurationItem
-    public ActivityTracingConfigurationType getProcessTracingConfiguration() {
+    public ActivityTracingDefinitionType getProcessTracingConfiguration() {
         return processTracingConfiguration;
     }
 
-    public void setProcessTracingConfiguration(ActivityTracingConfigurationType processTracingConfiguration) {
+    public void setProcessTracingConfiguration(ActivityTracingDefinitionType processTracingConfiguration) {
         this.processTracingConfiguration = processTracingConfiguration;
     }
 

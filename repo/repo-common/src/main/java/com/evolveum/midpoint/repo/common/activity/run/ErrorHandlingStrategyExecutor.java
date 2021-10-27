@@ -127,9 +127,9 @@ public class ErrorHandlingStrategyExecutor {
         return defaultFollowUpAction;
     }
 
-    private boolean matches(@NotNull TaskErrorHandlingStrategyEntryType entry, @NotNull OperationResultStatus status,
+    private boolean matches(@NotNull ActivityErrorHandlingStrategyEntryType entry, @NotNull OperationResultStatus status,
             @NotNull ErrorCategoryType category) {
-        TaskErrorSituationSelectorType situation = entry.getSituation();
+        ErrorSituationSelectorType situation = entry.getSituation();
         return situation == null ||
                 statusMatches(situation.getStatus(), status) && categoryMatches(situation.getErrorCategory(), category);
     }
@@ -150,7 +150,7 @@ public class ErrorHandlingStrategyExecutor {
             return STOP;
         }
 
-        TaskErrorReactionType reaction = entry.entry.getReaction();
+        ErrorReactionType reaction = entry.entry.getReaction();
         if (reaction == null) {
             return STOP;
         }
@@ -166,7 +166,7 @@ public class ErrorHandlingStrategyExecutor {
         }
     }
 
-    private FollowUpAction getDefaultAction(TaskErrorReactionType reaction) {
+    private FollowUpAction getDefaultAction(ErrorReactionType reaction) {
         if (reaction.getStopAfter() != null) {
             return CONTINUE;
         } else {
@@ -174,7 +174,7 @@ public class ErrorHandlingStrategyExecutor {
         }
     }
 
-    private FollowUpAction processRetryLater(TaskErrorReactionType reaction, @Nullable String shadowOid,
+    private FollowUpAction processRetryLater(ErrorReactionType reaction, @Nullable String shadowOid,
             @NotNull OperationResult opResult) {
         if (shadowOid == null) {
             LOGGER.warn("'retryLater' reaction was configured but there is no shadow to attach trigger to. Having to stop "
@@ -213,29 +213,29 @@ public class ErrorHandlingStrategyExecutor {
         return XmlTypeConverter.fromNow(defaultIfNull(retryReaction.getInitialInterval(), DEFAULT_INITIAL_RETRY_INTERVAL));
     }
 
-    private List<TaskErrorHandlingStrategyEntryType> getErrorHandlingStrategyEntryList(Activity<?, ?> activity, Task task) {
+    private List<ActivityErrorHandlingStrategyEntryType> getErrorHandlingStrategyEntryList(Activity<?, ?> activity, Task task) {
 
         // The current way
-        TaskErrorHandlingStrategyType strategyFromActivity = activity.getErrorHandlingStrategy();
+        ActivityErrorHandlingStrategyType strategyFromActivity = activity.getErrorHandlingStrategy();
         if (strategyFromActivity != null) {
-            TaskErrorHandlingStrategyType clone = strategyFromActivity.clone();
+            ActivityErrorHandlingStrategyType clone = strategyFromActivity.clone();
             clone.asPrismContainerValue().freeze();
             return clone.getEntry();
         }
 
         // The 4.3.x way
-        TaskErrorHandlingStrategyType strategyFromTask = task.getErrorHandlingStrategy();
+        ActivityErrorHandlingStrategyType strategyFromTask = task.getErrorHandlingStrategy();
         if (strategyFromTask != null) {
-            TaskErrorHandlingStrategyType clone = strategyFromTask.clone();
+            ActivityErrorHandlingStrategyType clone = strategyFromTask.clone();
             clone.asPrismContainerValue().freeze();
             return clone.getEntry();
         }
 
         // The 4.2.x way
-        TaskErrorHandlingStrategyType strategyFromExtension =
+        ActivityErrorHandlingStrategyType strategyFromExtension =
                 task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_LIVE_SYNC_ERROR_HANDLING_STRATEGY);
         if (strategyFromExtension != null) {
-            TaskErrorHandlingStrategyType clone = strategyFromExtension.clone();
+            ActivityErrorHandlingStrategyType clone = strategyFromExtension.clone();
             clone.asPrismContainerValue().freeze();
             return clone.getEntry();
         }
@@ -244,10 +244,10 @@ public class ErrorHandlingStrategyExecutor {
     }
 
     private static class StrategyEntryInformation {
-        @NotNull private final TaskErrorHandlingStrategyEntryType entry; // frozen (due to thread safety)
+        @NotNull private final ActivityErrorHandlingStrategyEntryType entry; // frozen (due to thread safety)
         @NotNull private final AtomicInteger matches = new AtomicInteger();
 
-        private StrategyEntryInformation(TaskErrorHandlingStrategyEntryType entry) {
+        private StrategyEntryInformation(ActivityErrorHandlingStrategyEntryType entry) {
             this.entry = entry.clone();
             this.entry.asPrismContainerValue().freeze();
         }

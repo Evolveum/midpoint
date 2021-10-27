@@ -1667,7 +1667,7 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public TaskErrorHandlingStrategyType getErrorHandlingStrategy() {
+    public ActivityErrorHandlingStrategyType getErrorHandlingStrategy() {
         synchronized (prismAccess) {
             return taskPrism.asObjectable().getErrorHandlingStrategy();
         }

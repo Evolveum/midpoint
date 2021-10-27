@@ -13,10 +13,11 @@ import static com.evolveum.midpoint.util.MiscUtil.or0;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BucketManagementOperationStatisticsType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketManagementStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketManagementOperationPerformanceInformationType;
 
 public class ActivityBucketManagementStatistics extends Initializable {
 
@@ -41,54 +42,54 @@ public class ActivityBucketManagementStatistics extends Initializable {
     public synchronized void register(String situation, long totalTime, int conflictCount, long conflictWastedTime,
             int bucketWaitCount, long bucketWaitTime, int bucketsReclaimed) {
         assertInitialized();
-        WorkBucketManagementOperationPerformanceInformationType operation = null;
-        for (WorkBucketManagementOperationPerformanceInformationType op : value.getOperation()) {
+        BucketManagementOperationStatisticsType operation = null;
+        for (BucketManagementOperationStatisticsType op : value.getOperation()) {
             if (op.getName().equals(situation)) {
                 operation = op;
                 break;
             }
         }
         if (operation == null) {
-            operation = new WorkBucketManagementOperationPerformanceInformationType();
+            operation = new BucketManagementOperationStatisticsType();
             operation.setName(situation);
             value.getOperation().add(operation);
         }
         operation.setCount(or0(operation.getCount()) + 1);
-        addTime(operation, totalTime, WorkBucketManagementOperationPerformanceInformationType::getTotalTime,
-                WorkBucketManagementOperationPerformanceInformationType::getMinTime,
-                WorkBucketManagementOperationPerformanceInformationType::getMaxTime,
-                WorkBucketManagementOperationPerformanceInformationType::setTotalTime,
-                WorkBucketManagementOperationPerformanceInformationType::setMinTime,
-                WorkBucketManagementOperationPerformanceInformationType::setMaxTime);
+        addTime(operation, totalTime, BucketManagementOperationStatisticsType::getTotalTime,
+                BucketManagementOperationStatisticsType::getMinTime,
+                BucketManagementOperationStatisticsType::getMaxTime,
+                BucketManagementOperationStatisticsType::setTotalTime,
+                BucketManagementOperationStatisticsType::setMinTime,
+                BucketManagementOperationStatisticsType::setMaxTime);
         if (conflictCount > 0 || conflictWastedTime > 0) {
             operation.setConflictCount(or0(operation.getConflictCount()) + conflictCount);
             addTime(operation, conflictWastedTime,
-                    WorkBucketManagementOperationPerformanceInformationType::getTotalWastedTime,
-                    WorkBucketManagementOperationPerformanceInformationType::getMinWastedTime,
-                    WorkBucketManagementOperationPerformanceInformationType::getMaxWastedTime,
-                    WorkBucketManagementOperationPerformanceInformationType::setTotalWastedTime,
-                    WorkBucketManagementOperationPerformanceInformationType::setMinWastedTime,
-                    WorkBucketManagementOperationPerformanceInformationType::setMaxWastedTime);
+                    BucketManagementOperationStatisticsType::getTotalWastedTime,
+                    BucketManagementOperationStatisticsType::getMinWastedTime,
+                    BucketManagementOperationStatisticsType::getMaxWastedTime,
+                    BucketManagementOperationStatisticsType::setTotalWastedTime,
+                    BucketManagementOperationStatisticsType::setMinWastedTime,
+                    BucketManagementOperationStatisticsType::setMaxWastedTime);
         }
         if (bucketWaitCount > 0 || bucketsReclaimed > 0 || bucketWaitTime > 0) {
             operation.setBucketWaitCount(or0(operation.getBucketWaitCount()) + bucketWaitCount);
             operation.setBucketsReclaimed(or0(operation.getBucketsReclaimed()) + bucketsReclaimed);
-            addTime(operation, bucketWaitTime, WorkBucketManagementOperationPerformanceInformationType::getTotalWaitTime,
-                    WorkBucketManagementOperationPerformanceInformationType::getMinWaitTime,
-                    WorkBucketManagementOperationPerformanceInformationType::getMaxWaitTime,
-                    WorkBucketManagementOperationPerformanceInformationType::setTotalWaitTime,
-                    WorkBucketManagementOperationPerformanceInformationType::setMinWaitTime,
-                    WorkBucketManagementOperationPerformanceInformationType::setMaxWaitTime);
+            addTime(operation, bucketWaitTime, BucketManagementOperationStatisticsType::getTotalWaitTime,
+                    BucketManagementOperationStatisticsType::getMinWaitTime,
+                    BucketManagementOperationStatisticsType::getMaxWaitTime,
+                    BucketManagementOperationStatisticsType::setTotalWaitTime,
+                    BucketManagementOperationStatisticsType::setMinWaitTime,
+                    BucketManagementOperationStatisticsType::setMaxWaitTime);
         }
     }
 
-    private void addTime(WorkBucketManagementOperationPerformanceInformationType operation,
-            long time, Function<WorkBucketManagementOperationPerformanceInformationType, Long> getterTotal,
-            Function<WorkBucketManagementOperationPerformanceInformationType, Long> getterMin,
-            Function<WorkBucketManagementOperationPerformanceInformationType, Long> getterMax,
-            BiConsumer<WorkBucketManagementOperationPerformanceInformationType, Long> setterTotal,
-            BiConsumer<WorkBucketManagementOperationPerformanceInformationType, Long> setterMin,
-            BiConsumer<WorkBucketManagementOperationPerformanceInformationType, Long>  setterMax) {
+    private void addTime(BucketManagementOperationStatisticsType operation,
+            long time, Function<BucketManagementOperationStatisticsType, Long> getterTotal,
+            Function<BucketManagementOperationStatisticsType, Long> getterMin,
+            Function<BucketManagementOperationStatisticsType, Long> getterMax,
+            BiConsumer<BucketManagementOperationStatisticsType, Long> setterTotal,
+            BiConsumer<BucketManagementOperationStatisticsType, Long> setterMin,
+            BiConsumer<BucketManagementOperationStatisticsType, Long>  setterMax) {
         setterTotal.accept(operation, or0(getterTotal.apply(operation)) + time);
         Long min = getterMin.apply(operation);
         if (min == null || time < min) {
