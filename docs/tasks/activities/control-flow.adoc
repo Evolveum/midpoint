@@ -1,6 +1,6 @@
 = Control Flow
 
-Here we describe the definition of control flow for link:../[activities].
+Here we describe the definition of control flow for xref:../[activities].
 
 [NOTE]
 ====

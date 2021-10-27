@@ -1,6 +1,6 @@
 = Object Set Specification
 
-Here we describe how sets of repository objects are specified in link:../[activities].
+Here we describe how sets of repository objects are specified in xref:../[activities].
 (Represented by `ObjectSetType` type.)
 
 [%header]

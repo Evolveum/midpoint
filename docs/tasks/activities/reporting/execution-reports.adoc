@@ -91,7 +91,7 @@ the candidate record (row) that is to be written into the report. It is of the f
 | Internal operations | `InternalOperationRecordType`
 |===
 
-A special use of buckets report is when link:../bucket-analysis/[bucket analysis] is done.
+A special use of buckets report is when xref:../bucket-analysis/[bucket analysis] is done.
 
 == Report on Items
 
@@ -294,7 +294,7 @@ of this reporting for the particular item be written to the file. | Write the re
 |===
 
 A combination of `beforeItemCondition` and `afterItemCondition` can be used e.g. to selectively write traces
-for items that took too long or ended with a failure. (Just like for regular link:../tracing[tracing].)
+for items that took too long or ended with a failure. (Just like for regular xref:../tracing[tracing].)
 
 ==== Fast filtering
 

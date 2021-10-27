@@ -14,7 +14,7 @@ As of midPoint 4.4, the following items are supported (MT means "Supports multi-
 .2+| Y
 .2+| Y
 | `objects`
-| What link:../object-set-specification/[objects] to recompute.
+| What xref:../object-set-specification/[objects] to recompute.
 | All of `AssignmentHolderType`.
 | `executionOptions`
 | What options to use.
@@ -26,7 +26,7 @@ As of midPoint 4.4, the following items are supported (MT means "Supports multi-
 | Y
 | Y
 | `resourceObjects`
-| What link:../resource-object-set-specification/[resource objects] to import.
+| What xref:../resource-object-set-specification/[resource objects] to import.
 | This is obligatory parameter.
 
 | `reconciliation`
@@ -35,7 +35,7 @@ As of midPoint 4.4, the following items are supported (MT means "Supports multi-
 | Y
 | Y
 | `resourceObjects`
-| What link:../resource-object-set-specification/[resource objects] to reconcile.
+| What xref:../resource-object-set-specification/[resource objects] to reconcile.
 | This is obligatory parameter.
 
 | `asynchronousUpdate`
@@ -44,7 +44,7 @@ As of midPoint 4.4, the following items are supported (MT means "Supports multi-
 | Y
 | N
 | `updatedResourceObjects`
-| What link:../resource-object-set-specification/[resource objects] to receive updates for. (Not all configuration items are supported - TODO.)
+| What xref:../resource-object-set-specification/[resource objects] to receive updates for. (Not all configuration items are supported - TODO.)
 | This is obligatory parameter.
 
 .3+| `liveSynchronization`
@@ -53,7 +53,7 @@ As of midPoint 4.4, the following items are supported (MT means "Supports multi-
 .3+| Y
 .3+| N
 | `resourceObjects`
-| What link:../resource-object-set-specification/[resource objects] to synchronize.
+| What xref:../resource-object-set-specification/[resource objects] to synchronize.
 | This is obligatory parameter.
 | `batchSize`
 | If a positive value of `N` is specified here, live synchronization fetches
@@ -128,7 +128,7 @@ campaigns, output reports, and dead nodes.
 .2+| Y
 .2+| Y
 | `objects`
-| What link:../object-set-specification/[objects] to process.
+| What xref:../object-set-specification/[objects] to process.
 | All objects in repo.
 | `scriptExecutionRequest`
 | Script to execute (`ExecuteScriptType`). Contains scripting expression, `options`, and `variables`. Note: `input` can be set,
@@ -159,7 +159,7 @@ explicitly added triggered validity policy rule. Note that this is an *experimen
 .3+| Y
 .3+| Y
 | `objects`
-| What link:../object-set-specification/[objects] to scan. If a query is present, the filter computed
+| What xref:../object-set-specification/[objects] to scan. If a query is present, the filter computed
 by the activity is added to it (as a conjunction).
 | All of `FocusType`.
 | `queryStyle`
@@ -178,7 +178,7 @@ in two separate sub-activities.
 | Y
 | Y
 | `objects`
-| What link:../object-set-specification/[objects] to scan. If a query is present, the filter computed
+| What xref:../object-set-specification/[objects] to scan. If a query is present, the filter computed
 by the activity is added to it (as a conjunction).
 | All of `ObjectType`.
 
@@ -188,7 +188,7 @@ by the activity is added to it (as a conjunction).
 | Y
 | Y
 | `shadows`
-| What link:../object-set-specification/[shadows] to process. If a query with filter is present, it _replaces_ the default query.
+| What xref:../object-set-specification/[shadows] to process. If a query with filter is present, it _replaces_ the default query.
 If a query without filter is present, the default filter is "implanted" into it (reusing e.g. the ordering).
 | All shadows with pending operations.
 
@@ -198,7 +198,7 @@ If a query without filter is present, the default filter is "implanted" into it 
 .3+| Y
 .3+| Y
 | `objects`
-| What link:../object-set-specification/[objects] to process.
+| What xref:../object-set-specification/[objects] to process.
 | All of `ObjectType` (can be dangerous!)
 | `delta`
 | What delta to apply.
@@ -213,7 +213,7 @@ If a query without filter is present, the default filter is "implanted" into it 
 | Y
 | Y
 | `objects`
-| What link:../object-set-specification/[objects] to reindex.
+| What xref:../object-set-specification/[objects] to reindex.
 | All of `ObjectType`.
 
 .2+| `shadowCleanup`
@@ -222,7 +222,7 @@ If a query without filter is present, the default filter is "implanted" into it 
 .2+| Y
 .2+| Y
 | `shadows`
-| What link:../resource-object-set-specification/[shadows] to check. The task works only if given resource is not in maintenance mode. If a query is specified, it is always
+| What xref:../resource-object-set-specification/[shadows] to check. The task works only if given resource is not in maintenance mode. If a query is specified, it is always
 appended to the default time-scanning query.
 | Obligatory.
 | `interval`

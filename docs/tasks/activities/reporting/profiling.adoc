@@ -1,7 +1,7 @@
 = Dynamic Profiling
 :page-experimental: true
 
-Dynamic profiling is a predecessor to link:../tracing/[tracing]. It logs selected methods' execution directly to the log file.
+Dynamic profiling is a predecessor to xref:../tracing/[tracing]. It logs selected methods' execution directly to the log file.
 Usually, the tracing is more convenient. However, for completeness we keep this (older) method as well.
 
 [%header]

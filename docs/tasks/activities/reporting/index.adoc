@@ -1,6 +1,6 @@
 = Reporting
 
-Here we describe the definition of reporting for link:../[activities].
+Here we describe the definition of reporting for xref:../[activities].
 
 [NOTE]
 ====

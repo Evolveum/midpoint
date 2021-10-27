@@ -1,6 +1,6 @@
 = Resource Object Set Specification
 
-Here we describe how sets of resource objects are specified in link:../[activities].
+Here we describe how sets of resource objects are specified in xref:../[activities].
 (Represented by `ResourceObjectSetType` type.)
 
 [%header]
@@ -16,7 +16,7 @@ Here we describe how sets of resource objects are specified in link:../[activiti
 `resourceRef` / `objectclass` / `kind` / `intent` specification. | Depends on activity. E.g. `replace` for import from resource.
 | `searchOptions` | Search options to use. | No options.
 | `failedObjectsSelector` | Used for activities intended to re-process objects that failed to be processed by a "regular" activity
-that was run before. See link:../object-set-specification/#_failed_objects_selector[here]. | No failed objects selection. (Processing all objects.)
+that was run before. See xref:../object-set-specification/#_failed_objects_selector[here]. | No failed objects selection. (Processing all objects.)
 |===
 
 TODO describe the effect of various combinations, e.g.

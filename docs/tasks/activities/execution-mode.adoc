@@ -1,6 +1,6 @@
 = Execution Mode
 
-Here we describe the options for `executionMode` setting of link:../[activities].
+Here we describe the options for `executionMode` setting of xref:../[activities].
 
 [%header]
 [%autowidth]

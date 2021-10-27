@@ -10,7 +10,7 @@
 :page-toc: top
 
 
-Basic idea of flexible authentication is described on link:..[Flexible Authentication] page.
+Basic idea of flexible authentication is described on xref:..[Flexible Authentication] page.
 Before we describe configuration of flexible authentication, we have to become acquainted with a few terms.
 
 
@@ -1054,6 +1054,6 @@ Please see xref:/midpoint/features/planned/flexible-authentication/[Flexible Aut
 
 == See Also
 
-* link:..[Flexible Authentication]
+* xref:..[Flexible Authentication]
 
 * xref:/midpoint/reference/security/security-policy[Security Policy Configuration]

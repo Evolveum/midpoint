@@ -15,7 +15,7 @@ To aid with this, midPoint provides the ability to:
 1. report on bucket processing, to allow to analyze the bucket distribution ex-post;
 2. analyze the bucket distribution ex-ante, i.e. without actually executing the activity.
 
-The former can be set up simply by enabling link:../execution-reports[bucket-level reports].
+The former can be set up simply by enabling xref:../execution-reports[bucket-level reports].
 The latter is the topic of this document.
 
 == Set-Up

@@ -10,7 +10,7 @@
 [TIP]
 ====
 The following information applies to the "Generic" (old) SQL repository implementation.
-New Native repository uses different upgrade described link:../native-postgresq/usage/[here].
+New Native repository uses different upgrade described xref:../native-postgresq/usage/[here].
 ====
 
 _Database schema version_ is an indication of a version of the database schema, i.e. the structure of database tables, indices, constraints, and so on.
