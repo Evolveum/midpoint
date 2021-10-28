@@ -87,7 +87,7 @@ public class IntegrationTestTools {
 
     private static final String OBJECT_TITLE_OUT_PREFIX = "\n*** ";
     private static final String OBJECT_TITLE_LOG_PREFIX = "*** ";
-    private static final String LOG_MESSAGE_PREFIX = "";
+    static final String LOG_MESSAGE_PREFIX = "";
     private static final String OBJECT_LIST_SEPARATOR = "---";
     private static final long WAIT_FOR_LOOP_SLEEP_MILLIS = 500;
 
@@ -1162,7 +1162,7 @@ public class IntegrationTestTools {
         IntegrationTestTools.silentConsole = silentConsole;
     }
 
-    private static void println(String s) {
+    static void println(String s) {
         if (!silentConsole) {
             System.out.println(s);
         }

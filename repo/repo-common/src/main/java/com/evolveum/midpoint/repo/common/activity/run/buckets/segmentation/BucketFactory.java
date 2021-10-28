@@ -26,17 +26,17 @@ import java.util.List;
 public class BucketFactory {
 
     @NotNull private final BucketContentFactory contentFactory;
-    private final WorkAllocationConfigurationType allocationConfig;
+    private final WorkAllocationDefinitionType allocationDefinition;
 
-    private BucketFactory(@NotNull BucketContentFactory contentFactory, WorkBucketsManagementType bucketingConfig) {
-        this.allocationConfig = bucketingConfig != null ? bucketingConfig.getAllocation() : null;
+    private BucketFactory(@NotNull BucketContentFactory contentFactory, BucketsDefinitionType bucketing) {
+        this.allocationDefinition = bucketing != null ? bucketing.getAllocation() : null;
         this.contentFactory = contentFactory;
     }
 
     public static BucketFactory create(@Nullable ActivityDistributionDefinition distributionDefinition,
             @Nullable ImplicitSegmentationResolver implicitSegmentationResolver, @NotNull CommonTaskBeans beans) {
 
-        @Nullable WorkBucketsManagementType bucketingConfig =
+        @Nullable BucketsDefinitionType bucketingConfig =
                 distributionDefinition != null ? distributionDefinition.getBuckets() : null;
 
         return new BucketFactory(
@@ -92,8 +92,8 @@ public class BucketFactory {
     }
 
     private int getBucketCreationBatch() {
-        if (allocationConfig != null && allocationConfig.getBucketCreationBatch() != null) {
-            return allocationConfig.getBucketCreationBatch();
+        if (allocationDefinition != null && allocationDefinition.getBucketCreationBatch() != null) {
+            return allocationDefinition.getBucketCreationBatch();
         } else {
             return 1;
         }

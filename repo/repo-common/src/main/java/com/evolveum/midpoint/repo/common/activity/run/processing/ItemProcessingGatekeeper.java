@@ -236,21 +236,21 @@ class ItemProcessingGatekeeper<I> {
     }
 
     private boolean beforeConditionForConnIdReportPasses(OperationResult result) {
-        ConnIdOperationsReportConfigurationType def =
+        ConnIdOperationsReportDefinitionType def =
                 activityRun.getActivity().getReportingDefinition().getConnIdOperationsReportDefinition();
         assert def != null;
         return conditionEvaluator.anyItemReportingConditionApplies(def.getBeforeItemCondition(), result);
     }
 
     private boolean beforeConditionForInternalOpReportPasses(OperationResult result) {
-        InternalOperationsReportConfigurationType def =
+        InternalOperationsReportDefinitionType def =
                 activityRun.getActivity().getReportingDefinition().getInternalOperationsReportDefinition();
         assert def != null;
         return conditionEvaluator.anyItemReportingConditionApplies(def.getBeforeItemCondition(), result);
     }
 
     private boolean afterConditionForInternalOpReportPasses(OperationResult result) {
-        InternalOperationsReportConfigurationType def =
+        InternalOperationsReportDefinitionType def =
                 activityRun.getActivity().getReportingDefinition().getInternalOperationsReportDefinition();
         assert def != null;
         return conditionEvaluator.anyItemReportingConditionApplies(def.getAfterItemCondition(),

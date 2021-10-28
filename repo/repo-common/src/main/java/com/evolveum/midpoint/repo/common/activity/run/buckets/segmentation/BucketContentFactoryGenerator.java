@@ -43,10 +43,10 @@ public class BucketContentFactoryGenerator {
      * Creates work state management strategy based on provided configuration.
      */
     @NotNull
-    public BucketContentFactory createContentFactory(@Nullable WorkBucketsManagementType bucketingConfig,
+    public BucketContentFactory createContentFactory(@Nullable BucketsDefinitionType bucketing,
             @Nullable ImplicitSegmentationResolver implicitSegmentationResolver) {
         return createContentFactory(
-                BucketingUtil.getWorkSegmentationConfiguration(bucketingConfig),
+                BucketingUtil.getWorkSegmentationConfiguration(bucketing),
                 implicitSegmentationResolver);
     }
 

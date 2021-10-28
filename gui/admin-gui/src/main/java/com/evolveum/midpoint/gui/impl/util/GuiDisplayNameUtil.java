@@ -220,7 +220,7 @@ public class GuiDisplayNameUtil {
          return "ProvenanceAcquisitionType.details";
     }
 
-    public static String getDisplayName(TaskErrorHandlingStrategyEntryType taskErrorHandlingStrategy) {
+    public static String getDisplayName(ActivityErrorHandlingStrategyEntryType taskErrorHandlingStrategy) {
         return "Strategy (order " + (taskErrorHandlingStrategy.getOrder() == null ? " not defined)" : Integer.toString(taskErrorHandlingStrategy.getOrder()) + ")");
     }
 
@@ -243,13 +243,5 @@ public class GuiDisplayNameUtil {
 //        }
 //        return string;
         return "";
-    }
-
-    private static String appendKind(String string, TaskKindType taskKindType) {
-        if (string.isBlank()) {
-            return string += taskKindType;
-        }
-
-        return string += ", " + taskKindType;
     }
 }

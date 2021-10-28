@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnIdOperationsReportConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnIdOperationsReportDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -36,7 +36,7 @@ public class ConnIdOperationsReport extends AbstractReport {
      */
     @NotNull private final List<ConnIdOperationRecordType> bufferedRecords = new ArrayList<>();
 
-    public ConnIdOperationsReport(ConnIdOperationsReportConfigurationType definition, @NotNull CurrentActivityState<?> activityState) {
+    public ConnIdOperationsReport(ConnIdOperationsReportDefinitionType definition, @NotNull CurrentActivityState<?> activityState) {
         super(definition, ConnIdOperationRecordType.COMPLEX_TYPE, activityState);
     }
 

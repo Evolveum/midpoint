@@ -11,10 +11,11 @@ import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BucketManagementOperationStatisticsType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketManagementOperationPerformanceInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketManagementStatisticsType;
 
 public class ActivityBucketManagementStatisticsUtil {
@@ -35,8 +36,8 @@ public class ActivityBucketManagementStatisticsUtil {
             return;
         }
 
-        for (WorkBucketManagementOperationPerformanceInformationType operation : part.getOperation()) {
-            WorkBucketManagementOperationPerformanceInformationType matchingOperation =
+        for (BucketManagementOperationStatisticsType operation : part.getOperation()) {
+            BucketManagementOperationStatisticsType matchingOperation =
                     findMatchingOperation(aggregate, operation);
             if (matchingOperation != null) {
                 addTo(matchingOperation, operation);
@@ -47,10 +48,10 @@ public class ActivityBucketManagementStatisticsUtil {
     }
 
     @Nullable
-    private static WorkBucketManagementOperationPerformanceInformationType findMatchingOperation(
+    private static BucketManagementOperationStatisticsType findMatchingOperation(
             @NotNull ActivityBucketManagementStatisticsType info,
-            @NotNull WorkBucketManagementOperationPerformanceInformationType operation) {
-        for (WorkBucketManagementOperationPerformanceInformationType existingOperation : info.getOperation()) {
+            @NotNull BucketManagementOperationStatisticsType operation) {
+        for (BucketManagementOperationStatisticsType existingOperation : info.getOperation()) {
             if (Objects.equals(existingOperation.getName(), operation.getName())) {
                 return existingOperation;
             }
@@ -58,8 +59,8 @@ public class ActivityBucketManagementStatisticsUtil {
         return null;
     }
 
-    private static void addTo(@NotNull WorkBucketManagementOperationPerformanceInformationType aggregate,
-            @NotNull WorkBucketManagementOperationPerformanceInformationType part) {
+    private static void addTo(@NotNull BucketManagementOperationStatisticsType aggregate,
+            @NotNull BucketManagementOperationStatisticsType part) {
         aggregate.setCount(or0(aggregate.getCount()) + or0(part.getCount()));
         aggregate.setTotalTime(or0(aggregate.getTotalTime()) + or0(part.getTotalTime()));
         aggregate.setMinTime(min(aggregate.getMinTime(), part.getMinTime()));

@@ -227,19 +227,19 @@ public class GetBucketOperation extends BucketOperation {
     }
 
     private long getInitialDelay() {
-        ActivityDistributionDefinition distributionDefinition = options.getDistributionDefinition();
-        WorkAllocationConfigurationType ac = distributionDefinition != null ?
-                distributionDefinition.getBuckets().getAllocation() : null;
-        return ac != null && ac.getWorkAllocationInitialDelay() != null ?
-                ac.getWorkAllocationInitialDelay() : 0; // TODO workStateManager.getConfiguration().getWorkAllocationInitialDelay();
+        ActivityDistributionDefinition distribution = options.getDistributionDefinition();
+        WorkAllocationDefinitionType allocation = distribution != null ?
+                distribution.getBuckets().getAllocation() : null;
+        return allocation != null && allocation.getWorkAllocationInitialDelay() != null ?
+                allocation.getWorkAllocationInitialDelay() : 0; // TODO workStateManager.getConfiguration().getWorkAllocationInitialDelay();
     }
 
     private void sleep(long toWait) throws InterruptedException {
-        WorkBucketsManagementType bucketingConfig =
+        BucketsDefinitionType bucketing =
                 options.getDistributionDefinition() != null ?
                         options.getDistributionDefinition().getBuckets() : null;
         long waitStart = System.currentTimeMillis();
-        long sleepFor = Math.min(toWait, getFreeBucketWaitInterval(bucketingConfig));
+        long sleepFor = Math.min(toWait, getFreeBucketWaitInterval(bucketing));
         CONTENTION_LOGGER.trace("Entering waiting for free bucket (waiting for {}) - after {} ms (conflicts: {}) in {}",
                 sleepFor, System.currentTimeMillis() - statisticsKeeper.start, statisticsKeeper.conflictCount, workerTaskOid);
         dynamicSleep(sleepFor);
@@ -260,8 +260,8 @@ public class GetBucketOperation extends BucketOperation {
         return options.getCanRun() == null || Boolean.TRUE.equals(options.getCanRun().get());
     }
 
-    private long getFreeBucketWaitInterval(WorkBucketsManagementType bucketingConfig) {
-        WorkAllocationConfigurationType ac = bucketingConfig != null ? bucketingConfig.getAllocation() : null;
+    private long getFreeBucketWaitInterval(BucketsDefinitionType bucketing) {
+        WorkAllocationDefinitionType ac = bucketing != null ? bucketing.getAllocation() : null;
         if (ac != null && ac.getWorkAllocationFreeBucketWaitInterval() != null) {
             return ac.getWorkAllocationFreeBucketWaitInterval();
         } else {
@@ -400,7 +400,7 @@ public class GetBucketOperation extends BucketOperation {
             return 1;
         }
 
-        WorkBucketsSamplingConfigurationType sampling = def.getBuckets().getSampling();
+        BucketsSamplingDefinitionType sampling = def.getBuckets().getSampling();
         var regular = sampling.getRegular();
         var random = sampling.getRandom();
         argCheck(regular == null || random == null, "Both regular and random sampling is selected");

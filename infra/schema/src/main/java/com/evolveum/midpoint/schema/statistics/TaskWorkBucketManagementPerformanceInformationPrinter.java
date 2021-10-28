@@ -11,9 +11,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BucketManagementOperationStatisticsType;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketManagementOperationPerformanceInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketManagementStatisticsType;
 
 import static com.evolveum.midpoint.schema.statistics.Formatting.Alignment.LEFT;
@@ -31,26 +31,26 @@ public class TaskWorkBucketManagementPerformanceInformationPrinter extends Abstr
 
     @Override
     public void prepare() {
-        List<WorkBucketManagementOperationPerformanceInformationType> operations = getSortedOperations();
+        List<BucketManagementOperationStatisticsType> operations = getSortedOperations();
         createData(operations);
         createFormatting();
     }
 
     @NotNull
-    private List<WorkBucketManagementOperationPerformanceInformationType> getSortedOperations() {
-        List<WorkBucketManagementOperationPerformanceInformationType> operations = new ArrayList<>(information.getOperation());
-        operations.sort(Comparator.comparing(WorkBucketManagementOperationPerformanceInformationType::getName));
+    private List<BucketManagementOperationStatisticsType> getSortedOperations() {
+        List<BucketManagementOperationStatisticsType> operations = new ArrayList<>(information.getOperation());
+        operations.sort(Comparator.comparing(BucketManagementOperationStatisticsType::getName));
         return operations;
     }
 
-    private void createData(List<WorkBucketManagementOperationPerformanceInformationType> operations) {
+    private void createData(List<BucketManagementOperationStatisticsType> operations) {
         initData();
-        for (WorkBucketManagementOperationPerformanceInformationType op : operations) {
+        for (BucketManagementOperationStatisticsType op : operations) {
             createRecord(op);
         }
     }
 
-    private void createRecord(WorkBucketManagementOperationPerformanceInformationType op) {
+    private void createRecord(BucketManagementOperationStatisticsType op) {
         long totalTime = zeroIfNull(op.getTotalTime());
         long totalWastedTime = zeroIfNull(op.getTotalWastedTime());
         long totalWaitTime = zeroIfNull(op.getTotalWaitTime());

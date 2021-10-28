@@ -951,7 +951,7 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     void setExecutionEnvironment(TaskExecutionEnvironmentType value);
 
     /** Gets error handling strategy. NOT THREAD SAFE! Use only for reading. */
-    TaskErrorHandlingStrategyType getErrorHandlingStrategy();
+    ActivityErrorHandlingStrategyType getErrorHandlingStrategy();
 
     /** Returns true if the task has any assignments. */
     boolean hasAssignments();

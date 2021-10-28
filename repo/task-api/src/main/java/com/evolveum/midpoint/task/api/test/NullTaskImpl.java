@@ -175,7 +175,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public TaskErrorHandlingStrategyType getErrorHandlingStrategy() {
+    public ActivityErrorHandlingStrategyType getErrorHandlingStrategy() {
         return null;
     }
 

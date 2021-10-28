@@ -13,6 +13,7 @@ import com.evolveum.midpoint.task.api.TaskDeletionListener;
 import com.evolveum.midpoint.task.api.TaskListener;
 
 import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.TaskUpdatedListener;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -21,7 +22,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang3.Validate;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -37,6 +37,9 @@ public class TaskListenerRegistry {
 
     private final Set<TaskListener> taskListeners = ConcurrentHashMap.newKeySet();
 
+    private final Set<TaskUpdatedListener> taskUpdatedListeners = ConcurrentHashMap.newKeySet();
+
+
     private final Set<TaskDeletionListener> taskDeletionListeners = ConcurrentHashMap.newKeySet();
 
     void registerTaskListener(TaskListener taskListener) {
@@ -45,6 +48,14 @@ public class TaskListenerRegistry {
 
     void unregisterTaskListener(TaskListener taskListener) {
         taskListeners.remove(taskListener);
+    }
+
+    void registerTaskUpdatedListener(TaskUpdatedListener taskListener) {
+        taskUpdatedListeners.add(taskListener);
+    }
+
+    void unregisterTaskUpdatedListener(TaskUpdatedListener taskListener) {
+        taskUpdatedListeners.remove(taskListener);
     }
 
     public void notifyTaskStart(Task task, OperationResult result) {
@@ -100,6 +111,16 @@ public class TaskListenerRegistry {
         for (TaskDeletionListener listener : taskDeletionListeners) {
             try {
                 listener.onTaskDelete(task, result);
+            } catch (RuntimeException e) {
+                logListenerException(e);
+            }
+        }
+    }
+
+    public void notifyTaskStatusFlushed(TaskQuartzImpl task, OperationResult result) {
+        for (TaskUpdatedListener listener : taskUpdatedListeners) {
+            try {
+                listener.onTaskStatusUpdated(task, result);
             } catch (RuntimeException e) {
                 logListenerException(e);
             }

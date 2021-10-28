@@ -187,7 +187,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new SingleContainerPanel<TaskExecutionConstraintsType>(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_ERROR_HANDLING_STRATEGY), TaskErrorHandlingStrategyType.COMPLEX_TYPE);
+                return new SingleContainerPanel<TaskExecutionConstraintsType>(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_ERROR_HANDLING_STRATEGY), ActivityErrorHandlingStrategyType.COMPLEX_TYPE);
             }
 
             @Override

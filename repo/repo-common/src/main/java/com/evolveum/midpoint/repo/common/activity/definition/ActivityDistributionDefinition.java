@@ -52,7 +52,7 @@ public class ActivityDistributionDefinition implements DebugDumpable, Cloneable 
         return bean.debugDump(indent);
     }
 
-    public WorkBucketsManagementType getBuckets() {
+    public BucketsDefinitionType getBuckets() {
         return bean.getBuckets();
     }
 
@@ -68,7 +68,7 @@ public class ActivityDistributionDefinition implements DebugDumpable, Cloneable 
         return bean.getWorkers() != null;
     }
 
-    public WorkersManagementType getWorkers() {
+    public WorkersDefinitionType getWorkers() {
         return bean.getWorkers();
     }
 
@@ -84,7 +84,7 @@ public class ActivityDistributionDefinition implements DebugDumpable, Cloneable 
         }
     }
 
-    void applySubtaskTailoring(@NotNull ActivitySubtaskSpecificationType subtaskSpecification) {
+    void applySubtaskTailoring(@NotNull ActivitySubtaskDefinitionType subtaskSpecification) {
         if (bean.getSubtask() == null) {
             bean.setSubtask(subtaskSpecification.clone());
         }

@@ -100,13 +100,13 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
     /**
      * Creates a detached tracing configuration from a task (if not null).
      */
-    private static @Nullable ActivityTracingConfigurationType createTracingDefinitionFromTask(Task task) {
+    private static @Nullable ActivityTracingDefinitionType createTracingDefinitionFromTask(Task task) {
         if (task == null) {
             return null;
         }
 
-        ActivityTracingConfigurationType bean =
-                task.getContainerableOrClone(SchemaConstants.MODEL_EXTENSION_TRACING, ActivityTracingConfigurationType.class);
+        ActivityTracingDefinitionType bean =
+                task.getContainerableOrClone(SchemaConstants.MODEL_EXTENSION_TRACING, ActivityTracingDefinitionType.class);
         if (bean != null) {
             return bean.clone();
         }
@@ -119,7 +119,7 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
         if (interval == null && tracingProfile == null && tracingRoots == null) {
             return null;
         } else {
-            ActivityTracingConfigurationType newBean = new ActivityTracingConfigurationType(PrismContext.get())
+            ActivityTracingDefinitionType newBean = new ActivityTracingDefinitionType(PrismContext.get())
                     .interval(interval)
                     .tracingProfile(CloneUtil.clone(tracingProfile));
             if (tracingRoots != null) {
@@ -129,7 +129,7 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
         }
     }
 
-    private static @Nullable ActivityProfilingConfigurationType createProfilingConfigurationFromTask(Task task) {
+    private static @Nullable ActivityProfilingDefinitionType createProfilingConfigurationFromTask(Task task) {
         if (task == null) {
             return null;
         }
@@ -138,21 +138,21 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
         if (interval == null) {
             return null;
         } else {
-            return new ActivityProfilingConfigurationType(PrismContext.get())
+            return new ActivityProfilingDefinitionType(PrismContext.get())
                     .interval(interval);
         }
     }
 
-    public @NotNull List<ActivityTracingConfigurationType> getTracingConfigurationsSorted() {
+    public @NotNull List<ActivityTracingDefinitionType> getTracingConfigurationsSorted() {
         var sorted = new ArrayList<>(bean.getTracing());
         sorted.sort(
                 comparing(
-                        ActivityTracingConfigurationType::getOrder,
+                        ActivityTracingDefinitionType::getOrder,
                         nullsLast(naturalOrder())));
         return sorted;
     }
 
-    public @Nullable ActivityProfilingConfigurationType getProfilingConfiguration() {
+    public @Nullable ActivityProfilingDefinitionType getProfilingConfiguration() {
         return bean.getProfiling();
     }
 
@@ -199,23 +199,23 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
         return bean;
     }
 
-    public BucketsProcessingReportConfigurationType getBucketsReportDefinition() {
-        ActivityReportsConfigurationType reports = bean.getReports();
+    public BucketsProcessingReportDefinitionType getBucketsReportDefinition() {
+        ActivityReportsDefinitionType reports = bean.getReports();
         return reports != null ? reports.getBuckets() : null;
     }
 
-    public ItemsProcessingReportConfigurationType getItemsReportDefinition() {
-        ActivityReportsConfigurationType reports = bean.getReports();
+    public ItemsProcessingReportDefinitionType getItemsReportDefinition() {
+        ActivityReportsDefinitionType reports = bean.getReports();
         return reports != null ? reports.getItems() : null;
     }
 
-    public ConnIdOperationsReportConfigurationType getConnIdOperationsReportDefinition() {
-        ActivityReportsConfigurationType reports = bean.getReports();
+    public ConnIdOperationsReportDefinitionType getConnIdOperationsReportDefinition() {
+        ActivityReportsDefinitionType reports = bean.getReports();
         return reports != null ? reports.getConnIdOperations() : null;
     }
 
-    public InternalOperationsReportConfigurationType getInternalOperationsReportDefinition() {
-        ActivityReportsConfigurationType reports = bean.getReports();
+    public InternalOperationsReportDefinitionType getInternalOperationsReportDefinition() {
+        ActivityReportsDefinitionType reports = bean.getReports();
         return reports != null ? reports.getInternalOperations() : null;
     }
 
@@ -256,7 +256,7 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
     }
 
     public @NotNull ActivityItemCountingOptionType getDetermineBucketSize() {
-        ActivityItemCountingConfigurationType itemCounting = bean.getItemCounting();
+        ActivityItemCountingDefinitionType itemCounting = bean.getItemCounting();
         if (itemCounting != null && itemCounting.getDetermineBucketSize() != null) {
             return itemCounting.getDetermineBucketSize();
         } else {
@@ -265,7 +265,7 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
     }
 
     public @NotNull ActivityOverallItemCountingOptionType getDetermineOverallSize() {
-        ActivityItemCountingConfigurationType itemCounting = bean.getItemCounting();
+        ActivityItemCountingDefinitionType itemCounting = bean.getItemCounting();
         if (itemCounting != null && itemCounting.getDetermineOverallSize() != null) {
             return itemCounting.getDetermineOverallSize();
         } else {
@@ -275,7 +275,7 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
 
     /** Whether we should use the "expected total" (overall size) information if already present. */
     public boolean isCacheOverallSize() {
-        ActivityItemCountingConfigurationType itemCounting = bean.getItemCounting();
+        ActivityItemCountingDefinitionType itemCounting = bean.getItemCounting();
         if (itemCounting != null && itemCounting.isCacheOverallSize() != null) {
             return itemCounting.isCacheOverallSize();
         } else {

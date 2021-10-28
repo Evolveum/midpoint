@@ -121,4 +121,19 @@ public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends Sh
      */
     Collection<? extends Mapping<?,?>> getFocusMappings();
 
+    /**
+     * Assignment is either being added in the current wave or was added in some of the previous waves.
+     */
+    boolean isBeingAdded();
+
+    /**
+     * Assignment is either being deleted in the current wave or was deleted in some of the previous waves.
+     */
+    boolean isBeingDeleted();
+
+    /**
+     * Assignment was present at the beginning and is not being deleted.
+     */
+    boolean isBeingKept();
+
 }

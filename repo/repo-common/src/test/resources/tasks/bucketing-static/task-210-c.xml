@@ -20,9 +20,6 @@
                     <numberOfBuckets>5</numberOfBuckets>
                     <bucketSize>1</bucketSize>
                 </numericSegmentation>
-                <allocation>
-                    <allocateFirst>true</allocateFirst>
-                </allocation>
             </buckets>
         </distribution>
     </activity>
