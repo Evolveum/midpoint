@@ -56,6 +56,8 @@ public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends De
 
     boolean isPresentInOldObject();
 
+    boolean isPresentInNewObject();
+
     /**
      * Returns all policy rules that apply to the focal object and are derived from this assignment
      * - even those that were not triggered. The policy rules are compiled from all the applicable
@@ -94,9 +96,21 @@ public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends De
     @NotNull
     Collection<EvaluatedPolicyRule> getAllTargetsPolicyRules();
 
-
     Collection<String> getPolicySituations();
 
     void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers);
 
+    /**
+     * Assignment is either being added in the current wave or was added in some of the previous waves.
+     */
+    default boolean isBeingAdded() {
+        return !isPresentInOldObject() && isPresentInNewObject();
+    }
+
+    /**
+     * Assignment is either being deleted in the current wave or was deleted in some of the previous waves.
+     */
+    default boolean isBeingDeleted() {
+        return isPresentInOldObject() && !isPresentInNewObject();
+    }
 }

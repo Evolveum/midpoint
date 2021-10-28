@@ -96,6 +96,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
     private boolean presentInCurrentObject;
     private boolean presentInOldObject;
+    private boolean presentInNewObject;
     private Collection<String> policySituations = new HashSet<>();
 
     private PrismContext prismContext;
@@ -398,6 +399,10 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         this.presentInOldObject = presentInOldObject;
     }
 
+    public void setPresentInNewObject(boolean presentInNewObject) {
+        this.presentInNewObject = presentInNewObject;
+    }
+
     @Override
     public boolean isPresentInCurrentObject() {
         return presentInCurrentObject;
@@ -406,6 +411,11 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     @Override
     public boolean isPresentInOldObject() {
         return presentInOldObject;
+    }
+
+    @Override
+    public boolean isPresentInNewObject() {
+        return presentInNewObject;
     }
 
     @NotNull
@@ -554,8 +564,9 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         DebugUtil.debugDumpWithLabelLn(sb, "focusPolicyRules " + ruleCountInfo(focusPolicyRules), focusPolicyRules, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "thisTargetPolicyRules " + ruleCountInfo(thisTargetPolicyRules), thisTargetPolicyRules, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "otherTargetsPolicyRules " + ruleCountInfo(otherTargetsPolicyRules), otherTargetsPolicyRules, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "Present in old object", isPresentInOldObject(), indent+1);
-        DebugUtil.debugDumpWithLabel(sb, "Present in current object", isPresentInCurrentObject(), indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Present in old object", presentInOldObject, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Present in current object", presentInCurrentObject, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "Present in new object", presentInNewObject, indent+1);
         return sb.toString();
     }
 
@@ -639,5 +650,4 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
             return PLUS;
         }
     }
-
 }

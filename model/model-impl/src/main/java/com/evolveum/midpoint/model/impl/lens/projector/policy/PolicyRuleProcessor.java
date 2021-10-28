@@ -93,12 +93,9 @@ public class PolicyRuleProcessor {
             Task task, OperationResult result)
             throws PolicyViolationException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
+        LOGGER.trace("Starting evaluation of assignment policy rules");
         for (EvaluatedAssignmentImpl<F> evaluatedAssignment : evaluatedAssignmentTriple.union()) {
             RulesEvaluationContext globalCtx = new RulesEvaluationContext();
-
-            boolean inPlus = evaluatedAssignmentTriple.presentInPlusSet(evaluatedAssignment);
-            boolean inMinus = evaluatedAssignmentTriple.presentInMinusSet(evaluatedAssignment);
-            boolean inZero = evaluatedAssignmentTriple.presentInZeroSet(evaluatedAssignment);
 
             resolveReferences(evaluatedAssignment.getAllTargetsPolicyRules(), getAllGlobalRules(context));
 
@@ -114,7 +111,7 @@ public class PolicyRuleProcessor {
                 if (!hasSituationConstraint(policyRule)) {
                     if (checkApplicabilityToAssignment(policyRule)) {
                         evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
-                                evaluatedAssignment, inPlus, inZero, inMinus, true, context,
+                                evaluatedAssignment, true, context,
                                 evaluatedAssignmentTriple, task, globalCtx), result);
                     }
                 }
@@ -123,7 +120,7 @@ public class PolicyRuleProcessor {
                 if (!hasSituationConstraint(policyRule)) {
                     if (checkApplicabilityToAssignment(policyRule)) {
                         evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
-                                evaluatedAssignment, inPlus, inZero, inMinus, false, context,
+                                evaluatedAssignment, false, context,
                                 evaluatedAssignmentTriple, task, globalCtx), result);
                     }
                 }
@@ -132,7 +129,7 @@ public class PolicyRuleProcessor {
                 if (hasSituationConstraint(policyRule)) {
                     if (checkApplicabilityToAssignment(policyRule)) {
                         evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
-                                evaluatedAssignment, inPlus, inZero, inMinus, true, context,
+                                evaluatedAssignment, true, context,
                                 evaluatedAssignmentTriple, task, globalCtx), result);
                     }
                 }
@@ -141,16 +138,16 @@ public class PolicyRuleProcessor {
                 if (hasSituationConstraint(policyRule)) {
                     if (checkApplicabilityToAssignment(policyRule)) {
                         evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
-                                evaluatedAssignment, inPlus, inZero, inMinus, false, context,
+                                evaluatedAssignment, false, context,
                                 evaluatedAssignmentTriple, task, globalCtx), result);
                     }
                 }
             }
             // a bit of hack, but hopefully it will work
-            PlusMinusZero mode = inMinus ? PlusMinusZero.MINUS : evaluatedAssignment.getMode();
+            PlusMinusZero mode = evaluatedAssignment.isBeingDeleted() ? PlusMinusZero.MINUS : evaluatedAssignment.getMode();
             policyStateRecorder.applyAssignmentState(context, evaluatedAssignment, mode, globalCtx.rulesToRecord);
         }
-
+        LOGGER.trace("Finished evaluation of assignment policy rules");
     }
 
     private boolean checkApplicabilityToAssignment(EvaluatedPolicyRule policyRule) {
@@ -500,10 +497,13 @@ public class PolicyRuleProcessor {
     public <F extends AssignmentHolderType> boolean processPruning(LensContext<F> context,
             DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
             OperationResult result) throws SchemaException {
-        Collection<EvaluatedAssignmentImpl<F>> plusSet = evaluatedAssignmentTriple.getPlusSet();
+        LOGGER.trace("Starting evaluation of pruning");
         boolean needToReevaluateAssignments = false;
         boolean enforceOverride = false;
-        for (EvaluatedAssignmentImpl<F> plusAssignment: plusSet) {
+        for (EvaluatedAssignmentImpl<F> plusAssignment: evaluatedAssignmentTriple.getNonNegativeValues()) {
+            if (!plusAssignment.isBeingAdded()) {
+                continue; // Considering "being added" is more precise than "being in plus set".
+            }
             for (EvaluatedPolicyRule targetPolicyRule: plusAssignment.getAllTargetsPolicyRules()) {
                 for (EvaluatedPolicyRuleTrigger trigger: new ArrayList<>(targetPolicyRule.getTriggers())) {
                     if (!(trigger instanceof EvaluatedExclusionTrigger)) {
@@ -547,6 +547,8 @@ public class PolicyRuleProcessor {
             }
         }
 
+        LOGGER.trace("Finished evaluation of pruning: need to reevaluate assignments = {}, enforce override = {}",
+                needToReevaluateAssignments, enforceOverride);
         // If enforceOverride we will signal violation exception later anyway, and it is crucial that we will *NOT* prune
         // conflicting assignments away, because it would mean that these enforcement triggers would go away with them.
         return needToReevaluateAssignments && !enforceOverride;

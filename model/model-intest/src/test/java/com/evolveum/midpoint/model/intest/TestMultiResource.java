@@ -1340,7 +1340,13 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+
+        // Originally here was unassign (delete assignment) operation. But such assignment does not exist.
+        // As we updated the expression evaluation, such phantom changes are ignored.
+        //
+        // So assignment deletion is here replaced by simple unlink operation.
+        ObjectDelta<UserType> delta = createModifyUserUnlinkAccount(USER_JACK_OID, RESOURCE_DUMMY_OID);
+        executeChanges(delta, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1348,17 +1354,16 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        display("User after red dummy unassignment", userJack);
+        display("User after dummy unlink", userJack);
         assertUserJack(userJack);
         assertLinks(userJack, 0);
 
-        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME);
+        assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_OID, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_OID, ACCOUNT_JACK_DUMMY_USERNAME);
-
     }
 
     /**
@@ -2576,8 +2581,6 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(0,ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(1,1);
         dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class);
-//        dummyAuditService.assertExecutionDeltas(2,1);
-//        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class);
 
     }
 
@@ -2623,10 +2626,6 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         targetRef.getValue().setTargetType(RoleType.COMPLEX_TYPE);
         userBefore.findOrCreateContainer(UserType.F_ASSIGNMENT).add((PrismContainerValue) cval);
 
-
-
-//        userBefore.asObjectable().getAssignmentNew().add(cval.asContainerable());
-
         // this should add user and at the sate time assign the role fight..->
         // the result of the operation have to be the same as in test 400
         addObject(userBefore);
@@ -2645,25 +2644,6 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // Check audit
         display("Audit", dummyAuditService);
-//        dummyAuditService.assertRecords(4);
-//        dummyAuditService.assertSimpleRecordSanity();
-//        dummyAuditService.assertAnyRequestDeltas();
-//        dummyAuditService.assertExecutionDeltas(0,3);
-//        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
-//        dummyAuditService.asserHasDelta(0,ChangeType.ADD, ShadowType.class);
-//        dummyAuditService.assertExecutionDeltas(1,3);
-//        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
-//        dummyAuditService.asserHasDelta(1,ChangeType.ADD, ShadowType.class);
-//        dummyAuditService.assertExecutionDeltas(2,2);
-//        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class);
-//        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, ShadowType.class);
-//        dummyAuditService.assertExecutionSuccess();
-//
-//        // Have a closer look at the last shadow modify delta. Make sure there are no phantom changes.
-//        ObjectDeltaOperation<?> executionDeltaOp = dummyAuditService.getExecutionDelta(2, ChangeType.MODIFY, ShadowType.class);
-//        ObjectDelta<?> executionDelta = executionDeltaOp.getObjectDelta();
-//        display("Last execution delta", executionDelta);
-//        PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 2);
     }
 
     @Test
@@ -3013,5 +2993,4 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_DARK_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, false);
         assertDummyAccount(RESOURCE_DUMMY_DARK_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, false);
     }
-
 }

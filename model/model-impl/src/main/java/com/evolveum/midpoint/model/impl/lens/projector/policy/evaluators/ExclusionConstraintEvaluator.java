@@ -77,7 +77,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
             }
 
             AssignmentPolicyRuleEvaluationContext<AH> ctx = (AssignmentPolicyRuleEvaluationContext<AH>) rctx;
-            if (!ctx.inPlus && !ctx.inZero) {
+            if (!ctx.isAdded && !ctx.isKept) {
                 LOGGER.trace("Assignment not being added nor kept, skipping evaluation.");
                 return null;
             }

@@ -28,7 +28,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentModificationPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -69,7 +68,7 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
             }
             AssignmentPolicyRuleEvaluationContext<AH> ctx = (AssignmentPolicyRuleEvaluationContext<AH>) rctx;
             if (!ctx.isDirect ||
-                    !operationMatches(constraint, ctx.inPlus, ctx.inZero, ctx.inMinus) ||
+                    !operationMatches(constraint, ctx.isAdded, ctx.isKept, ctx.isDeleted) ||
                     !relationMatches(constraint, ctx) ||
                     !pathsMatch(constraint, ctx) ||
                     !expressionPasses(constraintElement, ctx, result)) {
@@ -104,9 +103,9 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 
     @NotNull
     private <AH extends AssignmentHolderType> String createOperationKey(AssignmentPolicyRuleEvaluationContext<AH> ctx) {
-        if (ctx.inPlus) {
+        if (ctx.isAdded) {
             return "Added";
-        } else if (ctx.inMinus) {
+        } else if (ctx.isDeleted) {
             return "Deleted";
         } else {
             return "Modified";
@@ -149,12 +148,12 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
         return false;
     }
 
-    private boolean operationMatches(AssignmentModificationPolicyConstraintType constraint, boolean inPlus, boolean inZero, boolean inMinus) {
+    private boolean operationMatches(AssignmentModificationPolicyConstraintType constraint, boolean isAdded, boolean isKept, boolean isDeleted) {
         List<ChangeTypeType> operations = constraint.getOperation();
         return operations.isEmpty() ||
-                inPlus && operations.contains(ChangeTypeType.ADD) ||
-                inZero && operations.contains(ChangeTypeType.MODIFY) ||
-                inMinus && operations.contains(ChangeTypeType.DELETE);
+                isAdded && operations.contains(ChangeTypeType.ADD) ||
+                isKept && operations.contains(ChangeTypeType.MODIFY) ||
+                isDeleted && operations.contains(ChangeTypeType.DELETE);
     }
 
     // TODO discriminate between primary and secondary changes (perhaps make it configurable)
@@ -166,7 +165,7 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 
         // hope this is correctly filled in
         if (constraint.getItem().isEmpty()) {
-            if (ctx.inPlus || ctx.inMinus) {
+            if (ctx.isAdded || ctx.isDeleted) {
                 return true;
             } else {
                 Collection<? extends ItemDelta<?, ?>> subItemDeltas = ctx.evaluatedAssignment.getAssignmentIdi().getSubItemDeltas();
@@ -175,9 +174,9 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
         }
         for (ItemPathType path : constraint.getItem()) {
             ItemPath itemPath = prismContext.toPath(path);
-            if (ctx.inPlus && !pathMatches(ctx.evaluatedAssignment.getAssignmentType(false), itemPath) ||
-                    ctx.inMinus && !pathMatches(ctx.evaluatedAssignment.getAssignmentType(true), itemPath) ||
-                    ctx.inZero && !pathMatches(ctx.evaluatedAssignment.getAssignmentIdi().getSubItemDeltas(), itemPath, exactMatch)) {
+            if (ctx.isAdded && !pathMatches(ctx.evaluatedAssignment.getAssignmentType(false), itemPath) ||
+                    ctx.isDeleted && !pathMatches(ctx.evaluatedAssignment.getAssignmentType(true), itemPath) ||
+                    ctx.isKept && !pathMatches(ctx.evaluatedAssignment.getAssignmentIdi().getSubItemDeltas(), itemPath, exactMatch)) {
                 return false;
             }
         }

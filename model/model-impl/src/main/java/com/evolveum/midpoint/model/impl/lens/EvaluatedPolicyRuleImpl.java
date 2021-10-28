@@ -81,7 +81,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
     private String policyRuleId;
 
     private boolean enabledActionsComputed;
-    @NotNull private final List<PolicyActionType> enabledActions = new ArrayList<>();          // computed only when necessary (typically when triggered)
+    @NotNull private final List<PolicyActionType> enabledActions = new ArrayList<>(); // computed only when necessary (typically when triggered)
 
     public EvaluatedPolicyRuleImpl(@NotNull PolicyRuleType policyRuleType, @Nullable AssignmentPath assignmentPath,
             PrismContext prismContext) {

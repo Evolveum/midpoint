@@ -6,7 +6,9 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -196,7 +198,6 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                 getNewObjectLifecycleState(focusContext), assignmentEvaluator.getObjectResolver(),
                 prismContext, task, result);
 
-        LOGGER.trace("Task for process: {}", task.debugDumpLazily());
         AssignmentType taskAssignment;
         if (task.hasAssignments()) {
             taskAssignment = new AssignmentType(prismContext);
@@ -209,7 +210,11 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
         LOGGER.trace("Task assignment: {}", taskAssignment);
 
-        assignmentCollection.collect(focusContext.getObjectCurrent(), focusContext.getObjectOld(), assignmentDelta, forcedAssignments, taskAssignment);
+        List<AssignmentType> virtualAssignments = new ArrayList<>(forcedAssignments);
+        if (taskAssignment != null) {
+            virtualAssignments.add(taskAssignment);
+        }
+        assignmentCollection.collect(focusContext.getObjectCurrent(), focusContext.getObjectOld(), assignmentDelta, virtualAssignments, prismContext);
 
         LOGGER.trace("Assignment collection:\n{}", assignmentCollection.debugDumpLazily(1));
 
@@ -247,15 +252,16 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 //        final boolean presentInOld = assignmentElement.isOld();
         // This really means whether the WHOLE assignment was changed (e.g. added/deleted/replaced). It tells nothing
         // about "micro-changes" inside assignment, these will be processed later.
-        boolean isAssignmentChanged = assignmentElement.isChanged();            // refined later
-        // TODO what about assignments that are present in old or current objects, and also changed?
-        // TODO They seem to have "old"/"current" flag, not "changed" one. Is that OK?
+
+        // refined later
+        boolean isAssignmentMentionedInDelta = assignmentElement.isInDelta();
+
         boolean forceRecon = false;
         final String assignmentPlacementDesc;
 
         Collection<? extends ItemDelta<?,?>> subItemDeltas = null;
 
-        if (isAssignmentChanged) {
+        if (isAssignmentMentionedInDelta) {
             // Whole assignment added or deleted
             assignmentPlacementDesc = "delta for "+source;
         } else {
@@ -270,7 +276,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                 // Therefore we force recon to sort it out.
                 forceRecon = true;
 
-                isAssignmentChanged = true;
+                isAssignmentMentionedInDelta = true;
                 PrismContainer<AssignmentType> assContNew = focusContext.getObjectNew().findContainer(AssignmentHolderType.F_ASSIGNMENT);
                 assignmentCValNew = assContNew.getValue(assignmentCVal.getId());
             }
@@ -346,7 +352,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                 // ADD/DELETE of entire assignment or small changes inside existing assignments
                 // This is the usual situation.
                 // Just sort assignments to sets: unchanged (zero), added (plus), removed (minus)
-                if (isAssignmentChanged) {
+                if (isAssignmentMentionedInDelta) {
                     // There was some change
 
                     boolean isAdd = assignmentDelta.isValueToAdd(assignmentCVal, true);
@@ -571,9 +577,10 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             EvaluatedAssignmentImpl<AH> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, mode, evaluateOld, source, assignmentPlacementDesc, smartAssignment.isVirtual(), task, subResult);
             context.rememberResources(evaluatedAssignment.getResources(task, subResult));
             subResult.recordSuccess();
-               LOGGER.trace("Evaluated assignment:\n{}", evaluatedAssignment.debugDumpLazily(1));
             evaluatedAssignment.setPresentInCurrentObject(smartAssignment.isCurrent());
             evaluatedAssignment.setPresentInOldObject(smartAssignment.isOld());
+            evaluatedAssignment.setPresentInNewObject(smartAssignment.isNew());
+            LOGGER.trace("Evaluated assignment:\n{}", evaluatedAssignment.debugDumpLazily(1));
             if (evaluatedAssignment.getTarget() != null) {
                 subResult.addContext("assignmentTargetName", PolyString.getOrig(evaluatedAssignment.getTarget().getName()));
             }

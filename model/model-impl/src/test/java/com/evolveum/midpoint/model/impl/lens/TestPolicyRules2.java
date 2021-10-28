@@ -593,7 +593,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
         dumpPolicySituations(context);
 
         assertEvaluatedTargetPolicyRules(context, STUDENT_TARGET_RULES);
-        assertTargetTriggers(context, null, 1);
+        assertTargetTriggers(context, null, 2);
         // Assignment situation is already gone (in second iteration)!
         // This is different from test130, where an assignment is being added (instead of whole user being added).
         // The difference is that when adding a user, its assignments (in wave 1) are in the zero set.
