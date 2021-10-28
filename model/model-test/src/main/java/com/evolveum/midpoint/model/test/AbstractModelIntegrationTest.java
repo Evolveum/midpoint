@@ -3538,7 +3538,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             return true; // all executive subtasks are closed
         };
 
-        waitForTaskStatusUpdated(origRootTask.getOid(), "Waiting for task tree " + origRootTask + " next finished run", checker, timeout, DEFAULT_TASK_TREE_SLEEP_TIME);
+        IntegrationTestTools.waitFor("Waiting for task tree " + origRootTask + " next finished run", checker, timeout, DEFAULT_TASK_TREE_SLEEP_TIME);
         Task freshTask = taskManager.getTaskWithResult(origRootTask.getOid(), waitResult);
         logger.debug("Final root task:\n{}", freshTask.debugDump());
         aggregateResult.computeStatusIfUnknown();
