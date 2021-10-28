@@ -101,7 +101,7 @@ image::custom-transform-crop.png[]
 The `ConfigurationTableTabPanel` class is quite small (approx 200 lines of code).
 Most of the work is done by existing midPoint user interface.
 MidPoint will parse the data structure (including the extension part), midPoint will apply the schema, midPoint will process authorizations and so on.
-MidPoint will also take care of computing and applying the changes (wiki:Deltas[deltas]) when the _save_ button is pressed.
+MidPoint will also take care of computing and applying the changes (xref:/midpoint/devel/prism/concepts/deltas/[deltas]) when the _save_ button is pressed.
 Therefore all that is needed in the `ConfigurationTableTabPanel` class is to create appropriate presentation of the data.
 This is an extremely powerful approach and it is seamlessly integrated with midPoint GUI.
 However, as this code has to use midPoint data structures to take advantages of existing midPoint functionality, the code may looks quite complex.
@@ -194,7 +194,7 @@ We leave the task of finishing the same to the reader.
 
 == Sample Files
 
-Files used to implement this sample can be used in wiki:Customization+With+Overlay+Project[example overlay project]:
+Files used to implement this sample can be used in xref:/midpoint/reference/deployment/maven-overlay-project/[example overlay project]:
 
 link:https://github.com/Evolveum/midpoint-overlay-example[https://github.com/Evolveum/midpoint-overlay-example]
 
@@ -259,4 +259,4 @@ Platform subscription is needed to support this functionality.
 
 == See Also
 
-* wiki:Customization+With+Overlay+Project[Customization With Overlay Project]
+* xref:/midpoint/reference/deployment/maven-overlay-project/[Customization With Overlay Project]

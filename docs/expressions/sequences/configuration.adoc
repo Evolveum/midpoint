@@ -86,7 +86,7 @@ The sequences are always increasing, therefore mathematic expression in the scri
 == Value Stickiness and Reclamation
 
 Sequence values are retrieved just once for each operation.
-The values are kept in wiki:Model+Context[Model Context] and re-used every time the expression is re-evaluated during that operation.
+The values are kept in xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context] and re-used every time the expression is re-evaluated during that operation.
 This is a mechanism to avoid taking multiple values from the sequence.
 However, the assigned value is not explicitly remember across operations.
 Therefore it is strongly recommended to use sequences in _weak_ mappings.

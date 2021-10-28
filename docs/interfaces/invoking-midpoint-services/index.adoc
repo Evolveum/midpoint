@@ -14,8 +14,8 @@
 == Introduction
 
 MidPoint is a complete identity provisioning system that can be used to build a comprehensive end-to-end provisioning solution.
-But midPoint also exposes all its functionality using wiki:Interfaces[midPoint interfaces]. Therefore midPoint can also be used as a back-end provisioning engine, as embedded provisioning solution, as a non-interactive enterprise service (SOA component) and also in a variety of other scenarios.
-The key to midPoint flexibility are the wiki:Interfaces[interfaces]. By invoking midPoint services that are exposed in the interfaces the entire midPoint becomes a programmable service.
+But midPoint also exposes all its functionality using xref:/midpoint/reference/interfaces/[midPoint interfaces]. Therefore midPoint can also be used as a back-end provisioning engine, as embedded provisioning solution, as a non-interactive enterprise service (SOA component) and also in a variety of other scenarios.
+The key to midPoint flexibility are the xref:/midpoint/reference/interfaces/[interfaces]. By invoking midPoint services that are exposed in the interfaces the entire midPoint becomes a programmable service.
 
 image::midPoint-Interfaces.png[]
 
@@ -45,11 +45,11 @@ Even though the Internet technology is not mature enough for our needs the midPo
 It is easy to do basic operation in all the interfaces.
 Advanced operations may be more tricky do to but they are still mostly practically possible to do.
 
-All the versions of midPoint wiki:IDM+Model+Interface[IDM Model Interface] are object-oriented.
+All the versions of midPoint xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface] are object-oriented.
 It means that they work with xref:/midpoint/reference/schema/data-model-essentials/[midPoint objects]. The interfaces are creating, reading (and searching), updating and deleting the objects.
 This is known as link:http://en.wikipedia.org/wiki/CRUD[CRUD] semantics.
 E.g. resource configuration is changed by modifying corresponding xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType] object, user is created by creating a new xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[UserType] object and so on.
-All the interfaces are also using the xref:/midpoint/reference/concepts/relativity/[relative change model] by using wiki:Deltas[deltas] to define change to individual midPoint objects.
+All the interfaces are also using the xref:/midpoint/reference/concepts/relativity/[relative change model] by using xref:/midpoint/devel/prism/concepts/deltas/[deltas] to define change to individual midPoint objects.
 
 Following table provides overview of interface operation groups and their availability in individual interfaces.
 
@@ -137,9 +137,9 @@ discoverConnectors
 
 == Java Interface
 
-Main article: wiki:IDM+Model+Interface[IDM Model Interface]
+Main article: xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface]
 
-wiki:IDM+Model+Interface[IDM Model Interface] is a local Java interface to most midPoint functionality.
+xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface] is a local Java interface to most midPoint functionality.
 It can be seen as the *primary* midpoint interface.
 This interface can be used to create users, assign account and roles, modify accounts, redefine roles, configure resources and invoke almost any other midPoint feature.
 The interface is using native Java classes and takes full advantage of this environment.
@@ -165,14 +165,14 @@ There are some information and examples how to use this interface:
 Main article: xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface]
 
 xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface] is a SOAP-based web service interface to midPoint.
-It provides operations that are very similar to Java-based wiki:IDM+Model+Interface[IDM Model Interface], however there are some necessary adjustments.
+It provides operations that are very similar to Java-based xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface], however there are some necessary adjustments.
 The xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface] is strongly RPC-based as this approach is dictated by the technology (SOAP, WSDL).
 Also input-output objects (pass-by-reference) cannot be used and the use of callbacks is beyond practical usability therefore the interface is slightly simplified to overcome these limitations.
 The objects and deltas are expected to be presented as XML objects.
 Full WSDL and XSD definitions are available.
 The interface was developed in a contract-first fashion therefore the WSDL and XSD are authoritative definitions.
 
-There is also a wiki:Model+Web+Service+Client[Model Web Service Client] library based on Java and pure JAX-WS and JAX-B. It is designed to be used outside midPoint, e.g. in applications that need to invoke midPoint services.
+There is also a xref:/midpoint/reference/legacy/soap-client/[Model Web Service Client] library based on Java and pure JAX-WS and JAX-B. It is designed to be used outside midPoint, e.g. in applications that need to invoke midPoint services.
 
 There are few examples of the interface use:
 
@@ -207,11 +207,11 @@ REST interface is *WORK IN PROGRESS*. It will be released in midPoint version 3.
 
 == See Also
 
-* wiki:Interfaces[Interfaces]
+* xref:/midpoint/reference/interfaces/[Interfaces]
 
 * xref:/midpoint/architecture/[Architecture and Design]
 
-* wiki:IDM+Model+Interface[IDM Model Interface]
+* xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface]
 
 * xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface]
 

@@ -129,7 +129,7 @@ In the figure bellow there is another example of _UserType_ object that contains
 ====
 Although the repository is object-oriented it may be implemented using various database technologies, including non-object-oriented data stores.
 In fact the most common way to store midPoint data is to use a relational database.
-It is the midPoint wiki:Repository+Subsystem[repository subsystem] that implements the necessary object-relational mapping (ORM).
+It is the midPoint xref:/midpoint/architecture/archive/subsystems/repo/[repository subsystem] that implements the necessary object-relational mapping (ORM).
 This allows the data to be stored efficiently in a form of relational database tables while presenting the data to the midPoint logic in a form of objects.
 
 ====

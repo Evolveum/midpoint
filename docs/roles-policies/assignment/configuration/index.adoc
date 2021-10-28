@@ -553,7 +553,7 @@ The assignment can also be temporarily disabled, using the `administrativeStatus
 
 ----
 
-This kind of assignment parameters, called wiki:Activation[activation], is pre-defined in midPoint.
+This kind of assignment parameters, called xref:/midpoint/reference/concepts/activation/[activation], is pre-defined in midPoint.
 Therefore the IDM system will take care of processing that by itself, without any substantial customization.
 
 
@@ -639,14 +639,14 @@ See xref:/midpoint/reference/expressions/expressions/[Expression] page for more 
 
 == Referential Integrity
 
-MidPoint does *not* support strict wiki:Relaxed+Referential+Integrity[referential integrity]. This was a very conscious decision during midPoint design.
+MidPoint does *not* support strict xref:/midpoint/architecture/concepts/relaxed-referential-integrity/[referential integrity]. This was a very conscious decision during midPoint design.
 Therefore case should be taken when deleting objects, that are targets of existing assignments.
 Assignments to the deleted objects will *not*  be deleted.
 Such assignments will remain in "holder" objects.
 Such "dangling" assignments will be silently ignored in most cases, but they may be displayed by GUI, they may produce log records or even some warning.
 Therefore the best strategy is to avoid creating such "dangling" assignments.
 
-See wiki:Relaxed+Referential+Integrity[Relaxed Referential Integrity] page for more details.
+See xref:/midpoint/architecture/concepts/relaxed-referential-integrity/[Relaxed Referential Integrity] page for more details.
 
 
 == See Also
@@ -669,4 +669,4 @@ See wiki:Relaxed+Referential+Integrity[Relaxed Referential Integrity] page for m
 
 * xref:/midpoint/reference/expressions/expressions/[Expression], especially part about assignment expressions
 
-* wiki:Relaxed+Referential+Integrity[Relaxed Referential Integrity]
+* xref:/midpoint/architecture/concepts/relaxed-referential-integrity/[Relaxed Referential Integrity]

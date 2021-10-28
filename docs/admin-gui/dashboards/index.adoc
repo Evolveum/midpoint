@@ -28,9 +28,9 @@ Such as customizable dashboards.
 
 In MidPoint universe, dashboards are first-class citizens.
 Each deployment can have as many dashboards as needed, and they can contain custom "widgets" used to present interesting pieces of information.
-Simple widgets can present data from wiki:Object+Collections+and+Views[object collections], such as number of active employees, number of failed resources, suspended tasks and so.
+Simple widgets can present data from xref:/midpoint/reference/admin-gui/collections-views/[object collections], such as number of active employees, number of failed resources, suspended tasks and so.
 That is an elegant way to create _status dashboards_ showing status of important system components.
-But collections are much more powerful, especially the ability to define collection _domain_. Therefore dynamic dashboard can be used for wiki:Compliance[compliance] purposes.
+But collections are much more powerful, especially the ability to define collection _domain_. Therefore dynamic dashboard can be used for xref:/midpoint/features/planned/compliance/[compliance] purposes.
 Data protection dashboards may be set up.
 And so on.
 
@@ -56,7 +56,7 @@ Such as HTML table that can be delivered in regular mail message.
 == Object Collections and Policies
 
 Dashboards are meant to present data.
-But their integration with wiki:Object+Collections+and+Views[object collections] brings interesting possibilities.
+But their integration with xref:/midpoint/reference/admin-gui/collections-views/[object collections] brings interesting possibilities.
 In midPoint 4.0 several objects were "promoted" to be able to contain assignments.
 Object collection was one of those.
 This means, that object collections can now contain policy rules.
@@ -64,7 +64,7 @@ Which means that there may be policy rules that can trigger on the number of obj
 E.g. a policy rules may trigger if there are more than 5% resources that are down.
 Result of this policy rules can be displayed in the dashboard.
 But there may be more interesting configurations with more substantial effects.
-Please see wiki:Object+Collections+and+Views[Object Collections and Views] for more details.
+Please see xref:/midpoint/reference/admin-gui/collections-views/[Object Collections and Views] for more details.
 
 == Configuration
 
@@ -74,8 +74,8 @@ See xref:configuration/[] page for more details.
 
 * xref:configuration/[]
 
-* wiki:Object+Collections+and+Views[Object Collections and Views]
+* xref:/midpoint/reference/admin-gui/collections-views/[Object Collections and Views]
 
-* wiki:Compliance[Compliance]
+* xref:/midpoint/features/planned/compliance/[Compliance]
 
-* wiki:Archetypes[Archetypes]
+* xref:/midpoint/reference/schema/archetypes/[Archetypes]

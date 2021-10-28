@@ -340,6 +340,6 @@ The audit is the easiest way to check that.
 
 * wiki:Troubleshooting+Mappings[Troubleshooting Mappings]
 
-* wiki:Usual+Troubleshooting+Steps[Usual Troubleshooting Steps]
+* xref:/midpoint/reference/diag/troubleshooting/usual-troubleshooting-steps/[Usual Troubleshooting Steps]
 
 * xref:/midpoint/devel/bugfixing/[Bugfixing and Support]

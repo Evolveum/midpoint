@@ -43,7 +43,7 @@ For those that want to learn by reading code samples, please see
 In midPoint there are many kinds of links among objects.
 They are differentiated by _relation_ attribute of the particular object reference.
 Relations can be standard or custom.
-(More information on this topic can be found e.g. on wiki:Relation[Relation] and wiki:Relation+Configuration[Relation Configuration] pages.)
+(More information on this topic can be found e.g. on wiki:Relation[Relation] and xref:/midpoint/reference/concepts/relation/relation-configuration/[Relation Configuration] pages.)
 
 These are typical situations when two objects are linked:
 

@@ -38,7 +38,7 @@ Just specifying "manager" should be enough - unless there is a naming conflict.
 
 === QName-URI Dichotomy
 
-QNames and URIs are basically the same thing: wiki:XML+Conventions[XML Conventions]
+QNames and URIs are basically the same thing: xref:/midpoint/devel/guides/xml-conventions/[XML Conventions]
 
 Yet, there are two data types in XSD: QName and anyURI.
 

@@ -120,4 +120,4 @@ This illustrates how the test works.
 
 == See Also
 
-* wiki:Configuration+Samples[Configuration Samples]
+* xref:/midpoint/reference/samples/[Configuration Samples]

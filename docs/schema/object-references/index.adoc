@@ -145,7 +145,7 @@ We rather chose to allow for some inconsistency - and create processes that shou
 
 * xref:/midpoint/reference/synchronization/examples/[Synchronization Examples]
 
-* wiki:Relaxed+Referential+Integrity[Relaxed Referential Integrity]
+* xref:/midpoint/architecture/concepts/relaxed-referential-integrity/[Relaxed Referential Integrity]
 
 
 == External links

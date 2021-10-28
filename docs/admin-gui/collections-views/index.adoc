@@ -30,7 +30,7 @@ There is a special object type (ObjectCollectionType) that is used to define a c
 It is first-class midPoint object.
 Collection defines which objects belong to the collection.
 The plan is that collections can be used in the entire midPoint system, e.g. collections can be used in xref:/midpoint/reference/security/authorization/[authorizations], xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] may be applied to them and so on.
-Some midPoint objects can act as an implicit collections, especially wiki:Archetypes[archetypes] and xref:/midpoint/reference/org/organizational-structure/[organizational units]. Object collections are designed to be solid and stable.
+Some midPoint objects can act as an implicit collections, especially xref:/midpoint/reference/schema/archetypes/[archetypes] and xref:/midpoint/reference/org/organizational-structure/[organizational units]. Object collections are designed to be solid and stable.
 Something that midPoint policies can rely on.
 
 * *View* is a user interface concept.
@@ -60,8 +60,8 @@ See wiki:Object+Collections+and+Views+Improvements[Object Collections and Views 
 
 * wiki:Object+Collections+and+Views+Improvements[Object Collections and Views Improvements]
 
-* wiki:Archetypes[Archetypes]
+* xref:/midpoint/reference/schema/archetypes/[Archetypes]
 
-* wiki:Compliance[Compliance]
+* xref:/midpoint/features/planned/compliance/[Compliance]
 
-* wiki:Customizable+Dashboards[Customizable Dashboards]
+* xref:/midpoint/reference/admin-gui/dashboards/[Customizable Dashboards]

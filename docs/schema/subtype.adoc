@@ -27,7 +27,7 @@ E.g. subtype can be easily used in authorizations, global policy rules and so on
 .Subtypes are replaced by Archetypes
 ====
 MidPoint 3.x used mechanism of subtype to implement parts of the functionality provided by archetypes.
-In MidPoint 4.0, wiki:Archetypes[Archetypes] should provide complete replacement for subtype functionality.
+In MidPoint 4.0, xref:/midpoint/reference/schema/archetypes/[Archetypes] should provide complete replacement for subtype functionality.
 Subtype will still work in midPoint 4.x, but it is no longer a recommended mechanism - except for assignment subtype, which is still useful.
 Subtypes will be most likely deprecated sometime during midPoint 4.x lifetime and the plan is to remove it completely in midPoint 5.0.
 
@@ -52,7 +52,7 @@ Therefore subtype is often combined with wiki:Using+Metaroles+for+Policy+Configu
 
 * wiki:Generic+Objects[Generic Objects]
 
-* wiki:Archetypes[Archetypes]
+* xref:/midpoint/reference/schema/archetypes/[Archetypes]
 
 * wiki:Using+Metaroles+for+Policy+Configuration[Using Metaroles for Policy Configuration]
 

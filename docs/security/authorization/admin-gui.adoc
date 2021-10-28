@@ -207,7 +207,7 @@ use #selfRequestAssignments instead
 
 
 | link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#usersView]
-| Showing menu items for wiki:Object+Collections+and+Views[views] that are configured for users.
+| Showing menu items for xref:/midpoint/reference/admin-gui/collections-views/[views] that are configured for users.
 |
 
 
@@ -326,7 +326,7 @@ use #selfRequestAssignments instead
 
 
 | link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#rolesView]
-| Showing menu items for wiki:Object+Collections+and+Views[views] that are configured for roles.
+| Showing menu items for xref:/midpoint/reference/admin-gui/collections-views/[views] that are configured for roles.
 | Since 4.0.1
 
 

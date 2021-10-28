@@ -49,7 +49,7 @@ E.g. reconciliation or similar operation should do the trick.
 
 == Impact on Operations
 
-The cached data are accessible by using the ususal wiki:IDM+Model+Interface[IDM Model Interface]. There are two operation options that provide access to the cached data:
+The cached data are accessible by using the ususal xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface]. There are two operation options that provide access to the cached data:
 
 * *`noFetch` option*: This option returns the data from midPoint repository.
 Therefore if there are data cached in the repository then the `noFetch` option returns them.

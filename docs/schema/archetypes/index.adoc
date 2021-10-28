@@ -107,16 +107,16 @@ Each archetype can specify details of object presentation, such as custom object
 MidPoint user interface will display archetyped objects with that icon and color.
 This makes it easy to distinguish employees from contractors and business roles from metaroles.
 
-Archetypes are integrated with wiki:Object+Collections+and+Views[views]. Archetypes can be used as an implicit collection.
+Archetypes are integrated with xref:/midpoint/reference/admin-gui/collections-views/[views]. Archetypes can be used as an implicit collection.
 Therefore it is easy to set up a view that will display all employees, business roles and so on.
 List of all archetyped objects can be available right from midPoint menu.
-Archetypes can also be used with wiki:Object+Collections+and+Views[collections]. MidPoint support some kind of inheritance of collections.
+Archetypes can also be used with xref:/midpoint/reference/admin-gui/collections-views/[collections]. MidPoint support some kind of inheritance of collections.
 Therefore it is easy to set up collections such as "active employees" that combines archetypes with additional search filter.
 
 [TIP]
 .Synergy: Archetypes and Object lists/views
 ====
-Archetype functionality is a wiki:Synergistic+Features[synergistic feature]. It is designed as an natural extension of another midPoint feature: wiki:Object+Collections+and+Views[Object Collections and Views]. It is expected that the capabilities of object views will improve in time.
+Archetype functionality is a wiki:Synergistic+Features[synergistic feature]. It is designed as an natural extension of another midPoint feature: xref:/midpoint/reference/admin-gui/collections-views/[Object Collections and Views]. It is expected that the capabilities of object views will improve in time.
 There are expected user experience improvements, better customization support and so on.
 Each time collections&views are improved then also archetypes will get the same improvements.
 ====

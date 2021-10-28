@@ -262,7 +262,7 @@ Values: "none", "auto", "sunChangeLog", "modifyTimestamp"
 |===
 
 Configuration samples for all LDAP resources were updated to the new LDAP connector.
-The wiki:Configuration+Samples[Configuration Samples] are located at the usual places.
+The xref:/midpoint/reference/samples/[Configuration Samples] are located at the usual places.
 
 
 === Shadows

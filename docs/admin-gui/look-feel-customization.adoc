@@ -123,7 +123,7 @@ Most interesting files for review/change when updating styles in MidPoint are:
 
 * midpoint-theme.less
 
-Best way to change them is using wiki:Customization+With+Overlay+Project[maven overlay] project.
+Best way to change them is using xref:/midpoint/reference/deployment/maven-overlay-project/[maven overlay] project.
 
 
 == Javascript files description

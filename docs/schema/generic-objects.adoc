@@ -104,7 +104,7 @@ Once an object is a role, its type is set to `RoleType` and this cannot be chang
 But the definition of RoleType can be extended, even at run-time, by using xref:/midpoint/reference/schema/custom-schema-extension/[custom schema extension mechanism].
 
 There is yet another drawback: RBAC roles, authorization roles, job titles - they all have the same object type.
-They are all `RoleType`. How to tell them apart? There is also a mechanism for that: wiki:Archetypes[Archetypes]. Archetypes can be used to distinguish objects of the same type, customize its presentation and behavior.
+They are all `RoleType`. How to tell them apart? There is also a mechanism for that: xref:/midpoint/reference/schema/archetypes/[Archetypes]. Archetypes can be used to distinguish objects of the same type, customize its presentation and behavior.
 Archetypes are also wiki:Using+Metaroles+for+Policy+Configuration[metaroles]. Metaroles are roles that are applied to other (abstract) roles.
 Therefore archetypes can be used to assign common behavior for roles, orgs and services.
 And that is especially desirable when defining a new type of an object.
@@ -151,9 +151,9 @@ Simply speaking, midPoint does not really need the concept of special generic ob
 
 == See Also
 
-* wiki:Archetypes[Archetypes]
+* xref:/midpoint/reference/schema/archetypes/[Archetypes]
 
-* wiki:Object+Collections+and+Views[Object Collections and Views]
+* xref:/midpoint/reference/admin-gui/collections-views/[Object Collections and Views]
 
 * wiki:Using+Metaroles+for+Policy+Configuration[Using Metaroles for Policy Configuration]
 

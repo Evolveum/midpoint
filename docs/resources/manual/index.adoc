@@ -27,11 +27,11 @@ The ticket is closed.
 
 . MidPoint detects that the ticket was closed and updates its data about the account.
 
-The basic principle of manual connectors is the storage of operation wiki:Deltas[deltas] in midPoint repository while the manual operation is in progress.
+The basic principle of manual connectors is the storage of operation xref:/midpoint/devel/prism/concepts/deltas/[deltas] in midPoint repository while the manual operation is in progress.
 MidPoint also remembers the state of the operation and the reference to a case/ticket that is used to track operation progress.
 This reference is used to update operation status.
 
-MidPoint usually keeps cached version of the account in midPoint wiki:Repository+Subsystem[repository]. In fact the same mechanism that is used for wiki:Attribute+Caching[attribute caching] is used here.
+MidPoint usually keeps cached version of the account in midPoint xref:/midpoint/architecture/archive/subsystems/repo/[repository]. In fact the same mechanism that is used for wiki:Attribute+Caching[attribute caching] is used here.
 MidPoint keeps the cached data mostly for presentation purposes - we would like to show how we think that the account looks like.
 
 Pure manual resources are disconnected from the target system.
@@ -56,7 +56,7 @@ This is usually scheduled export script.
 Provisioning operations on a semi-manual resources are executed in exactly the same way as in pure-manual resources.
 The difference is in the feedback.
 MidPoint is combining the manual operation data with the on-line data from the resource.
-The operation wiki:Deltas[deltas] are merged with the last known state of the account on the resource.
+The operation xref:/midpoint/devel/prism/concepts/deltas/[deltas] are merged with the last known state of the account on the resource.
 This means that midPoint has much more reliable information about the state of the account on the target system.
 Therefore midPoint can detect whether accounts has been illegally changed on the target system, whether the system administrator executed the operation correctly and so on.
 MidPoint can also automatically create new tickets for system administrators to fix inconsistencies between the policy and real state of the account in the target system.

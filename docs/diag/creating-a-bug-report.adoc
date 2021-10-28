@@ -23,7 +23,7 @@ This page describes how to create a bug report that does not waste anyone's time
 
 == Troubleshooting
 
-First of all please make sure you go through wiki:Usual+Troubleshooting+Steps[Usual Troubleshooting Steps] to understand what is going on.
+First of all please make sure you go through xref:/midpoint/reference/diag/troubleshooting/usual-troubleshooting-steps/[Usual Troubleshooting Steps] to understand what is going on.
 MidPoint is very flexible and a simple misconfiguration may easily look like a bug.
 We invest a huge amount of time to make the error messages and log entries understandable.
 But nothing is perfect and what seems like a perfectly understandable message for us may look like a gibberish to you.
@@ -107,7 +107,7 @@ But sometimes too much non-relevant information may obscure the tiny problem tha
 
 == See Also
 
-* wiki:Usual+Troubleshooting+Steps[Usual Troubleshooting Steps]
+* xref:/midpoint/reference/diag/troubleshooting/usual-troubleshooting-steps/[Usual Troubleshooting Steps]
 
 * xref:/midpoint/devel/bugfixing/[Bugfixing and Support]
 

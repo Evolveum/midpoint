@@ -335,4 +335,4 @@ So all you need is to do is create roles which will have projections - posixGrou
 
 == See Also
 
-* wiki:Configuration+Samples[Configuration Samples]
+* xref:/midpoint/reference/samples/[Configuration Samples]

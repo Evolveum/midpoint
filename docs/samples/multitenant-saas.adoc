@@ -795,4 +795,4 @@ The scenario has currently some limitations:
 
 == See Also
 
-* wiki:Configuration+Samples[Configuration Samples]
+* xref:/midpoint/reference/samples/[Configuration Samples]

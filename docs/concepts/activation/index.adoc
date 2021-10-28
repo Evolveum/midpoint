@@ -43,7 +43,7 @@ In fact the most common setting for this property is to leave it unset and let o
 If this property is not present then the other constraints in the activation type should be considered (namely _validity_ properties, see below).
 
 If the administrative status is not present and there are no other constraints in the activation type or if there is no activation type at all then the object is assumed to be "enabled", i.e. that the described concept is active.
-Unless the activation is constrained by the wiki:Object+Lifecycle[object lifecycle] (see below).
+Unless the activation is constrained by the xref:/midpoint/reference/concepts/object-lifecycle/[object lifecycle] (see below).
 
 [%autowidth]
 |===
@@ -111,7 +111,7 @@ Therefore if administrative status is set to any non-empty value then the validi
 {% include since.html since="3.5" %}
 ++++
 
-Activation is also influenced by wiki:Object+Lifecycle[object lifecycle]. The object behaves normally in `active` and `deprecated` lifecycle states.
+Activation is also influenced by xref:/midpoint/reference/concepts/object-lifecycle/[object lifecycle]. The object behaves normally in `active` and `deprecated` lifecycle states.
 In these states the object activation is determined by the administrative status and validity.
 Object is considered to be non-active in any other lifecycle states (`draft`, `proposed`, `archived`, `failed` and any other custom state).
 If the object is in any of these states then the setting of the administrative status and validity does not matter at all.
@@ -249,4 +249,4 @@ Use validity dates for that purpose.
 
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[Resource Schema Handling: Activation]
 
-* wiki:Object+Lifecycle[Object Lifecycle]
+* xref:/midpoint/reference/concepts/object-lifecycle/[Object Lifecycle]

@@ -79,7 +79,7 @@ The extensions are identified by namespace URI, therefore there is a natural nam
 Existing objects types are easy to extends, however new object types are quite difficult to create.
 Luckily, there is usually no need to.
 MidPoint provides very good set of basic data types (User, Role, Org, Service).
-These types can be further specified by using wiki:Archetypes[archetypes].
+These types can be further specified by using xref:/midpoint/reference/schema/archetypes/[archetypes].
 
 
 == Multiple Formats
@@ -135,4 +135,4 @@ There will certainly be more JSON and YAML in the documentation, samples and tes
 
 * xref:/midpoint/devel/axiom[Axiom]
 * xref:/midpoint/reference/schema/[Data Model]
-* wiki:Archetypes[]
+* xref:/midpoint/reference/schema/archetypes/[]

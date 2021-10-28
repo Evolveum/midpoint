@@ -160,7 +160,7 @@ Support for the concept of assignment for resources and tasks may be one of poss
 * Objects created by a tenant user could be automatically part of that tenant.
 E.g. tasks started by user or new resources created by that user might be automatically assigned to the same tenant.
 This is not implemented yet.
-This is partially related to planned wiki:Archetypes[Archetypes] feature.
+This is partially related to planned xref:/midpoint/reference/schema/archetypes/[Archetypes] feature.
 
 * The concept of multi-tenancy has almost no support in midPoint user interface.
 Ideally, the tenant administrators should be constrained to their tenants, global administrators should be able to switch between tenant and global views and so on.

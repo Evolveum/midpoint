@@ -84,7 +84,7 @@ Functions:
 
 * trace
 
-Please see wiki:Log+Levels[Log Levels] page for description of the usual meaning and usage of individual log levels in midPoint.
+Please see xref:/midpoint/reference/diag/logging/log-levels/[Log Levels] page for description of the usual meaning and usage of individual log levels in midPoint.
 
 
 == MidPoint Library

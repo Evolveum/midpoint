@@ -10,7 +10,7 @@
 
 Although we have quite nice error message dialog in midPoint, there are some occasions when this is not enough to diagnose the problem.
 Such (relative rare) occasions usually hits about a programming bug: wrong exception handling, wrong error reporting a wild variety (usually stupid) programming mistakes.
-If the wiki:Usual+Troubleshooting+Steps[usual troubleshooting steps] do not work, there is a time for a brutal solution.
+If the xref:/midpoint/reference/diag/troubleshooting/usual-troubleshooting-steps/[usual troubleshooting steps] do not work, there is a time for a brutal solution.
 
 The best way is to show midPoint team how to replicate the problem.
 But some problems cannot be replicated.
@@ -48,7 +48,7 @@ Don't forget to click *Save*. MidPoint will produce considerable amount of log r
 
 If you know in which component is the problem located you can experiment with this setting.
 But if all else fails the All/TRACE will do.
-The explanation of logging levels can be found on wiki:Log+Levels[Log Levels] page.
+The explanation of logging levels can be found on xref:/midpoint/reference/diag/logging/log-levels/[Log Levels] page.
 
 
 == Operation Trace

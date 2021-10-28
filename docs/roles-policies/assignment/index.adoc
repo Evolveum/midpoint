@@ -121,7 +121,7 @@ One of the main purposes of the `assignment` structure is to contain parameters,
 The usual assignment parameters are start and end dates of the assignment.
 This can be used in case a role is assigned to a user only for a specified amount of time, when a new employee record is created before he really joins the company, etc.
 The assignment can also be temporarily disabled.
-This kind of assignment parameters, called wiki:Activation[activation], is pre-defined in midPoint.
+This kind of assignment parameters, called xref:/midpoint/reference/concepts/activation/[activation], is pre-defined in midPoint.
 Therefore the IDM system will take care of processing that by itself, without any substantial customization.
 
 Assignment parameters can be arbitrarily extended by using the `extension` element.

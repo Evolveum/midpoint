@@ -104,7 +104,7 @@ The disadvantage of this solution is that re-execution of the tasks requires the
 
 == Option 2: Using partitioned tasks
 
-This option is available since midPoint 3.8. This version brought so called wiki:Task+partitioning[Partitioned tasks]. Although this feature is primarily used for partitioning standard tasks (like Reconciliation or Validity scanning), nothing prevents us from using it for custom tasks as well.
+This option is available since midPoint 3.8. This version brought so called xref:/midpoint/devel/design/multi-node-partitioned-and-stateful-tasks/task-partitioning/[Partitioned tasks]. Although this feature is primarily used for partitioning standard tasks (like Reconciliation or Validity scanning), nothing prevents us from using it for custom tasks as well.
 
 The following composite task prepares a CSV file and imports it.
 

@@ -35,4 +35,4 @@ Since midPoint 4.0 the samples were separated to a link:https://github.com/Evolv
 
 == See Also
 
-** wiki:Customization+With+Overlay+Project[Customization With Overlay Project]
+** xref:/midpoint/reference/deployment/maven-overlay-project/[Customization With Overlay Project]

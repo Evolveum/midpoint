@@ -44,7 +44,7 @@ MidPoint mappings fully support this mechanism also for multi-value properties.
 === Script Expression Sources
 
 For the scripting expression to work correctly the mapping must be able to identify what was changed and which part of the change is important for the script.
-E.g. it is not sufficient to know that user properties `fullName`, `familyName` and `employeeType` changed (as represented in wiki:Deltas[object delta]). The mapping must know that only the `fullName` property is important for the script.
+E.g. it is not sufficient to know that user properties `fullName`, `familyName` and `employeeType` changed (as represented in xref:/midpoint/devel/prism/concepts/deltas/[object delta]). The mapping must know that only the `fullName` property is important for the script.
 Otherwise the mapping would need to combine all the changes from all the applicable deltas and execute the script for all the applicable combinations.
 The number of possible combinations can be significantly large if multiple multi-value properties change.
 As the script in this case only cares about the value of `fullName` attribute then most of such executions will be pointless anyway and the results would be discarded.

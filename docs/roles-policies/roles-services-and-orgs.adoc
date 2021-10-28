@@ -65,14 +65,14 @@ And this may depend on the way how the role is xref:/midpoint/reference/roles-po
 And it may also depend on current date and time (e.g. because of validity constraints or time-based mappings).
 However all of that flexibility has a drawback: it is extremely difficult to list all users that have a particular role.
 The reason is that we need to evaluate the particular setup, assignments, roles and sub-roles for each particular user to determine which roles the user has.
-This is what wiki:Clockwork+and+Projector[Clockwork and Projector] components do and it is quite a demanding calculation.
+This is what xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[Clockwork and Projector] components do and it is quite a demanding calculation.
 And this calculation cannot be easily transformed to a database query.
 Therefore roles cannot be used to efficiently group people.
 This will be a disaster if we tried to do this in a deployment that manages couple of millions of users.
 
 * Orgs group objects.
 Orgs are designed to group objects efficiently.
-MidPoint wiki:Repository+Subsystem[Repository Subsystem] maintains a high-performance application indexes (called _closure tables_) just to be able to search for the members of a particular org very efficiently.
+MidPoint xref:/midpoint/architecture/archive/subsystems/repo/[Repository Subsystem] maintains a high-performance application indexes (called _closure tables_) just to be able to search for the members of a particular org very efficiently.
 Even if the orgs are deep hierarchical structures and there are several parallel structures at the same time.
 This is designed to scale to a very large numbers of orgs and still be efficient.
 But this efficiency comes with a cost: the structure needs to be mostly static.

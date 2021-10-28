@@ -360,7 +360,7 @@ See xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment
 == Entitlement Membership Removal
 
 Most midPoint operations are delta-based.
-E.g. if user interface is used to add or remove an assignment a wiki:Deltas[delta] is created and sent as a parameter of the operation.
+E.g. if user interface is used to add or remove an assignment a xref:/midpoint/devel/prism/concepts/deltas/[delta] is created and sent as a parameter of the operation.
 In this case we know what has changed.
 Therefore we can easily add remove entitlement membership.
 We can do this even if the entitlement is set to be _tolerant_. We can do this because we know that the last assignment that "induced" that group was just removed.

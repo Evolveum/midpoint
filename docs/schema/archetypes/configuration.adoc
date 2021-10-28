@@ -16,7 +16,7 @@
 Simply speaking _archetype_ is a well-defined object subtype.
 Employee, Contractor, Project, Workgroup, Application, ... each of them is an archetype.
 
-Please see wiki:Archetypes[Archetypes] page for a more in-depth introduction to archetype concepts.
+Please see xref:/midpoint/reference/schema/archetypes/[Archetypes] page for a more in-depth introduction to archetype concepts.
 
 
 == Archetype Definition
@@ -120,7 +120,7 @@ But otherwise archetype definitions and object lists are not displayed in the us
 This behavior has several reasons: there may be archetype definitions that are just being prepared, definitions that should not be publicly visible, or there may be just too many definitions to be displayed in the menu.
 Therefore, by default, there will be no additional menu items or "shortcut" buttons for archetypes.
 
-Archetypes can be added to menus and other places of midPoint interface by using wiki:Object+Collections+and+Views[object views]. All that is needed is simple definition of a view in wiki:Admin+GUI+Configuration[admin GUI configuration structure]:
+Archetypes can be added to menus and other places of midPoint interface by using xref:/midpoint/reference/admin-gui/collections-views/[object views]. All that is needed is simple definition of a view in wiki:Admin+GUI+Configuration[admin GUI configuration structure]:
 
 [source,xml]
 ----
@@ -778,8 +778,8 @@ Please see wiki:Archetype+Improvements+(Planned+Feature)[Archetype Improvements 
 
 == See Also
 
-* wiki:Archetypes[Archetypes]
+* xref:/midpoint/reference/schema/archetypes/[Archetypes]
 
-* wiki:Object+Collections+and+Views[Object Collections and Views]
+* xref:/midpoint/reference/admin-gui/collections-views/[Object Collections and Views]
 
 * wiki:Archetype+Improvements+(Planned+Feature)[Archetype Improvements (Planned Feature)]

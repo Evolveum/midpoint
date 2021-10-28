@@ -276,7 +276,7 @@ But it makes a lot of issues in inbound mappings.
 The reason for that is that inbound mappings are somehow different.
 They are not completely xref:/midpoint/reference/concepts/relativity/[relativistic].
 
-Typical midPoint mapping is working with a wiki:Deltas[deltas]. The mapping knows what was changed and the mapping takes a full advantage of that.
+Typical midPoint mapping is working with a xref:/midpoint/devel/prism/concepts/deltas/[deltas]. The mapping knows what was changed and the mapping takes a full advantage of that.
 Therefore it will normally not change the things that should not be changed.
 Therefore the definition of mapping range is not that important in such case.
 However, in inbound mappings we do not usually have a delta.

@@ -50,7 +50,7 @@ This is the basic framework of midPoint data therefore it is also used in all mi
 Please have a look at xref:/midpoint/devel/prism/[Prism] page to get a generic introduction to the framework.
 
 MidPoint is designed to work with xref:/midpoint/reference/concepts/relativity/[relative change model.] This model is built deeply into the basic midPoint functionality.
-Therefore it is obvious that also midPoint interfaces will work with wiki:Deltas[deltas]. Similarly to the objects the Java interfaces to midPoint are using deltas provided by xref:/midpoint/devel/prism/[prism framework]. Prism deltas are designed especially to work with prism objects and together they work a complete and elegant data representation and management solution.
+Therefore it is obvious that also midPoint interfaces will work with xref:/midpoint/devel/prism/concepts/deltas/[deltas]. Similarly to the objects the Java interfaces to midPoint are using deltas provided by xref:/midpoint/devel/prism/[prism framework]. Prism deltas are designed especially to work with prism objects and together they work a complete and elegant data representation and management solution.
 
 As midPoint is heavily relying on prism framework an instance of _prism context_ is sometimes needed to complete some tasks.
 One of the important responsibilities of prism context is to maintain pre-parsed schemas of all midPoint objects and also schemas of user extensions.
@@ -88,11 +88,11 @@ private ModelService modelService;
 
 MidPoint is a sophisticated system that is supposed to be secure and auditable and easy to diagnose.
 Therefore each operation has to know a security context in which it runs to be able to properly process authorization and auditing.
-The wiki:Task[Task] data structure is designed for this responsibility.
+The xref:/midpoint/architecture/concepts/task/[Task] data structure is designed for this responsibility.
 It contains the identity of the user and security context.
 But the task has much more capabilities.
 It can be also used for run control, e.g. midPoint has the ability to switch the execution to asynchronous if needed.
-The wiki:Task[Task] data structure mains information about the context and the state of operation execution.
+The xref:/midpoint/architecture/concepts/task/[Task] data structure mains information about the context and the state of operation execution.
 Therefore it needs to be provided as an argument in each invocation.
 
 Error reporting and handling is a very important concern in integration systems such as midPoint.
@@ -102,7 +102,7 @@ The interface provide two mechanisms to describe errors and error conditions:
 E.g. they cannot provide track of the complete operation or cannot indicate partial success.
 Therefore the use of exceptions is limited only the most severe cases and an additional error indication mechanism is needed.
 
-* *wiki:OperationResult[Operation Result]* is used as a rich data structure that describe useful information about the whole operation and its suboperations.
+* *xref:/midpoint/architecture/concepts/operation-result/[Operation Result]* is used as a rich data structure that describe useful information about the whole operation and its suboperations.
 It describes what parts of the operation failed and provides a rich diagnostics information to display to user.
 The operation result is used to *indicate both fatal (complete) and partial failures*. The analysis of the operation result may also provide debugging data about the operation itself (e.g. for debugging the policies and configuration).
 
@@ -111,7 +111,7 @@ A common set of exceptions is defined in the xref:/midpoint/architecture/archive
 Most of the exceptions are checked exceptions that define a specific circumstances (semantics) of the error.
 Therefore it is usually sufficient to react to (catch) a specific exception to handle the error.
 However the exception is only thrown if the whole operation fails or if an unexpected situation with unpredictable results occurs (e.g. out of memory error).
-More sophisticated error handling is possible by inspecting the wiki:OperationResult[Operation Result]. E.g. if a user is modified, the modification is reflected to several accounts using xref:/midpoint/reference/expressions/mappings/[mappings], some of account modification succeed and one of the account modification fails then an exception is *not* thrown.
+More sophisticated error handling is possible by inspecting the xref:/midpoint/architecture/concepts/operation-result/[Operation Result]. E.g. if a user is modified, the modification is reflected to several accounts using xref:/midpoint/reference/expressions/mappings/[mappings], some of account modification succeed and one of the account modification fails then an exception is *not* thrown.
 In such case the the operation returns as in it would after a successful operation.
 Operation result structure will be filled with details of every significant sub-operation.
 The overall status will indicate _partial error_ and one of the sub-operations will be set to _fatal error_. As this structure is intended for human readability and machine processability it can be used for variety of purposes.
@@ -188,7 +188,7 @@ modelService.searchObjectsIterative(UserType.class, query, handler, null, task, 
 == Creating, Modifying and Deleting Objects
 
 Unlike other interfaces the MidPoint Java API uses a single method for all changes.
-The method is called `executeChanges` and it takes a collection of wiki:Deltas[deltas] as its argument.
+The method is called `executeChanges` and it takes a collection of xref:/midpoint/devel/prism/concepts/deltas/[deltas] as its argument.
 The trick is to correctly construct the deltas.
 Deltas are part of the xref:/midpoint/devel/prism/[Prism] framework that is used in midPoint to represent data.
 
@@ -243,7 +243,7 @@ modelService.executeChanges(deltas, null, task, result);
 ----
 
 The modification is much more powerful than just this simple example.
-A modify delta can contain several modifications of various modify types (see wiki:Deltas[Deltas]). There may also be more than one object delta in the collection, e.g. to modify user and its accounts in a single midPoint operation (but see limitations below).
+A modify delta can contain several modifications of various modify types (see xref:/midpoint/devel/prism/concepts/deltas/[Deltas]). There may also be more than one object delta in the collection, e.g. to modify user and its accounts in a single midPoint operation (but see limitations below).
 
 
 === Deleting Objects
@@ -285,7 +285,7 @@ If you are interested in more examples than midPoint integration tests are perha
 These tests are using a fully initialized midPoint instance in unit test framework (Test NG).
 The tests are accessing the instance using the same Java API as is described here.
 Therefore you can find a lot more examples of the API usage by looking at the tests.
-The test reside in `model/model-intest` component of the wiki:Source+Code+Structure[midPoint source code]. Especially `TestModelServiceContract` is a nice comprehensive test that provides a good overview of basic API operations.
+The test reside in `model/model-intest` component of the xref:/midpoint/devel/source/structure/[midPoint source code]. Especially `TestModelServiceContract` is a nice comprehensive test that provides a good overview of basic API operations.
 
 
 == Misc Operations
@@ -300,7 +300,7 @@ TODO: options: partial reads, resolve, paging, ...
 
 == See Also
 
-* wiki:IDM+Model+Interface[IDM Model Interface]
+* xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface]
 
 * xref:/midpoint/devel/prism/[Prism Objects]
 

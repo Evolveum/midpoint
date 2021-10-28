@@ -47,7 +47,7 @@ Meta roles can be setup by a trusted administrator.
 Delegated administrators then just "use" the metarole, with possible parametrization using parameters in assignment extension.
 However, even this method is not yet fully supported in midPoint user interface.
 
-* wiki:Object+Lifecycle[Object lifecycle] mechanism can be used to drive role definitions through an approval process.
+* xref:/midpoint/reference/concepts/object-lifecycle/[Object lifecycle] mechanism can be used to drive role definitions through an approval process.
 This can be used to make sure that expressions used in the roles are safe.
 
 This mitigation is applicable for almost all practical cases in midPoint deployment - with a notable exception of reports.

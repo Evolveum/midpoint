@@ -28,7 +28,7 @@ Implementation of this interface are enforcing a consistency of access control d
 This a web service version of the IDM Model Interface represented in WSDL.
 As such it has some inherent limitations but it is usable for remote access to the Model services.
 It also has some operations that are simplified.
-For a full-featured native java interface please see the wiki:IDM+Model+Interface[IDM Model Interface].
+For a full-featured native java interface please see the xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface].
 
 
 == History

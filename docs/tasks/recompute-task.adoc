@@ -50,7 +50,7 @@ It is rather a side-effect of updating and re-evaluating focal objects.
 == Recompute Options
 
 MidPoint 3.6 (and later) has an ability to fine-tune the recompute process by specifying the model execution options.
-This can be used to control whether the recompute process triggers reconciliation, what particular parts of the wiki:Clockwork+and+Projector[clockwork and projector computation] will take place and so on.
+This can be used to control whether the recompute process triggers reconciliation, what particular parts of the xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[clockwork and projector computation] will take place and so on.
 
 [NOTE]
 .Handle with care!

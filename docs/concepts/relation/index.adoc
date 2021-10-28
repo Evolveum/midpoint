@@ -95,7 +95,7 @@ But it can be used in search filters for searches that look for references of al
 Since midPoint 3.9 new relations can be configured.
 Those new relations should behave in the same way as pre-configured relations.
 
-Please see wiki:Relation+Configuration[Relation Configuration] page for more details.
+Please see xref:/midpoint/reference/concepts/relation/relation-configuration/[Relation Configuration] page for more details.
 
 
 == See Also
@@ -104,4 +104,4 @@ Please see wiki:Relation+Configuration[Relation Configuration] page for more det
 
 * wiki:Deputy[Deputy]
 
-* wiki:Relation+Configuration[Relation Configuration]
+* xref:/midpoint/reference/concepts/relation/relation-configuration/[Relation Configuration]

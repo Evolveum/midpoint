@@ -26,7 +26,7 @@ Note: does not work for filter or correlation expressions as there are not mappi
 | `com.evolveum.midpoint.model.common.expression.Expression`
 | Gives information about every expression that is evaluated in the system.
 It provides details about expression inputs (variables) and outputs.
-This is still quite general and it still works with relative information (wiki:Triple[triples] and wiki:Deltas[deltas]). This provides a lot of output.
+This is still quite general and it still works with relative information (wiki:Triple[triples] and xref:/midpoint/devel/prism/concepts/deltas/[deltas]). This provides a lot of output.
 
 
 | Scrip trace

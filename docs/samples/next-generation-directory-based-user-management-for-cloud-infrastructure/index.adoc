@@ -712,4 +712,4 @@ Check groups for Machine Set 1, in any of them there is no memberUid with value 
 
 == See also
 
-* wiki:Configuration+Samples[Configuration samples] (directory stories/unix-ldap-advanced)
+* xref:/midpoint/reference/samples/[Configuration samples] (directory stories/unix-ldap-advanced)

@@ -43,7 +43,7 @@ image::9-2-lens-provisioning-structure.png[]
 
 xref:/midpoint/architecture/[MidPoint architecture] is designed in such a way that all important requests pass through the xref:/midpoint/architecture/archive/subsystems/model/[IDM Model Subsystem]. This makes sure that all requests are processed consistently, that xref:/midpoint/reference/security/authorization/[authorization] is properly applied, that the request is xref:/midpoint/reference/security/audit/[audited], etc.
 
-Internal implementation of the xref:/midpoint/architecture/archive/subsystems/model/[IDM Model Subsystem] heavily relies on wiki:Clockwork+and+Projector[Clockwork and Projector] components.
+Internal implementation of the xref:/midpoint/architecture/archive/subsystems/model/[IDM Model Subsystem] heavily relies on xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[Clockwork and Projector] components.
 The Clockwork drives processing of the request.
 It does so in two big steps:
 
@@ -151,9 +151,9 @@ In all other cases the likely cause is in the projector branch of the clockwork 
 
 === Model Context
 
-The most important data structure for any deeper troubleshooting of clockwork and project is wiki:Model+Context[Model Context] (also called Lens Context in the implementation).
+The most important data structure for any deeper troubleshooting of clockwork and project is xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context] (also called Lens Context in the implementation).
 This data structure contains complete state of the computation.
-Projector, clockwork and all other related components record results of the computation into the wiki:Model+Context[Model Context]. Even intermediary results are sometimes recorded in the model context, therefore it is a very valuable source of troubleshooting information.
+Projector, clockwork and all other related components record results of the computation into the xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context]. Even intermediary results are sometimes recorded in the model context, therefore it is a very valuable source of troubleshooting information.
 
 The model context is dumped into logs after each major step in the computation.
 To enable the model context dump use the following loggers:
@@ -189,7 +189,7 @@ LensContext: state=INITIAL, Wave(e=0,p=0,max=0), focus, 1 projections, 2 changes
         user: (c0c010c0-d34d-b33f-f00d-111111111116, v5, UserType) name: guybrush .....
 ----
 
-The wiki:Model+Context[Model Context] page provides the details how is the model context structured and how to understand the information from the model context dumps.
+The xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context] page provides the details how is the model context structured and how to understand the information from the model context dumps.
 
 
 == Projector Branch
@@ -242,11 +242,11 @@ Therefore even if processor names and ordering may slightly change, this descrip
 
 === Projector Tracing
 
-The best overview of the projection operation is given the the wiki:Model+Context[Model Context] dumps (see above).
+The best overview of the projection operation is given the the xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context] dumps (see above).
 Projector dumps the model context at strategic places during the computation.
 Therefore the best strategy to troubleshoot generic projector problems is
 
-. Enable wiki:Model+Context[Model Context] dumps from projector (com.evolveum.midpoint.model.impl.lens.projector.Projector: TRACE)
+. Enable xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context] dumps from projector (com.evolveum.midpoint.model.impl.lens.projector.Projector: TRACE)
 
 . Execute the operation
 
@@ -270,9 +270,9 @@ Understanding Deltas and Triples in Projector
 
 MidPoint is based on xref:/midpoint/reference/concepts/relativity/[the principle of relative changes]. Therefore midPoint will deal with operations as if they add or remove something.
 Sometimes midPoint also cares about the values that are present in the property before the operation (e.g. for reconciliation), but added and removed values are much more important for midPoint.
-Therefore almost all Projector components work with wiki:Deltas[deltas] and wiki:Triple[triples]. The basic process is like this:
+Therefore almost all Projector components work with xref:/midpoint/devel/prism/concepts/deltas/[deltas] and wiki:Triple[triples]. The basic process is like this:
 
-. Input deltas are recorded in wiki:Model+Context[Model Context] as primary deltas or synchronization deltas
+. Input deltas are recorded in xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context] as primary deltas or synchronization deltas
 
 . xref:/midpoint/reference/expressions/mappings/[Mappings] are evaluated.
 Mappings take deltas as input.
@@ -468,7 +468,7 @@ See xref:/midpoint/reference/expressions/expressions/script/functions/[Script Ex
 === Change Executor
 
 The provisioning operations are usually executed by the `com.evolveum.midpoint.model.impl.lens.ChangeExecutor` class.
-This kind of a "terminal station" where the wiki:Model+Context[model context] arrives to be executed.
+This kind of a "terminal station" where the xref:/midpoint/reference/concepts/clockwork/model-context/[model context] arrives to be executed.
 At this time the model context should contain all the original (primary) deltas and all the computed (secondary) deltas prepared for execution.
 The `ChangeExecutor` will log all the deltas that is executes:
 
@@ -641,6 +641,6 @@ The audit is the easiest way to check that.
 
 * xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
-* wiki:Usual+Troubleshooting+Steps[Usual Troubleshooting Steps]
+* xref:/midpoint/reference/diag/troubleshooting/usual-troubleshooting-steps/[Usual Troubleshooting Steps]
 
 * xref:/midpoint/devel/bugfixing/[Bugfixing and Support]

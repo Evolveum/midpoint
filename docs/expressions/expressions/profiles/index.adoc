@@ -47,7 +47,7 @@ Meta roles can be setup by a trusted administrator.
 Delegated administrators then just "use" the metarole, with possible parametrization using parameters in assignment extension.
 However, even this method is not yet fully supported in midPoint user interface.
 
-* wiki:Object+Lifecycle[Object lifecycle] mechanism can be used to drive role definitions through an approval process.
+* xref:/midpoint/reference/concepts/object-lifecycle/[Object lifecycle] mechanism can be used to drive role definitions through an approval process.
 This can be used to make sure that expressions used in the roles are safe.
 
 But neither of those mechanism is a complete and definitive solution.
@@ -65,7 +65,7 @@ Expression profiles are defined in wiki:System+Configuration+Object[system confi
 But it is much more difficult to specify which expression should be constrained by which profile.
 Profile specification cannot part of expression itself.
 In that case anyone that can modify an expression could also change the profile and there would be no security at all.
-Therefore the use of expression profiles is integrated with wiki:Archetypes[archetypes]. Object archetype assignment does not usually change - and if it does it is quite an unusual and perhaps very special process.
+Therefore the use of expression profiles is integrated with xref:/midpoint/reference/schema/archetypes/[archetypes]. Object archetype assignment does not usually change - and if it does it is quite an unusual and perhaps very special process.
 Usually only the system administrator has the rights to define archetype definitions.
 And midPoint is designed to process archetypes very efficiently.
 Which is extremely important as expressions are evaluated very often.

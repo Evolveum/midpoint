@@ -19,7 +19,7 @@ Projector is responsible for computing the changes.
 It is triggered by user changes in GUI, received by service or detected by xref:/midpoint/reference/synchronization/introduction/[synchronization]. Projector recomputes all the wiki:Synchronization+Policies[synchronization policies], applies all xref:/midpoint/reference/expressions/introduction/[mappings and expressions], processes xref:/midpoint/reference/roles-policies/rbac/[RBAC] role assignments and so on.
 However, projector is just computing the values.
 It is not yet executing them.
-The result of projector computations are stored in wiki:Model+Context[model context].
+The result of projector computations are stored in xref:/midpoint/reference/concepts/clockwork/model-context/[model context].
 
 Projector distinguished objects into two categories: xref:/midpoint/reference/schema/focus-and-projections/[Focus and Projections]
 
@@ -48,13 +48,13 @@ The clockwork process goes through several stages:
 
 * *INITIAL* state.
 Nothing has been done yet.
-The wiki:Model+Context[model context] is filled with a request.
+The xref:/midpoint/reference/concepts/clockwork/model-context/[model context] is filled with a request.
 But no recomputation has yet taken place.
 The hooks can use this state to inspect or change the request even before any serious action takes place.
 
 * *PRIMARY* state.
 Request is recomputed.
-The wiki:Model+Context[Model Context] was recomputed and contains the preview of changes.
+The xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context] was recomputed and contains the preview of changes.
 The hooks can use this state to change the original request.
 Nothing has been executed yet.
 This is often used to influence assignments by routing the request through approval workflow.
@@ -62,7 +62,7 @@ E.g. the workflow can remove unapproved role assignments from the request.
 
 * *SECONDARY* state.
 Request is recomputed once again.
-The wiki:Model+Context[model context] is recomputed to reflect the changes from the primary state.
+The xref:/midpoint/reference/concepts/clockwork/model-context/[model context] is recomputed to reflect the changes from the primary state.
 The changes are executed after this state is completed.
 The hooks can use this state to inspect the values of projections.
 E.g. it is sometimes used to let system administrators approve the actual changes of account attributes before they are executed.
@@ -70,7 +70,7 @@ The hooks can be invoked several times as this state may be processed several ti
 
 * *FINAL* state.
 All the changes are executed.
-The wiki:Model+Context[model context] reflects the state after the execution.
+The xref:/midpoint/reference/concepts/clockwork/model-context/[model context] reflects the state after the execution.
 This state can be used by the hooks to inspect the results.
 E.g. this is often used to send out the notifications about the completed operations.
 
@@ -82,7 +82,7 @@ TODO: more details
 
 == See Also
 
-* wiki:Model+Context[Model Context]
+* xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context]
 
 * xref:/midpoint/reference/schema/focus-and-projections/[Focus and Projections]
 

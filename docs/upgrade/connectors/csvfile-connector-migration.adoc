@@ -182,7 +182,7 @@ By default the same folder as where csv file resides.
 |===
 
 Configuration samples for CSV resources were updated to the new CSV connector.
-The wiki:Configuration+Samples[Configuration Samples] are located at the usual places.
+The xref:/midpoint/reference/samples/[Configuration Samples] are located at the usual places.
 
 
 === Shadows

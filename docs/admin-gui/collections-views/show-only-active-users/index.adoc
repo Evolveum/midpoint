@@ -18,7 +18,7 @@ On the other hand we do not want users to _list_ all the objects.
 But getting and object and listing objects are both considered to be _reading_ by an authorization subsystem.
 Therefore there is no way to disable one and enable the other.
 
-But there is an elegant way how to limit listing of objects in midPoint user interface: wiki:Object+Collections+and+Views[Object Collections and Views]. This feature was partially implemented in midPoint 3.9 specifically for the purpose of satisfying this use case.
+But there is an elegant way how to limit listing of objects in midPoint user interface: xref:/midpoint/reference/admin-gui/collections-views/[Object Collections and Views]. This feature was partially implemented in midPoint 3.9 specifically for the purpose of satisfying this use case.
 The basic principle is to define a special view containing only those objects that the users can see (e.g. "Employees" view).
 The remove authorizations for the pages that list all users.
 And leave only authorizations to access that specific view.
@@ -78,6 +78,6 @@ Make sure that users do *not* have authorization to access "All users" page ([.u
 
 == See Also
 
-* wiki:Object+Collections+and+Views[Object Collections and Views]
+* xref:/midpoint/reference/admin-gui/collections-views/[Object Collections and Views]
 
 * bug:MID-4654[]

@@ -63,15 +63,15 @@ So, for example, if user `jack` has the above assignment, all attempted modifica
 
 == Object Lifecycle Property
 
-MidPoint contains a wiki:Object+Lifecycle[special property to control object lifecycle]: `lifecycleState`. This property specifies current lifecycle state of the object.
+MidPoint contains a xref:/midpoint/reference/concepts/object-lifecycle/[special property to control object lifecycle]: `lifecycleState`. This property specifies current lifecycle state of the object.
 It specified whether the object represents a draft, proposed definition, whether it is active, deprecated, and so on.
 There are several pre-defined lifecycle states and new custom states can be used if needed.
 This property can be used to implement complex role lifecycle management.
-See wiki:Object+Lifecycle[Object Lifecycle] page for more details.
+See xref:/midpoint/reference/concepts/object-lifecycle/[Object Lifecycle] page for more details.
 
 
 == See Also
 
 * xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
 
-* wiki:Object+Lifecycle[Object Lifecycle]
+* xref:/midpoint/reference/concepts/object-lifecycle/[Object Lifecycle]

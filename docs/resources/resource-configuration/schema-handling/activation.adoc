@@ -185,7 +185,7 @@ Although the existence mapping may technically have `inbound` part as well such 
 
 == Administrative Status Mapping
 
-Administrative status mapping maps wiki:Activation[activation administrative status] from the focal object (user) to the administrative status of resource object.
+Administrative status mapping maps xref:/midpoint/reference/concepts/activation/[activation administrative status] from the focal object (user) to the administrative status of resource object.
 
 .administrativeStatus mapping
 [source,xml]
@@ -485,7 +485,7 @@ E.g. the following mapping will pre-provision a disabled account 5 days before u
 
 == See Also
 
-* wiki:Activation[Activation]
+* xref:/midpoint/reference/concepts/activation/[Activation]
 
 * xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration]
 

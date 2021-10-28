@@ -34,7 +34,7 @@ image::synchronization-modification.png[]
 
 The change to the first account is detected by the live synchronization or reconciliation logic of midPoint.
 The method of change detection does not really matter.
-As the change is detected, the provisioning component makes sure the corresponding xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/[AccountShadow] object is updated in midPoint repository (see wiki:Common+Data+Model[Common Data Model]). Account Shadow usually contains only identifiers and therefore it should be already up-to-date in this case.
+As the change is detected, the provisioning component makes sure the corresponding xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/[AccountShadow] object is updated in midPoint repository (see xref:/midpoint/reference/schema/common-data-model/[Common Data Model]). Account Shadow usually contains only identifiers and therefore it should be already up-to-date in this case.
 
 The following XML snippet contains the Account Shadow object as it was stored in the midPoint repository before the change was detected.
 You can see that there are only identifiers, no data.

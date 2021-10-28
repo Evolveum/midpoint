@@ -115,6 +115,6 @@ It is assumed that this is both general-purpose directory system and also a dire
 
 == See Also
 
-* wiki:Configuration+Samples[Configuration Sample]
+* xref:/midpoint/reference/samples/[Configuration Sample]
 
 * wiki:Sequences[Sequences]

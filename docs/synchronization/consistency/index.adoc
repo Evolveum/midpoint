@@ -49,7 +49,7 @@ This object contains some additional information that make it clear what went wr
 Operations that cannot be executed immediately (synchronously) are stored in xref:/midpoint/reference/resources/shadow/[shadow objects] in a form of _pending operations_. Pending operation is a data structure that contains details about unfinished operation.
 This data structure contains:
 
-* wiki:Deltas[Delta] describing the operation
+* xref:/midpoint/devel/prism/concepts/deltas/[Delta] describing the operation
 
 * Status of the operation.
 Simply speaking the status indicates whether the operation is executing or whether it is already finished.

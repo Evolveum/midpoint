@@ -310,7 +310,7 @@ The _range_ of a mapping (in a mathematical sense) is a set of values that are c
 The range definition does *not* influence mapping inputs or expression.
 The range is used when the mapping outputs are processed.
 The range defines what are the possible outputs of the mapping.
-The wiki:Clockwork+and+Projector[projector] can use this information to determine what values to remove when the mapping is authoritative.
+The xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[projector] can use this information to determine what values to remove when the mapping is authoritative.
 
 Range specification makes sense only for authoritative mappings.
 If the range is specified then the mapping will scan existing values of the target property.
@@ -971,10 +971,10 @@ Let's have a mapping that transforms all input values to upper case:
 Let's assume that both `invar` and `outvar` are multi-valued.
 This is the case when the relativity mechanism is most interesting.
 
-It is all very simple when a new object is created (we have wiki:Deltas["add" delta]). Everything is new at that point, we know complete state of all the objects and everything is simple.
+It is all very simple when a new object is created (we have xref:/midpoint/devel/prism/concepts/deltas/["add" delta]). Everything is new at that point, we know complete state of all the objects and everything is simple.
 Therefore if the input is [a, b, c], then the output will be [ A, B, C ].
 
-The things get more interesting when the object is modified (we have wiki:Deltas["modify" delta]). Let's supposed that value "c" is removed from the input and values "d" and "e" are added to the input.
+The things get more interesting when the object is modified (we have xref:/midpoint/devel/prism/concepts/deltas/["modify" delta]). Let's supposed that value "c" is removed from the input and values "d" and "e" are added to the input.
 The mapping still transforms all the values individually.
 Therefore it will be invoked five times: for both the old and new values.
 However, when the expressions are evaluated midPoint remembers whether the input value was added, removed or whether it stayed the same.
@@ -999,7 +999,7 @@ Therefore transformed value "E" will be added to the output.
 This may seem obvious when we know complete state of all objects and we are absolutely sure about it.
 But that is not always the case.
 MidPoint can work with resources that do not support transactions or any kind of locking.
-Therefore what we know for sure is what has been changed (wiki:Deltas[delta]). But we are not sure about the values that are present in target resource when we are about to apply the change (which may be several days later due to wiki:Approval[approval process]). The good news is that this algorithm works also in these cases.
+Therefore what we know for sure is what has been changed (xref:/midpoint/devel/prism/concepts/deltas/[delta]). But we are not sure about the values that are present in target resource when we are about to apply the change (which may be several days later due to wiki:Approval[approval process]). The good news is that this algorithm works also in these cases.
 What the algorithm does is that it transforms the input delta of [-c, +d, +e] to output delta [-C, +D, +E].
 This output delta can be applied even to a changed target value.
 Let's suppose that there was a change on the target and the target value is now [X, B, C] instead of [A, B, C].
@@ -1021,7 +1021,7 @@ Let's have the same mapping as above that transforms lowercase characters to upp
 Now consider a situation when invar was changed from "a" to "b".
 Simple thinking would suggest that we need to execute the expression for the input of "b", which will give us "B" and that's it.
 But in the language of relativity a change from "a" to "b" actually means: remove value "a" and add value "b".
-We can denote that as wiki:Deltas[delta] [ -a, +b ]. Therefore the expression is invoked twice.
+We can denote that as xref:/midpoint/devel/prism/concepts/deltas/[delta] [ -a, +b ]. Therefore the expression is invoked twice.
 First invocation transforms value "a", so we know that we have to remove "A" from the output.
 Second invocation transforms value "b", so we know that we have to add value "B" to output.
 The result is delta [ -A, +B ]. This mechanism is designed to work well with multi-value properties (see above) and it often can be optimized for single-value properties.

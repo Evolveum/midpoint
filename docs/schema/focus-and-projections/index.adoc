@@ -89,6 +89,6 @@ Projections are simply resource objects represented by xref:/midpoint/reference/
 
 * xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]
 
-* wiki:Clockwork+and+Projector[Clockwork and Projector]
+* xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[Clockwork and Projector]
 
-* wiki:Model+Context[Model Context]
+* xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context]

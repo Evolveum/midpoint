@@ -96,7 +96,7 @@ But it comes from a very different expression and we will need to merge the resu
 But in the meantime we need to process each expression individually.
 And then there is the `adhoc-fight-club` group which is not managed by midPoint at all (remember the first rule of the Fight Club?). Therefore if we just compile the list of groups in midPoint and then overwrite the entire list with a set of new values, the `adhoc-fight-club` value would disappear.
 I guess this wouldn't go well with the Fight Club members.
-Therefore midPoint needs to know which individual values were changed and how they were transformed so it can compile the final wiki:Deltas[delta] which can be merged with other deltas produced by other expressions and that will not destroy the existing state of the target system.
+Therefore midPoint needs to know which individual values were changed and how they were transformed so it can compile the final xref:/midpoint/devel/prism/concepts/deltas/[delta] which can be merged with other deltas produced by other expressions and that will not destroy the existing state of the target system.
 
 Therefore midPoint has a concept of _source_, which is like a very smart change-sensitive variable.
 The source will be usually presented as a simple single-value variable in the expressions.
@@ -201,7 +201,7 @@ In other expressions that have a single source this variable has the same value 
 | `string`
 | in every mapping
 |
-| Contains values `add`, `modify` or `delete` that describe the character of the wiki:Deltas[object delta].
+| Contains values `add`, `modify` or `delete` that describe the character of the xref:/midpoint/devel/prism/concepts/deltas/[object delta].
 
 
 | `actor`

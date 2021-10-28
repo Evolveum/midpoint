@@ -102,7 +102,7 @@ The wiki:Channels[Channels] page provides more details about channels.
 == Reactions
 
 Obviously midPoint has to react to an synchronization event to be really useful.
-MidPoint usually reacts to a synchronization event by executing the usual synchronization algorithms that are used to recompute consequences of any other change in the system (i.e. wiki:Clockwork+and+Projector[Clockwork and Projector]). As usual midPoint does nothing by default and the execution of this algorithm has to explicitly enabled by using a `synchronize` flag in the reaction.
+MidPoint usually reacts to a synchronization event by executing the usual synchronization algorithms that are used to recompute consequences of any other change in the system (i.e. xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[Clockwork and Projector]). As usual midPoint does nothing by default and the execution of this algorithm has to explicitly enabled by using a `synchronize` flag in the reaction.
 
 However synchronization cases are usually little bit more complex than normal provisioning changes.
 Synchronization often detects inconsistencies.
@@ -258,9 +258,9 @@ Custom actions can be created by extension and modification of midPoint code.
 [TIP]
 .Implementation and customization note
 ====
-MidPoint synchronization code actually prepares a wiki:Model+Context[Model Context] that contains all the data from the synchronization event.
+MidPoint synchronization code actually prepares a xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context] that contains all the data from the synchronization event.
 It is the same context that is used by other midPoint mechanisms . When the context is created the individual actions have a chance to modify or inspect it.
-This context is also used by the synchronization algorithms (wiki:Clockwork+and+Projector[Clockwork and Projector]) which are invoked as a reaction to the event.
+This context is also used by the synchronization algorithms (xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[Clockwork and Projector]) which are invoked as a reaction to the event.
 Therefore an action that modifies the context before synchronization can very simply influence the outcome of the synchronization.
 In fact most synchronization actions have no more than a few lines of code.
 
@@ -335,7 +335,7 @@ The configuration also includes a lot of optional elements such as `kind`, `inte
 === Reaction Examples
 
 Usual reaction for a `linked` situation is just to synchronize the changes from the resource to the user.
-The actual synchronization is done by standard midPoint synchronization code (wiki:Clockwork+and+Projector[Clockwork and Projector]) which is in turn using wiki:Inbound+Mapping[inbound mappings] to do so.
+The actual synchronization is done by standard midPoint synchronization code (xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[Clockwork and Projector]) which is in turn using wiki:Inbound+Mapping[inbound mappings] to do so.
 Therefore the synchronization reaction simply needs to invoke standard midPoint synchronization code:
 
 [source,xml]

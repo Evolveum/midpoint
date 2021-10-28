@@ -60,7 +60,7 @@ And the execution will include all the other pending changes queued in the shado
 Second part of the configuration is the propagation task.
 This is recurring task that scans for pending operations to be executed.
 The task looks for any xref:/midpoint/reference/resources/shadow/[shadow] with a pending operation that is older than the grouping interval specifies.
-If such shadow is found then all the pending changes (wiki:Deltas[deltas]) are executed.
+If such shadow is found then all the pending changes (xref:/midpoint/devel/prism/concepts/deltas/[deltas]) are executed.
 If there are several pending deltas then they are all merged together and executed in a single operation.
 
 The propagation task definition is very simple.
@@ -146,4 +146,4 @@ All the testing of this feature was done with manual resources only.
 
 * wiki:Manual+Resource+and+ITSM+Integration[Manual Resource and ITSM Integration]
 
-* wiki:Task[Task]
+* xref:/midpoint/architecture/concepts/task/[Task]

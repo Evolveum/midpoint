@@ -56,7 +56,7 @@ This value is used to distinguish persona types.
 [NOTE]
 .Subtype
 ====
-_Subtype_ was replaced by wiki:Archetypes[Archetypes] in midPoint 4.0. However, full support for archetyped personas was not implemented yet.
+_Subtype_ was replaced by xref:/midpoint/reference/schema/archetypes/[Archetypes] in midPoint 4.0. However, full support for archetyped personas was not implemented yet.
 ====
 
 

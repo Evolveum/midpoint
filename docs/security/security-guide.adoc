@@ -21,7 +21,7 @@ MidPoint development team takes security of midPoint very seriously.
 Security was an integral part of midPoint design since the day one.
 And security issues are always a priority, regardless of who and when reported them.
 
-MidPoint wiki:Support+Guidelines[support process] is prioritizing issues of the xref:/support/subscription-sponsoring/[subscribers], which means that a non-subscribers usually has to wait a long time for their issue to get fixed.
+MidPoint xref:/support/support-guidelines/[support process] is prioritizing issues of the xref:/support/subscription-sponsoring/[subscribers], which means that a non-subscribers usually has to wait a long time for their issue to get fixed.
 But that does not apply to security issues.
 Security issues are always addressed with highest priority, regardless whether they are reported by subscriber on non-subscriber.
 The reason is that a security issues has potential to affect everybody, even midPoint subscribers.
@@ -61,7 +61,7 @@ The fix is committed to master branch.
 Discovery of severe security issue (CVSS rating: critical)  usually means that new maintenance or patch releases of all supported versions will be published.
 However new releases are unlikely for a medium-severity issues (CVSS rating: high-medium).
 User are advised to use recent build from a wiki:Using+Support+Branch[support branch] for their release.
-In case that a xref:/support/subscription-sponsoring/[subscriber] needs official release to deploy in their environment, such subscriber should contact Evolveum and a wiki:Development+Process[patch release] will be created in that case.
+In case that a xref:/support/subscription-sponsoring/[subscriber] needs official release to deploy in their environment, such subscriber should contact Evolveum and a xref:/midpoint/devel/guidelines/development-process/[patch release] will be created in that case.
 But this will not happen automatically for issues of medium and low severity.
 Low severity issues (CVSS rating: low) may not even get backported to support branches unless such action is explicitly requested by a subscriber.
 

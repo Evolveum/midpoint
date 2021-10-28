@@ -77,4 +77,4 @@ The document also includes link:https://github.com/Evolveum/midpoint-overlay-exa
 
 * xref:/midpoint/devel/gui/gui-development-guide/[GUI Development Guide]
 
-* wiki:Look+&+Feel+Customization+HOWTO[Look & Feel Customization HOWTO]
+* xref:/midpoint/reference/admin-gui/look-feel-customization/[Look & Feel Customization HOWTO]

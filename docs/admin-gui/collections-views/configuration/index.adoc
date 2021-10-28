@@ -28,7 +28,7 @@ There is a special object type (ObjectCollectionType) that is used to define a c
 It is first-class midPoint object.
 Collection defines which objects belong to the collection.
 The plan is that collections can be used in the entire midPoint system, e.g. collections can be used in xref:/midpoint/reference/security/authorization/[authorizations], xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] may be applied to them and so on.
-Some midPoint objects can act as an implicit collections, especially wiki:Archetypes[archetypes] and xref:/midpoint/reference/org/organizational-structure/[organizational units]. Object collections are designed to be solid and stable.
+Some midPoint objects can act as an implicit collections, especially xref:/midpoint/reference/schema/archetypes/[archetypes] and xref:/midpoint/reference/org/organizational-structure/[organizational units]. Object collections are designed to be solid and stable.
 Something that midPoint policies can rely on.
 
 * *View* is a user interface concept.
@@ -154,7 +154,7 @@ Therefore all the roles will have they own customized presentation of the data.
 
 === Views And Implicit Collections
 
-Some midPoint objects can be considered collections of their own, especially wiki:Archetypes[archetypes]. We want to make things simple and elegant whenever possible.
+Some midPoint objects can be considered collections of their own, especially xref:/midpoint/reference/schema/archetypes/[archetypes]. We want to make things simple and elegant whenever possible.
 Therefore, archetypes can be used instead of a collection in the view definition:
 
 [source,xml]
@@ -464,7 +464,7 @@ Therefore the use of collections and views has some quite significant limitation
 
 * Not supported for compliance.
 
-* Only partially supported for wiki:Customizable+Dashboards[dashboards] (and even that is experimental).
+* Only partially supported for xref:/midpoint/reference/admin-gui/dashboards/[dashboards] (and even that is experimental).
 
 * No support for policy rules yet.
 
@@ -489,8 +489,8 @@ Therefore *link:https://evolveum.com/services/professional-support/[midPoint Pla
 
 * xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
 
-* wiki:Archetypes[Archetypes]
+* xref:/midpoint/reference/schema/archetypes/[Archetypes]
 
-* wiki:Compliance[Compliance]
+* xref:/midpoint/features/planned/compliance/[Compliance]
 
-* wiki:Customizable+Dashboards[Customizable Dashboards]
+* xref:/midpoint/reference/admin-gui/dashboards/[Customizable Dashboards]
