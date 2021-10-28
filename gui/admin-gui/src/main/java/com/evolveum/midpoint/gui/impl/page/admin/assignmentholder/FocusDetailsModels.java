@@ -105,7 +105,7 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
             long timestampWrapperStart = System.currentTimeMillis();
             try {
 
-                ShadowWrapper wrapper = loadShadowWrapper(projection, task, subResult);
+                ShadowWrapper wrapper = loadShadowWrapper(projection, true, task, subResult);
                 wrapper.setLoadWithNoFetch(true);
                 list.add(wrapper);
 
@@ -128,10 +128,10 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
     }
 
     @NotNull
-    public ShadowWrapper loadShadowWrapper(PrismObject<ShadowType> projection, Task task, OperationResult result) throws SchemaException {
+    public ShadowWrapper loadShadowWrapper(PrismObject<ShadowType> projection, boolean noFetch, Task task, OperationResult result) throws SchemaException {
         PrismObjectWrapperFactory<ShadowType> factory = getPageBase().findObjectWrapperFactory(projection.getDefinition());
         WrapperContext context = new WrapperContext(task, result);
-        context.setCreateIfEmpty(false);
+        context.setCreateIfEmpty(noFetch ? false : true);
         ShadowWrapper wrapper = (ShadowWrapper) factory.createObjectWrapper(projection, ItemStatus.NOT_CHANGED, context);
         wrapper.setProjectionStatus(UserDtoStatus.MODIFY);
         return wrapper;

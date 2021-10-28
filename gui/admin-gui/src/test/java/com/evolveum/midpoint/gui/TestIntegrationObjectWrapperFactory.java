@@ -86,7 +86,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             UserType.F_CREDENTIALS,
             UserType.F_ADMIN_GUI_CONFIGURATION,
             UserType.F_BEHAVIOR,
-            UserType.F_LENS_CONTEXT,  //experimental
             UserType.F_POLICY_EXCEPTION); //experimental
     private static final List<ItemPath> BASIC_SHADOW_CONTAINERS_PATHS = Arrays.asList(
             ShadowType.F_EXTENSION,
@@ -96,7 +95,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             ShadowType.F_ASSOCIATION,
             ShadowType.F_ACTIVATION,
             ShadowType.F_CREDENTIALS,
-            ShadowType.F_LENS_CONTEXT,
             ShadowType.F_POLICY_EXCEPTION);
     private static final List<ItemPath> BASIC_ORG_CONTAINERS_PATHS = Arrays.asList(
             OrgType.F_EXTENSION,
@@ -111,7 +109,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             OrgType.F_AUTOASSIGN,
             OrgType.F_CREDENTIALS,
             OrgType.F_BEHAVIOR,
-            ShadowType.F_LENS_CONTEXT,
             ShadowType.F_POLICY_EXCEPTION);
 
     @Override
@@ -419,6 +416,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismObjectWrapperFactory<ShadowType> factory = modelServiceLocator.findObjectWrapperFactory(shadow.getDefinition());
         assertTrue("Wrong object factory found, expected shadow factory but got " + factory.getClass().getSimpleName(), factory instanceof ShadowWrapperFactoryImpl);
         WrapperContext context = new WrapperContext(task, result);
+        context.setCreateIfEmpty(true);
 
         PrismObjectWrapper<ShadowType> objectWrapper = factory.createObjectWrapper(shadow, ItemStatus.NOT_CHANGED, context);
         assertTrue("Wrong wrapper created. Expected ShadowWrapper but got " + objectWrapper.getClass().getSimpleName(), objectWrapper instanceof ShadowWrapper);
