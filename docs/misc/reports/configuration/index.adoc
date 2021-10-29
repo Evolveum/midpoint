@@ -680,6 +680,35 @@ image::users.png[]
 
 After click you will be redirected to Create report page with predefined filter from search panel over object table and columns from previous table.
 
+== Tasks for reports
+
+[TIP]
+.MidPoint 4.4 and later
+====
+This feature is available only in midPoint 4.4 and later.
+
+====
+
+If we create new report via GUI in 4.4. Midpoint create task with work definition of activity with 'classcal' way for actual kind of report. We know three kind of activities for reports.
+
+=== ClassicReportExportWorkDefinitionType 'reportExport'
+
+Exports any report in a "classical" way. Supports multithreading but not bucketing (multi-node mode). Support objects, containers and audit reports.
+Contains two parameter 'reportRef' and 'reportParam'. 'reportRef' represent reference to report object. 'reportParam' represent parameters for report, which are defined via GUI.
+
+=== ClassicReportImportWorkDefinitionType 'reportImport'
+
+Imports a report in a "classical" way. Supports multithreading but not bucketing (multi-node mode).
+Contains only one parameter 'reportRef'.
+
+=== DistributedReportExportWorkDefinitionType 'distributedReportExport'
+
+Exports report of repository objects or audit reports. Supports bucketing (multi-node mode) and multithreading.
+Contains two parameter 'reportRef' and 'reportParam'. 'reportRef' represent reference to report object. 'reportParam' represent parameters for report, which are defined via GUI.
+
+=== Convert ClassicReportExportWorkDefinitionType to DistributedReportExportWorkDefinitionType
+When we run report via Midpoint GUI we can see that midpoint create task with work definition 'reportExport'. If we are run report for object or audit and Midpoint running in clustered mode, then we can convert 'classical' way to distributed. In configuration of task in raw mode we change 'reportExport' to 'distributedReportExport'. We change archetype from 'Report export task' to 'Distributed report export task'. And we add configuration for xref:/midpoint/devel/design/multi-node-partitioned-and-stateful-tasks/[Bucket-based work state management].
+
 == 'Import report'
 
 Since version 4.2, midPoint supports 'import report'/'reverse report'. This feature is *xref:/midpoint/versioning/experimental/[experimental]*.
