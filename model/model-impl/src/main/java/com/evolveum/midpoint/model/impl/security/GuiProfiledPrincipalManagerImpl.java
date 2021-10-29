@@ -263,7 +263,7 @@ public class GuiProfiledPrincipalManagerImpl implements GuiProfiledPrincipalMana
         Task task = taskManager.createTaskInstance(GuiProfiledPrincipalManagerImpl.class.getName() + ".initializePrincipalFromAssignments");
         OperationResult result = task.getResult();
         try {
-            guiProfileCompiler.compileUserProfile(principal, systemConfiguration, authorizationTransformer, task, result);
+            guiProfileCompiler.compileFocusProfile(principal, systemConfiguration, authorizationTransformer, task, result);
         } catch (Throwable e) {
             // Do not let any error stop processing here. This code is used during user login. An error here can stop login procedure. We do not
             // want that. E.g. wrong adminGuiConfig may prohibit login on administrator, therefore ruining any chance of fixing the situation.

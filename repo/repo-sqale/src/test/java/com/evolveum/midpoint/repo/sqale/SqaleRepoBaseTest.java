@@ -106,9 +106,9 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         // this is "suite" scope code, but @BeforeSuite can't use injected fields
         if (!cacheTablesCleared) {
             try (JdbcSession jdbcSession = startTransaction()) {
-                // We could skip default relation ID with .where(u.id.gt(0)), but it must work.
-                jdbcSession.newDelete(QUri.DEFAULT).execute();
-                jdbcSession.newDelete(QExtItem.DEFAULT).execute();
+                // URI cache must work even when default relation ID is not 0, so we can wipe it all.
+                jdbcSession.executeStatement("TRUNCATE m_uri CASCADE;");
+                jdbcSession.executeStatement("TRUNCATE m_ext_item CASCADE;");
                 jdbcSession.commit();
             }
 

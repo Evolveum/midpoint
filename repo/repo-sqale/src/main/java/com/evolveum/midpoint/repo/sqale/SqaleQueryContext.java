@@ -55,10 +55,19 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
             Class<S> schemaType,
             SqaleRepoContext sqlRepoContext,
             SqaleObjectLoader objectLoader) {
+        return from(schemaType, sqlRepoContext, sqlRepoContext.newQuery(), objectLoader);
+    }
+
+    /** Factory method useful for cases when specific sqlQuery instance needs to be provided. */
+    public static <S, Q extends FlexibleRelationalPathBase<R>, R> SqaleQueryContext<S, Q, R> from(
+            Class<S> schemaType,
+            SqaleRepoContext sqlRepoContext,
+            SQLQuery<?> sqlQuery,
+            SqaleObjectLoader objectLoader) {
 
         SqaleTableMapping<S, Q, R> rootMapping = sqlRepoContext.getMappingBySchemaType(schemaType);
         Q rootPath = rootMapping.defaultAlias();
-        SQLQuery<?> query = sqlRepoContext.newQuery().from(rootPath);
+        SQLQuery<?> query = sqlQuery.from(rootPath);
         // Turns on validations of aliases, does not ignore duplicate JOIN expressions,
         // we must take care of unique alias names for JOINs, which is what we want.
         query.getMetadata().setValidate(true);
