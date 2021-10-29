@@ -9,8 +9,14 @@ package com.evolveum.midpoint.web.security.channel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * @author skublik
@@ -18,8 +24,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequen
 
 public class GuiAuthenticationChannel extends AuthenticationChannelImpl {
 
-    private TaskManager taskManager;
-    private ModelInteractionService modelInteractionService;
+    private final TaskManager taskManager;
+    private final ModelInteractionService modelInteractionService;
 
     public GuiAuthenticationChannel(AuthenticationSequenceChannelType channel, TaskManager taskManager, ModelInteractionService modelInteractionService) {
         super(channel);
@@ -42,5 +48,16 @@ public class GuiAuthenticationChannel extends AuthenticationChannelImpl {
     @Override
     public boolean isPostAuthenticationEnabled() {
         return WebModelServiceUtils.isPostAuthenticationEnabled(taskManager, modelInteractionService);
+    }
+
+    @Override
+    public Collection<Authorization> resolveAuthorities(Collection<Authorization> authorities) {
+        if (isPostAuthenticationEnabled()) {
+            AuthorizationType authorizationType = new AuthorizationType();
+            authorizationType.getAction().add(AuthorizationConstants.AUTZ_UI_SELF_POST_AUTHENTICATION_URL);
+            Authorization postAuthenticationAuthz = new Authorization(authorizationType);
+            return Collections.singletonList(postAuthenticationAuthz);
+        }
+        return super.resolveAuthorities(authorities);
     }
 }
