@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.wf.impl;
 
+import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
@@ -21,9 +22,11 @@ import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -90,6 +93,7 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
     @Autowired protected RelationRegistry relationRegistry;
     @Autowired protected WfTestHelper testHelper;
     @Autowired protected MiscHelper miscHelper;
+    @Autowired protected WorkflowService workflowService;
 
     protected PrismObject<UserType> userAdministrator;
 
@@ -321,6 +325,14 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
         List<CaseWorkItemType> currentWorkItems = modelService.searchContainers(CaseWorkItemType.class, q.build(), null, task, result);
         long found = currentWorkItems.stream().filter(wi -> expectedWorkItem == null || expectedWorkItem.matches(wi)).count();
         assertEquals("Wrong # of matching work items", count, found);
+    }
+
+    protected void approveWorkItem(CaseWorkItemType workItem, Task task, OperationResult result) throws CommunicationException,
+            ObjectNotFoundException, ObjectAlreadyExistsException, PolicyViolationException, SchemaException,
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        workflowService.completeWorkItem(WorkItemId.of(workItem),
+                new AbstractWorkItemOutputType(prismContext).outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE),
+                task, result);
     }
 
     protected ObjectQuery getOpenItemsQuery() {

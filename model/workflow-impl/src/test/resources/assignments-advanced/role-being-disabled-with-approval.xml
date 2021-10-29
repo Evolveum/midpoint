@@ -1,0 +1,26 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="04c8d15f-da0a-4553-9b43-af835a7c8b82">
+    <name>role-being-disabled-with-approval</name>
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <assignment>
+                    <operation>delete</operation>
+                    <operation>modify</operation>
+                    <relation>default</relation>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <approverRelation>approver</approverRelation>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>
