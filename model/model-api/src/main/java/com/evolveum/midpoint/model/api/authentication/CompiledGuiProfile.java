@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.api.authentication;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.BooleanSupplier;
 
 import javax.xml.namespace.QName;
@@ -59,6 +60,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     private List<UserInterfaceFeatureType> features = new ArrayList<>();
     private AdminGuiConfigurationDisplayFormatsType displayFormats;
     private byte[] jpegPhoto;
+    private Locale locale;
 
     public String getDefaultTimezone() {
         return defaultTimezone;
@@ -328,6 +330,14 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
 
     public void setJpegPhoto(byte[] jpegPhoto) {
         this.jpegPhoto = jpegPhoto;
+    }
+
+    public Locale getLocale() {
+        return locale;
+    }
+
+    public void setLocale(Locale locale) {
+        this.locale = locale;
     }
 
     public UserInterfaceElementVisibilityType getFeatureVisibility(String identifier) {

@@ -9,10 +9,13 @@ package com.evolveum.midpoint.model.impl.security;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.*;
 
+import org.apache.commons.lang3.LocaleUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -83,9 +86,10 @@ public class GuiProfileCompiler {
         List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
         collect(adminGuiConfigurations, principal, authorizationTransformer, task, result);
 
-        CompiledGuiProfile compiledGuiProfile = compileUserProfile(adminGuiConfigurations, systemConfiguration, task, result);
+        CompiledGuiProfile compiledGuiProfile = compileFocusProfile(adminGuiConfigurations, systemConfiguration, task, result);
         if (compiledGuiProfile != null) {
-            setupUserPhoto(principal, compiledGuiProfile, result);
+            setupFocusPhoto(principal, compiledGuiProfile, result);
+            setupLocale(principal, compiledGuiProfile);
         }
 
         principal.setCompiledGuiProfile(compiledGuiProfile);
@@ -134,7 +138,7 @@ public class GuiProfileCompiler {
         }
     }
 
-    public CompiledGuiProfile compileUserProfile(@NotNull List<AdminGuiConfigurationType> adminGuiConfigurations,
+    public CompiledGuiProfile compileFocusProfile(@NotNull List<AdminGuiConfigurationType> adminGuiConfigurations,
             PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
@@ -155,10 +159,11 @@ public class GuiProfileCompiler {
         for (AdminGuiConfigurationType adminGuiConfiguration: adminGuiConfigurations) {
             applyAdminGuiConfiguration(composite, adminGuiConfiguration, task, result);
         }
+
         return composite;
     }
 
-    private void setupUserPhoto(GuiProfiledPrincipal principal, @NotNull CompiledGuiProfile compiledGuiProfile, OperationResult result) {
+    private void setupFocusPhoto(GuiProfiledPrincipal principal, @NotNull CompiledGuiProfile compiledGuiProfile, OperationResult result) {
         FocusType focus = principal.getFocus();
         byte[] jpegPhoto = focus.getJpegPhoto();
         if (jpegPhoto == null) {
@@ -171,6 +176,21 @@ public class GuiProfileCompiler {
             }
         }
         compiledGuiProfile.setJpegPhoto(jpegPhoto);
+    }
+
+    private void setupLocale(GuiProfiledPrincipal principal, @NotNull CompiledGuiProfile compiledGuiProfile) {
+        FocusType focus = principal.getFocus();
+        String prefLang = focus.getPreferredLanguage();
+        if (StringUtils.isBlank(prefLang)) {
+            prefLang = focus.getLocale();
+        }
+        Locale locale = null;
+        try {
+            locale = LocaleUtils.toLocale(prefLang);
+        } catch (Exception ex) {
+            LOGGER.debug("Error occurred while getting user locale, " + ex.getMessage());
+        }
+        compiledGuiProfile.setLocale(locale);
     }
 
     private void applyAdminGuiConfiguration(CompiledGuiProfile composite, AdminGuiConfigurationType adminGuiConfiguration, Task task, OperationResult result)
@@ -531,7 +551,7 @@ public class GuiProfileCompiler {
             return null;
         }
         List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
-        CompiledGuiProfile compiledGuiProfile = compileUserProfile(adminGuiConfigurations, systemConfiguration, task, parentResult);
+        CompiledGuiProfile compiledGuiProfile = compileFocusProfile(adminGuiConfigurations, systemConfiguration, task, parentResult);
         // TODO: cache compiled profile
         return compiledGuiProfile;
     }

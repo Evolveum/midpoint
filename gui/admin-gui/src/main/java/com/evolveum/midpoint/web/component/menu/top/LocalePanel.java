@@ -7,20 +7,14 @@
 
 package com.evolveum.midpoint.web.component.menu.top;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
 import com.evolveum.midpoint.web.security.LocaleDescriptor;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.form.select.IOptionRenderer;
-import org.apache.wicket.extensions.markup.html.form.select.Select;
-import org.apache.wicket.extensions.markup.html.form.select.SelectOption;
-import org.apache.wicket.extensions.markup.html.form.select.SelectOptions;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
@@ -29,9 +23,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.util.ListModel;
 
-import java.util.ArrayList;
 import java.util.Locale;
 
 /**
@@ -134,6 +126,7 @@ public class LocalePanel extends Panel {
     private void changeLocale(AjaxRequestTarget target, LocaleDescriptor descriptor) {
         LOGGER.info("Changing locale to {}.", descriptor.getLocale());
         getSession().setLocale(descriptor.getLocale());
+        WebComponentUtil.getPageBase(this).getCompiledGuiProfile().setLocale(descriptor.getLocale());
 
         target.add(getPage());
     }
