@@ -13,6 +13,9 @@ import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.reflections.Reflections;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,26 +47,26 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     @Autowired private AdminGuiConfigurationMergeManager adminGuiConfigurationMergeManager;
 
     @SuppressWarnings("SpellCheckingInspection")
-    private static final String[] PANEL_PACKAGES_TO_SCAN = {
-            "com.evolveum.midpoint.gui.impl.page.admin",
-            "com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component",
-            "com.evolveum.midpoint.gui.impl.page.admin.archetype.component",
-            "com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component",
-            "com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.assignment",
-            "com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.inducement",
-            "com.evolveum.midpoint.gui.impl.page.admin.cases.component",
-            "com.evolveum.midpoint.gui.impl.page.admin.component",
-            "com.evolveum.midpoint.gui.impl.page.admin.focus.component",
-            "com.evolveum.midpoint.gui.impl.page.admin.objectcollection.component",
-            "com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.component",
-            "com.evolveum.midpoint.gui.impl.page.admin.org.component",
-            "com.evolveum.midpoint.gui.impl.page.admin.report.component",
-            "com.evolveum.midpoint.gui.impl.page.admin.resource.component",
-            "com.evolveum.midpoint.gui.impl.page.admin.task.component",
-            "com.evolveum.midpoint.gui.impl.page.admin.user.component",
-            "com.evolveum.midpoint.web.component.assignment",  //Assignments
-            "com.evolveum.midpoint.web.component.objectdetails" //Old panels
-    };
+//    private static final String[] PANEL_PACKAGES_TO_SCAN = {
+//            "com.evolveum.midpoint.gui.impl.page.admin",
+//            "com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component",
+//            "com.evolveum.midpoint.gui.impl.page.admin.archetype.component",
+//            "com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component",
+//            "com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.assignment",
+//            "com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.inducement",
+//            "com.evolveum.midpoint.gui.impl.page.admin.cases.component",
+//            "com.evolveum.midpoint.gui.impl.page.admin.component",
+//            "com.evolveum.midpoint.gui.impl.page.admin.focus.component",
+//            "com.evolveum.midpoint.gui.impl.page.admin.objectcollection.component",
+//            "com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.component",
+//            "com.evolveum.midpoint.gui.impl.page.admin.org.component",
+//            "com.evolveum.midpoint.gui.impl.page.admin.report.component",
+//            "com.evolveum.midpoint.gui.impl.page.admin.resource.component",
+//            "com.evolveum.midpoint.gui.impl.page.admin.task.component",
+//            "com.evolveum.midpoint.gui.impl.page.admin.user.component",
+//            "com.evolveum.midpoint.web.component.assignment",  //Assignments
+//            "com.evolveum.midpoint.web.component.objectdetails" //Old panels
+//    };
 
     private static final String[] COLLECTION_PACKAGES_TO_SCAN = {
             "com.evolveum.midpoint.web.page.admin.archetype",
@@ -83,7 +86,8 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     private final Map<String, SimpleCounter> countersMap = new HashMap<>();
 
     private Boolean experimentalFeaturesEnabled = false;
-    private Set<Class<?>> packagesClasses;
+    private Set<Class<?>> panelInstanceClasses;
+    private Set<Class<?>> panelTypeClasses;
     private Set<Class<?>> collectionClasses;
 
     @Override
@@ -104,19 +108,20 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     public void postProcess(CompiledGuiProfile compiledGuiProfile) {
         experimentalFeaturesEnabled = compiledGuiProfile.isEnableExperimentalFeatures();
 
-        Set<Class<?>> classes = collectPackagesClasses();
+        collectPanelInstanceClasses();
+        collectPanelTypeClasses();
 
-        fillInPanelsMap(classes);
-        fillInCountersMap(classes);
+        fillInPanelsMap();
+        fillInCountersMap();
 
-        compileDefaultDetailsPages(classes, compiledGuiProfile);
+        compileDefaultDetailsPages(compiledGuiProfile);
         mergeCollectionViewsWithDefault(compiledGuiProfile);
-        processShadowPanels(classes, compiledGuiProfile);
+        processShadowPanels(compiledGuiProfile);
 
     }
 
-    private void compileDefaultDetailsPages(Set<Class<?>> classes, CompiledGuiProfile compiledGuiProfile) {
-        GuiObjectDetailsSetType defaultDetailsPages = compileDefaultGuiObjectDetailsSetType(classes);
+    private void compileDefaultDetailsPages(CompiledGuiProfile compiledGuiProfile) {
+        GuiObjectDetailsSetType defaultDetailsPages = compileDefaultGuiObjectDetailsSetType();
         List<GuiObjectDetailsPageType> detailsPages = defaultDetailsPages.getObjectDetailsPage();
         for (GuiObjectDetailsPageType defaultDetailsPage : detailsPages) {
 
@@ -176,9 +181,9 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         return compiledObjectCollectionViews;
     }
 
-    private void processShadowPanels(Set<Class<?>> classes, CompiledGuiProfile compiledGuiProfile) {
+    private void processShadowPanels(CompiledGuiProfile compiledGuiProfile) {
         List<ContainerPanelConfigurationType> shadowPanels = new ArrayList<>();
-        for (Class<?> clazz : classes) {
+        for (Class<?> clazz : panelInstanceClasses) {
             PanelInstance instance = clazz.getAnnotation(PanelInstance.class);
             if (instance == null) {
                 continue;
@@ -190,7 +195,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             if (compiledGuiProfile.getObjectDetails() == null) {
                 compiledGuiProfile.setObjectDetails(new GuiObjectDetailsSetType());
             }
-            ContainerPanelConfigurationType shadowPanel = compileContainerPanelConfiguration(clazz, ShadowType.class, classes, instance);
+            ContainerPanelConfigurationType shadowPanel = compileContainerPanelConfiguration(clazz, ShadowType.class, instance);
             shadowPanels.add(shadowPanel);
         }
 
@@ -209,11 +214,11 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         }
     }
 
-    private void fillInPanelsMap(Set<Class<?>> classes) {
+    private void fillInPanelsMap() {
         if (!panelsMap.isEmpty()) {
             return;
         }
-        for (Class<?> clazz : classes) {
+        for (Class<?> clazz : panelTypeClasses) {
             PanelType panelType = clazz.getAnnotation(PanelType.class);
             if (isNotPanelTypeDefinition(clazz, panelType)) {
                 continue;
@@ -236,11 +241,11 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         return false;
     }
 
-    private void fillInCountersMap(Set<Class<?>> scannedClasses) {
+    private void fillInCountersMap() {
         if (!countersMap.isEmpty()) {
             return;
         }
-        for (Class<?> clazz : scannedClasses) {
+        for (Class<?> clazz : panelInstanceClasses) {
             Counter counterDefinition = clazz.getAnnotation(Counter.class);
             if (counterDefinition != null) {
                 Class<? extends SimpleCounter> counterProvider = counterDefinition.provider();
@@ -257,10 +262,10 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
 
     }
 
-    private GuiObjectDetailsSetType compileDefaultGuiObjectDetailsSetType(Set<Class<?>> scannedClasses) {
+    private GuiObjectDetailsSetType compileDefaultGuiObjectDetailsSetType() {
         GuiObjectDetailsSetType guiObjectDetailsSetType = new GuiObjectDetailsSetType();
         for (ObjectTypes objectType : ObjectTypes.values()) {
-            GuiObjectDetailsPageType detailsPageType = compileDefaultGuiObjectDetailsPage(objectType, scannedClasses);
+            GuiObjectDetailsPageType detailsPageType = compileDefaultGuiObjectDetailsPage(objectType);
             if (QNameUtil.match(detailsPageType.getType(), ShadowType.COMPLEX_TYPE)) {
                 continue;
             }
@@ -269,16 +274,16 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         return guiObjectDetailsSetType;
     }
 
-    private GuiObjectDetailsPageType compileDefaultGuiObjectDetailsPage(ObjectTypes objectType, Set<Class<?>> scannedClasses) {
+    private GuiObjectDetailsPageType compileDefaultGuiObjectDetailsPage(ObjectTypes objectType) {
         GuiObjectDetailsPageType detailsPageType = new GuiObjectDetailsPageType();
         detailsPageType.setType(objectType.getTypeQName());
-        detailsPageType.getPanel().addAll(getPanelsFor(objectType.getClassDefinition(), scannedClasses));
+        detailsPageType.getPanel().addAll(getPanelsFor(objectType.getClassDefinition()));
         return detailsPageType;
     }
 
-    private List<ContainerPanelConfigurationType> getPanelsFor(Class<? extends ObjectType> objectType, Set<Class<?>> allClasses) {
+    private List<ContainerPanelConfigurationType> getPanelsFor(Class<? extends ObjectType> objectType) {
         List<ContainerPanelConfigurationType> panels = new ArrayList<>();
-        for (Class<?> clazz : allClasses) {
+        for (Class<?> clazz : panelInstanceClasses) {
             PanelInstances panelInstances = clazz.getAnnotation(PanelInstances.class);
             if (panelInstances != null) {
                 for (PanelInstance panelInstance : panelInstances.instances()) {
@@ -289,7 +294,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
                     if (isSubPanel(panelInstance)) {
                         continue;
                     }
-                    ContainerPanelConfigurationType config = compileContainerPanelConfiguration(clazz, objectType, allClasses, panelInstance);
+                    ContainerPanelConfigurationType config = compileContainerPanelConfiguration(clazz, objectType, panelInstance);
                     panels.add(config);
                 }
             } else {
@@ -301,7 +306,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
                 if (isSubPanel(panelInstance)) {
                     continue;
                 }
-                ContainerPanelConfigurationType config = compileContainerPanelConfiguration(clazz, objectType, allClasses, panelInstance);
+                ContainerPanelConfigurationType config = compileContainerPanelConfiguration(clazz, objectType, panelInstance);
                 panels.add(config);
             }
         }
@@ -310,11 +315,22 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         return panels;
     }
 
-    private Set<Class<?>> collectPackagesClasses() {
-        if (packagesClasses == null) {
-            packagesClasses = collectClasses(PANEL_PACKAGES_TO_SCAN);
+    private Set<Class<?>> collectPanelInstanceClasses() {
+        if (panelInstanceClasses == null) {
+            panelInstanceClasses = collectClasses(PanelInstance.class);
         }
-        return packagesClasses;
+        return panelInstanceClasses;
+    }
+
+    private Set<Class<?>> collectPanelTypeClasses() {
+        if (panelTypeClasses == null) {
+            panelTypeClasses = collectClasses(PanelType.class);
+        }
+        return panelTypeClasses;
+    }
+
+    private Set<Class<?>> collectClasses(Class annotationClass) {
+        return ClassPathUtil.scanClasses(annotationClass);
     }
 
     private Set<Class<?>> collectCollectionClasses() {
@@ -356,14 +372,14 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         return !panelInstance.childOf().equals(Panel.class);
     }
 
-    private ContainerPanelConfigurationType compileContainerPanelConfiguration(Class<?> clazz, Class<? extends ObjectType> objectType, Set<Class<?>> classes, PanelInstance panelInstance) {
+    private ContainerPanelConfigurationType compileContainerPanelConfiguration(Class<?> clazz, Class<? extends ObjectType> objectType, PanelInstance panelInstance) {
         ContainerPanelConfigurationType config = new ContainerPanelConfigurationType();
         config.setIdentifier(panelInstance.identifier());
 
         addPanelTypeConfiguration(clazz, config);
         compileDisplay(panelInstance, config);
 
-        List<ContainerPanelConfigurationType> children = processChildren(classes, objectType, clazz);
+        List<ContainerPanelConfigurationType> children = processChildren(objectType, clazz);
         config.getPanel().addAll(children);
 
         if (panelInstance.defaultPanel()) {
@@ -419,10 +435,10 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         }
     }
 
-    private List<ContainerPanelConfigurationType> processChildren(Set<Class<?>> classes, Class<? extends ObjectType> objectType, Class<?> parentClass) {
+    private List<ContainerPanelConfigurationType> processChildren(Class<? extends ObjectType> objectType, Class<?> parentClass) {
         List<ContainerPanelConfigurationType> configs = new ArrayList<>();
 //        Set<Class<?>> classes = collectClasses();
-        for (Class<?> clazz : classes) {
+        for (Class<?> clazz : panelInstanceClasses) {
             PanelInstance panelInstance = clazz.getAnnotation(PanelInstance.class);
             if (isNotApplicableFor(objectType, panelInstance)) {
                 continue;
@@ -435,7 +451,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
                 continue;
             }
 
-            ContainerPanelConfigurationType config = compileContainerPanelConfiguration(clazz, objectType, classes, panelInstance);
+            ContainerPanelConfigurationType config = compileContainerPanelConfiguration(clazz, objectType, panelInstance);
             configs.add(config);
         }
         MiscSchemaUtil.sortDetailsPanels(configs);
