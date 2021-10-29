@@ -1,23 +1,15 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.provisioning.ucf.impl.connid.query;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-
-import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
@@ -25,10 +17,11 @@ import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper;
 import com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
@@ -43,12 +36,9 @@ public class ValueOperation extends Operation {
 
     @Override
     public <T> Filter interpret(ObjectFilter objectFilter, ConnIdNameMapper icfNameMapper) throws SchemaException {
-
-        OperationResult parentResult = new OperationResult("interpret");
-
-        ValueFilter valueFilter= (ValueFilter) objectFilter;
+        ValueFilter valueFilter = (ValueFilter) objectFilter;
         if (valueFilter.getParentPath().isEmpty()) {
-            throw new UnsupportedOperationException("Empty path is not supported (filter: " + objectFilter+")");
+            throw new UnsupportedOperationException("Empty path is not supported (filter: " + objectFilter + ")");
         }
         if (valueFilter.getParentPath().equivalent(ShadowType.F_ATTRIBUTES)) {
             try {
@@ -68,6 +58,10 @@ public class ValueOperation extends Operation {
                         if (valueFilter.getDefinition().isSingleValue()) {
                             return FilterBuilder.equalTo(attr);
                         } else {
+                            // TODO: If multiple filter values are provided, this is deviation from
+                            //  "contains any" (or "any IN") semantics used for repository and in-memory.
+                            // Works fine for single filter value, because then it means:
+                            // "Values stored under specified key on the resource contain this single value."
                             return FilterBuilder.containsAllValues(attr);
                         }
                     }
@@ -133,7 +127,7 @@ public class ValueOperation extends Operation {
                 EqualFilter<T> eq = (EqualFilter<T>) objectFilter;
                 List<PrismPropertyValue<T>> values = eq.getValues();
                 if (values == null || values.size() != 1) {
-                    throw new SchemaException("Unexpected number of values in filter "+objectFilter);
+                    throw new SchemaException("Unexpected number of values in filter " + objectFilter);
                 }
                 PrismPropertyValue<T> pval = values.get(0);
                 String icfName;
@@ -145,7 +139,7 @@ public class ValueOperation extends Operation {
                     icfName = OperationalAttributes.LOCK_OUT_NAME;
                     convertedValue = pval.getValue() == LockoutStatusType.LOCKED;
                 } else {
-                    throw new UnsupportedOperationException("Unsupported activation property "+propName+" in filter: " + objectFilter);
+                    throw new UnsupportedOperationException("Unsupported activation property " + propName + " in filter: " + objectFilter);
                 }
                 Attribute attr = AttributeBuilder.build(icfName, convertedValue);
                 if (valueFilter.getDefinition().isSingleValue()) {
@@ -158,7 +152,7 @@ public class ValueOperation extends Operation {
                 throw new UnsupportedOperationException("Unsupported filter type in filter: " + objectFilter);
             }
         } else {
-            throw new UnsupportedOperationException("Unsupported parent path "+valueFilter.getParentPath()+" in filter: " + objectFilter);
+            throw new UnsupportedOperationException("Unsupported parent path " + valueFilter.getParentPath() + " in filter: " + objectFilter);
         }
     }
 
