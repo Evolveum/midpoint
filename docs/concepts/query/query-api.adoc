@@ -8,9 +8,10 @@
 :page-display-order: 500
 :page-toc: top
 
-== Objects, Queries and Filters
+[NOTE]
+This document is up-to-date for midPoint 4.4 LTS version.
 
-Much of this page was updated for version 4.4.
+== Objects, Queries and Filters
 
 === Prism and Resource objects
 
