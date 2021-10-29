@@ -30,6 +30,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageShadow;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.schema.util.task.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -4882,20 +4883,24 @@ public final class WebComponentUtil {
         }
 
         Locale locale = null;
+        if (principal instanceof GuiProfiledPrincipal
+                && ((GuiProfiledPrincipal)principal).getCompiledGuiProfile().getLocale() != null) {
+            locale = ((GuiProfiledPrincipal)principal).getCompiledGuiProfile().getLocale();
+        } else {
+            F focus = (F) principal.getFocus();
+            if (focus == null) {
+                return MidPointApplication.getDefaultLocale();
+            }
+            String prefLang = focus.getPreferredLanguage();
+            if (StringUtils.isBlank(prefLang)) {
+                prefLang = focus.getLocale();
+            }
 
-        F focus = (F) principal.getFocus();
-        if (focus == null) {
-            return MidPointApplication.getDefaultLocale();
-        }
-        String prefLang = focus.getPreferredLanguage();
-        if (StringUtils.isBlank(prefLang)) {
-            prefLang = focus.getLocale();
-        }
-
-        try {
-            locale = LocaleUtils.toLocale(prefLang);
-        } catch (Exception ex) {
-            LOGGER.debug("Error occurred while getting user locale, " + ex.getMessage());
+            try {
+                locale = LocaleUtils.toLocale(prefLang);
+            } catch (Exception ex) {
+                LOGGER.debug("Error occurred while getting user locale, " + ex.getMessage());
+            }
         }
 
         if (locale == null) {
