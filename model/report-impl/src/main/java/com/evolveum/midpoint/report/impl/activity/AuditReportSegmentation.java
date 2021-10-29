@@ -7,13 +7,9 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.report.api.ReportService;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -32,7 +28,7 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 /**
  * Helps with the segmentation of audit reports.
  *
- * Pulled from {@link ReportDataCreationActivityExecution} into a separate class because:
+ * Pulled from {@link ReportDataCreationActivityRun} into a separate class because:
  *
  * 1. needs to keep the state (from-to timestamps and generated segmentation),
  * 2. is specific only for audit records.

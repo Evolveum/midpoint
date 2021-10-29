@@ -14,22 +14,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Defines control flow aspects of an activity: various preconditions, error handling, and so on.
+ */
 public class ActivityControlFlowDefinition implements DebugDumpable, Cloneable {
 
     /**
      * This bean is detached copy dedicated for this definition. It is therefore freely modifiable.
      */
-    @NotNull private ActivityControlFlowSpecificationType bean;
+    @NotNull private ActivityControlFlowDefinitionType bean;
 
-    private ActivityControlFlowDefinition(@NotNull ActivityControlFlowSpecificationType bean) {
+    private ActivityControlFlowDefinition(@NotNull ActivityControlFlowDefinitionType bean) {
         this.bean = bean;
     }
 
     @NotNull
     public static ActivityControlFlowDefinition create(ActivityDefinitionType activityDefinitionBean) {
-        ActivityControlFlowSpecificationType bean = activityDefinitionBean != null &&
+        ActivityControlFlowDefinitionType bean = activityDefinitionBean != null &&
                 activityDefinitionBean.getControlFlow() != null ?
-                activityDefinitionBean.getControlFlow().clone() : new ActivityControlFlowSpecificationType(PrismContext.get());
+                activityDefinitionBean.getControlFlow().clone() : new ActivityControlFlowDefinitionType(PrismContext.get());
         return new ActivityControlFlowDefinition(bean);
     }
 
@@ -43,7 +46,7 @@ public class ActivityControlFlowDefinition implements DebugDumpable, Cloneable {
         return bean.debugDump(indent);
     }
 
-    public TaskErrorHandlingStrategyType getErrorHandlingStrategy() {
+    public ActivityErrorHandlingStrategyType getErrorHandlingStrategy() {
         return bean.getErrorHandling();
     }
 

@@ -8,9 +8,9 @@
 package com.evolveum.midpoint.model.impl.sync.tasks;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.common.task.IterativeActivityExecution;
-import com.evolveum.midpoint.repo.common.task.CorrelatableProcessingRequest;
-import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
+import com.evolveum.midpoint.repo.common.activity.run.IterativeActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.processing.CorrelatableProcessingRequest;
+import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
 import org.jetbrains.annotations.NotNull;
@@ -34,8 +34,8 @@ public class SyncItemProcessingRequest<SE extends SynchronizationEvent>
         extends ItemProcessingRequest<SE>
         implements Comparable<SyncItemProcessingRequest<SE>>, CorrelatableProcessingRequest {
 
-    public SyncItemProcessingRequest(SE item, IterativeActivityExecution<SE, ?, ?, ?> activityExecution) {
-        super(item.getSequentialNumber(), item, activityExecution);
+    public SyncItemProcessingRequest(SE item, IterativeActivityRun<SE, ?, ?, ?> activityRun) {
+        super(item.getSequentialNumber(), item, activityRun);
     }
 
     @Override

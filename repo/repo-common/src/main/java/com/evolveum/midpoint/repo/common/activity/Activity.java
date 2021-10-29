@@ -13,10 +13,11 @@ import java.util.stream.Collectors;
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.definition.*;
-import com.evolveum.midpoint.repo.common.activity.execution.DelegatingActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.execution.DistributingActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
-import com.evolveum.midpoint.repo.common.task.task.GenericTaskExecution;
+import com.evolveum.midpoint.repo.common.activity.run.DelegatingActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.DistributingActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
+import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskRun;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
@@ -26,7 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -37,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
- * Binds together all the information about an activity and its execution (if present).
+ * Binds together all the information about an activity and its run (if present).
  *
  * @param <WD> Type of the work definition object
  * @param <AH> Type of the activity handler object
@@ -45,7 +46,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>>
         implements DebugDumpable {
 
-    private static final @NotNull ItemPath LOCAL_ROOT_ACTIVITY_EXECUTION_ROLE_PATH = ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_LOCAL_ROOT_ACTIVITY_EXECUTION_ROLE);
+    private static final @NotNull ItemPath TASK_ROLE_PATH = ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_TASK_ROLE);
 
     /**
      * Identifier of the activity. It is unique at the current level in the activity tree.
@@ -58,9 +59,9 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
     @NotNull private final ActivityDefinition<WD> definition;
 
     /**
-     * Execution of the activity. May be null.
+     * Run of the activity. May be null.
      */
-    private AbstractActivityExecution<WD, AH, ?> execution;
+    private AbstractActivityRun<WD, AH, ?> run;
 
     /**
      * Reference to the tree object.
@@ -122,15 +123,15 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
     public abstract AH getHandler();
 
     @NotNull
-    protected abstract ExecutionSupplier<WD, AH> getLocalExecutionSupplier();
+    protected abstract ActivityRunSupplier<WD, AH> getLocalRunSupplier();
 
     @NotNull
     protected abstract CandidateIdentifierFormatter getCandidateIdentifierFormatter();
 
     public abstract @NotNull ActivityStateDefinition<?> getActivityStateDefinition();
 
-    public AbstractActivityExecution<WD, AH, ?> getExecution() {
-        return execution;
+    public AbstractActivityRun<WD, AH, ?> getRun() {
+        return run;
     }
 
     @NotNull
@@ -163,7 +164,7 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         StringBuilder sb = new StringBuilder();
         DebugUtil.debugDumpLabelLn(sb, getDebugDumpLabel(), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "definition", definition, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "execution", execution, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "run", run, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "parent", String.valueOf(getParent()), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "path", String.valueOf(getPath()), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "local path", String.valueOf(getLocalPath()), indent + 1);
@@ -178,39 +179,39 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
                 (isLocalRoot() ? " (local root)" : "");
     }
 
-    public AbstractActivityExecution<?, ?, ?> createExecution(GenericTaskExecution taskExecution, OperationResult result) {
-        stateCheck(execution == null, "Execution is already created in %s", this);
-        ExecutionInstantiationContext<WD, AH> context = new ExecutionInstantiationContext<>(this, taskExecution);
-        ExecutionType executionType = determineExecutionType(taskExecution.getRunningTask());
-        switch (executionType) {
+    public AbstractActivityRun<?, ?, ?> createRun(ActivityBasedTaskRun taskRun, OperationResult result) {
+        stateCheck(run == null, "Run is already created in %s", this);
+        ActivityRunInstantiationContext<WD, AH> context = new ActivityRunInstantiationContext<>(this, taskRun);
+        RunType runType = determineRunType(taskRun.getRunningTask());
+        switch (runType) {
             case LOCAL:
-                execution = getLocalExecutionSupplier()
-                        .createExecution(context, result);
+                run = getLocalRunSupplier()
+                        .createActivityRun(context, result);
                 break;
             case DELEGATING:
-                execution = new DelegatingActivityExecution<>(context);
+                run = new DelegatingActivityRun<>(context);
                 break;
             case DISTRIBUTING:
-                execution = new DistributingActivityExecution<>(context);
+                run = new DistributingActivityRun<>(context);
                 break;
             default:
-                throw new AssertionError(executionType);
+                throw new AssertionError(runType);
         }
-        return execution;
+        return run;
     }
 
-    private @NotNull ExecutionType determineExecutionType(Task activityTask) {
+    private @NotNull RunType determineRunType(Task activityTask) {
         if (doesTaskExecuteThisActivityAsWorker(activityTask)) {
             // This is a worker. It must be local execution then.
-            return ExecutionType.LOCAL;
+            return RunType.LOCAL;
         }
 
         if (definition.getDistributionDefinition().isSubtask() && !doesTaskExecuteThisActivityAsDelegate(activityTask)) {
-            return ExecutionType.DELEGATING;
+            return RunType.DELEGATING;
         } else if (definition.getDistributionDefinition().hasWorkers()) {
-            return ExecutionType.DISTRIBUTING;
+            return RunType.DISTRIBUTING;
         } else {
-            return ExecutionType.LOCAL;
+            return RunType.LOCAL;
         }
     }
 
@@ -219,7 +220,7 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
     }
 
     private boolean isTaskRoleDelegate(Task activityTask) {
-        return getRoleOfTask(activityTask) == ActivityExecutionRoleType.DELEGATE;
+        return getRoleOfTask(activityTask) == TaskRoleType.DELEGATE;
     }
 
     private boolean doesTaskExecuteThisActivityAsWorker(Task activityTask) {
@@ -228,15 +229,15 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
     }
 
     private boolean isTaskRoleWorker(Task activityTask) {
-        return getRoleOfTask(activityTask) == ActivityExecutionRoleType.WORKER;
+        return getRoleOfTask(activityTask) == TaskRoleType.WORKER;
     }
 
     public boolean doesTaskExecuteTreeRootActivity(Task activityTask) {
         return isRoot() && getRoleOfTask(activityTask) == null;
     }
 
-    private ActivityExecutionRoleType getRoleOfTask(Task activityTask) {
-        return activityTask.getPropertyRealValue(LOCAL_ROOT_ACTIVITY_EXECUTION_ROLE_PATH, ActivityExecutionRoleType.class);
+    private TaskRoleType getRoleOfTask(Task activityTask) {
+        return activityTask.getPropertyRealValue(TASK_ROLE_PATH, TaskRoleType.class);
     }
 
     @NotNull
@@ -275,12 +276,12 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
 
     private void setupIdentifier(List<Activity<?, ?>> siblingsList) {
         if (identifier != null) {
-            return; // can occur on repeated executions
+            return; // can occur on repeated runs
         }
 
-        String defined = definition.getIdentifier();
-        if (defined != null) {
-            identifier = defined;
+        String explicitlyDefined = definition.getExplicitlyDefinedIdentifier();
+        if (explicitlyDefined != null) {
+            identifier = explicitlyDefined;
             return;
         }
 
@@ -324,7 +325,7 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
     }
 
     /**
-     * Is this activity the local root i.e. root of execution in the current task?
+     * Is this activity the local root i.e. root of run in the current task?
      */
     public boolean isLocalRoot() {
         return localRoot;
@@ -373,7 +374,7 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         return ActivityPath.fromList(identifiers);
     }
 
-    public TaskErrorHandlingStrategyType getErrorHandlingStrategy() {
+    public ActivityErrorHandlingStrategyType getErrorHandlingStrategy() {
         // TODO implement inheritance of the error handling strategy among activities
         return definition.getControlFlowDefinition().getErrorHandlingStrategy();
     }
@@ -382,7 +383,7 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         definition.applyChangeTailoring(tailoring);
     }
 
-    void applySubtaskTailoring(@NotNull ActivitySubtaskSpecificationType subtaskSpecification) {
+    void applySubtaskTailoring(@NotNull ActivitySubtaskDefinitionType subtaskSpecification) {
         definition.applySubtaskTailoring(subtaskSpecification);
     }
 
@@ -396,7 +397,7 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         return definition.getControlFlowDefinition().isSkip();
     }
 
-    private enum ExecutionType {
+    private enum RunType {
         LOCAL, DELEGATING, DISTRIBUTING
     }
 }

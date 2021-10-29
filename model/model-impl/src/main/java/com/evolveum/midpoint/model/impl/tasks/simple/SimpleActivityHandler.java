@@ -10,7 +10,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 
 import org.jetbrains.annotations.NotNull;
@@ -32,8 +32,8 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -42,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * Implementing class for simple model-level search-based activity handlers.
  *
  * It makes writing non-composite activities a little bit easier. Generally the implementation should contain
- * an implementation of {@link WorkDefinition}, a subclass of {@link SearchBasedActivityExecution}, and
+ * an implementation of {@link WorkDefinition}, a subclass of {@link SearchBasedActivityRun}, and
  * a configuration code like {@link #getWorkDefinitionSupplier()}, {@link #getLegacyHandlerUri()}, and so on.
  */
 @Component
@@ -77,8 +77,8 @@ public abstract class SimpleActivityHandler<
     }
 
     @Override
-    public AbstractActivityExecution<WD, SAH, ?> createExecution(
-            @NotNull ExecutionInstantiationContext<WD, SAH> context,
+    public AbstractActivityRun<WD, SAH, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<WD, SAH> context,
             @NotNull OperationResult result) {
         return getExecutionSupplier().supply(context, getShortName());
     }
@@ -101,7 +101,7 @@ public abstract class SimpleActivityHandler<
             O extends ObjectType,
             WD extends WorkDefinition,
             SAH extends SimpleActivityHandler<O, WD, SAH>> {
-        @NotNull SearchBasedActivityExecution<O, WD, SAH, AbstractActivityWorkStateType> supply(
-                ExecutionInstantiationContext<WD, SAH> context, String shortNameCapitalized);
+        @NotNull SearchBasedActivityRun<O, WD, SAH, AbstractActivityWorkStateType> supply(
+                ActivityRunInstantiationContext<WD, SAH> context, String shortNameCapitalized);
     }
 }

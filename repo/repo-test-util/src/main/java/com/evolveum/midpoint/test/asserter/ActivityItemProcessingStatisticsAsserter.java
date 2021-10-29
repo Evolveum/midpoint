@@ -28,8 +28,8 @@ public class ActivityItemProcessingStatisticsAsserter<RA> extends AbstractAssert
         this.information = information;
     }
 
-    public ActivityItemProcessingStatisticsAsserter<RA> assertExecutions(int expected) {
-        assertThat(information.getExecution().size()).as("# of executions").isEqualTo(expected);
+    public ActivityItemProcessingStatisticsAsserter<RA> assertRuns(int expected) {
+        assertThat(information.getRun().size()).as("# of runs").isEqualTo(expected);
         return this;
     }
 

@@ -30,11 +30,11 @@
                     </extension>
                 </work>
                 <reporting>
-                    <executionReports>
+                    <reports>
                         <buckets/>
                         <items/>
                         <internalOperations/>
-                    </executionReports>
+                    </reports>
                 </reporting>
             </activity>
             <activity>
@@ -51,11 +51,11 @@
                     </extension>
                 </work>
                 <reporting>
-                    <executionReports>
+                    <reports>
                         <buckets/>
                         <items/>
                         <internalOperations/>
-                    </executionReports>
+                    </reports>
                 </reporting>
             </activity>
             <activity>
@@ -103,11 +103,11 @@
                             </buckets>
                         </distribution>
                         <reporting>
-                            <executionReports>
+                            <reports>
                                 <buckets/>
                                 <items/>
                                 <internalOperations/>
-                            </executionReports>
+                            </reports>
                         </reporting>
                     </activity>
                     <activity>
@@ -124,11 +124,11 @@
                             </extension>
                         </work>
                         <reporting>
-                            <executionReports>
+                            <reports>
                                 <buckets/>
                                 <items/>
                                 <internalOperations/>
-                            </executionReports>
+                            </reports>
                         </reporting>
                     </activity>
                 </composition>
@@ -172,11 +172,11 @@
                     </buckets>
                 </distribution>
                 <reporting>
-                    <executionReports>
+                    <reports>
                         <buckets/>
                         <items/>
                         <internalOperations/>
-                    </executionReports>
+                    </reports>
                 </reporting>
             </activity>
         </composition>

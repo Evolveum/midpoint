@@ -9,8 +9,8 @@ package com.evolveum.midpoint.repo.common.tasks.handlers.simple;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
 
@@ -24,9 +24,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
-/**
- * TODO
- */
 @Component
 public class SimpleMockActivityHandler extends AbstractMockActivityHandler<SimpleMockWorkDefinition, SimpleMockActivityHandler> {
 
@@ -49,13 +46,13 @@ public class SimpleMockActivityHandler extends AbstractMockActivityHandler<Simpl
     }
 
     @Override
-    public @NotNull AbstractActivityExecution<SimpleMockWorkDefinition, SimpleMockActivityHandler, ?> createExecution(
-            @NotNull ExecutionInstantiationContext<SimpleMockWorkDefinition, SimpleMockActivityHandler> context,
+    public @NotNull AbstractActivityRun<SimpleMockWorkDefinition, SimpleMockActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<SimpleMockWorkDefinition, SimpleMockActivityHandler> context,
             @NotNull OperationResult result) {
-        return new SimpleMockActivityExecution(context);
+        return new SimpleMockActivityRun(context);
     }
 
-    public @NotNull CommonMockActivityHelper getMockHelper() {
+    @NotNull CommonMockActivityHelper getMockHelper() {
         return mockHelper;
     }
 

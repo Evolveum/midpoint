@@ -10,8 +10,8 @@ package com.evolveum.midpoint.report.impl.activity;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.controller.CollectionExportController;
 import com.evolveum.midpoint.report.impl.controller.ContainerableReportDataSource;
@@ -45,13 +45,13 @@ class ExportDashboardActivitySupport extends ExportActivitySupport{
      */
     private Map<String, CompiledObjectCollectionView> mapOfCompiledViews;
 
-    ExportDashboardActivitySupport(AbstractActivityExecution<?, ?, ?> activityExecution, ReportServiceImpl reportService,
-                                   ObjectResolver resolver, AbstractReportWorkDefinition workDefinition) {
-        super(activityExecution, reportService, resolver, workDefinition);
+    ExportDashboardActivitySupport(AbstractActivityRun<?, ?, ?> activityRun, ReportServiceImpl reportService,
+            ObjectResolver resolver, AbstractReportWorkDefinition workDefinition) {
+        super(activityRun, reportService, resolver, workDefinition);
     }
 
     @Override
-    void beforeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
+    void beforeExecution(OperationResult result) throws CommonException, ActivityRunException {
         super.beforeExecution(result);
         setupDashboard(result);
         setupCompiledViewsForWidgets(result);

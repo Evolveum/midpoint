@@ -145,7 +145,7 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="liveSyncErrorHandlingStrategy" type="c:TaskErrorHandlingStrategyType">
+    <xsd:element name="liveSyncErrorHandlingStrategy" type="c:ActivityErrorHandlingStrategyType">
         <xsd:annotation>
             <xsd:documentation>
                 Specifies a strategy for handling errors during Live Synchronization.
@@ -676,7 +676,7 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="tracing" type="c:ProcessTracingConfigurationType">
+    <xsd:element name="tracing" type="c:ActivityTracingDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
                 Specifies when and how should be task execution traced. Contains tracing interval (i.e. how often a trace

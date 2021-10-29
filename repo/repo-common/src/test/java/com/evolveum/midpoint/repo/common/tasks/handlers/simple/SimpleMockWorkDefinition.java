@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.tasks.handlers.simple;
 
-import static com.evolveum.midpoint.repo.common.tasks.handlers.composite.MockComponentActivityExecution.NS_EXT;
+import static com.evolveum.midpoint.repo.common.tasks.handlers.composite.MockComponentActivityRun.NS_EXT;
 import static com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.UntypedWorkDefinitionWrapper.getPcv;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 

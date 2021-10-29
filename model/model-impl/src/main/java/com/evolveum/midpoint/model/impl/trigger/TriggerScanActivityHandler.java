@@ -9,8 +9,8 @@ package com.evolveum.midpoint.model.impl.trigger;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScanWorkStateType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.sync.tasks.imp.ImportWorkDefinition;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerScanWorkDefinitionType;
 
@@ -55,10 +55,10 @@ public class TriggerScanActivityHandler
     }
 
     @Override
-    public AbstractActivityExecution<TriggerScanWorkDefinition, TriggerScanActivityHandler, ?> createExecution(
-            @NotNull ExecutionInstantiationContext<TriggerScanWorkDefinition, TriggerScanActivityHandler> context,
+    public AbstractActivityRun<TriggerScanWorkDefinition, TriggerScanActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<TriggerScanWorkDefinition, TriggerScanActivityHandler> context,
             @NotNull OperationResult result) {
-        return new TriggerScanActivityExecution(context);
+        return new TriggerScanActivityRun(context);
     }
 
     @Override

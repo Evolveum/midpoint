@@ -95,7 +95,7 @@ public class PolicyRuleCounterUpdater implements ProjectorProcessor {
 
         ExecutionSupport.CountersGroup group =
                 executionSupport.getExecutionMode() == ExecutionModeType.FULL ?
-                        EXECUTION_MODE_POLICY_RULES : SIMULATION_MODE_POLICY_RULES;
+                        FULL_EXECUTION_MODE_POLICY_RULES : PREVIEW_MODE_POLICY_RULES;
 
         Map<String, Integer> currentValues =
                 executionSupport.incrementCounters(group, rulesByIdentifier.keySet(), result);

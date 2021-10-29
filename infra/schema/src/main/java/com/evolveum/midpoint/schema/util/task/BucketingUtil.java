@@ -45,7 +45,7 @@ public class BucketingUtil {
     }
 
     @Nullable
-    public static AbstractWorkSegmentationType getWorkSegmentationConfiguration(WorkBucketsManagementType buckets) {
+    public static AbstractWorkSegmentationType getWorkSegmentationConfiguration(BucketsDefinitionType buckets) {
         if (buckets != null) {
             return MiscUtil.getFirstNonNull(
                     buckets.getNumericSegmentation(),

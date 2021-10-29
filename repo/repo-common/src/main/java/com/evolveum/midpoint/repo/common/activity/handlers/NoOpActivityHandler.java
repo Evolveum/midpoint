@@ -12,9 +12,12 @@ import static com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
-import com.evolveum.midpoint.repo.common.task.work.segmentation.content.NumericIntervalBucketUtil;
-import com.evolveum.midpoint.repo.common.task.work.segmentation.content.NumericIntervalBucketUtil.Interval;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+import com.evolveum.midpoint.repo.common.activity.run.*;
+import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.content.NumericIntervalBucketUtil;
+import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.content.NumericIntervalBucketUtil.Interval;
+import com.evolveum.midpoint.repo.common.activity.run.processing.GenericProcessingRequest;
+import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 
@@ -26,9 +29,6 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
-import com.evolveum.midpoint.repo.common.task.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
@@ -66,41 +66,41 @@ public class NoOpActivityHandler implements ActivityHandler<NoOpActivityHandler.
     }
 
     @Override
-    public AbstractActivityExecution<MyWorkDefinition, NoOpActivityHandler, ?> createExecution(
-            @NotNull ExecutionInstantiationContext<MyWorkDefinition, NoOpActivityHandler> context,
+    public AbstractActivityRun<MyWorkDefinition, NoOpActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<MyWorkDefinition, NoOpActivityHandler> context,
             @NotNull OperationResult result) {
-        return new MyExecution(context);
+        return new MyRun(context);
     }
 
-    private static class MyExecution
-            extends PlainIterativeActivityExecution<Integer, MyWorkDefinition, NoOpActivityHandler, AbstractActivityWorkStateType> {
+    private static final class MyRun
+            extends PlainIterativeActivityRun<Integer, MyWorkDefinition, NoOpActivityHandler, AbstractActivityWorkStateType> {
 
-        MyExecution(
-                @NotNull ExecutionInstantiationContext<MyWorkDefinition, NoOpActivityHandler> context) {
+        MyRun(@NotNull ActivityRunInstantiationContext<MyWorkDefinition, NoOpActivityHandler> context) {
             super(context, "NoOp");
+            setInstanceReady();
         }
 
         @Override
-        public ActivityReportingOptions getDefaultReportingOptions() {
-            return super.getDefaultReportingOptions()
-                    .defaultDetermineBucketSize(ActivityItemCountingOptionType.ALWAYS)
-                    .defaultDetermineOverallSize(ActivityOverallItemCountingOptionType.ALWAYS);
+        public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
+            return super.createReportingCharacteristics()
+                    .determineBucketSizeDefault(ActivityItemCountingOptionType.ALWAYS)
+                    .determineOverallSizeDefault(ActivityOverallItemCountingOptionType.ALWAYS);
         }
 
         @Override
-        public void beforeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
+        public void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
             MyWorkDefinition def = getWorkDefinition();
-            LOGGER.info("Execution starting; steps to be executed = {}, delay for one step = {}, step interruptibility = {}"
+            LOGGER.info("Run starting; steps to be executed = {}, delay for one step = {}, step interruptibility = {}"
                             + " in task {}", def.steps, def.delay, def.stepInterruptibility, getRunningTask());
         }
 
         @Override
-        public @Nullable Integer determineOverallSize(OperationResult result) throws CommonException {
+        public Integer determineOverallSize(OperationResult result) throws CommonException {
             return getWorkDefinition().getInterval().getSize();
         }
 
         @Override
-        public @Nullable Integer determineCurrentBucketSize(OperationResult result) throws CommonException {
+        public Integer determineCurrentBucketSize(OperationResult result) throws CommonException {
             return NumericIntervalBucketUtil.getNarrowedInterval(
                             bucket,
                             getWorkDefinition().getInterval())
@@ -120,8 +120,8 @@ public class NoOpActivityHandler implements ActivityHandler<NoOpActivityHandler.
         }
 
         @Override
-        public void afterExecution(OperationResult result) throws CommonException, ActivityExecutionException {
-            LOGGER.info("Execution stopping; canRun = {}", canRun());
+        public void afterRun(OperationResult result) throws CommonException, ActivityRunException {
+            LOGGER.info("Run stopping; canRun = {}", canRun());
         }
 
         @Override

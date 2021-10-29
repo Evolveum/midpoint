@@ -14,7 +14,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityControlFlowSpecificationTailoringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityControlFlowDefinitionTailoringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TailoringModeType;
 
 import com.google.common.base.MoreObjects;
@@ -25,7 +25,7 @@ class TailoringUtil {
     /**
      * We assume the same property name is used in all "tailoring" objects.
      */
-    private static final ItemName F_TAILORING_MODE = ActivityControlFlowSpecificationTailoringType.F_TAILORING_MODE;
+    private static final ItemName F_TAILORING_MODE = ActivityControlFlowDefinitionTailoringType.F_TAILORING_MODE;
 
     static <T extends Containerable> @NotNull T getTailoredBean(@NotNull T original, @NotNull T tailoring) {
         TailoringModeType mode = getTailoringMode(tailoring.asPrismContainerValue());

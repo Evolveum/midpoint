@@ -15,7 +15,7 @@ import java.io.FileNotFoundException;
 import java.util.Collection;
 import java.util.function.Consumer;
 
-import com.evolveum.midpoint.repo.common.task.work.BucketingConfigurationOverrides;
+import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingConfigurationOverrides;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -25,8 +25,8 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
-import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
+import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
@@ -263,7 +263,7 @@ public abstract class TestThresholdsStory extends AbstractStoryTest {
     }
 
 //    private void clearCountersAndStatistics(OperationResult result) throws SchemaException, ObjectAlreadyExistsException,
-//            ObjectNotFoundException, ActivityExecutionException {
+//            ObjectNotFoundException, ActivityRunException {
 //        Collection<ActivityState> activityStates = getExecutionStates(result);
 //        for (ActivityState activityState : activityStates) {
 //            activityState.setItemRealValues(ActivityStateType.F_COUNTERS);

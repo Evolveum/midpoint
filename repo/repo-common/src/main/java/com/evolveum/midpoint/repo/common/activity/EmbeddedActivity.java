@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.activity;
 
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,12 +19,12 @@ public class EmbeddedActivity<WD extends WorkDefinition, AH extends ActivityHand
         extends Activity<WD, AH> {
 
     /**
-     * Supplier for the execution objects.
+     * Supplier for the run objects.
      */
-    @NotNull private final ExecutionSupplier<WD, AH> executionSupplier;
+    @NotNull private final ActivityRunSupplier<WD, AH> activityRunSupplier;
 
     /** TODO better name */
-    @Nullable private final BeforeExecutionRunner<WD, AH> beforeExecutionRunner;
+    @Nullable private final PreRunnable<WD, AH> preRunnable;
 
     /** TODO */
     @NotNull private final CandidateIdentifierFormatter candidateIdentifierFormatter;
@@ -33,26 +34,31 @@ public class EmbeddedActivity<WD extends WorkDefinition, AH extends ActivityHand
 
     @NotNull private final Activity<WD, AH> parent;
 
-    private EmbeddedActivity(@NotNull ActivityDefinition<WD> definition, @NotNull ExecutionSupplier<WD, AH> executionSupplier,
-            @Nullable BeforeExecutionRunner<WD, AH> beforeExecutionRunner, @NotNull CandidateIdentifierFormatter candidateIdentifierFormatter,
+    private EmbeddedActivity(@NotNull ActivityDefinition<WD> definition, @NotNull ActivityRunSupplier<WD, AH> activityRunSupplier,
+            @Nullable PreRunnable<WD, AH> preRunnable, @NotNull CandidateIdentifierFormatter candidateIdentifierFormatter,
             @NotNull ActivityStateDefinition<?> activityStateDefinition, @NotNull ActivityTree tree,
             @NotNull Activity<WD, AH> parent) {
         super(definition, tree);
-        this.executionSupplier = executionSupplier;
-        this.beforeExecutionRunner = beforeExecutionRunner;
+        this.activityRunSupplier = activityRunSupplier;
+        this.preRunnable = preRunnable;
         this.candidateIdentifierFormatter = candidateIdentifierFormatter;
         this.activityStateDefinition = activityStateDefinition;
         this.parent = parent;
     }
 
+    /**
+     * Creates an embedded activity.
+     *
+     * @param definition Definition to be used. Should be freely modifiable (typically cloned)!
+     */
     public static <WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>> EmbeddedActivity<WD, AH> create(
             @NotNull ActivityDefinition<WD> definition,
-            @NotNull ExecutionSupplier<WD, AH> executionSupplier,
-            @Nullable BeforeExecutionRunner<WD, AH> beforeExecutionRunner,
+            @NotNull ActivityRunSupplier<WD, AH> activityRunSupplier,
+            @Nullable PreRunnable<WD, AH> preRunnable,
             @NotNull CandidateIdentifierFormatter candidateIdentifierFormatter,
             @NotNull ActivityStateDefinition<?> activityStateDefinition,
             @NotNull Activity<WD, AH> parent) {
-        return new EmbeddedActivity<>(definition, executionSupplier, beforeExecutionRunner, candidateIdentifierFormatter,
+        return new EmbeddedActivity<>(definition, activityRunSupplier, preRunnable, candidateIdentifierFormatter,
                 activityStateDefinition, parent.getTree(), parent);
     }
 
@@ -63,8 +69,8 @@ public class EmbeddedActivity<WD extends WorkDefinition, AH extends ActivityHand
     }
 
     @Override
-    protected @NotNull ExecutionSupplier<WD, AH> getLocalExecutionSupplier() {
-        return executionSupplier;
+    protected @NotNull ActivityRunSupplier<WD, AH> getLocalRunSupplier() {
+        return activityRunSupplier;
     }
 
     @Override
@@ -83,7 +89,7 @@ public class EmbeddedActivity<WD extends WorkDefinition, AH extends ActivityHand
         return parent;
     }
 
-    public @Nullable BeforeExecutionRunner<WD, AH> getBeforeExecutionRunner() {
-        return beforeExecutionRunner;
+    public @Nullable PreRunnable<WD, AH> getPreRunnable() {
+        return preRunnable;
     }
 }

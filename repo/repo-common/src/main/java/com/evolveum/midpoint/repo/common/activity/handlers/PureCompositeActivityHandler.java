@@ -10,14 +10,14 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.repo.common.activity.Activity;
-import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.StandaloneActivity;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.execution.CompositeActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.CompositeActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.definition.CompositeWorkDefinition;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -53,16 +53,17 @@ public class PureCompositeActivityHandler implements ActivityHandler<CompositeWo
     }
 
     @Override
-    public @NotNull AbstractActivityExecution<CompositeWorkDefinition, PureCompositeActivityHandler, ?> createExecution(
-            @NotNull ExecutionInstantiationContext<CompositeWorkDefinition, PureCompositeActivityHandler> context,
+    public @NotNull AbstractActivityRun<CompositeWorkDefinition, PureCompositeActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<CompositeWorkDefinition, PureCompositeActivityHandler> context,
             @NotNull OperationResult result) {
-        return new CompositeActivityExecution<>(context);
+        return new CompositeActivityRun<>(context);
     }
 
     @Override
-    public ArrayList<Activity<?, ?>> createChildActivities(Activity<CompositeWorkDefinition, PureCompositeActivityHandler> parent) throws SchemaException {
-        CompositeWorkDefinition workDefinition = parent.getWorkDefinition();
-        return workDefinition.createChildDefinitions(workDefinitionFactory).stream()
+    public ArrayList<Activity<?, ?>> createChildActivities(Activity<CompositeWorkDefinition, PureCompositeActivityHandler> parent)
+            throws SchemaException {
+        return parent.getWorkDefinition().getComposition().getActivity().stream()
+                .map(definitionBean -> ActivityDefinition.createChild(definitionBean, workDefinitionFactory))
                 .map(definition -> createChildActivity(definition, parent))
                 .collect(Collectors.toCollection(ArrayList::new));
     }

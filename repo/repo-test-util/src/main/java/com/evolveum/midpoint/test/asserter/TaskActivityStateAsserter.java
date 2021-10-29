@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityExecutionRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTreeRealizationStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskActivityStateType;
 
@@ -48,8 +48,8 @@ public class TaskActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
-    public TaskActivityStateAsserter<RA> assertRole(ActivityExecutionRoleType expected) {
-        assertThat(activityState.getLocalRootActivityExecutionRole()).as("role").isEqualTo(expected);
+    public TaskActivityStateAsserter<RA> assertRole(TaskRoleType expected) {
+        assertThat(activityState.getTaskRole()).as("role").isEqualTo(expected);
         return this;
     }
 

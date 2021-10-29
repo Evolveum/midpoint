@@ -10,7 +10,8 @@ import static java.util.Collections.emptyList;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -18,13 +19,12 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
-import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
-import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
+import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
@@ -67,7 +67,7 @@ public class ReindexActivityHandler
 
     @Override
     protected @NotNull ExecutionSupplier<ObjectType, MyWorkDefinition, ReindexActivityHandler> getExecutionSupplier() {
-        return MyExecution::new;
+        return MyRun::new;
     }
 
     @Override
@@ -90,29 +90,30 @@ public class ReindexActivityHandler
         return "reindexing";
     }
 
-    static class MyExecution extends
-            SearchBasedActivityExecution<ObjectType, MyWorkDefinition, ReindexActivityHandler, AbstractActivityWorkStateType> {
+    static final class MyRun extends
+            SearchBasedActivityRun<ObjectType, MyWorkDefinition, ReindexActivityHandler, AbstractActivityWorkStateType> {
 
-        MyExecution(@NotNull ExecutionInstantiationContext<MyWorkDefinition, ReindexActivityHandler> context, String shortName) {
+        MyRun(@NotNull ActivityRunInstantiationContext<MyWorkDefinition, ReindexActivityHandler> context, String shortName) {
             super(context, shortName);
+            setInstanceReady();
         }
 
         @Override
-        public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
-            return super.getDefaultReportingOptions()
-                    .enableActionsExecutedStatistics(true)
+        public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
+            return super.createReportingCharacteristics()
+                    .actionsExecutedStatisticsSupported(true)
                     .skipWritingOperationExecutionRecords(false); // because of performance
         }
 
         @Override
-        public void beforeExecution(OperationResult result) throws CommonException {
+        public void beforeRun(OperationResult result) throws CommonException {
             getActivityHandler().securityEnforcer.authorizeAll(getRunningTask(), result);
         }
 
         @Override
         public boolean processItem(@NotNull ObjectType object,
                 @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult result)
-                throws CommonException, ActivityExecutionException {
+                throws CommonException, ActivityRunException {
             reindexObject(object, result);
             return true;
         }

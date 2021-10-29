@@ -16,7 +16,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_MO
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -387,6 +386,7 @@ public class TaskQuartzImpl implements Task {
         if (recreateQuartzTrigger) { // just in case there were no pending modifications
             synchronizeWithQuartz(result);
         }
+        beans.listenerRegistry.notifyTaskStatusFlushed(this, result);
     }
 
     int getPendingModificationsCount() {
@@ -728,7 +728,7 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public void setProgressImmediate(Long value, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    public void setLegacyProgressImmediate(Long value, OperationResult result) throws ObjectNotFoundException, SchemaException {
         setPropertyImmediate(TaskType.F_PROGRESS, value, result);
     }
 
@@ -847,6 +847,7 @@ public class TaskQuartzImpl implements Task {
         return getOid() != null ? TaskPersistenceStatus.PERSISTENT : TaskPersistenceStatus.TRANSIENT;
     }
 
+    @Override
     public boolean isPersistent() {
         return getPersistenceStatus() == TaskPersistenceStatus.PERSISTENT;
     }
@@ -964,6 +965,7 @@ public class TaskQuartzImpl implements Task {
         setProperty(TaskType.F_WAITING_REASON, value);
     }
 
+    @Override
     public @NotNull TaskRecurrenceType getRecurrence() {
         synchronized (prismAccess) {
             return TaskTypeUtil.getEffectiveRecurrence(taskPrism.asObjectable());
@@ -1052,6 +1054,7 @@ public class TaskQuartzImpl implements Task {
         return scheduleInterval != null && scheduleInterval != 0;
     }
 
+    @Override
     public void setSchedule(ScheduleType value) {
         synchronized (prismAccess) {
             TaskType taskBean = taskPrism.asObjectable();
@@ -1668,7 +1671,7 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public TaskErrorHandlingStrategyType getErrorHandlingStrategy() {
+    public ActivityErrorHandlingStrategyType getErrorHandlingStrategy() {
         synchronized (prismAccess) {
             return taskPrism.asObjectable().getErrorHandlingStrategy();
         }
@@ -1781,16 +1784,6 @@ public class TaskQuartzImpl implements Task {
 
     // todo thread safety (creating a clone?)
     @Override
-    public WorkDistributionType getWorkManagement() {
-        synchronized (prismAccess) {
-            // FIXME
-            return null;
-//            return taskPrism.asObjectable().getWorkManagement();
-        }
-    }
-
-    // todo thread safety (creating a clone?)
-    @Override
     public TaskActivityStateType getWorkState() {
         synchronized (prismAccess) {
             return taskPrism.asObjectable().getActivityState();
@@ -1800,15 +1793,6 @@ public class TaskQuartzImpl implements Task {
     @Override
     public TaskActivityStateType getActivitiesStateOrClone() {
         return getContainerableOrClone(TaskType.F_ACTIVITY_STATE);
-    }
-
-    @Override
-    public TaskKindType getKind() {
-        throw new UnsupportedOperationException();
-//        synchronized (prismAccess) {
-//            WorkDistributionType workManagement = getWorkManagement();
-//            return workManagement != null ? workManagement.getTaskKind() : null;
-//        }
     }
 
     public TaskUnpauseActionType getUnpauseAction() {
@@ -1835,6 +1819,7 @@ public class TaskQuartzImpl implements Task {
         }
     }
 
+    @Override
     public boolean hasAssignments() {
         synchronized (prismAccess) {
             return !taskPrism.asObjectable().getAssignment().isEmpty();
@@ -1983,22 +1968,10 @@ public class TaskQuartzImpl implements Task {
         return sub;
     }
 
+    @Override
     @NotNull
     public List<TaskQuartzImpl> listSubtasks(OperationResult parentResult) throws SchemaException {
         return listSubtasks(false, parentResult);
-    }
-
-    @Override
-    public void findAndSetSubtasks(OperationResult result) throws SchemaException {
-        List<ObjectReferenceType> subtasksRefs = listSubtasks(result).stream()
-                .map(Task::getSelfReferenceFull)
-                .collect(Collectors.toList());
-        synchronized (prismAccess) {
-            List<ObjectReferenceType> subtaskRef = taskPrism.asObjectable().getSubtaskRef();
-            subtaskRef.clear();
-            subtaskRef.addAll(subtasksRefs);
-            // We intentionally do not issue pending modification here, as this information should not go into repository.
-        }
     }
 
     @NotNull

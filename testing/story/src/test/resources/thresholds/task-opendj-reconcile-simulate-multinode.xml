@@ -29,7 +29,7 @@
         </work>
         <tailoring>
             <change>
-                <reference>resourceObjectsSimulation</reference>
+                <reference>resourceObjectsPreview</reference>
                 <controlFlow>
                     <processingOption>process</processingOption>
                 </controlFlow>

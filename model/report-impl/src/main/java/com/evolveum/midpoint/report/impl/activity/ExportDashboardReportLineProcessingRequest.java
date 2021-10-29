@@ -8,9 +8,9 @@
 package com.evolveum.midpoint.report.impl.activity;
 
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.repo.common.task.CorrelatableProcessingRequest;
-import com.evolveum.midpoint.repo.common.task.GenericProcessingRequest;
-import com.evolveum.midpoint.repo.common.task.IterativeActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.run.processing.CorrelatableProcessingRequest;
+import com.evolveum.midpoint.repo.common.activity.run.processing.GenericProcessingRequest;
+import com.evolveum.midpoint.repo.common.activity.run.IterativeActivityRun;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -28,8 +28,8 @@ public class ExportDashboardReportLineProcessingRequest
         implements CorrelatableProcessingRequest {
 
     ExportDashboardReportLineProcessingRequest(@NotNull ExportDashboardReportLine<Containerable> item,
-            @NotNull IterativeActivityExecution<ExportDashboardReportLine<Containerable>, ?, ?, ?> activityExecution) {
-        super(item.getLineNumber(), item, activityExecution);
+            @NotNull IterativeActivityRun<ExportDashboardReportLine<Containerable>, ?, ?, ?> activityRun) {
+        super(item.getLineNumber(), item, activityRun);
     }
 
     @Override

@@ -90,7 +90,7 @@ public class ActivityWorkersInformation implements DebugDumpable, Serializable {
                 LOGGER.debug("No execution state information in: {}", task);
             }
             updateWorkersCounters(task.getNode(),
-                    task.getExecutionState() == ActivityTaskExecutionStateType.EXECUTING,
+                    task.getExecutionState() == ActivityTaskExecutionStateType.RUNNING,
                     task.getStalledSince() != null);
         }
     }

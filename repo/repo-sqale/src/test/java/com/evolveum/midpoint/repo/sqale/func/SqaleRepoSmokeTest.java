@@ -37,10 +37,7 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.SqlRecorder;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -285,6 +282,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
                 repositoryService.getObject(UserType.class, userOid, photoOptions, result)
                         .asObjectable();
         assertThat(userWithPhoto.getJpegPhoto()).isEqualTo(new byte[] { 0, 1, 2 });
+        assertThat(userWithPhoto.asPrismObject().findProperty(FocusType.F_JPEG_PHOTO).isIncomplete()).isFalse();
     }
 
     @Test
@@ -387,6 +385,37 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         assertThat(queryBuffer).hasSize(1);
         entry = queryBuffer.remove();
         assertThat(entry.sql).startsWith("select u.oid, u.fullObject");
+    }
+
+    @Test
+    public void test500ExecuteQueryDiagnostics() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("some objects are in the repository");
+        String name = "user" + getTestNumber();
+        repositoryService.addObject(
+                new UserType(prismContext).name(name).asPrismObject(),
+                null, result);
+
+        when("executeQueryDiagnostics is called with query");
+        RepositoryQueryDiagRequest request = new RepositoryQueryDiagRequest();
+        request.setType(UserType.class);
+        request.setQuery(prismContext.queryFor(UserType.class)
+                .item(UserType.F_NAME).eq(name)
+                .build());
+        RepositoryQueryDiagResponse response = repositoryService.executeQueryDiagnostics(request, result);
+
+        then("query is executed and low-level info returned");
+        assertThat(response).isNotNull();
+        assertThat(response.getQueryResult()).hasSize(1)
+                .extracting(o -> ((PrismObject<?>) o).asObjectable().getName().getOrig())
+                .containsExactly(name);
+        assertThat(response.getImplementationLevelQuery()).asString()
+                .isEqualToIgnoringWhitespace("select u.oid, u.fullObject from m_user u"
+                        + " where u.nameNorm = ? and u.nameOrig = ?"
+                        + " limit ?");
+
+        // test for "translateOnly = true" is omitted, but it works, see
     }
 
     // region low-level tests

@@ -21,11 +21,11 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.Activity;
-import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
-import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -65,10 +65,10 @@ public class ReconciliationActivityHandler
     }
 
     @Override
-    public @NotNull ReconciliationActivityExecution createExecution(
-            @NotNull ExecutionInstantiationContext<ReconciliationWorkDefinition, ReconciliationActivityHandler> context,
+    public @NotNull ReconciliationActivityRun createActivityRun(
+            @NotNull ActivityRunInstantiationContext<ReconciliationWorkDefinition, ReconciliationActivityHandler> context,
             @NotNull OperationResult result) {
-        return new ReconciliationActivityExecution(context);
+        return new ReconciliationActivityRun(context);
     }
 
     @Override
@@ -77,31 +77,31 @@ public class ReconciliationActivityHandler
         ArrayList<Activity<?, ?>> children = new ArrayList<>();
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
-                (context, result) -> new OperationCompletionActivityExecution(context,
+                (context, result) -> new OperationCompletionActivityRun(context,
                         "Reconciliation (operation completion)"),
                 null,
                 (i) -> ModelPublicConstants.RECONCILIATION_OPERATION_COMPLETION_ID,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
-                createSimulationDefinition(parentActivity.getDefinition()),
-                (context, result) -> new ResourceObjectsReconciliationActivityExecution(context,
+                createPreviewDefinition(parentActivity.getDefinition()),
+                (context, result) -> new ResourceObjectsReconciliationActivityRun(context,
                         "Reconciliation (on resource)" + modeSuffix(context)),
-                this::beforeResourceObjectsReconciliation, // this is needed even for simulation
-                (i) -> ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_SIMULATION_ID,
+                this::beforeResourceObjectsReconciliation, // this is needed even for preview
+                (i) -> ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_PREVIEW_ID,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
-                createSimulationDefinition(parentActivity.getDefinition()),
-                (context, result) -> new RemainingShadowsActivityExecution(context,
+                createPreviewDefinition(parentActivity.getDefinition()),
+                (context, result) -> new RemainingShadowsActivityRun(context,
                         "Reconciliation (remaining shadows)" + modeSuffix(context)),
                 null,
-                (i) -> ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_SIMULATION_ID,
+                (i) -> ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_PREVIEW_ID,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
-                (context, result) -> new ResourceObjectsReconciliationActivityExecution(context,
+                (context, result) -> new ResourceObjectsReconciliationActivityRun(context,
                         "Reconciliation (on resource)" + modeSuffix(context)),
                 this::beforeResourceObjectsReconciliation,
                 (i) -> ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_ID,
@@ -109,7 +109,7 @@ public class ReconciliationActivityHandler
                 parentActivity));
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
-                (context, result) -> new RemainingShadowsActivityExecution(context,
+                (context, result) -> new RemainingShadowsActivityRun(context,
                         "Reconciliation (remaining shadows)" + modeSuffix(context)),
                 null,
                 (i) -> ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_ID,
@@ -118,7 +118,7 @@ public class ReconciliationActivityHandler
         return children;
     }
 
-    private ActivityDefinition<ReconciliationWorkDefinition> createSimulationDefinition(
+    private ActivityDefinition<ReconciliationWorkDefinition> createPreviewDefinition(
             @NotNull ActivityDefinition<ReconciliationWorkDefinition> original) {
         ActivityDefinition<ReconciliationWorkDefinition> clone = original.clone();
         clone.getWorkDefinition().setExecutionMode(ExecutionModeType.PREVIEW);
@@ -171,8 +171,8 @@ public class ReconciliationActivityHandler
 
     // TODO generalize
     private String modeSuffix(
-            ExecutionInstantiationContext<ReconciliationWorkDefinition, ReconciliationActivityHandler> context) {
+            ActivityRunInstantiationContext<ReconciliationWorkDefinition, ReconciliationActivityHandler> context) {
         return context.getActivity().getWorkDefinition().getExecutionMode() == ExecutionModeType.PREVIEW ?
-                " (simulated)" : "";
+                " (preview)" : "";
     }
 }

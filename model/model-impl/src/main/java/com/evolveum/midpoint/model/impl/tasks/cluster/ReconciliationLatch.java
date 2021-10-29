@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.impl.tasks.cluster;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.Activity;
-import com.evolveum.midpoint.repo.common.activity.state.CurrentActivityState;
+import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -29,7 +29,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityAutoS
 /**
  * Describes the current situation regarding the cluster state and last reconciliation execution.
  *
- * We could have put these properties to {@link AutoScalingActivityExecution} directly but these are
+ * We could have put these properties to {@link AutoScalingActivityRun} directly but these are
  * filled-in and used only in one specific moment, so we do not mix them with the rest of the class.
  */
 class ReconciliationLatch {

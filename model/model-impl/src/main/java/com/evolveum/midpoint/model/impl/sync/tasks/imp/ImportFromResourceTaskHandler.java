@@ -10,6 +10,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClassSpecification;
 
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +24,6 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -95,7 +95,7 @@ public class ImportFromResourceTaskHandler {
             synchronizer.synchronize(shadow.asPrismObject(), null, task, result);
             result.computeStatusIfUnknown();
             return !result.isError();
-        } catch (ActivityExecutionException t) {
+        } catch (ActivityRunException t) {
             result.recordStatus(t.getOpResultStatus(), t.getMessage(), t);
             throw new SystemException(t); // FIXME unwrap the exception
         } catch (Throwable t) {

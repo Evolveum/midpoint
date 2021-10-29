@@ -10,7 +10,7 @@ package com.evolveum.midpoint.repo.common.activity;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityTailoring;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySubtaskSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySubtaskDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTailoringType;
 
 import org.jetbrains.annotations.NotNull;
@@ -20,6 +20,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Tailors (modifies) an activity according to specified {@link ActivityTailoring}.
+ */
 class ActivityTailor {
 
     @NotNull private final Activity<?, ?> activity;
@@ -37,7 +40,7 @@ class ActivityTailor {
             findChildren(change.getReference())
                     .forEach(child -> child.applyChangeTailoring(change));
         }
-        ActivitySubtaskSpecificationType subtasksForChildren = tailoring.getSubtasksForChildren();
+        ActivitySubtaskDefinitionType subtasksForChildren = tailoring.getSubtasksForChildren();
         if (subtasksForChildren != null) {
             childrenList.forEach(
                     child -> child.applySubtaskTailoring(subtasksForChildren));

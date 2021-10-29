@@ -108,7 +108,7 @@ class ActivityBasedTaskInformation extends TaskInformation {
     @Override
     public XMLGregorianCalendar getStartTimestamp() {
         if (isTrivial()) {
-            return localRootActivityState.getExecutionStartTimestamp();
+            return localRootActivityState.getRunStartTimestamp();
         } else {
             return localRootActivityState.getRealizationStartTimestamp();
         }
@@ -117,7 +117,7 @@ class ActivityBasedTaskInformation extends TaskInformation {
     @Override
     public XMLGregorianCalendar getEndTimestamp() {
         if (isTrivial()) {
-            return localRootActivityState.getExecutionEndTimestamp();
+            return localRootActivityState.getRunEndTimestamp();
         } else {
             return localRootActivityState.getRealizationEndTimestamp();
         }

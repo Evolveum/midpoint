@@ -14,8 +14,8 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ImportWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -40,10 +40,10 @@ public class ImportActivityHandler
     }
 
     @Override
-    public AbstractActivityExecution<ImportWorkDefinition, ImportActivityHandler, ?> createExecution(
-            @NotNull ExecutionInstantiationContext<ImportWorkDefinition, ImportActivityHandler> context,
+    public AbstractActivityRun<ImportWorkDefinition, ImportActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<ImportWorkDefinition, ImportActivityHandler> context,
             @NotNull OperationResult result) {
-        return new ImportActivityExecution(context);
+        return new ImportActivityRun(context);
     }
 
     @Override

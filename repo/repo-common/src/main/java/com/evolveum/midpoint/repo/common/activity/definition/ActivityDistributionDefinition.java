@@ -17,22 +17,25 @@ import java.util.function.Supplier;
 
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
+/**
+ * Defines the distribution aspects of an activity: buckets, worker tasks, worker threads, subtasks, and so on.
+ */
 public class ActivityDistributionDefinition implements DebugDumpable, Cloneable {
 
     /**
      * This bean is detached copy dedicated for this definition. It is therefore freely modifiable.
      */
-    @NotNull private WorkDistributionType bean;
+    @NotNull private ActivityDistributionDefinitionType bean;
 
-    private ActivityDistributionDefinition(@NotNull WorkDistributionType bean) {
+    private ActivityDistributionDefinition(@NotNull ActivityDistributionDefinitionType bean) {
         this.bean = bean;
     }
 
     @NotNull
     public static ActivityDistributionDefinition create(ActivityDefinitionType activityDefinitionBean,
             Supplier<Integer> workerThreadsSupplier) {
-        WorkDistributionType bean = activityDefinitionBean != null && activityDefinitionBean.getDistribution() != null ?
-                activityDefinitionBean.getDistribution().clone() : new WorkDistributionType(PrismContext.get());
+        ActivityDistributionDefinitionType bean = activityDefinitionBean != null && activityDefinitionBean.getDistribution() != null ?
+                activityDefinitionBean.getDistribution().clone() : new ActivityDistributionDefinitionType(PrismContext.get());
         if (bean.getWorkerThreads() == null) {
             bean.setWorkerThreads(workerThreadsSupplier.get());
         }
@@ -49,7 +52,7 @@ public class ActivityDistributionDefinition implements DebugDumpable, Cloneable 
         return bean.debugDump(indent);
     }
 
-    public WorkBucketsManagementType getBuckets() {
+    public BucketsDefinitionType getBuckets() {
         return bean.getBuckets();
     }
 
@@ -65,7 +68,7 @@ public class ActivityDistributionDefinition implements DebugDumpable, Cloneable 
         return bean.getWorkers() != null;
     }
 
-    public WorkersManagementType getWorkers() {
+    public WorkersDefinitionType getWorkers() {
         return bean.getWorkers();
     }
 
@@ -81,7 +84,7 @@ public class ActivityDistributionDefinition implements DebugDumpable, Cloneable 
         }
     }
 
-    void applySubtaskTailoring(@NotNull ActivitySubtaskSpecificationType subtaskSpecification) {
+    void applySubtaskTailoring(@NotNull ActivitySubtaskDefinitionType subtaskSpecification) {
         if (bean.getSubtask() == null) {
             bean.setSubtask(subtaskSpecification.clone());
         }

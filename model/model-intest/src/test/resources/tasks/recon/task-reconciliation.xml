@@ -30,7 +30,7 @@
             </reconciliation>
         </work>
         <reporting>
-            <executionReports>
+            <reports>
                 <buckets/>
                 <items/>
                 <connIdOperations>
@@ -44,7 +44,7 @@
                     </recordFilter>
                 </connIdOperations>
                 <internalOperations/>
-            </executionReports>
+            </reports>
         </reporting>
     </activity>
 </task>

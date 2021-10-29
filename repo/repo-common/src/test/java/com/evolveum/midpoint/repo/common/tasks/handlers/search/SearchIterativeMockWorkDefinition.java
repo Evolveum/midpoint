@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
-import static com.evolveum.midpoint.repo.common.tasks.handlers.composite.MockComponentActivityExecution.NS_EXT;
+import static com.evolveum.midpoint.repo.common.tasks.handlers.composite.MockComponentActivityRun.NS_EXT;
 
 public class SearchIterativeMockWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 

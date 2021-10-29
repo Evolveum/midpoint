@@ -265,9 +265,14 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         if (getProjectionsModel() == null) {
             return 0;
         }
+
+        if (!getProjectionsModel().isLoaded()) {
+            return WebComponentUtil.countLinkForDeadShadows(getObjectWrapper().getObject().asObjectable().getLinkRef());
+        }
+
         List<ShadowWrapper> projectionWrappers = getProjectionsModel().getObject();
         if (projectionWrappers == null) {
-                return 0;
+            return 0;
         }
 
         int dead = 0;
@@ -959,7 +964,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
     public ShadowWrapper loadShadowWrapper(PrismObject<ShadowType> projection, Task task, OperationResult result) throws SchemaException {
         PrismObjectWrapperFactory<ShadowType> factory = getPageBase().findObjectWrapperFactory(projection.getDefinition());
         WrapperContext context = new WrapperContext(task, result);
-        context.setCreateIfEmpty(false);
+        context.setCreateIfEmpty(true);
         context.setDetailsPageTypeConfiguration(findShadowDetailsPageConfiguration(projection.asObjectable()));
         ShadowWrapper wrapper = (ShadowWrapper) factory.createObjectWrapper(projection, ItemStatus.NOT_CHANGED, context);
         wrapper.setProjectionStatus(UserDtoStatus.MODIFY);

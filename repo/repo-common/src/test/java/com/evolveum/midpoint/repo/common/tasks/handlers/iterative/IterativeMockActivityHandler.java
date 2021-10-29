@@ -13,8 +13,8 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
 import com.evolveum.midpoint.repo.common.tasks.handlers.AbstractMockActivityHandler;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
@@ -43,10 +43,10 @@ public class IterativeMockActivityHandler
     }
 
     @Override
-    public @NotNull AbstractActivityExecution<IterativeMockWorkDefinition, IterativeMockActivityHandler, ?> createExecution(
-            @NotNull ExecutionInstantiationContext<IterativeMockWorkDefinition, IterativeMockActivityHandler> context,
+    public @NotNull AbstractActivityRun<IterativeMockWorkDefinition, IterativeMockActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<IterativeMockWorkDefinition, IterativeMockActivityHandler> context,
             @NotNull OperationResult result) {
-        return new IterativeMockActivityExecution(context);
+        return new IterativeMockActivityRun(context);
     }
 
     public @NotNull MockRecorder getRecorder() {

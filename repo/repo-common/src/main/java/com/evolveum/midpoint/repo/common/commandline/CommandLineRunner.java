@@ -35,7 +35,7 @@ public class CommandLineRunner {
 
     private final String code;
     private final OperationResult result;
-    private CommandLineExecutionMethod exectionMethod;
+    private CommandLineExecutionMethod executionMethod;
     private Map<String, String> env;
 
     private Boolean warningHasEmerged = false;
@@ -54,12 +54,12 @@ public class CommandLineRunner {
         this.env = env;
     }
 
-    public CommandLineExecutionMethod getExectionMethod() {
-        return exectionMethod;
+    public CommandLineExecutionMethod getExecutionMethod() {
+        return executionMethod;
     }
 
-    public void setExectionMethod(CommandLineExecutionMethod exectionMethod) {
-        this.exectionMethod = exectionMethod;
+    public void setExecutionMethod(CommandLineExecutionMethod executionMethod) {
+        this.executionMethod = executionMethod;
     }
 
     public void execute() throws IOException, InterruptedException {
@@ -94,16 +94,16 @@ public class CommandLineRunner {
 
 
     private List<String> produceCommand() {
-        if (exectionMethod == null) {
+        if (executionMethod == null) {
             return produceCommandExec();
         }
-        switch (exectionMethod) {
+        switch (executionMethod) {
             case EXEC:
                 return produceCommandExec();
             case SHELL:
                 return produceCommandShell();
             default:
-                throw new IllegalArgumentException("Unknown exec method "+exectionMethod);
+                throw new IllegalArgumentException("Unknown exec method "+ executionMethod);
         }
 
     }

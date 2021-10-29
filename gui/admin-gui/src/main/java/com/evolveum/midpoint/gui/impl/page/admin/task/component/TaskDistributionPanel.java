@@ -15,11 +15,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDistributionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDistributionType;
 
-@PanelType(name = "distribution", defaultContainerPath = "activity/distribution", defaultType = WorkDistributionType.class)
+@PanelType(name = "distribution", defaultContainerPath = "activity/distribution", defaultType = ActivityDistributionDefinitionType.class)
 @PanelInstance(identifier = "distribution", applicableForType = TaskType.class, childOf = TaskActivityPanel.class,
         display = @PanelDisplay(label = "ActivityDefinitionType.distribution", icon = GuiStyleConstants.CLASS_TASK_DISTRIBUTION_ICON, order = 30))
 public class TaskDistributionPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> {

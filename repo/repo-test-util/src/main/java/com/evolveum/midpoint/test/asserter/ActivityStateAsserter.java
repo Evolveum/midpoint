@@ -104,28 +104,29 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         return asserter;
     }
 
-    public ActivityCounterGroupAsserter<ActivityStateAsserter<RA>> simulationModePolicyRulesCounters() {
+    public ActivityCounterGroupAsserter<ActivityStateAsserter<RA>> previewModePolicyRulesCounters() {
         ActivityCounterGroupType counters = Objects.requireNonNull(
                 Objects.requireNonNull(
                         activityState.getCounters(), "no counters")
-                        .getSimulationModePolicyRules(),
-                "no simulation mode policy rules counters");
+                        .getPreviewModePolicyRules(),
+                "no preview mode policy rules counters");
 
         ActivityCounterGroupAsserter<ActivityStateAsserter<RA>> asserter =
-                        new ActivityCounterGroupAsserter<>(counters, this, "simulation rules counters in " + getDetails());
+                        new ActivityCounterGroupAsserter<>(counters, this, "preview rules counters in " + getDetails());
         copySetupTo(asserter);
         return asserter;
     }
 
-    public ActivityCounterGroupAsserter<ActivityStateAsserter<RA>> executionModePolicyRulesCounters() {
+    public ActivityCounterGroupAsserter<ActivityStateAsserter<RA>> fullExecutionModePolicyRulesCounters() {
         ActivityCounterGroupType counters = Objects.requireNonNull(
                 Objects.requireNonNull(
                         activityState.getCounters(), "no counters")
-                        .getExecutionModePolicyRules(),
-                "no execution mode policy rules counters");
+                        .getFullExecutionModePolicyRules(),
+                "no full execution mode policy rules counters");
 
         ActivityCounterGroupAsserter<ActivityStateAsserter<RA>> asserter =
-                        new ActivityCounterGroupAsserter<>(counters, this, "execution rules counters in " + getDetails());
+                        new ActivityCounterGroupAsserter<>(counters, this,
+                                "full execution rules counters in " + getDetails());
         copySetupTo(asserter);
         return asserter;
     }

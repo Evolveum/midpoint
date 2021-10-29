@@ -13,9 +13,9 @@ import java.util.Collections;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
-import com.evolveum.midpoint.repo.common.task.*;
+import com.evolveum.midpoint.repo.common.activity.run.*;
 
+import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +26,7 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
@@ -74,7 +74,7 @@ public class ChangeExecutionActivityHandler
 
     @Override
     protected @NotNull ExecutionSupplier<ObjectType, MyWorkDefinition, ChangeExecutionActivityHandler> getExecutionSupplier() {
-        return MyExecution::new;
+        return MyRun::new;
     }
 
     @Override
@@ -97,36 +97,33 @@ public class ChangeExecutionActivityHandler
         return "change-execution";
     }
 
-    static class MyExecution extends
-            SearchBasedActivityExecution<ObjectType, MyWorkDefinition, ChangeExecutionActivityHandler, AbstractActivityWorkStateType> {
+    static final class MyRun extends
+            SearchBasedActivityRun<ObjectType, MyWorkDefinition, ChangeExecutionActivityHandler, AbstractActivityWorkStateType> {
 
-        MyExecution(@NotNull ExecutionInstantiationContext<MyWorkDefinition, ChangeExecutionActivityHandler> context,
+        MyRun(@NotNull ActivityRunInstantiationContext<MyWorkDefinition, ChangeExecutionActivityHandler> context,
                 String shortName) {
             super(context, shortName);
+            setInstanceReady();
         }
 
         @Override
-        public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
-            return super.getDefaultReportingOptions()
-                    .enableActionsExecutedStatistics(true);
+        public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
+            return super.createReportingCharacteristics()
+                    .actionsExecutedStatisticsSupported(true);
         }
 
         @Override
         public boolean processItem(@NotNull ObjectType object,
                 @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult result)
-                throws CommonException, ActivityExecutionException {
+                throws CommonException, ActivityRunException {
             LOGGER.trace("Executing change on object {}", object);
 
-            IterativeActivityExecution<ObjectType, ?, ?, ?> activityExecution = request.getActivityExecution();
-            MyWorkDefinition workDefinition =
-                    (MyWorkDefinition) activityExecution.getActivity().getWorkDefinition();
-
-            PrismContext prismContext = getActivityHandler().prismContext;
-            ObjectDelta<ObjectType> delta = DeltaConvertor.createObjectDelta(workDefinition.getDelta(), prismContext);
+            MyWorkDefinition workDefinition = getActivity().getWorkDefinition();
+            ObjectDelta<ObjectType> delta = DeltaConvertor.createObjectDelta(workDefinition.getDelta(), PrismContext.get());
             delta.setOid(object.getOid());
             //noinspection unchecked
             delta.setObjectTypeClass((Class<ObjectType>) object.getClass());
-            prismContext.adopt(delta);
+            PrismContext.get().adopt(delta);
 
             getActivityHandler().modelController.executeChanges(
                     Collections.singletonList(delta),

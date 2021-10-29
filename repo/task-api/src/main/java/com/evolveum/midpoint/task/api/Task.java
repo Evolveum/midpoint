@@ -653,8 +653,8 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
      *
      * BEWARE: this method can take quite a long time to execute, if invoked in a cycle.
      */
-    @Deprecated
-    void setProgressImmediate(Long progress, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    @SuppressWarnings("unused") // may be used e.g. from scripts
+    void setLegacyProgressImmediate(Long progress, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     /**
      * Returns operation statistics from the task prism object (i.e. not the live ones).
@@ -706,8 +706,6 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     default List<? extends Task> listSubtasks(OperationResult parentResult) throws SchemaException {
         return listSubtasks(false, parentResult);
     }
-
-    void findAndSetSubtasks(OperationResult result) throws SchemaException;
 
     @NotNull
     List<? extends Task> listSubtasks(boolean persistentOnly, OperationResult parentResult) throws SchemaException;
@@ -834,11 +832,7 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     ActivityStateType getActivityStateOrClone(ItemPath path);
     //endregion
 
-    //region Work management
-    /** Gets work management information. NOT THREAD SAFE! */
-    @Deprecated
-    WorkDistributionType getWorkManagement();
-
+    //region Activities
     /**
      * Retrieves the definition of task parts.
      */
@@ -861,10 +855,6 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     default ActivityStateOverviewType getActivityTreeStateOverviewOrClone() {
         return getPropertyRealValueOrClone(ACTIVITY_TREE_STATE_OVERVIEW_PATH, ActivityStateOverviewType.class);
     }
-
-    /** Gets task kind (related to work management) */
-    @Deprecated
-    TaskKindType getKind();
     //endregion
 
     //region Task tree related methods
@@ -961,7 +951,7 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     void setExecutionEnvironment(TaskExecutionEnvironmentType value);
 
     /** Gets error handling strategy. NOT THREAD SAFE! Use only for reading. */
-    TaskErrorHandlingStrategyType getErrorHandlingStrategy();
+    ActivityErrorHandlingStrategyType getErrorHandlingStrategy();
 
     /** Returns true if the task has any assignments. */
     boolean hasAssignments();

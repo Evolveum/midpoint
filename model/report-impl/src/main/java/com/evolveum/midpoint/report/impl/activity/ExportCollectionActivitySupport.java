@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.report.impl.activity;
 
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -20,9 +20,9 @@ import com.evolveum.midpoint.util.exception.CommonException;
  */
 class ExportCollectionActivitySupport extends ExportActivitySupport {
 
-    ExportCollectionActivitySupport(AbstractActivityExecution<?, ?, ?> activityExecution, ReportServiceImpl reportService,
+    ExportCollectionActivitySupport(AbstractActivityRun<?, ?, ?> activityRun, ReportServiceImpl reportService,
             ObjectResolver resolver, AbstractReportWorkDefinition workDefinition) {
-        super(activityExecution, reportService, resolver, workDefinition);
+        super(activityRun, reportService, resolver, workDefinition);
     }
 
     @Override

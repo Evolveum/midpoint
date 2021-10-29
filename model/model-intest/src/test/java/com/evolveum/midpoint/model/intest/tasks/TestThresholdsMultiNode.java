@@ -73,7 +73,7 @@ public class TestThresholdsMultiNode extends TestThresholds {
         assertTaskTree(importTask.oid, "after")
                 .rootActivityState()
                     .display()
-                    .simulationModePolicyRulesCounters()
+                    .previewModePolicyRulesCounters()
                         .display() // it's important the counters are here, not in the workers
                     .end()
                     .progress().display().end()

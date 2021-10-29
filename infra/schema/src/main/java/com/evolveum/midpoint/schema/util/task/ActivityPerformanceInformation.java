@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.util.TreeNode;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityExecutionRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRunRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityItemProcessingStatisticsType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityProgressType;
@@ -277,8 +277,8 @@ public class ActivityPerformanceInformation implements DebugDumpable, Serializab
         }
 
         public static WallClockInfo determine(Collection<ActivityItemProcessingStatisticsType> statistics) {
-            List<ActivityExecutionRecordType> allExecutions = statistics.stream()
-                    .flatMap(s -> s.getExecution().stream())
+            List<ActivityRunRecordType> allExecutions = statistics.stream()
+                    .flatMap(s -> s.getRun().stream())
                     .collect(Collectors.toList());
             WallClockTimeComputer wallClockTimeComputer = new WallClockTimeComputer(allExecutions);
             return new WallClockInfo(wallClockTimeComputer.getSummaryTime(), wallClockTimeComputer.getEarliestStartTime());

@@ -154,6 +154,11 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 
         }
 
+        if (ObjectType.F_LENS_CONTEXT.equivalent(def.getItemName())) {
+            LOGGER.trace("Skipping creating wrapper for lensContext.");
+            return true;
+        }
+
         if (ItemStatus.ADDED == status && TaskType.F_SUBTASK_REF.equivalent(def.getItemName())) {
             LOGGER.trace("Skipping creating wrapper for new subtaskRef, this is not supported. Only wrapper for existing subtaskRef should be created");
             return true;

@@ -697,15 +697,6 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     }
 
     @Override
-    public void registerAdditionalHandlerUri(@NotNull String uri, @NotNull TaskHandler handler) {
-        handlerRegistry.registerAdditionalHandlerUri(uri, handler);
-    }
-
-    @Override
-    public void registerDeprecatedHandlerUri(@NotNull String uri, @NotNull TaskHandler handler) {
-        handlerRegistry.registerDeprecatedHandlerUri(uri, handler);
-    }
-
     public TaskHandler getHandler(String uri) {
         return handlerRegistry.getHandler(uri);
     }
@@ -741,6 +732,16 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @Override
     public void registerTaskDeletionListener(TaskDeletionListener listener) {
         listenerRegistry.registerTaskDeletionListener(listener);
+    }
+
+    @Override
+    public void registerTaskUpdatedListener(TaskUpdatedListener taskListener) {
+        listenerRegistry.registerTaskUpdatedListener(taskListener);
+    }
+
+    @Override
+    public void unregisterTaskUpdatedListener(TaskUpdatedListener taskListener) {
+        listenerRegistry.unregisterTaskUpdatedListener(taskListener);
     }
     //endregion
 
@@ -1179,6 +1180,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
                         nodeRegistrar.getCachedLocalNodeObject()));
     }
 
+    @Override
     public CacheConfigurationManager getCacheConfigurationManager() {
         return cacheConfigurationManager;
     }
