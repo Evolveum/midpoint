@@ -801,6 +801,14 @@ Midpoint can generate metadata of SP. You can get it via link http://<midpointHo
 
 Generation of metadata works only if your sequence use only saml2 authentication module or saml2 authentication module is first in chain of your sequence. When you want use chain and saml2 module won't be first authentication module. We recommend create sequence only with saml module, generatate metadata and in next step add other moduls.
 
+[TIP]
+.MidPoint 4.4 and later
+====
+Link for metedata was changed to
+http://<midpointHost>/midpoint/auth/<authenticationSequenceUrlSuffix>/<saml2ModuleName>/metadata/<registrationId>.
+RegistrationId is 'aliasForPath', when is provided, or 'alias', when is provided, or 'entityId' of SP.
+====
+
 === Sequence Configuration
 
 Sequence contains following attributes:
