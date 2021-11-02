@@ -7,15 +7,13 @@
 
 package com.evolveum.midpoint.gui.api;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.reflections.Reflections;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -330,7 +328,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         return panelTypeClasses;
     }
 
-    private Set<Class<?>> collectClasses(Class annotationClass) {
+    private Set<Class<?>> collectClasses(Class<? extends Annotation> annotationClass) {
         return ClassPathUtil.scanClasses(annotationClass);
     }
 
