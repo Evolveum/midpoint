@@ -49,6 +49,10 @@ public class SmartAssignmentElement implements DebugDumpable {
         return assignmentCVal;
     }
 
+    public Long getAssignmentId() {
+        return assignmentCVal.getId();
+    }
+
     public SmartAssignmentKey getKey() {
         return new SmartAssignmentKey(assignmentCVal);
     }

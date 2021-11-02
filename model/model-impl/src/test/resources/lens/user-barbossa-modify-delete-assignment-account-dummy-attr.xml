@@ -17,19 +17,19 @@
         <t:modificationType>delete</t:modificationType>
         <t:path>assignment</t:path>
         <t:value>
-                <construction>
-                    <description>Undead monkey account construction</description>
-                    <resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
-                    <!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
-                    <attribute>
-                        <ref>ri:weapon</ref>
-                        <outbound>
-                            <expression>
-                                <value>Undead Monkey</value>
-                            </expression>
-                        </outbound>
-                    </attribute>
-                </construction>
+            <construction>
+                <description>Undead monkey account construction</description>
+                <resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
+                <!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
+                <attribute>
+                    <ref>ri:weapon</ref>
+                    <outbound>
+                        <expression>
+                            <value>Undead Monkey</value>
+                        </expression>
+                    </outbound>
+                </attribute>
+            </construction>
         </t:value>
     </apit:itemDelta>
 </apit:objectModification>

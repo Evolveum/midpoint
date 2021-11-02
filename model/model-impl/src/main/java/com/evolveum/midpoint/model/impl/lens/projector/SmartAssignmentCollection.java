@@ -77,10 +77,12 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType> implement
         // TODO what if assignment is both virtual and in delta? It will have virtual flag set to true... MID-6404
         collectVirtualAssignments(virtualAssignments);
 
-        collectDeltaValuesAndFreeze(assignmentContainerCurrent, currentAssignmentDelta, prismContext);
+        collectDeltaValues(assignmentContainerCurrent, currentAssignmentDelta, prismContext);
+
+        freezeOrigins();
     }
 
-    private void collectDeltaValuesAndFreeze(PrismContainer<AssignmentType> assignmentContainerCurrent, ContainerDelta<AssignmentType> currentAssignmentDelta, PrismContext prismContext) throws SchemaException {
+    private void collectDeltaValues(PrismContainer<AssignmentType> assignmentContainerCurrent, ContainerDelta<AssignmentType> currentAssignmentDelta, PrismContext prismContext) throws SchemaException {
         if (currentAssignmentDelta != null) {
             if (currentAssignmentDelta.isReplace()) {
                 allValues().forEach(v -> v.getOrigin().setNew(false));
@@ -92,7 +94,6 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType> implement
                 // the whole new assignment set (that can have hundreds of assignments)
                 collectAssignmentsFromAddDeleteDelta(currentAssignmentDelta);
             }
-            freezeOrigins();
         }
     }
 
@@ -244,7 +245,7 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType> implement
         return "SmartAssignmentCollection(" + allValues() + ")";
     }
 
-    public void freezeOrigins() {
+    private void freezeOrigins() {
         allValues().forEach(v -> v.getOrigin().freeze());
     }
 

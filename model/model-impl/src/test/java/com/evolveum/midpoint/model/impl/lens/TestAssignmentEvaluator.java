@@ -20,9 +20,9 @@ import com.evolveum.midpoint.task.api.Task;
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestAssignmentEvaluator extends TestAbstractAssignmentEvaluator {
+public class TestAssignmentEvaluator extends AbstractAssignmentEvaluatorTest {
 
-    protected static final File[] ROLE_CORP_FILES = {
+    private static final File[] ROLE_CORP_FILES = {
             ROLE_METAROLE_SOD_NOTIFICATION_FILE,
             ROLE_CORP_AUTH_FILE,
             ROLE_CORP_GENERIC_METAROLE_FILE,

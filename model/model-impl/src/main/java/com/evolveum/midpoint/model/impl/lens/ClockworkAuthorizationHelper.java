@@ -174,8 +174,9 @@ public class ClockworkAuthorizationHelper {
                     }
                 } else {
                     // modify
-                    Collection<? extends ItemDelta<?, ?>> credentialChanges = primaryDeltaClone.findItemDeltasSubPath(UserType.F_CREDENTIALS);
-                    for (ItemDelta credentialChange: credentialChanges) {
+                    Collection<? extends ItemDelta<?, ?>> credentialChanges =
+                            primaryDeltaClone.findItemDeltasSubPath(UserType.F_CREDENTIALS);
+                    for (ItemDelta<?, ?> credentialChange : credentialChanges) {
                         AuthorizationDecisionType cdecision = evaluateCredentialDecision(context, securityConstraints, credentialChange);
                         LOGGER.trace("AUTZ: credential delta {} decision: {}", credentialChange.getPath(), cdecision);
                         if (cdecision == AuthorizationDecisionType.ALLOW) {
@@ -193,7 +194,7 @@ public class ClockworkAuthorizationHelper {
                 }
             }
 
-            if (primaryDeltaClone != null && !primaryDeltaClone.isEmpty()) {
+            if (!primaryDeltaClone.isEmpty()) {
                 // TODO: optimize, avoid evaluating the constraints twice
                 securityEnforcer.authorize(deltaOperationUrl, getRequestAuthorizationPhase(context) , AuthorizationParameters.Builder.buildObjectDelta(object, primaryDeltaClone), ownerResolver, task, result);
             }

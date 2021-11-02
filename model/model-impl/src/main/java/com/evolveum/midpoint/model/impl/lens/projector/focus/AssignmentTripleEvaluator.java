@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -176,248 +175,304 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         return focusTypeNew.getLifecycleState();
     }
 
-    private void processAssignment(SmartAssignmentElement assignmentElement) throws SchemaException, ExpressionEvaluationException,
-            PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
+    private void processAssignment(SmartAssignmentElement assignmentElement)
+            throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
 
-        PrismContainerValue<AssignmentType> assignmentCVal = assignmentElement.getAssignmentCVal();
-        PrismContainerValue<AssignmentType> assignmentCValOld = assignmentCVal;
-        PrismContainerValue<AssignmentType> assignmentCValNew = assignmentCVal; // refined later
+        // Whether the assignment was changed (either as a whole, or only in its content).
+        boolean assignmentChanged;
 
-        // This really means whether the WHOLE assignment was changed (e.g. added/deleted/replaced). It tells nothing
-        // about "micro-changes" inside assignment, these will be processed later.
-        boolean isAssignmentChanged = assignmentElement.isCurrent() != assignmentElement.isNew();
-        // TODO what about assignments that are present in old or current objects, and also changed?
-        // TODO They seem to have "old"/"current" flag, not "changed" one. Is that OK?
-        boolean forceRecon = false;
+        // Should we set forceRecon flag on the resulting evaluated assignment structure?
+        boolean forceRecon;
+
+        // Deltas that modify the content of the assignment.
+        Collection<? extends ItemDelta<?,?>> innerAssignmentDeltas;
+
+        // Human-readable description of the assignment "placement" (not quite concise name).
         String assignmentPlacementDesc;
 
-        Collection<? extends ItemDelta<?,?>> subItemDeltas = null;
-
-        if (isAssignmentChanged) {
+        if (assignmentElement.isCurrent() != assignmentElement.isNew()) {
             // Whole assignment added or deleted
+            assignmentChanged = true;
+            forceRecon = false;
+            innerAssignmentDeltas = List.of();
             assignmentPlacementDesc = "delta for "+source;
         } else {
-            assignmentPlacementDesc = source.toString();
-            Collection<? extends ItemDelta<?,?>> assignmentItemDeltas = getAssignmentItemDeltas(focusContext, assignmentCVal.getId());
-            if (assignmentItemDeltas != null && !assignmentItemDeltas.isEmpty()) {
-                // Small changes inside assignment, but otherwise the assignment stays as it is (not added or deleted)
-                subItemDeltas = assignmentItemDeltas;
-
-                // The subItemDeltas above will handle some changes. But not other.
+            innerAssignmentDeltas = getInnerAssignmentDeltas(focusContext, assignmentElement);
+            if (!innerAssignmentDeltas.isEmpty()) {
+                // There are small changes inside assignment, but otherwise the assignment stays as it is (not added or deleted).
+                // The further processing of innerAssignmentDeltas will handle some changes. But not all of them.
                 // E.g. a replace of the whole construction will not be handled properly.
                 // Therefore we force recon to sort it out.
+                assignmentChanged = true;
                 forceRecon = true;
-
-                isAssignmentChanged = true;
-                PrismContainer<AssignmentType> assContNew = focusContext.getObjectNew().findContainer(AssignmentHolderType.F_ASSIGNMENT);
-                assignmentCValNew = assContNew.getValue(assignmentCVal.getId());
+            } else {
+                assignmentChanged = false;
+                forceRecon = false;
             }
+            assignmentPlacementDesc = source.toString();
         }
 
-        // The following code is using collectToAccountMap() to collect the account constructions to one of the three "delta"
-        // sets (zero, plus, minus). It is handling several situations that needs to be handled specially.
-        // It is also collecting assignments to evaluatedAssignmentTriple.
-
         if (focusContext.isDelete()) {
-
-            // USER DELETE
-            // If focus (user) is being deleted that all the assignments are to be gone. Including those that
-            // were not changed explicitly.
-            LOGGER.trace("Processing focus delete for: {}", SchemaDebugUtil.prettyPrintLazily(assignmentCVal));
-            EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(
-                    createAssignmentIdiDelete(assignmentCVal), PlusMinusZero.MINUS, true,
-                    assignmentPlacementDesc, assignmentElement);
-            if (evaluatedAssignment == null) {
-                return;
-            }
-            evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
-            collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
-
+            // Special case 1: focus is being deleted
+            processAssignmentOnFocusDelete(assignmentElement, forceRecon, assignmentPlacementDesc);
+        } else if (currentAssignmentDelta.isReplace()) {
+            // Special case 2: assignments are being replaced
+            processAssignmentReplace(assignmentElement, forceRecon, assignmentPlacementDesc);
+        } else if (assignmentChanged) {
+            // Standard case 1: the assignment is added, deleted, or modified
+            processAddedOrDeletedOrChangedAssignment(assignmentElement, forceRecon, assignmentPlacementDesc,
+                    innerAssignmentDeltas);
         } else {
-            if (currentAssignmentDelta.isReplace()) {
+            // Standard case 2: the assignment is unchanged
+            processReallyUnchangedAssignment(assignmentElement, assignmentPlacementDesc);
+        }
+    }
 
-                LOGGER.trace("Processing replace of all assignments for: {}", SchemaDebugUtil.prettyPrintLazily(assignmentCVal));
-                // ASSIGNMENT REPLACE
-                // Handling assignment replace delta. This needs to be handled specially as all the "old"
-                // assignments should be considered deleted - except those that are part of the new value set
-                // (remain after replace). As account delete and add are costly operations (and potentially dangerous)
-                // we optimize here are consider the assignments that were there before replace and still are there
-                // after it as unchanged.
-                //
-                boolean hadValue = assignmentElement.isCurrent();
-                boolean willHaveValue = assignmentElement.isNew();
-                if (hadValue && willHaveValue) {
-                    // No change
-                    EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(createAssignmentIdiNoChange(assignmentCVal), PlusMinusZero.ZERO, false, assignmentPlacementDesc, assignmentElement);
-                    if (evaluatedAssignment == null) {
-                        return;
-                    }
-                    evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
-                    collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
-                } else if (willHaveValue) {
-                    // add
-                    EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(createAssignmentIdiAdd(assignmentCVal), PlusMinusZero.PLUS, false, assignmentPlacementDesc, assignmentElement);
-                    if (evaluatedAssignment == null) {
-                        return;
-                    }
-                    evaluatedAssignment.setWasValid(false);
-                    collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
-                } else if (hadValue) {
-                    // delete
-                    EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(createAssignmentIdiDelete(assignmentCVal), PlusMinusZero.MINUS, true, assignmentPlacementDesc, assignmentElement);
-                    if (evaluatedAssignment == null) {
-                        return;
-                    }
-                    evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
-                    collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
-                } else if (assignmentElement.isOld()) {
-                    // This is OK, safe to skip. This is just an relic of earlier processing.
-                    return;
-                } else {
-                    LOGGER.error("Whoops. Unexpected things happen. Assignment is neither current, old nor new (replace delta)\n{}", assignmentElement.debugDump(1));
-                    throw new SystemException("Whoops. Unexpected things happen. Assignment is neither current, old nor new (replace delta).");
-                }
+    /**
+     * Processes an assignment in when the whole focus is deleted. In such situation all the assignments are to be gone.
+     * Including those that were not changed explicitly.
+     */
+    private void processAssignmentOnFocusDelete(SmartAssignmentElement assignmentElement, boolean forceRecon,
+            String assignmentPlacementDesc)
+            throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
+        LOGGER.trace("Processing focus delete for: {}", SchemaDebugUtil.prettyPrintLazily(assignmentElement.getAssignmentCVal()));
+        evaluateAsDeleted(assignmentElement, forceRecon, assignmentPlacementDesc);
+    }
 
+    /**
+     * Processes an assignment when the whole assignment container is being replaced.
+     *
+     * This needs to be handled specially as all the "old" assignments should be considered deleted - except those
+     * that are part of the new value set (remain after replace). As account delete and add are costly operations
+     * (and potentially dangerous) we optimize here are consider the assignments that were there before replace
+     * and still are there after it as unchanged.
+     */
+    private void processAssignmentReplace(SmartAssignmentElement assignmentElement, boolean forceRecon,
+            String assignmentPlacementDesc)
+            throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
+        LOGGER.trace("Processing replace of all assignments for: {}",
+                SchemaDebugUtil.prettyPrintLazily(assignmentElement.getAssignmentCVal()));
+        boolean existed = assignmentElement.isCurrent();
+        boolean willExist = assignmentElement.isNew();
+        if (existed && willExist) {
+            evaluateAsUnchanged(assignmentElement, forceRecon, assignmentPlacementDesc);
+        } else if (willExist) {
+            evaluateAsAdded(assignmentElement, forceRecon, assignmentPlacementDesc);
+        } else if (existed) {
+            evaluateAsDeleted(assignmentElement, forceRecon, assignmentPlacementDesc);
+        } else if (assignmentElement.isOld()) {
+            // This is OK, safe to skip. This is just an relic of earlier processing.
+        } else {
+            String msg = "Whoops. Unexpected things happen. Assignment is neither current, "
+                    + "old nor new - while processing replace delta.";
+            LOGGER.error("{}\n{}", msg, assignmentElement.debugDump(1));
+            throw new SystemException(msg);
+        }
+    }
+
+    /**
+     * Add/delete of entire assignment or some changes inside existing assignments.
+     */
+    private void processAddedOrDeletedOrChangedAssignment(SmartAssignmentElement assignmentElement, boolean forceRecon,
+            String assignmentPlacementDesc, Collection<? extends ItemDelta<?, ?>> innerAssignmentDeltas)
+            throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
+        boolean added = assignmentElement.getOrigin().isInDeltaAdd();
+        boolean deleted = assignmentElement.getOrigin().isInDeltaDelete();
+        if (added && !deleted) {
+            if (assignmentElement.isCurrent()) {
+                LOGGER.trace("Processing phantom assignment add (adding assignment that is already there): {}",
+                        SchemaDebugUtil.prettyPrintLazily(assignmentElement.getAssignmentCVal()));
+                evaluateAsUnchanged(assignmentElement, forceRecon, assignmentPlacementDesc);
             } else {
+                LOGGER.trace("Processing assignment add: {}",
+                        SchemaDebugUtil.prettyPrintLazily(assignmentElement.getAssignmentCVal()));
+                evaluateAsAdded(assignmentElement, forceRecon, assignmentPlacementDesc);
+            }
+        } else if (deleted && !added) {
+            LOGGER.trace("Processing assignment deletion: {}",
+                    SchemaDebugUtil.prettyPrintLazily(assignmentElement.getAssignmentCVal()));
+            evaluateAsDeleted(assignmentElement, forceRecon, assignmentPlacementDesc);
+            // TODO what about phantom deletes?
+        } else {
+            processInternallyChangedAssignment(assignmentElement, assignmentPlacementDesc, innerAssignmentDeltas,
+                    added, deleted);
+        }
+    }
 
-                // ADD/DELETE of entire assignment or small changes inside existing assignments
-                // This is the usual situation.
-                // Just sort assignments to sets: unchanged (zero), added (plus), removed (minus)
-                if (isAssignmentChanged) {
-                    // There was some change
+    /**
+     * Process an assignment with an inside change.
+     *
+     * The only thing that we need to worry about is assignment validity change. That is a cause
+     * of provisioning/de-provisioning of the projections. So check that explicitly. Other changes are
+     * not significant, i.e. reconciliation can handle them.
+     *
+     * TODO We expect that added == deleted == false. But can they both be true?
+     */
+    private void processInternallyChangedAssignment(SmartAssignmentElement assignmentElement, String assignmentPlacementDesc,
+            Collection<? extends ItemDelta<?, ?>> innerAssignmentDeltas, boolean added, boolean deleted)
+            throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
 
-                    boolean isAdd = assignmentElement.getOrigin().isInDeltaAdd();
-                    boolean isDelete = assignmentElement.getOrigin().isInDeltaDelete();
-                    if (isAdd & !isDelete) {
-                        // Entirely new assignment is added
-                        if (assignmentElement.isCurrent() && assignmentElement.isOld()) {
-                            // Phantom add: adding assignment that is already there
-                            LOGGER.trace("Processing changed assignment, phantom add: {}", SchemaDebugUtil.prettyPrintLazily(assignmentCVal));
-                            EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(createAssignmentIdiNoChange(assignmentCVal), PlusMinusZero.ZERO, false, assignmentPlacementDesc, assignmentElement);
-                            if (evaluatedAssignment == null) {
-                                return;
-                            }
-                            evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
-                            collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
-                        } else {
-                            LOGGER.trace("Processing changed assignment, add: {}", SchemaDebugUtil.prettyPrintLazily(assignmentCVal));
-                            EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(createAssignmentIdiAdd(assignmentCVal), PlusMinusZero.PLUS, false, assignmentPlacementDesc, assignmentElement);
-                            if (evaluatedAssignment == null) {
-                                return;
-                            }
-                            evaluatedAssignment.setWasValid(false);
-                            collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
-                        }
+        PrismContainerValue<AssignmentType> assignmentValueBefore = assignmentElement.getAssignmentCVal();
+        PrismContainerValue<AssignmentType> assignmentValueAfter = innerAssignmentDeltas.isEmpty() ?
+                assignmentValueBefore : getAssignmentNewValue(assignmentElement);
 
-                    } else if (isDelete && !isAdd) {
-                        // Existing assignment is removed
-                        LOGGER.trace("Processing changed assignment, delete: {}", SchemaDebugUtil.prettyPrintLazily(assignmentCVal));
-                        EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(createAssignmentIdiDelete(assignmentCVal), PlusMinusZero.MINUS, true, assignmentPlacementDesc, assignmentElement);
-                        if (evaluatedAssignment == null) {
-                            return;
-                        }
-                        evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
-                        collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
+        PrismObject<AH> focusBefore = assignmentElement.isOld() && !assignmentElement.isCurrent() ?
+                focusContext.getObjectOld() : focusContext.getObjectCurrent();
+        boolean wasActive = focusBefore != null &&
+                LensUtil.isAssignmentValid(focusBefore.asObjectable(),
+                        assignmentValueBefore.asContainerable(), now, beans.activationComputer, focusStateModel);
+        boolean isActive = focusContext.getObjectNew() != null &&
+                LensUtil.isAssignmentValid(focusContext.getObjectNew().asObjectable(),
+                        assignmentValueAfter.asContainerable(), now, beans.activationComputer, focusStateModel);
 
-                    } else {
-                        // Small change inside an assignment
-                        // The only thing that we need to worry about is assignment validity change. That is a cause
-                        // of provisioning/deprovisioning of the projections. So check that explicitly. Other changes are
-                        // not significant, i.e. reconciliation can handle them.
-                        boolean wasActive = focusContext.getObjectOld() != null &&
-                                LensUtil.isAssignmentValid(focusContext.getObjectOld().asObjectable(),
-                                        assignmentCValOld.asContainerable(), now, beans.activationComputer, focusStateModel);
-                        boolean isActive = focusContext.getObjectNew() != null &&
-                                LensUtil.isAssignmentValid(focusContext.getObjectNew().asObjectable(),
-                                        assignmentCValNew.asContainerable(), now, beans.activationComputer, focusStateModel);
-                        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi =
-                                createAssignmentIdiInternalChange(assignmentCVal, subItemDeltas);
-                        if (isActive == wasActive) {
-                            // No change in activation -> right to the zero set
-                            // The change is not significant for assignment applicability. Recon will sort out the details.
-                            LOGGER.trace("Processing changed assignment, minor change (add={}, delete={}, valid={}): {}",
-                                    isAdd, isDelete, isActive, SchemaDebugUtil.prettyPrintLazily(assignmentCVal));
-                            EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.ZERO, false, assignmentPlacementDesc, assignmentElement);
-                            if (evaluatedAssignment == null) {
-                                return;
-                            }
-                            // TODO what about the condition state change?! MID-6404
-                            evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
-                            collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, true);
-                        } else if (isActive) {
-                            // Assignment became active. We need to place it in plus set to initiate provisioning
-                            // TODO change this! We should keep it in the zero set, and determine plus/minus according to validity change. MID-6403
-                            LOGGER.trace("Processing changed assignment, assignment becomes valid (add={}, delete={}): {}",
-                                    isAdd, isDelete, SchemaDebugUtil.prettyPrintLazily(assignmentCVal));
-                            EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.PLUS, false, assignmentPlacementDesc, assignmentElement);
-                            if (evaluatedAssignment == null) {
-                                return;
-                            }
-                            evaluatedAssignment.setWasValid(false);
-                            collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, true);
-                        } else {
-                            // Assignment became invalid. We need to place is in minus set to initiate deprovisioning
-                            // TODO change this! We should keep it in the zero set, and determine plus/minus according to validity change. MID-6403
-                            LOGGER.trace("Processing changed assignment, assignment becomes invalid (add={}, delete={}): {}",
-                                    isAdd, isDelete, SchemaDebugUtil.prettyPrintLazily(assignmentCVal));
-                            EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.MINUS, false, assignmentPlacementDesc, assignmentElement);
-                            if (evaluatedAssignment == null) {
-                                return;
-                            }
-                            evaluatedAssignment.setWasValid(true);
-                            collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, true);
-                        }
-                    }
+        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi =
+                createAssignmentIdiInternalChange(assignmentValueBefore, innerAssignmentDeltas);
 
-                } else {
-                    // No change in assignment
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Processing unchanged assignment ({}) {}",
-                                assignmentElement.isCurrent() ? "present" : "not present",
-                                SchemaDebugUtil.prettyPrint(assignmentCVal));
-                    }
-                    EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(createAssignmentIdiNoChange(assignmentCVal), PlusMinusZero.ZERO, false, assignmentPlacementDesc, assignmentElement);
-                    if (evaluatedAssignment == null) {
-                        return;
-                    }
-                    // NOTE: unchanged may mean both:
-                    //   * was there before, is there now
-                    //   * was not there before, is not there now
-                    evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
-                    if (assignmentElement.isCurrent()) {
-                        collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
-                    } else {
-                        collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
-                    }
-                }
+        if (isActive == wasActive) {
+            // No change in activation -> right to the zero set
+            // The change is not significant for assignment applicability. Recon will sort out the details.
+            LOGGER.trace("Processing changed assignment, minor change (add={}, delete={}, valid={}): {}",
+                    added, deleted, isActive, SchemaDebugUtil.prettyPrintLazily(assignmentValueBefore));
+            EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.ZERO,
+                    false, assignmentPlacementDesc, assignmentElement);
+            if (evaluatedAssignment != null) { // TODO what about the condition state change?! MID-6404
+                evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
+                collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, true);
+            }
+        } else if (isActive) {
+            // Assignment became active. We need to place it in plus set to initiate provisioning
+            // TODO change this! We should keep it in the zero set, and determine plus/minus according to validity change. MID-6403
+            LOGGER.trace("Processing changed assignment, assignment becomes valid (add={}, delete={}): {}",
+                    added, deleted, SchemaDebugUtil.prettyPrintLazily(assignmentValueBefore));
+            EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.PLUS,
+                    false, assignmentPlacementDesc, assignmentElement);
+            if (evaluatedAssignment != null) {
+                evaluatedAssignment.setWasValid(false);
+                collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, true);
+            }
+        } else {
+            // Assignment became invalid. We need to place is in minus set to initiate de-provisioning
+            // TODO change this! We should keep it in the zero set, and determine plus/minus according to validity change. MID-6403
+            LOGGER.trace("Processing changed assignment, assignment becomes invalid (add={}, delete={}): {}",
+                    added, deleted, SchemaDebugUtil.prettyPrintLazily(assignmentValueBefore));
+            EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.MINUS,
+                    false, assignmentPlacementDesc, assignmentElement);
+            if (evaluatedAssignment != null) {
+                evaluatedAssignment.setWasValid(true);
+                collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, true);
             }
         }
     }
 
-    private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiNoChange(PrismContainerValue<AssignmentType> cval) throws SchemaException {
-        PrismContainerDefinition<AssignmentType> definition = cval.getDefinition();
+    /** Evaluate the whole assignment as being added. */
+    private void evaluateAsAdded(SmartAssignmentElement assignmentElement, boolean forceRecon, String assignmentPlacementDesc)
+            throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
+        EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(
+                createAssignmentIdiAdd(assignmentElement), PlusMinusZero.PLUS, false,
+                assignmentPlacementDesc, assignmentElement);
+        if (evaluatedAssignment != null) {
+            evaluatedAssignment.setWasValid(false);
+            collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
+        }
+    }
+
+    /** Evaluate the whole assignment as being deleted. */
+    private void evaluateAsDeleted(SmartAssignmentElement assignmentElement, boolean forceRecon, String assignmentPlacementDesc)
+            throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
+        EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(
+                createAssignmentIdiDelete(assignmentElement), PlusMinusZero.MINUS, true,
+                assignmentPlacementDesc, assignmentElement);
+        if (evaluatedAssignment != null) {
+            evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
+            collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
+        }
+    }
+
+    /**
+     * Evaluate the whole assignment as being unchanged:
+     *
+     * 1. either present in replace delta (but also present in the current object),
+     * 2. or being added but also present in the current object - i.e. phantom add.
+     *
+     * TODO:
+     *  The assignment ID matches. But the content may or may not match.
+     *  So, shouldn't we check whether to force recon?
+     *  Also, shouldn't we evaluate validity to place it in plus/minus set, if needed?
+     */
+    private void evaluateAsUnchanged(SmartAssignmentElement assignmentElement, boolean forceRecon, String assignmentPlacementDesc)
+            throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
+        EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(
+                createAssignmentIdiNoChange(assignmentElement), PlusMinusZero.ZERO, false,
+                assignmentPlacementDesc, assignmentElement);
+        if (evaluatedAssignment != null) {
+            evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
+            collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
+        }
+    }
+
+    /**
+     * Process an assignment that was really not touched by the delta.
+     */
+    private void processReallyUnchangedAssignment(SmartAssignmentElement assignmentElement, String assignmentPlacementDesc)
+            throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
+        PrismContainerValue<AssignmentType> assignmentCValBefore = assignmentElement.getAssignmentCVal();
+        LOGGER.trace("Processing unchanged assignment ({}) {}", assignmentElement.isCurrent() ? "present" : "not present",
+                SchemaDebugUtil.prettyPrintLazily(assignmentCValBefore));
+        EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(
+                createAssignmentIdiNoChange(assignmentElement), PlusMinusZero.ZERO, false,
+                assignmentPlacementDesc, assignmentElement);
+        if (evaluatedAssignment != null) {
+            // NOTE: unchanged may mean both:
+            //   * was there before, is there now
+            //   * was not there before, is not there now
+            evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
+            if (assignmentElement.isCurrent()) {
+                collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, false);
+            } else {
+                collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, false);
+            }
+        }
+    }
+
+    private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiNoChange(
+            SmartAssignmentElement element) throws SchemaException {
+        PrismContainerValue<AssignmentType> value = element.getAssignmentCVal();
+        PrismContainerDefinition<AssignmentType> definition = value.getDefinition();
         if (definition == null) {
             // TODO: optimize
-            definition = beans.prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class).findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
+            definition = beans.prismContext.getSchemaRegistry()
+                    .findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class)
+                    .findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
         }
-        return new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(cval.asContainerable()), definition);
+        return new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(value.asContainerable()), definition);
     }
 
     private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiAdd(
-            PrismContainerValue<AssignmentType> cval) throws SchemaException {
+            SmartAssignmentElement element) throws SchemaException {
+        PrismContainerValue<AssignmentType> value = element.getAssignmentCVal();
         @SuppressWarnings({"unchecked", "raw"})
-        ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> itemDelta = (ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>)
-                getDeltaItemFragment(cval)
-                        .add(cval.asContainerable().clone())
-                        .asItemDelta();
-        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>(
-                null, itemDelta, null, cval.getDefinition());
+        ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> itemDelta =
+                (ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>)
+                        getDeltaItemFragment(value)
+                                .add(value.asContainerable().clone())
+                                .asItemDelta();
+        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi =
+                new ItemDeltaItem<>(null, itemDelta, null, value.getDefinition());
         idi.recompute();
         return idi;
     }
 
-    private S_ValuesEntry getDeltaItemFragment(PrismContainerValue<AssignmentType> cval) throws SchemaException {
-        PrismContainerDefinition<AssignmentType> definition = cval.getParent() != null ? cval.getParent().getDefinition() : null;
+    private S_ValuesEntry getDeltaItemFragment(PrismContainerValue<AssignmentType> value) throws SchemaException {
+        PrismContainerDefinition<AssignmentType> definition = value.getParent() != null ? value.getParent().getDefinition() : null;
         if (definition == null) {
             // we use custom definition, if available; if not, we find the standard one
             definition = beans.prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class)
@@ -430,36 +485,48 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     }
 
     private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiDelete(
-            PrismContainerValue<AssignmentType> cval) throws SchemaException {
+            SmartAssignmentElement element) throws SchemaException {
+        PrismContainerValue<AssignmentType> value = element.getAssignmentCVal();
         @SuppressWarnings({"unchecked", "raw"})
-        ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> itemDelta = (ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>)
-                getDeltaItemFragment(cval)
-                        .delete(cval.asContainerable().clone())
-                        .asItemDelta();
+        ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> itemDelta =
+                (ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>)
+                        getDeltaItemFragment(value)
+                                .delete(value.asContainerable().clone())
+                                .asItemDelta();
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>(
-                LensUtil.createAssignmentSingleValueContainer(cval.asContainerable()), itemDelta, null, cval.getDefinition());
+        PrismContainer<AssignmentType> container = LensUtil.createAssignmentSingleValueContainer(value.asContainerable());
+        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi =
+                new ItemDeltaItem<>(container, itemDelta, null, value.getDefinition());
         idi.recompute();
         return idi;
     }
 
     private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiInternalChange(
-            PrismContainerValue<AssignmentType> cval, Collection<? extends ItemDelta<?, ?>> subItemDeltas)
+            PrismContainerValue<AssignmentType> value, Collection<? extends ItemDelta<?, ?>> subItemDeltas)
             throws SchemaException {
         ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi =
-                new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(cval.asContainerable()), cval.getDefinition());
+                new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(value.asContainerable()), value.getDefinition());
         idi.setResolvePath(AssignmentHolderType.F_ASSIGNMENT);
         idi.setSubItemDeltas(subItemDeltas);
         idi.recompute();
         return idi;
     }
 
-    private Collection<? extends ItemDelta<?,?>> getAssignmentItemDeltas(LensFocusContext<AH> focusContext, Long id) {
-        ObjectDelta<AH> focusDelta = focusContext.getCurrentDelta();  // TODO is this correct?
+    /** Returns deltas related to given assignment element. */
+    private @NotNull Collection<? extends ItemDelta<?,?>> getInnerAssignmentDeltas(LensFocusContext<AH> focusContext,
+            SmartAssignmentElement assignmentElement) {
+        ObjectDelta<AH> focusDelta = focusContext.getCurrentDelta(); // TODO is this correct?
         if (focusDelta == null) {
-            return null;
+            return List.of();
         }
-        return focusDelta.findItemDeltasSubPath(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, id));
+        return focusDelta.findItemDeltasSubPath(
+                ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, assignmentElement.getAssignmentId()));
+    }
+
+    /** Returns new value of assignment corresponding to given assignment element. */
+    private PrismContainerValue<AssignmentType> getAssignmentNewValue(SmartAssignmentElement assignmentElement) {
+        return focusContext.getObjectNew().<AssignmentType>findContainer(AssignmentHolderType.F_ASSIGNMENT)
+                .getValue(assignmentElement.getAssignmentId());
     }
 
     private void collectToZero(DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
@@ -486,6 +553,9 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
     }
 
+    /**
+     * Returns null in exceptional situations.
+     */
     private EvaluatedAssignmentImpl<AH> evaluateAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
             PlusMinusZero mode, boolean evaluateOld, String assignmentPlacementDesc, SmartAssignmentElement smartAssignment) throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
         OperationResult subResult = result.createMinorSubresult(OP_EVALUATE_ASSIGNMENT);
@@ -510,9 +580,9 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             }
             if (ModelExecuteOptions.isForce(context.getOptions())) {
                 subResult.recordHandledError(ex);
-                return null;
+            } else {
+                ModelImplUtils.recordFatalError(subResult, ex);
             }
-            ModelImplUtils.recordFatalError(subResult, ex);
             return null;
         } catch (SchemaException ex) {
             AssignmentType assignmentType = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);

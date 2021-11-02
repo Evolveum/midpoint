@@ -122,8 +122,8 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
     protected static final File ROLE_CORP_AUTH_FILE = new File(TEST_DIR, "role-corp-auth.xml");
     protected static final String ROLE_CORP_AUTH_OID = "12345678-d34d-b33f-f00d-55555555aaaa";
 
-    protected static final TestResource USER_LOCALIZED = new TestResource(TEST_DIR, "user-localized.xml", "c46f4b09-2200-4977-88bc-da1f3ffd0b42");
-    protected static final TestResource ROLE_LOCALIZED = new TestResource(TEST_DIR, "role-localized.xml", "25294519-5e0e-44d4-bebc-ea549d850ed9");
+    protected static final TestResource<UserType> USER_LOCALIZED = new TestResource<>(TEST_DIR, "user-localized.xml", "c46f4b09-2200-4977-88bc-da1f3ffd0b42");
+    protected static final TestResource<RoleType> ROLE_LOCALIZED = new TestResource<>(TEST_DIR, "role-localized.xml", "25294519-5e0e-44d4-bebc-ea549d850ed9");
 
     protected static final File[] ROLE_CORP_FILES = {
             ROLE_METAROLE_SOD_NOTIFICATION_FILE,

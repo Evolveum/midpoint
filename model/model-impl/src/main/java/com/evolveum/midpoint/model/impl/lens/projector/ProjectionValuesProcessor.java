@@ -165,7 +165,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
 
                     context.checkConsistenceIfNeeded();
 
-                    // Re-evaluates the values in the account constructions (including roles)
+                    // Re-evaluates the values in the account constructions (including roles) - currently no-op!
                     assignmentProcessor.processAssignmentsAccountValues(projContext, iterationResult);
 
                     context.recompute();

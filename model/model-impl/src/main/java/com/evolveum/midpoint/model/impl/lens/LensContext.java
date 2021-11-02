@@ -581,7 +581,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             return true;
         } else {
             Collection<? extends ItemDelta<?, ?>> attrDeltas = delta.findItemDeltasSubPath(ShadowType.F_ATTRIBUTES);
-            return attrDeltas != null && !attrDeltas.isEmpty();
+            return !attrDeltas.isEmpty();
         }
     }
 

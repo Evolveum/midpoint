@@ -18,27 +18,25 @@
         <t:modificationType>add</t:modificationType>
         <t:path>c:assignment</t:path>
         <t:value>
-<!--             <c:assignment> -->
-                <c:construction>
-                    <c:resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-                    <c:attribute>
-                        <c:ref>ri:ship</c:ref>
-                        <c:outbound>
-                            <c:expression>
-                                <c:value>Pirate Brethren, Inc.</c:value>
-                            </c:expression>
-                        </c:outbound>
-                    </c:attribute>
-                    <c:attribute>
-                        <c:ref>ri:location</c:ref>
-                        <c:outbound>
-                            <c:expression>
-                                <c:value>Caribbean</c:value>
-                            </c:expression>
-                        </c:outbound>
-                    </c:attribute>
-                </c:construction>
-<!--             </c:assignment> -->
+            <c:construction>
+                <c:resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+                <c:attribute>
+                    <c:ref>ri:ship</c:ref>
+                    <c:outbound>
+                        <c:expression>
+                            <c:value>Pirate Brethren, Inc.</c:value>
+                        </c:expression>
+                    </c:outbound>
+                </c:attribute>
+                <c:attribute>
+                    <c:ref>ri:location</c:ref>
+                    <c:outbound>
+                        <c:expression>
+                            <c:value>Caribbean</c:value>
+                        </c:expression>
+                    </c:outbound>
+                </c:attribute>
+            </c:construction>
         </t:value>
     </itemDelta>
 </objectModification>

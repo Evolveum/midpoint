@@ -68,7 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
+public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
 
     @Autowired private ReferenceResolver referenceResolver;
     @Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;

@@ -17,7 +17,7 @@ import com.evolveum.midpoint.task.api.Task;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestAssignmentEvaluatorDynamic extends TestAbstractAssignmentEvaluator {
+public class TestAssignmentEvaluatorDynamic extends AbstractAssignmentEvaluatorTest {
 
     protected static final File ROLE_CORP_GENERIC_METAROLE_DYNAMIC_FILE = new File(TEST_DIR, "role-corp-generic-metarole-dynamic.xml");
 
