@@ -345,12 +345,19 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private ContainerPanelConfigurationType findDefaultConfiguration(List<ContainerPanelConfigurationType> configs) {
         List<ContainerPanelConfigurationType> subConfigs = new ArrayList<>();
         for (ContainerPanelConfigurationType config : configs) {
-            if (BooleanUtils.isTrue(config.isDefault()) && isApplicableForOperation(config) && WebComponentUtil.getElementVisibility(config.getVisibility())) {
+            if (isApplicable(config)) {
                 return config;
             }
             subConfigs.addAll(config.getPanel());
         }
+        if (subConfigs.isEmpty()) {
+            return null;
+        }
         return findDefaultConfiguration(subConfigs);
+    }
+
+    private boolean isApplicable(ContainerPanelConfigurationType config) {
+        return BooleanUtils.isTrue(config.isDefault()) && isApplicableForOperation(config) && WebComponentUtil.getElementVisibility(config.getVisibility());
     }
 
     private boolean isApplicableForOperation(ContainerPanelConfigurationType configurationType) {
