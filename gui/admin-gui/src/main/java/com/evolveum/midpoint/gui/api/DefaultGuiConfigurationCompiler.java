@@ -318,6 +318,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     private Set<Class<?>> collectPanelInstanceClasses() {
         if (panelInstanceClasses == null) {
             panelInstanceClasses = collectClasses(PanelInstance.class);
+            panelInstanceClasses.addAll(collectClasses(PanelInstances.class));
         }
         return panelInstanceClasses;
     }
