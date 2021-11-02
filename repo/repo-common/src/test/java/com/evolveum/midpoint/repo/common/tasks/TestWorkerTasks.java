@@ -47,7 +47,7 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
     private static final TestResource<TaskType> TASK_140_WORKERS_UPDATE = new TestResource<>(TEST_DIR, "task-140-workers-update.xml", "8ef8e606-3c3e-45c7-bca7-e64eb47de1e4");
     private static final TestResource<TaskType> TASK_150_WORKERS_MOVE = new TestResource<>(TEST_DIR, "task-150-workers-move.xml", "f3efb438-c573-4631-bbff-ba9e09b3ae03");
     private static final TestResource<TaskType> TASK_160_WORKERS_ADD_DELETE = new TestResource<>(TEST_DIR, "task-160-workers-add-delete.xml", "9e94e921-d319-422a-b9d6-9e98d9034975");
-    private static final TestResource<TaskType> TASK_170_NUMBER_SEGMENTATION_NUMBER_OF_BUCKETS = new TestResource<>(TEST_DIR, "task-170-num-seg-num-of-buckets.xml", "33b0f9bb-15bd-4f64-bd08-11aad034e77q");
+    private static final TestResource<TaskType> TASK_170_NUMBER_SEGMENTATION_NUMBER_OF_BUCKETS = new TestResource<>(TEST_DIR, "task-170-num-seg-num-of-buckets.xml", "33b0f9bb-15bd-4f64-bd08-11aad034e77e");
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
