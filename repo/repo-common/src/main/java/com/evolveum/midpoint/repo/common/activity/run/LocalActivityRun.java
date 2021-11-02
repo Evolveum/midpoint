@@ -250,7 +250,7 @@ public abstract class LocalActivityRun<
         task.setObjectRef(desiredObjectRef);
         task.flushPendingModifications(result);
         Task parent = task.getParentTask(result);
-        if (parent != null && parent.getObjectOid() != null) {
+        if (parent != null && parent.getObjectOid() == null) {
             setObjectRefRecursivelyUpwards(parent, desiredObjectRef, result);
         }
     }

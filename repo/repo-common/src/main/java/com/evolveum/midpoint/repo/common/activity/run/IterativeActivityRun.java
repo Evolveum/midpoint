@@ -181,7 +181,7 @@ public abstract class IterativeActivityRun<
             transientRunStatistics.recordRunStart(getStartTimestampRequired());
 
             beforeRun(result);
-            setTaskObjectRef(result); // requires custom initialization of the run
+            setTaskObjectRef(result); // this method is intentionally run after "beforeRun" (we need the resource ref)
 
             doRun(result);
 
