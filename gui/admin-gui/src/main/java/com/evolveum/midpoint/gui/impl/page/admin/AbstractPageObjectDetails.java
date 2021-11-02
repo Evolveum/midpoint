@@ -105,10 +105,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     //TODO should be abstract??
     protected ODM createObjectDetailsModels(PrismObject<O> object) {
-        return (ODM) new ObjectDetailsModels<>(createPrismObejctModel(object), this);
+        return (ODM) new ObjectDetailsModels<>(createPrismObjectModel(object), this);
     }
 
-    protected LoadableModel<PrismObject<O>> createPrismObejctModel(PrismObject<O> object) {
+    protected LoadableModel<PrismObject<O>> createPrismObjectModel(PrismObject<O> object) {
         return new LoadableModel<>(false) {
 
             @Override
@@ -404,20 +404,20 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         Task task = createSimpleTask(OPERATION_LOAD_OBJECT);
         OperationResult result = task.getResult();
         PrismObject<O> prismObject;
-        try {
-            if (!isEditObject()) {
+        if (!isEditObject()) {
+            try {
                 prismObject = getPrismContext().createObject(getType());
-            } else {
-                String focusOid = getObjectOidParameter();
-                prismObject = WebModelServiceUtils.loadObject(getType(), focusOid, getOperationOptions(), false,this, task, result);
-                LOGGER.trace("Loading object: Existing object (loadled): {} -> {}", focusOid, prismObject);
+            } catch (Exception ex) {
+                result.recordFatalError(getString("PageAdminObjectDetails.message.loadObjectWrapper.fatalError"), ex);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
+                throw redirectBackViaRestartResponseException();
             }
-            result.recordSuccess();
-        } catch (Exception ex) {
-            result.recordFatalError(getString("PageAdminObjectDetails.message.loadObjectWrapper.fatalError"), ex);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
-            prismObject = null;
+        } else {
+            String focusOid = getObjectOidParameter();
+            prismObject = WebModelServiceUtils.loadObject(getType(), focusOid, getOperationOptions(), false, this, task, result);
+            LOGGER.trace("Loading object: Existing object (loadled): {} -> {}", focusOid, prismObject);
         }
+        result.recordSuccess();
 
         showResult(result, false);
         return prismObject;

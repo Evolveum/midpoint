@@ -186,7 +186,7 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
 
     @Override
     protected FDM createObjectDetailsModels(PrismObject<F> object) {
-        return (FDM) new FocusDetailsModels<>(createPrismObejctModel(object), this);
+        return (FDM) new FocusDetailsModels<>(createPrismObjectModel(object), this);
     }
 
 

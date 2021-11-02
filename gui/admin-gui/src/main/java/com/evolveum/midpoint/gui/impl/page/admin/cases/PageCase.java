@@ -12,7 +12,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.cases.component.CaseOperationalButtonsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -58,7 +57,7 @@ public class PageCase extends PageAssignmentHolderDetails<CaseType, AssignmentHo
 
     @Override
     protected AssignmentHolderDetailsModel<CaseType> createObjectDetailsModels(PrismObject<CaseType> object) {
-        return new CaseDetailsModels(createPrismObejctModel(object), this);
+        return new CaseDetailsModels(createPrismObjectModel(object), this);
     }
 
     @Override
