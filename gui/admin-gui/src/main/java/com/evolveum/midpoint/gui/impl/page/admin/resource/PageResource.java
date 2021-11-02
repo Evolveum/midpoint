@@ -9,10 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource;
 import java.util.Collection;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ResourceOperationalButtonsPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -25,7 +22,6 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceSummaryPanel;
@@ -84,7 +80,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
     @Override
     protected ResourceDetailsModel createObjectDetailsModels(PrismObject<ResourceType> object) {
-        return new ResourceDetailsModel(createPrismObejctModel(object), this);
+        return new ResourceDetailsModel(createPrismObjectModel(object), this);
     }
 
     @Override

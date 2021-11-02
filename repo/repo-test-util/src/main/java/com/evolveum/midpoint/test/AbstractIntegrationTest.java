@@ -31,6 +31,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.Objects;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -52,7 +55,6 @@ import ch.qos.logback.classic.LoggerContext;
 import com.evolveum.midpoint.schema.util.task.*;
 import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
-
 import com.evolveum.midpoint.test.ObjectCreator.RealCreator;
 import com.evolveum.midpoint.test.asserter.*;
 
@@ -124,6 +126,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskUpdatedListener;
 import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.test.asserter.prism.PolyStringAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
@@ -3157,9 +3160,46 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .orElseThrow(() -> new AssertionError("Account '" + name + "' was not found"));
     }
 
+    protected void waitForTaskStatusUpdated(String taskOid, String message, Checker checker, long timeoutInterval, long sleepInterval) throws CommonException {
+        var statusQueue = new ArrayBlockingQueue<Task>(10);
+        TaskUpdatedListener waitListener = (task, result) -> {
+                if (Objects.equals(taskOid,task.getOid())) {
+                    statusQueue.add(task);
+                }
+            };
+        try {
+            taskManager.registerTaskUpdatedListener(waitListener);
+            long startTime = System.currentTimeMillis();
+            long endTime = startTime + timeoutInterval;
+            while (true) {
+                long currentTime = System.currentTimeMillis();
+
+                if (currentTime > endTime) {
+                    // Cicle timeouted
+                    checker.timeout();
+                    break;
+                }
+                try {
+                    var timeout = endTime - currentTime;
+                    var currentTask = statusQueue.poll(timeout, TimeUnit.MILLISECONDS);
+                    boolean done = checker.check();
+                    if (done) {
+                        IntegrationTestTools.println("... done");
+                        IntegrationTestTools.LOGGER.trace(IntegrationTestTools.LOG_MESSAGE_PREFIX + "... done " + message);
+                        return;
+                    }
+                } catch (InterruptedException e) {
+                    IntegrationTestTools.LOGGER.warn("Sleep interrupted: {}", e.getMessage(), e);
+                }
+            }
+        } finally {
+            taskManager.unregisterTaskUpdatedListener(waitListener);
+        }
+    }
+
     protected void waitForTaskClose(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval)
             throws CommonException {
-        waitFor("Waiting for task to close", () -> {
+        waitForTaskStatusUpdated(taskOid, "Waiting for task to close", () -> {
             Task task = taskManager.getTaskWithResult(taskOid, result);
             displaySingleTask("Task while waiting for it to close", task);
             return task.getSchedulingState() == TaskSchedulingStateType.CLOSED;
@@ -3182,6 +3222,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             return task.getSchedulingState() == TaskSchedulingStateType.SUSPENDED;
         }, timeoutInterval, sleepInterval);
     }
+
 
     @SuppressWarnings("SameParameterValue")
     protected void waitForTaskCloseOrDelete(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval)
@@ -3242,7 +3283,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected void waitForTaskTreeCloseCheckingSuspensionWithError(String taskOid, OperationResult result,
             long timeoutInterval, long sleepInterval) throws CommonException {
-        waitFor("Waiting for task manager to finish the task", () -> {
+        waitForTaskStatusUpdated(taskOid, "Waiting for task manager to finish the task", () -> {
             Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                     .item(TaskType.F_RESULT).retrieve()
                     .build();

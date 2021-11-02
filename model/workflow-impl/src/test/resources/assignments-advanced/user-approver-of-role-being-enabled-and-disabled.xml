@@ -1,0 +1,21 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      oid="39764050-fbd8-4746-a8a6-cb9141ae31ae">
+    <name>approver-of-role-being-enabled-and-disabled</name>
+    <assignment>
+        <targetRef oid="4fcf187a-09b7-4d32-b998-9cd978195a82" type="RoleType" relation="org:approver"/>
+    </assignment>
+    <assignment>
+        <targetRef oid="4835efdc-6fee-438b-bb09-fd428a200dbb" type="RoleType" relation="org:approver"/>
+    </assignment>
+    <assignment>
+        <targetRef oid="04c8d15f-da0a-4553-9b43-af835a7c8b82" type="RoleType" relation="org:approver"/>
+    </assignment>
+</user>

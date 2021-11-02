@@ -66,7 +66,7 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
 
     @Override
     protected TaskDetailsModel createObjectDetailsModels(PrismObject<TaskType> object) {
-        return new TaskDetailsModel(createPrismObejctModel(object), PageTask.this);
+        return new TaskDetailsModel(createPrismObjectModel(object), PageTask.this);
     }
 
     @Override

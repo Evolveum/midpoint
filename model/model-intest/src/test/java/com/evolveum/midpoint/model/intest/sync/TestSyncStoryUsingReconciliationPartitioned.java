@@ -17,7 +17,6 @@ import org.springframework.test.context.ContextConfiguration;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
@@ -72,18 +71,6 @@ public class TestSyncStoryUsingReconciliationPartitioned extends TestSyncStoryUs
         } else {
             throw new IllegalArgumentException("Unknown resource " + resource);
         }
-    }
-
-    @Override
-    protected OperationResult waitForSyncTaskNextRunAssertSuccess(PrismObject<ResourceType> resource) throws Exception {
-        OperationResult result = waitForTaskTreeNextFinishedRun(getSyncTaskOid(resource), getWaitTimeout());
-        TestUtil.assertSuccess(result);
-        return result;
-    }
-
-    @Override
-    protected OperationResult waitForSyncTaskNextRun(PrismObject<ResourceType> resource) throws Exception {
-        return waitForTaskTreeNextFinishedRun(getSyncTaskOid(resource), getWaitTimeout());
     }
 
 }

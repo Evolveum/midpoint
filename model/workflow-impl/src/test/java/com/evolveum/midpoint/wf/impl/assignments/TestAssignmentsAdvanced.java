@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.wf.impl.assignments;
 
 import static java.util.Collections.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
@@ -18,6 +19,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProces
 
 import java.io.File;
 import java.util.*;
+
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -45,6 +48,8 @@ import com.evolveum.midpoint.wf.impl.ApprovalInstruction;
 import com.evolveum.midpoint.wf.impl.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.ExpectedWorkItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * A special test dealing with assigning roles that have different metarole-induced approval policies.
@@ -83,6 +88,16 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     private static final TestResource<ObjectType> ROLE_WITH_IDEMPOTENT_METAROLE = new TestResource<>(TEST_RESOURCE_DIR, "role-with-idempotent-metarole.xml", "34855a80-3899-4ecf-bdb3-9fc008c4ff70");
 
     private static final File ORG_LEADS2122_FILE = new File(TEST_RESOURCE_DIR, "org-leads2122.xml");
+
+    private static final TestResource<RoleType> ROLE_BEING_ENABLED = new TestResource<>(TEST_RESOURCE_DIR, "role-being-enabled.xml", "4fcf187a-09b7-4d32-b998-9cd978195a82");
+    private static final TestResource<UserType> USER_HOLDER_OF_ROLE_BEING_ENABLED = new TestResource<>(TEST_RESOURCE_DIR, "user-holder-of-role-being-enabled.xml", "c6f7ddbe-a596-4a53-8acf-e03282f3da33");
+    private static final TestResource<UserType> USER_APPROVER_OF_ROLE_BEING_ENABLED_AND_DISABLED = new TestResource<>(TEST_RESOURCE_DIR, "user-approver-of-role-being-enabled-and-disabled.xml", "39764050-fbd8-4746-a8a6-cb9141ae31ae");
+
+    private static final TestResource<RoleType> ROLE_BEING_DISABLED = new TestResource<>(TEST_RESOURCE_DIR, "role-being-disabled.xml", "4835efdc-6fee-438b-bb09-fd428a200dbb");
+    private static final TestResource<UserType> USER_HOLDER_OF_ROLE_BEING_DISABLED = new TestResource<>(TEST_RESOURCE_DIR, "user-holder-of-role-being-disabled.xml", "586fc857-71d8-4906-a61d-46ba7941be00");
+
+    private static final TestResource<RoleType> ROLE_BEING_DISABLED_WITH_APPROVAL = new TestResource<>(TEST_RESOURCE_DIR, "role-being-disabled-with-approval.xml", "04c8d15f-da0a-4553-9b43-af835a7c8b82");
+    private static final TestResource<UserType> USER_HOLDER_OF_ROLE_BEING_DISABLED_WITH_APPROVAL = new TestResource<>(TEST_RESOURCE_DIR, "user-holder-of-role-being-disabled-with-approval.xml", "411258e6-191b-4957-95d3-86b6e25024d3");
 
     private static final File USER_LEAD21_FILE = new File(TEST_RESOURCE_DIR, "user-lead21.xml");
     private static final File USER_LEAD22_FILE = new File(TEST_RESOURCE_DIR, "user-lead22.xml");
@@ -146,6 +161,16 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         userSecurityApproverOid = addAndRecomputeUser(USER_SECURITY_APPROVER_FILE, initTask, initResult);
         userSecurityApproverDeputyOid = addAndRecomputeUser(USER_SECURITY_APPROVER_DEPUTY_FILE, initTask, initResult);
         userSecurityApproverDeputyLimitedOid = addAndRecomputeUser(USER_SECURITY_APPROVER_DEPUTY_LIMITED_FILE, initTask, initResult);
+
+        repoAdd(ROLE_BEING_ENABLED, initResult);
+        addObject(USER_HOLDER_OF_ROLE_BEING_ENABLED, initTask, initResult);
+        repoAdd(ROLE_BEING_DISABLED, initResult);
+        addObject(USER_HOLDER_OF_ROLE_BEING_DISABLED, initTask, initResult);
+        repoAdd(ROLE_BEING_DISABLED_WITH_APPROVAL, initResult);
+        addObject(USER_HOLDER_OF_ROLE_BEING_DISABLED_WITH_APPROVAL, initTask, initResult);
+
+        // import this one last to avoid approvals at this stage
+        addObject(USER_APPROVER_OF_ROLE_BEING_ENABLED_AND_DISABLED, initTask, initResult);
 
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_JSON);
     }
@@ -993,7 +1018,144 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         assertNotAssignedRole(jack, roleRole27Oid);
     }
 
-    @Test      // MID-5827
+    /**
+     * An assignment is enabled by changing validTo property from 1900 to null.
+     * Such a change should *not* trigger any approvals (under the default rules).
+     *
+     * MID-7317
+     */
+    @Test
+    public void test830EnableAssignment() throws Exception {
+        login(userAdministrator);
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+
+        UserType userBefore = getUserFromRepo(USER_HOLDER_OF_ROLE_BEING_ENABLED.oid).asObjectable();
+
+        when();
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT,
+                        userBefore.getAssignment().get(0).getId(),
+                        AssignmentType.F_ACTIVATION,
+                        ActivationType.F_VALID_TO)
+                .replace()
+                .asObjectDelta(USER_HOLDER_OF_ROLE_BEING_ENABLED.oid);
+        executeChanges(delta, null, task, result);
+
+        then();
+        assertSuccess(result);
+
+        List<PrismObject<CaseType>> cases =
+                getCasesForObject(USER_HOLDER_OF_ROLE_BEING_ENABLED.oid, UserType.COMPLEX_TYPE, null, task, result);
+        assertEquals("Wrong # of cases", 0, cases.size());
+
+        assertUser(USER_HOLDER_OF_ROLE_BEING_ENABLED.oid, "after")
+                .assignments()
+                    .single()
+                        .activation()
+                            .assertValidTo((XMLGregorianCalendar) null);
+    }
+
+    /**
+     * An assignment is disabled by setting validTo property to an old value.
+     * Such a change should *not* trigger any approvals under "assignment deletion" policy rule.
+     *
+     * MID-7317
+     */
+    @Test
+    public void test840DisableAssignment() throws Exception {
+        login(userAdministrator);
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+
+        UserType userBefore = getUserFromRepo(USER_HOLDER_OF_ROLE_BEING_DISABLED.oid).asObjectable();
+
+        when();
+        XMLGregorianCalendar newValidTo = XmlTypeConverter.fromNow("-P1D");
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT,
+                        userBefore.getAssignment().get(0).getId(),
+                        AssignmentType.F_ACTIVATION,
+                        ActivationType.F_VALID_TO)
+                .replace(newValidTo)
+                .asObjectDelta(USER_HOLDER_OF_ROLE_BEING_DISABLED.oid);
+        executeChanges(delta, null, task, result);
+
+        then();
+        assertSuccess(result);
+
+        List<PrismObject<CaseType>> cases =
+                getCasesForObject(USER_HOLDER_OF_ROLE_BEING_DISABLED.oid, UserType.COMPLEX_TYPE, null, task, result);
+        assertEquals("Wrong # of cases", 0, cases.size());
+
+        assertUser(USER_HOLDER_OF_ROLE_BEING_DISABLED.oid, "after")
+                .assignments()
+                    .single()
+                        .activation()
+                            .assertValidTo(newValidTo)
+                            .assertEffectiveStatus(ActivationStatusType.DISABLED);
+    }
+
+    /**
+     * An assignment is disabled by setting validTo property to an old value.
+     * This should trigger an approval because of `modify` operation in the policy rule.
+     *
+     * MID-7317
+     */
+    @Test
+    public void test850DisableAssignmentWithApproval() throws Exception {
+        login(userAdministrator);
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+
+        UserType userBefore = getUserFromRepo(USER_HOLDER_OF_ROLE_BEING_DISABLED_WITH_APPROVAL.oid).asObjectable();
+
+        when();
+        XMLGregorianCalendar newValidTo = XmlTypeConverter.fromNow("-P1D");
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT,
+                        userBefore.getAssignment().get(0).getId(),
+                        AssignmentType.F_ACTIVATION,
+                        ActivationType.F_VALID_TO)
+                .replace(newValidTo)
+                .asObjectDelta(USER_HOLDER_OF_ROLE_BEING_DISABLED_WITH_APPROVAL.oid);
+        executeChanges(delta, null, task, result);
+
+        then();
+        assertInProgress(result);
+
+        List<PrismObject<CaseType>> cases =
+                getCasesForObject(USER_HOLDER_OF_ROLE_BEING_DISABLED_WITH_APPROVAL.oid, UserType.COMPLEX_TYPE, null, task, result);
+        assertEquals("Wrong # of cases", 2, cases.size());
+        CaseType approvalCase = getApprovalCase(cases);
+        displayDumpable("Approval case", approvalCase);
+        assertThat(approvalCase.getWorkItem()).as("work items").hasSize(1);
+
+        assertUser(USER_HOLDER_OF_ROLE_BEING_DISABLED_WITH_APPROVAL.oid, "after")
+                .assignments()
+                    .single()
+                        .activation()
+                            .assertValidTo((XMLGregorianCalendar) null)
+                            .assertEffectiveStatus(ActivationStatusType.ENABLED);
+
+        when("approving the operation");
+        approveWorkItem(approvalCase.getWorkItem().get(0), task, result);
+
+        then("approving the operation");
+        waitForCaseClose(getRootCase(cases));
+
+        assertUser(USER_HOLDER_OF_ROLE_BEING_DISABLED_WITH_APPROVAL.oid, "after")
+                .assignments()
+                    .single()
+                        .activation()
+                            .assertValidTo(newValidTo)
+                            .assertEffectiveStatus(ActivationStatusType.DISABLED);
+    }
+
+    /**
+     * MID-5827
+     */
+    @Test
     public void test900AssignIdempotentRole() throws Exception {
         login(userAdministrator);
         Task task = getTestTask();

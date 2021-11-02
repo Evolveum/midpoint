@@ -207,7 +207,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
     }
 
     protected AHDM createObjectDetailsModels(PrismObject<AH> object) {
-        return (AHDM) new AssignmentHolderDetailsModel<>(createPrismObejctModel(object), this);
+        return (AHDM) new AssignmentHolderDetailsModel<>(createPrismObjectModel(object), this);
     }
 
     @Override

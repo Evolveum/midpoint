@@ -77,18 +77,20 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * Repository implementation based on SQL, JDBC and Querydsl without any ORM.
- * WORK IN PROGRESS.
  *
- * Structure of main public methods (WIP):
- * - arg checks
- * - debug log
- * - create op-result, immediately followed by try/catch/finally (see addObject for example)
- * - more arg checks :-) (here or before op result depending on the needs)
- * - call to executeMethodName(...) where perf monitor is initialized followed by try/catch/finally
- * - finally in main method:
+ * Typical structure of main public methods:
  *
- * TODO/document?:
- * - ignore useNoFetchExtensionValuesInsertion - related to Hibernate,
+ * - Argument checks.
+ * - Debug log.
+ * This can be postponed after operation result creation, if more complex log is needed.
+ * - Create {@link OperationResult} from provided parent, immediately followed by try/catch/finally.
+ * See {@link #addObject} for example.
+ * - More arg checks if necessary, fast fail scenarios.
+ * - Call to `executeMethodName(...)` where perf monitor is initialized followed by try/catch/finally.
+ * See {@link #executeAddObject} for example.
+ *
+ * Always try to keep starting {@link JdbcSession} in try-with-resource construct.
+ * Positive flows require explicit {@link JdbcSession#commit()} otherwise the changes are rolled back.
  */
 public class SqaleRepositoryService extends SqaleServiceBase implements RepositoryService {
 
@@ -1112,7 +1114,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                     .queryFor(lastProcessedObject.getCompileTimeClass())
                     .item(orderByPath);
             //noinspection rawtypes
-            Item<PrismValue, ItemDefinition> item = lastProcessedObject.findItem(orderByPath);
+            Item<PrismValue, ItemDefinition<Item>> item = lastProcessedObject.findItem(orderByPath);
             if (item.size() > 1) {
                 throw new IllegalArgumentException(
                         "Multi-value property for ordering is forbidden - item: " + item);
@@ -1679,8 +1681,79 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     public RepositoryQueryDiagResponse executeQueryDiagnostics(
             RepositoryQueryDiagRequest request, OperationResult parentResult) {
 
-        // TODO search like containers + dry run?
-        throw new UnsupportedOperationException();
+        Objects.requireNonNull(request, "Request must not be null.");
+        Objects.requireNonNull(request.getType(), "request.type must not be null.");
+        Objects.requireNonNull(parentResult, "Operation result must not be null.");
+
+        logger.debug("Executing arbitrary query '{}'.", request);
+
+        OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_EXECUTE_QUERY_DIAGNOSTICS)
+                .setMinor()
+                .addParam("request", request.toString())
+                .build();
+
+        try {
+            if (request.getImplementationLevelQuery() != null) {
+                throw new UnsupportedOperationException(
+                        "Only midPoint query diagnostics is supported for Native repository");
+            }
+
+            ObjectQuery query = request.getQuery();
+            query = simplifyQuery(query);
+            if (isNoneQuery(query)) {
+                return new RepositoryQueryDiagResponse(null, null, null); // or List.of() and Map.of()?
+            }
+
+            // The first execute is the conventional prefix in this class. :-)
+            return executeExecuteQueryDiagnostics(request, request.getType());
+        } catch (SchemaException | RepositoryException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            operationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            operationResult.computeStatusIfUnknown();
+        }
+    }
+
+    private <S extends ObjectType, Q extends FlexibleRelationalPathBase<R>, R> RepositoryQueryDiagResponse
+    executeExecuteQueryDiagnostics(RepositoryQueryDiagRequest request, @NotNull Class<S> type)
+            throws RepositoryException, SchemaException {
+        long opHandle = registerOperationStart(OP_EXECUTE_QUERY_DIAGNOSTICS, (Class<? extends Containerable>) null);
+
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+            // Modified code from SqlQueryExecutor.list()
+            SimulatedSqlQuery<Object> simulatedQuery = new SimulatedSqlQuery<>(
+                    sqlRepoContext.getQuerydslTemplates(), jdbcSession.connection(), request.isTranslateOnly());
+            SqaleQueryContext<S, Q, R> context =
+                    SqaleQueryContext.from(type, sqlRepoContext, simulatedQuery, null);
+
+            ObjectQuery query = request.getQuery();
+            if (query != null) {
+                context.processFilter(query.getFilter());
+                context.processObjectPaging(query.getPaging());
+            }
+            context.processOptions(request.getOptions());
+
+            List<?> resultList = null; // default for case when query is just translated
+            context.beforeQuery();
+            PageOf<Tuple> result;
+            try {
+                result = context.executeQuery(jdbcSession);
+                PageOf<S> transformedResult = context.transformToSchemaType(result, jdbcSession);
+                //noinspection unchecked
+                resultList = transformedResult.map(o -> (PrismObject<S>) o.asPrismObject()).content();
+            } catch (RuntimeException e) {
+                if (e != SimulatedSqlQuery.SIMULATION_EXCEPTION) {
+                    throw e; // OK, this was unexpected, so rethrow it
+                }
+            }
+
+            return new RepositoryQueryDiagResponse(
+                    resultList, simulatedQuery.toString(), simulatedQuery.paramsMap());
+        } finally {
+            registerOperationFinish(opHandle);
+        }
     }
 
     @Override
@@ -1894,6 +1967,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } catch (Throwable t) {
             operationResult.recordFatalError("Couldn't add diagnostic information: " + t.getMessage(), t);
             throw t;
+        } finally {
+            operationResult.computeStatusIfUnknown();
         }
     }
 

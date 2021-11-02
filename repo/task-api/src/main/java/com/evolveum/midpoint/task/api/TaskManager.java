@@ -588,6 +588,11 @@ public interface TaskManager {
      * @param taskListener listener to be unregisteted
      */
     void unregisterTaskListener(TaskListener taskListener);
+
+    void registerTaskUpdatedListener(TaskUpdatedListener taskListener);
+
+    void unregisterTaskUpdatedListener(TaskUpdatedListener taskListener);
+
     //endregion
 
     //region Miscellaneous methods

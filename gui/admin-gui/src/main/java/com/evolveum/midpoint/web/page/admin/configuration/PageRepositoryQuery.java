@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -16,8 +16,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.web.application.Url;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +50,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.CheckFormGroup;
@@ -80,11 +79,11 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
                 @Url(mountUrl = "/admin/config/repositoryQuery", matchUrlForSecurity = "/admin/config/repositoryQuery")
         },
         action = {
-        @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
-                label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_REPOSITORY_QUERY_URL,
-                label = "PageRepositoryQuery.auth.query.label", description = "PageRepositoryQuery.auth.query.description")
-})
+                @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
+                        label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_REPOSITORY_QUERY_URL,
+                        label = "PageRepositoryQuery.auth.query.label", description = "PageRepositoryQuery.auth.query.description")
+        })
 public class PageRepositoryQuery extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRepositoryQuery.class);
@@ -145,7 +144,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 
     private String dataLanguage;
 
-    enum Action {TRANSLATE_ONLY, EXECUTE_MIDPOINT, EXECUTE_HIBERNATE}
+    enum Action {TRANSLATE_ONLY, EXECUTE_MIDPOINT, @Deprecated EXECUTE_HIBERNATE}
 
     @Override
     protected void onInitialize() {
@@ -234,7 +233,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         mainForm.add(midPointQueryButtonBar);
 
         DataLanguagePanel<QueryType> dataLanguagePanel =
-                new DataLanguagePanel<QueryType>(ID_VIEW_BUTTON_PANEL, dataLanguage, QueryType.class, PageRepositoryQuery.this) {
+                new DataLanguagePanel<>(ID_VIEW_BUTTON_PANEL, dataLanguage, QueryType.class, PageRepositoryQuery.this) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -466,6 +465,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
             RepositoryQueryDiagRequest request = new RepositoryQueryDiagRequest();
 
             switch (action) {
+                // TODO we don't want this anymore
                 case EXECUTE_HIBERNATE:
                     String hqlText = dto.getHibernateQuery();
                     queryPresent = StringUtils.isNotBlank(hqlText);

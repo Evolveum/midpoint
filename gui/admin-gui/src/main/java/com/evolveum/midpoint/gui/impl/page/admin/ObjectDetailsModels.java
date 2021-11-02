@@ -63,6 +63,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
             @Override
             protected PrismObjectWrapper<O> load() {
                 PrismObject<O> prismObject = prismObjectModel.getObject();
+
                 PrismObjectWrapperFactory<O> factory = modelServiceLocator.findObjectWrapperFactory(prismObject.getDefinition());
                 Task task = modelServiceLocator.createSimpleTask("createWrapper");
                 OperationResult result = task.getResult();

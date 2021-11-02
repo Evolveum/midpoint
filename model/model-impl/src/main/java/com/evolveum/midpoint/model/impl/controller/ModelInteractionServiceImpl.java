@@ -1650,6 +1650,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             Authentication authentication = securityContextManager.getAuthentication();
             if (authentication instanceof MidpointAuthentication) {
                 ((MidpointAuthentication) authentication).setPrincipal(principal);
+                ((MidpointAuthentication) authentication).setAuthorities(principal.getAuthorities());
             } else {
                 securityContextManager.setupPreAuthenticatedSecurityContext(principal);
             }

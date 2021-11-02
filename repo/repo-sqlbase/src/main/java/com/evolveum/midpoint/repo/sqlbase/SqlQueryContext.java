@@ -287,9 +287,8 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
      *
      * * {@link #options} are used to amend the select expression list; the options later enter
      * as a parameter to most methods related to the transformation from row to midPoint object.
-     * * {@link QueryTableMapping#processResult} allows for low-level result list processing,
-     * e.g. fetching any additional objects efficiently (based on the whole result list).
-     * * Finally, see {@link #transformToSchemaType} fo, outside this method transformation is done {@link QueryTableMapping#createRowTransformer}
+     * * {@link QueryTableMapping#createRowTransformer} (used later by {@link #transformToSchemaType})
+     * allows for low-level result list processing, e.g. fetching any additional objects efficiently.
      */
     public PageOf<Tuple> executeQuery(JdbcSession jdbcSession) throws QueryException {
         SQLQuery<?> query = sqlQuery.clone(jdbcSession.connection());

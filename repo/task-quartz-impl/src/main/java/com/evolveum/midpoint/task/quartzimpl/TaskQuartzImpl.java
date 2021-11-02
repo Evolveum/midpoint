@@ -386,6 +386,7 @@ public class TaskQuartzImpl implements Task {
         if (recreateQuartzTrigger) { // just in case there were no pending modifications
             synchronizeWithQuartz(result);
         }
+        beans.listenerRegistry.notifyTaskStatusFlushed(this, result);
     }
 
     int getPendingModificationsCount() {
@@ -846,6 +847,7 @@ public class TaskQuartzImpl implements Task {
         return getOid() != null ? TaskPersistenceStatus.PERSISTENT : TaskPersistenceStatus.TRANSIENT;
     }
 
+    @Override
     public boolean isPersistent() {
         return getPersistenceStatus() == TaskPersistenceStatus.PERSISTENT;
     }
@@ -963,6 +965,7 @@ public class TaskQuartzImpl implements Task {
         setProperty(TaskType.F_WAITING_REASON, value);
     }
 
+    @Override
     public @NotNull TaskRecurrenceType getRecurrence() {
         synchronized (prismAccess) {
             return TaskTypeUtil.getEffectiveRecurrence(taskPrism.asObjectable());
@@ -1051,6 +1054,7 @@ public class TaskQuartzImpl implements Task {
         return scheduleInterval != null && scheduleInterval != 0;
     }
 
+    @Override
     public void setSchedule(ScheduleType value) {
         synchronized (prismAccess) {
             TaskType taskBean = taskPrism.asObjectable();
@@ -1815,6 +1819,7 @@ public class TaskQuartzImpl implements Task {
         }
     }
 
+    @Override
     public boolean hasAssignments() {
         synchronized (prismAccess) {
             return !taskPrism.asObjectable().getAssignment().isEmpty();
@@ -1963,6 +1968,7 @@ public class TaskQuartzImpl implements Task {
         return sub;
     }
 
+    @Override
     @NotNull
     public List<TaskQuartzImpl> listSubtasks(OperationResult parentResult) throws SchemaException {
         return listSubtasks(false, parentResult);

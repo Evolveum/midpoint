@@ -1970,6 +1970,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return shadows.iterator().next();
     }
 
+    @Override
     protected ObjectQuery createAccountShadowQuery(
             String username, PrismObject<ResourceType> resource) throws SchemaException {
         RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
@@ -2652,10 +2653,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
+    @Override
     protected PrismObjectDefinition<RoleType> getRoleDefinition() {
         return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class);
     }
 
+    @Override
     protected PrismObjectDefinition<ShadowType> getShadowDefinition() {
         return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
     }
@@ -3253,6 +3256,41 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return waitForTaskNextRun(taskOid, checkSubresult, timeout, false);
     }
 
+    protected OperationResult waitForTaskActivityCompleted(final String taskOid,  long startedAfter, OperationResult waitResult, long timeout) throws CommonException {
+        final Holder<OperationResult> taskResultHolder = new Holder<>();
+        waitForTaskStatusUpdated(taskOid, "Waiting for task " + taskOid, new Checker() {
+                @Override
+                public boolean check() throws CommonException {
+                    var task = taskManager.getTaskWithResult(taskOid, waitResult);
+                    var activity = task.getActivitiesStateOrClone().getActivity();
+                    if (activity == null) {
+                        return false;
+                    }
+                    var activityStart = XmlTypeConverter.toMillis(activity.getRealizationStartTimestamp());
+                    var activityEnd = XmlTypeConverter.toMillis(activity.getRealizationEndTimestamp());
+                    if (activityStart > startedAfter &&  activityEnd > activityStart) {
+                        taskResultHolder.setValue(task.getResult());
+                        return true;
+                    }
+                    return false;
+                }
+
+                @Override
+                public void timeout() {
+                    assert false : "Timeouted while waiting for task " + taskOid + " activity to complete.";
+                }
+        }, timeout, 0);
+        return taskResultHolder.getValue();
+    }
+
+    protected OperationResult waitForTaskActivityCompleted(final String taskOid, boolean checkSubresult) throws CommonException {
+        var result = waitForTaskActivityCompleted(taskOid, System.currentTimeMillis(), createOperationResult(), DEFAULT_TASK_WAIT_TIMEOUT);
+        if (isError(result, checkSubresult)) {
+            assert false : "Task failed";
+        }
+        return result;
+    }
+
     protected OperationResult waitForTaskNextRun(final String taskOid, final boolean checkSubresult, final int timeout, boolean kickTheTask) throws CommonException {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskNextRun");
         Task origTask = taskManager.getTaskWithResult(taskOid, waitResult);
@@ -3269,6 +3307,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected OperationResult waitForTaskNextRun(final Task origTask, final boolean checkSubresult, final int timeout, final OperationResult waitResult, boolean kickTheTask) throws CommonException {
+        final long waitStartTime = System.currentTimeMillis();
         final Long origLastRunStartTimestamp = origTask.getLastRunStartTimestamp();
         final Long origLastRunFinishTimestamp = origTask.getLastRunFinishTimestamp();
         if (kickTheTask) {
@@ -3294,6 +3333,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 if (freshTask.getLastRunStartTimestamp() == null) {
                     return false;
                 }
+                if (freshTask.getLastRunStartTimestamp() < waitStartTime) {
+                    return false;
+                }
                 return !freshTask.getLastRunStartTimestamp().equals(origLastRunStartTimestamp)
                         && !freshTask.getLastRunFinishTimestamp().equals(origLastRunFinishTimestamp)
                         && freshTask.getLastRunStartTimestamp() < freshTask.getLastRunFinishTimestamp();
@@ -3315,7 +3357,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 }
             }
         };
-        IntegrationTestTools.waitFor("Waiting for task " + origTask + " next run", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+
+        waitForTaskStatusUpdated(origTask.getOid(), "Waiting for task " + origTask + " next run", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
 
         Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
         logger.debug("Final task:\n{}", freshTask.debugDump());
@@ -3399,6 +3442,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             boolean checkRootTaskLastStartTimestamp) throws Exception {
         long origLastRunStartTimestamp = XmlTypeConverter.toMillis(origRootTask.getLastRunStartTimestamp());
         long origLastRunFinishTimestamp = XmlTypeConverter.toMillis(origRootTask.getLastRunFinishTimestamp());
+
         long start = System.currentTimeMillis();
         AtomicBoolean triggered = new AtomicBoolean(false);
         OperationResult aggregateResult = new OperationResult("aggregate");
@@ -3415,6 +3459,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             // was the whole task tree refreshed at least once after we were called?
             long lastRunStartTimestamp = or0(freshRootTask.getLastRunStartTimestamp());
             long lastRunFinishTimestamp = or0(freshRootTask.getLastRunFinishTimestamp());
+
             if (!triggered.get() &&
                     checkRootTaskLastStartTimestamp &&
                     (lastRunStartTimestamp == origLastRunStartTimestamp
@@ -3430,6 +3475,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             triggered.set(true);
 
             aggregateResult.getSubresults().clear();
+            // TODO: Could Subtasks be from previous runs?
+            // TODO: Could we miss runs where all subtasks are completed?
             List<? extends Task> allSubtasks = freshRootTask.listSubtasksDeeply(waitResult);
             for (Task subtask : allSubtasks) {
                 try {
@@ -3446,6 +3493,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             List<? extends Task> subtasks = TaskUtil.getLeafTasks(allSubtasks);
             Task failedTask = null;
             for (Task subtask : subtasks) {
+                /*
+                var subtaskStartTime = or0(subtask.getLastRunStartTimestamp());
+                if (subtaskStartTime < lastRunStartTimestamp) {
+                    display("Subtask was started before we started waiting: " + description, subtask);
+                    return false;
+                }
+                */
+
                 if (subtask.getSchedulingState() == TaskSchedulingStateType.READY) {
                     display("Found ready subtasks during waiting => continuing waiting: " + description, subtask);
                     return false;
@@ -3482,8 +3537,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
             return true; // all executive subtasks are closed
         };
-        IntegrationTestTools.waitFor("Waiting for task tree " + origRootTask + " next finished run", checker, timeout, DEFAULT_TASK_TREE_SLEEP_TIME);
 
+        IntegrationTestTools.waitFor("Waiting for task tree " + origRootTask + " next finished run", checker, timeout, DEFAULT_TASK_TREE_SLEEP_TIME);
         Task freshTask = taskManager.getTaskWithResult(origRootTask.getOid(), waitResult);
         logger.debug("Final root task:\n{}", freshTask.debugDump());
         aggregateResult.computeStatusIfUnknown();
@@ -4602,6 +4657,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return null;
     }
 
+    @Override
     protected void customizeTask(Task task) {
         PrismObject<UserType> defaultActor = getDefaultActor();
         if (defaultActor != null) {
@@ -5075,6 +5131,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
+    @Override
     protected void assertEncryptedUserPassword(String userOid, String expectedClearPassword) throws EncryptionException, ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName() + ".assertEncryptedUserPassword");
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
@@ -5083,6 +5140,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertEncryptedUserPassword(user, expectedClearPassword);
     }
 
+    @Override
     protected void assertEncryptedUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException {
         UserType userType = user.asObjectable();
         ProtectedStringType protectedActualPassword = userType.getCredentials().getPassword().getValue();
@@ -5909,6 +5967,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return assertResource(resource, message);
     }
 
+    @Override
     protected ResourceAsserter<Void> assertResource(PrismObject<ResourceType> resource, String message) {
         ResourceAsserter<Void> asserter = ResourceAsserter.forResource(resource, message);
         initializeAsserter(asserter);

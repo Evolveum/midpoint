@@ -1,0 +1,14 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="411258e6-191b-4957-95d3-86b6e25024d3">
+    <name>holder-of-role-being-disabled-with-approval</name>
+    <assignment>
+        <targetRef oid="04c8d15f-da0a-4553-9b43-af835a7c8b82" type="RoleType"/>
+    </assignment>
+</user>

@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.component.FocusOperationalButtonsPanel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.component.UserOperationalButtonsPanel;
 
@@ -97,7 +96,7 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
 
     @Override
     protected UserDetailsModel createObjectDetailsModels(PrismObject<UserType> object) {
-        return new UserDetailsModel(createPrismObejctModel(object), this);
+        return new UserDetailsModel(createPrismObjectModel(object), this);
     }
 
     private boolean delegationChangesExist = false;

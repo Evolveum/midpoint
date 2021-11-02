@@ -521,4 +521,12 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         super.sendOid(consumer);
         return this;
     }
+
+    public TaskAsserter<RA> assertObjectRef(@NotNull String expectedOid, @NotNull QName expectedType) {
+        ObjectReferenceType objectRef = getObjectable().getObjectRef();
+        assertThat(objectRef).as("objectRef").isNotNull();
+        assertThat(objectRef.getOid()).as("objectRef.oid").isEqualTo(expectedOid);
+        assertThat(objectRef.getType()).as("objectRef.type").isEqualTo(expectedType);
+        return this;
+    }
 }
