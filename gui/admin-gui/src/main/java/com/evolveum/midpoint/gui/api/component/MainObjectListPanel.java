@@ -80,7 +80,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
     private static final Trace LOGGER = TraceManager.getTrace(MainObjectListPanel.class);
 
-    private static final String DOT_CLASS = PageUsers.class.getName() + ".";
+    private static final String DOT_CLASS = MainObjectListPanel.class.getName() + ".";
     private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
 
@@ -477,7 +477,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             return;
         }
 
-        OperationResult result = new OperationResult(OPERATION_DELETE_OBJECTS);
+        OperationResult result = new OperationResult(objects.size() == 1 ? OPERATION_DELETE_OBJECT: OPERATION_DELETE_OBJECTS);
         for (O object : objects) {
             OperationResult subResult = result.createSubresult(OPERATION_DELETE_OBJECT);
             try {
