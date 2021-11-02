@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.intest.tasks;
 
 import java.io.File;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -28,15 +30,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 public class TestReconTask extends AbstractInitializedModelIntegrationTest {
 
     static final File TEST_DIR = new File("src/test/resources/tasks/recon");
-    private static final int ERRORS_ACCOUNTS = 30;
 
+    @SuppressWarnings("FieldCanBeLocal")
     private DummyInterruptedSyncResource interruptedSyncResource;
 
     private static final TestResource<TaskType> TASK_RECONCILIATION = new TestResource<>(TEST_DIR, "task-reconciliation.xml", "1cf4e4fd-7648-4f83-bed4-78bd5d30d2a3");
 
     private static final String USER_FORMAT = "user-";
 
-    private static final int ERROR_ON = 4;
     private static final int USERS = 5;
 
     @Override
@@ -59,7 +60,7 @@ public class TestReconTask extends AbstractInitializedModelIntegrationTest {
         return getReconciliationTask().oid;
     }
 
-    int getWorkerThreads() {
+    private int getWorkerThreads() {
         return 0;
     }
 
@@ -82,7 +83,8 @@ public class TestReconTask extends AbstractInitializedModelIntegrationTest {
         assertTaskTree(getReconciliationTaskOid(), "after")
                 .display()
                 .assertSuccess()
-                .assertClosed();
+                .assertClosed()
+                .assertObjectRef(DummyInterruptedSyncResource.OID, ResourceType.COMPLEX_TYPE); // MID-7312
 
         assertPerformance(getReconciliationTaskOid(), "after")
                 .display()

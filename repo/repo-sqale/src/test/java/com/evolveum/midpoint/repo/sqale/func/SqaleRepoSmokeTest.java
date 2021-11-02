@@ -401,7 +401,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         RepositoryQueryDiagRequest request = new RepositoryQueryDiagRequest();
         request.setType(UserType.class);
         request.setQuery(prismContext.queryFor(UserType.class)
-                .item(UserType.F_NAME).eq(name)
+                .item(UserType.F_NAME).eqPoly(name)
                 .build());
         RepositoryQueryDiagResponse response = repositoryService.executeQueryDiagnostics(request, result);
 

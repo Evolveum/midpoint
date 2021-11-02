@@ -16,7 +16,6 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>closed</executionState> <!-- run by the test code -->
 
-    <objectRef oid="10000000-0000-0000-0000-00000000a204" type="ResourceType"/>
     <activity>
         <work>
             <reconciliation>
@@ -28,19 +27,8 @@
                 </resourceObjects>
             </reconciliation>
         </work>
-        <tailoring>
-            <change>
-                <reference>resourceObjects</reference>
-                <distribution>
-                    <subtask/>
-                </distribution>
-            </change>
-            <change>
-                <reference>remainingShadows</reference>
-                <distribution>
-                    <subtask/>
-                </distribution>
-            </change>
-        </tailoring>
+        <distribution>
+            <subtasks/>
+        </distribution>
     </activity>
 </task>

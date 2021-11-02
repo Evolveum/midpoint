@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.wf.impl.assignments;
 
 import static java.util.Collections.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
@@ -90,11 +91,13 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
     private static final TestResource<RoleType> ROLE_BEING_ENABLED = new TestResource<>(TEST_RESOURCE_DIR, "role-being-enabled.xml", "4fcf187a-09b7-4d32-b998-9cd978195a82");
     private static final TestResource<UserType> USER_HOLDER_OF_ROLE_BEING_ENABLED = new TestResource<>(TEST_RESOURCE_DIR, "user-holder-of-role-being-enabled.xml", "c6f7ddbe-a596-4a53-8acf-e03282f3da33");
-    private static final TestResource<UserType> USER_APPROVER_OF_ROLE_BEING_ENABLED = new TestResource<>(TEST_RESOURCE_DIR, "user-approver-of-role-being-enabled.xml", "39764050-fbd8-4746-a8a6-cb9141ae31ae");
+    private static final TestResource<UserType> USER_APPROVER_OF_ROLE_BEING_ENABLED_AND_DISABLED = new TestResource<>(TEST_RESOURCE_DIR, "user-approver-of-role-being-enabled-and-disabled.xml", "39764050-fbd8-4746-a8a6-cb9141ae31ae");
 
     private static final TestResource<RoleType> ROLE_BEING_DISABLED = new TestResource<>(TEST_RESOURCE_DIR, "role-being-disabled.xml", "4835efdc-6fee-438b-bb09-fd428a200dbb");
     private static final TestResource<UserType> USER_HOLDER_OF_ROLE_BEING_DISABLED = new TestResource<>(TEST_RESOURCE_DIR, "user-holder-of-role-being-disabled.xml", "586fc857-71d8-4906-a61d-46ba7941be00");
-    private static final TestResource<UserType> USER_APPROVER_OF_ROLE_BEING_DISABLED = new TestResource<>(TEST_RESOURCE_DIR, "user-approver-of-role-being-disabled.xml", "d4b1fa25-4436-4f0c-a2a1-727a536b60e3");
+
+    private static final TestResource<RoleType> ROLE_BEING_DISABLED_WITH_APPROVAL = new TestResource<>(TEST_RESOURCE_DIR, "role-being-disabled-with-approval.xml", "04c8d15f-da0a-4553-9b43-af835a7c8b82");
+    private static final TestResource<UserType> USER_HOLDER_OF_ROLE_BEING_DISABLED_WITH_APPROVAL = new TestResource<>(TEST_RESOURCE_DIR, "user-holder-of-role-being-disabled-with-approval.xml", "411258e6-191b-4957-95d3-86b6e25024d3");
 
     private static final File USER_LEAD21_FILE = new File(TEST_RESOURCE_DIR, "user-lead21.xml");
     private static final File USER_LEAD22_FILE = new File(TEST_RESOURCE_DIR, "user-lead22.xml");
@@ -160,11 +163,14 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         userSecurityApproverDeputyLimitedOid = addAndRecomputeUser(USER_SECURITY_APPROVER_DEPUTY_LIMITED_FILE, initTask, initResult);
 
         repoAdd(ROLE_BEING_ENABLED, initResult);
+        addObject(USER_HOLDER_OF_ROLE_BEING_ENABLED, initTask, initResult);
         repoAdd(ROLE_BEING_DISABLED, initResult);
-        addObject(USER_HOLDER_OF_ROLE_BEING_ENABLED, initTask, initResult); // import this one first to avoid approving
-        addObject(USER_APPROVER_OF_ROLE_BEING_ENABLED, initTask, initResult);
-        addObject(USER_HOLDER_OF_ROLE_BEING_DISABLED, initTask, initResult); // import this one first to avoid approving
-        addObject(USER_APPROVER_OF_ROLE_BEING_DISABLED, initTask, initResult);
+        addObject(USER_HOLDER_OF_ROLE_BEING_DISABLED, initTask, initResult);
+        repoAdd(ROLE_BEING_DISABLED_WITH_APPROVAL, initResult);
+        addObject(USER_HOLDER_OF_ROLE_BEING_DISABLED_WITH_APPROVAL, initTask, initResult);
+
+        // import this one last to avoid approvals at this stage
+        addObject(USER_APPROVER_OF_ROLE_BEING_ENABLED_AND_DISABLED, initTask, initResult);
 
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_JSON);
     }
@@ -1083,6 +1089,62 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         assertEquals("Wrong # of cases", 0, cases.size());
 
         assertUser(USER_HOLDER_OF_ROLE_BEING_DISABLED.oid, "after")
+                .assignments()
+                    .single()
+                        .activation()
+                            .assertValidTo(newValidTo)
+                            .assertEffectiveStatus(ActivationStatusType.DISABLED);
+    }
+
+    /**
+     * An assignment is disabled by setting validTo property to an old value.
+     * This should trigger an approval because of `modify` operation in the policy rule.
+     *
+     * MID-7317
+     */
+    @Test
+    public void test850DisableAssignmentWithApproval() throws Exception {
+        login(userAdministrator);
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+
+        UserType userBefore = getUserFromRepo(USER_HOLDER_OF_ROLE_BEING_DISABLED_WITH_APPROVAL.oid).asObjectable();
+
+        when();
+        XMLGregorianCalendar newValidTo = XmlTypeConverter.fromNow("-P1D");
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT,
+                        userBefore.getAssignment().get(0).getId(),
+                        AssignmentType.F_ACTIVATION,
+                        ActivationType.F_VALID_TO)
+                .replace(newValidTo)
+                .asObjectDelta(USER_HOLDER_OF_ROLE_BEING_DISABLED_WITH_APPROVAL.oid);
+        executeChanges(delta, null, task, result);
+
+        then();
+        assertInProgress(result);
+
+        List<PrismObject<CaseType>> cases =
+                getCasesForObject(USER_HOLDER_OF_ROLE_BEING_DISABLED_WITH_APPROVAL.oid, UserType.COMPLEX_TYPE, null, task, result);
+        assertEquals("Wrong # of cases", 2, cases.size());
+        CaseType approvalCase = getApprovalCase(cases);
+        displayDumpable("Approval case", approvalCase);
+        assertThat(approvalCase.getWorkItem()).as("work items").hasSize(1);
+
+        assertUser(USER_HOLDER_OF_ROLE_BEING_DISABLED_WITH_APPROVAL.oid, "after")
+                .assignments()
+                    .single()
+                        .activation()
+                            .assertValidTo((XMLGregorianCalendar) null)
+                            .assertEffectiveStatus(ActivationStatusType.ENABLED);
+
+        when("approving the operation");
+        approveWorkItem(approvalCase.getWorkItem().get(0), task, result);
+
+        then("approving the operation");
+        waitForCaseClose(getRootCase(cases));
+
+        assertUser(USER_HOLDER_OF_ROLE_BEING_DISABLED_WITH_APPROVAL.oid, "after")
                 .assignments()
                     .single()
                         .activation()
