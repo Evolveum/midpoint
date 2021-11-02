@@ -500,6 +500,8 @@ CREATE INDEX m_generic_object_validFrom_idx ON m_generic_object (validFrom);
 CREATE INDEX m_generic_object_validTo_idx ON m_generic_object (validTo);
 CREATE INDEX m_generic_object_fullTextInfo_idx
     ON m_generic_object USING gin (fullTextInfo gin_trgm_ops);
+CREATE INDEX m_generic_object_createTimestamp_idx ON m_generic_object (createTimestamp);
+CREATE INDEX m_generic_object_modifyTimestamp_idx ON m_generic_object (modifyTimestamp);
 -- endregion
 
 -- region USER related tables
@@ -551,6 +553,8 @@ CREATE INDEX m_user_organizationUnits_idx ON m_user USING gin(organizationUnits)
 CREATE INDEX m_user_validFrom_idx ON m_user (validFrom);
 CREATE INDEX m_user_validTo_idx ON m_user (validTo);
 CREATE INDEX m_user_fullTextInfo_idx ON m_user USING gin (fullTextInfo gin_trgm_ops);
+CREATE INDEX m_user_createTimestamp_idx ON m_user (createTimestamp);
+CREATE INDEX m_user_modifyTimestamp_idx ON m_user (modifyTimestamp);
 -- endregion
 
 -- region ROLE related tables
@@ -599,6 +603,8 @@ CREATE INDEX m_role_identifier_idx ON m_role (identifier);
 CREATE INDEX m_role_validFrom_idx ON m_role (validFrom);
 CREATE INDEX m_role_validTo_idx ON m_role (validTo);
 CREATE INDEX m_role_fullTextInfo_idx ON m_role USING gin (fullTextInfo gin_trgm_ops);
+CREATE INDEX m_role_createTimestamp_idx ON m_role (createTimestamp);
+CREATE INDEX m_role_modifyTimestamp_idx ON m_role (modifyTimestamp);
 
 -- Represents ServiceType, see https://wiki.evolveum.com/display/midPoint/Service+Account+Management
 CREATE TABLE m_service (
@@ -623,6 +629,8 @@ CREATE INDEX m_service_identifier_idx ON m_service (identifier);
 CREATE INDEX m_service_validFrom_idx ON m_service (validFrom);
 CREATE INDEX m_service_validTo_idx ON m_service (validTo);
 CREATE INDEX m_service_fullTextInfo_idx ON m_service USING gin (fullTextInfo gin_trgm_ops);
+CREATE INDEX m_service_createTimestamp_idx ON m_service (createTimestamp);
+CREATE INDEX m_service_modifyTimestamp_idx ON m_service (modifyTimestamp);
 
 -- Represents ArchetypeType, see https://wiki.evolveum.com/display/midPoint/Archetypes
 CREATE TABLE m_archetype (
@@ -646,6 +654,8 @@ CREATE INDEX m_archetype_identifier_idx ON m_archetype (identifier);
 CREATE INDEX m_archetype_validFrom_idx ON m_archetype (validFrom);
 CREATE INDEX m_archetype_validTo_idx ON m_archetype (validTo);
 CREATE INDEX m_archetype_fullTextInfo_idx ON m_archetype USING gin (fullTextInfo gin_trgm_ops);
+CREATE INDEX m_archetype_createTimestamp_idx ON m_archetype (createTimestamp);
+CREATE INDEX m_archetype_modifyTimestamp_idx ON m_archetype (modifyTimestamp);
 -- endregion
 
 -- region Organization hierarchy support
@@ -674,6 +684,8 @@ CREATE INDEX m_org_identifier_idx ON m_org (identifier);
 CREATE INDEX m_org_validFrom_idx ON m_org (validFrom);
 CREATE INDEX m_org_validTo_idx ON m_org (validTo);
 CREATE INDEX m_org_fullTextInfo_idx ON m_org USING gin (fullTextInfo gin_trgm_ops);
+CREATE INDEX m_org_createTimestamp_idx ON m_org (createTimestamp);
+CREATE INDEX m_org_modifyTimestamp_idx ON m_org (modifyTimestamp);
 
 -- stores ObjectType/parentOrgRef
 CREATE TABLE m_ref_object_parent_org (
@@ -804,6 +816,8 @@ CREATE INDEX m_resource_nameOrig_idx ON m_resource (nameOrig);
 CREATE UNIQUE INDEX m_resource_nameNorm_key ON m_resource (nameNorm);
 CREATE INDEX m_resource_subtypes_idx ON m_resource USING gin(subtypes);
 CREATE INDEX m_resource_fullTextInfo_idx ON m_resource USING gin (fullTextInfo gin_trgm_ops);
+CREATE INDEX m_resource_createTimestamp_idx ON m_resource (createTimestamp);
+CREATE INDEX m_resource_modifyTimestamp_idx ON m_resource (modifyTimestamp);
 
 -- stores ResourceType/business/approverRef
 CREATE TABLE m_ref_resource_business_configuration_approver (
@@ -860,6 +874,8 @@ CREATE INDEX m_shadow_ext_idx ON m_shadow USING gin(ext);
 CREATE INDEX m_shadow_attributes_idx ON m_shadow USING gin(attributes);
 CREATE INDEX m_shadow_fullTextInfo_idx ON m_shadow USING gin (fullTextInfo gin_trgm_ops);
 CREATE INDEX m_shadow_resourceRefTargetOid_idx ON m_shadow (resourceRefTargetOid);
+CREATE INDEX m_shadow_createTimestamp_idx ON m_shadow (createTimestamp);
+CREATE INDEX m_shadow_modifyTimestamp_idx ON m_shadow (modifyTimestamp);
 
 /*
 TODO: reconsider, especially boolean things like dead (perhaps WHERE in other indexes?)
@@ -933,6 +949,8 @@ CREATE INDEX m_security_policy_policySituation_idx
     ON m_security_policy USING gin(policysituations gin__int_ops);
 CREATE INDEX m_security_policy_fullTextInfo_idx
     ON m_security_policy USING gin (fullTextInfo gin_trgm_ops);
+CREATE INDEX m_security_policy_createTimestamp_idx ON m_security_policy (createTimestamp);
+CREATE INDEX m_security_policy_modifyTimestamp_idx ON m_security_policy (modifyTimestamp);
 
 -- Represents ObjectCollectionType, see https://wiki.evolveum.com/display/midPoint/Object+Collections+and+Views+Configuration
 CREATE TABLE m_object_collection (
@@ -956,7 +974,8 @@ CREATE INDEX m_object_collection_policySituation_idx
     ON m_object_collection USING gin(policysituations gin__int_ops);
 CREATE INDEX m_object_collection_fullTextInfo_idx
     ON m_object_collection USING gin (fullTextInfo gin_trgm_ops);
-
+CREATE INDEX m_object_collection_createTimestamp_idx ON m_object_collection (createTimestamp);
+CREATE INDEX m_object_collection_modifyTimestamp_idx ON m_object_collection (modifyTimestamp);
 
 -- Represents DashboardType, see https://wiki.evolveum.com/display/midPoint/Dashboard+configuration
 CREATE TABLE m_dashboard (
@@ -978,6 +997,8 @@ CREATE UNIQUE INDEX m_dashboard_nameNorm_key ON m_dashboard (nameNorm);
 CREATE INDEX m_dashboard_subtypes_idx ON m_dashboard USING gin(subtypes);
 CREATE INDEX m_dashboard_policySituation_idx
     ON m_dashboard USING gin(policysituations gin__int_ops);
+CREATE INDEX m_dashboard_createTimestamp_idx ON m_dashboard (createTimestamp);
+CREATE INDEX m_dashboard_modifyTimestamp_idx ON m_dashboard (modifyTimestamp);
 
 -- Represents ValuePolicyType
 CREATE TABLE m_value_policy (
@@ -999,6 +1020,8 @@ CREATE UNIQUE INDEX m_value_policy_nameNorm_key ON m_value_policy (nameNorm);
 CREATE INDEX m_value_policy_subtypes_idx ON m_value_policy USING gin(subtypes);
 CREATE INDEX m_value_policy_policySituation_idx
     ON m_value_policy USING gin(policysituations gin__int_ops);
+CREATE INDEX m_value_policy_createTimestamp_idx ON m_value_policy (createTimestamp);
+CREATE INDEX m_value_policy_modifyTimestamp_idx ON m_value_policy (modifyTimestamp);
 
 -- Represents ReportType, see https://wiki.evolveum.com/display/midPoint/Report+Configuration
 CREATE TABLE m_report (
@@ -1019,6 +1042,8 @@ CREATE INDEX m_report_nameOrig_idx ON m_report (nameOrig);
 CREATE UNIQUE INDEX m_report_nameNorm_key ON m_report (nameNorm);
 CREATE INDEX m_report_subtypes_idx ON m_report USING gin(subtypes);
 CREATE INDEX m_report_policySituation_idx ON m_report USING gin(policysituations gin__int_ops);
+CREATE INDEX m_report_createTimestamp_idx ON m_report (createTimestamp);
+CREATE INDEX m_report_modifyTimestamp_idx ON m_report (modifyTimestamp);
 
 -- Represents ReportDataType, see also m_report above
 CREATE TABLE m_report_data (
@@ -1043,6 +1068,8 @@ CREATE INDEX m_report_data_nameNorm_idx ON m_report_data (nameNorm); -- not uniq
 CREATE INDEX m_report_data_subtypes_idx ON m_report_data USING gin(subtypes);
 CREATE INDEX m_report_data_policySituation_idx
     ON m_report_data USING gin(policysituations gin__int_ops);
+CREATE INDEX m_report_data_createTimestamp_idx ON m_report_data (createTimestamp);
+CREATE INDEX m_report_data_modifyTimestamp_idx ON m_report_data (modifyTimestamp);
 
 -- Represents LookupTableType, see https://wiki.evolveum.com/display/midPoint/Lookup+Tables
 CREATE TABLE m_lookup_table (
@@ -1064,6 +1091,8 @@ CREATE UNIQUE INDEX m_lookup_table_nameNorm_key ON m_lookup_table (nameNorm);
 CREATE INDEX m_lookup_table_subtypes_idx ON m_lookup_table USING gin(subtypes);
 CREATE INDEX m_lookup_table_policySituation_idx
     ON m_lookup_table USING gin(policysituations gin__int_ops);
+CREATE INDEX m_lookup_table_createTimestamp_idx ON m_lookup_table (createTimestamp);
+CREATE INDEX m_lookup_table_modifyTimestamp_idx ON m_lookup_table (modifyTimestamp);
 
 -- Represents LookupTableRowType, see also m_lookup_table above
 CREATE TABLE m_lookup_table_row (
@@ -1117,6 +1146,8 @@ CREATE INDEX m_connector_nameNorm_idx ON m_connector (nameNorm);
 CREATE INDEX m_connector_subtypes_idx ON m_connector USING gin(subtypes);
 CREATE INDEX m_connector_policySituation_idx
     ON m_connector USING gin(policysituations gin__int_ops);
+CREATE INDEX m_connector_createTimestamp_idx ON m_connector (createTimestamp);
+CREATE INDEX m_connector_modifyTimestamp_idx ON m_connector (modifyTimestamp);
 
 -- Represents ConnectorHostType, see https://wiki.evolveum.com/display/midPoint/Connector+Server
 CREATE TABLE m_connector_host (
@@ -1140,6 +1171,8 @@ CREATE UNIQUE INDEX m_connector_host_nameNorm_key ON m_connector_host (nameNorm)
 CREATE INDEX m_connector_host_subtypes_idx ON m_connector_host USING gin(subtypes);
 CREATE INDEX m_connector_host_policySituation_idx
     ON m_connector_host USING gin(policysituations gin__int_ops);
+CREATE INDEX m_connector_host_createTimestamp_idx ON m_connector_host (createTimestamp);
+CREATE INDEX m_connector_host_modifyTimestamp_idx ON m_connector_host (modifyTimestamp);
 
 -- Represents persistent TaskType, see https://wiki.evolveum.com/display/midPoint/Task+Manager
 CREATE TABLE m_task (
@@ -1191,6 +1224,8 @@ CREATE INDEX m_task_subtypes_idx ON m_task USING gin(subtypes);
 CREATE INDEX m_task_policySituation_idx ON m_task USING gin(policysituations gin__int_ops);
 CREATE INDEX m_task_ext_idx ON m_task USING gin(ext);
 CREATE INDEX m_task_fullTextInfo_idx ON m_task USING gin (fullTextInfo gin_trgm_ops);
+CREATE INDEX m_task_createTimestamp_idx ON m_task (createTimestamp);
+CREATE INDEX m_task_modifyTimestamp_idx ON m_task (modifyTimestamp);
 -- endregion
 
 -- region cases
@@ -1234,6 +1269,8 @@ CREATE INDEX m_case_targetRefTargetOid_idx ON m_case(targetRefTargetOid);
 CREATE INDEX m_case_parentRefTargetOid_idx ON m_case(parentRefTargetOid);
 CREATE INDEX m_case_requestorRefTargetOid_idx ON m_case(requestorRefTargetOid);
 CREATE INDEX m_case_closeTimestamp_idx ON m_case(closeTimestamp);
+CREATE INDEX m_case_createTimestamp_idx ON m_case (createTimestamp);
+CREATE INDEX m_case_modifyTimestamp_idx ON m_case (modifyTimestamp);
 
 CREATE TABLE m_case_wi (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
@@ -1255,7 +1292,11 @@ CREATE TABLE m_case_wi (
 )
     INHERITS(m_container);
 
--- TODO INDEXES, old repo had no indexes either
+CREATE INDEX m_case_wi_createTimestamp_idx ON m_case_wi (createTimestamp);
+CREATE INDEX m_case_wi_closeTimestamp_idx ON m_case_wi (closeTimestamp);
+CREATE INDEX m_case_wi_deadline_idx ON m_case_wi (deadline);
+CREATE INDEX m_case_wi_originalAssigneeRefTargetOid_idx ON m_case_wi (originalAssigneeRefTargetOid);
+CREATE INDEX m_case_wi_performerRefTargetOid_idx ON m_case_wi (performerRefTargetOid);
 
 -- stores workItem/assigneeRef
 CREATE TABLE m_case_wi_assignee (
@@ -1322,6 +1363,8 @@ CREATE INDEX m_access_cert_definition_policySituation_idx
 CREATE INDEX m_access_cert_definition_ext_idx ON m_access_cert_definition USING gin(ext);
 CREATE INDEX m_access_cert_definition_fullTextInfo_idx
     ON m_access_cert_definition USING gin (fullTextInfo gin_trgm_ops);
+CREATE INDEX m_access_cert_definition_createTimestamp_idx ON m_access_cert_definition (createTimestamp);
+CREATE INDEX m_access_cert_definition_modifyTimestamp_idx ON m_access_cert_definition (modifyTimestamp);
 
 CREATE TABLE m_access_cert_campaign (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -1357,6 +1400,8 @@ CREATE INDEX m_access_cert_campaign_policySituation_idx
 CREATE INDEX m_access_cert_campaign_ext_idx ON m_access_cert_campaign USING gin(ext);
 CREATE INDEX m_access_cert_campaign_fullTextInfo_idx
     ON m_access_cert_campaign USING gin (fullTextInfo gin_trgm_ops);
+CREATE INDEX m_access_cert_campaign_createTimestamp_idx ON m_access_cert_campaign (createTimestamp);
+CREATE INDEX m_access_cert_campaign_modifyTimestamp_idx ON m_access_cert_campaign (modifyTimestamp);
 
 CREATE TABLE m_access_cert_case (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
@@ -1492,6 +1537,8 @@ ALTER TABLE m_object_template ADD CONSTRAINT m_object_template_nameNorm_key UNIQ
 CREATE INDEX m_object_template_subtypes_idx ON m_object_template USING gin(subtypes);
 CREATE INDEX m_object_template_policySituation_idx
     ON m_object_template USING gin(policysituations gin__int_ops);
+CREATE INDEX m_object_template_createTimestamp_idx ON m_object_template (createTimestamp);
+CREATE INDEX m_object_template_modifyTimestamp_idx ON m_object_template (modifyTimestamp);
 
 -- stores ObjectTemplateType/includeRef
 CREATE TABLE m_ref_include (
@@ -1548,6 +1595,8 @@ CREATE INDEX m_sequence_nameOrig_idx ON m_sequence (nameOrig);
 ALTER TABLE m_sequence ADD CONSTRAINT m_sequence_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_sequence_subtypes_idx ON m_sequence USING gin(subtypes);
 CREATE INDEX m_sequence_policySituation_idx ON m_sequence USING gin(policysituations gin__int_ops);
+CREATE INDEX m_sequence_createTimestamp_idx ON m_sequence (createTimestamp);
+CREATE INDEX m_sequence_modifyTimestamp_idx ON m_sequence (modifyTimestamp);
 
 -- Represents FormType, see https://wiki.evolveum.com/display/midPoint/Custom+forms
 CREATE TABLE m_form (
@@ -1568,6 +1617,8 @@ CREATE INDEX m_form_nameOrig_idx ON m_form (nameOrig);
 ALTER TABLE m_form ADD CONSTRAINT m_form_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_form_subtypes_idx ON m_form USING gin(subtypes);
 CREATE INDEX m_form_policySituation_idx ON m_form USING gin(policysituations gin__int_ops);
+CREATE INDEX m_form_createTimestamp_idx ON m_form (createTimestamp);
+CREATE INDEX m_form_modifyTimestamp_idx ON m_form (modifyTimestamp);
 -- endregion
 
 -- region Assignment/Inducement table
@@ -1637,6 +1688,8 @@ CREATE INDEX m_assignment_targetRefTargetOid_idx ON m_assignment (targetRefTarge
 CREATE INDEX m_assignment_tenantRefTargetOid_idx ON m_assignment (tenantRefTargetOid);
 CREATE INDEX m_assignment_orgRefTargetOid_idx ON m_assignment (orgRefTargetOid);
 CREATE INDEX m_assignment_resourceRefTargetOid_idx ON m_assignment (resourceRefTargetOid);
+CREATE INDEX m_assignment_createTimestamp_idx ON m_assignment (createTimestamp);
+CREATE INDEX m_assignment_modifyTimestamp_idx ON m_assignment (modifyTimestamp);
 
 -- stores assignment/metadata/createApproverRef
 CREATE TABLE m_assignment_ref_create_approver (
@@ -1738,19 +1791,10 @@ ALTER TABLE m_ext_item ADD CONSTRAINT m_ext_item_key
     UNIQUE (itemName, holderType, valueType, cardinality);
 -- endregion
 
-/*
-TODO: further indexes
-CREATE INDEX iObjectCreateTimestamp
-  ON m_object (createTimestamp);
-CREATE INDEX iObjectLifecycleState
-  ON m_object (lifecycleState);
-CREATE INDEX iFocusAdministrative
-  ON m_focus (administrativeStatus);
-CREATE INDEX iFocusEffective
-  ON m_focus (effectiveStatus);
-CREATE INDEX iLocality
-  ON m_focus (localityOrig);
-*/
+-- INDEXING:
+-- More indexes is possible, but for low-variability columns like lifecycleState or administrative/effectiveStatus
+-- better use them in WHERE as needed when slow query appear: https://www.postgresql.org/docs/current/indexes-partial.html
+-- Also see: https://docs.evolveum.com/midpoint/reference/repository/native-postgresql/db-maintenance/
 
 -- region Schema versioning and upgrading
 /*
@@ -1786,6 +1830,8 @@ BEGIN
         ELSIF changeNumber > lastChange THEN
             -- even with force we never want to set lower-or-equal change number, hence the IF above
             UPDATE m_global_metadata SET value = changeNumber WHERE name = 'schemaChangeNumber';
+        ELSE
+            RAISE NOTICE 'Last change number left unchanged: #%', lastChange;
         END IF;
         COMMIT;
     ELSE
@@ -1795,7 +1841,4 @@ END $$;
 -- endregion
 
 -- Initializing the last change number used in postgres-new-upgrade.sql.
-call apply_change(0, $$ SELECT 1 $$);
-
--- For Quartz tables see:
--- repo/task-quartz-impl/src/main/resources/com/evolveum/midpoint/task/quartzimpl/execution/tables_postgres.sql
+call apply_change(0, $$ SELECT 1 $$, true);
