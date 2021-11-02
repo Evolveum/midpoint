@@ -108,7 +108,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                 try {
                     assignmentHolder = getPrismContext().createObject(PageAssignmentHolderDetails.this.getType());
                 } catch (Throwable e) {
-                    LOGGER.error("Cannot create prism obejct for {}. Using object from page model.", PageAssignmentHolderDetails.this.getType());
+                    LOGGER.error("Cannot create prism object for {}. Using object from page model.", PageAssignmentHolderDetails.this.getType());
                     assignmentHolder = getObjectDetailsModels().getObjectWrapperModel().getObject().getObjectOld().clone();
                 }
                 List<ObjectReferenceType> archetypeRef = ObjectCollectionViewUtil.getArchetypeReferencesList(collectionViews);

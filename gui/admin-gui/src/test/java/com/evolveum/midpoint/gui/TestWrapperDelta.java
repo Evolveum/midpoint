@@ -402,10 +402,10 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         //THEN
         SystemConfigurationType systemConfigAfter = getSystemConfiguration();
         AdminGuiConfigurationType adminGuiConfig = systemConfigAfter.getAdminGuiConfiguration();
-        assertNotNull("Unexpecteed empty admin gui configuration.", adminGuiConfig);
+        assertNotNull("Unexpected empty admin gui configuration.", adminGuiConfig);
 
         GuiObjectListViewsType collectionViews = adminGuiConfig.getObjectCollectionViews();
-        assertNotNull("Unexpected empty gui obejct collection views", collectionViews);
+        assertNotNull("Unexpected empty gui object collection views", collectionViews);
 
         GuiObjectListViewType myRolesCollection = null;
         for (GuiObjectListViewType collectionView : collectionViews.getObjectCollectionView()) {
@@ -415,7 +415,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         }
 
         assertNotNull("Newly added collection view not present in system configuration, something strange", myRolesCollection);
-        assertFalse("c:RoleType should not be eqals to RoleType", RoleType.COMPLEX_TYPE.equals(myRolesCollection.getType()));
+        assertFalse("c:RoleType should not be equals to RoleType", RoleType.COMPLEX_TYPE.equals(myRolesCollection.getType()));
         assertTrue("c:RoleType should match RoleType", QNameUtil.match(RoleType.COMPLEX_TYPE, myRolesCollection.getType()));
 
     }

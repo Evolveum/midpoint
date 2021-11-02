@@ -85,8 +85,8 @@ public class PagePostAuthentication extends PageAbstractFlow {
     }
 
     @Override
-    public void initalizeModel() {
-        userModel = new LoadableModel<UserType>() {
+    public void initializeModel() {
+        userModel = new LoadableModel<>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -105,7 +105,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
                 } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
                         | CommunicationException | SecurityViolationException e) {
                     //TODO: nothing critical even by the error. for now just log it
-                    LoggingUtils.logException(LOGGER, "Cannot apply edited obejct definition", e);
+                    LoggingUtils.logException(LOGGER, "Cannot apply edited object definition", e);
                 }
 
                 return user.asObjectable();

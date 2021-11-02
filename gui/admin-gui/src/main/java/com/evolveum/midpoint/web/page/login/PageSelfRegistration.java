@@ -99,7 +99,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
     }
 
     @Override
-    public void initalizeModel() {
+    public void initializeModel() {
         final String userOid = getOidFromParams(pageParameters);
 
         userModel = new LoadableModel<UserType>(false) {

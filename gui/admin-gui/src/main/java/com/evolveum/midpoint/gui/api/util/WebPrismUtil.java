@@ -117,7 +117,7 @@ public class WebPrismUtil {
         try {
             return taskWrapper.findItem(ItemPath.create(absoluthPathToFind), wrapperClass);
         } catch (SchemaException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Cannot get obejct reference value, {}", e, e.getMessage());
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot get object reference value, {}", e, e.getMessage());
             return null;
         }
     }

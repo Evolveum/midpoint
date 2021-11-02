@@ -202,7 +202,7 @@ public class SystemInfoPanel extends BasePanel<SystemInfoPanel.SystemInfoDto> {
                 SystemInfoDto dto = getModelObject();
 
                 //this is quite strange situation and probably it should not occur,
-                // but sometimes, in the development mode the model obejct is null
+                // but sometimes, in the development mode the model object is null
                 if (dto == null) {
                     return null;
                 }

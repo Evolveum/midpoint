@@ -285,7 +285,7 @@ public class ResourceContentTabPanel extends BasePanel<PrismObject<ResourceType>
             refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(model.getObject(),
                     getPageBase().getPrismContext());
         } catch (SchemaException e) {
-            warn("Could not determine defined obejct classes for resource");
+            warn("Could not determine defined object classes for resource");
             return new ArrayList<>();
         }
         Collection<ObjectClassComplexTypeDefinition> defs = refinedSchema.getObjectClassDefinitions();

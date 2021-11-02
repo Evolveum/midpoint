@@ -132,7 +132,7 @@ public class SingleContainerPanel<C extends Containerable> extends BasePanel<Pri
         return null;
     }
 
-    //TODO copied from abstractObejctMainPanel
+    //TODO copied from abstractObjectMainPanel
     public <C extends Containerable> IModel<PrismContainerWrapper<C>> createContainerModel(ItemPath path) {
         return PrismContainerWrapperModel.fromContainerWrapper(getModel(), path);
     }

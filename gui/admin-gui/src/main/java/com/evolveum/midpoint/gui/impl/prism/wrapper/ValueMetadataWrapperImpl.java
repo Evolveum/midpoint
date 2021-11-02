@@ -526,7 +526,7 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
 
     @Override
     public <OW extends PrismObjectWrapper<O>, O extends ObjectType> OW findObjectWrapper() {
-        throw new UnsupportedOperationException("Find obejct wrapper not supported");
+        throw new UnsupportedOperationException("Find object wrapper not supported");
     }
 
     @Override

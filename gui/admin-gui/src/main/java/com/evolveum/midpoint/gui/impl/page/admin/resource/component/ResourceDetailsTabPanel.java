@@ -202,22 +202,22 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
 
             try {
                 for (ResourceObjectTypeDefinitionType objectType : objectTypes) {
-                    ObjectSynchronizationType obejctSynchronization = null;
+                    ObjectSynchronizationType objectSynchronization = null;
                     if (resource.getSynchronization() != null
                             && resource.getSynchronization().getObjectSynchronization() != null) {
 
-                        obejctSynchronization = getSynchronizationFor(objectType,
+                        objectSynchronization = getSynchronizationFor(objectType,
                                 resource.getSynchronization().getObjectSynchronization(),
                                 resource.asPrismObject());
 
                     }
                     List<TaskType> syncTask = new ArrayList<>();
-                    if (obejctSynchronization != null) {
-                        syncTask = getTaskFor(tasks, obejctSynchronization, resource.asPrismObject());
+                    if (objectSynchronization != null) {
+                        syncTask = getTaskFor(tasks, objectSynchronization, resource.asPrismObject());
                     }
 
                     ResourceConfigurationDto resourceConfig = new ResourceConfigurationDto(objectType,
-                            obejctSynchronization != null, syncTask);
+                            objectSynchronization != null, syncTask);
                     configs.add(resourceConfig);
                 }
             } catch (SchemaException ex) {
@@ -418,16 +418,16 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
     }
 
     private ObjectSynchronizationType getSynchronizationFor(
-            ResourceObjectTypeDefinitionType obejctTypesDefinition,
+            ResourceObjectTypeDefinitionType objectTypesDefinition,
             List<ObjectSynchronizationType> synchronizationPolicies, PrismObject<ResourceType> resource)
             throws SchemaException {
 
         for (ObjectSynchronizationType synchronizationPolicy : synchronizationPolicies) {
-            if (SynchronizationUtils.isPolicyApplicable(obejctTypesDefinition.getObjectClass(),
-                    obejctTypesDefinition.getKind(), obejctTypesDefinition.getIntent(), synchronizationPolicy,
+            if (SynchronizationUtils.isPolicyApplicable(objectTypesDefinition.getObjectClass(),
+                    objectTypesDefinition.getKind(), objectTypesDefinition.getIntent(), synchronizationPolicy,
                     resource)) {
                 if (synchronizationPolicy.getObjectClass().isEmpty()) {
-                    synchronizationPolicy.getObjectClass().add(obejctTypesDefinition.getObjectClass());
+                    synchronizationPolicy.getObjectClass().add(objectTypesDefinition.getObjectClass());
                 }
                 return synchronizationPolicy;
             }

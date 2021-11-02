@@ -1,13 +1,10 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.page.login;
-
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -15,6 +12,7 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.component.captcha.CaptchaPanel;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -49,7 +47,7 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
 
     protected PageParameters pageParameters;
 
-    public abstract void initalizeModel();
+    public abstract void initializeModel();
     public abstract IModel<UserType> getUserModel();
     public abstract boolean isCustomFormDefined();
     protected abstract WebMarkupContainer initStaticLayout();
@@ -60,7 +58,7 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
 
     public PageAbstractFlow(PageParameters pageParameters) {
         this.pageParameters = pageParameters;
-        initalizeModel();
+        initializeModel();
         initLayout();
     }
 
@@ -209,6 +207,7 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
     }
 
     protected DynamicFormPanel<UserType> getDynamicFormPanel() {
+        //noinspection unchecked
         return (DynamicFormPanel<UserType>) get(
                 createComponentPath(ID_MAIN_FORM, ID_CONTENT_AREA, ID_DYNAMIC_FORM));
     }

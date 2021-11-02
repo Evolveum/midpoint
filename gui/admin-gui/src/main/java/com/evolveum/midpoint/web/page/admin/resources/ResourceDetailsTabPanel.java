@@ -11,16 +11,6 @@ import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -37,10 +27,12 @@ import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -55,6 +47,7 @@ import com.evolveum.midpoint.web.component.box.BasicInfoBoxPanel;
 import com.evolveum.midpoint.web.component.box.InfoBoxPanel;
 import com.evolveum.midpoint.web.component.box.InfoBoxType;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -136,7 +129,6 @@ public class ResourceDetailsTabPanel extends BasePanel<PrismObject<ResourceType>
             }
         });
 
-
         List<ColumnTypeDto<String>> columns = Arrays.asList(
                 new ColumnTypeDto<>("ShadowType.intent", "objectTypeDefinition.intent",
                         ShadowType.F_INTENT.getLocalPart()),
@@ -202,22 +194,22 @@ public class ResourceDetailsTabPanel extends BasePanel<PrismObject<ResourceType>
 
         try {
             for (ResourceObjectTypeDefinitionType objectType : objectTypes) {
-                ObjectSynchronizationType obejctSynchronization = null;
+                ObjectSynchronizationType objectSynchronization = null;
                 if (resource.getSynchronization() != null
                         && resource.getSynchronization().getObjectSynchronization() != null) {
 
-                    obejctSynchronization = getSynchronizationFor(objectType,
+                    objectSynchronization = getSynchronizationFor(objectType,
                             resource.getSynchronization().getObjectSynchronization(),
                             resource.asPrismObject());
 
                 }
                 List<TaskType> syncTask = new ArrayList<>();
-                if (obejctSynchronization != null) {
-                    syncTask = getTaskFor(tasks, obejctSynchronization, resource.asPrismObject());
+                if (objectSynchronization != null) {
+                    syncTask = getTaskFor(tasks, objectSynchronization, resource.asPrismObject());
                 }
 
                 ResourceConfigurationDto resourceConfig = new ResourceConfigurationDto(objectType,
-                        obejctSynchronization != null, syncTask);
+                        objectSynchronization != null, syncTask);
                 configs.add(resourceConfig);
             }
         } catch (SchemaException ex) {
@@ -403,16 +395,16 @@ public class ResourceDetailsTabPanel extends BasePanel<PrismObject<ResourceType>
     }
 
     private ObjectSynchronizationType getSynchronizationFor(
-            ResourceObjectTypeDefinitionType obejctTypesDefinition,
+            ResourceObjectTypeDefinitionType objectTypesDefinition,
             List<ObjectSynchronizationType> synchronizationPolicies, PrismObject<ResourceType> resource)
             throws SchemaException {
 
         for (ObjectSynchronizationType synchronizationPolicy : synchronizationPolicies) {
-            if (SynchronizationUtils.isPolicyApplicable(obejctTypesDefinition.getObjectClass(),
-                    obejctTypesDefinition.getKind(), obejctTypesDefinition.getIntent(), synchronizationPolicy,
+            if (SynchronizationUtils.isPolicyApplicable(objectTypesDefinition.getObjectClass(),
+                    objectTypesDefinition.getKind(), objectTypesDefinition.getIntent(), synchronizationPolicy,
                     resource)) {
                 if (synchronizationPolicy.getObjectClass().isEmpty()) {
-                    synchronizationPolicy.getObjectClass().add(obejctTypesDefinition.getObjectClass());
+                    synchronizationPolicy.getObjectClass().add(objectTypesDefinition.getObjectClass());
                 }
                 return synchronizationPolicy;
             }

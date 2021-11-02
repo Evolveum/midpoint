@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,15 +12,15 @@ import java.util.List;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
-public class ResourceConfigurationDto implements Serializable{
+public class ResourceConfigurationDto implements Serializable {
 
     private ResourceObjectTypeDefinitionType objectTypeDefinition;
 
     private boolean sync;
     private List<TaskType> definedTasks;
 
-    public ResourceConfigurationDto(ResourceObjectTypeDefinitionType obejctTypeDefinition, boolean sync, List<TaskType> definedTasks) {
-        this.objectTypeDefinition = obejctTypeDefinition;
+    public ResourceConfigurationDto(ResourceObjectTypeDefinitionType objectTypeDefinition, boolean sync, List<TaskType> definedTasks) {
+        this.objectTypeDefinition = objectTypeDefinition;
         this.sync = sync;
         this.definedTasks = definedTasks;
     }
@@ -49,7 +49,5 @@ public class ResourceConfigurationDto implements Serializable{
     public void setObjectTypeDefinition(ResourceObjectTypeDefinitionType objectTypeDefinition) {
         this.objectTypeDefinition = objectTypeDefinition;
     }
-
-
 
 }
