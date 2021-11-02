@@ -6,10 +6,8 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
@@ -490,7 +488,7 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
             return availableTypesList;
         }
         if (CollectionUtils.isEmpty(availableTypesList)) {
-            return availableTypesList;
+            return allowedByAssignmentTargetSpecification.stream().map(spec -> ObjectTypes.getObjectTypeFromTypeQName(spec)).collect(Collectors.toList());
         }
         List<ObjectTypes> mergedList = new ArrayList<>();
         allowedByAssignmentTargetSpecification.forEach(qnameValue -> {

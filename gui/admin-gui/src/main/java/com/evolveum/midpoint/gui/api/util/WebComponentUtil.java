@@ -4222,7 +4222,9 @@ public final class WebComponentUtil {
                         defaultViewRelation.setObjectTypes(Collections.singletonList(objectType));
                         defaultViewRelation.setRelations(assignmentObjectRelation.getRelations());
                         defaultViewRelation.setDescription(assignmentObjectRelation.getDescription());
-                        resultList.add(defaultViewRelation);
+                        if (!assignmentObjectRelationAlreadyExists(resultList, defaultViewRelation)) {
+                            resultList.add(defaultViewRelation);
+                        }
                         assignmentObjectRelation.getArchetypeRefs().forEach(archetypeRef -> {
                             AssignmentObjectRelation newRelation = new AssignmentObjectRelation();
                             newRelation.setObjectTypes(Collections.singletonList(objectType));
@@ -4261,6 +4263,51 @@ public final class WebComponentUtil {
             }
         });
         return resultList;
+    }
+
+    /**
+     * it's expected that the list of AssignmentObjectRelation will be pre-prepared in such manner that each AssignmentObjectRelation
+     * in the list will contain only one object type, one relation and one archetypeRef. This methods compares only the first
+     * items in these lists
+     * @param list
+     * @param relation
+     * @return
+     */
+    public static boolean assignmentObjectRelationAlreadyExists(List<AssignmentObjectRelation> list, AssignmentObjectRelation relation) {
+        if (CollectionUtils.isEmpty(list)) {
+            return false;
+        }
+        for (AssignmentObjectRelation rel : list) {
+            if (CollectionUtils.isNotEmpty(rel.getRelations()) && CollectionUtils.isEmpty(relation.getRelations())
+                    || CollectionUtils.isEmpty(rel.getRelations()) && CollectionUtils.isNotEmpty(relation.getRelations())) {
+                return false;
+            }
+            if (CollectionUtils.isNotEmpty(rel.getRelations()) && CollectionUtils.isNotEmpty(relation.getRelations())) {
+                if (!rel.getRelations().get(0).equals(relation.getRelations().get(0))) {
+                    return false;
+                }
+            }
+            if (CollectionUtils.isNotEmpty(rel.getObjectTypes()) && CollectionUtils.isEmpty(relation.getObjectTypes())
+                    || CollectionUtils.isEmpty(rel.getObjectTypes()) && CollectionUtils.isNotEmpty(relation.getObjectTypes())) {
+                return false;
+            }
+            if (CollectionUtils.isNotEmpty(rel.getObjectTypes()) && CollectionUtils.isNotEmpty(relation.getObjectTypes())) {
+                if (!rel.getObjectTypes().get(0).equals(relation.getObjectTypes().get(0))) {
+                    return false;
+                }
+            }
+            if (CollectionUtils.isNotEmpty(rel.getArchetypeRefs()) && CollectionUtils.isEmpty(relation.getArchetypeRefs())
+                    || CollectionUtils.isEmpty(rel.getArchetypeRefs()) && CollectionUtils.isNotEmpty(relation.getArchetypeRefs())) {
+                return false;
+            }
+            if (CollectionUtils.isNotEmpty(rel.getArchetypeRefs()) && CollectionUtils.isNotEmpty(relation.getArchetypeRefs())) {
+                if (!rel.getArchetypeRefs().get(0).equals(relation.getArchetypeRefs().get(0))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return true;
     }
 
     public static void saveTask(PrismObject<TaskType> oldTask, OperationResult result, PageBase pageBase) {
