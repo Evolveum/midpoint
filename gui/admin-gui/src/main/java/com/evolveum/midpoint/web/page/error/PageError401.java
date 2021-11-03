@@ -9,6 +9,16 @@ package com.evolveum.midpoint.web.page.error;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
+import org.apache.wicket.request.cycle.RequestCycle;
+import org.springframework.security.web.WebAttributes;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 /**
  * @author lazyman
  */
@@ -21,5 +31,34 @@ public class PageError401 extends PageError {
 
     public PageError401() {
         super(401);
+    }
+
+    @Override
+    protected void onConfigure() {
+        super.onConfigure();
+
+        if (exClass != null) {
+            return;
+        }
+
+        ServletWebRequest req = (ServletWebRequest) RequestCycle.get().getRequest();
+        HttpServletRequest httpReq = req.getContainerRequest();
+        HttpSession httpSession = httpReq.getSession();
+
+        Exception ex = (Exception) httpSession.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        if (ex == null) {
+            return;
+        }
+
+        exClass = ex.getClass().getName();
+
+        String msg = ex.getMessage();
+        if (StringUtils.isEmpty(msg)) {
+            msg = "web.security.provider.unavailable";
+        }
+        exMessage = Arrays.stream(msg.split(";")).map((key) -> getLocalizationService().translate(key, null, getLocale(), key)
+        ).collect(Collectors.joining("; "));
+
+        httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
     }
 }

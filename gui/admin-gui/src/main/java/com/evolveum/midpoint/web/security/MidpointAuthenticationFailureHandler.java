@@ -7,10 +7,8 @@
 package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.gui.api.GuiConstants;
-import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.model.api.authentication.StateOfModule;
+import com.evolveum.midpoint.model.api.authentication.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -56,7 +54,7 @@ public class MidpointAuthenticationFailureHandler extends SimpleUrlAuthenticatio
             ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
             if (mpAuthentication.getAuthenticationChannel() != null) {
                 if (mpAuthentication.isLast(moduleAuthentication) && mpAuthentication.getAuthenticationChannel().isDefault()) {
-                    urlSuffix = mpAuthentication.getAuthenticationChannel().getPathAfterUnsuccessfulAuthentication();
+                    urlSuffix = getPathAfterUnsuccessfulAuthentication(mpAuthentication.getAuthenticationChannel());
                 } else {
                     urlSuffix = mpAuthentication.getAuthenticationChannel().getPathDuringProccessing();
                 }
@@ -75,5 +73,9 @@ public class MidpointAuthenticationFailureHandler extends SimpleUrlAuthenticatio
         }
 
         getRedirectStrategy().sendRedirect(request, response, savedRequest.getRedirectUrl());
+    }
+
+    protected String getPathAfterUnsuccessfulAuthentication(AuthenticationChannel authenticationChannel) {
+        return authenticationChannel.getPathAfterUnsuccessfulAuthentication();
     }
 }

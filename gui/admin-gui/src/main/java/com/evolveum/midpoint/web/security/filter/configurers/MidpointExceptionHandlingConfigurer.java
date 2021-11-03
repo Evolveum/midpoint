@@ -82,14 +82,6 @@ public class MidpointExceptionHandlingConfigurer<H extends HttpSecurityBuilder<H
         return this;
     }
 
-    AuthenticationEntryPoint getAuthenticationEntryPoint() {
-        return this.authenticationEntryPoint;
-    }
-
-    AccessDeniedHandler getAccessDeniedHandler() {
-        return this.accessDeniedHandler;
-    }
-
     @Override
     public void configure(H http) throws Exception {
         AuthenticationEntryPoint entryPoint = getAuthenticationEntryPoint(http);

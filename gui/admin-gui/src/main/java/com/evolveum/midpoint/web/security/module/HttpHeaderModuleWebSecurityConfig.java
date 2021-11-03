@@ -6,10 +6,13 @@
  */
 package com.evolveum.midpoint.web.security.module;
 
+import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.web.security.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.web.security.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.web.security.MidpointAuthenticationManager;
+import com.evolveum.midpoint.web.security.WicketLoginUrlAuthenticationEntryPoint;
 import com.evolveum.midpoint.web.security.filter.MidpointRequestHeaderAuthenticationFilter;
+import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.web.security.module.configuration.HttpHeaderModuleWebSecurityConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -37,6 +40,13 @@ public class HttpHeaderModuleWebSecurityConfig<C extends HttpHeaderModuleWebSecu
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
+
+        getOrApply(http, getMidpointFormLoginConfiguration())
+                .loginPage("/error/401");
+
+        getOrApply(http, new MidpointExceptionHandlingConfigurer())
+                .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint("/error/401"));
+
         http.addFilterBefore(requestHeaderAuthenticationFilter(), LogoutFilter.class);
         http.logout().logoutSuccessHandler(createLogoutHandler(getConfiguration().getDefaultSuccessLogoutURL()));
     }
@@ -47,7 +57,12 @@ public class HttpHeaderModuleWebSecurityConfig<C extends HttpHeaderModuleWebSecu
         filter.setPrincipalRequestHeader(getConfiguration().getPrincipalRequestHeader());
         filter.setExceptionIfHeaderMissing(false);
         filter.setAuthenticationManager(authenticationManager);
-        filter.setAuthenticationFailureHandler(new MidpointAuthenticationFailureHandler());
+        filter.setAuthenticationFailureHandler(new MidpointAuthenticationFailureHandler() {
+            @Override
+            protected String getPathAfterUnsuccessfulAuthentication(AuthenticationChannel authenticationChannel) {
+                return "/error/401";
+            }
+        });
         MidPointAuthenticationSuccessHandler successHandler = new MidPointAuthenticationSuccessHandler(){
             @Override
             public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws ServletException, IOException {
