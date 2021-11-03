@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!--
+Example config.xml for Native PG repository.
+To use it:
+1. Copy it to $MIDPOINT_HOME, e.g. under midpoint.../var directory in the extracted archive.
+2. Check DB connection parameters and change them as needed.
+3. Start midPoint (bin/start.sh) and observe the success in $MIDPOINT_HOME/log/midpoint.log.
+
+For more info see:
+
+* midPoint home:
+https://docs.evolveum.com/midpoint/reference/deployment/midpoint-home-directory/
+
+* Overriding config.xml parameters from command line:
+https://docs.evolveum.com/midpoint/reference/deployment/midpoint-home-directory/overriding-config-xml-parameters/
+
+* Repository configuration:
+https://docs.evolveum.com/midpoint/reference/repository/configuration/
+
+* Canonical config.xml auto-created if not present in $MIDPOINT_HOME (master branch):
+https://github.com/Evolveum/midpoint/blob/master/repo/system-init/src/main/resources/config.xml
+-->
+<configuration>
+    <midpoint>
+        <webApplication>
+            <importFolder>${midpoint.home}/import</importFolder>
+        </webApplication>
+        <repository>
+            <type>native</type>
+            <jdbcUrl>jdbc:postgresql://localhost:5432/midpoint</jdbcUrl>
+            <jdbcUsername>midpoint</jdbcUsername>
+            <jdbcPassword>password</jdbcPassword>
+        </repository>
+        <audit>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+        </audit>
+        <icf>
+            <scanClasspath>true</scanClasspath>
+            <scanDirectory>${midpoint.home}/icf-connectors</scanDirectory>
+        </icf>
+        <keystore>
+            <keyStorePath>${midpoint.home}/keystore.jceks</keyStorePath>
+            <keyStorePassword>changeit</keyStorePassword>
+            <encryptionKeyAlias>default</encryptionKeyAlias>
+        </keystore>
+    </midpoint>
+</configuration>
