@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuAuthzUtil;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.page.error.PageError401;
 import com.evolveum.midpoint.web.page.login.*;
 
 import com.github.openjson.JSONArray;
@@ -114,6 +115,9 @@ public class SecurityUtils {
                                 .map(Url::matchUrlForSecurity).collect(Collectors.toSet()))
                 .put(AuthenticationModuleNameConstants.MAIL_NONCE,
                         Arrays.stream(PageEmailNonse.class.getAnnotation(PageDescriptor.class).urls())
+                                .map(Url::matchUrlForSecurity).collect(Collectors.toSet()))
+                .put(AuthenticationModuleNameConstants.HTTP_HEADER,
+                        Arrays.stream(PageError401.class.getAnnotation(PageDescriptor.class).urls())
                                 .map(Url::matchUrlForSecurity).collect(Collectors.toSet()))
                 .build();
     }

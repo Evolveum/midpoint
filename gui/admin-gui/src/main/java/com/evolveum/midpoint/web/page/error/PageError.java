@@ -51,8 +51,8 @@ public class PageError extends PageBase {
 
     private final Integer code;
 
-    private String exClass;
-    private String exMessage;
+    String exClass;
+    String exMessage;
 
     public PageError() {
         this(500);
@@ -69,12 +69,19 @@ public class PageError extends PageBase {
     public PageError(Integer code, Exception ex) {
         this.code = code;
 
-        if (ex == null) {
+        if (ex != null) {
+            exClass = ex.getClass().getName();
+            exMessage = ex.getMessage();
+            LOGGER.warn("Creating error page for code {}, exception {}: {}", exClass, exMessage, ex);
+        } else {
             // Log this on debug level, this is normal during application initialization
             LOGGER.debug("Creating error page for code {}, no exception", code);
-        } else {
-            LOGGER.warn("Creating error page for code {}, exception {}: {}", ex.getClass().getName(), ex.getMessage(), ex);
         }
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
 
         Label codeLabel = new Label(ID_CODE, code);
         add(codeLabel);
@@ -91,11 +98,6 @@ public class PageError extends PageBase {
         }
         Label labelLabel = new Label(ID_LABEL, errorLabel);
         add(labelLabel);
-
-        if (ex != null) {
-            exClass = ex.getClass().getName();
-            exMessage = ex.getMessage();
-        }
 
         final IModel<String> message = new IModel<String>() {
 

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.security.filter;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.authentication.StateOfModule;
+
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -91,6 +93,8 @@ public class MidpointRequestHeaderAuthenticationFilter extends RequestHeaderAuth
         Object credentials = getPreAuthenticatedCredentials(request);
 
         if (principal == null) {
+            AuthenticationException failed = new AuthenticationCredentialsNotFoundException("web.security.provider.invalid");
+            unsuccessfulAuthentication(request, response, failed);
             return;
         }
 
