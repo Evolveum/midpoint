@@ -1466,8 +1466,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 if (!assignment.isValid()) {
                     continue;
                 }
-                for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
-                    if (target.getTarget() != null && target.getTarget().getOid() != null
+                for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) { // MID-6403
+                    if (target.getTarget().getOid() != null
                             && DeputyUtils.isDelegationPath(target.getAssignmentPath(), relationRegistry)
                             && ObjectTypeUtil.containsOid(assignees, target.getTarget().getOid())) {
                         List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());

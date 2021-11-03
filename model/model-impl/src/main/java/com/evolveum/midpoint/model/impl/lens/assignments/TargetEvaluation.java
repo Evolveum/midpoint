@@ -7,19 +7,15 @@
 
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
-import static com.evolveum.midpoint.model.impl.lens.assignments.Util.isNonNegative;
-
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
@@ -27,10 +23,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Evaluates resolved assignment target: its payload (authorizations, GUI config) and assignments/inducements.
  */
-class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluation<AH> {
+public class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluation<AH> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TargetEvaluation.class);
 
@@ -53,9 +51,9 @@ class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluati
     private ConditionState targetOverallConditionState;
 
     /**
-     * Aggregated validity of target and the whole path.
+     * Aggregated activity of target and the whole path.
      */
-    private TargetActivation targetActivation;
+    private TargetActivity targetActivity;
 
     TargetEvaluation(AssignmentPathSegmentImpl segment, EvaluationContext<AH> ctx, OperationResult result) {
         super(segment, ctx);
@@ -79,16 +77,16 @@ class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluati
             return;
         }
 
-        LOGGER.trace("Evaluating segment TARGET:\n{}", segment.debugDumpLazily(1));
-        LOGGER.debug("Evaluating RBAC [{}]", ctx.assignmentPath.shortDumpLazily());
+        LOGGER.debug("Evaluating assignment path segment target: {}", ctx.assignmentPath.shortDumpLazily());
+        LOGGER.trace("Evaluating segment target:\n{}", segment.debugDumpLazily(1));
 
         checkRelationWithTarget(target);
-        determineValidity();
+        determineTargetActivity();
 
         InternalMonitor.recordRoleEvaluation(target, true);
 
-        AssignmentTargetEvaluationInformation targetEvaluationInformation;
-        if (targetActivation.pathAndTargetActive) {
+        @Nullable AssignmentTargetEvaluationInformation targetEvaluationInformation;
+        if (targetActivity.pathAndTargetActive) {
             // Cache it immediately, even before evaluation. So if there is a cycle in the role path
             // then we can detect it and skip re-evaluation of aggressively idempotent roles.
             targetEvaluationInformation = ctx.ae.evaluatedAssignmentTargetCache.recordProcessing(segment, ctx.primaryAssignmentMode);
@@ -98,7 +96,7 @@ class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluati
 
         int targetPolicyRulesOnEntry = ctx.evalAssignment.getAllTargetsPolicyRulesCount();
         try {
-            if (targetActivation.targetActive) {
+            if (targetActivity.targetActive) {
                 // TODO why only for valid targets? This is how it was implemented in original AssignmentEvaluator.
                 targetOverallConditionState = ConditionState.merge(
                         assignmentOverallConditionState, determineTargetConditionState());
@@ -111,7 +109,7 @@ class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluati
             }
         } finally {
             int targetPolicyRulesOnExit = ctx.evalAssignment.getAllTargetsPolicyRulesCount();
-            LOGGER.trace("Evaluating segment target DONE for {}; target policy rules: {} -> {}", segment,
+            LOGGER.trace("Evaluating segment target done for {}; target policy rules: {} -> {}", segment,
                     targetPolicyRulesOnEntry, targetPolicyRulesOnExit);
             if (targetEvaluationInformation != null) {
                 targetEvaluationInformation.setBringsTargetPolicyRules(targetPolicyRulesOnExit > targetPolicyRulesOnEntry);
@@ -128,7 +126,7 @@ class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluati
 
         // we need to evaluate assignments also for non-valid targets, because of target policy rules
         // ... but only for direct ones!
-        if (targetActivation.targetActive || segment.direct) {
+        if (targetActivity.targetActive || segment.direct) {
             evaluateAssignments();
         }
 
@@ -139,7 +137,7 @@ class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluati
             ctx.membershipCollector.collect(target, segment.relation);
         }
 
-        if (targetActivation.targetActive) {
+        if (targetActivity.targetActive) {
 
             // TODO In a way analogous to the membership info above: shouldn't we collect tenantRef information
             //  also for disabled tenants?
@@ -166,7 +164,7 @@ class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluati
     private void evaluateAssignments() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
         for (AssignmentType assignment : target.getAssignment()) {
-            new TargetAssignmentEvaluation<>(segment, targetOverallConditionState, targetActivation, ctx, result, assignment)
+            new TargetAssignmentEvaluation<>(segment, targetOverallConditionState, targetActivity, ctx, result, assignment)
                     .evaluate();
         }
     }
@@ -175,7 +173,7 @@ class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluati
             PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
         if (target instanceof AbstractRoleType) {
             for (AssignmentType inducement : ((AbstractRoleType) target).getInducement()) {
-                new TargetInducementEvaluation<>(segment, targetOverallConditionState, targetActivation, ctx, result, inducement, false)
+                new TargetInducementEvaluation<>(segment, targetOverallConditionState, targetActivity, ctx, result, inducement, false)
                         .evaluate();
             }
         }
@@ -194,13 +192,13 @@ class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluati
             AssignmentType inducementRealValue = inducementValue.asContainerable();
             inducementRealValue.setTargetRef(superArchetype);
 
-            new TargetInducementEvaluation<>(segment, targetOverallConditionState, targetActivation, ctx, result, inducementRealValue, true)
+            new TargetInducementEvaluation<>(segment, targetOverallConditionState, targetActivity, ctx, result, inducementRealValue, true)
                     .evaluate();
         }
     }
 
     private void evaluateTargetPayload() {
-        new TargetPayloadEvaluation<>(segment, targetOverallConditionState, targetActivation, ctx).evaluate();
+        new TargetPayloadEvaluation<>(segment, targetOverallConditionState, targetActivity, ctx).evaluate();
     }
 
     private ConditionState determineTargetConditionState()
@@ -223,16 +221,17 @@ class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluati
                 segment.isMatchingOrder, // evaluateConstructions: exact meaning of this is to be revised
                 ctx.assignmentPath.clone(),
                 segment.assignment,
-                targetActivation.pathAndTargetActive);
+                targetActivity.pathAndTargetActive);
         ctx.evalAssignment.addRole(evalAssignmentTarget, targetOverallConditionState.getAbsoluteRelativityMode()); // TODO absolute or relative?
     }
 
-    private void determineValidity() throws ConfigurationException {
+    private void determineTargetActivity() throws ConfigurationException {
         // FIXME Target state model does not reflect its archetype!
-        LifecycleStateModelType targetStateModel = ArchetypeManager.determineLifecycleModel(target.asPrismObject(), ctx.ae.systemConfiguration);
-        boolean targetValid = LensUtil.isFocusValid(target, ctx.ae.now, ctx.ae.activationComputer, targetStateModel);
-        boolean pathAndTargetValid = segment.isFullPathActive() && targetValid;
-        targetActivation = new TargetActivation(targetValid, pathAndTargetValid);
+        LifecycleStateModelType targetStateModel =
+                ArchetypeManager.determineLifecycleModel(target.asPrismObject(), ctx.ae.systemConfiguration);
+        boolean targetActive = LensUtil.isFocusValid(target, ctx.ae.now, ctx.ae.activationComputer, targetStateModel);
+        boolean pathAndTargetActive = segment.isFullPathActive() && targetActive;
+        targetActivity = new TargetActivity(targetActive, pathAndTargetActive);
     }
 
     private void checkRelationWithTarget(AssignmentHolderType target)
@@ -258,11 +257,12 @@ class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluati
         }
     }
 
-    static class TargetActivation {
+    // We should think of a better word, because "activity" conflicts with activities introduced in 4.4.
+    static class TargetActivity {
         final boolean targetActive;
         final boolean pathAndTargetActive;
 
-        private TargetActivation(boolean targetActive, boolean pathAndTargetActive) {
+        private TargetActivity(boolean targetActive, boolean pathAndTargetActive) {
             this.targetActive = targetActive;
             this.pathAndTargetActive = pathAndTargetActive;
         }

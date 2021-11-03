@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
-import com.evolveum.midpoint.model.impl.lens.assignments.TargetEvaluation.TargetActivation;
+import com.evolveum.midpoint.model.impl.lens.assignments.TargetEvaluation.TargetActivity;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -30,17 +30,17 @@ class TargetAssignmentEvaluation<AH extends AssignmentHolderType> extends Abstra
     private static final Trace LOGGER = TraceManager.getTrace(TargetAssignmentEvaluation.class);
 
     private final ConditionState targetOverallConditionState;
-    private final TargetActivation targetActivation;
+    private final TargetActivity targetActivity;
     private final OperationResult result;
 
     private final AssignmentType nextAssignment;
 
     TargetAssignmentEvaluation(AssignmentPathSegmentImpl segment, ConditionState targetOverallConditionState,
-            TargetActivation targetActivation, EvaluationContext<AH> ctx, OperationResult result,
+            TargetActivity targetActivity, EvaluationContext<AH> ctx, OperationResult result,
             AssignmentType nextAssignment) {
         super(segment, ctx);
         this.targetOverallConditionState = targetOverallConditionState;
-        this.targetActivation = targetActivation;
+        this.targetActivity = targetActivity;
         this.result = result;
         this.nextAssignment = nextAssignment;
     }
@@ -50,7 +50,7 @@ class TargetAssignmentEvaluation<AH extends AssignmentHolderType> extends Abstra
 
         assert ctx.assignmentPath.last() == segment;
         assert segment.isAssignmentActive() || segment.direct;
-        assert targetActivation.targetActive || segment.direct;
+        assert targetActivity.targetActive || segment.direct;
         assert targetOverallConditionState.isNotAllFalse();
         checkIfAlreadyEvaluated();
 
@@ -75,7 +75,7 @@ class TargetAssignmentEvaluation<AH extends AssignmentHolderType> extends Abstra
                 .isAssignment(true)
                 .evaluationOrder(nextEvaluationOrder)
                 .evaluationOrderForTarget(nextEvaluationOrderForTarget)
-                .pathToSourceValid(targetActivation.pathAndTargetActive)
+                .pathToSourceValid(targetActivity.pathAndTargetActive)
                 .pathToSourceConditionState(targetOverallConditionState)
                 .build();
         new PathSegmentEvaluation<>(nextSegment, ctx, result).evaluate();

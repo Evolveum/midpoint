@@ -104,7 +104,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
             List<OrderConstraintsType> targetOrderConstraints = defaultIfEmpty(constraint.getValue().getTargetOrderConstraint());
             List<EvaluatedAssignmentTargetImpl> nonNegativeTargetsA = ctx.evaluatedAssignment.getNonNegativeTargets();
 
-            for (EvaluatedAssignmentImpl<AH> assignmentB : ctx.evaluatedAssignmentTriple.getNonNegativeValues()) {
+            for (EvaluatedAssignmentImpl<AH> assignmentB : ctx.evaluatedAssignmentTriple.getNonNegativeValues()) { // MID-6403
                 if (assignmentB == ctx.evaluatedAssignment) { // currently there is no other way of comparing the evaluated assignments
                     continue;
                 }

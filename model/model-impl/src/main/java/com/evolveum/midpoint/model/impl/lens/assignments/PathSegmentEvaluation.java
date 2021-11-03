@@ -29,7 +29,7 @@ import static java.util.Collections.emptyList;
  * 2. evaluation of payload (delegates to {@link PayloadEvaluation}),
  * 3. evaluation of targets (delegates to {@link TargetsEvaluation}).
  */
-class PathSegmentEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluation<AH> {
+public class PathSegmentEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluation<AH> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PathSegmentEvaluation.class);
 
@@ -113,6 +113,9 @@ class PathSegmentEvaluation<AH extends AssignmentHolderType> extends AbstractEva
         if (segment.isAssignmentActive() || segment.direct) {
             targetsEvaluation = new TargetsEvaluation<>(segment, ctx, result);
             targetsEvaluation.evaluate();
+        } else {
+            LOGGER.trace("Skipping evaluation of a target of {} because it's not active and not directly attached to focus",
+                    segment);
         }
     }
 
@@ -155,11 +158,13 @@ class PathSegmentEvaluation<AH extends AssignmentHolderType> extends AbstractEva
                             + "Standard order ({}):  {}\n"
                             + "Target order   ({}):  {}\n"
                             + "Path to source active:          {}\n"
-                            + "Path to source condition state: {}\n",
+                            + "Path to source condition state: {}\n"
+                            + "Primary mode (for info only):   {}\n",
                     segment,
                     getMatchingText(segment.isMatchingOrder), segment.getEvaluationOrder(),
                     getMatchingText(segment.isMatchingOrderForTarget), segment.getEvaluationOrderForTarget(),
-                    segment.pathToSourceActive, segment.pathToSourceConditionState);
+                    segment.pathToSourceActive, segment.pathToSourceConditionState,
+                    ctx.primaryAssignmentMode);
         }
         if (result.isTracingNormal(AssignmentSegmentEvaluationTraceType.class)) {
             AssignmentSegmentEvaluationTraceType trace = new AssignmentSegmentEvaluationTraceType(ctx.ae.prismContext)

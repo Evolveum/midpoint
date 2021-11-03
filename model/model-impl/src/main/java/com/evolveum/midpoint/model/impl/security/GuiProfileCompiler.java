@@ -104,7 +104,7 @@ public class GuiProfileCompiler {
                 addAuthorizations(authorizations, assignment.getAuthorizations(), authorizationTransformer);
                 adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
             }
-            for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
+            for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) { // MID-6403
                 if (target.isValid() && target.getTarget().asObjectable() instanceof UserType
                         && DeputyUtils.isDelegationPath(target.getAssignmentPath(), relationRegistry)) {
                     List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());

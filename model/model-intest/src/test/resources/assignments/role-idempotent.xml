@@ -1,0 +1,12 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="c7697df9-b873-4ae3-9854-7d01dd6f0c27">
+    <name>idempotent</name>
+    <idempotence>aggressive</idempotence>
+</role>

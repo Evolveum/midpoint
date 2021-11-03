@@ -337,10 +337,10 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 if (resultingMode != null) {
                     switch (resultingMode) {
                         case PLUS:
-                            rv.addAllToPlusSet(triple.getNonNegativeValues());
+                            rv.addAllToPlusSet(triple.getNonNegativeValues()); // MID-6403
                             break;
                         case MINUS:
-                            rv.addAllToMinusSet(triple.getNonPositiveValues());
+                            rv.addAllToMinusSet(triple.getNonPositiveValues()); // MID-6403
                             break;
                         case ZERO:
                             rv = triple;
@@ -832,7 +832,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
         if (evaluatedAssignmentTriple == null) {
             return; // could be if "assignments" step is skipped
         }
-        for (EvaluatedAssignmentImpl<?> evalAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
+        for (EvaluatedAssignmentImpl<?> evalAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) { // MID-6403
             if (evalAssignment.isValid()) {
                 addReferences(shouldBeParentOrgRefs, evalAssignment.getOrgRefVals());
             }
@@ -998,11 +998,14 @@ public class AssignmentProcessor implements ProjectorProcessor {
             return;    // could be if the "assignments" step is skipped
         }
         // Similar code is in AssignmentEvaluator.isMemberOfInvocationResultChanged -- check that if changing the business logic
-        for (EvaluatedAssignmentImpl<?> evalAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
+        for (EvaluatedAssignmentImpl<?> evalAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) { // MID-6403
             if (evalAssignment.isValid()) {
+                LOGGER.trace("Adding references from: {}", evalAssignment);
                 addReferences(shouldBeRoleRefs, evalAssignment.getMembershipRefVals());
                 addReferences(shouldBeDelegatedRefs, evalAssignment.getDelegationRefVals());
                 addReferences(shouldBeArchetypeRefs, evalAssignment.getArchetypeRefVals());
+            } else {
+                LOGGER.trace("Skipping because invalid: {}", evalAssignment);
             }
         }
 

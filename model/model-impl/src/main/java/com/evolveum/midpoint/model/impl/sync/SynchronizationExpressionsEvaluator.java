@@ -342,7 +342,7 @@ public class SynchronizationExpressionsEvaluator {
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = ModelExpressionThreadLocalHolder
                 .evaluateExpressionInContext(expression, params, task, result);
         Collection<PrismPropertyValue<Boolean>> nonNegativeValues = outputTriple.getNonNegativeValues();
-        if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
+        if (nonNegativeValues.isEmpty()) {
             throw new ExpressionEvaluationException("Expression returned no value ("+nonNegativeValues.size()+") in "+shortDesc);
         }
         if (nonNegativeValues.size() > 1) {

@@ -550,7 +550,9 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
                 + "; autz=" + authorizations
                 + "; " + focusMappingEvaluationRequests.size() + " focus mappings eval requests"
                 + "; " + focusMappings.size() + " focus mappings"
-                + "; " + focusPolicyRules.size()+" rules)";
+                + "; " + focusPolicyRules.size() + " rules"
+                + "; refs=" + membershipRefVals.size() + "m, " + delegationRefVals.size() + "d, " + archetypeRefVals.size() + "a"
+                +")";
     }
 
     public String toHumanReadableString() {

@@ -19,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType
  * (There is single EvaluationContext instance for any call to evaluate().)
  */
 
-class EvaluationContext<AH extends AssignmentHolderType> {
+public class EvaluationContext<AH extends AssignmentHolderType> {
 
     /**
      * Evaluated assignment. Here we collect all relevant information.
@@ -36,6 +36,16 @@ class EvaluationContext<AH extends AssignmentHolderType> {
      *
      * The primary (direct) assignment is the first assignment in the assignment path,
      * i.e. the assignment that is located in the focal object.
+     *
+     * FIXME We do not distinguish between absolute (old->new) and relative (current->new) mode here.
+     *
+     * Fortunately, the use of this information is currently quite limited:
+     *
+     * - it is used to determine the target evaluation cache (plus / minus / zero) for idempotent roles,
+     * - it is used for (imprecise) check whether to process an unchanged non-default assignment
+     * (see {@link TargetsEvaluation#evaluate()}.
+     *
+     * Until clarified, please do not use it for anything else.
      */
     final PlusMinusZero primaryAssignmentMode;
 
