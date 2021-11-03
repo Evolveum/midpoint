@@ -1831,9 +1831,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         // PrismAsserts.assertPropertyValue(userAfter, UserType.F_DESCRIPTION, "Came from null");
 
         // TODO TEMPORARILY allowing value of "Imported user", because the inbound mapping is not applied because of
-        // the "locality" attribute is null (Skipping inbound for {...}location in Discr(RSD(account (default)
-        // @10000000-0000-0000-0000-000000000004)): Not a full shadow and account a priori delta exists, but
-        // doesn't have change for processed property.
+        //  the "locality" attribute is null (Skipping inbound for {...}location in Discr(RSD(account (default)
+        //  @10000000-0000-0000-0000-000000000004)): Not a full shadow and account a priori delta exists, but
+        //  doesn't have change for processed property.
         //
         // Either we fix this or recommend setting volatility=unpredictable for such situations.
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_DESCRIPTION, "Imported user");

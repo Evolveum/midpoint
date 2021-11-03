@@ -408,14 +408,20 @@ public class OpNode {
         }
         return rv.isEmpty() ? null : rv;
     }
+
     public List<String> getTraceNames() {
         return result.getTrace().stream().map(trace -> trace.getClass().getSimpleName()).collect(Collectors.toList());
     }
+
     public String getResultComment() {
         return getResultComment(result);
     }
+
     public static String getResultComment(OperationResultType result) {
         ParamsType returns = result.getReturns();
+        if (returns == null) {
+            return null;
+        }
         for (EntryType entry : returns.getEntry()) {
             if (OperationResult.RETURN_COMMENT.equals(entry.getKey())) {
                 JAXBElement<?> value = entry.getEntryValue();

@@ -9,9 +9,12 @@ package com.evolveum.midpoint.model.impl.sync;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +29,6 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -47,6 +49,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class SynchronizationContext<F extends FocusType> implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationContext.class);
+
+    @VisibleForTesting
+    private static boolean skipMaintenanceCheck;
 
     /**
      * Normally, this is shadowed resource object, i.e. shadow + attributes (simply saying).
@@ -90,7 +95,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     private boolean forceIntentChange;
 
     private final PrismContext prismContext;
-    private final ExpressionFactory expressionFactory;
+    private final ModelBeans beans;
 
     /** TODO maybe will be removed */
     @Experimental
@@ -98,14 +103,14 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 
     public SynchronizationContext(@NotNull PrismObject<ShadowType> shadowedResourceObject,
             ObjectDelta<ShadowType> resourceObjectDelta, PrismObject<ResourceType> resource, String channel,
-            PrismContext prismContext, ExpressionFactory expressionFactory, Task task, String itemProcessingIdentifier) {
+            ModelBeans beans, Task task, String itemProcessingIdentifier) {
         this.shadowedResourceObject = shadowedResourceObject;
         this.resourceObjectDelta = resourceObjectDelta;
         this.resource = resource;
         this.channel = channel;
         this.task = task;
-        this.prismContext = prismContext;
-        this.expressionFactory = expressionFactory;
+        this.prismContext = beans.prismContext;
+        this.beans = beans;
         this.expressionProfile = MiscSchemaUtil.getExpressionProfile();
         this.itemProcessingIdentifier = itemProcessingIdentifier;
     }
@@ -217,7 +222,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
             try {
                 ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
                 boolean value = ExpressionUtil.evaluateConditionDefaultFalse(variables, expression,
-                        expressionProfile, expressionFactory, desc, task, result);
+                        expressionProfile, beans.expressionFactory, desc, task, result);
                 if (!value) {
                     LOGGER.trace("Skipping reaction {} because the condition was evaluated to false", reaction);
                 }
@@ -461,4 +466,23 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return sb.toString();
     }
 
+    /**
+     * Checks whether the source resource is not in maintenance mode.
+     * (Throws an exception if it is.)
+     *
+     * Side-effect: updates the resource prism object (if it was changed).
+     */
+    void checkNotInMaintenance(OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        if (!skipMaintenanceCheck) {
+            resource = beans.provisioningService.getObject(ResourceType.class, resource.getOid(), null, task, result);
+            ResourceTypeUtil.checkNotInMaintenance(resource.asObjectable());
+        }
+    }
+
+    @VisibleForTesting
+    public static void setSkipMaintenanceCheck(boolean skipMaintenanceCheck) {
+        SynchronizationContext.skipMaintenanceCheck = skipMaintenanceCheck;
+    }
 }

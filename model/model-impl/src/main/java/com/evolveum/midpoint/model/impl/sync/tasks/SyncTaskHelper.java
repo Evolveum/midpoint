@@ -20,6 +20,7 @@ import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.T
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.schema.util.*;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -50,8 +51,11 @@ public class SyncTaskHelper {
     @Autowired private ProvisioningService provisioningService;
     @Autowired private PrismContext prismContext;
 
-    public <O extends ObjectType> ResourceSearchSpecification createSearchSpecification(
-            ResourceObjectSetType set, Task task, OperationResult opResult)
+    @VisibleForTesting
+    private static boolean skipMaintenanceCheck;
+
+    public ResourceSearchSpecification createSearchSpecification(
+            @NotNull ResourceObjectSetType set, Task task, OperationResult opResult)
             throws ActivityRunException, SchemaException {
 
         ResourceObjectClassSpecification resourceObjectClassSpecification =
@@ -186,8 +190,13 @@ public class SyncTaskHelper {
      * This method is to be used on the activity start. So it should fail gracefully - maintenance is not a fatal error here.
      */
     static void checkNotInMaintenance(ResourceType resource) throws ActivityRunException {
-        if (isInMaintenance(resource)) {
+        if (!skipMaintenanceCheck && isInMaintenance(resource)) {
             throw new ActivityRunException("Resource is in maintenance", HANDLED_ERROR, TEMPORARY_ERROR);
         }
+    }
+
+    @VisibleForTesting
+    public static void setSkipMaintenanceCheck(boolean skipMaintenanceCheck) {
+        SyncTaskHelper.skipMaintenanceCheck = skipMaintenanceCheck;
     }
 }

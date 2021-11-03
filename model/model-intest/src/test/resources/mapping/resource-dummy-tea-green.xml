@@ -43,6 +43,11 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
             <icfi:instanceId>tea-green</icfi:instanceId>
             <icfi:supportValidity>true</icfi:supportValidity>
         </icfc:configurationProperties>
+        <icfc:resultsHandlerConfiguration>
+            <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+            <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+            <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+        </icfc:resultsHandlerConfiguration>
     </connectorConfiguration>
 
     <schemaHandling>
@@ -285,6 +290,55 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
                     </condition>
                 </inbound>
             </attribute>
+
+            <association>
+                <ref>ri:group</ref>
+                <tolerant>true</tolerant>
+                <inbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <assignmentTargetSearch>
+                            <targetType>RoleType</targetType>
+                            <filter>
+                                <q:equal>
+                                    <q:path>identifier</q:path>
+                                    <expression>
+                                        <trace>true</trace>
+                                        <script>
+                                            <code>
+                                                log.info("### entitlement: " + entitlement)
+                                                log.info("### entitlementName: " + entitlement?.name)
+                                                return entitlement?.name
+                                            </code>
+                                        </script>
+                                    </expression>
+                                </q:equal>
+                            </filter>
+                            <assignmentProperties>
+                                <subtype>inbound</subtype>
+                            </assignmentProperties>
+                        </assignmentTargetSearch>
+                    </expression>
+                    <target>
+                        <path>assignment</path>
+                        <set>
+                            <condition>
+                                <script>
+                                    <code>
+                                        assignment.subtype.contains('inbound')
+                                    </code>
+                                </script>
+                            </condition>
+                        </set>
+                    </target>
+                </inbound>
+                <kind>entitlement</kind>
+                <intent>group</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:members</associationAttribute>
+                <valueAttribute>icfs:name</valueAttribute>
+            </association>
+
             <iteration>
                 <maxIterations>5</maxIterations>
             </iteration>
@@ -330,6 +384,34 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
             </credentials>
 
         </objectType>
+
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <default>true</default>
+            <objectClass>ri:GroupObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <source>
+                        <path>name</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:description</ref>
+                <outbound>
+                    <source>
+                        <path>description</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:members</ref>
+                <fetchStrategy>minimal</fetchStrategy>
+            </attribute>
+        </objectType>
+
     </schemaHandling>
 
     <projection>
@@ -388,7 +470,45 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
                 </action>
             </reaction>
         </objectSynchronization>
-
+        <objectSynchronization>
+            <objectClass>ri:GroupObjectClass</objectClass>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <focusType>RoleType</focusType>
+            <enabled>true</enabled>
+            <correlation>
+                <q:equal>
+                    <q:path>identifier</q:path>
+                    <expression>
+                        <path>$projection/attributes/icfs:name</path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateFocus</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
     </synchronization>
-
 </resource>

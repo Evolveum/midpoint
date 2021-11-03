@@ -481,8 +481,6 @@ public class ProvisioningContext extends StateReporter {
 
     public void checkNotInMaintenance() throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
-        if (isInMaintenance()) {
-            throw new MaintenanceException("Resource " + getResource() + " is in the maintenance");
-        }
+        ResourceTypeUtil.checkNotInMaintenance(getResource());
     }
 }

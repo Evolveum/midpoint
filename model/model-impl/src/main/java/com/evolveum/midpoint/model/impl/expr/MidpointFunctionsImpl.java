@@ -31,6 +31,7 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.path.ItemName;
 
 import org.apache.commons.lang.StringUtils;
@@ -129,6 +130,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Autowired private ConstantsManager constantsManager;
     @Autowired private LocalizationService localizationService;
     @Autowired private ExpressionFactory expressionFactory;
+    @Autowired private ModelBeans beans;
     @Autowired private SynchronizationExpressionsEvaluator correlationConfirmationEvaluator;
     @Autowired private ArchetypeManager archetypeManager;
     @Autowired private TriggerCreatorGlobalState triggerCreatorGlobalState;
@@ -1832,7 +1834,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         discriminator.setIntent(intent);
 
         SynchronizationContext<F> syncCtx = new SynchronizationContext<>(shadow.asPrismObject(), null,
-                resource.asPrismObject(), getCurrentTask().getChannel(), getPrismContext(), expressionFactory,
+                resource.asPrismObject(), getCurrentTask().getChannel(), beans,
                 getCurrentTask(), null);
 
         ObjectSynchronizationType applicablePolicy = null;

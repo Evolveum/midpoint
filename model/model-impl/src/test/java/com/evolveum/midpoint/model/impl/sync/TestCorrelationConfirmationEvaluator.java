@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.sync;
 
+import static org.testng.AssertJUnit.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -19,20 +21,18 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import static org.testng.AssertJUnit.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -50,7 +50,7 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
 
     @Autowired private RepositoryService repositoryService;
     @Autowired private SynchronizationExpressionsEvaluator evaluator;
-    @Autowired private ExpressionFactory expressionFactory;
+    @Autowired private ModelBeans beans;
 
     @Test
     public void test001CorrelationOrFilter() throws Exception {
@@ -208,7 +208,7 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
         assertNotNull("Unexpected null system configuration", systemConfiguration);
 
         SynchronizationContext<UserType> syncCtx = new SynchronizationContext<>(shadow.asPrismObject(), null,
-                resourceType.asPrismObject(), null, prismContext, expressionFactory, task, null);
+                resourceType.asPrismObject(), null, beans, task, null);
         syncCtx.setSystemConfiguration(systemConfiguration);
         syncCtx.setObjectSynchronization(objectSynchronizationType);
         syncCtx.setFocusClass(UserType.class);
