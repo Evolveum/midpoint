@@ -126,9 +126,9 @@ public class CommandLineScriptExecutor {
 
             if (outputTriple != null) {
                 Collection<PrismPropertyValue<String>> nonNegativeValues = outputTriple.getNonNegativeValues();
-                if (nonNegativeValues != null && !nonNegativeValues.isEmpty()) {
+                if (!nonNegativeValues.isEmpty()) {
                     Collection<String> expressionOutputs = PrismValueCollectionsUtil.getRealValuesOfCollection((Collection) nonNegativeValues);
-                    if (expressionOutputs != null && !expressionOutputs.isEmpty()) {
+                    if (!expressionOutputs.isEmpty()) {
                         expressionOutput = StringUtils.join(expressionOutputs, ",");
                     }
                 }

@@ -132,6 +132,8 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
      * Main entry point: evaluates a given focus-attached (direct) assignment.
      * Returns a complex structure called {@link EvaluatedAssignmentImpl}.
      *
+     * @param primaryAssignmentMode Not well defined. Do not use for new things.
+     * Please see {@link EvaluationContext#primaryAssignmentMode}.
      * @param evaluateOld If true, we take the 'old' value from assignmentIdi. If false, we take the 'new' one.
      * @param source FIXME The role of this parameter is quite unclear. It looks like that it is filled-in using objectNew or objectCurrent
      *                 depending on some strange condition in AssignmentTripleEvaluator

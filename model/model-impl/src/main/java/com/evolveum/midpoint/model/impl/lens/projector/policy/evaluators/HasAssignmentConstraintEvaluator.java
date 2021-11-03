@@ -79,13 +79,13 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
             boolean allowDisabled = !Boolean.TRUE.equals(constraint.isEnabled());
 
             List<PrismObject<?>> matchingTargets = new ArrayList<>();
-            for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
+            for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) { // MID-6403
                 AssignmentOrigin origin = evaluatedAssignment.getOrigin();
                 boolean assignmentIsAdded = origin.isBeingAdded();
                 boolean assignmentIsDeleted = origin.isBeingDeleted();
                 boolean assignmentIsKept = origin.isBeingKept();
                 DeltaSetTriple<EvaluatedAssignmentTargetImpl> targetsTriple = evaluatedAssignment.getRoles();
-                for (EvaluatedAssignmentTargetImpl target : targetsTriple.getNonNegativeValues()) {
+                for (EvaluatedAssignmentTargetImpl target : targetsTriple.getNonNegativeValues()) { // MID-6403
                     if (!target.appliesToFocus()) {
                         continue;
                     }

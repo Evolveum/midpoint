@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.SmartAssignmentCollection;
 import com.evolveum.midpoint.model.impl.lens.projector.SmartAssignmentElement;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -45,7 +46,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.prism.util.CloneUtil.cloneCollectionMembers;
+import static com.evolveum.midpoint.schema.util.SchemaDebugUtil.prettyPrintLazily;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * Evaluates all assignments and sorts them to triple: added, removed and "kept" assignments.
@@ -224,7 +227,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             processAddedOrDeletedOrChangedAssignment(assignmentElement, forceRecon, assignmentPlacementDesc,
                     innerAssignmentDeltas);
         } else {
-            // Standard case 2: the assignment is unchanged
+            // Standard case 2: the assignment is unchanged in this wave (still present in current object or already gone)
             processReallyUnchangedAssignment(assignmentElement, assignmentPlacementDesc);
         }
     }
@@ -237,7 +240,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             String assignmentPlacementDesc)
             throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
             ConfigurationException, CommunicationException {
-        LOGGER.trace("Processing focus delete for: {}", SchemaDebugUtil.prettyPrintLazily(assignmentElement.getAssignmentCVal()));
+        LOGGER.trace("Processing focus delete for: {}", printLazily(assignmentElement));
         evaluateAsDeleted(assignmentElement, forceRecon, assignmentPlacementDesc);
     }
 
@@ -253,8 +256,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             String assignmentPlacementDesc)
             throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
             ConfigurationException, CommunicationException {
-        LOGGER.trace("Processing replace of all assignments for: {}",
-                SchemaDebugUtil.prettyPrintLazily(assignmentElement.getAssignmentCVal()));
+        LOGGER.trace("Processing replace of all assignments for: {}", printLazily(assignmentElement));
         boolean existed = assignmentElement.isCurrent();
         boolean willExist = assignmentElement.isNew();
         if (existed && willExist) {
@@ -285,16 +287,14 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         if (added && !deleted) {
             if (assignmentElement.isCurrent()) {
                 LOGGER.trace("Processing phantom assignment add (adding assignment that is already there): {}",
-                        SchemaDebugUtil.prettyPrintLazily(assignmentElement.getAssignmentCVal()));
+                        printLazily(assignmentElement));
                 evaluateAsUnchanged(assignmentElement, forceRecon, assignmentPlacementDesc);
             } else {
-                LOGGER.trace("Processing assignment add: {}",
-                        SchemaDebugUtil.prettyPrintLazily(assignmentElement.getAssignmentCVal()));
+                LOGGER.trace("Processing assignment add: {}", printLazily(assignmentElement));
                 evaluateAsAdded(assignmentElement, forceRecon, assignmentPlacementDesc);
             }
         } else if (deleted && !added) {
-            LOGGER.trace("Processing assignment deletion: {}",
-                    SchemaDebugUtil.prettyPrintLazily(assignmentElement.getAssignmentCVal()));
+            LOGGER.trace("Processing assignment deletion: {}", printLazily(assignmentElement));
             evaluateAsDeleted(assignmentElement, forceRecon, assignmentPlacementDesc);
             // TODO what about phantom deletes?
         } else {
@@ -337,7 +337,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             // No change in activation -> right to the zero set
             // The change is not significant for assignment applicability. Recon will sort out the details.
             LOGGER.trace("Processing changed assignment, minor change (add={}, delete={}, valid={}): {}",
-                    added, deleted, isActive, SchemaDebugUtil.prettyPrintLazily(assignmentValueBefore));
+                    added, deleted, isActive, prettyPrintLazily(assignmentValueBefore));
             EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.ZERO,
                     false, assignmentPlacementDesc, assignmentElement);
             if (evaluatedAssignment != null) { // TODO what about the condition state change?! MID-6404
@@ -346,9 +346,9 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             }
         } else if (isActive) {
             // Assignment became active. We need to place it in plus set to initiate provisioning
-            // TODO change this! We should keep it in the zero set, and determine plus/minus according to validity change. MID-6403
+            // TODO review this: MID-6403
             LOGGER.trace("Processing changed assignment, assignment becomes valid (add={}, delete={}): {}",
-                    added, deleted, SchemaDebugUtil.prettyPrintLazily(assignmentValueBefore));
+                    added, deleted, prettyPrintLazily(assignmentValueBefore));
             EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.PLUS,
                     false, assignmentPlacementDesc, assignmentElement);
             if (evaluatedAssignment != null) {
@@ -357,9 +357,9 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             }
         } else {
             // Assignment became invalid. We need to place is in minus set to initiate de-provisioning
-            // TODO change this! We should keep it in the zero set, and determine plus/minus according to validity change. MID-6403
+            // TODO review this: MID-6403
             LOGGER.trace("Processing changed assignment, assignment becomes invalid (add={}, delete={}): {}",
-                    added, deleted, SchemaDebugUtil.prettyPrintLazily(assignmentValueBefore));
+                    added, deleted, prettyPrintLazily(assignmentValueBefore));
             EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.MINUS,
                     false, assignmentPlacementDesc, assignmentElement);
             if (evaluatedAssignment != null) {
@@ -419,23 +419,51 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     }
 
     /**
-     * Process an assignment that was really not touched by the delta.
+     * Process an assignment that was really not touched by the current delta.
+     *
+     * There are two cases here:
+     *
+     * 1. Assignment is present in the current object. This is the usual case.
+     * 2. Assignment is no longer there. It was present in the old object but has been deleted in some of the previous waves.
+     *
+     * We will evaluate the assignment even in the second case. It is because there may be resource object constructions
+     * targeted at the current wave that need the information that the assignment is gone. On the other hand, focus-related
+     * artifacts (like focus mappings) present in the assignment should be ignored.
+     *
+     * What should be the primary mode and the target triple set?
+     *
+     * - for projections (old->new scope) the mode and set should be MINUS;
+     * - for focus (current->new scope) the assignment should be ignored.
+     *
+     * So we'll put the assignment into minus set (as before), with the mode of MINUS (was zero before MID-7382).
+     * Fortunately, the primary mode is not used much, see {@link EvaluationContext#primaryAssignmentMode}. And the
+     * plus/minus/zero set placement should be reviewed anyway, as it is ambiguous: MID-6403.
+     *
+     * TODO We should somehow ensure that the focus-related artifacts are ignored from these no-longer-present assignments.
      */
     private void processReallyUnchangedAssignment(SmartAssignmentElement assignmentElement, String assignmentPlacementDesc)
             throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
             ConfigurationException, CommunicationException {
-        PrismContainerValue<AssignmentType> assignmentCValBefore = assignmentElement.getAssignmentCVal();
-        LOGGER.trace("Processing unchanged assignment ({}) {}", assignmentElement.isCurrent() ? "present" : "not present",
-                SchemaDebugUtil.prettyPrintLazily(assignmentCValBefore));
+
+        LOGGER.trace("Processing unchanged assignment (origin: {}): {}",
+                assignmentElement.getOrigin(), printLazily(assignmentElement));
+
+        PlusMinusZero primaryAssignmentMode;
+        if (assignmentElement.isCurrent()) {
+            primaryAssignmentMode = PlusMinusZero.ZERO;
+        } else {
+            stateCheck(assignmentElement.isOld(),
+                    "Unchanged assignment not present in current nor old object? %s", assignmentElement);
+            primaryAssignmentMode = PlusMinusZero.MINUS;
+        }
+
         EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(
-                createAssignmentIdiNoChange(assignmentElement), PlusMinusZero.ZERO, false,
+                createAssignmentIdiNoChange(assignmentElement), primaryAssignmentMode, false,
                 assignmentPlacementDesc, assignmentElement);
+
         if (evaluatedAssignment != null) {
-            // NOTE: unchanged may mean both:
-            //   * was there before, is there now
-            //   * was not there before, is not there now
             evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
-            if (assignmentElement.isCurrent()) {
+            if (primaryAssignmentMode == PlusMinusZero.ZERO) {
                 collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, false);
             } else {
                 collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, false);
@@ -554,20 +582,29 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     }
 
     /**
+     * Evaluates the assignment.
+     *
+     * @param primaryAssignmentMode primary primaryAssignmentMode of the assignment. Beware, it's not quite well defined.
+     * Please see {@link EvaluationContext#primaryAssignmentMode}.
+     *
      * Returns null in exceptional situations.
      */
-    private EvaluatedAssignmentImpl<AH> evaluateAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
-            PlusMinusZero mode, boolean evaluateOld, String assignmentPlacementDesc, SmartAssignmentElement smartAssignment) throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
+    private EvaluatedAssignmentImpl<AH> evaluateAssignment(
+            ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
+            PlusMinusZero primaryAssignmentMode, boolean evaluateOld, String assignmentPlacementDesc,
+            SmartAssignmentElement smartAssignment)
+            throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
         OperationResult subResult = result.createMinorSubresult(OP_EVALUATE_ASSIGNMENT);
         PrismContainerValue<AssignmentType> assignment = assignmentIdi.getSingleValue(evaluateOld);
         subResult.addParam("assignment", assignment != null ? FocusTypeUtil.dumpAssignment(assignment.asContainerable()) : null);
-        subResult.addArbitraryObjectAsParam("mode", mode);
+        subResult.addArbitraryObjectAsParam("primaryAssignmentMode", primaryAssignmentMode);
         subResult.addParam("assignmentPlacementDescription", assignmentPlacementDesc);
         try {
             // Evaluate assignment. This follows to the assignment targets, follows to the inducements,
             // evaluates all the expressions, etc.
-            EvaluatedAssignmentImpl<AH> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, mode, evaluateOld,
-                    source, assignmentPlacementDesc, smartAssignment.getOrigin(), task, subResult);
+            EvaluatedAssignmentImpl<AH> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, primaryAssignmentMode,
+                    evaluateOld, source, assignmentPlacementDesc, smartAssignment.getOrigin(), task, subResult);
             subResult.recordSuccess();
             LOGGER.trace("Evaluated assignment:\n{}", evaluatedAssignment.debugDumpLazily(1));
             if (evaluatedAssignment.getTarget() != null) {
@@ -576,7 +613,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             return evaluatedAssignment;
         } catch (ObjectNotFoundException ex) {
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Processing of assignment resulted in error {}: {}", ex, SchemaDebugUtil.prettyPrint(LensUtil.getAssignmentType(assignmentIdi, evaluateOld)));
+                LOGGER.trace("Processing of assignment resulted in error {}: {}", ex,
+                        SchemaDebugUtil.prettyPrint(LensUtil.getAssignmentType(assignmentIdi, evaluateOld)));
             }
             if (ModelExecuteOptions.isForce(context.getOptions())) {
                 subResult.recordHandledError(ex);
@@ -585,19 +623,17 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             }
             return null;
         } catch (SchemaException ex) {
-            AssignmentType assignmentType = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Processing of assignment resulted in error {}: {}", ex, SchemaDebugUtil.prettyPrint(assignmentType));
-            }
+            AssignmentType assignmentBean = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);
+            LOGGER.trace("Processing of assignment resulted in error {}: {}", ex, prettyPrintLazily(assignmentBean));
             ModelImplUtils.recordFatalError(subResult, ex);
-            String resourceOid = FocusTypeUtil.determineConstructionResource(assignmentType);
+            String resourceOid = FocusTypeUtil.determineConstructionResource(assignmentBean);
             if (resourceOid == null) {
                 // This is a role assignment or something like that. Just throw the original exception for now.
                 throw ex;
             }
             ResourceShadowDiscriminator rad = new ResourceShadowDiscriminator(resourceOid,
-                    FocusTypeUtil.determineConstructionKind(assignmentType),
-                    FocusTypeUtil.determineConstructionIntent(assignmentType),
+                    FocusTypeUtil.determineConstructionKind(assignmentBean),
+                    FocusTypeUtil.determineConstructionIntent(assignmentBean),
                     null, false);
             LensProjectionContext projCtx = context.findProjectionContext(rad);
             if (projCtx != null) {
@@ -663,6 +699,10 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     boolean isMemberOfInvocationResultChanged(DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple) {
         return !focusContext.isDelete() && // we don't want to bother with isMemberOf when focus is being deleted
                 assignmentEvaluator.isMemberOfInvocationResultChanged(evaluatedAssignmentTriple);
+    }
+
+    private Object printLazily(SmartAssignmentElement assignmentElement) {
+        return prettyPrintLazily(assignmentElement.getAssignmentCVal());
     }
 
     public static final class Builder<AH extends AssignmentHolderType> {

@@ -410,7 +410,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         if (evaluatedAssignmentTriple == null) {
             throw new UnsupportedOperationException("hasActiveAssignmentRoleSubtype works only with evaluatedAssignmentTriple");
         }
-        Collection<? extends EvaluatedAssignment<?>> nonNegativeEvaluatedAssignments = evaluatedAssignmentTriple.getNonNegativeValues();
+        Collection<? extends EvaluatedAssignment<?>> nonNegativeEvaluatedAssignments = evaluatedAssignmentTriple.getNonNegativeValues(); // MID-6403
         for (EvaluatedAssignment<?> nonNegativeEvaluatedAssignment : nonNegativeEvaluatedAssignments) {
             PrismObject<?> target = nonNegativeEvaluatedAssignment.getTarget();
             if (target == null) {

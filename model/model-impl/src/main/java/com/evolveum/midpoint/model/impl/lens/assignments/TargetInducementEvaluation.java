@@ -37,17 +37,17 @@ class TargetInducementEvaluation<AH extends AssignmentHolderType> extends Abstra
     private static final Trace LOGGER = TraceManager.getTrace(TargetInducementEvaluation.class);
 
     @NotNull private final ConditionState targetOverallConditionState;
-    @NotNull private final TargetEvaluation.TargetActivation targetActivation;
+    @NotNull private final TargetEvaluation.TargetActivity targetActivity;
     private final OperationResult result;
     private final AssignmentType inducement;
     private final boolean archetypeHierarchy;
 
     TargetInducementEvaluation(AssignmentPathSegmentImpl segment,
-            @NotNull ConditionState targetOverallConditionState, @NotNull TargetEvaluation.TargetActivation targetActivation,
+            @NotNull ConditionState targetOverallConditionState, @NotNull TargetEvaluation.TargetActivity targetActivity,
             EvaluationContext<AH> ctx, OperationResult result, AssignmentType inducement, boolean archetypeHierarchy) {
         super(segment, ctx);
         this.targetOverallConditionState = targetOverallConditionState;
-        this.targetActivation = targetActivation;
+        this.targetActivity = targetActivity;
         this.result = result;
         this.inducement = inducement;
         this.archetypeHierarchy = archetypeHierarchy;
@@ -57,7 +57,7 @@ class TargetInducementEvaluation<AH extends AssignmentHolderType> extends Abstra
         assert ctx.assignmentPath.last() == segment;
         assert segment.isAssignmentActive() || segment.direct;
         assert targetOverallConditionState.isNotAllFalse();
-        assert targetActivation.targetActive;
+        assert targetActivity.targetActive;
 
         checkIfAlreadyEvaluated();
 
@@ -84,7 +84,7 @@ class TargetInducementEvaluation<AH extends AssignmentHolderType> extends Abstra
                 .assignment(inducement)
                 .isAssignment(false)
                 .isHierarchy(archetypeHierarchy)
-                .pathToSourceValid(targetActivation.pathAndTargetActive)
+                .pathToSourceValid(targetActivity.pathAndTargetActive)
                 .pathToSourceConditionState(targetOverallConditionState)
                 .evaluationOrder(adjustment.evaluationOrder)
                 .evaluationOrderForTarget(adjustment.targetEvaluationOrder)

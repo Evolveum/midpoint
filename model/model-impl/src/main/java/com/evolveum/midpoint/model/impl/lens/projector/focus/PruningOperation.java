@@ -71,7 +71,7 @@ public class PruningOperation<F extends AssignmentHolderType> {
     public boolean execute(OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.createMinorSubresult(OP_EXECUTE);
         try {
-            for (EvaluatedAssignmentImpl<F> existingOrNewAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
+            for (EvaluatedAssignmentImpl<F> existingOrNewAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) { // MID-6403
                 // Note that we take assignments on "being added" condition i.e. ones which are added since objectOld.
                 // Taking simple "plus set" is not sufficient because of situations after wave 0 when all assignments
                 // look like being in zero set.
@@ -90,7 +90,7 @@ public class PruningOperation<F extends AssignmentHolderType> {
     }
 
     private void pruneNewAssignment(EvaluatedAssignmentImpl<F> newAssignment) {
-        LOGGER.trace("Pruning new assignment: {}", newAssignment);
+        LOGGER.trace("Checking for pruning of new assignment: {}", newAssignment);
         for (EvaluatedPolicyRuleImpl newAssignmentRule : newAssignment.getAllTargetsPolicyRules()) {
             if (newAssignmentRule.containsEnabledAction(PrunePolicyActionType.class)) {
                 Collection<EvaluatedExclusionTrigger> exclusionTriggers =

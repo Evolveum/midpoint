@@ -854,7 +854,7 @@ public class ExpressionUtil {
             return null;
         }
         Collection<V> nonNegativeValues = outputTriple.getNonNegativeValues();
-        if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
+        if (nonNegativeValues.isEmpty()) {
             return null;
         }
         if (nonNegativeValues.size() > 1) {
