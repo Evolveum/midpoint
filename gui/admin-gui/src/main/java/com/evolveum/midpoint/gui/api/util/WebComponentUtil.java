@@ -2302,7 +2302,14 @@ public final class WebComponentUtil {
         return (T) object;
     }
 
-    public static void dispatchToObjectDetailsPage(ObjectReferenceType objectRef, Component component, boolean failIfUnsupported) {
+    public static void dispatchToObjectDetailsPage(PrismReferenceValue objectRef, Component component, boolean failIfUnsupported) {
+        if (objectRef == null) {
+            return; //TODO is this correct?
+        }
+        dispatchToObjectDetailsPage(objectRef.asReferencable(), component, failIfUnsupported);
+    }
+
+    public static void dispatchToObjectDetailsPage(Referencable objectRef, Component component, boolean failIfUnsupported) {
         if (objectRef == null) {
             return; // should not occur
         }

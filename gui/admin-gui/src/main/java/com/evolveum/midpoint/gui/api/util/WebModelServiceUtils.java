@@ -16,6 +16,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
@@ -33,11 +34,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -231,7 +227,7 @@ public class WebModelServiceUtils {
     }
 
     @Nullable
-    public static <T extends ObjectType> PrismObject<T> loadObject(ObjectReferenceType objectReference,
+    public static <T extends ObjectType> PrismObject<T> loadObject(Referencable objectReference,
             PageBase page, Task task, OperationResult result) {
         Class<T> type = page.getPrismContext().getSchemaRegistry().determineClassForType(objectReference.getType());
         return loadObject(type, objectReference.getOid(), null, page, task, result);
@@ -312,7 +308,7 @@ public class WebModelServiceUtils {
     //TODO consider using modelServiceLocator instead of PageBase in other methods.. Do we even need it? What about showResult? Should it be
     // here or directly in the page? Consider usability and readabiltiy
     @Nullable
-    public static <T extends ObjectType> PrismObject<T> loadObject(ObjectReferenceType objectReference,
+    public static <T extends ObjectType> PrismObject<T> loadObject(Referencable objectReference,
             ModelServiceLocator page, Task task, OperationResult result) {
         Class<T> type = page.getPrismContext().getSchemaRegistry().determineClassForType(objectReference.getType());
         String oid = objectReference.getOid();
