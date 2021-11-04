@@ -110,14 +110,6 @@ import java.util.*;
         @PanelInstance(identifier = "serviceGovernance",
                 applicableForType = ServiceType.class,
                 applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.governance", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 90)),
-        @PanelInstance(identifier = "archetypeMembers",
-                applicableForType = ArchetypeType.class,
-                applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.members", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 80)),
-        @PanelInstance(identifier = "archetypeGovernance",
-                applicableForType = ArchetypeType.class,
-                applicableForOperation = OperationTypeType.MODIFY,
                 display = @PanelDisplay(label = "pageRole.governance", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 90))
 })
 @PanelDisplay(label = "Members", order = 60)
