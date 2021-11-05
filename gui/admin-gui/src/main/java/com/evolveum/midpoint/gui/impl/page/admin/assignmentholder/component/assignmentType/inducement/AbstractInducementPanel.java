@@ -59,7 +59,7 @@ public class AbstractInducementPanel<AR extends AbstractRoleType> extends Abstra
     }
 
     @Override
-    protected String getAssignmentsTabStorageKey() {
+    protected String getStorageKey() {
         return SessionStorage.KEY_INDUCEMENTS_TAB;
     }
 

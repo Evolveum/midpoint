@@ -1895,6 +1895,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
+    public void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewsType, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+        collectionProcessor.compileView(existingView, objectListViewsType, task, result);
+    }
+
+    @Override
     public <O extends ObjectType> List<StringLimitationResult> validateValue(ProtectedStringType protectedStringValue, ValuePolicyType pp, PrismObject<O> object, Task task, OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         return policyProcessor.validateValue(getClearValue(protectedStringValue), pp, createOriginResolver(object, parentResult), "validate string", task, parentResult);

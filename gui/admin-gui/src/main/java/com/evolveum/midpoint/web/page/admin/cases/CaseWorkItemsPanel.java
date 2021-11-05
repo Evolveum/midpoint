@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
@@ -140,7 +141,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
                     }
 
                     @Override
-                    protected IColumn createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, String itemPath, ExpressionType expression) {
+                    protected IColumn createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
                         return CaseWorkItemsPanel.this.createNameColumn();
                     }
 

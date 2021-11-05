@@ -417,10 +417,19 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 public String getCssClass() {
                     return "col-md-1";
                 }
+
+                @Override
+                protected boolean isButtonMenuItemEnabled(IModel<PO> rowModel) {
+                    return isMenuItemVisible(rowModel);
+                }
             };
             columns.add(actionsColumn);
         }
         return columns;
+    }
+
+    protected boolean isMenuItemVisible(IModel<PO> rowModel) {
+        return true;
     }
 
     private final List<IColumn<PO, String>> collectColumns() {
@@ -449,7 +458,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             return columns;
         }
 
-        addingCheckAndIconColumnIfExists(columns);
+        if (!shouldIncludeDefaultColumns()) {
+            addingCheckAndIconColumnIfExists(columns);
+        }
 
         columns.addAll(getViewColumnsTransformed(customColumns, checkForNameColumn));
         LOGGER.trace("Finished to init custom columns, created columns {}", columns);
@@ -492,8 +503,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             if (WebComponentUtil.getElementVisibility(customColumn.getVisibility())) {
                 IModel<String> columnDisplayModel = createColumnDisplayModel(customColumn);
                 if (customColumns.indexOf(customColumn) == 0 && shoudlCheckForNameColumn) {
-                    // TODO what if a complex path is provided here?
-                    column = createNameColumn(columnDisplayModel, customColumn, customColumn.getPath() == null ? "" : customColumn.getPath().toString(), expression);
+                    column = createNameColumn(columnDisplayModel, customColumn, columnPath, expression);
                 } else {
                     column = createCustomExportableColumn(columnDisplayModel, customColumn, columnPath, expression);
                 }
@@ -620,7 +630,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return new ReadOnlyModel<>(() -> loadExportableColumnDataModel(rowModel, customColumn, columnPath, expression));
     }
 
-    private Collection<String> loadExportableColumnDataModel(IModel<PO> rowModel, GuiObjectColumnType customColumn, ItemPath columnPath, ExpressionType expression) {
+    protected Collection<String> loadExportableColumnDataModel(IModel<PO> rowModel, GuiObjectColumnType customColumn, ItemPath columnPath, ExpressionType expression) {
         C value = getRowRealValue(rowModel.getObject());
         if (value == null) {
             return Collections.singletonList("");
@@ -815,7 +825,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     protected abstract IColumn<PO, String> createIconColumn();
 
-    protected IColumn<PO, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, String itemPath, ExpressionType expression) {
+    protected IColumn<PO, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
         return null;
     }
 
@@ -957,20 +967,15 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         if (config == null) {
             return null;
         }
-        if (config.getListView() == null) {
+        GuiObjectListViewType listViewType = config.getListView();
+        if (listViewType == null) {
             return null;
-        }
-        CollectionRefSpecificationType collectionRefSpecificationType = config.getListView().getCollection();
-
-        if (collectionRefSpecificationType == null) {
-            compiledCollectionViewFromPanelConfiguration = new CompiledObjectCollectionView();
-            getPageBase().getModelInteractionService().applyView(compiledCollectionViewFromPanelConfiguration, config.getListView());
-            return compiledCollectionViewFromPanelConfiguration;
         }
         Task task = getPageBase().createSimpleTask("Compile collection");
         OperationResult result = task.getResult();
         try {
-            compiledCollectionViewFromPanelConfiguration = getPageBase().getModelInteractionService().compileObjectCollectionView(collectionRefSpecificationType, AssignmentType.class, task, result);
+            compiledCollectionViewFromPanelConfiguration = new CompiledObjectCollectionView();
+            getPageBase().getModelInteractionService().compileView(compiledCollectionViewFromPanelConfiguration, listViewType, task, result);
         } catch (Throwable e) {
             LOGGER.error("Cannot compile object collection view for panel configuration {}. Reason: {}", config, e.getMessage(), e);
             result.recordFatalError("Cannot compile object collection view for panel configuration " + config + ". Reason: " + e.getMessage(), e);
@@ -983,42 +988,48 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     private CompiledObjectCollectionView getWidgetCollectionView() {
         PageParameters parameters = getPageBase().getPageParameters();
         String dashboardOid = parameters == null ? null : parameters.get(PageBase.PARAMETER_DASHBOARD_TYPE_OID).toString();
-        String dashboardWidgetName = getWidgetNameOfCollection();
 
-        if (!StringUtils.isEmpty(dashboardOid) && !StringUtils.isEmpty(dashboardWidgetName)) {
-            if (dashboardWidgetView != null) {
-                return dashboardWidgetView;
-            }
-            Task task = getPageBase().createSimpleTask("Create view from dashboard");
-            PrismObject<DashboardType> dashboardType = WebModelServiceUtils.loadObject(DashboardType.class, dashboardOid, getPageBase(), task, task.getResult());
-            DashboardType dashboard = null;
-            if (dashboardType != null) {
-                dashboard = dashboardType.asObjectable();
-            }
-            if (dashboard != null) {
-                for (DashboardWidgetType widget :dashboard.getWidget()) {
-                    if (widget.getIdentifier().equals(dashboardWidgetName)
-                            && widget.getData() != null && widget.getData().getCollection() != null) {
-                        CollectionRefSpecificationType collectionSpec = widget.getData().getCollection();
-                        try {
-                            @NotNull CompiledObjectCollectionView compiledView = getPageBase().getModelInteractionService()
-                                    .compileObjectCollectionView(collectionSpec, null, task, task.getResult());
-                            if (widget.getPresentation() != null && widget.getPresentation().getView() != null) {
-                                getPageBase().getModelInteractionService().applyView(compiledView, widget.getPresentation().getView());
-                            }
-                            compiledView.setCollection(collectionSpec);
-                            dashboardWidgetView = compiledView;
-                            return dashboardWidgetView;
-                        } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException
-                                | ObjectNotFoundException e) {
-                            LOGGER.error("Couldn't compile collection " + collectionSpec, e);
-                        }
-                        break;
-                    }
-                }
-            }
+        if (StringUtils.isEmpty(dashboardOid) || StringUtils.isEmpty(getWidgetNameOfCollection())) {
+            LOGGER.trace("Dashboard not defined, skipping getting collection view for dashboard");
+            return null;
         }
-        return null;
+        if (dashboardWidgetView != null) {
+            return dashboardWidgetView;
+        }
+
+        Task task = getPageBase().createSimpleTask("Create view from dashboard");
+        PrismObject<DashboardType> dashboard = WebModelServiceUtils.loadObject(DashboardType.class, dashboardOid, getPageBase(), task, task.getResult());
+        if (dashboard == null) {
+            return null;
+        }
+        DashboardWidgetType widget = findWidget(dashboard.asObjectable());
+        dashboardWidgetView = compileWidgetCollectionView(widget, task);
+
+        return dashboardWidgetView;
+    }
+
+    private DashboardWidgetType findWidget(DashboardType dashboardType) {
+        return dashboardType.getWidget()
+                .stream()
+                .filter(d -> getWidgetNameOfCollection().equals(d.getIdentifier()))
+                .findFirst().orElse(null);
+    }
+
+    private CompiledObjectCollectionView compileWidgetCollectionView(DashboardWidgetType widget, Task task) {
+        CollectionRefSpecificationType collectionSpec = widget.getData().getCollection();
+        try {
+            @NotNull CompiledObjectCollectionView compiledView = getPageBase().getModelInteractionService()
+                    .compileObjectCollectionView(collectionSpec, null, task, task.getResult());
+            if (widget.getPresentation() != null && widget.getPresentation().getView() != null) {
+                getPageBase().getModelInteractionService().applyView(compiledView, widget.getPresentation().getView());
+            }
+            compiledView.setCollection(collectionSpec);
+            return compiledView;
+        } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException
+                | ObjectNotFoundException e) {
+            LOGGER.error("Couldn't compile collection " + collectionSpec, e);
+            return null;
+        }
     }
 
     protected StringValue getCollectionNameParameterValue(){

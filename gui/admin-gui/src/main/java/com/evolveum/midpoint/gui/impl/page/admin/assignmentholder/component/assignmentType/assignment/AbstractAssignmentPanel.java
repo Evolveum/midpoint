@@ -63,8 +63,19 @@ public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> e
     }
 
     @Override
-    protected String getAssignmentsTabStorageKey() {
-        return SessionStorage.KEY_ASSIGNMENTS_TAB;
+    protected String getStorageKey() {
+        return computeAssignmentStorageKey();
+    }
+
+    private String computeAssignmentStorageKey() {
+        String key = SessionStorage.KEY_ASSIGNMENTS_TAB;
+        if (getAssignmentType() != null) {
+            key += "_" + getAssignmentType().getLocalPart();
+        }
+        if (getPanelConfiguration() != null) {
+            key += "_" + getPanelConfiguration().getIdentifier();
+        }
+        return key;
     }
 
     @Override

@@ -108,7 +108,7 @@ public class AuditLogViewerPanel extends BasePanel {
                     }
 
                     @Override
-                    protected IColumn<SelectableBean<AuditEventRecordType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, String itemPath, ExpressionType expression) {
+                    protected IColumn<SelectableBean<AuditEventRecordType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
                         return AuditLogViewerPanel.this.createNameColumn();
                     }
 

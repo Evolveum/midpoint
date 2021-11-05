@@ -470,6 +470,10 @@ public interface ModelInteractionService {
     @Experimental
     void applyView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewsType);
 
+    /**
+     * Compile object list view together with collection ref specification if present
+     */
+    void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewsType, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
     @Experimental
     <O extends ObjectType> List<StringLimitationResult> validateValue(ProtectedStringType protectedStringValue, ValuePolicyType pp, PrismObject<O> object, Task task, OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
