@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,7 +17,6 @@ import javax.xml.namespace.QName;
 
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.hibernate.stat.Statistics;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -50,41 +48,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-/**
- * @author lazyman
- */
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class AddGetObjectTest extends BaseSQLRepoTest {
 
-    @Test(enabled = false)
-    public <T extends ObjectType> void perfTest() throws Exception {
-        Statistics stats = getFactory().getStatistics();
-        stats.setStatisticsEnabled(true);
-
-        final File OBJECTS_FILE = new File("./src/test/resources/10k-users.xml");
-        List<PrismObject<? extends Objectable>> elements = prismContext.parserFor(OBJECTS_FILE).parseObjects();
-
-        long previousCycle = 0;
-        long time = System.currentTimeMillis();
-        for (int i = 0; i < elements.size(); i++) {
-            if (i % 500 == 0) {
-                logger.info("Previous cycle time {}. Next cycle: {}",
-                        (System.currentTimeMillis() - time - previousCycle), i);
-                previousCycle = System.currentTimeMillis() - time;
-            }
-
-            PrismObject<T> object = (PrismObject<T>) elements.get(i);
-            repositoryService.addObject(object, null, new OperationResult("add performance test"));
-        }
-        logger.info("Time to add objects ({}): {}",
-                elements.size(), (System.currentTimeMillis() - time));
-
-        stats.logSummary();
-    }
-
     @Test
-    public void addSameName() throws Exception {
+    public void test001AddSameName() throws Exception {
         final File user = new File(FOLDER_BASIC, "objects-user.xml");
         addGetCompare(user);
         try {
@@ -98,7 +67,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void addGetDSEESyncDoubleTest() throws Exception {
+    public void test002AddGetDSEESyncDouble() throws Exception {
         final File OBJECTS_FILE = new File("./../../samples/dsee/odsee-localhost-advanced-sync.xml");
         if (!OBJECTS_FILE.exists()) {
             logger.warn("skipping addGetDSEESyncDoubleTest, file {} not found.", OBJECTS_FILE.getPath());
@@ -116,7 +85,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void simpleAddGetTest() throws Exception {
+    public void test005SimpleAddGet() throws Exception {
         final File OBJECTS_FILE = new File(FOLDER_BASIC, "objects.xml");
         List<PrismObject<?>> objects = addGetCompare(OBJECTS_FILE);
 
@@ -187,7 +156,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                         }
                     }
                     logger.error(">>> {} Found {} changes for {}\n{}", (i + 1),
-                            delta.getModifications().size(), newObject.toString(), delta.debugDump(3));
+                            delta.getModifications().size(), newObject, delta.debugDump(3));
                     ItemDelta id = (ItemDelta) delta.getModifications().iterator().next();
                     if (id.isReplace()) {
                         logger.debug("{}", id.getValuesToReplace().iterator().next());
@@ -270,7 +239,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void addUserWithAssignmentExtension() throws Exception {
+    public void test020AddUserWithAssignmentExtension() throws Exception {
         File file = new File(FOLDER_BASIC, "user-assignment-extension.xml");
         List<PrismObject<? extends Objectable>> elements = prismContext.parserFor(file).parseObjects();
 
@@ -298,7 +267,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
      * (static) definition.
      */
     @Test
-    public void addGetFullAccount() throws Exception {
+    public void test030AddGetFullAccount() throws Exception {
         PrismObject<ShadowType> fileAccount = prismContext.parseObject(new File(FOLDER_BASIC, "account-full.xml"));
 
         // apply appropriate schema
@@ -327,7 +296,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testAddGetSystemConfigFile() throws Exception {
+    public void test040AddGetSystemConfigFile() throws Exception {
         PrismObject<SecurityPolicyType> securityPolicy = prismContext.parseObject(new File(FOLDER_BASIC, "security-policy-special.xml"));
 
         OperationResult result = createOperationResult();
@@ -366,7 +335,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testAddGetSyncDescription() throws Exception {
+    public void test050AddGetSyncDescription() throws Exception {
         PrismObjectDefinition accDef = prismContext.getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(ShadowType.class);
         PrismObject<ShadowType> shadow = accDef.instantiate();
@@ -389,7 +358,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void addGetRoleWithResourceRefFilter() throws Exception {
+    public void test060AddGetRoleWithResourceRefFilter() throws Exception {
         PrismObject<RoleType> role = prismContext.parseObject(new File("src/test/resources/basic/role-resource-filter.xml"));
 
         System.out.println("role: " + role.debugDump());
@@ -399,7 +368,6 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         String oid = repositoryService.addObject(role, null, result);
 
         role = repositoryService.getObject(RoleType.class, oid, null, result);
-        RoleType roleType = role.asObjectable();
         System.out.println("role: " + role.debugDump());
         System.out.println("role: " + role.asObjectable().getInducement().get(0).getConstruction().getResourceRef().getFilter());
     }
@@ -408,7 +376,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
      * creates <iterationToken/> element in shadow
      */
     @Test
-    public void emptyIterationToken() throws Exception {
+    public void test080EmptyIterationToken() throws Exception {
         String token = testIterationToken("");
         AssertJUnit.assertNotNull(token);
         assertEquals(token, "");
@@ -418,7 +386,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
      * doesn't create <iterationToken/> element in shadow
      */
     @Test
-    public void nullIterationToken() throws Exception {
+    public void test081NullIterationToken() throws Exception {
         String token = testIterationToken(null);
         AssertJUnit.assertNull(token);
     }
@@ -427,7 +395,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
      * creates <iterationToken>some value</iterationToken> element in shadow
      */
     @Test
-    public void valueInIterationToken() throws Exception {
+    public void test082ValueInIterationToken() throws Exception {
         String token = testIterationToken("foo");
         AssertJUnit.assertNotNull(token);
         AssertJUnit.assertEquals(token, "foo");
@@ -455,7 +423,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testSearchObjectsIterative() throws Exception {
+    public void test085SearchObjectsIterative() throws Exception {
         final List<PrismObject<?>> objects = new ArrayList<>();
         ResultHandler<ObjectType> handler = (object, parentResult) -> {
             objects.add(object);
@@ -468,7 +436,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void addGetFullAccountShadow() throws Exception {
+    public void test090AddGetFullAccountShadow() throws Exception {
         OperationResult result = new OperationResult("testAddAccountShadow");
         File file = new File(FOLDER_BASIC, "account-accountTypeShadow.xml");
         try {
@@ -549,7 +517,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         values.get(0).setId(999L);      // setting it manually because object with duplicate IDs could not be parsed at all
         values.get(1).setId(999L);
         try {
-            String OID = repositoryService.addObject(user, null, result);
+            repositoryService.addObject(user, null, result);
             throw new AssertionError("Two container values with the same ID were accepted even they shouldn't be");
         } catch (RuntimeException e) {
             // this was expected
@@ -631,7 +599,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         // THEN
         assertTrue("watcher is not initialized", watcher.isInitialized());
         assertFalse("watcher is marked as deleted", watcher.isObjectDeleted());
-        assertEquals("expectedVersion is wrong", 3, watcher.getExpectedVersion());      // the version is ignored when overwriting
+        assertEquals("expectedVersion is wrong", 3, watcher.getExpectedVersion()); // the version is ignored when overwriting
         boolean hasConflict = repositoryService.hasConflict(watcher, result);
         assertFalse("false conflict reported for " + watcher, hasConflict);
     }
@@ -720,41 +688,6 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test990AddResourceWithEmptyConnectorConfiguration() throws Exception {
-        OperationResult result = createOperationResult();
-
-        PrismObject<ResourceType> prismResource = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class).instantiate();
-
-        PolyStringType name = new PolyStringType();
-        name.setOrig("Test Resource");
-        name.setNorm("test resource");
-
-        prismResource.asObjectable().setName(name);
-
-        prismResource
-                .findOrCreateContainer(ResourceType.F_CONNECTOR_CONFIGURATION)
-                .findOrCreateContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES)
-                .createNewValue();
-
-        System.out.println("Original data before saving: " + prismResource.debugDump());
-        String oid = repositoryService.addObject(prismResource, null, result);
-        PrismObject<ResourceType> fetchedResource = repositoryService.getObject(ResourceType.class, oid, null, result);
-        System.out.println("Original data after saving: " + prismResource.debugDump());
-        System.out.println("Fetched data: " + fetchedResource.debugDump());
-
-        AssertJUnit.assertEquals(prismResource, fetchedResource);
-    }
-
-    /**
-     * MID-3999
-     */
-    @Test(expectedExceptions = SchemaException.class)
-    public void test950AddBinary() throws Exception {
-        final File user = new File(FOLDER_BASE, "./get/user-binary.xml");
-        addGetCompare(user);
-    }
-
-    @Test
     public void test400AddModifyTask() throws Exception {
         File file = new File(FOLDER_BASIC, "task.xml");
         PrismObject<TaskType> task = PrismTestUtil.parseObject(file);
@@ -814,6 +747,41 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         OperationResultType r = taskType.getResult();
         AssertJUnit.assertEquals("asdf", r.getOperation());
         AssertJUnit.assertEquals(OperationResultStatusType.FATAL_ERROR, r.getStatus());
+    }
+
+    @Test
+    public void test990AddResourceWithEmptyConnectorConfiguration() throws Exception {
+        OperationResult result = createOperationResult();
+
+        PrismObject<ResourceType> prismResource = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class).instantiate();
+
+        PolyStringType name = new PolyStringType();
+        name.setOrig("Test Resource");
+        name.setNorm("test resource");
+
+        prismResource.asObjectable().setName(name);
+
+        prismResource
+                .findOrCreateContainer(ResourceType.F_CONNECTOR_CONFIGURATION)
+                .findOrCreateContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES)
+                .createNewValue();
+
+        System.out.println("Original data before saving: " + prismResource.debugDump());
+        String oid = repositoryService.addObject(prismResource, null, result);
+        PrismObject<ResourceType> fetchedResource = repositoryService.getObject(ResourceType.class, oid, null, result);
+        System.out.println("Original data after saving: " + prismResource.debugDump());
+        System.out.println("Fetched data: " + fetchedResource.debugDump());
+
+        AssertJUnit.assertEquals(prismResource, fetchedResource);
+    }
+
+    /**
+     * MID-3999
+     */
+    @Test(expectedExceptions = SchemaException.class)
+    public void test950AddBinary() throws Exception {
+        final File user = new File(FOLDER_BASE, "./get/user-binary.xml");
+        addGetCompare(user);
     }
 }
 
