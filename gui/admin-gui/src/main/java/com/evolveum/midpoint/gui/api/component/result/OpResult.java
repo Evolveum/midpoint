@@ -157,9 +157,9 @@ public class OpResult implements Serializable, Visitable {
 
     private static IModel<String> createXmlModel(OperationResult result, PageBase page) {
         try {
+            OperationResultType resultType = result.createOperationResultType();
             return new ReadOnlyModel<String>(() -> {
                 try {
-                    OperationResultType resultType = result.createOperationResultType();
                     return page.getPrismContext().xmlSerializer().serializeAnyData(resultType, SchemaConstants.C_RESULT);
                 } catch (SchemaException e) {
                     throw new TunnelException(e);
