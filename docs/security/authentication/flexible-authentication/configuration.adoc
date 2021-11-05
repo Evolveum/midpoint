@@ -414,12 +414,13 @@ _AuthenticationModuleSaml2ServiceProviderType_ contains following configuration 
 
 [%autowidth]
 |===
-| Name | Description | Required | Type | Default
+| Name | Description | Required | Type | Default | Unused from 4.4
 
 | `entityId`
 | Unique identifier of the service provider.
 | true
 | _String_
+|
 |
 
 
@@ -428,12 +429,14 @@ _AuthenticationModuleSaml2ServiceProviderType_ contains following configuration 
 | false
 | _String_
 |
+|
 
 
 | `aliasForPath`
 | Alias used for AssertionConsumerServiceURL.
 | false
 | _String_
+|
 |
 
 
@@ -443,6 +446,7 @@ Possible values are RSA_SHA1, RSA_SHA256, RSA_SHA512 and RSA_RIPEMD160.
 | false
 | _enum_
 | RSA_SHA256
+|
 
 
 | `defaultDigest`
@@ -451,6 +455,7 @@ possible values are  SHA1, SHA256, SHA512 and RIPEMD160.
 | false
 | _enum_
 | SHA256
+| true
 
 
 | `signRequests`
@@ -458,6 +463,7 @@ possible values are  SHA1, SHA256, SHA512 and RIPEMD160.
 | false
 | _boolean_
 | false
+|
 
 
 | `wantAssertionsSigned`
@@ -465,12 +471,14 @@ possible values are  SHA1, SHA256, SHA512 and RIPEMD160.
 | false
 | _boolean_
 | false
+| true
 
 
 | `singleLogoutEnabled`
 | Flag indicating whether this service enable single logout.
 | false
 | _boolean_
+| true
 | true
 
 
@@ -481,6 +489,7 @@ Order of NameIDs in the property determines order of NameIDs in the generated me
 | false
 | _enum_
 |
+| true
 
 
 | `keys`
@@ -488,12 +497,14 @@ Order of NameIDs in the property determines order of NameIDs in the generated me
 | false
 | _AuthenticationModuleSaml2KeyType_
 |
+|
 
 
-| `provider`
+| `provider` , from 4.4 `identityProvider`
 | Possible identity providers for this service provider.
 | true
 | _AuthenticationModuleSaml2ProviderType_
+|
 |
 
 
@@ -669,12 +680,13 @@ AuthenticationModuleSaml2ProviderType contains following attributes:
 
 [%autowidth]
 |===
-| Name | Description | Required | Type | Defrault
+| Name | Description | Required | Type | Default | Unused from 4.4
 
 | `entityId`
 | Unique identifier of the service provider.
 | true
 | _String_
+|
 |
 
 
@@ -683,6 +695,7 @@ AuthenticationModuleSaml2ProviderType contains following attributes:
 | true
 | _String_
 |
+| true
 
 
 | `metadata`
@@ -697,6 +710,7 @@ AuthenticationModuleSaml2ProviderType contains following attributes:
 | false
 | _boolean_
 | false
+| true
 
 
 | `metadataTrustCheck`
@@ -704,6 +718,7 @@ AuthenticationModuleSaml2ProviderType contains following attributes:
 | flase
 | _boolean_
 | false
+| true
 
 
 | `linkText`
@@ -1015,6 +1030,12 @@ For example:
 </authentication>
 ----
 
+
+== Logout
+
+Midpoint supports logout by removing session and data connected with session. Removing session is provided by request to logout by user or termination of session after timeout.
+
+'httpHeader' and 'saml2' authentication modul support send logout request to logout url, but only for logout requested by user. For timeout of session is supported only it's removing.
 
 == Complete Configuration Examples
 
