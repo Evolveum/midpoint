@@ -49,14 +49,14 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
 
     private final ExpressionType expression;
     private final PageBase pageBase;
-    private final String itemPath;
+    private final ItemPath itemPath;
 
     public ObjectNameColumn(IModel<String> displayModel) {
         this(displayModel, null, null, null, true);
     }
 
-    public ObjectNameColumn(IModel<String> displayModel, String itemPath, ExpressionType expression, PageBase pageBase, boolean useDefaultPath) {
-        super(displayModel, useDefaultPath ? ObjectType.F_NAME.getLocalPart() : itemPath);
+    public ObjectNameColumn(IModel<String> displayModel, ItemPath itemPath, ExpressionType expression, PageBase pageBase, boolean useDefaultPath) {
+        super(displayModel, useDefaultPath ? ObjectType.F_NAME.getLocalPart() : itemPath.toString());
         this.expression = expression;
         this.pageBase = pageBase;
         this.itemPath = itemPath;
@@ -136,11 +136,11 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
         return cellItem.getString(props.getStatusLabelKey());
     }
 
-    private String evaluateExpression(Item<ICellPopulator<SelectableBean<O>>> cellItem, String itemPath, O value) {
+    private String evaluateExpression(Item<ICellPopulator<SelectableBean<O>>> cellItem, ItemPath itemPath, O value) {
         Task task = pageBase.createSimpleTask("evaluate column expression");
         try {
 
-            com.evolveum.midpoint.prism.Item<?, ?> item = value.asPrismObject().findItem(ItemPath.create(itemPath));
+            com.evolveum.midpoint.prism.Item<?, ?> item = value.asPrismObject().findItem(itemPath);
             VariablesMap variablesMap = new VariablesMap();
             variablesMap.put(ExpressionConstants.VAR_OBJECT, value, value.getClass());
             if (item != null) {

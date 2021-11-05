@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -101,7 +102,7 @@ public class ItemRefinedPanel<C extends ItemRefinedDefinitionType> extends BaseP
             }
 
             @Override
-            protected IColumn<PrismContainerValueWrapper<C>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, String itemPath, ExpressionType expression) {
+            protected IColumn<PrismContainerValueWrapper<C>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
                 return new PrismPropertyWrapperColumn<>(getContainerModel(), ItemRefinedDefinitionType.F_REF,
                         allowLinkForFirstColumn() ? AbstractItemWrapperColumn.ColumnType.LINK : AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()){
                     @Override

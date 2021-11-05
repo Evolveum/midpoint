@@ -106,75 +106,6 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createDefaultColumns() {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
-        columns.add(new IconColumn<>(Model.of("")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
-                AssignmentType assignment = rowModel.getObject().getRealValue();
-                if (assignment != null && assignment.getTargetRef() != null && StringUtils.isNotEmpty(assignment.getTargetRef().getOid())) {
-                    List<ObjectType> targetObjectList = WebComponentUtil.loadReferencedObjectList(Collections.singletonList(assignment.getTargetRef()), OPERATION_LOAD_ASSIGNMENTS_TARGET_OBJ,
-                            DirectAndIndirectAssignmentPanel.this.getPageBase());
-                    if (CollectionUtils.isNotEmpty(targetObjectList) && targetObjectList.size() == 1) {
-                        ObjectType targetObject = targetObjectList.get(0);
-                        DisplayType displayType = GuiDisplayTypeUtil.getArchetypePolicyDisplayType(targetObject.asPrismObject(), DirectAndIndirectAssignmentPanel.this.getPageBase());
-                        if (displayType != null) {
-                            String disabledStyle;
-                            if (targetObject instanceof FocusType) {
-                                disabledStyle = WebComponentUtil.getIconEnabledDisabled(((FocusType) targetObject).asPrismObject());
-                                if (displayType.getIcon() != null && StringUtils.isNotEmpty(displayType.getIcon().getCssClass()) &&
-                                        disabledStyle != null) {
-                                    displayType.getIcon().setCssClass(displayType.getIcon().getCssClass() + " " + disabledStyle);
-                                    displayType.getIcon().setColor("");
-                                }
-                            }
-                            return displayType;
-                        }
-                    }
-                }
-                return GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(
-                        AssignmentsUtil.getTargetType(rowModel.getObject().getRealValue())));
-            }
-
-        });
-
-        columns.add(new AjaxLinkColumn<>(createStringResource("DirectAndIndirectAssignmentPanel.column.name")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
-                String name = AssignmentsUtil.getName(rowModel.getObject(), getPageBase());
-                if (StringUtils.isEmpty(name)) {
-                    ObjectReferenceType ref;
-                    if (rowModel.getObject().getRealValue().getConstruction() != null) {
-                        ref = rowModel.getObject().getRealValue().getConstruction().getResourceRef();
-                    } else {
-                        ref = rowModel.getObject().getRealValue().getTargetRef();
-                    }
-                    name = WebComponentUtil.getDisplayNameOrName(ref);
-                }
-                return Model.of(name);
-            }
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
-                ObjectReferenceType ref;
-                if (rowModel.getObject().getRealValue().getConstruction() != null) {
-                    ref = rowModel.getObject().getRealValue().getConstruction().getResourceRef();
-                } else {
-                    ref = rowModel.getObject().getRealValue().getTargetRef();
-                }
-                if (ref != null) {
-                    try {
-                        WebComponentUtil.dispatchToObjectDetailsPage(ref, getPageBase(), true);
-                    } catch (Exception e) {
-                        getPageBase().error("Cannot determine details page for " + ref);
-                        target.add(getPageBase().getFeedbackPanel());
-                    }
-                }
-            }
-        });
 
         columns.add(new AbstractColumn<>(createStringResource("DirectAndIndirectAssignmentPanel.column.type")) {
             @Override
@@ -220,6 +151,87 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
             }
         });
         return columns;
+    }
+
+    @Override
+    protected IColumn<PrismContainerValueWrapper<AssignmentType>, String> createCheckboxColumn() {
+        return null;
+    }
+
+    @Override
+    protected IColumn<PrismContainerValueWrapper<AssignmentType>, String> createIconColumn() {
+        return new IconColumn<>(Model.of("")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+                AssignmentType assignment = rowModel.getObject().getRealValue();
+                if (assignment != null && assignment.getTargetRef() != null && StringUtils.isNotEmpty(assignment.getTargetRef().getOid())) {
+                    List<ObjectType> targetObjectList = WebComponentUtil.loadReferencedObjectList(Collections.singletonList(assignment.getTargetRef()), OPERATION_LOAD_ASSIGNMENTS_TARGET_OBJ,
+                            DirectAndIndirectAssignmentPanel.this.getPageBase());
+                    if (CollectionUtils.isNotEmpty(targetObjectList) && targetObjectList.size() == 1) {
+                        ObjectType targetObject = targetObjectList.get(0);
+                        DisplayType displayType = GuiDisplayTypeUtil.getArchetypePolicyDisplayType(targetObject.asPrismObject(), DirectAndIndirectAssignmentPanel.this.getPageBase());
+                        if (displayType != null) {
+                            String disabledStyle;
+                            if (targetObject instanceof FocusType) {
+                                disabledStyle = WebComponentUtil.getIconEnabledDisabled(((FocusType) targetObject).asPrismObject());
+                                if (displayType.getIcon() != null && StringUtils.isNotEmpty(displayType.getIcon().getCssClass()) &&
+                                        disabledStyle != null) {
+                                    displayType.getIcon().setCssClass(displayType.getIcon().getCssClass() + " " + disabledStyle);
+                                    displayType.getIcon().setColor("");
+                                }
+                            }
+                            return displayType;
+                        }
+                    }
+                }
+                return GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(
+                        AssignmentsUtil.getTargetType(rowModel.getObject().getRealValue())));
+            }
+
+        };
+    }
+
+    @Override
+    protected IColumn<PrismContainerValueWrapper<AssignmentType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
+        return new AjaxLinkColumn<>(createStringResource("DirectAndIndirectAssignmentPanel.column.name")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+                String name = AssignmentsUtil.getName(rowModel.getObject(), getPageBase());
+                if (StringUtils.isEmpty(name)) {
+                    ObjectReferenceType ref;
+                    if (rowModel.getObject().getRealValue().getConstruction() != null) {
+                        ref = rowModel.getObject().getRealValue().getConstruction().getResourceRef();
+                    } else {
+                        ref = rowModel.getObject().getRealValue().getTargetRef();
+                    }
+                    name = WebComponentUtil.getDisplayNameOrName(ref);
+                }
+                return Model.of(name);
+            }
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+                ObjectReferenceType ref;
+                if (rowModel.getObject().getRealValue().getConstruction() != null) {
+                    ref = rowModel.getObject().getRealValue().getConstruction().getResourceRef();
+                } else {
+                    ref = rowModel.getObject().getRealValue().getTargetRef();
+                }
+                if (ref != null) {
+                    try {
+                        WebComponentUtil.dispatchToObjectDetailsPage(ref, getPageBase(), true);
+                    } catch (Exception e) {
+                        getPageBase().error("Cannot determine details page for " + ref);
+                        target.add(getPageBase().getFeedbackPanel());
+                    }
+                }
+            }
+        };
     }
 
     @Override

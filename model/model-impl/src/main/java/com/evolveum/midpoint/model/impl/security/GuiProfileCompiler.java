@@ -421,35 +421,7 @@ public class GuiProfileCompiler {
     public void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
-        collectionProcessor.compileView(existingView, objectListViewType);
-        compileCollection(existingView, objectListViewType, task, result);
-    }
-
-    private void compileCollection(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result)
-            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException {
-        CollectionRefSpecificationType collectionSpec = objectListViewType.getCollection();
-        if (collectionSpec == null) {
-            return;
-        }
-        if (existingView.getCollection() != null) {
-            LOGGER.debug("Redefining collection in view {}", existingView.getViewIdentifier());
-        }
-        existingView.setCollection(collectionSpec);
-
-        compileCollection(existingView, collectionSpec, task, result);
-    }
-
-    private void compileCollection(CompiledObjectCollectionView existingView, CollectionRefSpecificationType collectionSpec, Task task, OperationResult result)
-            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException {
-
-        QName targetObjectType = existingView.getContainerType();
-        Class<? extends ObjectType> targetTypeClass = ObjectType.class;
-        if (targetObjectType != null) {
-            targetTypeClass = ObjectTypes.getObjectTypeFromTypeQName(targetObjectType).getClassDefinition();
-        }
-        collectionProcessor.compileObjectCollectionView(existingView, collectionSpec, targetTypeClass, task, result);
+        collectionProcessor.compileView(existingView, objectListViewType, task, result);
     }
 
     private void joinForms(ObjectFormsType objectForms, ObjectFormType newForm) {

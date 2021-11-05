@@ -253,7 +253,7 @@ public class InducedEntitlementsPanel<AR extends AbstractRoleType> extends Abstr
     }
 
     @Override
-    protected String getAssignmentsTabStorageKey() {
+    protected String getStorageKey() {
         return SessionStorage.KEY_INDUCED_ENTITLEMENTS_TAB;
     }
 
