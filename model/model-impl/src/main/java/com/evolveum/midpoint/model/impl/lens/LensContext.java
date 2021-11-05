@@ -647,7 +647,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     @Override
     public Collection<EvaluatedAssignmentImpl<?>> getNonNegativeEvaluatedAssignments() {
         if (evaluatedAssignmentTriple != null) {
-            return evaluatedAssignmentTriple.getNonNegativeValues();
+            return evaluatedAssignmentTriple.getNonNegativeValues(); // MID-6403
         } else {
             return Collections.emptySet();
         }

@@ -15,7 +15,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.exception.MaintenanceException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -33,7 +33,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
@@ -548,6 +547,12 @@ public class ResourceTypeUtil {
 
     public static boolean isInMaintenance(ResourceType resource) {
         return getAdministrativeAvailabilityStatus(resource) == AdministrativeAvailabilityStatusType.MAINTENANCE;
+    }
+
+    public static void checkNotInMaintenance(ResourceType resource) throws MaintenanceException {
+        if (isInMaintenance(resource)) {
+            throw new MaintenanceException("Resource " + resource + " is in the maintenance");
+        }
     }
 
     public static AdministrativeAvailabilityStatusType getAdministrativeAvailabilityStatus(ResourceType resource) {

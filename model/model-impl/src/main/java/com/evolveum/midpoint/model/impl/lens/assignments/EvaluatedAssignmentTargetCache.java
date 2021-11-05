@@ -17,6 +17,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IdempotenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.jetbrains.annotations.Nullable;
+
 import javax.xml.namespace.QName;
 import java.util.HashMap;
 import java.util.Map;
@@ -61,38 +63,39 @@ class EvaluatedAssignmentTargetCache implements DebugDumpable {
         }
     }
 
-    AssignmentTargetEvaluationInformation recordProcessing(AssignmentPathSegmentImpl segment, PlusMinusZero mode) {
-        ObjectType targetType = segment.getTarget();
-        if (!(targetType instanceof AbstractRoleType)) {
+    @Nullable AssignmentTargetEvaluationInformation recordProcessing(AssignmentPathSegmentImpl segment, PlusMinusZero mode) {
+        ObjectType target = segment.getTarget();
+        if (!(target instanceof AbstractRoleType)) {
             return null;
         }
-        if (!isCacheable((AbstractRoleType)targetType)) {
+        if (!isCacheable((AbstractRoleType) target)) {
             return null;
         }
         AssignmentTargetEvaluationInformation targetEvaluationInformation = new AssignmentTargetEvaluationInformation();
 
-        processedOrderKeys.get(mode).put(new OrderKey(segment), targetEvaluationInformation);
-        if (targetType.getOid() != null) {
-            processedKeys.get(mode).put(new Key(segment), targetEvaluationInformation);
+        processedOrderKeys.get(mode)
+                .put(new OrderKey(segment), targetEvaluationInformation);
+
+        if (target.getOid() != null) {
+            processedKeys.get(mode)
+                    .put(new Key(segment), targetEvaluationInformation);
         }
 
         return targetEvaluationInformation;
     }
 
-    private boolean isCacheable(AbstractRoleType targetType) {
-        IdempotenceType idempotence = targetType.getIdempotence();
+    private boolean isCacheable(AbstractRoleType target) {
+        IdempotenceType idempotence = target.getIdempotence();
         return idempotence != null && idempotence != IdempotenceType.NONE;
     }
 
     boolean canSkip(AssignmentPathSegmentImpl segment, PlusMinusZero mode) {
         ObjectType target = segment.getTarget();
         if (!(target instanceof AbstractRoleType)) {
-//            LOGGER.trace("Non-skippable target: {}", target);
             return false;
         }
         IdempotenceType idempotence = ((AbstractRoleType)target).getIdempotence();
         if (idempotence == null || idempotence == IdempotenceType.NONE) {
-//            LOGGER.trace("Not idempotent target: {}", target);
             return false;
         }
         if (idempotence == IdempotenceType.CONSERVATIVE && !segment.isMatchingOrder) {
@@ -112,9 +115,11 @@ class EvaluatedAssignmentTargetCache implements DebugDumpable {
                 LOGGER.trace("Aggressive idempotent and non-one order: {}: {}", segment.getEvaluationOrder(), target);
                 return true;
             }
-            return processedKeys.get(mode).containsKey(new Key(segment));
+            return processedKeys.get(mode)
+                    .containsKey(new Key(segment));
         } else {
-            return processedOrderKeys.get(mode).containsKey(new OrderKey(segment));
+            return processedOrderKeys.get(mode)
+                    .containsKey(new OrderKey(segment));
         }
     }
 

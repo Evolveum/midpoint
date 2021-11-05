@@ -112,6 +112,8 @@ class EntitlementConverter {
         if (!associationContainer.isEmpty()) {
             resourceObject.add(associationContainer);
         }
+        LOGGER.trace("Finished postProcessEntitlementRead with association container having {} item(s)",
+                associationContainer.size());
     }
 
     private <S extends ShadowType,T> void postProcessEntitlementSubjectToEntitlement(ResourceType resourceType, PrismObject<S> resourceObject,
@@ -175,7 +177,7 @@ class EntitlementConverter {
             // NOTE: Those values are not filtered according to kind/intent of the association target. Therefore there may be values
             // that do not belong here (see MID-5790). But that is OK for now. We will filter those values out later when
             // read the shadows and determine shadow OID
-            LOGGER.trace("Association attribute value resolved to valueAtrribute {}  and identifiers container {}", valueAttribute, identifiersContainer);
+            LOGGER.trace("Association attribute value resolved to valueAttribute {}  and identifiers container {}", valueAttribute, identifiersContainer);
         }
     }
 

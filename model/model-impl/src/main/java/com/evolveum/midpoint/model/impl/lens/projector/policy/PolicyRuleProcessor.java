@@ -486,7 +486,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
                 continue;
             }
             for (EvaluatedAssignmentImpl<F> evaluatedAssignment : evaluatedAssignmentTriple.getAllValues()) {
-                for (EvaluatedAssignmentTargetImpl target : evaluatedAssignment.getRoles().getNonNegativeValues()) {
+                for (EvaluatedAssignmentTargetImpl target : evaluatedAssignment.getRoles().getNonNegativeValues()) { // MID-6403
                     if (!target.getAssignmentPath().last().isMatchingOrder() && !target.isDirectlyAssigned()) {
                         // This is to be thought out well. It is of no use to include global policy rules
                         // attached to meta-roles assigned to the role being assigned to the focus. But we certainly need to include rules
@@ -552,7 +552,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         mappingEvaluator.evaluateMapping(mapping, context, task, result);
 
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTriple = mapping.getOutputTriple();
-        return conditionTriple != null && ExpressionUtil.computeConditionResult(conditionTriple.getNonNegativeValues());    // TODO: null -> true (in the method) - ok?
+        return conditionTriple != null && ExpressionUtil.computeConditionResult(conditionTriple.getNonNegativeValues()); // TODO: null -> true (in the method) - ok?
     }
     //endregion
 

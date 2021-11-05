@@ -1447,25 +1447,27 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return ctx;
     }
 
-    // determines whether full shadow is present, based on operation result got from provisioning
+    /**
+     * Sets the full shadow flag, based on the situation (including the fetch result).
+     */
     public void determineFullShadowFlag(PrismObject<ShadowType> loadedShadow) {
         ShadowType shadowType = loadedShadow.asObjectable();
         if (ShadowUtil.isDead(shadowType) || !ShadowUtil.isExists(shadowType)) {
             setFullShadow(false);
             return;
         }
-        OperationResultType fetchResult = shadowType.getFetchResult();
-        AdministrativeAvailabilityStatusType resourceAdministrativeAvailabilityStatus = ResourceTypeUtil.getAdministrativeAvailabilityStatus(resource);
-
-        if (AdministrativeAvailabilityStatusType.MAINTENANCE == resourceAdministrativeAvailabilityStatus) {
+        if (ResourceTypeUtil.isInMaintenance(resource)) {
             setFullShadow(false); // resource is in the maintenance, shadow is from repo, result is success
-        } else if (fetchResult != null
-                && (fetchResult.getStatus() == OperationResultStatusType.PARTIAL_ERROR
-                    || fetchResult.getStatus() == OperationResultStatusType.FATAL_ERROR)) {  // todo what about other kinds of status? [e.g. in-progress]
-               setFullShadow(false);
-        } else {
-            setFullShadow(true);
+            return;
         }
+        OperationResultType fetchResult = shadowType.getFetchResult();
+        setFullShadow(fetchResult == null || statusIsOk(fetchResult.getStatus()));
+    }
+
+    private boolean statusIsOk(OperationResultStatusType status) {
+        // todo what about other kinds of status? [e.g. in-progress]
+        return status != OperationResultStatusType.PARTIAL_ERROR
+                && status != OperationResultStatusType.FATAL_ERROR;
     }
 
     public boolean isToBeArchived() {

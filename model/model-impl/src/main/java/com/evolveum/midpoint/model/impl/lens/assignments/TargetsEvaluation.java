@@ -67,7 +67,10 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
         this.result = result;
     }
 
-    void evaluate() throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectNotFoundException {
+    void evaluate()
+            throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, PolicyViolationException, ObjectNotFoundException {
+
         assert ctx.assignmentPath.last() == segment;
         assert segment.getOverallConditionState().isNotAllFalse();
         assert segment.isAssignmentActive() || segment.direct;
@@ -80,18 +83,21 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
         }
 
         if (ctx.ae.loginMode && !ctx.ae.relationRegistry.isProcessedOnLogin(segment.relation)) {
-            LOGGER.trace("Skipping processing of assignment target {} because relation {} is configured for login skip", segment.assignment.getTargetRef().getOid(), segment.relation);
-            // Skip - to optimize logging-in, we skip all assignments with non-membership/non-delegation relations (e.g. approver, owner, etc)
-            // We want to make this configurable in the future MID-3581
+            LOGGER.trace("Skipping processing of assignment target {} because relation {} is configured for login skip",
+                    segment.assignment.getTargetRef().getOid(), segment.relation);
+            // Skip - to optimize logging-in, we skip all assignments with non-membership/non-delegation relations
+            // (e.g. approver, owner, etc). We want to make this configurable in the future (MID-3581).
             return;
         }
 
         if (!ctx.ae.loginMode && !isChanged(ctx.primaryAssignmentMode) &&
-                !ctx.ae.relationRegistry.isProcessedOnRecompute(segment.relation) && !shouldEvaluateAllAssignmentRelationsOnRecompute()) {
-            LOGGER.debug("Skipping processing of assignment target for {} because relation {} is configured for recompute skip (primary assignment mode={})", segment, segment.relation, ctx.primaryAssignmentMode);
-            // Skip - to optimize recompute, we skip all assignments with non-membership/non-delegation relations (e.g. approver, owner, etc)
-            // Never skip this if assignment has changed. We want to process this, e.g. to enforce min/max assignee rules.
-            // We want to make this configurable in the future MID-3581
+                !ctx.ae.relationRegistry.isProcessedOnRecompute(segment.relation) &&
+                !shouldEvaluateAllAssignmentRelationsOnRecompute()) {
+            LOGGER.debug("Skipping processing of assignment target for {} because relation {} is configured for "
+                    + "recompute skip (primary assignment mode={})", segment, segment.relation, ctx.primaryAssignmentMode);
+            // Skip - to optimize recompute, we skip all assignments with non-membership/non-delegation relations
+            // (e.g. approver, owner, etc). Never skip this if assignment has changed. We want to process this, e.g. to enforce
+            // min/max assignee rules. We want to make this configurable in the future (MID-3581).
             // TODO but what if the assignment itself has not changed but some of the conditions have?
             addSkippedTargetsToMembershipLists();
             return;

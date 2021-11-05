@@ -10,8 +10,9 @@
 Example config.xml for Native PG repository.
 To use it:
 1. Copy it to $MIDPOINT_HOME, e.g. under midpoint.../var directory in the extracted archive.
-2. Check DB connection parameters and change them as needed.
-3. Start midPoint (bin/start.sh) and observe the success in $MIDPOINT_HOME/log/midpoint.log.
+2. Rename the copied file in $MIDPOINT_HOME to config.xml.
+3. Check DB connection parameters and change them as needed.
+4. Start midPoint (bin/start.sh) and observe the success in $MIDPOINT_HOME/log/midpoint.log.
 
 For more info see:
 

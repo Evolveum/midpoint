@@ -60,7 +60,7 @@ class MemberOfEngine {
     <AH extends AssignmentHolderType> boolean isMemberOfInvocationResultChanged(DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple) {
         if (!memberOfInvocations.isEmpty()) {
             // Similar code is in AssignmentProcessor.processMembershipAndDelegatedRefs -- check that if changing the business logic
-            List<ObjectReferenceType> membership = evaluatedAssignmentTriple.getNonNegativeValues().stream()
+            List<ObjectReferenceType> membership = evaluatedAssignmentTriple.getNonNegativeValues().stream() // MID-6403
                     .filter(EvaluatedAssignmentImpl::isValid)
                     .flatMap(evaluatedAssignment -> evaluatedAssignment.getMembershipRefVals().stream())
                     .map(ref -> ObjectTypeUtil.createObjectRef(ref, false))

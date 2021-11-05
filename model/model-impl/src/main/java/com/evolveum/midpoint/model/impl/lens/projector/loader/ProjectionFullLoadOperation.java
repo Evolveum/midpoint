@@ -131,7 +131,9 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
 
             projCtx.recompute();
 
-            LOGGER.trace("Loaded full resource object:\n{}", projCtx.debugDumpLazily(1));
+            LOGGER.trace("Loading of full resource object resulted in isFullShadow={}:\n{}",
+                    projCtx.isFullShadow(), projCtx.debugDumpLazily(1));
+
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;

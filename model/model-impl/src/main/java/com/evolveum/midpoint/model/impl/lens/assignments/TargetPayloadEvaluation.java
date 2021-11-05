@@ -23,19 +23,19 @@ class TargetPayloadEvaluation<AH extends AssignmentHolderType> extends AbstractE
 
     private final ConditionState targetOverallConditionState;
 
-    @NotNull private final TargetEvaluation.TargetActivation targetActivation;
+    @NotNull private final TargetEvaluation.TargetActivity targetActivity;
 
     TargetPayloadEvaluation(@NotNull AssignmentPathSegmentImpl segment, ConditionState targetOverallConditionState,
-            @NotNull TargetEvaluation.TargetActivation targetActivation,
+            @NotNull TargetEvaluation.TargetActivity targetActivity,
             @NotNull EvaluationContext<AH> ctx) {
         super(segment, ctx);
         this.targetOverallConditionState = targetOverallConditionState;
-        this.targetActivation = targetActivation;
+        this.targetActivity = targetActivity;
     }
 
     public void evaluate() {
         assert segment.isAssignmentActive() || segment.direct;
-        assert targetActivation.targetActive;
+        assert targetActivity.targetActive;
         assert targetOverallConditionState.isNotAllFalse();
         checkIfAlreadyEvaluated();
 

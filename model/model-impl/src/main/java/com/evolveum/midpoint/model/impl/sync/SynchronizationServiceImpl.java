@@ -17,6 +17,8 @@ import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistency
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.ModelBeans;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -96,6 +98,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     @Autowired private PrismContext prismContext;
     @Autowired private Clock clock;
     @Autowired private ClockworkMedic clockworkMedic;
+    @Autowired private ModelBeans beans;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -114,6 +117,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             checkConsistence(change);
 
             SynchronizationContext<?> syncCtx = loadSynchronizationContext(change, task, result);
+
+            syncCtx.checkNotInMaintenance(result);
 
             if (shouldSkipSynchronization(syncCtx, result)) {
                 return;
@@ -201,7 +206,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             CommunicationException, ConfigurationException, SecurityViolationException {
 
         SynchronizationContext<F> syncCtx = new SynchronizationContext<>(shadowedResourceObject, resourceObjectDelta,
-                resource, sourceChanel, prismContext, expressionFactory, task, itemProcessingIdentifier);
+                resource, sourceChanel, beans, task, itemProcessingIdentifier);
         setSystemConfiguration(syncCtx, explicitSystemConfiguration, result);
 
         SynchronizationType synchronization = resource.asObjectable().getSynchronization();

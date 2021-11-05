@@ -19,6 +19,8 @@ import javax.annotation.PreDestroy;
 import com.evolveum.midpoint.provisioning.impl.shadows.ConstraintsChecker;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -333,6 +335,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         try {
             // TODO avoid double fetching the resource
             PrismObject<ResourceType> resource = getObject(ResourceType.class, resourceOid, null, task, result);
+            ResourceTypeUtil.checkNotInMaintenance(resource.asObjectable());
 
             LOGGER.debug("Start synchronization of {}", resource);
             liveSyncResult = liveSynchronizer.synchronize(shadowCoordinates, options, tokenStorage, handler, task, result);

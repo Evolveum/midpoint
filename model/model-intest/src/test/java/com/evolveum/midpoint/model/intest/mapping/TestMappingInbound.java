@@ -12,16 +12,22 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 import javax.xml.namespace.QName;
 
+import com.evolveum.icf.dummy.resource.*;
+import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
+import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
+import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.util.exception.*;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -50,10 +56,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMappingInbound extends AbstractMappingTest {
 
-    private static final File RESOURCE_DUMMY_TEA_GREEN_FILE = new File(TEST_DIR, "resource-dummy-tea-green.xml");
-    private static final String RESOURCE_DUMMY_TEA_GREEN_OID = "10000000-0000-0000-0000-00000000c404";
-    private static final String RESOURCE_DUMMY_TEA_GREEN_NAME = "tea-green";
-
     private static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
 
     private static final String ACCOUNT_LEELOO_USERNAME = "leeloo";
@@ -63,6 +65,9 @@ public class TestMappingInbound extends AbstractMappingTest {
 
     private static final String ACCOUNT_RISKY_USERNAME = "risky";
     private static final String ACCOUNT_GDPR_USERNAME = "gdpr";
+
+    private static final TestResource<RoleType> ROLE_WHEEL = new TestResource<>(TEST_DIR, "role-wheel.xml", "ad1782d5-48ae-4f86-a26b-efea45d88f3c");
+    private static final String GROUP_WHEEL_NAME = "wheel";
 
     private static final File TASK_LIVE_SYNC_DUMMY_TEA_GREEN_FILE = new File(TEST_DIR, "task-dumy-tea-green-livesync.xml");
     private static final String TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID = "10000000-0000-0000-5555-55550000c404";
@@ -82,6 +87,27 @@ public class TestMappingInbound extends AbstractMappingTest {
     private static final TestResource<RoleType> ROLE_SIMPLE = new TestResource<>(TEST_DIR, "role-simple.xml", "dc2b28f4-3aab-4212-8ab7-c4f5fc0c511a");
     private static final TestResource<ArchetypeType> ARCHETYPE_PIRATE = new TestResource<>(TEST_DIR, "archetype-pirate.xml", "0bb1d8df-501d-4648-9d36-c8395df95183");
 
+    private static final DummyTestResource RESOURCE_DUMMY_TEA_GREEN = new DummyTestResource(
+            TEST_DIR, "resource-dummy-tea-green.xml", "10000000-0000-0000-0000-00000000c404", "tea-green",
+            controller -> {
+                controller.extendSchemaPirate();
+                controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                                DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME, String.class, false, false)
+                        .setSensitive(true);
+                controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                        DUMMY_ACCOUNT_ATTRIBUTE_PROOF_NAME, String.class, false, false);
+                controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                        DUMMY_ACCOUNT_ATTRIBUTE_TREASON_RISK_NAME, Integer.class, false, false);
+                controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                        DUMMY_ACCOUNT_ATTRIBUTE_CONTROLLER_NAME, String.class, false, false);
+                controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                        DUMMY_ACCOUNT_ATTRIBUTE_ROLE_NAME, String.class, false, true);
+                controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                        DUMMY_ACCOUNT_ATTRIBUTE_ARCHETYPE_NAME, String.class, false, false);
+                controller.setSyncStyle(DummySyncStyle.SMART);
+            }
+    );
+
     private ProtectedStringType mancombLocker;
     private String userLeelooOid;
 
@@ -93,48 +119,34 @@ public class TestMappingInbound extends AbstractMappingTest {
         repoAdd(ROLE_SIMPLE, initResult);
         repoAdd(ARCHETYPE_PIRATE, initResult);
 
-        initDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME, RESOURCE_DUMMY_TEA_GREEN_FILE, RESOURCE_DUMMY_TEA_GREEN_OID,
-                controller -> {
-                    controller.extendSchemaPirate();
-                    controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
-                            DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME, String.class, false, false)
-                            .setSensitive(true);
-                    controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
-                            DUMMY_ACCOUNT_ATTRIBUTE_PROOF_NAME, String.class, false, false);
-                    controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
-                            DUMMY_ACCOUNT_ATTRIBUTE_TREASON_RISK_NAME, Integer.class, false, false);
-                    controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
-                            DUMMY_ACCOUNT_ATTRIBUTE_CONTROLLER_NAME, String.class, false, false);
-                    controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
-                            DUMMY_ACCOUNT_ATTRIBUTE_ROLE_NAME, String.class, false, true);
-                    controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
-                            DUMMY_ACCOUNT_ATTRIBUTE_ARCHETYPE_NAME, String.class, false, false);
-                    controller.setSyncStyle(DummySyncStyle.SMART);
-                },
-                initTask, initResult);
+        initDummyResource(RESOURCE_DUMMY_TEA_GREEN, initTask, initResult);
+
+        addObject(ROLE_WHEEL, initTask, initResult); // creates a resource object as well
     }
 
     @Test
-    public void test010SanitySchema() throws Exception {
+    public void test010Sanity() throws Exception {
         given();
         Task task = getTestTask();
 
         when();
-        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_TEA_GREEN_OID, task);
+        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_TEA_GREEN.oid, task);
 
         then();
         TestUtil.assertSuccess(testResult);
 
-        ResourceType resourceType = getDummyResourceType(RESOURCE_DUMMY_TEA_GREEN_NAME);
+        ResourceType resourceType = getDummyResourceType(RESOURCE_DUMMY_TEA_GREEN.name);
         ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
         displayDumpable("Parsed resource schema (tea-green)", returnedSchema);
-        ObjectClassComplexTypeDefinition accountDef = getDummyResourceController(RESOURCE_DUMMY_TEA_GREEN_NAME)
+        ObjectClassComplexTypeDefinition accountDef = getDummyResourceController(RESOURCE_DUMMY_TEA_GREEN.name)
                 .assertDummyResourceSchemaSanityExtended(returnedSchema, resourceType, false,
                         DummyResourceContoller.PIRATE_SCHEMA_NUMBER_OF_DEFINITIONS + 6); // MID-5197
 
         ResourceAttributeDefinition<ProtectedStringType> lockerDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME);
         assertNotNull("No locker attribute definition", lockerDef);
         assertEquals("Wrong locker attribute definition type", ProtectedStringType.COMPLEX_TYPE, lockerDef.getTypeName());
+
+        assertDummyGroup(RESOURCE_DUMMY_TEA_GREEN.name, GROUP_WHEEL_NAME, "This is the wheel group", true);
     }
 
     @Test
@@ -146,14 +158,16 @@ public class TestMappingInbound extends AbstractMappingTest {
         waitForSyncTaskNextRun();
     }
 
+    /**
+     * Create mancomb's account and run the live sync.
+     *
+     * The account has a single entitlement (group `wheel`).
+     */
     @Test
     public void test110AddDummyTeaGreenAccountMancomb() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
-
-        // Preconditions
-        //assertUsers(5);
 
         DummyAccount account = new DummyAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         account.setEnabled(true);
@@ -163,20 +177,19 @@ public class TestMappingInbound extends AbstractMappingTest {
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "water");
         account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_ROLE_NAME, "simple");
         account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_ARCHETYPE_NAME, "pirate");
+        account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_PROOF_NAME, "x-x-x");
+        DummyGroup wheel = RESOURCE_DUMMY_TEA_GREEN.controller.getDummyResource().getGroupByName(GROUP_WHEEL_NAME);
+        wheel.addMember(account.getName());
 
         when();
 
-        getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).addAccount(account);
+        getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).addAccount(account);
 
         waitForSyncTaskNextRun();
 
         then();
 
-        PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_TEA_GREEN_NAME));
-        display("Account mancomb", accountMancomb);
-        assertNotNull("No mancomb account shadow", accountMancomb);
-        assertEquals("Wrong resourceRef in mancomb account", RESOURCE_DUMMY_TEA_GREEN_OID,
-                accountMancomb.asObjectable().getResourceRef().getOid());
+        PrismObject<ShadowType> accountMancomb = getAndCheckMancombAccount();
         assertShadowOperationalData(accountMancomb, SynchronizationSituationType.LINKED, null);
 
         UserAsserter<Void> mancombUserAsserter = assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
@@ -188,6 +201,8 @@ public class TestMappingInbound extends AbstractMappingTest {
                         .end()
                     .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+                .assertDescription("x-x-x")
+                .assertFullName("Mancomb Seepgood")
                 .assignments()
                     .forRole(ROLE_SIMPLE.oid)
                         .assertSubtype("auto-role")
@@ -196,6 +211,9 @@ public class TestMappingInbound extends AbstractMappingTest {
                     .forArchetype(ARCHETYPE_PIRATE.oid)
                         .assertSubtype("auto-archetype")
                         .assertOriginMappingName("Archetype by name") // MID-5846
+                    .end()
+                    .forRole(ROLE_WHEEL.oid)
+                        .assertSubtype("inbound")
                     .end()
                 .end()
                 .extension()
@@ -208,13 +226,11 @@ public class TestMappingInbound extends AbstractMappingTest {
         // @formatter:on
 
         assertJpegPhoto(UserType.class, mancombUserAsserter.getOid(), "water".getBytes(StandardCharsets.UTF_8), result);
-//        assertUsers(6);
-
-        // notifications
-        notificationManager.setDisabled(true);
     }
 
     /**
+     * Change an attribute that maps onto jpegPhoto, and check that the photo is updated.
+     *
      * MID-5912
      */
     @Test
@@ -225,9 +241,7 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         when();
 
-        DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME)
-                .getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
-        assertNotNull("No mancomb account", account);
+        DummyAccount account = getMancombAccount();
         account.removeAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "water");
         account.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
 
@@ -235,18 +249,19 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         then();
 
-        PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_TEA_GREEN_NAME));
-        display("Account mancomb", accountMancomb);
+        getAndCheckMancombAccount();
 
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("User mancomb has disappeared", userMancomb);
         assertJpegPhoto(UserType.class, userMancomb.getOid(), "rum".getBytes(StandardCharsets.UTF_8), result);
-
-        notificationManager.setDisabled(true);
     }
 
     /**
-     * MID-5912 (reconcile without livesync task)
+     * The same as test120 but using reconcile instead of LS.
+     *
+     * *Here we SUSPEND the LS task!*
+     *
+     * MID-5912
      */
     @Test
     public void test130ModifyMancombPhotoSourceAndReconcile() throws Exception {
@@ -259,9 +274,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         // stop the task to avoid interference with the reconciliations
         suspendTask(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID);
 
-        DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME)
-                .getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
-        assertNotNull("No mancomb account", account);
+        DummyAccount account = getMancombAccount();
         account.removeAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
         account.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "beer");
 
@@ -272,16 +285,16 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         then();
 
-        PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_TEA_GREEN_NAME));
-        display("Account mancomb", accountMancomb);
+        getAndCheckMancombAccount();
 
         assertJpegPhoto(UserType.class, userMancomb.getOid(), "beer".getBytes(StandardCharsets.UTF_8), result);
-
-        notificationManager.setDisabled(true);
     }
 
     /**
-     * MID-5912 (changing the photo directly on service object; with reconcile)
+     * Now changing the photo directly on user object; with reconcile.
+     * The original value from the resource should be restored.
+     *
+     * MID-5912
      */
     @Test
     public void test140ModifyMancombPhotoInRepo() throws Exception {
@@ -307,23 +320,21 @@ public class TestMappingInbound extends AbstractMappingTest {
                 schemaService.getOperationOptionsBuilder().retrieve().build(), result);
         display("user mancomb after", userMancombAfter);
 
-        //assertJpegPhoto(UserType.class, userMancomb.getOid(), "beer".getBytes(StandardCharsets.UTF_8), result);
-
-        notificationManager.setDisabled(true);
+        assertJpegPhoto(UserType.class, userMancomb.getOid(), "beer".getBytes(StandardCharsets.UTF_8), result);
     }
 
     /**
+     * Check that the protected value (locker) has not changed during reconciliation,
+     * not even in unimportant aspects (IV).
+     *
      * MID-5197
      */
     @Test
-    public void test150UserReconcile() throws Exception {
+    public void test150ReconcileMancomb() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-
-        // Preconditions
-        //assertUsers(5);
 
         when();
 
@@ -334,58 +345,227 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         then();
 
-        PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_TEA_GREEN_NAME));
-        display("Account mancomb", accountMancomb);
-        assertNotNull("No mancomb account shadow", accountMancomb);
-        assertEquals("Wrong resourceRef in mancomb account", RESOURCE_DUMMY_TEA_GREEN_OID,
-                accountMancomb.asObjectable().getResourceRef().getOid());
+        PrismObject<ShadowType> accountMancomb = getAndCheckMancombAccount();
         assertShadowOperationalData(accountMancomb, SynchronizationSituationType.LINKED, null);
 
+        // @formatter:off
         assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME)
                 .links()
-                .singleLive()
-                .assertOid(accountMancomb.getOid())
-                .end()
+                    .singleLive()
+                        .assertOid(accountMancomb.getOid())
+                    .end()
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+                .assertDescription("x-x-x")
+                .assertFullName("Mancomb Seepgood")
                 .extension()
-                .property(PIRACY_LOCKER)
-                .singleValue()
-                .protectedString()
-                .assertIsEncrypted()
-                .assertCompareCleartext(LOCKER_BIG_SECRET)
-                // Make sure that this is exactly the same content of protected string
-                // including all the randomized things (IV). If it is the same,
-                // there is a good chance we haven't had any phantom changes
-                // MID-5197
-                .assertEquals(mancombLocker);
-
-        // notifications
-        notificationManager.setDisabled(true);
+                    .property(PIRACY_LOCKER)
+                        .singleValue()
+                            .protectedString()
+                                .assertIsEncrypted()
+                                .assertCompareCleartext(LOCKER_BIG_SECRET)
+                                // Make sure that this is exactly the same content of protected string
+                                // including all the randomized things (IV). If it is the same,
+                                // there is a good chance we haven't had any phantom changes
+                                // MID-5197
+                                .assertEquals(mancombLocker);
+        // @formatter:on
 
         displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
     }
 
+    /**
+     * Reconciles user `mancomb` in maintenance mode. Nothing should change.
+     *
+     * MID-7062
+     */
+    @Test
+    public void test160ReconcileMancombInMaintenanceMode() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+
+        when();
+
+        PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        assertNotNull("User mancomb has disappeared", userMancomb);
+
+        turnMaintenanceModeOn(task, result);
+        try {
+            reconcileUser(userMancomb.getOid(), task, result);
+        } finally {
+            turnMaintenanceModeOff(task, result);
+        }
+
+        then();
+
+        assertMancombNotDestroyed();
+
+        displayDumpable("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+    }
+
+    /**
+     * Import user `mancomb` in maintenance mode. Nothing should change.
+     *
+     * We intentionally skip the maintenance checks that occur on the start of import activity
+     * and on the start of synchronization processing.
+     *
+     * MID-7062
+     */
+    @Test
+    public void test170ImportMancombInMaintenanceModeChecksOff() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+
+        when();
+
+        PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        assertNotNull("User mancomb has disappeared", userMancomb);
+
+        turnMaintenanceModeOn(task, result);
+        SyncTaskHelper.setSkipMaintenanceCheck(true);
+        SynchronizationContext.setSkipMaintenanceCheck(true);
+        try {
+            executeImportInBackground(task, result);
+        } finally {
+            SyncTaskHelper.setSkipMaintenanceCheck(false);
+            SynchronizationContext.setSkipMaintenanceCheck(false);
+            turnMaintenanceModeOff(task, result);
+        }
+
+        then();
+
+        assertTask(task.getOid(), "after")
+                .assertSuccess()
+                .rootItemProcessingInformation()
+                    .display()
+                .end();
+
+        assertMancombNotDestroyed();
+
+        displayDumpable("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(0);
+    }
+
+    /**
+     * Live sync user `mancomb` in maintenance mode. Nothing should change.
+     * We intentionally skip the maintenance checks that occurs on the start of LS activity
+     * and on the start of synchronization processing.
+     *
+     * *Here the LS task runs only during the test. Then it's suspended again.*
+     *
+     * MID-7062
+     */
+    @Test
+    public void test180LiveSyncMancombInMaintenanceModeChecksOff() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+
+        when();
+
+        // This is a dummy change
+        getMancombAccount()
+                .addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
+
+        PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        assertNotNull("User mancomb has disappeared", userMancomb);
+
+        turnMaintenanceModeOn(task, result);
+        SyncTaskHelper.setSkipMaintenanceCheck(true);
+        SynchronizationContext.setSkipMaintenanceCheck(true);
+        try {
+            resumeTaskAndWaitForNextFinish(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, false, 30000);
+        } finally {
+            SyncTaskHelper.setSkipMaintenanceCheck(false);
+            SynchronizationContext.setSkipMaintenanceCheck(false);
+            turnMaintenanceModeOff(task, result);
+            suspendTask(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID);
+        }
+
+        then();
+
+        assertTask(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, "after")
+                .assertFatalError(); // there's an extra check for maintenance mode in ProvisioningServiceImpl#synchronize
+
+        // In the current state of the code no synchronization takes place, so technically the following check is not needed.
+        // However, when hunting for MID-7062 it was useful (because the sync was executing) - and it was passing!
+        assertMancombNotDestroyed();
+    }
+
+    /**
+     * Import user `mancomb` in maintenance mode.
+     *
+     * We disable the initial check for maintenance mode, but keep the before-processing one enabled.
+     * So the import task should finish with partial errors. Nothing should be processed.
+     *
+     * MID-7062
+     */
+    @Test
+    public void test190ImportMancombInMaintenanceModeChecksOn() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+
+        when();
+
+        PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        assertNotNull("User mancomb has disappeared", userMancomb);
+
+        turnMaintenanceModeOn(task, result);
+        SyncTaskHelper.setSkipMaintenanceCheck(true);
+        try {
+            executeImportInBackgroundErrorsOk(task, result);
+        } finally {
+            SyncTaskHelper.setSkipMaintenanceCheck(false);
+            turnMaintenanceModeOff(task, result);
+        }
+
+        then();
+
+        assertTask(task.getOid(), "after")
+                .assertPartialError()
+                .rootItemProcessingInformation()
+                    .display()
+                    .assertTotalCounts(0, 1, 0);
+
+        // Again, here the synchronization did not take place.
+        assertMancombNotDestroyed();
+
+        displayDumpable("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(0);
+    }
+
+    /**
+     * Resume the LS task, delete the account, and check that the user is disabled, and user->shadow link is marked as dead.
+     * (The reaction is "inactivateFocus".)
+     */
     @Test
     public void test300DeleteDummyTeaGreenAccountMancomb() throws Exception {
         when();
-        getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
-        displayValue("Dummy (tea green) resource", getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).debugDump());
+        displayValue("Dummy (tea green) resource", getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).debugDump());
 
         // Make sure we have steady state
         resumeTaskAndWaitForNextFinish(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, false, 20000);
         waitForSyncTaskNextRun();
 
-        // THEN
         then();
 
-        assertNoDummyAccount(RESOURCE_DUMMY_TEA_GREEN_NAME, ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_TEA_GREEN.name, ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         // @formatter:off
         assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME)
                 .assertFullName("Mancomb Seepgood")
+                .assertAdministrativeStatus(ActivationStatusType.DISABLED)
                 .links()
                     .singleDead()
                     .resolveTarget()
@@ -393,14 +573,11 @@ public class TestMappingInbound extends AbstractMappingTest {
                         .assertTombstone()
                         .assertSynchronizationSituation(SynchronizationSituationType.DELETED);
         // @formatter:on
-
-        // notifications
-        notificationManager.setDisabled(true);
     }
 
     // Remove livesync task so it won't get into the way for next tests
     @Test
-    public void test399DeleteDummyTeaGreenAccountMancomb() throws Exception {
+    public void test399DeleteLiveSyncTask() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -412,6 +589,9 @@ public class TestMappingInbound extends AbstractMappingTest {
         assertNoObject(TaskType.class, TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID);
     }
 
+    /**
+     * Imports account `leeloo` manually.
+     */
     @Test
     public void test400AddUserLeeloo() throws Exception {
         given();
@@ -419,32 +599,27 @@ public class TestMappingInbound extends AbstractMappingTest {
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
-        // Preconditions
-        //assertUsers(5);
-
         DummyAccount account = new DummyAccount(ACCOUNT_LEELOO_USERNAME);
         account.setEnabled(true);
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_LEELOO_FULL_NAME_MULTIPASS);
-        getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).addAccount(account);
+        getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).addAccount(account);
 
         when();
 
-        modelService.importFromResource(RESOURCE_DUMMY_TEA_GREEN_OID, new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
-
-        OperationResult subresult = result.getLastSubresult();
-        TestUtil.assertInProgress("importAccountsFromResource result", subresult);
-        waitForTaskFinish(task, true);
+        executeImportInBackground(task, result);
 
         then();
 
+        // @formatter:off
         userLeelooOid = assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
                 .assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
                 .links()
-                .singleLive()
-                .end()
+                    .singleLive()
+                    .end()
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED)
                 .getOid();
+        // @formatter:on
 
         displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -474,13 +649,15 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         then();
 
+        // @formatter:off
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
                 .assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
                 .links()
-                .singleLive()
-                .end()
+                    .singleLive()
+                    .end()
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+        // @formatter:on
 
         displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(0);
@@ -503,13 +680,15 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         then();
 
+        // @formatter:off
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
                 .assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
                 .links()
-                .singleLive()
-                .end()
+                    .singleLive()
+                    .end()
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+        // @formatter:on
 
         displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -529,7 +708,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).getAccountByUsername(ACCOUNT_LEELOO_USERNAME);
+        DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).getAccountByUsername(ACCOUNT_LEELOO_USERNAME);
         account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI);
 
         dummyAuditService.clear();
@@ -540,13 +719,15 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         then();
 
+        // @formatter:off
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
                 .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
                 .links()
-                .singleLive()
-                .end()
+                    .singleLive()
+                    .end()
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+        // @formatter:on
 
         displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -574,13 +755,15 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         then();
 
+        // @formatter:off
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
                 .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
                 .links()
-                .singleLive()
-                .end()
+                    .singleLive()
+                    .end()
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+        // @formatter:on
 
         displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(0);
@@ -603,13 +786,15 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         then();
 
+        // @formatter:off
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
                 .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
                 .links()
-                .singleLive()
-                .end()
+                    .singleLive()
+                    .end()
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+        // @formatter:on
 
         displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -629,7 +814,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).getAccountByUsername(ACCOUNT_LEELOO_USERNAME);
+        DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).getAccountByUsername(ACCOUNT_LEELOO_USERNAME);
         account.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_PROOF_NAME, ACCOUNT_LEELOO_PROOF_STRANGE);
 
         dummyAuditService.clear();
@@ -640,14 +825,16 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         then();
 
+        // @formatter:off
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
                 .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
                 .assertDescription(ACCOUNT_LEELOO_PROOF_STRANGE)
                 .links()
-                .singleLive()
-                .end()
+                    .singleLive()
+                    .end()
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+        // @formatter:on
 
         displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -675,14 +862,16 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         then();
 
+        // @formatter:off
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
                 .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
                 .assertDescription(ACCOUNT_LEELOO_PROOF_STRANGE)
                 .links()
-                .singleLive()
-                .end()
+                    .singleLive()
+                    .end()
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+        // @formatter:on
 
         displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -692,6 +881,11 @@ public class TestMappingInbound extends AbstractMappingTest {
         dummyAuditService.assertExecutionSuccess();
     }
 
+    /**
+     * Tests execution of an inbound that converts a plain value to a (run-time defined) structure.
+     *
+     * Creates `risky` user and `risky` account and then imports the account manually.
+     */
     @Test
     public void test500UserRiskVector() throws Exception {
         given();
@@ -721,12 +915,11 @@ public class TestMappingInbound extends AbstractMappingTest {
         account.setEnabled(true);
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Risky Risk");
         account.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_TREASON_RISK_NAME, 999);
-        getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).addAccount(account);
+        getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).addAccount(account);
 
         when();
 
-        modelService.importFromResource(RESOURCE_DUMMY_TEA_GREEN_OID, new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
-        waitForTaskFinish(task, true);
+        executeImportInBackground(task, result);
 
         then();
 
@@ -752,6 +945,9 @@ public class TestMappingInbound extends AbstractMappingTest {
     }
 
     /**
+     * Creates user and account `gdpr` and runs an import of the account manually.
+     * This is to test a more sophisticated comparison of computed values.
+     *
      * MID-6129
      */
     @Test
@@ -779,12 +975,11 @@ public class TestMappingInbound extends AbstractMappingTest {
         account.setEnabled(true);
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "GDPR");
         account.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_CONTROLLER_NAME, "new-controller");
-        getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).addAccount(account);
+        getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).addAccount(account);
 
         when();
 
-        modelService.importFromResource(RESOURCE_DUMMY_TEA_GREEN_OID, new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
-        waitForTaskFinish(task, false);
+        executeImportInBackground(task, result);
 
         then();
 
@@ -807,5 +1002,65 @@ public class TestMappingInbound extends AbstractMappingTest {
 
     private void waitForSyncTaskNextRun() throws Exception {
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, false, 10000);
+    }
+
+    private void turnMaintenanceModeOn(Task task, OperationResult result) throws Exception {
+        modifyResourceMaintenance(RESOURCE_DUMMY_TEA_GREEN.oid, AdministrativeAvailabilityStatusType.MAINTENANCE, task, result);
+    }
+
+    private void turnMaintenanceModeOff(Task task, OperationResult result) throws Exception {
+        modifyResourceMaintenance(RESOURCE_DUMMY_TEA_GREEN.oid, AdministrativeAvailabilityStatusType.OPERATIONAL, task, result);
+    }
+
+    private void executeImportInBackground(Task task, OperationResult result) throws Exception {
+        modelService.importFromResource(RESOURCE_DUMMY_TEA_GREEN.oid, new QName(MidPointConstants.NS_RI,
+                SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
+        waitForTaskFinish(task, true);
+    }
+
+    private void executeImportInBackgroundErrorsOk(Task task, OperationResult result) throws Exception {
+        modelService.importFromResource(RESOURCE_DUMMY_TEA_GREEN.oid, new QName(MidPointConstants.NS_RI,
+                SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
+        waitForTaskCloseOrSuspend(task.getOid(), 30000);
+    }
+
+    private PrismObject<ShadowType> getAndCheckMancombAccount() throws CommonException {
+        PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME,
+                getDummyResourceObject(RESOURCE_DUMMY_TEA_GREEN.name));
+        display("Account mancomb", accountMancomb);
+        assertNotNull("No mancomb account shadow", accountMancomb);
+        assertEquals("Wrong resourceRef in mancomb account", RESOURCE_DUMMY_TEA_GREEN.oid,
+                accountMancomb.asObjectable().getResourceRef().getOid());
+        return accountMancomb;
+    }
+
+    private @NotNull DummyAccount getMancombAccount()
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+        DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name)
+                .getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        assertNotNull("No mancomb account", account);
+        return account;
+    }
+
+    /** Check that mancomb was not destroyed by inbounds running in the maintenance mode. */
+    private void assertMancombNotDestroyed() throws CommonException {
+        PrismObject<ShadowType> accountMancomb = getAndCheckMancombAccount();
+        assertShadowOperationalData(accountMancomb, SynchronizationSituationType.LINKED, null);
+
+        // @formatter:off
+        assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME)
+                .links()
+                    .singleLive()
+                        .assertOid(accountMancomb.getOid())
+                    .end()
+                .end()
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+                .assertDescription("x-x-x")
+                .assertFullName("Mancomb Seepgood")
+                .assignments()
+                    .forRole(ROLE_WHEEL.oid)
+                        .assertSubtype("inbound")
+                    .end();
+        // @formatter:on
     }
 }
