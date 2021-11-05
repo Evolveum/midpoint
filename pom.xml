@@ -229,6 +229,8 @@
         <connid.version>1.5.0.18</connid.version>
         <derby.version>10.15.2.0</derby.version>
         <wro4j.version>1.10.1</wro4j.version>
+        <!-- Version for classgraph must the one declared in Prism -->
+        <classgraph.version>4.8.129</classgraph.version>
         <surefire.version>3.0.0-M5</surefire.version>
         <guava.version>30.1.1-jre</guava.version>
         <jcommander.version>1.81</jcommander.version>
@@ -1232,6 +1234,12 @@
                 </exclusions>
             </dependency>
 
+            <!-- This is also used by WRO, but we want to use current version. -->
+            <dependency>
+                <groupId>io.github.classgraph</groupId>
+                <artifactId>classgraph</artifactId>
+                <version>${classgraph.version}</version>
+            </dependency>
             <dependency>
                 <groupId>ro.isdc.wro4j</groupId>
                 <artifactId>wro4j-core</artifactId>

@@ -84,9 +84,9 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     private final Map<String, SimpleCounter> countersMap = new HashMap<>();
 
     private Boolean experimentalFeaturesEnabled = false;
-    private Set<Class<?>> panelInstanceClasses;
-    private Set<Class<?>> panelTypeClasses;
-    private Set<Class<?>> collectionClasses;
+    private Collection<Class<?>> panelInstanceClasses;
+    private Collection<Class<?>> panelTypeClasses;
+    private Collection<Class<?>> collectionClasses;
 
     @Override
     @PostConstruct
@@ -136,7 +136,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     }
 
     private void mergeCollectionViewsWithDefault(CompiledGuiProfile compiledGuiProfile) {
-        Set<Class<?>> classes = collectCollectionClasses();
+        Collection<Class<?>> classes = collectCollectionClasses();
         List<CompiledObjectCollectionView> defaultCollectionViews = compileDefaultCollectionViews(classes);
 
         for (CompiledObjectCollectionView defaultCollectionView : defaultCollectionViews) {
@@ -159,7 +159,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         }
     }
 
-    private List<CompiledObjectCollectionView> compileDefaultCollectionViews(Set<Class<?>> classes) {
+    private List<CompiledObjectCollectionView> compileDefaultCollectionViews(Collection<Class<?>> classes) {
         List<CompiledObjectCollectionView> compiledObjectCollectionViews = new ArrayList<>();
         for (Class<?> clazz : classes) {
             CollectionInstance collectionInstance = clazz.getAnnotation(CollectionInstance.class);
@@ -313,26 +313,24 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         return panels;
     }
 
-    private Set<Class<?>> collectPanelInstanceClasses() {
+    private void collectPanelInstanceClasses() {
         if (panelInstanceClasses == null) {
             panelInstanceClasses = collectClasses(PanelInstance.class);
             panelInstanceClasses.addAll(collectClasses(PanelInstances.class));
         }
-        return panelInstanceClasses;
     }
 
-    private Set<Class<?>> collectPanelTypeClasses() {
+    private void collectPanelTypeClasses() {
         if (panelTypeClasses == null) {
             panelTypeClasses = collectClasses(PanelType.class);
         }
-        return panelTypeClasses;
     }
 
-    private Set<Class<?>> collectClasses(Class<? extends Annotation> annotationClass) {
+    private Collection<Class<?>> collectClasses(Class<? extends Annotation> annotationClass) {
         return ClassPathUtil.scanClasses(annotationClass);
     }
 
-    private Set<Class<?>> collectCollectionClasses() {
+    private Collection<Class<?>> collectCollectionClasses() {
         if (collectionClasses == null) {
             collectionClasses = collectClasses(COLLECTION_PACKAGES_TO_SCAN);
         }
