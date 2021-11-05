@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -85,7 +86,7 @@ public class DummyItsmIntegrationConnectorInstance extends AbstractManualConnect
 
     @Override
     protected String createTicketAdd(PrismObject<? extends ShadowType> object,
-            Collection<Operation> additionalOperations, OperationResult result) throws CommunicationException,
+            Collection<Operation> additionalOperations, Task task, OperationResult result) throws CommunicationException,
             GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
         DummyItsm itsm = DummyItsm.getInstance();
         String identifier;
@@ -105,7 +106,7 @@ public class DummyItsmIntegrationConnectorInstance extends AbstractManualConnect
     @Override
     protected String createTicketModify(ObjectClassComplexTypeDefinition objectClass,
             PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers,
-            String resourceOid, Collection<Operation> changes, OperationResult result)
+            String resourceOid, Collection<Operation> changes, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
             SchemaException, ObjectAlreadyExistsException, ConfigurationException {
         DummyItsm itsm = DummyItsm.getInstance();
@@ -126,7 +127,7 @@ public class DummyItsmIntegrationConnectorInstance extends AbstractManualConnect
     @Override
     protected String createTicketDelete(ObjectClassComplexTypeDefinition objectClass,
             PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers,
-            String resourceOid, OperationResult result) throws ObjectNotFoundException,
+            String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException,
             CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
         DummyItsm itsm = DummyItsm.getInstance();
         String identifier;

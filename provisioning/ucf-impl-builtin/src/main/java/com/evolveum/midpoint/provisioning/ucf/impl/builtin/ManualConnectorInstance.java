@@ -39,6 +39,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskManagerAware;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -128,8 +129,8 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
     }
 
     @Override
-    protected String createTicketAdd(PrismObject<? extends ShadowType> object,
-            Collection<Operation> additionalOperations, OperationResult result) throws SchemaException,
+    protected String createTicketAdd(PrismObject<? extends ShadowType> object, Collection<Operation> additionalOperations,
+            Task task, OperationResult result) throws SchemaException,
             ObjectAlreadyExistsException {
         LOGGER.debug("Creating case to add account\n{}", object.debugDump(1));
         ObjectDelta<? extends ShadowType> objectDelta = DeltaFactory.Object.createAddDelta(object);
@@ -142,14 +143,14 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         }
         String description = "Please create resource account: "+shadowName;
         PrismObject<CaseType> aCase = addCase("create", description, ShadowUtil.getResourceOid(object.asObjectable()),
-                shadowName, null, objectDeltaType, result);
+                shadowName, null, objectDeltaType, task, result);
         return aCase.getOid();
     }
 
     @Override
     protected String createTicketModify(ObjectClassComplexTypeDefinition objectClass,
             PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, Collection<Operation> changes,
-            OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
+            Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
         LOGGER.debug("Creating case to modify account {}:\n{}", identifiers, DebugUtil.debugDump(changes, 1));
         if (InternalsConfig.isSanityChecks()) {
             if (MiscUtil.hasDuplicates(changes)) {
@@ -167,13 +168,13 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         String shadowName = shadow.getName().toString();
         String description = "Please modify resource account: "+shadowName;
         PrismObject<CaseType> aCase = addCase("modify", description, resourceOid, shadowName,
-                shadow.getOid(), objectDeltaType, result);
+                shadow.getOid(), objectDeltaType, task, result);
         return aCase.getOid();
     }
 
     @Override
-    protected String createTicketDelete(ObjectClassComplexTypeDefinition objectClass,
-            PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, OperationResult result)
+    protected String createTicketDelete(ObjectClassComplexTypeDefinition objectClass, PrismObject<ShadowType> shadow,
+            Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, Task task, OperationResult result)
             throws SchemaException {
         LOGGER.debug("Creating case to delete account {}", identifiers);
         String shadowName = shadow.getName().toString();
@@ -189,7 +190,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         objectDeltaType.getItemDelta().add(itemDeltaType);
         PrismObject<CaseType> aCase;
         try {
-            aCase = addCase("delete", description, resourceOid, shadowName, shadow.getOid(), objectDeltaType, result);
+            aCase = addCase("delete", description, resourceOid, shadowName, shadow.getOid(), objectDeltaType, task, result);
         } catch (ObjectAlreadyExistsException e) {
             // should not happen
             throw new SystemException(e.getMessage(), e);
@@ -198,7 +199,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
     }
 
     private PrismObject<CaseType> addCase(String operation, String description, String resourceOid, String shadowName, String shadowOid,
-            ObjectDeltaType objectDelta, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
+            ObjectDeltaType objectDelta, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
         PrismObject<CaseType> aCase = getPrismContext().createObject(CaseType.class);
         CaseType caseType = aCase.asObjectable();
 
@@ -257,6 +258,10 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         caseType.setObjectRef(new ObjectReferenceType().oid(resourceOid).type(ResourceType.COMPLEX_TYPE));
 
         caseType.setTargetRef(new ObjectReferenceType().oid(shadowOid).targetName(shadowName).type(ShadowType.COMPLEX_TYPE));
+
+        if (task != null) {
+            caseType.setRequestorRef(task.getOwnerRef());
+        }
 
         caseType.beginManualProvisioningContext()
                 .beginPendingOperation()
