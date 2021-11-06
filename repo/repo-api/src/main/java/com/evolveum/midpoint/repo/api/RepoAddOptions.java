@@ -12,12 +12,15 @@ import com.evolveum.midpoint.schema.AbstractOptions;
 import com.evolveum.midpoint.util.ShortDumpable;
 
 /**
- * @author semancik
- *
+ * Options for {@link RepositoryService#addObject}.
  */
 public class RepoAddOptions extends AbstractOptions implements Serializable, ShortDumpable {
     private static final long serialVersionUID = -6243926109579064467L;
 
+    /**
+     * Allows overwriting existing object *of the same type*.
+     * Overwriting different type is not allowed because it is unlikely done on purpose.
+     */
     private boolean overwrite = false;
     private boolean allowUnencryptedValues = false;
 
@@ -41,7 +44,6 @@ public class RepoAddOptions extends AbstractOptions implements Serializable, Sho
         opts.setOverwrite(true);
         return opts;
     }
-
 
     public boolean isAllowUnencryptedValues() {
         return allowUnencryptedValues;
