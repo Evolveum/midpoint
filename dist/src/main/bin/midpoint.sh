@@ -183,11 +183,11 @@ then
                 JAVA_OPTS="-Xms${JAVA_def_Xms} ${JAVA_OPTS:-}"
         fi
 fi
-if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Dpython.cachedir=")  ; then  JAVA_OPTS="${JAVA_OPTS:-} -Dpython.cachedir=${MIDPOINT_HOME}/${JAVA_def_python_cachedir}" ; fi
-if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Djavax.net.ssl.trustStore=") ; then  JAVA_OPTS="${JAVA_OPTS:-} -Djavax.net.ssl.trustStore=${MIDPOINT_HOME}/${JAVA_def_trustStore}" ; fi
+if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Dpython.cachedir=")  ; then  JAVA_OPTS="${JAVA_OPTS:-} -Dpython.cachedir=\"${MIDPOINT_HOME}/${JAVA_def_python_cachedir}\"" ; fi
+if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Djavax.net.ssl.trustStore=") ; then  JAVA_OPTS="${JAVA_OPTS:-} -Djavax.net.ssl.trustStore=\"${MIDPOINT_HOME}/${JAVA_def_trustStore}\"" ; fi
 if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Djavax.net.ssl.trustStoreType=") ; then JAVA_OPTS="${JAVA_OPTS:-} -Djavax.net.ssl.trustStoreType=${JAVA_def_trustStoreType}" ; fi
 
-if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Dmidpoint.home=") ; then JAVA_OPTS="${JAVA_OPTS:-} -Dmidpoint.home=${MIDPOINT_HOME}" ; fi
+if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Dmidpoint.home=") ; then JAVA_OPTS="${JAVA_OPTS:-} -Dmidpoint.home=\"${MIDPOINT_HOME}\"" ; fi
 
 # TODO probably useless from Tomcat 7 and before history, remove and check LDAP/ConnId logging
 if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Djava.util.logging.manager=") ; then JAVA_OPTS="-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager ${JAVA_OPTS:-}" ; fi
@@ -248,7 +248,7 @@ then
 	echo "Place following content to /etc/systemd/system/midpoint.service file" >&2
 	echo "MP_GEN_SYSTEMD=1 ${0} ${@} | sudo tee /etc/systemd/system/midpoint.service" >&2
 	echo >&2
-	cat <<EOF
+	cat << EOF
 [Unit]
 Description=MidPoint Standalone Service
 ###Requires=postgresql.service
@@ -326,7 +326,7 @@ if [[ "$1" == "start" ]]; then
   # shellcheck disable=SC2086
   eval "${_NOHUP}" "\"${_RUNJAVA}\"" \
     ${JAVA_OPTS} \
-    -jar "${BASE_DIR}/lib/midpoint.war" \
+    -jar "\"${BASE_DIR}/lib/midpoint.war\"" \
     "$@" \
     "&" >>"${BOOT_OUT}" 2>&1
 
