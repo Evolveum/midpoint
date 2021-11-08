@@ -9,10 +9,12 @@
 <html xmlns:wicket="http://wicket.apache.org" xmlns="http://www.w3.org/1999/html">
 <wicket:panel>
     <wicket:extend>
-        <fieldset class="objectButtons">
-            <legend wicket:id="executeOptionsLegend"/>
-            <div wicket:id="executeOptions"/>
-        </fieldset>
+        <wicket:enclosure child="executeOptions">
+            <fieldset class="objectButtons">
+                <legend wicket:id="executeOptionsLegend"/>
+                <div wicket:id="executeOptions"/>
+            </fieldset>
+        </wicket:enclosure>
     </wicket:extend>
 </wicket:panel>
 </html>

@@ -275,7 +275,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     protected ExecuteChangeOptionsDto getExecuteChangesOptionsDto() {
-        return getOperationalButtonsPanel().getExecuteChangeOptions();
+        return new ExecuteChangeOptionsDto();
     }
 
     protected void reviveModels() throws SchemaException {
