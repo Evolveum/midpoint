@@ -339,7 +339,11 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         if (defaultConfiguration != null) {
             return defaultConfiguration;
         }
-        return getPanelConfigurations().getObject().stream().findFirst().get();
+        return getPanelConfigurations().getObject()
+                .stream()
+                .filter(config -> isApplicableForOperation(config) && WebComponentUtil.getElementVisibility(config.getVisibility()))
+                .findFirst()
+                .get();
     }
 
     private ContainerPanelConfigurationType findDefaultConfiguration(List<ContainerPanelConfigurationType> configs) {
