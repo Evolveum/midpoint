@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.StateReporter;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -69,18 +70,18 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
     // Operations to be implemented in the subclasses. These operations create the tickets.
 
-    protected abstract String createTicketAdd(PrismObject<? extends ShadowType> object, OperationResult result) throws CommunicationException,
+    protected abstract String createTicketAdd(PrismObject<? extends ShadowType> object, Task task, OperationResult result) throws CommunicationException,
                 GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException;
 
     protected abstract String createTicketModify(ObjectClassComplexTypeDefinition objectClass,
             PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, Collection<Operation> changes,
-            OperationResult result) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
-            ObjectAlreadyExistsException, ConfigurationException;
+            Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
+            SchemaException, ObjectAlreadyExistsException, ConfigurationException;
 
     protected abstract String createTicketDelete(ObjectClassComplexTypeDefinition objectClass,
-            PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, OperationResult result)
-                    throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
-                        ConfigurationException;
+            PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid,
+            Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
+            SchemaException, ConfigurationException;
 
     @Override
     public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(
@@ -97,7 +98,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
         try {
 
-            ticketIdentifier = createTicketAdd(object, result);
+            ticketIdentifier = createTicketAdd(object, reporter.getTask(), result);
 
         } catch (CommunicationException | GenericFrameworkException | SchemaException |
                 ObjectAlreadyExistsException | ConfigurationException | RuntimeException | Error e) {
@@ -134,7 +135,13 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
         try {
 
-            ticketIdentifier = createTicketModify(identification.getObjectClassDefinition(), shadow, identification.getAllIdentifiers(), reporter.getResourceOid(), changes, result);
+            ticketIdentifier = createTicketModify(
+                    identification.getObjectClassDefinition(),
+                    shadow, identification.getAllIdentifiers(),
+                    reporter.getResourceOid(),
+                    changes,
+                    reporter.getTask(),
+                    result);
 
         } catch (ObjectNotFoundException | CommunicationException | GenericFrameworkException | SchemaException |
                 ObjectAlreadyExistsException | ConfigurationException | RuntimeException | Error e) {
@@ -168,7 +175,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
         try {
 
-            ticketIdentifier = createTicketDelete(objectClass, shadow, identifiers, reporter.getResourceOid(), result);
+            ticketIdentifier = createTicketDelete(objectClass, shadow, identifiers, reporter.getResourceOid(), reporter.getTask(), result);
 
         } catch (ObjectNotFoundException | CommunicationException | GenericFrameworkException | SchemaException |
                 ConfigurationException | RuntimeException | Error e) {

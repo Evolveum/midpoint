@@ -359,6 +359,10 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     public PageStorage getPageStorage() {
+        if(isCollectionViewPanelForWidget()) {
+            return null;
+        }
+
         String storageKey = getStorageKey();
         if (StringUtils.isNotEmpty(storageKey)) {
             return getPageStorage(storageKey);

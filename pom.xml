@@ -49,7 +49,7 @@
     mvn clean install -P extratest,-dist -Dsurefire.args="-Xmx8g" -Dfailsafe.args="-Xmx8g -Duser.language=en"
     (Skipping of default tests is managed by "extratest" profile.)
     WARNING!!! Overriding failsafe/surefire.args when using "sqale" profile (new repository)
-    effectively disables another improtant JVM argument for tests which must be added to mvn
+    effectively disables another important JVM argument for tests which must be added to mvn
     command line explicitly: -Dtest.config.file=test-config-new-repo.xml
 
     Extra test run for a single module, -D property matches the module in -pl:

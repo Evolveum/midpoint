@@ -159,8 +159,8 @@ public interface RepositoryService {
 
     /**
      * Returns object for provided OID.
-     * <p>
-     * Must fail if object with the OID does not exists.
+     *
+     * Must fail if object with the OID does not exist.
      *
      * @param oid OID of the object to get
      * @param parentResult parent OperationResult (in/out)
@@ -194,28 +194,29 @@ public interface RepositoryService {
     // Add/modify/delete
 
     /**
-     * <p>Add new object.</p>
-     * <p>
-     * The OID provided in the input message may be empty. In that case the OID
-     * will be assigned by the implementation of this method and it will be
-     * provided as return value.
-     * </p><p>
+     * Add new object.
+     *
+     * The OID provided in the input message may be empty.
+     * In that case the OID will be assigned by the implementation of this method
+     * and it will be provided as return value.
+     *
      * This operation should fail if such object already exists (if object with
      * the provided OID already exists).
-     * </p><p>
-     * The operation may fail if provided OID is in an unusable format for the
-     * storage. Generating own OIDs and providing them to this method is not
+     * Overwrite is possible if {@link RepoAddOptions#overwrite} is true, but only
+     * for the object of the same type.
+     *
+     * The operation may fail if provided OID is in an unusable format for the storage.
+     * Generating own OIDs and providing them to this method is not
      * recommended for normal operation.
-     * </p><p>
-     * Should be atomic. Should not allow creation of two objects with the same
-     * OID (even if created in parallel).
-     * </p><p>
-     * The operation may fail if the object to be created does not conform to
-     * the underlying schema of the storage system or the schema enforced by the
-     * implementation.
-     * </p><p>
-     * Note: no need for explicit type parameter here. The object parameter contains the information.
-     * </p>
+     *
+     * Should be atomic.
+     * Should not allow creation of two objects with the same OID (even if created in parallel).
+     *
+     * The operation may fail if the object to be created does not conform to the underlying
+     * schema of the storage system or the schema enforced by the implementation.
+     *
+     * Note: no need for explicit type parameter here.
+     * The object parameter contains the information.
      *
      * @param object object to create
      * @param parentResult parent OperationResult (in/out)
