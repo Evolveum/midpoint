@@ -140,7 +140,9 @@ public class AbstractRestController {
     }
 
     protected ResponseEntity<?> createErrorResponseBuilder(OperationResult result, Throwable t) {
-        if (t instanceof ObjectNotFoundException) {
+        if (t instanceof ObjectNotFoundException
+                // we don't want invalid UUID to trigger 500 or 400, let's keep it 404
+                || t.getMessage() != null && t.getMessage().contains("Invalid UUID string:")) {
             return createErrorResponseBuilder(HttpStatus.NOT_FOUND, result);
         }
 
