@@ -164,7 +164,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     private String loadValuesForNameColumn(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
         if (expression != null || itemPath != null) {
             Collection<String> evaluatedValues = loadExportableColumnDataModel(rowModel, customColumn, itemPath, expression);
-            if (evaluatedValues.isEmpty()) {
+            if (CollectionUtils.isEmpty(evaluatedValues)) {
                 return "";
             }
             if (evaluatedValues.size() == 1) {

@@ -638,7 +638,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         Item<?, ?> item = findItem(value, columnPath);
 
         if (expression != null) {
-            Collection collection = evaluateExpression(value, item, expression, customColumn);
+            Collection<String> collection = evaluateExpression(value, item, expression, customColumn);
             return getValuesString(collection, customColumn.getDisplayValue());
         }
         if (item != null) {
@@ -657,7 +657,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return null;
     }
 
-    protected Collection evaluateExpression(C rowValue, Item<?, ?> columnItem, ExpressionType expression, GuiObjectColumnType customColumn) {
+    protected Collection<String> evaluateExpression(C rowValue, Item<?, ?> columnItem, ExpressionType expression, GuiObjectColumnType customColumn) {
         Task task = getPageBase().createSimpleTask(OPERATION_EVALUATE_EXPRESSION);
         OperationResult result = task.getResult();
         try {
@@ -700,7 +700,10 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 .collect(Collectors.toList());
     }
 
-    private List<String> getValuesString(Collection collection, DisplayValueType displayValue){
+    private List<String> getValuesString(Collection<String> collection, DisplayValueType displayValue){
+        if (collection == null) {
+            return null;
+        }
         if (DisplayValueType.NUMBER.equals(displayValue)) {
             return Collections.singletonList(String.valueOf(collection.size()));
         }
