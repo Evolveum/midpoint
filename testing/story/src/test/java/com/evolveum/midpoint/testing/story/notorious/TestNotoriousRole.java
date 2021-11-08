@@ -22,24 +22,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * Testing bushy roles hierarchy. Especially reuse of the same role
  * in the rich role hierarchy. It looks like this:
- * <p>
- * user
- * |
- * +------+------+-----+-----+-....
- * |      |      |     |     |
- * v      v      v     v     v
- * Ra1    Ra2    Ra3   Ra4   Ra5
- * |      |      |     |     |
- * +------+------+-----+-----+
- * |
- * v
- * notorious role
- * |
- * +------+------+-----+-----+-....
- * |      |      |     |     |
- * v      v      v     v     v
- * Rb1    Rb2    Rb3   Rb4   Rb5
- * <p>
+ *
+ * ----
+ *     user
+ *     |
+ *     +------+------+-----+-----+-....
+ *     |      |      |     |     |
+ *     v      v      v     v     v
+ *     Ra1    Ra2    Ra3   Ra4   Ra5
+ *     |      |      |     |     |
+ *     +------+------+-----+-----+
+ *     |
+ *     v
+ *     notorious role
+ *     |
+ *     +------+------+-----+-----+-....
+ *     |      |      |     |     |
+ *     v      v      v     v     v
+ *     Rb1    Rb2    Rb3   Rb4   Rb5
+ * ----
+ *
  * Naive mode of evaluation would imply cartesian product of all Rax and Rbx
  * combinations. That's painfully inefficient. Therefore make sure that the
  * notorious roles is evaluated only once and the results of the evaluation
@@ -51,8 +53,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestNotoriousRole extends AbstractNotoriousTest {
 
-    public static final File ROLE_NOTORIOUS_FILE = new File(TEST_DIR, "role-notorious.xml");
-    public static final String ROLE_NOTORIOUS_OID = "1e95a1b8-46d1-11e7-84c5-e36e43bb0f00";
+    private static final File ROLE_NOTORIOUS_FILE = new File(TEST_DIR, "role-notorious.xml");
+    private static final String ROLE_NOTORIOUS_OID = "1e95a1b8-46d1-11e7-84c5-e36e43bb0f00";
 
     @Override
     protected String getNotoriousOid() {
@@ -105,14 +107,4 @@ public class TestNotoriousRole extends AbstractNotoriousTest {
         assertRoleMembershipRef(userAfter, getAltRelation(), getNotoriousOid());
     }
 
-    @Override
-    protected int hackify2(int i) {
-        return i*3;
-    }
-
-    @Override
-    protected int hackify1(int i) {
-        // TODO: ... or once ... why?!
-        return i;
-    }
 }

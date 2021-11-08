@@ -22,7 +22,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * Testing bushy roles hierarchy. Especially reuse of the same role
  * in the rich role hierarchy. It looks like this:
- * <p>
+ *
+ * ----
  * user
  * |
  * +------+------+-----+-----+-....
@@ -39,7 +40,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * |      |      |     |     |
  * v      v      v     v     v
  * Rb1    Rb2    Rb3   Rb4   Rb5
- * <p>
+ * ----
+ *
  * Naive mode of evaluation would imply cartesian product of all Rax and Rbx
  * combinations. That's painfully inefficient. Therefore make sure that the
  * notorious roles is evaluated only once and the results of the evaluation
@@ -51,8 +53,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestNotoriousOrg extends AbstractNotoriousTest {
 
-    public static final File ORG_NOTORIOUS_FILE = new File(TEST_DIR, "org-notorious.xml");
-    public static final String ORG_NOTORIOUS_OID = "f79fc21a-4d0a-11e7-ad8d-f7fe1a23c68a";
+    private static final File ORG_NOTORIOUS_FILE = new File(TEST_DIR, "org-notorious.xml");
+    private static final String ORG_NOTORIOUS_OID = "f79fc21a-4d0a-11e7-ad8d-f7fe1a23c68a";
 
     @Override
     protected String getNotoriousOid() {
