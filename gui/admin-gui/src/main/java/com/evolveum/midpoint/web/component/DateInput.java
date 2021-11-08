@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.component;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.datetime.PatternDateConverter;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -46,7 +47,8 @@ public class DateInput extends DateTimeField {
         if (localizedDatePattern != null && !localizedDatePattern.contains("yyyy")){
             localizedDatePattern = localizedDatePattern.replaceAll("yy", "yyyy");
         }
-        DateTextField dateField = DateTextField.forDatePattern(id, dateFieldModel, localizedDatePattern);
+        DateTextField dateField = DateTextField.withConverter(
+                id, dateFieldModel,  new PatternDateConverter(localizedDatePattern, false));
         dateField.add(new EmptyOnChangeAjaxFormUpdatingBehavior(){
             @Override
             protected void onUpdate(AjaxRequestTarget target){
