@@ -35,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Testing bushy role hierarchy. Especially reuse of the same role
  * in the rich role hierarchy. It looks like this:
  *
- * <pre>
+ * ----
  *                    user
  *                     |
  *       +------+------+-----+-----+-....
@@ -52,7 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *       |      |      |     |     |
  *       v      v      v     v     v
  *      Rb1    Rb2    Rb3   Rb4   Rb5
- * </pre>
+ * ----
  *
  * Naive mode of evaluation would imply cartesian product of all Rax and Rbx
  * combinations. That's painfully inefficient. Therefore make sure that the
@@ -69,17 +69,20 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     private static final int NUMBER_OF_ORDINARY_ROLES = 1; // including superuser role
 
-    protected static final int NUMBER_OF_LEVEL_A_ROLES = 100;
-    protected static final String ROLE_LEVEL_A_NAME_FORMAT = "Role A %06d";
-    protected static final String ROLE_LEVEL_A_SUBTYPE = "levelA";
-    protected static final String ROLE_LEVEL_A_OID_FORMAT = "00000000-0000-ffff-2a00-000000%06d";
+    private static final int NUMBER_OF_LEVEL_A_ROLES = 100;
+    private static final String ROLE_LEVEL_A_NAME_FORMAT = "Role A %06d";
+    private static final String ROLE_LEVEL_A_SUBTYPE = "levelA";
+    private static final String ROLE_LEVEL_A_OID_FORMAT = "00000000-0000-ffff-2a00-000000%06d";
 
-    protected static final int NUMBER_OF_LEVEL_B_ROLES = 300;
-    protected static final String ROLE_LEVEL_B_NAME_FORMAT = "Role B %06d";
-    protected static final String ROLE_LEVEL_B_ROLETYPE = "levelB";
-    protected static final String ROLE_LEVEL_B_OID_FORMAT = "00000000-0000-ffff-2b00-000000%06d";
+    static final int NUMBER_OF_LEVEL_B_ROLES = 300;
+    private static final String ROLE_LEVEL_B_NAME_FORMAT = "Role B %06d";
+    static final String ROLE_LEVEL_B_ROLETYPE = "levelB";
+    private static final String ROLE_LEVEL_B_OID_FORMAT = "00000000-0000-ffff-2b00-000000%06d";
 
-    protected CountingInspector inspector;
+    /** How many times the projector runs per single clockwork run. */
+    static final int PROJECTOR_PER_CLOCKWORK = 2;
+
+    CountingInspector inspector;
 
     protected abstract String getNotoriousOid();
 
@@ -124,7 +127,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         roleType.subtype(ROLE_LEVEL_B_ROLETYPE);
     }
 
-    protected void fillNotorious(AbstractRoleType roleType) {
+    void fillNotorious(AbstractRoleType roleType) {
         for (int i = 0; i < NUMBER_OF_LEVEL_B_ROLES; i++) {
             roleType.beginInducement()
                     .targetRef(generateRoleBOid(i), RoleType.COMPLEX_TYPE)
@@ -181,8 +184,8 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertRoleEvaluationCount(1, 0);
 
-        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2));
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, PROJECTOR_PER_CLOCKWORK);
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (NUMBER_OF_LEVEL_B_ROLES + 2) * PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -210,7 +213,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         displayCountersAndInspector();
 
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (NUMBER_OF_LEVEL_B_ROLES + 2) * PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -274,7 +277,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         displayCountersAndInspector();
 
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (NUMBER_OF_LEVEL_B_ROLES + 2) * PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -302,7 +305,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         displayCountersAndInspector();
 
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + 5));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (NUMBER_OF_LEVEL_B_ROLES + 1 + 5) * PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -330,7 +333,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         displayCountersAndInspector();
 
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + 5));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (NUMBER_OF_LEVEL_B_ROLES + 1 + 5) * PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -359,7 +362,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         displayCountersAndInspector();
 
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + 5));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (NUMBER_OF_LEVEL_B_ROLES + 1 + 5) * PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -387,7 +390,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         displayCountersAndInspector();
 
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES) * PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -415,7 +418,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         displayCountersAndInspector();
 
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES) * PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -479,7 +482,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         displayCountersAndInspector();
 
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES) * PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -510,14 +513,14 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertRoleEvaluationCount(0, 1);
 
-        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(1));
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, PROJECTOR_PER_CLOCKWORK);
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
     /**
      * Now jack has RoleB0 assigned in two ways: directly and through RA0->notorious->RB0
-     * This may cause problems e.g. for supernotorious roles where the direct assignment
+     * This may cause problems e.g. for super-notorious roles where the direct assignment
      * may cause evaluation of notorious role as metarole. And then the second evaluation
      * may be skipped. Which is wrong.
      */
@@ -548,8 +551,8 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertRoleEvaluationCount(1, 1);
 
-        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2 + 1));
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, PROJECTOR_PER_CLOCKWORK);
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (NUMBER_OF_LEVEL_B_ROLES + 2 + 1) * PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -579,7 +582,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertRoleEvaluationCount(1, 1);
 
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2 + 1));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (NUMBER_OF_LEVEL_B_ROLES + 2 + 1) * PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -610,8 +613,8 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertRoleEvaluationCount(1, 1);
 
-        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2 + 1));
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, PROJECTOR_PER_CLOCKWORK);
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (NUMBER_OF_LEVEL_B_ROLES + 2 + 1) * PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -642,8 +645,8 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertRoleEvaluationCount(1, 1);
 
-        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2 + 1));
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, PROJECTOR_PER_CLOCKWORK);
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (NUMBER_OF_LEVEL_B_ROLES + 2 + 1) * PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -673,7 +676,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertRoleEvaluationCount(1, 1);
 
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2 + 1));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (NUMBER_OF_LEVEL_B_ROLES + 2 + 1) * PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -704,7 +707,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertRoleEvaluationCount(1, 1);
 
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2 + 1));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (NUMBER_OF_LEVEL_B_ROLES + 2 + 1) * PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -735,8 +738,8 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertRoleEvaluationCount(1, 1);
 
-        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2 + 1));
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, PROJECTOR_PER_CLOCKWORK);
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (NUMBER_OF_LEVEL_B_ROLES + 2 + 1) * PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -768,8 +771,8 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertRoleEvaluationCount(0, 1);
 
-        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(1));
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, PROJECTOR_PER_CLOCKWORK);
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -805,8 +808,8 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertRoleEvaluationCount(1, 0);
 
-        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(1 + NUMBER_OF_LEVEL_B_ROLES));
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, PROJECTOR_PER_CLOCKWORK);
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (1 + NUMBER_OF_LEVEL_B_ROLES) * PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -849,8 +852,23 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertRoleEvaluationCount(2, 0);
 
-        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify2(1 + NUMBER_OF_LEVEL_B_ROLES));
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, PROJECTOR_PER_CLOCKWORK);
+
+        // How many times an abstract role (notorious + B-level) is evaluated for the existing assignment
+        int expectedEvaluationsForExistingAssignment = (1 + NUMBER_OF_LEVEL_B_ROLES) * PROJECTOR_PER_CLOCKWORK;
+
+        // How many times an abstract role (notorious + B-level) is evaluated for the assignment being added.
+        // The expected value differs for "member-like" (org:manager) and "non member-like" (org:owner) relations.
+        // The non member-like relations are evaluated only when going into "plus" set, i.e. during the first projector run.
+        // (It is different from the situation when they are being unassigned, see test159. It should be consolidated
+        // somehow, see AssignmentTripleEvaluator#processReallyUnchangedAssignment and MID-6403) The member-like
+        // relations are evaluated during each projector run.
+        int expectedEvaluationsForNewAssignment = (1 + NUMBER_OF_LEVEL_B_ROLES) *
+                (relationRegistry.isMember(getAltRelation()) ? PROJECTOR_PER_CLOCKWORK : 1);
+
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT,
+                expectedEvaluationsForExistingAssignment + expectedEvaluationsForNewAssignment);
+
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -887,8 +905,8 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertRoleEvaluationCount(2, 0);
 
-        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(getTest15xRoleEvaluationIncrement()));
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, PROJECTOR_PER_CLOCKWORK);
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, getTest15xRoleEvaluationIncrement() * PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -929,8 +947,8 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertRoleEvaluationCount(2, 0);
 
-        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(getTest15xRoleEvaluationIncrement()));
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, PROJECTOR_PER_CLOCKWORK);
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, getTest15xRoleEvaluationIncrement() * PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -962,8 +980,8 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertRoleEvaluationCount(2, 1);
 
-        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(getTest15xRoleEvaluationIncrement()));
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, PROJECTOR_PER_CLOCKWORK);
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, getTest15xRoleEvaluationIncrement() * PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -1001,8 +1019,8 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertRoleEvaluationCount(1, 0);
 
-        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify1((1 + NUMBER_OF_LEVEL_B_ROLES)));
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, PROJECTOR_PER_CLOCKWORK);
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (1 + NUMBER_OF_LEVEL_B_ROLES) * PROJECTOR_PER_CLOCKWORK);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -1038,6 +1056,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertRoleMembershipRefs(user, numberOfLevelARoles + 1 + NUMBER_OF_LEVEL_B_ROLES);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void assertRoleMembershipRefs(PrismObject<UserType> user, String oidFormat, int num, QName relation) {
         for (int i = 0; i < num; i++) {
             assertRoleMembershipRefNonExclusive(user, generateRoleOid(oidFormat, i), RoleType.COMPLEX_TYPE, relation);
@@ -1058,11 +1077,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         // for subclasses
     }
 
-    protected void assertNoNotoriousParentOrgRef(PrismObject<UserType> userAfter) {
+    private void assertNoNotoriousParentOrgRef(PrismObject<UserType> userAfter) {
         assertHasNoOrg(userAfter, getNotoriousOid());
     }
 
-    protected void assertNotoriousParentOrgRef(PrismObject<UserType> userAfter) {
+    private void assertNotoriousParentOrgRef(PrismObject<UserType> userAfter) {
         assertNotoriousParentOrgRefRelations(userAfter, SchemaConstants.ORG_DEFAULT);
     }
 
@@ -1087,18 +1106,5 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
                 InternalCounters.ROLE_EVALUATION_SKIP_COUNT,
                 InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
         displayDumpable("Inspector", inspector);
-    }
-
-    protected int hackify(int i) {
-        // TODO: projector now runs two times instead of one.
-        return i * 2;
-    }
-
-    protected int hackify2(int i) {
-        return i * 4;
-    }
-
-    protected int hackify1(int i) {
-        return hackify(i);
     }
 }
