@@ -60,9 +60,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-/**
- * @author lazyman, mederly
- */
 @Component
 public class ObjectRetriever {
 
@@ -195,7 +192,6 @@ public class ObjectRetriever {
 
         LOGGER.trace("Transforming data to JAXB type.");
         PrismObject<T> prismObject = updateLoadedObject(fullObject, type, oid, options, null, session);
-        validateObjectType(prismObject, type);
 
         // this was implemented to allow report parsing errors as warnings to upper layers;
         // however, it causes problems when serialization problems are encountered: in such cases, we put
@@ -246,7 +242,7 @@ public class ObjectRetriever {
 
             session.getTransaction().commit();
 
-        } catch (SchemaException | RuntimeException ex) {
+        } catch (SchemaException | RuntimeException | ObjectNotFoundException ex) {
             baseHelper.handleGeneralException(ex, session, result);
         } finally {
             baseHelper.cleanupSessionAndResult(session, result);
@@ -491,7 +487,7 @@ public class ObjectRetriever {
      */
     private <T extends ObjectType> PrismObject<T> updateLoadedObject(GetObjectResult result,
             Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
-            Holder<PrismObject<T>> partialValueHolder, Session session) throws SchemaException {
+            Holder<PrismObject<T>> partialValueHolder, Session session) throws SchemaException, ObjectNotFoundException {
 
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
         boolean raw = GetOperationOptions.isRaw(rootOptions);
@@ -768,11 +764,11 @@ public class ObjectRetriever {
     }
 
     private <T extends ObjectType> void validateObjectType(PrismObject<T> prismObject, Class<T> type)
-            throws SchemaException {
+            throws ObjectNotFoundException {
         if (prismObject == null || !type.isAssignableFrom(prismObject.getCompileTimeClass())) {
-            throw new SchemaException("Expected to find '" + type.getSimpleName() + "' but found '"
+            throw new ObjectNotFoundException("Expected to find '" + type.getSimpleName() + "' but found '"
                     + prismObject.getCompileTimeClass().getSimpleName() + "' (" + prismObject.toDebugName()
-                    + "). Bad OID in a reference?");
+                    + "). Bad OID in a reference?", prismObject.getOid());
         }
         if (InternalsConfig.consistencyChecks) {
             prismObject.checkConsistence();
@@ -849,7 +845,7 @@ public class ObjectRetriever {
             }
 
             session.getTransaction().commit();
-        } catch (SchemaException | QueryException | RuntimeException ex) {
+        } catch (SchemaException | QueryException | RuntimeException | ObjectNotFoundException ex) {
             baseHelper.handleGeneralException(ex, session, result);
         } finally {
             baseHelper.cleanupSessionAndResult(session, result);

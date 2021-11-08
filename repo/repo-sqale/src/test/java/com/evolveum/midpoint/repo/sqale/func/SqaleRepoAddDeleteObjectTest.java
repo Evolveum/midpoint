@@ -132,7 +132,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test102AddWithoutOidIgnoresOverwriteOption()
+    public void test110AddWithoutOidIgnoresOverwriteOption()
             throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -154,7 +154,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test110AddWithOverwriteOption()
+    public void test111AddWithOverwriteOption()
             throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -184,7 +184,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test111AddWithOverwriteOptionWithNewOidActsLikeNormalAdd()
+    public void test112AddWithOverwriteOptionWithNewOidActsLikeNormalAdd()
             throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -212,9 +212,34 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(SqaleRepositoryService.INITIAL_VERSION_NUMBER);
     }
 
+    @Test
+    public void test113AddWithOverwriteOptionDifferentTypes()
+            throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("user already in the repository (type A)");
+        long baseCount = count(QObject.CLASS);
+        UserType user = new UserType(prismContext).name("user" + getTestNumber());
+        String oid = repositoryService.addObject(user.asPrismObject(), null, result);
+        assertThat(count(QObject.CLASS)).isEqualTo(baseCount + 1);
+
+        expect("adding object of different type with the same OID to the repository with overwrite option throws");
+        DashboardType dashboard = new DashboardType(prismContext)
+                .name("dashboard" + getTestNumber())
+                .oid(oid);
+        assertThatThrownBy(() -> repositoryService.addObject(dashboard.asPrismObject(), createOverwrite(), result))
+                .isInstanceOf(ObjectAlreadyExistsException.class);
+
+        and("operation is fatal error");
+        assertThatOperationResult(result).isFatalError();
+
+        and("nothing is added to the database");
+        assertThat(count(QObject.CLASS)).isEqualTo(baseCount + 1);
+    }
+
     // detailed container tests are from test200 on, this one has overwrite priority :-)
     @Test
-    public void test112OverwriteWithContainers()
+    public void test115OverwriteWithContainers()
             throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = createOperationResult();
 

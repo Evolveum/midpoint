@@ -22,7 +22,6 @@ import org.apache.cxf.jaxrs.client.WebClient;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -96,8 +95,8 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
             "\n" +
             "                return \"Hello \" + value;";
 
-    public static final String ACCOUT_CHUCK_FILE = "account-chuck";
-    public static final String ACCOUT_CHUCK_OID = BASE_REPO_DIR + "a0c010c0-d34d-b33f-f00d-111111111666";
+    public static final String ACCOUNT_CHUCK_FILE = "account-chuck";
+    public static final String ACCOUNT_CHUCK_OID = "a0c010c0-d34d-b33f-f00d-111111111666";
 
     private static final String MODIFICATION_DISABLE = "modification-disable";
     private static final String MODIFICATION_ENABLE = "modification-enable";
@@ -354,12 +353,12 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         client.query("options", "raw");
 
         when();
-        Response response = client.post(getRepoFile(ACCOUT_CHUCK_FILE));
+        Response response = client.post(getRepoFile(ACCOUNT_CHUCK_FILE));
 
         then();
         displayResponse(response);
 
-        // expecting hadnled error because resource doesn't exist.. it is OK, but let's say admin about that
+        // expecting handled error because resource doesn't exist, it is OK, but let's say admin about that
         assertStatus(response, 240);
         OperationResult addResult = traceResponse(response);
         assertNotNull("Expected operation result in the response, but nothing in the body", addResult);
@@ -367,12 +366,12 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         OperationResult parentResult = new OperationResult("get");
         try {
-            getProvisioning().getObject(ShadowType.class, ACCOUT_CHUCK_OID,
+            getProvisioning().getObject(ShadowType.class, ACCOUNT_CHUCK_OID,
                     SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), null,
                     parentResult);
             fail("expected object not found exception but haven't got one.");
         } catch (ObjectNotFoundException ex) {
-            // this is OK..we expect object not found, because account was added
+            // this is OK, we expect object not found, because account was added
             // with the raw options which indicates, that it was created only in
             // the repository
         }
@@ -667,11 +666,9 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         client.path("/functionLibraries");
         client.query("options", "overwrite");
 
-        // WHEN
         when();
         Response response = client.post(getRepoFile(FUNCTION_LIBRARY_HELLO_FILE));
 
-        // THEN
         then();
         displayResponse(response);
 
@@ -1558,7 +1555,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         then();
         displayResponse(response);
 
-        assertEquals("Expected 400 but got " + response.getStatus(), 400, response.getStatus());
+        assertEquals("Expected 404 but got " + response.getStatus(), 404, response.getStatus());
     }
 
     @Test // MID-4928
@@ -1586,7 +1583,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         then();
         displayResponse(response);
 
-        assertEquals("Expected 400 but got " + response.getStatus(), 400, response.getStatus());
+        assertEquals("Expected 404 but got " + response.getStatus(), 404, response.getStatus());
     }
 
     @Test // MID-4928
@@ -1614,7 +1611,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         then();
         displayResponse(response);
 
-        assertEquals("Expected 400 but got " + response.getStatus(), 400, response.getStatus());
+        assertEquals("Expected 404 but got " + response.getStatus(), 404, response.getStatus());
     }
 
     @Test // MID-4928
@@ -1642,7 +1639,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         then();
         displayResponse(response);
 
-        assertEquals("Expected 400 but got " + response.getStatus(), 400, response.getStatus());
+        assertEquals("Expected 404 but got " + response.getStatus(), 404, response.getStatus());
     }
 
     private WebClient prepareClient() {
