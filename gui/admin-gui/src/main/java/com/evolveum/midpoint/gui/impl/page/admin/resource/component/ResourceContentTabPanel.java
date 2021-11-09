@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
 
@@ -145,6 +146,7 @@ public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceTyp
             }
 
         };
+        intent.getBaseFormComponent().add(WebComponentUtil.preventSubmitOnEnterKeyDownBehavior());
         intent.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
             private static final long serialVersionUID = 1L;
 

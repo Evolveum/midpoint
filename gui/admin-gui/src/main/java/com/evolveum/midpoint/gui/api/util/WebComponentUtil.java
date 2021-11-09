@@ -3437,6 +3437,18 @@ public final class WebComponentUtil {
         };
     }
 
+    public static Behavior preventSubmitOnEnterKeyDownBehavior() {
+        return new Behavior() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void bind(Component component) {
+                super.bind(component);
+                component.add(AttributeModifier.replace("onkeydown", Model.of("if(event.keyCode == 13) {event.preventDefault();}")));
+            }
+        };
+    }
+
     public static List<QName> getAssignableRelationsList(PrismObject<? extends FocusType> focusObject, Class<? extends AbstractRoleType> type,
             AssignmentOrder assignmentOrder,
             OperationResult result, Task task, PageBase pageBase) {

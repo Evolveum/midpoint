@@ -836,16 +836,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         propList.add(properties);
 
         TextField<?> addText = new TextField<>(ID_ADD_TEXT, new PropertyModel<>(moreDialogModel, MoreDialogDto.F_NAME_FILTER));
-        addText.add(new Behavior() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void bind(Component component) {
-                super.bind(component);
-
-                component.add(AttributeModifier.replace("onkeydown", Model.of("if(event.keyCode == 13) {event.preventDefault();}")));
-            }
-        });
+        addText.add(WebComponentUtil.preventSubmitOnEnterKeyDownBehavior());
 
         popover.add(addText);
         addText.add(new AjaxFormComponentUpdatingBehavior("keyup") {
