@@ -48,6 +48,7 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
 
     private LoadableModel<List<ShadowWrapper>> projectionModel;
     private final LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
+    private boolean isSelfProfile = false;
 
     public FocusDetailsModels(LoadableModel<PrismObject<F>> prismObjectModel, PageBase serviceLocator) {
         super(prismObjectModel, serviceLocator);
@@ -137,7 +138,15 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
         return wrapper;
     }
 
-//    public void loadFullShadow(PrismObjectValueWrapper<ShadowType> shadowWrapperValue, AjaxRequestTarget target) {
+    public void setSelfProfile(boolean selfProfile) {
+        isSelfProfile = selfProfile;
+    }
+
+    public boolean isSelfProfile() {
+        return isSelfProfile;
+    }
+
+    //    public void loadFullShadow(PrismObjectValueWrapper<ShadowType> shadowWrapperValue, AjaxRequestTarget target) {
 //        LOGGER.trace("Loading full shadow");
 //        long start = System.currentTimeMillis();
 //        if (shadowWrapperValue.getRealValue() == null) {

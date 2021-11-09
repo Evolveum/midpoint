@@ -35,9 +35,11 @@ public class FocusOperationalButtonsPanel<F extends FocusType> extends Assignmen
     private static final String ID_EXECUTE_OPTIONS = "executeOptions";
 
     private final LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
+    private final boolean isSelfprofile;
 
-    public FocusOperationalButtonsPanel(String id, LoadableModel<PrismObjectWrapper<F>> model, LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel) {
+    public FocusOperationalButtonsPanel(String id, LoadableModel<PrismObjectWrapper<F>> model, LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel, boolean isSelfProfile) {
         super(id, model);
+        this.isSelfprofile = isSelfProfile;
         this.executeOptionsModel = executeOptionsModel;
     }
 
@@ -90,7 +92,15 @@ public class FocusOperationalButtonsPanel<F extends FocusType> extends Assignmen
         repeatingView.add(preview);
     }
 
+    @Override
+    protected boolean isDeleteButtonVisible() {
+        return super.isDeleteButtonVisible() && !isSelfprofile;
+    }
+
     protected boolean getOptionsPanelVisibility() {
+        if (isSelfprofile) {
+            return false;
+        }
         if (getModelObject().isReadOnly()) {
             return false;
         }
