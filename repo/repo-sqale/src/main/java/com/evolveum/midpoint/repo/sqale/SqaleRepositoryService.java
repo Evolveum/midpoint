@@ -156,10 +156,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             object = executeGetObject(type, oidUuid, options);
             return object;
         } catch (ObjectNotFoundException e) {
-            if (!GetOperationOptions.isAllowNotFound(SelectorOptions.findRootOptions(options))) {
-                operationResult.recordFatalError(e);
-            }
-            throw e;
+            throw handleObjectNotFound(e, operationResult, options);
         } catch (RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -519,10 +516,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                     type, oidUuid, getOptions, modificationsSupplier, modifyOptions, parentResult);
             return rv;
         } catch (ObjectNotFoundException e) {
-            if (!GetOperationOptions.isAllowNotFound(SelectorOptions.findRootOptions(getOptions))) {
-                operationResult.recordFatalError(e);
-            }
-            throw e;
+            throw handleObjectNotFound(e, operationResult, getOptions);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -532,6 +526,18 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             operationResult.computeStatusIfUnknown();
             OperationLogger.logModifyDynamically(type, oid, rv, modifyOptions, operationResult);
         }
+    }
+
+    private ObjectNotFoundException handleObjectNotFound(
+            ObjectNotFoundException e, OperationResult operationResult,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> getOptions) throws ObjectNotFoundException {
+        if (!GetOperationOptions.isAllowNotFound(SelectorOptions.findRootOptions(getOptions))) {
+            operationResult.recordFatalError(e);
+//        } else { TODO currently it is considered SUCCESS, even though the exception is thrown, which seems strange.
+            // But recording partial error may spoil otherwise happy top-level result, which we don't want either.
+//            operationResult.recordPartialError(e.getMessage());
+        }
+        return e;
     }
 
     private <T extends ObjectType> ModifyObjectResult<T> executeModifyObjectDynamically(

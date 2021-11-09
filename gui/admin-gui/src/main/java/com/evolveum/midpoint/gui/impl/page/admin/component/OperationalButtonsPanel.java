@@ -54,7 +54,6 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
 
     private static final String ID_BUTTONS = "buttons";
     private static final String ID_STATE_BUTTONS = "stateButtons";
-    private static final String ID_EXECUTE_OPTIONS = "executeOptions";
     private String saveButtonPath = "";
 
     public OperationalButtonsPanel(String id, LoadableModel<PrismObjectWrapper<O>> wrapperModel) {
@@ -96,7 +95,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
                 editRawPerformed(ajaxRequestTarget);
             }
         };
-        edit.add(new VisibleBehaviour(()->isEditingObject()));
+        edit.add(new VisibleBehaviour(this::isEditingObject));
         edit.showTitleAsLabel(true);
         edit.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         repeatingView.add(edit);
@@ -128,10 +127,14 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
                 deletePerformed(ajaxRequestTarget);
             }
         };
-        remove.add(new VisibleBehaviour(()->isEditingObject()));
+        remove.add(new VisibleBehaviour(this::isDeleteButtonVisible));
         remove.showTitleAsLabel(true);
         remove.add(AttributeAppender.append("class", "btn btn-danger btn-sm"));
         repeatingView.add(remove);
+    }
+
+    protected boolean isDeleteButtonVisible() {
+        return isEditingObject();
     }
 
     protected void addButtons(RepeatingView repeatingView) {
@@ -262,20 +265,6 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
             }
         }
         return false;
-    }
-
-    //TODO temporary
-    protected boolean getOptionsPanelVisibility() {
-        if (getModelObject().isReadOnly()) {
-            return false;
-        }
-        return ItemStatus.NOT_CHANGED != getModelObject().getStatus()
-                || getModelObject().canModify();
-    }
-
-    public ExecuteChangeOptionsDto getExecuteChangeOptions() {
-        ExecuteChangeOptionsPanel optionsPanel = (ExecuteChangeOptionsPanel) get(ID_EXECUTE_OPTIONS);
-        return optionsPanel != null ? optionsPanel.getModelObject() : new ExecuteChangeOptionsDto();
     }
 
     public PrismObject<O> getPrismObject() {

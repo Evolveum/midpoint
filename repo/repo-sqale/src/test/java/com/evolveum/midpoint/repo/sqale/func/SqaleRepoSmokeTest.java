@@ -219,6 +219,51 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test201GetObjectWrongOid() {
+        OperationResult result = createOperationResult();
+
+        expect("getObject for non-existent OID throws exception");
+        assertThatThrownBy(() -> repositoryService.getObject(
+                UserType.class, UUID.randomUUID().toString(), null, result))
+                .isInstanceOf(ObjectNotFoundException.class);
+
+        and("operation result is fatal error");
+        assertThatOperationResult(result).isFatalError();
+    }
+
+    @Test
+    public void test202GetObjectWrongOidNonFatal() {
+        OperationResult result = createOperationResult();
+
+        expect("getObject for non-existent OID with allow-not-found options throws exception");
+        assertThatThrownBy(() -> repositoryService.getObject(
+                UserType.class, UUID.randomUUID().toString(),
+                SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()),
+                result))
+                .isInstanceOf(ObjectNotFoundException.class);
+
+        and("operation result is success with minor partial error");
+        assertThatOperationResult(result).isSuccess();
+    }
+
+    @Test
+    public void test203GetObjectExistingOidWrongType() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("existing user");
+        UserType user = new UserType(prismContext).name("user" + getTestNumber());
+        String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
+
+        expect("getObject called with right OID with wrong object type throws");
+        assertThatThrownBy(() -> repositoryService.getObject(
+                DashboardType.class, userOid, null, result))
+                .isInstanceOf(ObjectNotFoundException.class);
+
+        and("object is obtained and performance monitor is updated");
+        assertThatOperationResult(result).isFatalError();
+    }
+
+    @Test
     public void test210GetVersion() throws Exception {
         OperationResult result = createOperationResult();
 

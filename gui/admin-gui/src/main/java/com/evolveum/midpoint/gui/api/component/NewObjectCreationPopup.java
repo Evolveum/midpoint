@@ -95,6 +95,6 @@ public abstract class NewObjectCreationPopup extends BasePanel<List<CompositedIc
 
     @Override
     public StringResourceModel getTitle() {
-        return new StringResourceModel("");
+        return new StringResourceModel("").setDefaultValue("");
     }
 }

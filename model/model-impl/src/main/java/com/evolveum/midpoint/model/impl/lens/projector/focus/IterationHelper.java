@@ -256,8 +256,9 @@ class IterationHelper<AH extends AssignmentHolderType> {
         } else if (skipWhenNoIteration && maxIterations == 0) {
             LOGGER.trace("Skipping constraints check because 'skipWhenNoIteration' is true and there is no iteration defined");
             return false;
-        } else if (TaskType.class == focusContext.getObjectTypeClass()) {
-            LOGGER.trace("Skipping constraints check for task, not needed because tasks names are not unique.");
+        } else if (TaskType.class == focusContext.getObjectTypeClass() || CaseType.class == focusContext.getObjectTypeClass()) {
+            LOGGER.trace("Skipping constraints check for " + focusContext.getObjectTypeClass().getSimpleName() +
+                    ", not needed because names for " + focusContext.getObjectTypeClass().getSimpleName() + " are not unique.");
             return false;
         } else {
             return true;

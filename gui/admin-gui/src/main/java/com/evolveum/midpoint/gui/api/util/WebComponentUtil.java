@@ -4866,17 +4866,18 @@ public final class WebComponentUtil {
 
     public static Class<? extends PageBase> resolveSelfPage() {
         FocusType focusType = WebModelServiceUtils.getLoggedInFocus();
+        boolean newDesignEnabled = isNewDesignEnabled();
         if (focusType instanceof UserType) {
-            return PageUserSelfProfile.class;
+            return newDesignEnabled ? com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile.class : PageUserSelfProfile.class;
         }
         if (focusType instanceof OrgType) {
-            return PageOrgSelfProfile.class;
+            return newDesignEnabled ? com.evolveum.midpoint.gui.impl.page.self.PageOrgSelfProfile.class : PageOrgSelfProfile.class;
         }
         if (focusType instanceof RoleType) {
-            return PageRoleSelfProfile.class;
+            return newDesignEnabled ? com.evolveum.midpoint.gui.impl.page.self.PageRoleSelfProfile.class : PageRoleSelfProfile.class;
         }
         if (focusType instanceof ServiceType) {
-            return PageServiceSelfProfile.class;
+            return newDesignEnabled ? com.evolveum.midpoint.gui.impl.page.self.PageServiceSelfProfile.class : PageServiceSelfProfile.class;
         }
         return null;
     }

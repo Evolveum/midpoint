@@ -11,10 +11,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.evolveum.midpoint.gui.impl.page.admin.ProgressAwareChangesExecutorImpl;
-
-import com.evolveum.midpoint.gui.impl.page.admin.component.ProgressReportingAwarePage;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.Session;
@@ -30,10 +26,12 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangeExecutor;
+import com.evolveum.midpoint.gui.impl.page.admin.ProgressAwareChangesExecutorImpl;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.FocusOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ProgressPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.component.ProgressReportingAwarePage;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -91,7 +89,7 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
 
     @Override
     protected FocusOperationalButtonsPanel<F> createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<F>> wrapperModel) {
-        return new FocusOperationalButtonsPanel<>(id, wrapperModel, getObjectDetailsModels().getExecuteOptionsModel()) {
+        return new FocusOperationalButtonsPanel<>(id, wrapperModel, getObjectDetailsModels().getExecuteOptionsModel(), getObjectDetailsModels().isSelfProfile()) {
 
             @Override
             protected void savePerformed(AjaxRequestTarget target) {
@@ -234,6 +232,16 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
 
     private boolean isKeepDisplayingResults() {
         return getProgressPanel() != null && getProgressPanel().isKeepDisplayingResults();
+    }
+
+    @Override
+    protected FocusOperationalButtonsPanel<F> getOperationalButtonsPanel() {
+        return (FocusOperationalButtonsPanel<F>) super.getOperationalButtonsPanel();
+    }
+
+    @Override
+    protected ExecuteChangeOptionsDto getExecuteChangesOptionsDto() {
+        return getOperationalButtonsPanel().getExecuteChangeOptions();
     }
 
     private boolean isSaveInBackground() {

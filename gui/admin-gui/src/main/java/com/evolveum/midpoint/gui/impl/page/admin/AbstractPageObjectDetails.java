@@ -275,7 +275,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     protected ExecuteChangeOptionsDto getExecuteChangesOptionsDto() {
-        return getOperationalButtonsPanel().getExecuteChangeOptions();
+        return new ExecuteChangeOptionsDto();
     }
 
     protected void reviveModels() throws SchemaException {
@@ -339,7 +339,11 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         if (defaultConfiguration != null) {
             return defaultConfiguration;
         }
-        return getPanelConfigurations().getObject().stream().findFirst().get();
+        return getPanelConfigurations().getObject()
+                .stream()
+                .filter(config -> isApplicableForOperation(config) && WebComponentUtil.getElementVisibility(config.getVisibility()))
+                .findFirst()
+                .get();
     }
 
     private ContainerPanelConfigurationType findDefaultConfiguration(List<ContainerPanelConfigurationType> configs) {

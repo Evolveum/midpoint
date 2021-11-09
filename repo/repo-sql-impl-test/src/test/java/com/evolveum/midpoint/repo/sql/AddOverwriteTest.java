@@ -1,13 +1,16 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
+
+import static com.evolveum.midpoint.repo.api.RepoAddOptions.createOverwrite;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -174,10 +177,27 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
 
         then("We can't add another service with the same name into the repository");
         Assertions.assertThatThrownBy(() ->
-                repositoryService.addObject(
-                        new ServiceType(prismContext).name("test-service").asPrismObject(),
-                        null,
-                        new OperationResult("Reimport object with the same name")))
+                        repositoryService.addObject(
+                                new ServiceType(prismContext).name("test-service").asPrismObject(),
+                                null,
+                                new OperationResult("Reimport object with the same name")))
                 .isInstanceOf(ObjectAlreadyExistsException.class);
+    }
+
+    @Test
+    public void test300AddWithOverwriteDifferentTypeIsNotAllowed() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+        UserType user = new UserType(prismContext).name("user" + getTestNumber());
+        String oid = repositoryService.addObject(user.asPrismObject(), null, result);
+
+        expect("adding object of different type with the same OID to the repository with overwrite option throws");
+        DashboardType dashboard = new DashboardType(prismContext)
+                .name("dashboard" + getTestNumber())
+                .oid(oid);
+        assertThatThrownBy(() -> repositoryService.addObject(dashboard.asPrismObject(), createOverwrite(), result))
+                .isInstanceOf(ObjectAlreadyExistsException.class);
+
+        assertThatOperationResult(result).isFatalError();
     }
 }

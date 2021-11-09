@@ -20,7 +20,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 /**
  * Testing bushy roles hierarchy. Especially reuse of the same role
  * in the rich role hierarchy. It looks like this:
- * <p>
+ *
+ * ----
  * user
  * |
  * +------+------+-----+-----+-....
@@ -37,7 +38,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
  * |    |      |      |     |     |
  * |    v      v      v     v     v
  * +-- Rb1    Rb2    Rb3   Rb4   Rb5 ---..
- * <p>
+ * ----
+ *
  * Naive mode of evaluation would imply cartesian product of all Rax and Rbx
  * combinations. That's painfully inefficient. Therefore make sure that the
  * notorious roles is evaluated only once and the results of the evaluation
@@ -82,6 +84,6 @@ public class TestSupernotoriousOrg extends TestNotoriousOrg {
 
     @Override
     protected void assertRoleEvaluationCount(int numberOfNotoriousAssignments, int numberOfOtherAssignments) {
-        inspector.assertRoleEvaluations(getNotoriousOid(), hackify(numberOfNotoriousAssignments));
+        inspector.assertRoleEvaluations(getNotoriousOid(), numberOfNotoriousAssignments * PROJECTOR_PER_CLOCKWORK);
     }
 }
