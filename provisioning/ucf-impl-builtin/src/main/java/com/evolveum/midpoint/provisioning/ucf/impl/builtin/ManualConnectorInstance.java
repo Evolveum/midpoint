@@ -230,7 +230,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         }
         if (operators.isEmpty() && configuration.getDefaultAssignee() != null) {
             ObjectQuery query = getPrismContext().queryFor(UserType.class)
-                    .item(UserType.F_NAME).eq(configuration.getDefaultAssignee()).matchingOrig()
+                    .item(UserType.F_NAME).eqPoly(configuration.getDefaultAssignee()).matchingOrig()
                     .build();
             List<PrismObject<UserType>> defaultAssignees = repositoryService
                     .searchObjects(UserType.class, query, null, result);
