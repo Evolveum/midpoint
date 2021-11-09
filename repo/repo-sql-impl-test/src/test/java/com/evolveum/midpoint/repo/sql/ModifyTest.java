@@ -15,7 +15,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperat
 
 import java.io.File;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -60,7 +63,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringLangType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -251,7 +253,6 @@ public class ModifyTest extends BaseSQLRepoTest {
         SqlRepoTestUtil.assertVersionProgress(lastVersion, getTask.getVersion());
         lastVersion = getTask.getVersion();
 
-        checkReference(taskOid);
         System.out.println("MODIFY");
         modifications.clear();
         delta = prismContext.deltaFactory().reference().create(def);
@@ -259,8 +260,6 @@ public class ModifyTest extends BaseSQLRepoTest {
         delta.addValueToAdd(itemFactory().createReferenceValue("2", ResourceType.COMPLEX_TYPE));
         modifications.add(delta);
         repositoryService.modifyObject(TaskType.class, taskOid, modifications, getModifyOptions(), result);
-
-        checkReference(taskOid);
 
         getTask = repositoryService.getObject(TaskType.class, taskOid, null, result);
         taskType = getTask.asObjectable();
@@ -278,8 +277,6 @@ public class ModifyTest extends BaseSQLRepoTest {
         modifications.add(delta);
         repositoryService.modifyObject(TaskType.class, taskOid, modifications, getModifyOptions(), result);
 
-        checkReference(taskOid);
-
         getTask = repositoryService.getObject(TaskType.class, taskOid, null, result);
         taskType = getTask.asObjectable();
         AssertJUnit.assertNotNull(taskType.getObjectRef());
@@ -289,21 +286,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         lastVersion = getTask.getVersion();
     }
 
-    private void checkReference(String taskOid) {
-//        Session session = getFactory().openSession();
-//        try {
-//            Criteria criteria = session.createCriteria(RObjectReferenceTaskObject.class);
-//            criteria.add(Restrictions.eq("ownerId", 0L));
-//            criteria.add(Restrictions.eq("ownerOid", taskOid));
-//
-//            criteria.uniqueResult();
-//        } catch (Exception ex) {
-//            session.close();
-//            AssertJUnit.fail(ex.getMessage());
-//        }
-    }
-
-    @Test   // MID-4801 (this passed even before fixing that issue)
+    @Test // MID-4801 (this passed even before fixing that issue)
     public void test035ModifyTaskOwnerRef() throws Exception {
         OperationResult result = createOperationResult();
         TaskType task = new TaskType(prismContext)
@@ -336,8 +319,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(TaskType.class)
                 .item(TaskType.F_OWNER_REF)
-                .add(ObjectTypeUtil.createObjectRef("owner-new", ObjectTypes.USER))
                 .delete(ObjectTypeUtil.createObjectRef("owner-old", ObjectTypes.USER))
+                .add(ObjectTypeUtil.createObjectRef("owner-new", ObjectTypes.USER))
                 .asItemDeltas();
         repositoryService.modifyObject(TaskType.class, task.getOid(), modifications, getModifyOptions(), result);
         assertTaskOwner(task.getOid(), "owner-new");
@@ -356,8 +339,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_EMPLOYEE_NUMBER)
-                .add("new")
                 .delete("old")
+                .add("new")
                 .asItemDeltas();
         repositoryService.modifyObject(UserType.class, user.getOid(), modifications, getModifyOptions(), result);
         assertUserEmployeeNumber(user.getOid(), "new");
@@ -379,8 +362,8 @@ public class ModifyTest extends BaseSQLRepoTest {
             if ("old".equals(employeeNumber)) {
                 return prismContext.deltaFor(UserType.class)
                         .item(UserType.F_EMPLOYEE_NUMBER)
-                        .add("new")
                         .delete("old")
+                        .add("new")
                         .asItemDeltas();
             } else {
                 throw new IllegalStateException("employeeNumber is not 'old': " + employeeNumber);
@@ -1449,40 +1432,6 @@ public class ModifyTest extends BaseSQLRepoTest {
         close(session);
     }
 
-    @Test(enabled = false)  // MID-5958
-    public void test500ReferenceTargetNameAdding() throws Exception {
-        // GIVEN
-        OperationResult result = createOperationResult();
-
-        PolyStringType parentName = new PolyStringType("Parent");
-        parentName.setNorm("Parent");
-        PolyStringLangType lang = new PolyStringLangType();
-        Map<String, String> langMap = new HashMap<>();
-        langMap.put("sk", "Rodič");
-        langMap.put("en", "Parent");
-        lang.setLang(langMap);
-        parentName.setLang(lang);
-        ObjectReferenceType parentRef = ObjectTypeUtil.createObjectRef("oid-parent", parentName, ObjectTypes.CASE);
-        final String OID = "oid-500";
-        PrismObject<CaseType> aCase = prismContext.createObjectable(CaseType.class)
-                .name("test500")
-                .oid(OID)
-                .parentRef(parentRef)
-                .asPrismObject();
-
-        // note that we do not support storing target names for references with known OID
-
-        // WHEN
-        repositoryService.addObject(aCase, null, result);
-
-        // THEN
-        PrismObject<CaseType> aCaseAfter = repositoryService.getObject(CaseType.class, OID, null, result);
-        PolyStringType parentNameAfter = aCaseAfter.asObjectable().getParentRef().getTargetName();
-        assertNotNull("No target name", parentNameAfter);
-        System.out.println("parent name after:\n" + parentNameAfter.debugDump());
-        // todo check for lang
-    }
-
     /**
      * MID-6063
      */
@@ -1593,7 +1542,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                         .<ValueMetadataType>end());
         List<ItemDelta<?, ?>> modifications = deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(assignmentValueNew).delete(assignmentValueOld)
+                .delete(assignmentValueOld).add(assignmentValueNew)
                 .asItemDeltas();
 
         when();
@@ -1649,7 +1598,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismValue newNameValue = createCloneWithMetadata(UserType.F_NAME, channel);
 
         List<ItemDelta<?, ?>> modifications = deltaFor(UserType.class)
-                .item(UserType.F_NAME).add(newNameValue).delete(oldNameValue)
+                .item(UserType.F_NAME).delete(oldNameValue).add(newNameValue)
                 .asItemDeltas();
 
         when();
