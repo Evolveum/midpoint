@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import java.util.*;
+import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -298,15 +299,11 @@ public class MiscSchemaUtil {
     public static AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType(
             ProjectionPolicyType accountSynchronizationSettings) {
         if (accountSynchronizationSettings == null) {
-            // default
-            return AssignmentPolicyEnforcementType.RELATIVE;
+            return AssignmentPolicyEnforcementType.RELATIVE; // default
         }
         AssignmentPolicyEnforcementType assignmentPolicyEnforcement =
                 accountSynchronizationSettings.getAssignmentPolicyEnforcement();
-        if (assignmentPolicyEnforcement == null) {
-            return AssignmentPolicyEnforcementType.RELATIVE;
-        }
-        return assignmentPolicyEnforcement;
+        return Objects.requireNonNullElse(assignmentPolicyEnforcement, AssignmentPolicyEnforcementType.RELATIVE);
     }
 
     public static PrismReferenceValue objectReferenceTypeToReferenceValue(ObjectReferenceType refType,

@@ -165,7 +165,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
 
         PrismObject<ShadowType> shadow = getShadowForLinkRefVal(linkRefVal, result);
         if (shadow == null) {
-            return; // Tombstone projection context is already created
+            return; // "Gone" projection context is already created
         }
 
         ContextAcquisitionResult acqResult = getOrCreateProjectionContext(shadow.asObjectable(), result);
@@ -175,9 +175,9 @@ public class ProjectionsLoadOperation<F extends FocusType> {
         } else {
             projectionContext.setFresh(true);
             projectionContext.setExists(ShadowUtil.isExists(shadow.asObjectable()));
-            if (ShadowUtil.isDead(shadow.asObjectable())) {
-                projectionContext.markTombstone();
-                LOGGER.trace("Loading dead shadow {} for projection {}.", shadow, projectionContext.getHumanReadableName());
+            if (ShadowUtil.isGone(shadow.asObjectable())) {
+                projectionContext.markGone();
+                LOGGER.trace("Loading gone shadow {} for projection {}.", shadow, projectionContext.getHumanReadableName());
                 return;
             }
             if (projectionContext.isDoReconciliation()) {
@@ -191,7 +191,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
 
     /**
      * Gets a shadow (embedded or referenced, with definitions applied) from linkRef.
-     * Returns null if it does not exist in repo; tombstone proj ctx is created in such case.
+     * Returns null if it does not exist in repo; "gone" proj ctx is created in such case.
      */
     @Nullable
     private PrismObject<ShadowType> getShadowForLinkRefVal(@NotNull PrismReferenceValue linkRefVal, OperationResult result)
@@ -202,6 +202,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
         if (embeddedShadow != null) {
             // Make sure it has a proper definition. This may come from outside of the model.
             beans.provisioningService.applyDefinition(embeddedShadow, task, result);
+            beans.provisioningService.determineShadowState(embeddedShadow, task, result);
             return embeddedShadow;
         }
 
@@ -212,7 +213,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
             return beans.provisioningService.getObject(ShadowType.class, oid, options, task, result);
         } catch (ObjectNotFoundException e) {
             // Broken linkRef. We need to mark it for deletion.
-            LensProjectionContext projectionContext = getOrCreateEmptyTombstoneProjectionContext(oid);
+            LensProjectionContext projectionContext = getOrCreateEmptyGoneProjectionContext(oid);
             projectionContext.setFresh(true);
             projectionContext.setExists(false);
             projectionContext.setShadowExistsInRepo(false);
@@ -498,7 +499,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                                 //.readOnly() [not yet]
                                 .build();
                 shadow = beans.provisioningService.getObject(ShadowType.class, oid, options, task, result);
-                projectionContext = getOrCreateEmptyTombstoneProjectionContext(oid);
+                projectionContext = getOrCreateEmptyGoneProjectionContext(oid);
                 projectionContext.setFresh(true);
                 projectionContext.setExists(false);
                 projectionContext.setShadowExistsInRepo(false);
@@ -573,7 +574,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                 // We will not set old account if the delta is delete. The account does not really exists now.
                 // (but the OID and resource will be set from the repo shadow)
                 if (syncDelta.getChangeType() == ChangeType.DELETE) {
-                    projCtx.markTombstone();
+                    projCtx.markGone();
                 } else if (shadow != null) {
                     syncDelta.applyTo(shadow);
                     projCtx.setLoadedObject(shadow);
@@ -595,7 +596,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
         }
     }
 
-    private LensProjectionContext getOrCreateEmptyTombstoneProjectionContext(String missingShadowOid) {
+    private LensProjectionContext getOrCreateEmptyGoneProjectionContext(String missingShadowOid) {
         LensProjectionContext projContext;
 
         LensProjectionContext existing = context.findProjectionContextByOid(missingShadowOid);
@@ -610,7 +611,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
             projContext.setResourceShadowDiscriminator(
                     new ResourceShadowDiscriminator(null, null, null, null, true));
         } else {
-            projContext.markTombstone();
+            projContext.markGone();
         }
 
         projContext.setFullShadow(false);
@@ -777,9 +778,9 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                 }
 
                 // Dead shadow for the new context. This is somehow expected, fix it and we can go on.
-                rsd.setTombstone(true);
+                rsd.setGone(true);
 
-                // Let us create or find the "newest" context, i.e. context for rsd updated with tombstone=true.
+                // Let us create or find the "newest" context, i.e. context for rsd updated with gone=true.
                 // We will use/reuse it with no other checks.
                 LensUtil.GetOrCreateProjectionContextResult newestCtxResult = LensUtil.getOrCreateProjectionContext(context, rsd);
                 LensProjectionContext newestCtx = newestCtxResult.context;
@@ -795,10 +796,10 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                 // exist in repository - not just on resource. (See ObjectNotFoundHandler in provisioning.)
                 result.muteLastSubresultError();
 
-                // We have to create new context in this case, but it has to have tombstone set.
-                rsd.setTombstone(true);
+                // We have to create new context in this case, but it has to have "gone" set.
+                rsd.setGone(true);
 
-                // Let us create or find the "newest" context, i.e. context for rsd updated with tombstone=true.
+                // Let us create or find the "newest" context, i.e. context for rsd updated with gone=true.
                 LensUtil.GetOrCreateProjectionContextResult newestCtxResult = LensUtil.getOrCreateProjectionContext(context, rsd);
                 LensProjectionContext newestCtx = newestCtxResult.context;
 
@@ -818,9 +819,9 @@ public class ProjectionsLoadOperation<F extends FocusType> {
 
             result.muteLastSubresultError();
             String shadowOid = existingCtx.getOid();
-            existingCtx.getResourceShadowDiscriminator().setTombstone(true);
+            existingCtx.getResourceShadowDiscriminator().setGone(true);
 
-            // Let us again try to create or find the "newest" context. The conflicting context is now set as tombstone.
+            // Let us again try to create or find the "newest" context. The conflicting context is now set as gone.
             LensUtil.GetOrCreateProjectionContextResult newestCtxResult = LensUtil.getOrCreateProjectionContext(context, rsd);
             LensProjectionContext newestCtx = newestCtxResult.context;
             newestCtx.setShadowExistsInRepo(false);
@@ -842,7 +843,6 @@ public class ProjectionsLoadOperation<F extends FocusType> {
         ShadowKindType kind = ShadowUtil.getKind(shadow);
         ResourceType resource = LensUtil.getResourceReadOnly(context, resourceOid, beans.provisioningService, task, result);
         intent = LensUtil.refineProjectionIntent(kind, intent, resource);
-        boolean tombstone = ShadowUtil.isDead(shadow);
-        return new ResourceShadowDiscriminator(resourceOid, kind, intent, shadow.getTag(), tombstone);
+        return new ResourceShadowDiscriminator(resourceOid, kind, intent, shadow.getTag(), ShadowUtil.isGone(shadow));
     }
 }

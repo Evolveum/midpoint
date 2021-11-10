@@ -127,7 +127,7 @@ class DeleteHelper {
 
         PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-        ShadowState shadowState = shadowCaretaker.determineShadowState(ctx, repoShadow, now);
+        ShadowLifecycleStateType shadowState = shadowCaretaker.determineShadowState(ctx, repoShadow, now);
 
         LOGGER.trace("Deleting object {} from {}, options={}, shadowState={}", repoShadow, ctx.getResource(), options, shadowState);
 
@@ -171,13 +171,13 @@ class DeleteHelper {
 
     private OperationResultStatus deleteShadowDirectly(ProvisioningContext ctx, ProvisioningOperationOptions options,
             OperationProvisioningScriptsType scripts, ProvisioningOperationState<AsynchronousOperationResult> opState,
-            ShadowState shadowState, Task task, OperationResult result)
+            ShadowLifecycleStateType shadowState, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             ExpressionEvaluationException, GenericFrameworkException, SecurityViolationException, PolicyViolationException {
 
         PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
 
-        if (shadowState == ShadowState.TOMBSTONE) {
+        if (shadowState == ShadowLifecycleStateType.TOMBSTONE) {
 
             // Do not even try to delete resource object for tombstone shadows.
             // There may be dead shadow and live shadow for the resource object with the same identifiers.

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -180,6 +180,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
+                .delete(new AssignmentType(prismContext).id(1L))
                 .add(new AssignmentType(prismContext)
                         .description("asdf")
                         .targetRef("444", OrgType.COMPLEX_TYPE)
@@ -187,7 +188,6 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                         .createChannel("zzz")
                         .modifyApproverRef("555", UserType.COMPLEX_TYPE)
                         .<AssignmentType>end())
-                .delete(new AssignmentType(prismContext).id(1L))
                 .asItemDeltas();
 
         TestStatementInspector.start();
@@ -378,8 +378,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_LINK_REF)
-                .add(createRef(ShadowType.COMPLEX_TYPE, "789"))
                 .delete(createRef(ShadowType.COMPLEX_TYPE, "456"))
+                .add(createRef(ShadowType.COMPLEX_TYPE, "789"))
                 .asItemDeltas();
 
         TestStatementInspector.start();

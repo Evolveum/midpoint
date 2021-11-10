@@ -624,7 +624,12 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         if (objectToModify != null) {
             // Although we can expect that modifications are not connected with the 'dead' property, let us be precise.
             delta.applyTo(objectToModify);
-            shadowLivenessState = ShadowLivenessState.forShadow(cast(objectToModify, ShadowType.class));
+            PrismObject<ShadowType> shadowToModify = cast(objectToModify, ShadowType.class);
+
+            // TODO what about shadows with pending deletion?
+            shadowLivenessState = ShadowLivenessState.forShadow(shadowToModify);
+            LOGGER.trace("Determined liveness of {} (before modification) to be {} (dead: {})",
+                    shadowToModify, shadowLivenessState, ShadowUtil.isDead(shadowToModify));
         } else {
             // If this is so, we are probably not here. But just for completeness.
             shadowLivenessState = ShadowLivenessState.DELETED;
@@ -681,7 +686,12 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                 try {
                     objectAfterModification = deleteProvisioningObject(objectTypeClass, oid, result);
                     if (ShadowType.class.equals(objectTypeClass)) {
-                        shadowLivenessState = ShadowLivenessState.forShadow(cast(objectAfterModification, ShadowType.class));
+                        PrismObject<ShadowType> shadowAfterModification = cast(objectAfterModification, ShadowType.class);
+                        // TODO what about shadows with pending deletion?
+                        shadowLivenessState = ShadowLivenessState.forShadow(shadowAfterModification);
+                        LOGGER.trace("Determined liveness of {} (after modification) to be {} (dead: {})",
+                                shadowAfterModification, shadowLivenessState,
+                                shadowAfterModification != null ? ShadowUtil.isDead(shadowAfterModification) : "(null)");
                     }
                 } catch (ObjectNotFoundException e) {
                     // Object that we wanted to delete is already gone. This can happen in some race conditions.

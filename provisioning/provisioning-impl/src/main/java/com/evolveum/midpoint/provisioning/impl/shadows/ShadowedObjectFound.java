@@ -136,6 +136,7 @@ public class ShadowedObjectFound implements InitializableMixin {
 
             // This determines the definitions exactly. Now the repo shadow should have proper kind/intent.
             ProvisioningContext preciseCtx = ictx.localBeans.shadowCaretaker.applyAttributesDefinition(ictx.ctx, repoShadow);
+            ictx.localBeans.shadowCaretaker.updateShadowState(preciseCtx, repoShadow);
 
             PrismObject<ShadowType> updatedRepoShadow = updateRepoShadow(preciseCtx, repoShadow, result);
             shadowedObject = createShadowedObject(preciseCtx, updatedRepoShadow, result);

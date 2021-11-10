@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.intest;
 
 import java.io.File;
 
+import com.evolveum.midpoint.model.intest.rbac.TestSegregationOfDuties;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -41,6 +43,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  * - tests 100-130 check working with aggressively idempotent roles (MID-7382)
  *
+ * NOTE: At the model level, see also TestPolicyRules, TestPolicyRules2, TestAssignmentEvaluator
+ *
+ * @see TestRbac
+ * @see TestSegregationOfDuties
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

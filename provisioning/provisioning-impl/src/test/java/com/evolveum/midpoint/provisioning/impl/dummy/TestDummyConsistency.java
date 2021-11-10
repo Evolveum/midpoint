@@ -202,16 +202,14 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test102GetAccountMorganRecovery() throws Exception {
-        // GIVEN
+        given();
         syncServiceMock.reset();
 
         dummyResource.resetBreakMode();
 
-        // WHEN
         when();
         assertGetUncreatedShadow(ACCOUNT_MORGAN_OID);
 
-        // THEN
         then();
         syncServiceMock.assertNoNotifications();
 

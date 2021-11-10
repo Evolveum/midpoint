@@ -122,8 +122,9 @@ class InboundMappingsEvaluation<F extends FocusType> {
 
             // Preliminary checks. (Before computing apriori delta and other things.)
 
-            if (projectionContext.isTombstone()) {
-                LOGGER.trace("Skipping processing of inbound expressions for projection {} because is is tombstone", lazy(projectionContext::getHumanReadableName));
+            if (projectionContext.isGone()) {
+                LOGGER.trace("Skipping processing of inbound expressions for projection {} because is is gone",
+                        lazy(projectionContext::getHumanReadableName));
                 continue;
             }
             if (!projectionContext.isCanProject()) {
@@ -861,7 +862,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
         }
 
         private void loadIfAnyStrong() throws SchemaException {
-            if (!projectionContext.isFullShadow() && !projectionContext.isTombstone() && hasAnyStrongMapping()) {
+            if (!projectionContext.isFullShadow() && !projectionContext.isGone() && hasAnyStrongMapping()) {
                 LOGGER.trace("There are strong inbound mappings, but the shadow hasn't be fully loaded yet. Trying to load full shadow now.");
                 doLoad();
             }

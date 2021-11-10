@@ -449,6 +449,12 @@ public interface ProvisioningService {
         throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
     /**
+     * Determines shadow lifecycle state (shadow state for short), updating the shadow object.
+     */
+    void determineShadowState(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult)
+        throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+
+    /**
      * Applies appropriate definition to the query.
      */
     <T extends ObjectType> void applyDefinition(Class<T> type, ObjectQuery query, Task task, OperationResult parentResult)

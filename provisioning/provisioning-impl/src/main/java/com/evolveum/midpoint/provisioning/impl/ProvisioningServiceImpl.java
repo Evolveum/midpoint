@@ -1044,6 +1044,24 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     @Override
+    public void determineShadowState(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        OperationResult result = parentResult.createMinorSubresult(ProvisioningService.class.getName() + ".determineShadowState");
+        result.addParam("shadow", shadow);
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+        try {
+            shadowsFacade.determineShadowState(shadow, task, result);
+        } catch (Throwable e) {
+            ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+            throw e;
+        } finally {
+            result.close();
+            result.cleanupResult();
+        }
+    }
+
+    @Override
     public <T extends ObjectType> void applyDefinition(Class<T> type, ObjectQuery query, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 

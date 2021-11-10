@@ -745,7 +745,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                                 +" while the synchronization enforcement policy is FULL and the projection is not assigned");
                     }
 
-                } else if (enforcementType == AssignmentPolicyEnforcementType.NONE && !projectionContext.isTombstone()) {
+                } else if (enforcementType == AssignmentPolicyEnforcementType.NONE && !projectionContext.isGone()) {
                     if (projectionContext.isAdd()) {
                         LOGGER.trace("Projection {} legal: added in NONE policy", desc);
                         projectionContext.setLegal(true);
@@ -761,13 +761,13 @@ public class AssignmentProcessor implements ProjectorProcessor {
                         projectionContext.setLegalOldIfUnknown(projectionContext.isExists());
                     }
 
-                } else if (enforcementType == AssignmentPolicyEnforcementType.POSITIVE && !projectionContext.isTombstone()) {
+                } else if (enforcementType == AssignmentPolicyEnforcementType.POSITIVE && !projectionContext.isGone()) {
                     // Everything that is not yet dead is legal in POSITIVE enforcement mode
                     LOGGER.trace("Projection {} legal: not dead in POSITIVE policy", desc);
                     projectionContext.setLegal(true);
                     projectionContext.setLegalOldIfUnknown(true);
 
-                } else if (enforcementType == AssignmentPolicyEnforcementType.RELATIVE && !projectionContext.isTombstone() &&
+                } else if (enforcementType == AssignmentPolicyEnforcementType.RELATIVE && !projectionContext.isGone() &&
                         projectionContext.isLegal() == null && projectionContext.isLegalOld() == null) {
                     // RELATIVE mode and nothing has changed. Maintain status quo. Pretend that it is legal.
                     LOGGER.trace("Projection {} legal: no change in RELATIVE policy", desc);
@@ -777,8 +777,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
             }
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Finishing legal decision for {}, thombstone {}, enforcement mode {}, legalize {}: {} -> {}",
-                        projectionContext.toHumanReadableString(), projectionContext.isTombstone(),
+                LOGGER.trace("Finishing legal decision for {}, gone {}, enforcement mode {}, legalize {}: {} -> {}",
+                        projectionContext.toHumanReadableString(), projectionContext.isGone(),
                         projectionContext.getAssignmentPolicyEnforcementType(),
                         projectionContext.isLegalize(), projectionContext.isLegalOld(), projectionContext.isLegal());
             }
@@ -950,7 +950,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
             if (AssignmentPolicyEnforcementType.NONE == projectionContext.getAssignmentPolicyEnforcementType()) {
                 continue;
             }
-            if (projectionContext.isTombstone()) {
+            if (projectionContext.isGone()) {
                 continue;
             }
             if (Boolean.TRUE.equals(projectionContext.isAssigned())) {

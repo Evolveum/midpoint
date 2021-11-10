@@ -204,9 +204,9 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
             LOGGER.trace("Skipping loading full shadow: The shadow is already loaded.");
             return true;
         }
-        if (projCtx.isTombstone()) {
+        if (projCtx.isGone()) {
             // loading is futile
-            LOGGER.trace("Skipping loading full shadow: The shadow is tombstone.");
+            LOGGER.trace("Skipping loading full shadow: The shadow is 'gone'.");
             return true;
         }
 

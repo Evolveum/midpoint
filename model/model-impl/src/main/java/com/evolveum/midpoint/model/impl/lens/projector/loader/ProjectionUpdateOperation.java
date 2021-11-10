@@ -72,10 +72,10 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
     private PrismObject<ShadowType> projectionObject;
 
     /**
-     * True if the current projection was found to be a tombstone during {@link #loadCurrentObject(OperationResult)}
+     * True if the current projection was found to be a gone during {@link #loadCurrentObject(OperationResult)}
      * operation.
      */
-    private boolean foundToBeTombstone;
+    private boolean foundToBeGone;
 
     /**
      * Resource OID corresponding to the context. Set up in {@link #determineAndLoadResource(OperationResult)}.
@@ -192,15 +192,15 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
                 ShadowType accountShadowType = projectionObject.asObjectable();
                 String intent = ShadowUtil.getIntent(accountShadowType);
                 ShadowKindType kind = ShadowUtil.getKind(accountShadowType);
-                rsd = new ResourceShadowDiscriminator(resourceOid, kind, intent, accountShadowType.getTag(), foundToBeTombstone);
+                rsd = new ResourceShadowDiscriminator(resourceOid, kind, intent, accountShadowType.getTag(), foundToBeGone);
             } else {
-                rsd = new ResourceShadowDiscriminator(null, null, null, null, foundToBeTombstone);
+                rsd = new ResourceShadowDiscriminator(null, null, null, null, foundToBeGone);
             }
             projectionContext.setResourceShadowDiscriminator(rsd);
         } else {
-            if (foundToBeTombstone) {
-                // We do not want to reset tombstone flag if it was set before
-                projectionContext.markTombstone();
+            if (foundToBeGone) {
+                // We do not want to reset gone flag if it was set before
+                projectionContext.markGone();
             }
         }
     }
@@ -220,8 +220,8 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
             resourceOid = ShadowUtil.getResourceOid(shadow);
         } else if (projectionContext.getResourceShadowDiscriminator() != null) {
             resourceOid = projectionContext.getResourceShadowDiscriminator().getResourceOid();
-        } else if (!foundToBeTombstone) {
-            throw new IllegalStateException("No shadow, no discriminator and not tombstone? That won't do."
+        } else if (!foundToBeGone) {
+            throw new IllegalStateException("No shadow, no discriminator and not gone? That won't do."
                     + " Projection "+projectionContext.getHumanReadableName());
         }
 
@@ -275,7 +275,7 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
             projectionContext.setLoadedObject(object);
 
             updateFullShadowFlag();
-            updateExistsAndTombstoneFlags();
+            updateExistsAndGoneFlags();
 
         } catch (ObjectNotFoundException ex) {
 
@@ -284,7 +284,7 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
 
             // This does not mean BROKEN. The projection was there, but it gone now.
             // Consistency mechanism might have kicked in and fixed the shadow.
-            // What we really want here is a tombstone projection or a refreshed projection.
+            // What we really want here is a "gone" projection or a refreshed projection.
             //
             // TODO if the shadow was deleted only on resource (not in repo), would we get ObjectNotFoundException here?
             //  Probably not. We need to reconsider the above comment.
@@ -338,16 +338,16 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
         }
     }
 
-    private void updateExistsAndTombstoneFlags() {
+    private void updateExistsAndGoneFlags() {
         if (ShadowUtil.isExists(projectionObject.asObjectable())) {
             projectionContext.setExists(true);
         } else {
             projectionContext.setExists(false);
-            if (ShadowUtil.isDead(projectionObject.asObjectable())) {
-                projectionContext.markTombstone();
+            if (ShadowUtil.isGone(projectionObject.asObjectable())) {
+                projectionContext.markGone();
                 LOGGER.debug("Found only dead {} for projection context {}.", projectionObject,
                         projectionContext.getHumanReadableName());
-                foundToBeTombstone = true;
+                foundToBeGone = true;
             } else {
                 LOGGER.debug("Found only non-existing but non-dead {} for projection context {}.", projectionObject,
                         projectionContext.getHumanReadableName());

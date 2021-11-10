@@ -64,7 +64,7 @@ public class ShadowedObjectConstruction {
 
     /**
      * Existing repository shadow. Usually contains only a subset of attributes.
-     * OTOH it is the only source of some information like password or activation metadata,
+     * OTOH it is the only source of some information like password, activation metadata, or shadow state,
      * and a more reliable source for others: like exists and dead.
      */
     @NotNull private final PrismObject<ShadowType> repoShadow;

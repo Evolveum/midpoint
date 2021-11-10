@@ -410,9 +410,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return resourceShadowDiscriminator;
     }
 
-    public void markTombstone() {
+    public void markGone() {
         if (resourceShadowDiscriminator != null) {
-            resourceShadowDiscriminator.setTombstone(true);
+            resourceShadowDiscriminator.setGone(true);
         }
         setExists(false);
         setFullShadow(false);
@@ -436,7 +436,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (!rsd.getKind().equals(resourceShadowDiscriminator.getKind())) {
             return false;
         }
-        if (rsd.isTombstone() != resourceShadowDiscriminator.isTombstone()) {
+        if (rsd.isGone() != resourceShadowDiscriminator.isGone()) {
             return false;
         }
         if (rsd.getIntent() == null) {
@@ -461,8 +461,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return true;
     }
 
-    public boolean isTombstone() {
-        return resourceShadowDiscriminator != null && resourceShadowDiscriminator.isTombstone();
+    public boolean isGone() {
+        return resourceShadowDiscriminator != null && resourceShadowDiscriminator.isGone();
+    }
+
+    public boolean isReaping() {
+        return getCurrentShadowState() == ShadowLifecycleStateType.REAPING;
     }
 
     public void addAccountSyncDelta(ObjectDelta<ShadowType> delta) throws SchemaException {
@@ -859,19 +863,18 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         ProjectionPolicyType objectClassProjectionPolicy = determineObjectClassProjectionPolicy();
 
         if (objectClassProjectionPolicy != null && objectClassProjectionPolicy.getAssignmentPolicyEnforcement() != null) {
-            return MiscSchemaUtil.getAssignmentPolicyEnforcementType(objectClassProjectionPolicy);
+            return objectClassProjectionPolicy.getAssignmentPolicyEnforcement();
         }
 
         ProjectionPolicyType globalAccountSynchronizationSettings = null;
-        if (resource != null){
+        if (resource != null) {
             globalAccountSynchronizationSettings = resource.getProjection();
         }
 
         if (globalAccountSynchronizationSettings == null) {
             globalAccountSynchronizationSettings = getLensContext().getAccountSynchronizationSettings();
         }
-        AssignmentPolicyEnforcementType globalAssignmentPolicyEnforcement = MiscSchemaUtil.getAssignmentPolicyEnforcementType(globalAccountSynchronizationSettings);
-        return globalAssignmentPolicyEnforcement;
+        return MiscSchemaUtil.getAssignmentPolicyEnforcementType(globalAccountSynchronizationSettings);
     }
 
     public boolean isLegalize() throws SchemaException {
@@ -890,7 +893,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             globalAccountSynchronizationSettings = getLensContext().getAccountSynchronizationSettings();
         }
 
-        if (globalAccountSynchronizationSettings == null){
+        if (globalAccountSynchronizationSettings == null) {
             return false;
         }
 
@@ -1004,7 +1007,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN) {
             return;
         }
-        if (fresh && !force && resourceShadowDiscriminator != null && !resourceShadowDiscriminator.isTombstone()) {
+        if (fresh && !force && resourceShadowDiscriminator != null && !isGone()) {
             if (resource == null) {
                 throw new IllegalStateException("Null resource in " + this + in(contextDesc));
             }
@@ -1255,11 +1258,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         sb.append(", canProject=").append(canProject);
         sb.append(", syncIntent=").append(getSynchronizationIntent());
         sb.append(", decision=").append(synchronizationPolicyDecision);
+        sb.append(", state=").append(getCurrentShadowState());
         if (!isFresh()) {
             sb.append(", NOT FRESH");
         }
-        if (resourceShadowDiscriminator != null && resourceShadowDiscriminator.isTombstone()) {
-            sb.append(", TOMBSTONE");
+        if (isGone()) {
+            sb.append(", GONE");
         }
         if (syncAbsoluteTrigger) {
             sb.append(", SYNC TRIGGER");
@@ -1324,6 +1328,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return sb.toString();
     }
 
+    public ShadowLifecycleStateType getCurrentShadowState() {
+        PrismObject<ShadowType> current = getObjectCurrent();
+        return current != null ? current.asObjectable().getShadowLifecycleState() : null;
+    }
+
     @Override
     protected String getElementDefaultDesc() {
         return "projection";
@@ -1331,8 +1340,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     @Override
     public String toString() {
-        return "LensProjectionContext(" + (getObjectTypeClass() == null ? "null" : getObjectTypeClass().getSimpleName()) + ":" + getOid() +
-                ( resource == null ? "" : " on " + resource ) + ")";
+        return "LensProjectionContext(" + getObjectTypeClass().getSimpleName() + ":" + getOid() +
+                (resource == null ? "" : " on " + resource) + ")";
     }
 
     /**
@@ -1616,7 +1625,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             return;
         }
         String resourceOid = determineResourceOid();
-        boolean tombstone = resourceShadowDiscriminator != null && resourceShadowDiscriminator.isTombstone();
+        boolean gone = resourceShadowDiscriminator != null && resourceShadowDiscriminator.isGone();
         ShadowKindType kind = resourceShadowDiscriminator != null ? resourceShadowDiscriminator.getKind() : ShadowKindType.ACCOUNT;
         String intent = resourceShadowDiscriminator != null ? resourceShadowDiscriminator.getIntent() : null;
         String tag = resourceShadowDiscriminator != null ? resourceShadowDiscriminator.getTag() : null;
@@ -1637,7 +1646,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                 setResource(resource);
             }
             String refinedIntent = LensUtil.refineProjectionIntent(kind, intent, resource);
-            resourceShadowDiscriminator = new ResourceShadowDiscriminator(resourceOid, kind, refinedIntent, tag, tombstone);
+            resourceShadowDiscriminator = new ResourceShadowDiscriminator(resourceOid, kind, refinedIntent, tag, gone);
             resourceShadowDiscriminator.setOrder(order);
         }
         if (getOid() == null && resourceShadowDiscriminator != null && resourceShadowDiscriminator.getOrder() != 0) {

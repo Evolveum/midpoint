@@ -408,8 +408,8 @@ public class ClockworkClick<F extends ObjectType> {
             for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
                 DebugUtil.indentDebugDump(sb, 1);
                 sb.append(projectionContext.getHumanReadableName());
-                if (projectionContext.isTombstone()) {
-                    sb.append(" TOMBSTONE");
+                if (projectionContext.isGone()) {
+                    sb.append(" GONE");
                 }
                 sb.append(": ");
                 sb.append(projectionContext.getSynchronizationPolicyDecision());

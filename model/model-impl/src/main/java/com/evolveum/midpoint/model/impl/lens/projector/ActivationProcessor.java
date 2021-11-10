@@ -145,8 +145,8 @@ public class ActivationProcessor implements ProjectorProcessor {
                     processActivationMappingsFuture(contextCasted, projectionContext, now, task, result);
 
                 } catch (ObjectNotFoundException e) {
-                    if (projectionContext.isTombstone()) {
-                        // This is not critical. The projection is marked as tombstone and we can go on with processing
+                    if (projectionContext.isGone()) {
+                        // This is not critical. The projection is marked as gone and we can go on with processing
                         // No extra action is needed.
                     } else {
                         throw e;
@@ -194,18 +194,28 @@ public class ActivationProcessor implements ProjectorProcessor {
             return;
         }
 
-        if (projCtx.isTombstone()) {
+        if (projCtx.isGone()) {
             if (projCtx.isDelete() && ModelExecuteOptions.isForce(context.getOptions())) {
                 setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.DELETE, result);
-                LOGGER.trace("Evaluated decision for tombstone {} to {} (force), skipping further activation processing",
+                LOGGER.trace("Evaluated decision for 'gone' {} to {} (force), skipping further activation processing",
                         projCtxDesc, SynchronizationPolicyDecision.DELETE);
             } else {
-                // Let's keep tombstones linked until they expire. So we do not have shadows without owners.
+                // Let's keep 'goners' linked until they expire. So we do not have shadows without owners.
                 // This is also needed for async delete operations.
                 setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.KEEP, result);
-                LOGGER.trace("Evaluated decision for {} to {} because it is tombstone, skipping further activation processing",
+                LOGGER.trace("Evaluated decision for {} to {} because it is gone, skipping further activation processing",
                         projCtxDesc, SynchronizationPolicyDecision.KEEP);
             }
+            return;
+        }
+
+        if (projCtx.isReaping()) {
+            // Projections being reaped (i.e. having pending DELETE actions) should be kept intact.
+            // This is based on assumption that it is not possible to cancel the pending DELETE operation.
+            // If it was, we could try to do that.
+            setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.KEEP, result);
+            LOGGER.trace("Evaluated decision for {} to {} because it is reaping, skipping further activation processing",
+                    projCtxDesc, SynchronizationPolicyDecision.KEEP);
             return;
         }
 
@@ -452,7 +462,7 @@ public class ActivationProcessor implements ProjectorProcessor {
 
         LOGGER.trace("processActivationUserFuture starting for {}. Existing decision = {}", accCtx, decision);
 
-        if (accCtx.isTombstone() || decision == SynchronizationPolicyDecision.BROKEN
+        if (accCtx.isGone() || decision == SynchronizationPolicyDecision.BROKEN
                 || decision == SynchronizationPolicyDecision.IGNORE
                 || decision == SynchronizationPolicyDecision.UNLINK || decision == SynchronizationPolicyDecision.DELETE) {
             return;

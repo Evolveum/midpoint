@@ -195,7 +195,7 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
                         .dead(false)
                     .find()
                         .resolveTarget()
-                            .assertLife()
+                            .assertLive()
                             .pendingOperations()
                                 .singleOperation()
                                     .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTION_PENDING)
@@ -246,7 +246,7 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
                     .getOid();
 
         ShadowAsserter<Void> shadowModelAfterAsserter = assertModelShadow(liveShadowOid)
-            .assertLife()
+            .assertLive()
             .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_PHANTOM_USERNAME)
                 .assertValue(ATTR_FULLNAME_QNAME, USER_PHANTOM_FULL_NAME_WRONG)

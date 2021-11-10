@@ -291,7 +291,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
         row4.setId(4L);
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(LookupTableType.class)
-                .item(F_ROW).add(rowNoId, row5).delete(row4)
+                .item(F_ROW).delete(row4).add(rowNoId, row5)
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0, keysOf(row5));

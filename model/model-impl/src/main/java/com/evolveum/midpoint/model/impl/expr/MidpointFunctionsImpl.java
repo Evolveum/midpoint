@@ -319,7 +319,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             return false;
         }
 
-        if (projectionContext.isTombstone()) {
+        if (projectionContext.isGone()) {
             return false;
         }
 

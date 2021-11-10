@@ -2118,10 +2118,10 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                 .end();
         if (!supportsBackingStore() || backingStoreUpdated) {
             shadowRepoAsserter
-                    .assertLife();
+                    .assertLive();
 
             shadowModelAsserter
-                    .assertLife()
+                    .assertLive()
                     .assertAdministrativeStatus(ActivationStatusType.ENABLED)
                     .attributes()
                     .assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME)

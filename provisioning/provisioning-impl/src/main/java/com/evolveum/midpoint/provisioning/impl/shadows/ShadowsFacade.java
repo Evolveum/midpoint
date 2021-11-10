@@ -51,6 +51,7 @@ public class ShadowsFacade {
     @Autowired private ModifyHelper modifyHelper;
     @Autowired private DeleteHelper deleteHelper;
     @Autowired private DefinitionsHelper definitionsHelper;
+    @Autowired private StateHelper stateHelper;
     @Autowired private SearchHelper searchHelper;
     @Autowired private PropagateHelper propagateHelper;
     @Autowired private CompareHelper compareHelper;
@@ -116,6 +117,12 @@ public class ShadowsFacade {
     public void applyDefinition(ObjectQuery query, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         definitionsHelper.applyDefinition(query, result);
+    }
+
+    public void determineShadowState(PrismObject<ShadowType> shadow, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        stateHelper.determineShadowState(shadow, task, result);
     }
 
     public SearchResultMetadata searchObjectsIterative(ObjectQuery query,
