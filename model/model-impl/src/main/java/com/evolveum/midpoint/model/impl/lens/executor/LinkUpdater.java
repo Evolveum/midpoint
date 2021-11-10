@@ -171,7 +171,7 @@ class LinkUpdater<F extends FocusType> {
                             projCtx.toHumanReadableString());
                 } else {
                     LOGGER.warn("Projection is gone but shadow liveness state is {}. Context: {}. Setting the link "
-                                    + "according to the state.", shadowLivenessState, projCtx.toHumanReadableString());
+                            + "according to the state.", shadowLivenessState, projCtx.toHumanReadableString());
                     setLinkedFromLivenessState(result);
                 }
             }
@@ -349,8 +349,8 @@ class LinkUpdater<F extends FocusType> {
         LOGGER.debug("Linking shadow {} to focus {}", projectionOid, focusContext.getObjectCurrent());
         ObjectDelta<F> delta = prismContext.deltaFor(focusContext.getObjectTypeClass())
                 .item(FocusType.F_LINK_REF)
-                    .addRealValues(linksToAdd)
-                    .deleteRealValues(CloneUtil.cloneCollectionMembers(linksWithWrongRelation))
+                .deleteRealValues(CloneUtil.cloneCollectionMembers(linksWithWrongRelation))
+                .addRealValues(linksToAdd)
                 .asObjectDelta(focusContext.getOid());
         executeFocusDelta(delta, OP_LINK_ACCOUNT, result);
     }

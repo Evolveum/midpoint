@@ -1,17 +1,10 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.test;
-
-import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getBuckets;
-import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getNumberOfBuckets;
-import static com.evolveum.midpoint.task.api.TaskDebugUtil.getDebugInfo;
-import static com.evolveum.midpoint.task.api.TaskDebugUtil.suspendedWithErrorCollector;
-import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
-import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
@@ -19,7 +12,13 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
+import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getBuckets;
+import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getNumberOfBuckets;
+import static com.evolveum.midpoint.task.api.TaskDebugUtil.getDebugInfo;
+import static com.evolveum.midpoint.task.api.TaskDebugUtil.suspendedWithErrorCollector;
+import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static com.evolveum.midpoint.test.PredefinedTestMethodTracing.OFF;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,8 +29,8 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
-import java.util.*;
 import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
@@ -51,15 +50,6 @@ import javax.xml.namespace.QName;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
-
-import com.evolveum.midpoint.schema.util.task.*;
-import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
-import com.evolveum.midpoint.task.api.TaskDebugUtil;
-import com.evolveum.midpoint.test.ObjectCreator.RealCreator;
-import com.evolveum.midpoint.test.asserter.*;
-
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-
 import org.apache.commons.lang.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -124,10 +114,11 @@ import com.evolveum.midpoint.schema.result.CompiledTracingProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskUpdatedListener;
-import com.evolveum.midpoint.task.api.Tracer;
+import com.evolveum.midpoint.schema.util.task.*;
+import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
+import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.test.ObjectCreator.RealCreator;
+import com.evolveum.midpoint.test.asserter.*;
 import com.evolveum.midpoint.test.asserter.prism.PolyStringAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.asserter.refinedschema.RefinedResourceSchemaAsserter;
@@ -138,6 +129,7 @@ import com.evolveum.midpoint.tools.testng.MidpointTestContext;
 import com.evolveum.midpoint.tools.testng.TestMonitor;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -844,8 +836,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                     .end();
             itemDeltas.add(prismContext.deltaFor(SystemConfigurationType.class)
                     .item(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION)
-                    .add(newPolicy)
                     .deleteRealValues(current)
+                    .add(newPolicy)
                     .asItemDelta());
         }
         if (currentForTasks.size() != 1 || currentForTasks.get(0).getConflictResolution().getAction() != actionForTasks) {
@@ -856,8 +848,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                     .end();
             itemDeltas.add(prismContext.deltaFor(SystemConfigurationType.class)
                     .item(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION)
-                    .add(newPolicyForTasks)
                     .deleteRealValues(currentForTasks)
+                    .add(newPolicyForTasks)
                     .asItemDelta());
         }
         if (!itemDeltas.isEmpty()) {
@@ -3069,7 +3061,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return taskObject -> {
             if (threads != 0) {
                 ActivityDefinitionUtil.findOrCreateDistribution(
-                        requireNonNull(taskObject.asObjectable().getActivity(), "no activity definition"))
+                                requireNonNull(taskObject.asObjectable().getActivity(), "no activity definition"))
                         .setWorkerThreads(threads);
             }
         };
@@ -3099,8 +3091,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 }
                 definition.getTailoring().beginChange()
                         .beginDistribution()
-                            .workerThreads(threads)
-                            .tailoringMode(TailoringModeType.OVERWRITE_SPECIFIED);
+                        .workerThreads(threads)
+                        .tailoringMode(TailoringModeType.OVERWRITE_SPECIFIED);
             }
         };
     }
@@ -3171,10 +3163,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void waitForTaskStatusUpdated(String taskOid, String message, Checker checker, long timeoutInterval, long sleepInterval) throws CommonException {
         var statusQueue = new ArrayBlockingQueue<Task>(10);
         TaskUpdatedListener waitListener = (task, result) -> {
-                if (Objects.equals(taskOid,task.getOid())) {
-                    statusQueue.add(task);
-                }
-            };
+            if (Objects.equals(taskOid, task.getOid())) {
+                statusQueue.add(task);
+            }
+        };
         try {
             taskManager.registerTaskUpdatedListener(waitListener);
             long startTime = System.currentTimeMillis();
@@ -3230,7 +3222,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             return task.getSchedulingState() == TaskSchedulingStateType.SUSPENDED;
         }, timeoutInterval, sleepInterval);
     }
-
 
     @SuppressWarnings("SameParameterValue")
     protected void waitForTaskCloseOrDelete(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval)
@@ -3523,7 +3514,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 task.refresh(waitResult);
                 waitResult.summarize();
                 OperationResult result = task.getResult();
-                if (verbose) { display("Check result", result); }
+                if (verbose) {display("Check result", result);}
                 assert !isError(result, checkSubresult) : "Error in " + task + ": " + TestUtil.getErrorMessage(result);
                 assert !isUnknown(result, checkSubresult) : "Unknown result in " + task + ": " + TestUtil.getErrorMessage(result);
                 return !isInProgress(result, checkSubresult);
@@ -3734,7 +3725,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             public boolean check() throws CommonException {
                 Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
                 OperationResult taskResult = freshTask.getResult();
-                if (verbose) { display("Check result", taskResult); }
+                if (verbose) {display("Check result", taskResult);}
                 taskResultHolder.setValue(taskResult);
                 if (isError(taskResult, checkSubresult)) {
                     return true;
@@ -3929,7 +3920,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
     }
 
-    protected void createNode(String nodeId, OperationResult result) throws CommonException{
+    protected void createNode(String nodeId, OperationResult result) throws CommonException {
         NodeType node = new NodeType(prismContext)
                 .name(nodeId)
                 .nodeIdentifier(nodeId)
