@@ -547,7 +547,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
                     .dead(false)
                 .find()
                     .target()
-                        .assertLife()
+                        .assertLive()
                         .end()
                     .end()
                 .by()
@@ -614,7 +614,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
                     .resourceOid(RESOURCE_DUMMY_BEIGE_OID)
                 .find()
                     .resolveTarget()
-                        .assertLife();
+                        .assertLive();
 
         // Make sure that only the dead shadow was deleted and the account stays
         assertDummyAccountByUsername(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME)

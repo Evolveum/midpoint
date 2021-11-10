@@ -282,8 +282,8 @@ public class Projector {
                 return;
             }
 
-            if (projectionContext.isTombstone()) {
-                result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is a tombstone");
+            if (projectionContext.isGone()) {
+                result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is gone");
                 return;
             }
 
@@ -308,8 +308,8 @@ public class Projector {
                     partialProcessingOptions::getProjectionValues,
                     Projector.class, context, projectionContext, activityDescription, now, task, result);
 
-            if (projectionContext.isTombstone()) {
-                result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is a tombstone");
+            if (projectionContext.isGone()) {
+                result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is gone");
                 return;
             }
 

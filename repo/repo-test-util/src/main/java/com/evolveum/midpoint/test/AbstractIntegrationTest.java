@@ -2911,17 +2911,25 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return asserter;
     }
 
+    protected ShadowAsserter<Void> assertShadowAfter(PrismObject<ShadowType> shadow) {
+        return assertShadow(shadow, "after")
+                .display();
+    }
+
     protected ShadowAsserter<Void> assertShadow(PrismObject<ShadowType> shadow, String details) {
         ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(shadow, details);
         initializeAsserter(asserter);
-        asserter.display();
         return asserter;
     }
 
     protected ShadowAsserter<Void> assertRepoShadow(String oid) throws ObjectNotFoundException, SchemaException {
+        return assertRepoShadow(oid, "repository")
+                .display();
+    }
+
+    protected ShadowAsserter<Void> assertRepoShadow(String oid, String details) throws ObjectNotFoundException, SchemaException {
         PrismObject<ShadowType> repoShadow = getShadowRepo(oid);
-        ShadowAsserter<Void> asserter = assertShadow(repoShadow, "repository");
-        initializeAsserter(asserter);
+        ShadowAsserter<Void> asserter = assertShadow(repoShadow, details);
         asserter.assertBasicRepoProperties();
         return asserter;
     }

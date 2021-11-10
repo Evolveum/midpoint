@@ -93,6 +93,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         PrismObject<ShadowType> accountShadowJack = repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILE, result);
         accountShadowJackDummyOid = accountShadowJack.getOid();
         provisioningService.applyDefinition(accountShadowJack, task, result);
+        provisioningService.determineShadowState(accountShadowJack, task, result);
         assertNotNull("No oid in shadow", accountShadowJack.getOid());
         DummyAccount dummyAccount = new DummyAccount();
         dummyAccount.setName(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -305,7 +306,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountShadowJackDummyOid, null, result);
         ShadowAsserter.forShadow(shadowRepo, "repo shadow before")
-            .assertLife()
+            .assertLive()
             .assertIteration(0)
             .assertIterationToken("")
             .assertSynchronizationSituation(SynchronizationSituationType.LINKED);
@@ -319,7 +320,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         shadowRepo = repositoryService.getObject(ShadowType.class, accountShadowJackDummyOid, null, result);
         ShadowAsserter.forShadow(shadowRepo, "repo shadow after noFetch")
             // This is noFetch. Provisioning won't figure out that the shadow is dead (yet).
-            .assertLife()
+            .assertLive()
             .assertIteration(0)
             .assertIterationToken("")
             .assertSynchronizationSituation(SynchronizationSituationType.LINKED);
@@ -406,6 +407,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         PrismObject<ShadowType> accountShadowCalypso = repoAddObjectFromFile(ACCOUNT_SHADOW_CALYPSO_DUMMY_FILE, result);
         accountShadowCalypsoDummyOid = accountShadowCalypso.getOid();
         provisioningService.applyDefinition(accountShadowCalypso, task, result);
+        provisioningService.determineShadowState(accountShadowCalypso, task, result);
         assertNotNull("No oid in shadow", accountShadowCalypso.getOid());
         // Make sure that it is properly marked as protected. This is what provisioning would normally do
         accountShadowCalypso.asObjectable().setProtectedObject(true);
@@ -503,6 +505,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         PrismObject<ShadowType> accountShadowJack = repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILE, result);
         accountShadowJackDummyOid = accountShadowJack.getOid();
         provisioningService.applyDefinition(accountShadowJack, task, result);
+        provisioningService.determineShadowState(accountShadowJack, task, result);
         assertNotNull("No oid in shadow", accountShadowJack.getOid());
         DummyAccount dummyAccount = new DummyAccount();
         dummyAccount.setName(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -629,6 +632,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         PrismObject<ShadowType> accountShadowJack = repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILE, result);
         accountShadowJackDummyOid = accountShadowJack.getOid();
         provisioningService.applyDefinition(accountShadowJack, task, result);
+        provisioningService.determineShadowState(accountShadowJack, task, result);
         assertNotNull("No oid in shadow", accountShadowJack.getOid());
         DummyAccount dummyAccount = new DummyAccount();
         dummyAccount.setName(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -945,6 +949,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         PrismObject<ShadowType> shadowPirates = repoAddObjectFromFile(SHADOW_PIRATES_DUMMY_FILE, result);
         provisioningService.applyDefinition(shadowPirates, task, result);
+        provisioningService.determineShadowState(shadowPirates, task, result);
         assertNotNull("No oid in shadow", shadowPirates.getOid());
         DummyGroup dummyGroup = new DummyGroup();
         dummyGroup.setName(GROUP_PIRATES_DUMMY_NAME);

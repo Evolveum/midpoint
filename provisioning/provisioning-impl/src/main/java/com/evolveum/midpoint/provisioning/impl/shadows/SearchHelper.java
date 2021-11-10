@@ -447,6 +447,7 @@ class SearchHelper {
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             ExpressionEvaluationException, SecurityViolationException {
         shadowCaretaker.applyAttributesDefinition(ctx, shadow);
+        shadowCaretaker.updateShadowState(ctx, shadow);
         // fixing MID-1640; hoping that the protected object filter uses only identifiers
         // (that are stored in repo)
         ProvisioningUtil.setProtectedFlag(ctx, shadow, matchingRuleRegistry, relationRegistry, expressionFactory, objResult);

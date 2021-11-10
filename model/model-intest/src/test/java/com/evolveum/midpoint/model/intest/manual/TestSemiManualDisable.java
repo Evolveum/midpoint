@@ -89,14 +89,14 @@ public class TestSemiManualDisable extends TestSemiManual {
     @Override
     protected void assertUnassignedShadow(ShadowAsserter<?> shadowModelAsserter, boolean backingStoreUpdated, ActivationStatusType expectAlternativeActivationStatus) {
         shadowModelAsserter
-            .assertLife()
+            .assertLive()
             .assertAdministrativeStatus(expectAlternativeActivationStatus);
     }
 
     @Override
     protected void assertUnassignedFuture(ShadowAsserter<?> shadowModelAsserterFuture, boolean assertPassword) {
         shadowModelAsserterFuture
-            .assertLife()
+            .assertLive()
             .assertAdministrativeStatus(ActivationStatusType.DISABLED);
         if (assertPassword) {
             assertShadowPassword(shadowModelAsserterFuture);

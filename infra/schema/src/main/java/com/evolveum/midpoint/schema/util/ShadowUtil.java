@@ -30,12 +30,15 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * Methods that would belong to the ResourceObjectShadowType class but cannot go there
@@ -512,6 +515,10 @@ public class ShadowUtil {
         return !isDead(shadow);
     }
 
+    public static boolean isNotDead(ShadowType shadow) {
+        return !isDead(shadow);
+    }
+
     public static boolean isDead(ObjectReferenceType projectionRef) {
         return !SchemaService.get().relationRegistry().isMember(projectionRef.getRelation());
     }
@@ -916,5 +923,18 @@ public class ShadowUtil {
         return refs.stream()
                 .filter(ShadowUtil::isNotDead)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns true if the shadow state indicates that it is 'gone', i.e. no longer on the resource.
+     * This could be determined from the `dead` property or from the `shadowLifecycleState`. The latter is
+     * more precise for shadows that have been fetched with the future point-in-time.
+     *
+     * PRECONDITION: shadow lifecycle state must be set up.
+     */
+    public static boolean isGone(@NotNull ShadowType shadow) {
+        ShadowLifecycleStateType state = shadow.getShadowLifecycleState();
+        stateCheck(state != null, "Unknown lifecycle state of %s", shadow);
+        return state == ShadowLifecycleStateType.CORPSE || state == ShadowLifecycleStateType.TOMBSTONE;
     }
 }

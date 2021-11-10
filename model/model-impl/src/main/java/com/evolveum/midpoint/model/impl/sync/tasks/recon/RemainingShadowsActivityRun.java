@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Reconciliatio
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
@@ -167,7 +169,7 @@ final class RemainingShadowsActivityRun
 
     private void handleObjectNotFoundException(ShadowType shadow, ObjectNotFoundException e, Task task,
             OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SecurityViolationException {
         if (!shadow.getOid().equals(e.getOid())) {
             LOGGER.debug("Got unrelated ObjectNotFoundException, rethrowing: " + e.getMessage(), e);
             throw e;
@@ -188,10 +190,10 @@ final class RemainingShadowsActivityRun
 
     private void reactShadowGone(ShadowType originalShadow, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SecurityViolationException {
 
-        // We reload e.g. to get current tombstone status. Otherwise the clockwork is confused.
-        PrismObject<ShadowType> shadow = reloadShadow(originalShadow, result);
+        // We reload e.g. to get current "gone" status. Otherwise the clockwork is confused.
+        PrismObject<ShadowType> shadow = reloadShadow(originalShadow, task, result);
 
         getModelBeans().provisioningService.applyDefinition(shadow, task, result);
 
@@ -205,11 +207,16 @@ final class RemainingShadowsActivityRun
         getModelBeans().eventDispatcher.notifyChange(change, task, result);
     }
 
-    private PrismObject<ShadowType> reloadShadow(ShadowType originalShadow, OperationResult result)
-            throws SchemaException {
+    private PrismObject<ShadowType> reloadShadow(ShadowType originalShadow, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException {
+        //noinspection CaughtExceptionImmediatelyRethrown
         try {
-            // not read-only because we modify the shadow afterwards
-            return getBeans().repositoryService.getObject(ShadowType.class, originalShadow.getOid(), null, result);
+            // 1. not read-only because we modify the shadow afterwards
+            // 2. using provisioning (not the repository) to get the lifecycle state;
+            //    but using raw mode to avoid deleting dead shadows
+            return getModelBeans().provisioningService.getObject(ShadowType.class, originalShadow.getOid(),
+                    GetOperationOptions.createRawCollection(), task, result);
         } catch (ObjectNotFoundException e) {
             // TODO Could be the shadow deleted during preprocessing?
             //  Try to find out if it can occur.
@@ -217,7 +224,11 @@ final class RemainingShadowsActivityRun
 
             originalShadow.setDead(true);
             originalShadow.setExists(false);
+            originalShadow.setShadowLifecycleState(ShadowLifecycleStateType.TOMBSTONE);
             return originalShadow.asPrismObject();
+        } catch (ExpressionEvaluationException | CommunicationException | SecurityViolationException | ConfigurationException e) {
+            // These shouldn't occur, because we are going in NO FETCH mode. But they can; so let's just propagate them upwards.
+            throw e;
         }
     }
 

@@ -6,7 +6,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<!-- This version of the resorce reaps dead shadows immediately (deadShadowRetentionPeriod=0) -->
+<!-- This version of the resource reaps dead shadows immediately (deadShadowRetentionPeriod=0) -->
 
 <resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -308,13 +308,9 @@
 
             <kind>account</kind>
             <intent>contractor</intent>
-            <!-- Readable name for the account type -->
             <displayName>Default Account</displayName>
 
             <default>false</default>
-            <!-- Reference to the Resource Schema specifying
-      object class for this account type -->
-
             <objectClass>ri:inetOrgPerson</objectClass>
 
             <attribute>
@@ -366,19 +362,12 @@
            more details.-->
             <attribute>
                 <ref>ri:entryUUID</ref>
-
-                <!-- Readable name for the attribute. This will be used in GUI -->
                 <displayName>Entry UUID</displayName>
-                <!-- There is no "outbound" expression, so midPoint will not
-           do anything with this attribute. -->
-
+                <!-- There is no "outbound" expression, so midPoint will not do anything with this attribute. -->
                 <!-- No inbound expression here. Does not make sense to sync UUID as it is supposed to be immutable -->
-
             </attribute>
 
-            <!-- Definition of cn attribute handling. -->
             <attribute>
-
                 <ref>ri:cn</ref>
                 <displayName>Common Name</displayName>
 
@@ -399,7 +388,6 @@
 
             </attribute>
 
-            <!-- Definition of sn attribute handling. -->
             <attribute>
                 <ref>ri:sn</ref>
                 <displayName>Surname</displayName>
@@ -418,7 +406,6 @@
                 </inbound>
             </attribute>
 
-            <!-- Definition of givenName attribute handling. -->
             <attribute>
                 <ref>ri:givenName</ref>
                 <displayName>Given Name</displayName>
@@ -437,8 +424,7 @@
                 </inbound>
             </attribute>
 
-            <!-- Definition of uid attribute handling.
-       Do not confuse with __UID__! -->
+            <!-- Definition of uid attribute handling. Do not confuse with __UID__! -->
             <attribute>
                 <ref>ri:uid</ref>
                 <displayName>Login Name</displayName>
@@ -463,10 +449,9 @@
                                 tmpGivenNameInitial = basic.stringify(tmpGivenName)?.size() &gt; 0 ? (basic.stringify(tmpGivenName)).substring(0,1) : ''
 
                                 if (iteration == 0) {
-                                basic.norm(basic.stringify(tmpGivenNameInitial + tmpFamilyName))
-                                }
-                                else {
-                                basic.norm(basic.stringify(tmpGivenNameInitial + tmpFamilyName)) + iterationToken
+                                    basic.norm(basic.stringify(tmpGivenNameInitial + tmpFamilyName))
+                                } else {
+                                    basic.norm(basic.stringify(tmpGivenNameInitial + tmpFamilyName)) + iterationToken
                                 }
                             </code>
                         </script>
@@ -490,10 +475,8 @@
                     <strength>weak</strength>
                     <expression>
                         <script>
-                            <language>http://www.w3.org/TR/xpath/</language>
-                            <returnType>scalar</returnType>
                             <c:code>
-                                concat('','')
+                                ''
                             </c:code>
                         </script>
                     </expression>
@@ -518,25 +501,15 @@
             <attribute>
                 <ref>ri:l</ref>
                 <c:tolerant>false</c:tolerant>
-
-                <!-- Outbound expression definition. This expression is using
-              a configuration object (set into an XPath variable) to
-              translate values. -->
                 <outbound>
                     <strength>strong</strength>
                     <source>
-                        <path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";$c:user/c:locality</path>
+                        <path>locality</path>
                     </source>
                     <expression>
                         <script>
-                            <c:language>http://www.w3.org/TR/xpath/</c:language>
-                            <c:returnType>scalar</c:returnType>
                             <code>
-                                declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-                                if (empty($c:user/c:locality)) then
-                                "middle of nowhere"
-                                else
-                                $c:user/c:locality
+                                locality != null ? locality : 'middle of nowhere'
                             </code>
                         </script>
                     </expression>
@@ -548,7 +521,6 @@
                 <displayName>Employee Type</displayName>
 
                 <outbound>
-                    <!--                 <strength>weak</strength> -->
                     <source>
                         <path>$user/subtype</path>
                     </source>
@@ -740,77 +712,55 @@
         <pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
         <pendingOperationRetentionPeriod>PT30M</pendingOperationRetentionPeriod>
         <deadShadowRetentionPeriod>PT0H</deadShadowRetentionPeriod>
-        <reshreshOnRead>false</reshreshOnRead>
+        <refreshOnRead>false</refreshOnRead>
     </consistency>
 
     <!--
         Synchronization section describes the synchronization policy, timing,
         reactions and similar synchronization settings.
     -->
-    <c:synchronization>
-    <objectSynchronization>
-        <!--
-    The synchronization for this resource is enabled.
-    It means that the synchronization will poll for changes once
-    per interval specified below. -->
-        <kind>account</kind>
-        <intent>internal</intent>
-        <c:enabled>true</c:enabled>
-
-        <!-- Correlation expression.
-           It will be used to find appropriate user entry for an account.
-        -->
-        <c:correlation> <!-- Correlation rule is a search query -->
-
-                <!-- The clause <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType"/> is implicit in correlation rules -->
-                <!-- Following search query will look for users that have "name"
-    equal to the "uid" attribute of the account. Simply speaking,
-    it will look for match in usernames in the IDM and the resource. -->
+    <synchronization>
+        <objectSynchronization>
+            <kind>account</kind>
+            <intent>internal</intent>
+            <enabled>true</enabled>
+            <correlation>
+                <!-- Following search query will look for users that have "name" equal to the "uid" attribute of the account.
+            Simply speaking, it will look for match in usernames in the IDM and the resource. -->
                 <q:equal>
                     <q:path>name</q:path>
                     <expression>
                         <path>$shadow/attributes/ri:uid</path>
                     </expression>
                 </q:equal>
-            </c:correlation>
-
-        <!-- Confirmation rule may be here, but as the search above will
-always return at most one match, the confirmation rule is not needed. -->
-
-        <objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
-
-        <!-- Following section describes reactions to a situations.
-            The setting here assumes that this resource is authoritative,
-            therefore all accounts created on the resource should be
-            reflected as new users in IDM.
-            See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
-        -->
-        <c:reaction>
-            <c:situation>linked</c:situation>
-            <synchronize>true</synchronize>
-        </c:reaction>
-        <c:reaction>
-            <c:situation>deleted</c:situation>
-            <synchronize>true</synchronize>
-            <action>
-                <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
-            </action>
-        </c:reaction>
-        <c:reaction>
-            <c:situation>unlinked</c:situation>
-            <synchronize>true</synchronize>
-            <action>
-                <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-            </action>
-        </c:reaction>
-        <c:reaction>
-            <c:situation>unmatched</c:situation>
-            <synchronize>true</synchronize>
-            <action>
-                <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-            </action>
-        </c:reaction>
-</objectSynchronization>
+            </correlation>
+            <objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <c:situation>unmatched</c:situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
         <objectSynchronization>
             <kind>account</kind>
             <intent>contractor</intent>
@@ -843,28 +793,27 @@ always return at most one match, the confirmation rule is not needed. -->
             </correlation>
 
             <c:reaction>
-                <c:situation>linked</c:situation>
+                <situation>linked</situation>
                 <synchronize>false</synchronize>
             </c:reaction>
             <c:reaction>
-                <c:situation>deleted</c:situation>
+                <situation>deleted</situation>
                 <synchronize>true</synchronize>
                 <action>
                     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
                 </action>
             </c:reaction>
             <c:reaction>
-                <c:situation>unlinked</c:situation>
+                <situation>unlinked</situation>
                 <synchronize>true</synchronize>
                 <action>
                     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
                 </action>
             </c:reaction>
-            <c:reaction>
-                <c:situation>unmatched</c:situation>
+            <reaction>
+                <situation>unmatched</situation>
                 <synchronize>false</synchronize>
-            </c:reaction>
+            </reaction>
         </objectSynchronization>
-    </c:synchronization>
-
+    </synchronization>
 </resource>

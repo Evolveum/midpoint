@@ -311,10 +311,10 @@ public class ManualResourceTest extends AbstractWfTest {
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .end();
         shadowRepoAsserter
-                .assertLife();
+                .assertLive();
 
         shadowModelAsserter
-                .assertLife()
+                .assertLive()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED)
                 .attributes()
                 .assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME)

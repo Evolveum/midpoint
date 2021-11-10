@@ -13,6 +13,8 @@ import com.evolveum.midpoint.task.api.TaskUtil;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +29,6 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
-import com.evolveum.midpoint.provisioning.impl.ShadowState;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -161,8 +162,9 @@ class ObjectNotFoundHandler extends HardErrorHandler {
             Exception cause, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
-        ShadowState shadowState = shadowCaretaker.determineShadowState(ctx, repositoryShadow, clock.currentTimeXMLGregorianCalendar());
-        if (shadowState != ShadowState.LIFE) {
+        ShadowLifecycleStateType shadowState =
+                shadowCaretaker.determineShadowState(ctx, repositoryShadow, clock.currentTimeXMLGregorianCalendar());
+        if (shadowState != ShadowLifecycleStateType.LIVE) {
             // Do NOT do discovery of shadow that can legally not exist. This is no discovery.
             // We already know that the object are supposed not to exist yet or to dead already.
             LOGGER.trace("Skipping discovery of shadow {} because it is {}, we expect that it might not exist", repositoryShadow, shadowState);

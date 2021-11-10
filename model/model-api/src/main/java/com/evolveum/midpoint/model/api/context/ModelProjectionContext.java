@@ -61,5 +61,9 @@ public interface ModelProjectionContext extends ModelElementContext<ShadowType> 
 
     boolean isExists();
 
-    boolean isTombstone();
+    boolean isGone();
+
+    @Deprecated default boolean isTombstone() {
+        return isGone();
+    }
 }

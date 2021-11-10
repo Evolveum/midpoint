@@ -95,7 +95,16 @@ public class PendingOperationsAsserter<R> extends AbstractAsserter<ShadowAsserte
             }
         }
         fail("No unfinished operations in "+desc());
-        return null; // not reached
+        throw new AssertionError("not reached");
+    }
+
+    public PendingOperationsAsserter<R> assertNoUnfinishedOperations() {
+        for (PendingOperationType operation: getOperations()) {
+            if (isUnfinished(operation)) {
+                fail("Unfinished operations in "+desc()+":\n" + operation.debugDump());
+            }
+        }
+        return this;
     }
 
     private boolean isUnfinished(PendingOperationType operation) {

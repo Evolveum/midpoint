@@ -90,7 +90,7 @@ class LinkUpdater<F extends FocusType> {
 
     /**
      * In strict mode we do not tolerate problems with determined liveness state (e.g. if it's null or not
-     * consistent with the projection tombstone flag). TODO set to be true only in tests; or remove altogether.
+     * consistent with the projection "gone" flag). TODO set to be true only in tests; or remove altogether.
      */
     @SuppressWarnings("FieldCanBeLocal")
     private final boolean strictMode = false;
@@ -138,8 +138,8 @@ class LinkUpdater<F extends FocusType> {
         SynchronizationPolicyDecision decision = projCtx.getSynchronizationPolicyDecision();
         SynchronizationIntent intent = projCtx.getSynchronizationIntent();
 
-        LOGGER.trace("updateLinksInternal starting with sync decision: {}, sync intent: {}, tombstone: {}, shadow in repo: {}",
-                decision, intent, projCtx.isTombstone(), projCtx.isShadowExistsInRepo());
+        LOGGER.trace("updateLinksInternal starting with sync decision: {}, sync intent: {}, gone: {}, shadow in repo: {}",
+                decision, intent, projCtx.isGone(), projCtx.isShadowExistsInRepo());
 
         if (focusContext.isDelete()) {
 
@@ -156,20 +156,21 @@ class LinkUpdater<F extends FocusType> {
             LOGGER.trace("Explicitly requested link to be removed. So removing it from the focus and the shadow.");
             deleteLinkCompletely(result);
 
-        } else if (projCtx.isTombstone()) {
+        } else if (projCtx.isGone()) {
 
             if (strictMode && shadowLivenessState == null) {
                 throw new IllegalStateException("Null liveness state? " + projCtx.toHumanReadableString());
             }
 
             if (shadowLivenessState == null || shadowLivenessState == ShadowLivenessState.DEAD) {
-                LOGGER.trace("Projection is a tombstone. Link should be 'related'.");
+                LOGGER.trace("Projection is gone. Link should be 'related'.");
                 setLinkedAsRelated(result);
             } else {
                 if (strictMode) {
-                    throw new IllegalStateException("Tombstone with liveness state = " + shadowLivenessState + ": " + projCtx.toHumanReadableString());
+                    throw new IllegalStateException("Goner with liveness state = " + shadowLivenessState + ": " +
+                            projCtx.toHumanReadableString());
                 } else {
-                    LOGGER.warn("Projection is a tombstone but shadow liveness state is {}. Context: {}. Setting the link "
+                    LOGGER.warn("Projection is gone but shadow liveness state is {}. Context: {}. Setting the link "
                                     + "according to the state.", shadowLivenessState, projCtx.toHumanReadableString());
                     setLinkedFromLivenessState(result);
                 }

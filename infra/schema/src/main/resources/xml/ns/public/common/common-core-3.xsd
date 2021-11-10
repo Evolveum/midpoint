@@ -1582,16 +1582,28 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                Set of shadows (projections) linked to this focal object.
-                                E.g. a set of accounts linked to a user. This is the set of
-                                shadows that belongs to the focal object in a sense
-                                that these shadows represents the focal object on the resource.
-                                E.g. The set of accounts that represent the same midPoint user (the
-                                same physical person, they are "analogous").
+                                    Set of shadows (projections) linked to this focal object.
+                                    E.g. a set of accounts linked to a user. This is the set of
+                                    shadows that belongs to the focal object in a sense
+                                    that these shadows represents the focal object on the resource.
+                                    E.g. The set of accounts that represent the same midPoint user (the
+                                    same physical person, they are "analogous").
                                 </p>
                                 <p>
-                                Links define what the object HAS. The links reflect real state of things
-                                (cf. assignment).
+                                    Links define what the object HAS. The links reflect real state of things
+                                    (cf. assignment).
+                                </p>
+                                <p>
+                                    The relation in linkRef has the following meaning: org:default means that
+                                    that the shadow the link is pointing to is "live", i.e. the corresponding
+                                    object exists on the resource. On the other hand, org:related means that
+                                    the shadow exists in repo, but with dead = true, i.e. the corresponding
+                                    object is not existing on the resource any more.
+                                </p>
+                                <p>
+                                    Especially, when the shadow is in the Reaping state (see
+                                    https://docs.evolveum.com/midpoint/reference/resources/shadow/dead/), the
+                                    relation should be still org:default.
                                 </p>
                                 <p>
                                     Note: linkRef will be probably renamed to projectionRef or projectionLinkRef.
@@ -4919,6 +4931,9 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Whether the projection is a remnant of a deleted/dead resource object.
+                        TODO should be named differently, as "tombstone" is a very specific
+                        lifecycle state of a shadow. In live object (ResourceShadowDiscriminator)
+                        it is called "gone".
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.2</a:since>
@@ -9553,7 +9568,6 @@
 
     <xsd:element name="connectorHost" type="tns:ConnectorHostType" substitutionGroup="c:object"/>
 
-
     <xsd:complexType name="ShadowType">
         <xsd:annotation>
             <xsd:documentation>
@@ -9607,7 +9621,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
-                    <a:displayName>ShadowType.resource</a:displayName>
+                                <a:displayName>ShadowType.resource</a:displayName>
                                 <a:diagram>
                                     <a:name>user-shadow-resource</a:name>
                                     <!-- default is to include this item, therefore no "inclusion" specification is needed here -->
@@ -9615,7 +9629,24 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                     <xsd:element name="dead" type="xsd:boolean" minOccurs="0">
+                    <xsd:element name="shadowLifecycleState" type="tns:ShadowLifecycleStateType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The state in the shadow lifecycle. Always related to the current point of time, regardless
+                                of the point-in-time setting in get/search operation options. (E.g. an account retrieved with
+                                the point-in-time = future that has a pending DELETE operation will be returned with dead=true,
+                                but shadowLifecycleState will be reaping.)
+
+                                Currently TRANSIENT, i.e. it is not stored in the repository.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ShadowType.shadowLifecycleState</a:displayName>
+                                <a:experimental>true</a:experimental>
+                                <a:since>4.4</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                     </xsd:element>
+                    <xsd:element name="dead" type="xsd:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Description of operation during the processing of account failed.
@@ -9924,7 +9955,101 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-             </xsd:restriction>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ShadowLifecycleStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The lifecycle state of a shadow and the corresponding resource object.
+                See https://docs.evolveum.com/midpoint/reference/resources/shadow/dead/.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="proposed">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        "Add" operation is requested. But it was not started yet. We are processing the request.
+                        This is used mostly to detect uniqueness conflicts (to "reserve" identifiers).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PROPOSED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="conceived">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Signal to create the resource object was sent. It is being executed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CONCEIVED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="gestating">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This is a "quantum" state: shadow is alive, but not yet alive at the same time. It probably already
+                        exists on the resource (hence exists=true). But it does not exists in the snapshot yet. Gestating shadows
+                        will not appear in resource searches. This should not be a problem for reconciliation, because they
+                        should be linked and they will be processed by reconciliation anyway.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="GESTATING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="live">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Normal state. Shadow exists. Everything works as expected. No quantum effects. No controversies.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LIVE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="reaping">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Signal to delete the resource object was sent. It is being executed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REAPING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="corpse">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A.k.a. Schrodinger’s shadow. This is a "quantum" state: shadow is dead, but is also alive
+                        at the same time. It is probably already deleted in the resource (hence exists=false). But it
+                        still exists in the snapshot. Corpse shadows will appear in resource searches - even though
+                        is it marked as dead=true.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CORPSE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="tombstone">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Shadow is dead. Nothing remains. No resource object, no object in the snapshot. Just this stone
+                        on a grave remains. And it will also expire eventually. Tombstone shadows will not appear in resource
+                        searches - because they do not exist on the resource. But they will work with get operations. And
+                        they can be searched with noFetch.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TOMBSTONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
     </xsd:simpleType>
 
     <xsd:complexType name="ShadowAttributesType">

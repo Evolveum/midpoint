@@ -230,7 +230,7 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         return this;
     }
 
-    public ShadowAsserter<RA> assertLife() {
+    public ShadowAsserter<RA> assertLive() {
         assertNotDead();
         assertIsExists();
         return this;

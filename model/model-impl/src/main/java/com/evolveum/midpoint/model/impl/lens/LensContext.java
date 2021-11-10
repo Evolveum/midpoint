@@ -1591,7 +1591,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             if (projectionContext.isCompleted()) {
                 continue;
             }
-            if (projectionContext.isTombstone()) {
+            if (projectionContext.isGone()) {
                 continue;
             }
             if (projectionContext.hasPrimaryDelta() || projectionContext.hasSecondaryDelta()) {

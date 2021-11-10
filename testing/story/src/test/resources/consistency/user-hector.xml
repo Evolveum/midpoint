@@ -7,25 +7,17 @@
   -->
 
 <user oid="c0c010c0-d34d-b33f-f00d-111111222333"
-   xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>hector</name>
 
-    <linkRef oid="a0c010c0-d34d-b33f-f00d-111111222333" type="ShadowType"/>
-
-     <assignment>
+    <assignment>
         <construction>
             <resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
-            This is inconsistent with the actual resource value (by purpose, so we can test reconcile)
-<!--             <attribute> -->
-<!--                 <ref>ri:o</ref> -->
-<!--                 <value>Pirate Brethren, Inc.</value> -->
-<!--             </attribute> -->
-<!--             <attribute> -->
-<!--                 <ref>ri:l</ref> -->
-<!--                 <value>Caribbean</value> -->
-<!--             </attribute> -->
         </construction>
     </assignment>
+
+    <linkRef oid="a0c010c0-d34d-b33f-f00d-111111222333" type="ShadowType"/>
 
     <fullName>Hector Hector</fullName>
     <givenName>Hector</givenName>
@@ -37,7 +29,7 @@
     <credentials>
         <password>
             <value>
-                <clearValue>howMuchWoodWouldWoodchuckChuckIfWoodchuckCouldChuckWood</clearValue>
+                <t:clearValue>howMuchWoodWouldWoodchuckChuckIfWoodchuckCouldChuckWood</t:clearValue>
             </value>
         </password>
     </credentials>
