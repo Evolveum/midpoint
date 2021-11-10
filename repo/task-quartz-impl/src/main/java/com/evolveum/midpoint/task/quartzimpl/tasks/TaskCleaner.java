@@ -73,7 +73,7 @@ public class TaskCleaner {
         int deleted = 0;
         int problems = 0;
         int subtasksProblems = 0;
-        for (PrismObject<TaskType> rootTaskPrism : obsoleteTasks) {
+        root: for (PrismObject<TaskType> rootTaskPrism : obsoleteTasks) {
 
             if (!executionTask.canRun()) {
                 result.recordWarning("Interrupted");
@@ -89,7 +89,21 @@ public class TaskCleaner {
             try {
                 // get whole tree
                 TaskQuartzImpl rootTask = taskInstantiator.createTaskInstance(rootTaskPrism, result);
+                if (rootTask.isIndestructible()) {
+                    LOGGER.trace("Not deleting {} as it is indestructible", rootTaskPrism);
+                    op.skipped();
+                    continue;
+                }
+
                 List<TaskQuartzImpl> taskTreeMembers = rootTask.listSubtasksDeeply(true, result);
+                for (TaskQuartzImpl child : taskTreeMembers) {
+                    if (child.isIndestructible()) {
+                        LOGGER.trace("Not deleting {} as it has an indestructible child: {}", rootTask, child);
+                        op.skipped();
+                        continue root;
+                    }
+                }
+
                 taskTreeMembers.add(rootTask);
 
                 LOGGER.trace("Removing task {} along with its {} children.", rootTask, taskTreeMembers.size() - 1);

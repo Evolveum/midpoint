@@ -1065,6 +1065,10 @@ public class ObjectTypeUtil {
         }
     }
 
+    public static boolean isIndestructible(@NotNull PrismObject<? extends ObjectType> object) {
+        return Boolean.TRUE.equals(object.asObjectable().isIndestructible());
+    }
+
     @FunctionalInterface
     private interface ExtensionItemRemover {
         // Removes item (known from the context) from the extension

@@ -27,10 +27,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
-import com.evolveum.midpoint.task.api.ClusterExecutionOptions;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -53,7 +50,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -168,7 +164,7 @@ public class ReportManagerImpl implements ReportManager {
     }
 
     @Override
-    public void cleanupReports(CleanupPolicyType cleanupPolicy, OperationResult parentResult) {
+    public void cleanupReports(CleanupPolicyType cleanupPolicy, RunningTask task, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(CLEANUP_REPORT_OUTPUTS);
 
         // This operation does not need any extra authorization check. All model operations carried out by this
@@ -190,30 +186,41 @@ public class ReportManagerImpl implements ReportManager {
 
         XMLGregorianCalendar timeXml = XmlTypeConverter.createXMLGregorianCalendar(deleteReportOutputsTo.getTime());
 
-        List<PrismObject<ReportDataType>> obsoleteReportDatas = new ArrayList<>();
+        List<PrismObject<ReportDataType>> obsoleteReportDataObjects;
         try {
             ObjectQuery obsoleteReportOutputsQuery = prismContext.queryFor(ReportDataType.class)
                     .item(ReportDataType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP).le(timeXml)
                     .build();
-            obsoleteReportDatas = modelService.searchObjects(ReportDataType.class, obsoleteReportOutputsQuery, null, null, result);
+            obsoleteReportDataObjects =
+                    modelService.searchObjects(ReportDataType.class, obsoleteReportOutputsQuery, null, task, result);
         } catch (Exception e) {
             throw new SystemException("Couldn't get the list of obsolete report outputs: " + e.getMessage(), e);
         }
 
-        LOGGER.debug("Found {} report output(s) to be cleaned up", obsoleteReportDatas.size());
+        LOGGER.debug("Found {} report output(s) to be cleaned up", obsoleteReportDataObjects.size());
 
         boolean interrupted = false;
         int deleted = 0;
         int problems = 0;
 
-        for (PrismObject<ReportDataType> reportDataPrism : obsoleteReportDatas) {
+        for (PrismObject<ReportDataType> reportDataPrism : obsoleteReportDataObjects) {
+            if (!task.canRun()) {
+                interrupted = true;
+                break;
+            }
+
+            if (ObjectTypeUtil.isIndestructible(reportDataPrism)) {
+                LOGGER.trace("NOT removing report output {} as it is marked as indestructible", reportDataPrism);
+                continue;
+            }
+
             ReportDataType reportData = reportDataPrism.asObjectable();
 
             LOGGER.trace("Removing report output {} along with {} file.", reportData.getName().getOrig(),
                     reportData.getFilePath());
             boolean problem = false;
             try {
-                deleteReportData(reportData, result);
+                deleteReportData(reportData, task, result);
             } catch (Exception e) {
                 LoggingUtils.logException(LOGGER, "Couldn't delete obsolete report output {} due to a exception", e, reportData);
                 problem = true;
@@ -242,14 +249,12 @@ public class ReportManagerImpl implements ReportManager {
     }
 
     @Override
-    public void deleteReportData(ReportDataType reportData, OperationResult parentResult) throws Exception {
+    public void deleteReportData(ReportDataType reportData, Task task, OperationResult parentResult) throws Exception {
         String oid = reportData.getOid();
 
         // This operation does not need any extra authorization check. All model operations carried out by this
         // method are executed through modelService. Therefore usual object authorizations are checked.
 
-        Task task = taskManager.createTaskInstance(DELETE_REPORT_OUTPUT);
-        parentResult.addSubresult(task.getResult());
         OperationResult result = parentResult.createSubresult(DELETE_REPORT_OUTPUT);
 
         String filePath = reportData.getFilePath();

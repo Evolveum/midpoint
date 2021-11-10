@@ -18,6 +18,8 @@ import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 
 import com.evolveum.midpoint.schema.statistics.Operation;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -158,12 +160,13 @@ public class WorkflowManagerImpl implements WorkflowManager {
                     .and().item(CaseType.F_CLOSE_TIMESTAMP).le(deleteCasesClosedUpTo)
                     .and().item(CaseType.F_PARENT_REF).isNull()
                     .build();
-            List<PrismObject<CaseType>> obsoleteCases = repositoryService.searchObjects(CaseType.class, obsoleteCasesQuery, null, result);
+            List<PrismObject<CaseType>> rootObsoleteCases =
+                    repositoryService.searchObjects(CaseType.class, obsoleteCasesQuery, null, result);
 
-            LOGGER.debug("Found {} case tree(s) to be cleaned up", obsoleteCases.size());
+            LOGGER.debug("Found {} case tree(s) to be cleaned up", rootObsoleteCases.size());
 
             boolean interrupted = false;
-            for (PrismObject<CaseType> parentCasePrism : obsoleteCases) {
+            for (PrismObject<CaseType> rootObsoleteCase : rootObsoleteCases) {
                 if (!executionTask.canRun()) {
                     result.recordWarning("Interrupted");
                     LOGGER.warn("Task cleanup was interrupted.");
@@ -172,15 +175,20 @@ public class WorkflowManagerImpl implements WorkflowManager {
                 }
 
                 IterativeOperationStartInfo startInfo = new IterativeOperationStartInfo(
-                        new IterationItemInformation(parentCasePrism));
+                        new IterationItemInformation(rootObsoleteCase));
                 startInfo.setProgressCollector(executionTask); // TODO
                 Operation op = executionTask.recordIterativeOperationStart(startInfo);
                 try {
-                    deleteChildrenCases(parentCasePrism, counters, result);
-                    op.succeeded();
+                    if (ObjectTypeUtil.isIndestructible(rootObsoleteCase)) {
+                        LOGGER.trace("Not deleting root case {} because it's marked as indestructible", rootObsoleteCase);
+                        op.skipped();
+                    } else {
+                        deleteCaseWithChildren(rootObsoleteCase, counters, result);
+                        op.succeeded();
+                    }
                 } catch (Throwable t) {
                     op.failed(t);
-                    LoggingUtils.logException(LOGGER, "Couldn't delete children cases for {}", t, parentCasePrism);
+                    LoggingUtils.logException(LOGGER, "Couldn't delete children cases for {}", t, rootObsoleteCase);
                 }
                 executionTask.incrementLegacyProgressAndStoreStatisticsIfTimePassed(result);
             }
@@ -204,7 +212,11 @@ public class WorkflowManagerImpl implements WorkflowManager {
         }
     }
 
-    private void deleteChildrenCases(PrismObject<CaseType> parentCase, DeletionCounters counters,
+    /**
+     * Assuming that the case is not indestructible. Unlike in tasks, here the indestructible children do not
+     * prevent the root nor their siblings from deletion.
+     */
+    private void deleteCaseWithChildren(PrismObject<CaseType> parentCase, DeletionCounters counters,
             OperationResult result) throws Throwable {
 
         // get all children cases
@@ -216,7 +228,11 @@ public class WorkflowManagerImpl implements WorkflowManager {
         LOGGER.trace("Removing case {} along with its {} children.", parentCase, childrenCases.size());
 
         for (PrismObject<CaseType> caseToDelete : childrenCases) {
-            deleteChildrenCases(caseToDelete, counters, result);
+            if (ObjectTypeUtil.isIndestructible(caseToDelete)) {
+                LOGGER.trace("Not deleting sub-case {} as it is indestructible", caseToDelete);
+            } else {
+                deleteCaseWithChildren(caseToDelete, counters, result);
+            }
         }
         deleteCase(parentCase, counters, result);
     }

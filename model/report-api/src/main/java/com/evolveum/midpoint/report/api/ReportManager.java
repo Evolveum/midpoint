@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -47,11 +48,8 @@ public interface ReportManager {
     /**
      * todo comments [lazyman]
      * todo how to return progress
-     *
-     * @param cleanupPolicy
-     * @param parentResult
      */
-    void cleanupReports(CleanupPolicyType cleanupPolicy, OperationResult parentResult);
+    void cleanupReports(CleanupPolicyType cleanupPolicy, RunningTask task, OperationResult parentResult);
 
     /**
      * todo comments [lazyman]
@@ -65,7 +63,7 @@ public interface ReportManager {
             ConfigurationException, ExpressionEvaluationException, IOException, CommonException;
 
 
-    void deleteReportData(ReportDataType reportData, OperationResult parentResult) throws Exception;
+    void deleteReportData(ReportDataType reportData, Task task, OperationResult parentResult) throws Exception;
 
     CompiledObjectCollectionView createCompiledView(ObjectCollectionReportEngineConfigurationType collectionConfig, boolean useDefaultView, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException;

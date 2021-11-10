@@ -124,7 +124,7 @@ public class CleanupActivityHandler
                 (context, result) ->
                         new CleanupPartialActivityRun<>(
                                 context, Part.OUTPUT_REPORTS, CleanupPoliciesType::getOutputReports,
-                                (p, task, result1) -> cleanupReports(p, result1)),
+                                this::cleanupReports),
                 null,
                 (i) -> Part.OUTPUT_REPORTS.identifier,
                 stateDef,
@@ -153,9 +153,9 @@ public class CleanupActivityHandler
         }
     }
 
-    private void cleanupReports(CleanupPolicyType p, OperationResult result) {
+    private void cleanupReports(CleanupPolicyType p, RunningTask task, OperationResult result) {
         if (reportManager != null) {
-            reportManager.cleanupReports(p, result);
+            reportManager.cleanupReports(p, task, result);
         } else {
             //TODO improve dependencies for report-impl (probably for tests) and set autowire to required
             throw new IllegalStateException("Report manager was not autowired, reports cleanup will be skipped.");

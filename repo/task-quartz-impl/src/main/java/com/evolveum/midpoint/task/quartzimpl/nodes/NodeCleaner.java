@@ -9,6 +9,7 @@ package com.evolveum.midpoint.task.quartzimpl.nodes;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -59,6 +60,12 @@ public class NodeCleaner {
             if (!clusterManager.isCurrentNode(node) &&
                     !clusterManager.isCheckingIn(node.asObjectable()) &&
                     XmlTypeConverter.compareMillis(node.asObjectable().getLastCheckInTime(), deleteNodesNotCheckedInAfter) <= 0) {
+
+                if (ObjectTypeUtil.isIndestructible(node)) {
+                    LOGGER.debug("Not deleting dead but indestructible node {}", node);
+                    continue;
+                }
+
                 // This includes last check in time == null
                 LOGGER.info("Deleting dead node {}; last check in time = {}", node, node.asObjectable().getLastCheckInTime());
                 IterativeOperationStartInfo iterativeOperationStartInfo = new IterativeOperationStartInfo(new IterationItemInformation(node));

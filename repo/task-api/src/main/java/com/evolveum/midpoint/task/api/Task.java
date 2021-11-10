@@ -970,5 +970,8 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
         return null;
     }
 
+    default boolean isIndestructible() {
+        return Boolean.TRUE.equals(getPropertyRealValue(TaskType.F_INDESTRUCTIBLE, Boolean.class));
+    }
     //endregion
 }
