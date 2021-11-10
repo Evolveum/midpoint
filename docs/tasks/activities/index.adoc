@@ -153,7 +153,7 @@ providing support for cluster-wide watching of policy rules thresholds, across t
 
 === Task Statistics Improvements
 
-* Flexible xref:reporting/execution-reports/[activity reports] were introduced:
+Flexible xref:reporting/execution-reports/[activity reports] were introduced:
 
 - buckets processed,
 - items processed,
@@ -163,7 +163,7 @@ providing support for cluster-wide watching of policy rules thresholds, across t
 Also, bucket size analysis mode is now available. It allows determining size of buckets before
 real processing starts: either all buckets, or a (random or regular) sample of specified size.
 
-* The following information is now collected per individual activities (not per tasks):
+The following information is now collected per individual activities (not per tasks):
 
 - synchronization statistics,
 - actions executed,
