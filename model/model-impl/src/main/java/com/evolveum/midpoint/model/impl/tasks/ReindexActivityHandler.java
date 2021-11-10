@@ -52,7 +52,7 @@ public class ReindexActivityHandler
 
     @Override
     protected @NotNull QName getWorkDefinitionTypeName() {
-        return ChangeExecutionWorkDefinitionType.COMPLEX_TYPE;
+        return ReindexingWorkDefinitionType.COMPLEX_TYPE;
     }
 
     @Override

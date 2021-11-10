@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2010-2020 Evolveum and contributors
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -39,7 +39,6 @@
             <class name="com.evolveum.midpoint.repo.sql.CertificationTestReindex"/>
             <class name="com.evolveum.midpoint.repo.sql.LookupTableTest"/>
             <class name="com.evolveum.midpoint.repo.sql.LookupTableTestReindex"/>
-            <class name="com.evolveum.midpoint.repo.sql.PerformanceTest"/>
             <class name="com.evolveum.midpoint.repo.sql.ObjectDeltaUpdaterTest"/>
             <class name="com.evolveum.midpoint.repo.sql.ExtensionTest"/>
             <class name="com.evolveum.midpoint.repo.sql.ExtensionTestNoFetchDeletion"/>

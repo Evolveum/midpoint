@@ -20,8 +20,8 @@ public class UserOperationalButtonsPanel extends FocusOperationalButtonsPanel<Us
 
     private LoadableModel<List<AssignmentEditorDto>> delegationsModel;
 
-    public UserOperationalButtonsPanel(String id, LoadableModel<PrismObjectWrapper<UserType>> model, LoadableModel<List<AssignmentEditorDto>> delegationsModel, LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel) {
-        super(id, model, executeOptionsModel);
+    public UserOperationalButtonsPanel(String id, LoadableModel<PrismObjectWrapper<UserType>> model, LoadableModel<List<AssignmentEditorDto>> delegationsModel, LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel, boolean isSelfProfile) {
+        super(id, model, executeOptionsModel, isSelfProfile);
         this.delegationsModel = delegationsModel;
     }
 

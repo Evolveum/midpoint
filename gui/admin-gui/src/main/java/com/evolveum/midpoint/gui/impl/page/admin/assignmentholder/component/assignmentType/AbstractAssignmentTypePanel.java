@@ -6,6 +6,23 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.AssignmentPopup;
 import com.evolveum.midpoint.gui.api.component.AssignmentPopupDto;
@@ -42,7 +59,6 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -55,25 +71,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public abstract class AbstractAssignmentTypePanel extends MultivalueContainerListPanelWithDetailsPanel<AssignmentType> {
 
@@ -164,13 +161,13 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     private String loadValuesForNameColumn(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
         if (expression != null || itemPath != null) {
             Collection<String> evaluatedValues = loadExportableColumnDataModel(rowModel, customColumn, itemPath, expression);
-            if (evaluatedValues.isEmpty()) {
+            if (CollectionUtils.isEmpty(evaluatedValues)) {
                 return "";
             }
             if (evaluatedValues.size() == 1) {
                 return evaluatedValues.iterator().next();
             }
-            return evaluatedValues.stream().collect(Collectors.joining(", "));
+            return String.join(", ", evaluatedValues);
         }
         String name = AssignmentsUtil.getName(rowModel.getObject(), getPageBase());
         LOGGER.trace("Name for AssignmentType: " + name);
@@ -195,49 +192,14 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         return !isAssignmentsLimitReached();
     }
 
-    @NotNull
     protected abstract List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns();
 
-    private <AH extends FocusType> List<InlineMenuItem> getAssignmentMenuActions() {
+    private List<InlineMenuItem> getAssignmentMenuActions() {
         List<InlineMenuItem> menuItems = new ArrayList<>();
-        PrismObject<AH> obj = getFocusObject();
-        try {
-            boolean isUnassignAuthorized = getPageBase().isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI,
-                    AuthorizationPhaseType.REQUEST, obj,
-                    null, null, null);
-            if (isUnassignAuthorized) {
-                menuItems.add(new ButtonInlineMenuItem(getAssignmentsLimitReachedUnassignTitleModel()) {
-                    private static final long serialVersionUID = 1L;
 
-                    @Override
-                    public CompositedIconBuilder getIconCompositedBuilder() {
-                        return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
-                    }
-
-                    @Override
-                    public InlineMenuItemAction initAction() {
-                        return AbstractAssignmentTypePanel.this.createDeleteColumnAction();
-                    }
-                });
-            }
-
-        } catch (Exception ex) {
-            LOGGER.error("Couldn't check unassign authorization for the object: {}, {}", obj.getName(), ex.getLocalizedMessage());
-            if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI)) {
-                menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.unassign")) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public CompositedIconBuilder getIconCompositedBuilder() {
-                        return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
-                    }
-
-                    @Override
-                    public InlineMenuItemAction initAction() {
-                        return AbstractAssignmentTypePanel.this.createDeleteColumnAction();
-                    }
-                });
-            }
+        ButtonInlineMenuItem unassignMenuItem = createUnassignAction();
+        if (unassignMenuItem != null) {
+            menuItems.add(unassignMenuItem);
         }
         menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.edit")) {
             private static final long serialVersionUID = 1L;
@@ -252,6 +214,46 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
                 return AbstractAssignmentTypePanel.this.createEditColumnAction();
             }
         });
+        ButtonInlineMenuItem viewTargetObjectMenuItem = createViewTargetObjectAction();
+        menuItems.add(viewTargetObjectMenuItem);
+        return menuItems;
+    }
+
+    private <AH extends AssignmentHolderType> ButtonInlineMenuItem createUnassignAction() {
+        PrismObject<AH> obj = getFocusObject();
+        try {
+            boolean isUnassignAuthorized = getPageBase().isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI,
+                    AuthorizationPhaseType.REQUEST, obj,
+                    null, null, null);
+            if (isUnassignAuthorized) {
+                return createUnassignButtonInlineMenuItem(getAssignmentsLimitReachedUnassignTitleModel());
+            }
+        } catch (Exception ex) {
+            LOGGER.error("Couldn't check unassign authorization for the object: {}, {}", obj.getName(), ex.getLocalizedMessage());
+            if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI)) {
+                return createUnassignButtonInlineMenuItem(createStringResource("PageBase.button.unassign"));
+            }
+        }
+        return null;
+    }
+
+    private ButtonInlineMenuItem createUnassignButtonInlineMenuItem(IModel<String> unassignLabelModel) {
+        return new ButtonInlineMenuItem(unassignLabelModel) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return AbstractAssignmentTypePanel.this.createDeleteColumnAction();
+            }
+        };
+    }
+
+    private ButtonInlineMenuItem createViewTargetObjectAction() {
         ButtonInlineMenuItem menu = new ButtonInlineMenuItem(createStringResource("AssignmentPanel.viewTargetObject")) {
             private static final long serialVersionUID = 1L;
 
@@ -267,24 +269,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        PrismContainerValueWrapper<AssignmentType> assignmentContainer = getRowModel().getObject();
-                        PrismReferenceWrapper<ObjectReferenceType> targetRef;
-                        try {
-                            targetRef = assignmentContainer.findReference(ItemPath.create(AssignmentType.F_TARGET_REF));
-                        } catch (SchemaException e) {
-                            getSession().error("Couldn't show details page. More information provided in log.");
-                            LOGGER.error("Couldn't show details page, no targetRef reference wrapper found: {}", e.getMessage(), e);
-                            target.add(getPageBase().getFeedbackPanel());
-                            return;
-                        }
-
-                        if (targetRef != null && targetRef.getValues() != null && targetRef.getValues().size() > 0) {
-                            PrismReferenceValueWrapperImpl<ObjectReferenceType> refWrapper = targetRef.getValues().get(0);
-                            if (!StringUtils.isEmpty(refWrapper.getNewValue().getOid())) {
-                                Class<? extends ObjectType> targetClass = ObjectTypes.getObjectTypeFromTypeQName(refWrapper.getRealValue().getType()).getClassDefinition();
-                                WebComponentUtil.dispatchToObjectDetailsPage(targetClass, refWrapper.getNewValue().getOid(), AbstractAssignmentTypePanel.this, false);
-                            }
-                        }
+                        targetObjectDetailsPerformed(target, getRowModel().getObject());
                     }
                 };
             }
@@ -295,7 +280,32 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
             }
 
         };
-        menu.setVisibilityChecker((InlineMenuItem.VisibilityChecker) (rowModel, isHeader) -> {
+        menu.setVisibilityChecker(isViewTargetObjectMenuVisible());
+        return menu;
+    }
+
+    private void targetObjectDetailsPerformed(AjaxRequestTarget target, PrismContainerValueWrapper<AssignmentType> assignmentContainer) {
+        PrismReferenceWrapper<ObjectReferenceType> targetRef;
+        try {
+            targetRef = assignmentContainer.findReference(ItemPath.create(AssignmentType.F_TARGET_REF));
+        } catch (SchemaException e) {
+            getSession().error("Couldn't show details page. More information provided in log.");
+            LOGGER.error("Couldn't show details page, no targetRef reference wrapper found: {}", e.getMessage(), e);
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        if (targetRef != null && targetRef.getValues() != null && targetRef.getValues().size() > 0) {
+            PrismReferenceValueWrapperImpl<ObjectReferenceType> refWrapper = targetRef.getValues().get(0);
+            if (!StringUtils.isEmpty(refWrapper.getNewValue().getOid())) {
+                Class<? extends ObjectType> targetClass = ObjectTypes.getObjectTypeFromTypeQName(refWrapper.getRealValue().getType()).getClassDefinition();
+                WebComponentUtil.dispatchToObjectDetailsPage(targetClass, refWrapper.getNewValue().getOid(), AbstractAssignmentTypePanel.this, false);
+            }
+        }
+    }
+
+    private InlineMenuItem.VisibilityChecker isViewTargetObjectMenuVisible() {
+        return (rowModel, isHeader) -> {
             PrismContainerValueWrapper<AssignmentType> assignment =
                     (PrismContainerValueWrapper<AssignmentType>) rowModel.getObject();
             if (assignment == null) {
@@ -308,9 +318,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
                 LOGGER.error("Couldn't find targetRef in assignment");
             }
             return target != null && !target.isEmpty();
-        });
-        menuItems.add(menu);
-        return menuItems;
+        };
     }
 
     private IColumn<PrismContainerValueWrapper<AssignmentType>, String> createAssignmentIconColumn() {

@@ -3437,6 +3437,18 @@ public final class WebComponentUtil {
         };
     }
 
+    public static Behavior preventSubmitOnEnterKeyDownBehavior() {
+        return new Behavior() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void bind(Component component) {
+                super.bind(component);
+                component.add(AttributeModifier.replace("onkeydown", Model.of("if(event.keyCode == 13) {event.preventDefault();}")));
+            }
+        };
+    }
+
     public static List<QName> getAssignableRelationsList(PrismObject<? extends FocusType> focusObject, Class<? extends AbstractRoleType> type,
             AssignmentOrder assignmentOrder,
             OperationResult result, Task task, PageBase pageBase) {
@@ -4854,17 +4866,18 @@ public final class WebComponentUtil {
 
     public static Class<? extends PageBase> resolveSelfPage() {
         FocusType focusType = WebModelServiceUtils.getLoggedInFocus();
+        boolean newDesignEnabled = isNewDesignEnabled();
         if (focusType instanceof UserType) {
-            return PageUserSelfProfile.class;
+            return newDesignEnabled ? com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile.class : PageUserSelfProfile.class;
         }
         if (focusType instanceof OrgType) {
-            return PageOrgSelfProfile.class;
+            return newDesignEnabled ? com.evolveum.midpoint.gui.impl.page.self.PageOrgSelfProfile.class : PageOrgSelfProfile.class;
         }
         if (focusType instanceof RoleType) {
-            return PageRoleSelfProfile.class;
+            return newDesignEnabled ? com.evolveum.midpoint.gui.impl.page.self.PageRoleSelfProfile.class : PageRoleSelfProfile.class;
         }
         if (focusType instanceof ServiceType) {
-            return PageServiceSelfProfile.class;
+            return newDesignEnabled ? com.evolveum.midpoint.gui.impl.page.self.PageServiceSelfProfile.class : PageServiceSelfProfile.class;
         }
         return null;
     }

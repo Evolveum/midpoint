@@ -7,18 +7,10 @@
 package com.evolveum.midpoint.gui.impl.component;
 
 import java.io.Serializable;
-import java.util.*;
 import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
-import com.evolveum.prism.xml.ns._public.query_3.PagingType;
-import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -44,18 +36,19 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -69,13 +62,14 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -90,6 +84,8 @@ import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPres
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
+import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -378,10 +374,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return true;
     }
 
-    protected DisplayType getNewObjectButtonDisplayType(){
-        return GuiDisplayTypeUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", createStringResource("MainObjectListPanel.newObject").getString());
-    }
-
     public BoxedTablePanel<PO> getTable() {
         //noinspection unchecked
         return (BoxedTablePanel<PO>) get(ID_ITEMS).get(ID_ITEMS_TABLE);
@@ -436,7 +428,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return true;
     }
 
-    private final List<IColumn<PO, String>> collectColumns() {
+    private List<IColumn<PO, String>> collectColumns() {
         List<IColumn<PO, String>> columns = new ArrayList<>();
 
         if (!isCustomColumnsListConfigured()) {
@@ -642,7 +634,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         Item<?, ?> item = findItem(value, columnPath);
 
         if (expression != null) {
-            Collection collection = evaluateExpression(value, item, expression, customColumn);
+            Collection<String> collection = evaluateExpression(value, item, expression, customColumn);
             return getValuesString(collection, customColumn.getDisplayValue());
         }
         if (item != null) {
@@ -661,7 +653,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return null;
     }
 
-    protected Collection evaluateExpression(C rowValue, Item<?, ?> columnItem, ExpressionType expression, GuiObjectColumnType customColumn) {
+    protected Collection<String> evaluateExpression(C rowValue, Item<?, ?> columnItem, ExpressionType expression, GuiObjectColumnType customColumn) {
         Task task = getPageBase().createSimpleTask(OPERATION_EVALUATE_EXPRESSION);
         OperationResult result = task.getResult();
         try {
@@ -670,10 +662,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             if (columnItem != null) {
                 variablesMap.put(ExpressionConstants.VAR_INPUT, columnItem, columnItem.getDefinition());
             }
-            Collection<String> evaluatedValues = ExpressionUtil.evaluateStringExpression(variablesMap, getPageBase().getPrismContext(), expression,
+            return ExpressionUtil.evaluateStringExpression(variablesMap, getPageBase().getPrismContext(), expression,
                     MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "evaluate column expression",
                     task, result);
-            return evaluatedValues;
         } catch (Exception e) {
             LOGGER.error("Couldn't execute expression for {} column. Reason: {}", customColumn, e.getMessage(), e);
             result.recomputeStatus();
@@ -704,11 +695,14 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 .collect(Collectors.toList());
     }
 
-    private List<String> getValuesString(Collection collection, DisplayValueType displayValue){
+    private List<String> getValuesString(Collection<String> collection, DisplayValueType displayValue){
+        if (collection == null) {
+            return null;
+        }
         if (DisplayValueType.NUMBER.equals(displayValue)) {
             return Collections.singletonList(String.valueOf(collection.size()));
         }
-        return (List<String>) collection.stream()
+        return collection.stream()
                 .filter(Objects::nonNull)
                 .map(object -> getStringValue(object, null))
                 .collect(Collectors.toList());
@@ -722,6 +716,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         if (object instanceof PrismPropertyValue) {
             PrismPropertyValue<?> prismPropertyValue = (PrismPropertyValue<?>) object;
             if (lookupTable == null) {
+                if (prismPropertyValue.getValue() == null) {
+                    return "";
+                }
                 if (isPolyString(prismPropertyValue.getTypeName())) {
                     return WebComponentUtil.getTranslatedPolyString((PolyString) prismPropertyValue.getValue());
                 }
@@ -1015,7 +1012,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     private DashboardWidgetType findWidget(DashboardType dashboardType) {
         return dashboardType.getWidget()
                 .stream()
-                .filter(d -> getWidgetNameOfCollection().equals(d.getIdentifier()))
+                .filter(d -> Objects.equals(getWidgetNameOfCollection(), d.getIdentifier()))
                 .findFirst().orElse(null);
     }
 
