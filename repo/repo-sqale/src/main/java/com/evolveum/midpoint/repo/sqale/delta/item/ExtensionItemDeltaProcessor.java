@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sqale.delta.item;
 
 import java.util.Collection;
+import java.util.Objects;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -48,6 +49,7 @@ public class ExtensionItemDeltaProcessor implements ItemDeltaProcessor {
         Collection<?> realValues = item != null ? item.getRealValues() : null;
         ItemDefinition<?> definition = modification.getDefinition();
 
+        Objects.requireNonNull(definition, "Item '" + itemPath + "' without definition can't be saved.");
         ExtensionProcessor extProcessor = new ExtensionProcessor(context.repositoryContext());
         ExtensionProcessor.ExtItemInfo extItemInfo =
                 extProcessor.findExtensionItem(definition, holderType);
