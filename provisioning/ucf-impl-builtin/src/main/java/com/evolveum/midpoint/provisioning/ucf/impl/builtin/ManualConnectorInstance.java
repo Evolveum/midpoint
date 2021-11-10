@@ -260,7 +260,18 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         caseType.setTargetRef(new ObjectReferenceType().oid(shadowOid).targetName(shadowName).type(ShadowType.COMPLEX_TYPE));
 
         if (task != null) {
-            caseType.setRequestorRef(task.getOwnerRef());
+            if (isCaseOperationTask(task)) {
+                try {
+                    PrismObject<CaseType> originalCase = task.getObject(CaseType.class, result);
+                    if (originalCase != null) {
+                        caseType.setRequestorRef(originalCase.asObjectable().getRequestorRef());
+                    }
+                } catch (ObjectNotFoundException e) {
+                    //ignore exception original case is null
+                }
+            } else {
+                caseType.setRequestorRef(task.getOwnerRef());
+            }
         }
 
         caseType.beginManualProvisioningContext()
@@ -310,6 +321,10 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         // notifications
         caseEventDispatcher.dispatchCaseEvent(caseType, result);
         return aCase;
+    }
+
+    private boolean isCaseOperationTask(Task task) {
+        return "http://midpoint.evolveum.com/xml/ns/public/workflow/operation-execution/handler-3".equals(task.getHandlerUri());
     }
 
     @Override
