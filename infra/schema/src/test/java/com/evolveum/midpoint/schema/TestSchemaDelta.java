@@ -1,32 +1,37 @@
 /*
- * Copyright (c) 2014 Evolveum and contributors
+ * Copyright (C) 2014-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.schema;
 
-import com.evolveum.midpoint.prism.*;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singleton;
+import static org.testng.AssertJUnit.*;
 
-import com.evolveum.midpoint.prism.delta.*;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.testng.annotations.Test;
-
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singleton;
-import static org.testng.AssertJUnit.*;
 
 /**
  * Test delta operation on real midpoint schema. Similar to TestDelta in prism, but this is using the
@@ -99,7 +104,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         inducement.setId(ROLE_CONSTRUCTION_INDUCEMENT_ID);
         ObjectDelta<RoleType> roleDelta = getPrismContext().deltaFactory().object()
                 .createModificationDeleteContainer(RoleType.class, ROLE_CONSTRUCTION_OID,
-                RoleType.F_INDUCEMENT, inducement);
+                        RoleType.F_INDUCEMENT, inducement);
 
         // WHEN
         roleDelta.applyTo(role);
@@ -123,7 +128,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         inducement.setId(ROLE_CONSTRUCTION_INDUCEMENT_ID);
         ObjectDelta<RoleType> roleDelta = getPrismContext().deltaFactory().object()
                 .createModificationDeleteContainer(RoleType.class, ROLE_CONSTRUCTION_OID,
-                RoleType.F_INDUCEMENT, inducement);
+                        RoleType.F_INDUCEMENT, inducement);
 
         // WHEN
         roleDelta.applyTo(role);
@@ -149,7 +154,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         inducement.setId(ROLE_CONSTRUCTION_INDUCEMENT_ID);
         ObjectDelta<RoleType> roleDelta = getPrismContext().deltaFactory().object()
                 .createModificationDeleteContainer(RoleType.class, ROLE_CONSTRUCTION_OID,
-                RoleType.F_INDUCEMENT, inducement);
+                        RoleType.F_INDUCEMENT, inducement);
 
         // WHEN
         ItemDeltaCollectionsUtil.applyTo(roleDelta.getModifications(), role);
@@ -177,7 +182,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         // No container ID
         ObjectDelta<RoleType> roleDelta = getPrismContext().deltaFactory().object()
                 .createModificationDeleteContainer(RoleType.class, ROLE_CONSTRUCTION_OID,
-                ItemPath.create(RoleType.F_INDUCEMENT, ROLE_CONSTRUCTION_INDUCEMENT_ID, AssignmentType.F_CONSTRUCTION),
+                        ItemPath.create(RoleType.F_INDUCEMENT, ROLE_CONSTRUCTION_INDUCEMENT_ID, AssignmentType.F_CONSTRUCTION),
                         construction);
 
         // WHEN
@@ -210,7 +215,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         // No container ID
         ObjectDelta<RoleType> roleDelta = getPrismContext().deltaFactory().object()
                 .createModificationDeleteContainer(RoleType.class, ROLE_CONSTRUCTION_OID,
-                ItemPath.create(RoleType.F_INDUCEMENT, ROLE_CONSTRUCTION_INDUCEMENT_ID, AssignmentType.F_ACTIVATION),
+                        ItemPath.create(RoleType.F_INDUCEMENT, ROLE_CONSTRUCTION_INDUCEMENT_ID, AssignmentType.F_ACTIVATION),
                         activationType);
 
         // WHEN
@@ -242,7 +247,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         // No container ID
         ObjectDelta<UserType> userDelta = getPrismContext().deltaFactory().object()
                 .createModificationDeleteContainer(UserType.class, USER_JACK_OID,
-                ItemPath.create(UserType.F_ASSIGNMENT, USER_JACK_ASSIGNMENT_ID, AssignmentType.F_ACTIVATION),
+                        ItemPath.create(UserType.F_ASSIGNMENT, USER_JACK_ASSIGNMENT_ID, AssignmentType.F_ACTIVATION),
                         activationType);
 
         // WHEN
@@ -274,14 +279,14 @@ public class TestSchemaDelta extends AbstractSchemaTest {
                 .name("test")
                 .oid("oid1")
                 .beginAssignment()
-                    .id(1L)
-                    .targetRef("target-oid-1", RoleType.COMPLEX_TYPE)
+                .id(1L)
+                .targetRef("target-oid-1", RoleType.COMPLEX_TYPE)
                 .<UserType>end()
                 .asPrismObject();
 
         ObjectDelta<UserType> userDelta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                    .add(new AssignmentType().id(2L).targetRef("target-oid-1", OrgType.COMPLEX_TYPE))
+                .add(new AssignmentType().id(2L).targetRef("target-oid-1", OrgType.COMPLEX_TYPE))
                 .asObjectDeltaCast("oid1");
 
         // WHEN
@@ -306,9 +311,8 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         assignmentDef.toMutable().setMaxOccurs(1);
         PrismContainer<AssignmentType> assignmentContainer = assignmentDef.instantiate();
 
-        PrismContainerValue<AssignmentType> assignmentValue =
-                ObjectTypeUtil.createAssignmentTo("00000001-d34d-b33f-f00d-000000000002", ObjectTypes.ROLE,
-                        getPrismContext())
+        PrismContainerValue<AssignmentType> assignmentValue = ObjectTypeUtil
+                .createAssignmentTo("00000001-d34d-b33f-f00d-000000000002", ObjectTypes.ROLE, getPrismContext())
                 .asPrismContainerValue();
         assignmentContainer.add(assignmentValue);
 
@@ -344,7 +348,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
         PrismContainerValue<AssignmentType> assignmentValue =
                 ObjectTypeUtil.createAssignmentTo("00000001-d34d-b33f-f00d-000000000002", ObjectTypes.ROLE,
-                        getPrismContext())
+                                getPrismContext())
                         .asPrismContainerValue();
         assignmentValue.setId(9999L);
         assignmentContainer.add(assignmentValue);
@@ -452,8 +456,8 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         String OID = "oid1";
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                        .add(ObjectTypeUtil.createAssignmentTo("oid-r", ObjectTypes.ROLE, getPrismContext()))
-                        .delete(new AssignmentType().id(101L), new AssignmentType().id(102L))
+                .delete(new AssignmentType().id(101L), new AssignmentType().id(102L))
+                .add(ObjectTypeUtil.createAssignmentTo("oid-r", ObjectTypes.ROLE, getPrismContext()))
                 .item(UserType.F_ASSIGNMENT, 100L, AssignmentType.F_LIFECYCLE_STATE).replace("draft")
                 .item(UserType.F_GIVEN_NAME).replace("bill")
                 .asObjectDeltaCast(OID);
@@ -481,8 +485,8 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         String OID = "oid1";
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                        .add(ObjectTypeUtil.createAssignmentTo("oid-r", ObjectTypes.ROLE, getPrismContext()))
-                        .delete(new AssignmentType().id(101L), new AssignmentType().id(102L))
+                .delete(new AssignmentType().id(101L), new AssignmentType().id(102L))
+                .add(ObjectTypeUtil.createAssignmentTo("oid-r", ObjectTypes.ROLE, getPrismContext()))
                 .item(UserType.F_ASSIGNMENT, 100L, AssignmentType.F_LIFECYCLE_STATE).replace("draft")
                 .item(UserType.F_ASSIGNMENT, 100L, AssignmentType.F_DESCRIPTION).replace("descr")
                 .item(UserType.F_ASSIGNMENT, 77L, AssignmentType.F_LIFECYCLE_STATE).replace("active")
@@ -516,7 +520,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         }
     }
 
-
     /**
      * Analogy of:
      * MODIFY/replace (credentials/password) + MODIFY/add (credentials/password/metadata)   [MID-4593]
@@ -533,7 +536,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         MetadataType newMetadata = new MetadataType(getPrismContext()).requestorComment("comment");
         ObjectDelta<UserType> userDelta2 = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA)
-                    .add(newMetadata)
+                .add(newMetadata)
                 .asObjectDeltaCast("001");
 
         // WHEN
@@ -551,7 +554,8 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         userDeltaUnion.applyTo(userWithUnion);
         displayValue("userWithUnion after", userWithUnion);
 
-        ObjectDelta<UserType> diff = userWithSeparateDeltas.diff(userWithUnion, EquivalenceStrategy.LITERAL);       // set to isLiteral = false after fixing MID-4688
+        // set to isLiteral = false after fixing MID-4688
+        ObjectDelta<UserType> diff = userWithSeparateDeltas.diff(userWithUnion, EquivalenceStrategy.LITERAL);
         displayValue("diff", diff.debugDump());
         assertTrue("Deltas have different effects:\n" + diff.debugDump(), diff.isEmpty());
     }

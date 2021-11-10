@@ -10,6 +10,7 @@ import static com.querydsl.core.types.dsl.Expressions.stringTemplate;
 
 import static com.evolveum.midpoint.repo.sqale.filtering.ExtensionItemFilterProcessor.*;
 
+import java.util.Objects;
 import java.util.function.Function;
 
 import com.querydsl.core.types.Expression;
@@ -66,6 +67,7 @@ public class ExtensionItemSqlMapper<Q extends FlexibleRelationalPathBase<R>, R>
     @Override
     public @Nullable Expression<?> primaryPath(Q entityPath, ItemDefinition<?> definition)
             throws QueryException {
+        Objects.requireNonNull(definition, "Null definition provided for extension/attributes item.");
         JsonbPath path = rootToExtensionPath.apply(entityPath);
         ExtItemInfo info = new ExtensionProcessor(repositoryContext)
                 .findExtensionItem(definition, holderType);

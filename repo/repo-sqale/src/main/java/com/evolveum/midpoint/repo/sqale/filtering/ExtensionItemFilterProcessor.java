@@ -89,6 +89,8 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
     @Override
     public Predicate process(ValueFilter<?, ?> filter) throws RepositoryException {
         ItemDefinition<?> definition = filter.getDefinition();
+        Objects.requireNonNull(definition,
+                "Item '" + filter.getPath() + "' without definition used in query.");
         MExtItem extItem = new ExtensionProcessor((SqaleRepoContext) context.repositoryContext())
                 .resolveExtensionItem(definition, holderType);
         assert definition != null;
