@@ -13,8 +13,9 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.util.QNameUtil.qNameToUri;
 
 /**
  * @author Vilo Repan
@@ -235,21 +236,21 @@ public abstract class SchemaConstants {
 
     // Synchronization constants
     public static final QName CHANNEL_LIVE_SYNC = new QName(NS_CHANNEL, "liveSync");
-    public static final String CHANNEL_LIVE_SYNC_URI = QNameUtil.qNameToUri(CHANNEL_LIVE_SYNC);
+    public static final String CHANNEL_LIVE_SYNC_URI = qNameToUri(CHANNEL_LIVE_SYNC);
     public static final QName CHANNEL_ASYNC_UPDATE = new QName(NS_CHANNEL, "asyncUpdate");
-    public static final String CHANNEL_ASYNC_UPDATE_URI = QNameUtil.qNameToUri(CHANNEL_ASYNC_UPDATE);
+    public static final String CHANNEL_ASYNC_UPDATE_URI = qNameToUri(CHANNEL_ASYNC_UPDATE);
     public static final QName CHANNEL_RECON = new QName(NS_CHANNEL, "reconciliation");
-    public static final String CHANNEL_RECON_URI = QNameUtil.qNameToUri(CHANNEL_RECON);
+    public static final String CHANNEL_RECON_URI = qNameToUri(CHANNEL_RECON);
     public static final QName CHANNEL_RECOMPUTE = new QName(NS_CHANNEL, "recompute");
-    public static final String CHANNEL_RECOMPUTE_URI = QNameUtil.qNameToUri(CHANNEL_RECOMPUTE);
+    public static final String CHANNEL_RECOMPUTE_URI = qNameToUri(CHANNEL_RECOMPUTE);
     public static final QName CHANNEL_DISCOVERY = new QName(NS_CHANNEL, "discovery");
-    public static final String CHANNEL_DISCOVERY_URI = QNameUtil.qNameToUri(CHANNEL_DISCOVERY);
+    public static final String CHANNEL_DISCOVERY_URI = qNameToUri(CHANNEL_DISCOVERY);
     public static final QName CHANNEL_IMPORT = new QName(NS_CHANNEL, "import");
-    public static final String CHANNEL_IMPORT_URI = QNameUtil.qNameToUri(CHANNEL_IMPORT);
+    public static final String CHANNEL_IMPORT_URI = qNameToUri(CHANNEL_IMPORT);
     public static final QName CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS = new QName(NS_CHANNEL, "delNotUpdatedShadows");
-    public static final String CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS_LEGACY_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS);
+    public static final String CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS_LEGACY_URI = qNameToUri(CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS);
     public static final QName CHANNEL_CLEANUP = new QName(NS_CHANNEL, "cleanup");
-    public static final String CHANNEL_CLEANUP_URI = QNameUtil.qNameToUri(CHANNEL_CLEANUP);
+    public static final String CHANNEL_CLEANUP_URI = qNameToUri(CHANNEL_CLEANUP);
 
     public static final String NS_MODEL = NS_MIDPOINT_PUBLIC + "/model";
 
@@ -258,16 +259,16 @@ public abstract class SchemaConstants {
     public static final String NS_WORKFLOW = NS_MIDPOINT_PUBLIC + "/workflow";
 
     public static final QName CHANNEL_WEB_SERVICE_QNAME = new QName(NS_CHANNEL, "webService");
-    public static final String CHANNEL_WEB_SERVICE_URI = QNameUtil.qNameToUri(CHANNEL_WEB_SERVICE_QNAME);
+    public static final String CHANNEL_WEB_SERVICE_URI = qNameToUri(CHANNEL_WEB_SERVICE_QNAME);
     public static final QName CHANNEL_OBJECT_IMPORT_QNAME = new QName(NS_CHANNEL, "objectImport");
-    public static final String CHANNEL_OBJECT_IMPORT_URI = QNameUtil.qNameToUri(CHANNEL_OBJECT_IMPORT_QNAME);
+    public static final String CHANNEL_OBJECT_IMPORT_URI = qNameToUri(CHANNEL_OBJECT_IMPORT_QNAME);
     public static final String CHANNEL_REST_LOCAL = "rest";
     public static final QName CHANNEL_REST_QNAME = new QName(NS_CHANNEL, CHANNEL_REST_LOCAL);
-    public static final String CHANNEL_REST_URI = QNameUtil.qNameToUri(CHANNEL_REST_QNAME);
+    public static final String CHANNEL_REST_URI = qNameToUri(CHANNEL_REST_QNAME);
     public static final QName CHANNEL_ACTUATOR_QNAME = new QName(NS_CHANNEL, "actuator");
-    public static final String CHANNEL_ACTUATOR_URI = QNameUtil.qNameToUri(CHANNEL_ACTUATOR_QNAME);
+    public static final String CHANNEL_ACTUATOR_URI = qNameToUri(CHANNEL_ACTUATOR_QNAME);
     public static final QName CHANNEL_REMEDIATION_QNAME = new QName(NS_CHANNEL, "remediation");
-    public static final String CHANNEL_REMEDIATION_URI = QNameUtil.qNameToUri(CHANNEL_REMEDIATION_QNAME);
+    public static final String CHANNEL_REMEDIATION_URI = qNameToUri(CHANNEL_REMEDIATION_QNAME);
 
     public static final String NS_MODEL_EXTENSION = NS_MODEL + "/extension-3";
 
@@ -276,80 +277,79 @@ public abstract class SchemaConstants {
     public static final ItemName MODEL_EXTENSION_LIVE_SYNC_ERROR_HANDLING_STRATEGY = new ItemName(NS_MODEL_EXTENSION, "liveSyncErrorHandlingStrategy");
     public static final ItemName MODEL_EXTENSION_UPDATE_LIVE_SYNC_TOKEN_IN_DRY_RUN = new ItemName(NS_MODEL_EXTENSION, "updateLiveSyncTokenInDryRun");
     public static final ItemName MODEL_EXTENSION_LIVE_SYNC_BATCH_SIZE = new ItemName(NS_MODEL_EXTENSION, "liveSyncBatchSize");
-    public static final ItemName MODEL_EXTENSION_FINISH_OPERATIONS_ONLY = new ItemName(NS_MODEL_EXTENSION, "finishOperationsOnly"); // TODO
     public static final ItemName MODEL_EXTENSION_KIND = new ItemName(NS_MODEL_EXTENSION, "kind");
     public static final ItemName MODEL_EXTENSION_INTENT = new ItemName(NS_MODEL_EXTENSION, "intent");
     public static final ItemName MODEL_EXTENSION_OBJECTCLASS = new ItemName(NS_MODEL_EXTENSION, "objectclass");
     public static final ItemName MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME = new ItemName(
             NS_MODEL_EXTENSION, "lastScanTimestamp");
-    public static final ItemName MODEL_EXTENSION_PROFILING_INTERVAL = new ItemName(NS_MODEL_EXTENSION, "profilingInterval"); // TODO
-    public static final ItemName MODEL_EXTENSION_TRACING_INTERVAL = new ItemName(NS_MODEL_EXTENSION, "tracingInterval"); // TODO
-    public static final ItemName MODEL_EXTENSION_TRACING_PROFILE = new ItemName(NS_MODEL_EXTENSION, "tracingProfile"); // TODO
-    public static final ItemName MODEL_EXTENSION_TRACING_ROOT = new ItemName(NS_MODEL_EXTENSION, "tracingRoot"); // TODO
-    public static final ItemName MODEL_EXTENSION_TRACING = new ItemName(NS_MODEL_EXTENSION, "tracing"); // TODO
-    public static final ItemName MODEL_EXTENSION_REPORTING_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "reporting"); // TODO
+    public static final ItemName MODEL_EXTENSION_PROFILING_INTERVAL = new ItemName(NS_MODEL_EXTENSION, "profilingInterval");
+    public static final ItemName MODEL_EXTENSION_TRACING_INTERVAL = new ItemName(NS_MODEL_EXTENSION, "tracingInterval");
+    public static final ItemName MODEL_EXTENSION_TRACING_PROFILE = new ItemName(NS_MODEL_EXTENSION, "tracingProfile");
+    public static final ItemName MODEL_EXTENSION_TRACING_ROOT = new ItemName(NS_MODEL_EXTENSION, "tracingRoot");
+    public static final ItemName MODEL_EXTENSION_TRACING = new ItemName(NS_MODEL_EXTENSION, "tracing");
+    public static final ItemName MODEL_EXTENSION_REPORTING_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "reporting");
 
     public static final ItemName LEGACY_NOT_UPDATED_DURATION_PROPERTY_NAME =
             new ItemName(NS_MODEL_EXTENSION, "notUpdatedShadowsDuration");
 
     public static final String NS_MODEL_DISABLE_REASON = NS_MODEL + "/disableReason";
     public static final String MODEL_DISABLE_REASON_EXPLICIT =
-            QNameUtil.qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "explicit"));
+            qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "explicit"));
     public static final String MODEL_DISABLE_REASON_DEPROVISION =
-            QNameUtil.qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "deprovision"));
+            qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "deprovision"));
     public static final String MODEL_DISABLE_REASON_MAPPED =
-            QNameUtil.qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "mapped"));
+            qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "mapped"));
 
     public static final String NS_MODEL_POLICY = NS_MODEL + "/policy";
     public static final String NS_MODEL_POLICY_SITUATION = NS_MODEL_POLICY + "/situation";
     public static final String MODEL_POLICY_SITUATION_EXCLUSION_VIOLATION =
-            QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "exclusionViolation"));
+            qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "exclusionViolation"));
     public static final String MODEL_POLICY_SITUATION_UNDERASSIGNED =
-            QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "underassigned"));
+            qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "underassigned"));
     public static final String MODEL_POLICY_SITUATION_OVERASSIGNED =
-            QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "overassigned"));
+            qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "overassigned"));
     // should not be used, because it is a transitional constraint
     public static final String MODEL_POLICY_SITUATION_MODIFIED =
-            QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "modified"));
-    public static final String MODEL_POLICY_SITUATION_ASSIGNMENT_MODIFIED = MODEL_POLICY_SITUATION_MODIFIED; // TODO
+            qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "modified"));
+    public static final String MODEL_POLICY_SITUATION_ASSIGNMENT_MODIFIED = MODEL_POLICY_SITUATION_MODIFIED;
     public static final String MODEL_POLICY_SITUATION_HAS_ASSIGNMENT =
-            QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "hasAssignment")); // TODO
+            qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "hasAssignment"));
     public static final String MODEL_POLICY_SITUATION_HAS_NO_ASSIGNMENT =
-            QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "hasNoAssignment")); // TODO
+            qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "hasNoAssignment"));
     public static final String MODEL_POLICY_SITUATION_OBJECT_STATE =
-            QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "objectState")); // TODO
+            qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "objectState"));
     public static final String MODEL_POLICY_SITUATION_ASSIGNMENT_STATE =
-            QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "assignmentState")); // TODO
+            qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "assignmentState"));
     public static final String MODEL_POLICY_SITUATION_TIME_VALIDITY =
-            QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "timeValidity"));
+            qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "timeValidity"));
 
     /**
      * An orphaned task is such that has a parent but that parent does not exist.
      */
     public static final String MODEL_POLICY_SITUATION_ORPHANED =
-            QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "orphaned"));
+            qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "orphaned"));
 
     public static final String NS_MODEL_APPROVAL = NS_MODEL + "/approval";
     public static final String NS_MODEL_APPROVAL_OUTCOME = NS_MODEL_APPROVAL + "/outcome";
     public static final String MODEL_APPROVAL_OUTCOME_APPROVE =
-            QNameUtil.qNameToUri(new QName(NS_MODEL_APPROVAL_OUTCOME, "approve"));
+            qNameToUri(new QName(NS_MODEL_APPROVAL_OUTCOME, "approve"));
     public static final String MODEL_APPROVAL_OUTCOME_REJECT =
-            QNameUtil.qNameToUri(new QName(NS_MODEL_APPROVAL_OUTCOME, "reject"));
+            qNameToUri(new QName(NS_MODEL_APPROVAL_OUTCOME, "reject"));
     public static final String MODEL_APPROVAL_OUTCOME_SKIP =
-            QNameUtil.qNameToUri(new QName(NS_MODEL_APPROVAL_OUTCOME, "skip"));
+            qNameToUri(new QName(NS_MODEL_APPROVAL_OUTCOME, "skip"));
 
     public static final String NS_MODEL_CERTIFICATION = NS_MODEL + "/certification";
     public static final String NS_MODEL_CERTIFICATION_OUTCOME = NS_MODEL_CERTIFICATION + "/outcome";
     public static final QName MODEL_CERTIFICATION_OUTCOME_ACCEPT_QNAME = new QName(NS_MODEL_CERTIFICATION_OUTCOME, "accept");
-    public static final String MODEL_CERTIFICATION_OUTCOME_ACCEPT = QNameUtil.qNameToUri(MODEL_CERTIFICATION_OUTCOME_ACCEPT_QNAME);
+    public static final String MODEL_CERTIFICATION_OUTCOME_ACCEPT = qNameToUri(MODEL_CERTIFICATION_OUTCOME_ACCEPT_QNAME);
     public static final QName MODEL_CERTIFICATION_OUTCOME_REVOKE_QNAME = new QName(NS_MODEL_CERTIFICATION_OUTCOME, "revoke");
-    public static final String MODEL_CERTIFICATION_OUTCOME_REVOKE = QNameUtil.qNameToUri(MODEL_CERTIFICATION_OUTCOME_REVOKE_QNAME);
+    public static final String MODEL_CERTIFICATION_OUTCOME_REVOKE = qNameToUri(MODEL_CERTIFICATION_OUTCOME_REVOKE_QNAME);
     public static final QName MODEL_CERTIFICATION_OUTCOME_REDUCE_QNAME = new QName(NS_MODEL_CERTIFICATION_OUTCOME, "reduce");
-    public static final String MODEL_CERTIFICATION_OUTCOME_REDUCE = QNameUtil.qNameToUri(MODEL_CERTIFICATION_OUTCOME_REDUCE_QNAME);
+    public static final String MODEL_CERTIFICATION_OUTCOME_REDUCE = qNameToUri(MODEL_CERTIFICATION_OUTCOME_REDUCE_QNAME);
     public static final QName MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED_QNAME = new QName(NS_MODEL_CERTIFICATION_OUTCOME, "notDecided");
-    public static final String MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED = QNameUtil.qNameToUri(MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED_QNAME);
+    public static final String MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED = qNameToUri(MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED_QNAME);
     public static final QName MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE_QNAME = new QName(NS_MODEL_CERTIFICATION_OUTCOME, "noResponse");
-    public static final String MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE = QNameUtil.qNameToUri(MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE_QNAME);        // only for aggregated decisions
+    public static final String MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE = qNameToUri(MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE_QNAME);        // only for aggregated decisions
 
     public static final ItemName MODEL_EXTENSION_OBJECT_TYPE = new ItemName(NS_MODEL_EXTENSION, "objectType"); // TODO DeleteTaskHandler + iterative scripting policy rule
     public static final ItemName MODEL_EXTENSION_OBJECT_QUERY = new ItemName(NS_MODEL_EXTENSION, "objectQuery"); // TODO DeleteTaskHandler + iter. scripting rule + reconcile affected
@@ -396,24 +396,24 @@ public abstract class SchemaConstants {
 
     // Init channel, used when system is initializing itself
     public static final QName CHANNEL_INIT_QNAME = new QName(NS_CHANNEL, "init");
-    public static final String CHANNEL_INIT_URI = QNameUtil.qNameToUri(CHANNEL_INIT_QNAME);
+    public static final String CHANNEL_INIT_URI = qNameToUri(CHANNEL_INIT_QNAME);
 
     public static final QName CHANNEL_SELF_REGISTRATION_QNAME = new QName(NS_CHANNEL, "selfRegistration");
-    public static final String CHANNEL_SELF_REGISTRATION_URI = QNameUtil.qNameToUri(CHANNEL_SELF_REGISTRATION_QNAME);
+    public static final String CHANNEL_SELF_REGISTRATION_URI = qNameToUri(CHANNEL_SELF_REGISTRATION_QNAME);
 
     // Channel for self-service part of the user interface. These are the pages when user is changing his own data.
     // E.g. update of his own profile and password change are considered to be self-service.
     public static final QName CHANNEL_SELF_SERVICE_QNAME = new QName(NS_CHANNEL, "selfService");
-    public static final String CHANNEL_SELF_SERVICE_URI = QNameUtil.qNameToUri(CHANNEL_SELF_SERVICE_QNAME);
+    public static final String CHANNEL_SELF_SERVICE_URI = qNameToUri(CHANNEL_SELF_SERVICE_QNAME);
 
     // Password reset channel. This is *reset*, which means that the user does not know the old password and cannot log in.
     public static final QName CHANNEL_RESET_PASSWORD_QNAME = new QName(NS_CHANNEL, "resetPassword");
-    public static final String CHANNEL_RESET_PASSWORD_URI = QNameUtil.qNameToUri(CHANNEL_RESET_PASSWORD_QNAME);
+    public static final String CHANNEL_RESET_PASSWORD_URI = qNameToUri(CHANNEL_RESET_PASSWORD_QNAME);
 
     // Catch-all channel for all user operations in user interface.
     public static final String CHANNEL_USER_LOCAL = "user";
     public static final QName CHANNEL_USER_QNAME = new QName(NS_CHANNEL, "user");
-    public static final String CHANNEL_USER_URI = QNameUtil.qNameToUri(CHANNEL_USER_QNAME);
+    public static final String CHANNEL_USER_URI = qNameToUri(CHANNEL_USER_QNAME);
 
     //GUI constants which are also used in the notifiers
     public static final String REGISTRATION_CONFIRMATION_PREFIX = "/confirm/registration";
@@ -433,7 +433,7 @@ public abstract class SchemaConstants {
     public static final String NS_ICF_CONFIGURATION = ICF_FRAMEWORK_URI + "/connector-schema-3";
     public static final String NS_ICF_SUBTYPES = ICF_FRAMEWORK_URI + "/subtypes";
     public static final QName ICF_SUBTYPES_POLYSTRING_QNAME = new QName(NS_ICF_SUBTYPES, "PolyString");
-    public static final String ICF_SUBTYPES_POLYSTRING_URI = QNameUtil.qNameToUri(ICF_SUBTYPES_POLYSTRING_QNAME);
+    public static final String ICF_SUBTYPES_POLYSTRING_URI = qNameToUri(ICF_SUBTYPES_POLYSTRING_QNAME);
     public static final ItemName ICF_CONFIGURATION_PROPERTIES = new ItemName(NS_ICF_CONFIGURATION,
             "configurationProperties");
 
@@ -514,31 +514,31 @@ public abstract class SchemaConstants {
      * as a tree then this collection will be displayed as a tree.
      */
     public static final QName OBJECT_COLLECTION_ROLE_CATALOG_QNAME = new QName(NS_OBJECT_COLLECTIONS, "roleCatalog");
-    public static final String OBJECT_COLLECTION_ROLE_CATALOG_URI = QNameUtil.qNameToUri(OBJECT_COLLECTION_ROLE_CATALOG_QNAME);
+    public static final String OBJECT_COLLECTION_ROLE_CATALOG_URI = qNameToUri(OBJECT_COLLECTION_ROLE_CATALOG_QNAME);
 
     /**
      * Collection that contains all roles.
      */
     public static final QName OBJECT_COLLECTION_ALL_ROLES_QNAME = new QName(NS_OBJECT_COLLECTIONS, "allRoles");
-    public static final String OBJECT_COLLECTION_ALL_ROLES_URI = QNameUtil.qNameToUri(OBJECT_COLLECTION_ALL_ROLES_QNAME);
+    public static final String OBJECT_COLLECTION_ALL_ROLES_URI = qNameToUri(OBJECT_COLLECTION_ALL_ROLES_QNAME);
 
     /**
      * Collection that contains all orgs.
      */
     public static final QName OBJECT_COLLECTION_ALL_ORGS_QNAME = new QName(NS_OBJECT_COLLECTIONS, "allOrgs");
-    public static final String OBJECT_COLLECTION_ALL_ORGS_URI = QNameUtil.qNameToUri(OBJECT_COLLECTION_ALL_ORGS_QNAME);
+    public static final String OBJECT_COLLECTION_ALL_ORGS_URI = qNameToUri(OBJECT_COLLECTION_ALL_ORGS_QNAME);
 
     /**
      * Collection that contains all services.
      */
     public static final QName OBJECT_COLLECTION_ALL_SERVICES_QNAME = new QName(NS_OBJECT_COLLECTIONS, "allServices");
-    public static final String OBJECT_COLLECTION_ALL_SERVICES_URI = QNameUtil.qNameToUri(OBJECT_COLLECTION_ALL_SERVICES_QNAME);
+    public static final String OBJECT_COLLECTION_ALL_SERVICES_URI = qNameToUri(OBJECT_COLLECTION_ALL_SERVICES_QNAME);
 
     /**
      * Collection that contains user's assignments.
      */
     public static final QName OBJECT_COLLECTION_USER_ASSIGNMENTS_QNAME = new QName(NS_OBJECT_COLLECTIONS, "userAssignments");
-    public static final String OBJECT_COLLECTION_USER_ASSIGNMENTS_URI = QNameUtil.qNameToUri(OBJECT_COLLECTION_USER_ASSIGNMENTS_QNAME);
+    public static final String OBJECT_COLLECTION_USER_ASSIGNMENTS_URI = qNameToUri(OBJECT_COLLECTION_USER_ASSIGNMENTS_QNAME);
 
     // Misc
 
@@ -592,14 +592,14 @@ public abstract class SchemaConstants {
     // diagnostic information types
 
     public static final QName TASK_THREAD_DUMP = new QName(NS_C, "taskThreadDump");
-    public static final String TASK_THREAD_DUMP_URI = QNameUtil.qNameToUri(TASK_THREAD_DUMP);
+    public static final String TASK_THREAD_DUMP_URI = qNameToUri(TASK_THREAD_DUMP);
 
     // diagnostic information causes
 
     public static final QName USER_REQUEST = new QName(NS_C, "userRequest");
-    public static final String USER_REQUEST_URI = QNameUtil.qNameToUri(USER_REQUEST);
+    public static final String USER_REQUEST_URI = qNameToUri(USER_REQUEST);
     public static final QName INTERNAL = new QName(NS_C, "internal");
-    public static final String INTERNAL_URI = QNameUtil.qNameToUri(INTERNAL);
+    public static final String INTERNAL_URI = qNameToUri(INTERNAL);
 
     public static final String TRACE_DICTIONARY_PREFIX = "#dictionary#";
 

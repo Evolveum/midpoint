@@ -62,7 +62,6 @@
             <xsd:element ref="tns:retryLiveSyncErrors" minOccurs="0"/>
             <xsd:element ref="tns:liveSyncErrorHandlingStrategy" minOccurs="0"/>
             <xsd:element ref="tns:updateLiveSyncTokenInDryRun" minOccurs="0"/>
-            <xsd:element ref="tns:finishOperationsOnly" minOccurs="0"/>
             <xsd:element ref="tns:lastScanTimestamp" minOccurs="0"/>
             <xsd:element ref="tns:lastReconciliationStartTimestamp" minOccurs="0"/>
             <xsd:element ref="tns:objectQuery" minOccurs="0"/>
@@ -200,21 +199,6 @@
                 <a:maxOccurs>1</a:maxOccurs>
                 <a:experimental>true</a:experimental>
                 <a:since>4.0</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-    </xsd:element>
-
-    <xsd:element name="finishOperationsOnly" type="xsd:boolean">
-        <xsd:annotation>
-            <xsd:documentation>
-               TODO. EXPERIMENTAL.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <!--<a:displayName>Dry run</a:displayName>-->
-                <!--<a:displayOrder>800</a:displayOrder>-->
-                <a:displayName>TaskExtension.finishOperationsOnly</a:displayName>
-                <a:minOccurs>0</a:minOccurs>
-                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>

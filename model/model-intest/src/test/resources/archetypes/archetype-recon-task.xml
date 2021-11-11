@@ -22,10 +22,6 @@
             <c:path>extension/mext:objectQuery</c:path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
-            <c:path>extension/mext:finishOperationsOnly</c:path>
-            <visibility>visible</visibility>
-        </itemConstraint>
         <adminGuiConfiguration>
             <objectDetails>
                 <type>c:TaskType</type>
@@ -45,9 +41,6 @@
                         <display>
                             <label>ReconciliationTask.reconciliationOptions</label>
                         </display>
-                        <item>
-                            <c:path>extension/mext:finishOperationsOnly</c:path>
-                        </item>
                     </container>
                 </panel>
             </objectDetails>

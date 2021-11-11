@@ -48,10 +48,6 @@
             <visibility>visible</visibility>
         </itemConstraint>
         <itemConstraint>
-            <path>extension/mext:finishOperationsOnly</path>
-            <visibility>visible</visibility>
-        </itemConstraint>
-        <itemConstraint>
             <path>extension/mext:dryRun</path>
             <visibility>visible</visibility>
         </itemConstraint>
@@ -96,9 +92,6 @@
                     </display>
                     <item>
                         <c:path>extension/mext:workerThreads</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:finishOperationsOnly</c:path>
                     </item>
                     <item>
                         <c:path>extension/mext:dryRun</c:path>
