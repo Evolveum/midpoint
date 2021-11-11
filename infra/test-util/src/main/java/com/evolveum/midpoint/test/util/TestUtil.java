@@ -595,8 +595,8 @@ public class TestUtil {
             assertPermission(f, configPermissions, PosixFilePermission.OWNER_READ);
             assertPermission(f, configPermissions, PosixFilePermission.OWNER_WRITE);
             assertNoPermission(f, configPermissions, PosixFilePermission.OWNER_EXECUTE);
-            assertPermission(f, configPermissions, PosixFilePermission.GROUP_READ);
-            assertPermission(f, configPermissions, PosixFilePermission.GROUP_WRITE);
+            assertNoPermission(f, configPermissions, PosixFilePermission.GROUP_READ);
+            assertNoPermission(f, configPermissions, PosixFilePermission.GROUP_WRITE);
             assertNoPermission(f, configPermissions, PosixFilePermission.GROUP_EXECUTE);
             assertNoPermission(f, configPermissions, PosixFilePermission.OTHERS_READ);
             assertNoPermission(f, configPermissions, PosixFilePermission.OTHERS_WRITE);
