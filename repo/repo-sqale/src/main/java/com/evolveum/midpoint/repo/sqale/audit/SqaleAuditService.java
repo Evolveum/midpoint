@@ -641,10 +641,8 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
 
                 // filterAnd() is quite null safe, even for both nulls
                 ObjectFilter originalFilter = originalQuery != null ? originalQuery.getFilter() : null;
-                pagedQuery.setFilter(ObjectQueryUtil.filterAnd(
-                        originalFilter,
-                        iterativeSearchCondition(lastProcessedObject, providedOrdering),
-                        prismContext()));
+                pagedQuery.setFilter(ObjectQueryUtil.filterAndImmutable(
+                        originalFilter, iterativeSearchCondition(lastProcessedObject, providedOrdering)));
 
                 // we don't call public searchObject to avoid subresults and query simplification
                 logSearchInputParameters(AuditEventRecordType.class, pagedQuery, "Search audit iterative page");
