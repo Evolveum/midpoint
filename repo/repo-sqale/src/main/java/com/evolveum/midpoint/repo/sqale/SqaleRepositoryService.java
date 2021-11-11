@@ -160,7 +160,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } catch (RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -245,7 +245,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } catch (RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -333,7 +333,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -449,6 +449,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type.getName())
                 .addParam("oid", oid)
+                .addParam("options", String.valueOf(options))
                 .addArbitraryObjectCollectionAsParam("modifications", modifications)
                 .build();
 
@@ -457,7 +458,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -481,8 +482,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             RootUpdateContext<T, QObject<MObject>, MObject> updateContext =
                     prepareUpdateContext(jdbcSession, type, modifications, oidUuid, options);
 
-            ModifyObjectResult<T> rv = modifyObjectInternal(updateContext, modifications,
-                    precondition, options, parentResult);
+            ModifyObjectResult<T> rv = modifyObjectInternal(
+                    updateContext, modifications, precondition, options, parentResult);
             jdbcSession.commit();
             return rv;
         } finally {
@@ -507,6 +508,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_MODIFY_OBJECT_DYNAMICALLY)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type.getName())
+                .addParam("getOptions", String.valueOf(getOptions))
+                .addParam("modifyOptions", String.valueOf(modifyOptions))
                 .addParam("oid", oid)
                 .build();
 
@@ -520,7 +523,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -558,8 +561,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             Collection<? extends ItemDelta<?, ?>> modifications =
                     modificationsSupplier.get(object.asObjectable());
 
-            ModifyObjectResult<T> rv = modifyObjectInternal(updateContext,
-                    modifications, null, modifyOptions, parentResult);
+            ModifyObjectResult<T> rv = modifyObjectInternal(
+                    updateContext, modifications, null, modifyOptions, parentResult);
             jdbcSession.commit();
             return rv;
         } catch (PreconditionViolationException e) {
@@ -766,7 +769,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } catch (RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -839,7 +842,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -890,7 +893,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -982,7 +985,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -1194,7 +1197,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -1244,7 +1247,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -1357,7 +1360,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } catch (RepositoryException | RuntimeException | SchemaException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -1381,7 +1384,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } catch (RepositoryException | RuntimeException | SchemaException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -1472,7 +1475,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } catch (RepositoryException | RuntimeException | SchemaException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -1618,7 +1621,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             operationResult.addReturn("database-round-trip-ms", System.currentTimeMillis() - startMs);
             operationResult.recordSuccess();
         } catch (Exception e) {
-            operationResult.recordFatalError(e);
+            recordFatalError(operationResult, e);
         } finally {
             operationResult.computeStatusIfUnknown();
         }
@@ -1677,7 +1680,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
             operationResult.recordSuccess();
         } catch (Exception e) {
-            operationResult.recordFatalError(e);
+            recordFatalError(operationResult, e);
         } finally {
             operationResult.computeStatusIfUnknown();
         }
@@ -1715,7 +1718,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } catch (SchemaException | RepositoryException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -1939,7 +1942,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             operationResult.addReturn("hasConflict", rv);
             return rv;
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();

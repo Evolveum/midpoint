@@ -25,7 +25,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
 
 /**
- * Filter processor for a an attribute path (Prism item) of a timestamp type.
+ * Filter processor for an attribute path (Prism item) of a timestamp type.
  * Should support conversion of filter value types {@link XMLGregorianCalendar}
  * (what else do we want?) to paths of {@link Instant}, {@link Timestamp} and {@link Long}.
  */

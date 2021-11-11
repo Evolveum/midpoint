@@ -104,7 +104,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         } catch (RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -377,7 +377,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         } catch (RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -427,7 +427,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         } catch (RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -487,7 +487,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -530,7 +530,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -579,7 +579,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();

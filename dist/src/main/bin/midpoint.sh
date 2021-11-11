@@ -25,7 +25,7 @@ ENV_MAP_PREFIX="MP_SET_"
 set -eu
 
 if [[ -z ${1:-} ]]; then
-  echo "Usage: midpoint.sh start|stop [other args...]"
+  echo "Usage: midpoint.sh start|stop|generate|init-native [other args...]"
   exit 1
 fi
 
@@ -34,6 +34,54 @@ BASE_DIR=$(cd "${SCRIPT_DIR}/.." && pwd -P)
 
 # setting default to MIDPOINT_HOME if not set
 : "${MIDPOINT_HOME:="${BASE_DIR}/var"}"
+
+if [ "${1}" = "init-native" ] ; then
+	echo "Initializing native structure of the db..."
+	if [ "${MP_INIT_DB:-}" = "" ] ; then
+		echo "MP_INIT_DB variable with target for DB init files was not set - skipping db init file processing..."
+	else
+		if [ "${MP_INIT_DB_CONCAT:-}" = "" ] ; then
+			if [ -e "${BASE_DIR}/doc/config/sql/native-new" ] ; then
+				find "${BASE_DIR}/doc/config/sql/native-new/" -type f -name "postgres-new*.sql" ! -name "postgres-new-upgrade.sql" -exec cp \{\} "${MP_INIT_DB}/" \;
+			else
+				echo "Location with sql init structure have not been found..."
+				exit 1
+			fi
+		else
+			if [ -e "${BASE_DIR}/doc/config/sql/native-new" ] ; then
+
+				[ -e "${BASE_DIR}/doc/config/sql/native-new/postgres-new.sql" ] && \
+					cp "${BASE_DIR}/doc/config/sql/native-new/postgres-new.sql" "${MP_INIT_DB}/init.sql"
+				[ -e "${BASE_DIR}/doc/config/sql/native-new/postgres-new-audit.sql" ] && \
+					cat "${BASE_DIR}/doc/config/sql/native-new/postgres-new-audit.sql" >> "${MP_INIT_DB}/init.sql"
+				[ -e "${BASE_DIR}/doc/config/sql/native-new/postgres-new-quartz.sql" ] && \
+					cat "${BASE_DIR}/doc/config/sql/native-new/postgres-new-quartz.sql" >> "${MP_INIT_DB}/init.sql"
+			else
+                                echo "Location with sql init structure have not been found..."
+                                exit 1
+                        fi
+
+		fi
+	fi
+	if [ "${MP_INIT_CFG:-}" = "" ] ; then
+		echo "MP_INIT_CFG variable with target for config.xml was not set - skipping config.xml file processing..."
+        else
+                if [ -e "${BASE_DIR}/doc/config/config-native.xml" ] ; then
+                        cp "${BASE_DIR}/doc/config/config-native.xml" ${MP_INIT_CFG}/config.xml
+                else
+                        echo "Location with config.xml have not been found..."
+                        exit 1
+                fi
+        fi
+	if [ "${MP_INIT_LOOP:-}" = "" ] ; then
+		echo "All requested operation has been done - init files are ready on requested location..."
+	else
+		echo "All requested operation has been done - init files are ready on requested location..."
+		echo "Looping to keep kontainer UP"
+		tail -f /dev/null
+	fi
+	exit 0
+fi	
 
 mkdir -p "${MIDPOINT_HOME}/log"
 
@@ -50,19 +98,19 @@ ORIG_JAVA_OPTS="${JAVA_OPTS:-}"
 
 if [ "${MP_ENTRY_POINT:-}" != "" ]	# /opt/midpoint-dirs-docker-entrypoint
 then
-	if [ -e ${MP_ENTRY_POINT} ]
+	if [ -e "${MP_ENTRY_POINT}" ]
 	then
 		echo "Processing ${MP_ENTRY_POINT} directory..."
-		for i in $( find ${MP_ENTRY_POINT} -mindepth 1 -maxdepth 1 -type d )
+		for i in $( find "${MP_ENTRY_POINT}" -mindepth 1 -maxdepth 1 -type d )
 		do
-			l_name=$(basename ${i})
-			[ ! -e ${MIDPOINT_HOME}/${l_name} ] && mkdir -p ${MIDPOINT_HOME}/${l_name}
-			for s in $( find ${i} -mindepth 1 -maxdepth 1 -type f -follow -exec basename \{\} \; )
+			l_name="$(basename "${i}")"
+			[ ! -e "${MIDPOINT_HOME}/${l_name}" ] && mkdir -p "${MIDPOINT_HOME}/${l_name}"
+			for s in $( find "${i}" -mindepth 1 -maxdepth 1 -type f -follow -exec basename \{\} \; )
 			do
-				if [ ! -e ${MIDPOINT_HOME}/${l_name}/${s} -a ! -e ${MIDPOINT_HOME}/${l_name}/${s}.done ]
+				if [ ! -e "${MIDPOINT_HOME}/${l_name}/${s}" -a ! -e "${MIDPOINT_HOME}/${l_name}/${s}.done" ]
 				then
 					echo "COPY ${i}/${s} => ${MIDPOINT_HOME}/${l_name}/${s}"
-					cp ${i}/${s} ${MIDPOINT_HOME}/${l_name}/${s}
+					cp "${i}/${s}" "${MIDPOINT_HOME}/${l_name}/${s}"
 				else
 					echo "SKIP: ${i}/${s}"
 				fi
@@ -153,9 +201,9 @@ do
 
         if [ "${_key:0:1}" = "." ]
 	then
-		JAVA_OPTS="${JAVA_OPTS:-} -D${_key:1}=${_val}"
+		JAVA_OPTS="${JAVA_OPTS:-} -D${_key:1}=\"${_val}\""
 	else
-		JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-D${_key}=[^[:space:]]*//") -D${_key}=${_val}"
+		JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/ -D${_key}=\"[^\"]*\"//g;s/ -D${_key}=[^[:space:]]*//g") -D${_key}=\"${_val}\""
 	fi
 done < <(env | grep "^${ENV_MAP_PREFIX}")
 
@@ -242,26 +290,31 @@ fi
 # https://docs.evolveum.com/midpoint/install/systemd/
 #############################################################
 
-if [ "${MP_GEN_SYSTEMD:-}" != "" ]
+if [ "${MP_GEN_SYSTEMD:-}" != "" -o "${1}" = "generate" ]
 then
 	JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-genSystemd//" | tr -s [[:space:]] " " | sed "s/^[[:space:]]//;s/[[:space:]]$//" )"
 	echo "Place following content to /etc/systemd/system/midpoint.service file" >&2
-	echo "MP_GEN_SYSTEMD=1 ${0} ${@} | sudo tee /etc/systemd/system/midpoint.service" >&2
+	[ "${MP_GEN_SYSTEMD:-}" != "" ] && echo "MP_GEN_SYSTEMD=1 ${0} ${@} | sudo tee /etc/systemd/system/midpoint.service" >&2
+	[ "${1:-}" = "generate" ] && echo "${0} ${@} | sudo tee /etc/systemd/system/midpoint.service" >&2
+	[ "${1}" = "generate" ] && shift
 	echo >&2
-	cat << EOF
-[Unit]
+	userToUse="${MP_USER:-$(whoami)}"
+	output="[Unit]
 Description=MidPoint Standalone Service
 ###Requires=postgresql.service
 ###After=postgresql.service
+
 [Service]
-User=${MP_USER:-midpoint}
+User=${userToUse:-midpoint}
 WorkingDirectory=${BASE_DIR}
-ExecStart="${_RUNJAVA}" ${JAVA_OPTS} -jar "${BASE_DIR}/lib/midpoint.war" "$@"
+ExecStart=\"${_RUNJAVA}\" ${JAVA_OPTS} -jar \"${BASE_DIR}/lib/midpoint.war\" \"$@\"
 SuccessExitStatus=143
 ###TimeoutStopSec=120s
+
 [Install]
 WantedBy=multi-user.target
-EOF
+"
+	echo -n "${output}" | sed "s/\" \"\"/\"/g" | grep -v "^#"
 	echo >&2
 	echo -e "sudo systemctl daemon-reload\nsudo systemctl enable midpoint\nsudo systemctl start midpoint" >&2
 	exit 0
