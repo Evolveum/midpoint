@@ -35,7 +35,6 @@ import com.evolveum.midpoint.init.interpol.HostnameLookup;
 import com.evolveum.midpoint.init.interpol.RandomLookup;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.SystemUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;

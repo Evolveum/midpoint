@@ -1,21 +1,31 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.page.admin.resources;
+
+import java.io.IOException;
+
+import org.apache.commons.configuration2.Configuration;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
+import com.evolveum.midpoint.init.SystemUtil;
 import com.evolveum.midpoint.model.api.DataModelVisualizer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.SystemUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -29,31 +39,18 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceVisualizationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import org.apache.commons.configuration2.Configuration;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
-
-/**
- * @author mederly
- */
 @PageDescriptor(
         urls = {
                 @Url(mountUrl = "/admin/resources/visualization")
         },
         action = {
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
-                label = "PageAdminResources.auth.resourcesAll.label",
-                description = "PageAdminResources.auth.resourcesAll.description"),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCE_EDIT_URL,
-                label = "PageResourceWizard.auth.resource.label",
-                description = "PageResourceWizard.auth.resource.description")})
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
+                        label = "PageAdminResources.auth.resourcesAll.label",
+                        description = "PageAdminResources.auth.resourcesAll.description"),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCE_EDIT_URL,
+                        label = "PageResourceWizard.auth.resource.label",
+                        description = "PageResourceWizard.auth.resource.description") })
 public class PageResourceVisualization extends PageAdmin {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageResourceVisualization.class);
@@ -75,7 +72,7 @@ public class PageResourceVisualization extends PageAdmin {
 
     public PageResourceVisualization(@NotNull PrismObject<ResourceType> resourceObject) {
         this.resourceObject = resourceObject;
-        this.visualizationModel = new NonEmptyLoadableModel<ResourceVisualizationDto>(false) {
+        this.visualizationModel = new NonEmptyLoadableModel<>(false) {
             @NotNull
             @Override
             protected ResourceVisualizationDto load() {
@@ -85,15 +82,9 @@ public class PageResourceVisualization extends PageAdmin {
         initLayout();
     }
 
-
     @Override
     protected IModel<String> createPageTitleModel() {
-        return new IModel<String>() {
-            @Override
-            public String getObject() {
-                return getString("PageResourceVisualization.title", resourceObject.getName());
-            }
-        };
+        return () -> getString("PageResourceVisualization.title", resourceObject.getName());
     }
 
     @NotNull
@@ -105,7 +96,7 @@ public class PageResourceVisualization extends PageAdmin {
         try {
             resourceObject.revive(getPrismContext());
             dot = getModelDiagnosticService().exportDataModel(resourceObject.asObjectable(), DataModelVisualizer.Target.DOT, task, result);
-        } catch (CommonException|RuntimeException e) {
+        } catch (CommonException | RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't export the data model for {}", e, ObjectTypeUtil.toShortString(resourceObject));
             showResult(result);
             throw redirectBackViaRestartResponseException();
@@ -122,14 +113,14 @@ public class PageResourceVisualization extends PageAdmin {
         try {
             SystemUtil.executeCommand(renderer, dot, output, -1);
             return new ResourceVisualizationDto(dot, output.toString(), null);
-        } catch (IOException|RuntimeException e) {
+        } catch (IOException | RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute SVG renderer command: {}", e, renderer);
             return new ResourceVisualizationDto(dot, null, e);
         }
     }
 
     private void initLayout() {
-        MidpointForm form = new MidpointForm(ID_FORM);
+        MidpointForm<?> form = new MidpointForm<>(ID_FORM);
         add(form);
 
         WebMarkupContainer dotContainer = new WebMarkupContainer(ID_DOT_CONTAINER);
@@ -141,7 +132,7 @@ public class PageResourceVisualization extends PageAdmin {
         });
         form.add(dotContainer);
 
-        TextArea<String> dot = new TextArea<>(ID_DOT, new PropertyModel<String>(visualizationModel, ResourceVisualizationDto.F_DOT));
+        TextArea<String> dot = new TextArea<>(ID_DOT, new PropertyModel<>(visualizationModel, ResourceVisualizationDto.F_DOT));
         dotContainer.add(dot);
 
         Label error = new Label(ID_ERROR, new PropertyModel<String>(visualizationModel, ResourceVisualizationDto.F_EXCEPTION_AS_STRING));
@@ -170,6 +161,4 @@ public class PageResourceVisualization extends PageAdmin {
         };
         form.add(back);
     }
-
-
 }
