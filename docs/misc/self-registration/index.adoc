@@ -85,6 +85,12 @@ For this newly created user, lifecycle state is set to the draft.
 Until user doesn't confirm his/her registration it cannot do anything, it is disabled and no roles are assigned.
 After confirmation, specified default roles are assigned to the user.
 
+[WARNING]
+.Deprecated From MidPoint 4.1 and will be removed in 4.5
+====
+Configuration attribute '_securityPolicy/authentication/mailAuthentication_' is deprecated. Please use _xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]_ for configuration of authentication sequence for self registration and set name of authentication sequence to _additionalAuthenticationName_.
+====
+
 
 == Self Post-Registration (or Invite) For Existing Users in MidPoint
 
@@ -143,10 +149,43 @@ After user successfully confirms the registration, default roles are assigned to
    </authentication>
 ----
 
-Authentication part contains configuration for the method used for registration confirmation.
-Example above uses mail authentication which means that the user receives the mail with the confirmation link.
-After clicking on the link in the mail midPoint tries to confirm the user, confirmation rules are configured using attribute mailNonce.
+[WARNING]
+.Deprecated From MidPoint 4.1 and will be removed in 4.5
+====
+Configuration attribute '_securityPolicy/authentication/mailAuthentication_' is deprecated. Please use _xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]_.
+====
 
+[source, xml]
+----
+<authentication>
+    <modules>
+    ...
+        <mailNonce>
+            <name>MailNonce</name>
+            <description> Authentication based on mail message with a nonce. Used for user registration.</description>
+            <credentialName>mailNonce</credentialName>
+        </mailNonce>
+     </modules>
+     ...
+     <sequence>
+        <name>selfRegistrationAuth</name>
+        <description>Just a nonce mail to validate e-mail address.</description>
+        <channel>
+            <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#selfRegistration</channelId>
+            <urlSuffix>selfReg</urlSuffix>
+        </channel>
+        <module>
+            <name>MailNonce</name>
+            <order>10</order>
+            <necessity>sufficient</necessity>
+        </module>
+     </sequence>
+</authentication>
+----
+
+Authentication part contains configuration for the method used for registration confirmation.
+Examples above uses mail authentication which means that the user receives the mail with the confirmation link.
+After clicking on the link in the mail midPoint tries to confirm the user.
 
 === Credentials Part
 
