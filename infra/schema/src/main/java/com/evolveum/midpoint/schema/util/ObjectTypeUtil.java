@@ -1190,4 +1190,10 @@ public class ObjectTypeUtil {
                 .map(Objectable::getOid)
                 .collect(Collectors.toList());
     }
+
+    public static List<String> getOidsFromPrismObjects(List<? extends PrismObject<?>> prismObjects) {
+        return prismObjects.stream()
+                .map(PrismObject::getOid)
+                .collect(Collectors.toList());
+    }
 }

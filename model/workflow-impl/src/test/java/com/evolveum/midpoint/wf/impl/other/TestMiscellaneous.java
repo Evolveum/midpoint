@@ -655,7 +655,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         assertThat(closedCasesAfter).as("closed cases after").hasSize(2 + indestructibleRootChildren.size());
         assertThat(selectOids(closedCasesAfter))
                 .as("OIDs of closed cases after")
-                .containsExactlyElementsOf(
+                .containsExactlyInAnyOrderElementsOf(
                         selectOids(
                                 List.of(indestructibleRoot),
                                 indestructibleRootChildren,

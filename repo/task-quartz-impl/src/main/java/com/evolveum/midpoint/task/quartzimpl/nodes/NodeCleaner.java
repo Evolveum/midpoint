@@ -13,6 +13,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +33,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DeadNodeCleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
+import java.util.function.Predicate;
+
 /** TODO merge with some relevant class */
 @Component
 public class NodeCleaner {
@@ -40,7 +43,13 @@ public class NodeCleaner {
     @Autowired private ClusterManager clusterManager;
     @Autowired private RepositoryService repositoryService;
 
-    public void cleanupNodes(DeadNodeCleanupPolicyType policy, RunningTask task, OperationResult result)
+    /**
+     * Cleans up dead nodes older than specified age.
+     *
+     * @param selector If returns false, the respective node will not be removed.
+     */
+    public void cleanupNodes(@NotNull DeadNodeCleanupPolicyType policy, @NotNull Predicate<NodeType> selector,
+            @NotNull RunningTask task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         if (policy.getMaxAge() == null) {
             return;
@@ -61,17 +70,24 @@ public class NodeCleaner {
                     !clusterManager.isCheckingIn(node.asObjectable()) &&
                     XmlTypeConverter.compareMillis(node.asObjectable().getLastCheckInTime(), deleteNodesNotCheckedInAfter) <= 0) {
 
-                if (ObjectTypeUtil.isIndestructible(node)) {
-                    LOGGER.debug("Not deleting dead but indestructible node {}", node);
-                    continue;
-                }
-
                 // This includes last check in time == null
                 LOGGER.info("Deleting dead node {}; last check in time = {}", node, node.asObjectable().getLastCheckInTime());
                 IterativeOperationStartInfo iterativeOperationStartInfo = new IterativeOperationStartInfo(new IterationItemInformation(node));
                 iterativeOperationStartInfo.setProgressCollector(task); // TODO
                 Operation op = task.recordIterativeOperationStart(iterativeOperationStartInfo);
+                if (ObjectTypeUtil.isIndestructible(node)) {
+                    LOGGER.debug("Not deleting dead but indestructible node {}", node);
+                    op.skipped();
+                    continue;
+                }
+
                 try {
+                    // Selector testing is in try-catch because of possible exceptions during autz evaluation
+                    if (!selector.test(node.asObjectable())) {
+                        LOGGER.debug("Not deleting node {} because it was rejected by the selector", node);
+                        op.skipped();
+                        continue;
+                    }
                     repositoryService.deleteObject(NodeType.class, node.getOid(), result);
                     op.succeeded();
                 } catch (Throwable t) {

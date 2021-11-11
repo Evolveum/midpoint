@@ -7,8 +7,8 @@
   -->
 <task oid="08f630d0-0459-49c7-9c70-a813ba2e9da6"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>Cleanup</name>
-    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <name>cleanup-new-limited</name>
+    <ownerRef oid="da14f7bc-f6ba-4f40-90d4-816e0e37f252"/>
     <executionState>runnable</executionState>
     <activity>
         <work>

@@ -10,6 +10,7 @@ import static java.util.Collections.emptySet;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.function.Predicate;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.sql.DataSource;
@@ -1048,7 +1049,8 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     }
 
     @Override
-    public void cleanupTasks(CleanupPolicyType policy, RunningTask executionTask, OperationResult parentResult)
+    public void cleanupTasks(@NotNull CleanupPolicyType policy, @NotNull Predicate<TaskType> selector,
+            @NotNull RunningTask executionTask, @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException {
         if (policy.getMaxAge() == null) {
             return;
@@ -1056,7 +1058,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
 
         OperationResult result = parentResult.createSubresult(OP_CLEANUP_TASKS);
         try {
-            taskCleaner.cleanupTasks(policy, executionTask, result);
+            taskCleaner.cleanupTasks(policy, selector, executionTask, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -1066,7 +1068,8 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     }
 
     @Override
-    public void cleanupNodes(DeadNodeCleanupPolicyType policy, RunningTask task, OperationResult parentResult)
+    public void cleanupNodes(@NotNull DeadNodeCleanupPolicyType policy, @NotNull Predicate<NodeType> selector,
+            @NotNull RunningTask task, @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException {
 
         if (policy.getMaxAge() == null) {
@@ -1075,7 +1078,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
 
         OperationResult result = parentResult.createSubresult(OP_CLEANUP_NODES);
         try {
-            nodeCleaner.cleanupNodes(policy, task, result);
+            nodeCleaner.cleanupNodes(policy, selector, task, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;

@@ -74,6 +74,9 @@ public final class CleanupPartialActivityRun<CP>
             } catch (Exception e) {
                 result.recordFatalError(e);
                 LOGGER.error("{}: {}", part.label, e.getMessage(), e);
+                // Error is fatal w.r.t. this activity, and partial for the whole cleanup.
+                // But because the status aggregation does not treat this correctly yet (fatal is propagated to the root),
+                // let us report this as partial error for now. FIXME
                 return ActivityRunResult.exception(PARTIAL_ERROR, FINISHED, e);
             }
         } else {

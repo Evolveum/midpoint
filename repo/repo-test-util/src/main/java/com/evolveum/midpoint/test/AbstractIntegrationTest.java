@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.test;
 
+import static com.evolveum.midpoint.prism.PrismObject.cast;
+
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -630,6 +632,21 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
         result.recordSuccess();
         return objects;
+    }
+
+    /** Deletes these objects if they exist. Assuming they have OIDs. */
+    protected void repoDeleteObjectsFromFile(File file, OperationResult result) throws SchemaException, IOException {
+        List<PrismObject<? extends Objectable>> objects = prismContext.parserFor(file).parseObjects();
+        for (PrismObject<? extends Objectable> object : objects) {
+            PrismObject<ObjectType> commonObject = cast(object, ObjectType.class);
+            if (object.getOid() != null) {
+                try {
+                    repositoryService.deleteObject(commonObject.asObjectable().getClass(), object.getOid(), result);
+                } catch (ObjectNotFoundException e) {
+                    result.muteLastSubresultError();
+                }
+            }
+        }
     }
 
     // these objects can be of various types

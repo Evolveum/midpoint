@@ -73,7 +73,7 @@ public class CleanupTest extends AbstractTaskManagerTest {
         Calendar threshold = create_2013_05_07_12_00_00_Calendar();
         CleanupPolicyType policy = createPolicy(threshold, NOW);
 
-        taskManager.cleanupTasks(policy, taskManager.createFakeRunningTask(taskManager.createTaskInstance()), result);
+        taskManager.cleanupTasks(policy, t -> true, taskManager.createFakeRunningTask(taskManager.createTaskInstance()), result);
 
         then();
         List<PrismObject<TaskType>> tasks = repositoryService.searchObjects(TaskType.class, null, null, result);

@@ -8,11 +8,17 @@ package com.evolveum.midpoint.wf.impl;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.SUCCESS;
 
+import static java.util.Collections.singleton;
+
 import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 
@@ -75,6 +81,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
+    @Autowired private ModelService modelService;
     @Autowired private ExpressionEvaluationHelper expressionEvaluationHelper;
 
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
@@ -141,7 +148,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
 
     @Override
     public void cleanupCases(CleanupPolicyType policy, RunningTask executionTask, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException {
+            throws CommonException {
         if (policy.getMaxAge() == null) {
             return;
         }
@@ -161,7 +168,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
                     .and().item(CaseType.F_PARENT_REF).isNull()
                     .build();
             List<PrismObject<CaseType>> rootObsoleteCases =
-                    repositoryService.searchObjects(CaseType.class, obsoleteCasesQuery, null, result);
+                    modelService.searchObjects(CaseType.class, obsoleteCasesQuery, null, executionTask, result);
 
             LOGGER.debug("Found {} case tree(s) to be cleaned up", rootObsoleteCases.size());
 
@@ -183,7 +190,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
                         LOGGER.trace("Not deleting root case {} because it's marked as indestructible", rootObsoleteCase);
                         op.skipped();
                     } else {
-                        deleteCaseWithChildren(rootObsoleteCase, counters, result);
+                        deleteCaseWithChildren(rootObsoleteCase, counters, executionTask, result);
                         op.succeeded();
                     }
                 } catch (Throwable t) {
@@ -217,35 +224,44 @@ public class WorkflowManagerImpl implements WorkflowManager {
      * prevent the root nor their siblings from deletion.
      */
     private void deleteCaseWithChildren(PrismObject<CaseType> parentCase, DeletionCounters counters,
-            OperationResult result) throws Throwable {
+            Task task, OperationResult result) {
 
         // get all children cases
         ObjectQuery childrenCasesQuery = prismContext.queryFor(CaseType.class)
                 .item(CaseType.F_PARENT_REF)
                 .ref(parentCase.getOid())
                 .build();
-        List<PrismObject<CaseType>> childrenCases = repositoryService.searchObjects(CaseType.class, childrenCasesQuery, null, result);
+
+        List<PrismObject<CaseType>> childrenCases;
+        try {
+            childrenCases = modelService.searchObjects(CaseType.class, childrenCasesQuery, null, task, result);
+        } catch (CommonException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't look for children of {} - continuing", e, parentCase);
+            counters.problems++;
+            return;
+        }
+
         LOGGER.trace("Removing case {} along with its {} children.", parentCase, childrenCases.size());
 
         for (PrismObject<CaseType> caseToDelete : childrenCases) {
             if (ObjectTypeUtil.isIndestructible(caseToDelete)) {
                 LOGGER.trace("Not deleting sub-case {} as it is indestructible", caseToDelete);
             } else {
-                deleteCaseWithChildren(caseToDelete, counters, result);
+                deleteCaseWithChildren(caseToDelete, counters, task, result);
             }
         }
-        deleteCase(parentCase, counters, result);
+        deleteCase(parentCase, counters, task, result);
     }
 
-    private void deleteCase(PrismObject<CaseType> caseToDelete, DeletionCounters counters, OperationResult result)
-            throws Throwable {
+    private void deleteCase(PrismObject<CaseType> caseToDelete, DeletionCounters counters, Task task, OperationResult result) {
         try {
-            repositoryService.deleteObject(CaseType.class, caseToDelete.getOid(), result);
+            ObjectDelta<CaseType> deleteDelta = prismContext.deltaFactory().object().create(CaseType.class, ChangeType.DELETE);
+            deleteDelta.setOid(caseToDelete.getOid());
+            modelService.executeChanges(singleton(deleteDelta), ModelExecuteOptions.create().raw(), task, result);
             counters.deleted++;
-        } catch (ObjectNotFoundException | RuntimeException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete case {}", e, caseToDelete);
+        } catch (CommonException | RuntimeException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete case {} - continuing with the others", e, caseToDelete);
             counters.problems++;
-            throw e;
         }
     }
 

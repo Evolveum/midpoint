@@ -172,5 +172,8 @@ public interface AccessCertificationService {
     AccessCertificationCasesStatisticsType getCampaignStatistics(String campaignOid, boolean currentStageOnly, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
+    /**
+     * Cleans up closed certification campaigns. The authorizations are checked by the method implementation.
+     */
     void cleanupCampaigns(@NotNull CleanupPolicyType policy, Task task, OperationResult result);
 }

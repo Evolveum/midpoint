@@ -71,6 +71,11 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         this((PrismContext) null);
     }
 
+    /** Assumes that {@link PrismContext#get()} can be called. Which usually is, after midPoint is initialized. */
+    public static ModelExecuteOptions create() {
+        return new ModelExecuteOptions(PrismContext.get());
+    }
+
     public static ModelExecuteOptions create(PrismContext prismContext) {
         return new ModelExecuteOptions(prismContext);
     }

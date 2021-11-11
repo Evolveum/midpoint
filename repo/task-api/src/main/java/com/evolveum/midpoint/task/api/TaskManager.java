@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.task.api;
 
 import java.util.Collection;
+import java.util.function.Predicate;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
 
@@ -323,16 +324,22 @@ public interface TaskManager {
      * This method removes whole task trees, i.e. not single tasks. A task tree is deleted if the root task is closed
      * (assuming all tasks in the tree are closed) and was closed before at least specified time.
      *
-     *
      * @param closedTasksPolicy specifies which tasks are to be deleted, e.g. how old they have to be
+     * @param selector If returns false, the respective task will not be removed. In a task tree, the selector must return
+     * true for every task for the tree to be deleted.
      * @param task task, within which context the cleanup executes (used to test for interruptions)
      */
-    void cleanupTasks(CleanupPolicyType closedTasksPolicy, RunningTask task, OperationResult opResult) throws SchemaException, ObjectNotFoundException;
+    void cleanupTasks(@NotNull CleanupPolicyType closedTasksPolicy, @NotNull Predicate<TaskType> selector,
+            @NotNull RunningTask task, @NotNull OperationResult opResult)
+            throws SchemaException, ObjectNotFoundException;
 
     /**
-     * Deletes dead nodes, i.e. ones that were not checked-in for a given time period.
+     * Deletes dead nodes, i.e. ones that are not checking-in, and the last checkin time is older than specified time period.
+     *
+     * @param selector If returns false, the respective node will not be removed.
      */
-    void cleanupNodes(DeadNodeCleanupPolicyType deadNodesPolicy, RunningTask task, OperationResult opResult) throws SchemaException, ObjectNotFoundException;
+    void cleanupNodes(@NotNull DeadNodeCleanupPolicyType deadNodesPolicy, @NotNull Predicate<NodeType> selector,
+            @NotNull RunningTask task, @NotNull OperationResult opResult) throws SchemaException, ObjectNotFoundException;
     //endregion
 
     //region Remotely invokable methods
