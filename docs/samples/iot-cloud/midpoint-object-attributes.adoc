@@ -154,7 +154,7 @@ Properties specific for each resource copy are:
 
 |===
 
-We had to provide a connector implementation for ThingSpeak, described on a wiki:ThingSpeak+Resource[separate wiki page].
+We had to provide a connector implementation for ThingSpeak, described on a xref:/midpoint/reference/samples/iot-cloud/thingspeak-resource/[separate page].
 
 
 == Devices (services)

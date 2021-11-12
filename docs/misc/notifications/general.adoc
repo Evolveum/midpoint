@@ -13,7 +13,7 @@ The definition here has a potencial to be improved but it is working as it is.
 The goal is not just to provide simple example but mainly to describe it.
 And if you can read this example as well as understand it, the goal is met.
 
-Basic information about the notification is available on a dedicated xref:/midpoint/reference/misc/notifications/[wiki page].
+Basic information about the notification is available on a xref:/midpoint/reference/misc/notifications/[dedicated page].
 
 
 == The notification requirements
@@ -23,7 +23,6 @@ The role may be assigned while creating a user object or additionaly during user
 There can be none, one or even more matching roles processed during one user object processing.
 The content of the notification should be maintained on role object.
 In case more matching roles are assigned the final notification should be a combination of all the messages related to any of them.
-
 
 == Basic structure of the notification definition
 
@@ -99,7 +98,6 @@ Based on this presumptions the structure of the notification will be as followin
 </notificationConfiguration>
 ----
 
-
 === expressionFilter
 
 For the filter expresssion we have to formulate all the parameters, which make difference in decision making whether to sent the notification or not.
@@ -159,8 +157,6 @@ The value we are interested in (`Identifier`) is located in Midpoint repository 
 This will force Midpoint to return what is known in repository without any additional collection of the information.
 ====
 
-
-
 [source,groovy]
 ----
 import com.evolveum.midpoint.notifications.api.events.ModelEvent
@@ -205,7 +201,6 @@ event instanceof ModelEvent
 }
 ----
 
-
 === recipientFilter
 
 Only purpose of this part of code is to cover situation of missing e-mail address.
@@ -224,7 +219,6 @@ event.requesteeObject.emailAddress != null
     return "iam@localhost"
 }
 ----
-
 
 === subjectExpression
 
@@ -247,9 +241,7 @@ event.requesteeObject.emailAddress != null
 }
 ----
 
-
 === bodyExpression
-
 
 ....
 Once we will reach this point we know there is something why we will construct the notification.
@@ -289,14 +281,12 @@ Best regards,
  IDM admin team
 ----
 
-
 ==== magic of generated text
 
 The delta objects are iterated for all the *ADD* operation for *roleType* object in *assignment*. Once one is found (the oid of them) the object is requested calling `getObject` with raw option (only repository information).
 In case the Identifier has a value "notification" the description of the role is taken and it is added to currently built e-mail's body.
 
 It is not sorted anyway so the order of the descriptions from the role objects may differ case to case.
-
 
 ==== begin of the body
 
@@ -392,7 +382,6 @@ if (!body.isEmpty()) {
     return body
 }
 ----
-
 
 == Relevant role maintenance
 

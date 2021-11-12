@@ -110,7 +110,7 @@ If set to false, no user's assignments are taken into the account during authent
 If nothing is set, it is evaluated as if is set to true.
 Of course, user which is going to perform post-authentication needs to have authorizations.
 At least, if you want the user let the change nickName or telephoneNumber, you need to add him authorization to perform this change.
-It is recommended to read about wiki:Authorization+Configuration[authorization] to set your role properly.
+It is recommended to read about xref:/midpoint/reference/security/authorization/configuration/[authorization] to set your role properly.
 
 The forcedAssignments property is set to false.
 It means, if there are any assignemnts, midPoint evaluates them as disabled and so user cannot perform post-atuhentication.
@@ -126,6 +126,6 @@ After successful post-authentication normal assignments are taken into account.
 
 * xref:/midpoint/reference/security/authorization/[Authorization]
 
-* wiki:Authorization+Configuration[Authorization Configuration]
+* xref:/midpoint/reference/security/authorization/configuration/[Authorization Configuration]
 
 * wiki:GUI+Authorizations[GUI Authorizations]

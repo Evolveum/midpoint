@@ -12,7 +12,7 @@
 
 == Introduction
 
-MidPoint currently has a very limited implementation of wiki:Power+of+Attorney[power of attorney]. The implementation is limited only to see and manage wiki:Approval[approval work items] of another user.
+MidPoint currently has a very limited implementation of wiki:Power+of+Attorney[power of attorney]. The implementation is limited only to see and manage xref:/midpoint/reference/cases/approval/[approval work items] of another user.
 This feature can be used to allow managers of approvers to see their work items and act upon them.
 
 == Authorization

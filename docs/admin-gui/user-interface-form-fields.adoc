@@ -305,4 +305,4 @@ Large number of authorizations might cause a scalability problem.
 
 * xref:/midpoint/reference/schema/data-model-essentials/[Basic Data Model]
 
-* wiki:Authorization+Configuration[Authorization Configuration]
+* xref:/midpoint/reference/security/authorization/configuration/[Authorization Configuration]

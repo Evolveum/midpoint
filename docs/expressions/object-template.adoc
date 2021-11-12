@@ -78,7 +78,7 @@ The user template object definition could look like this one:
 
 == Global User Template
 
-A user template may be applied globally by including the following snippet in wiki:System+Configuration+Object[system configuration]*just after the "logging" element*:
+A user template may be applied globally by including the following snippet in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration]*just after the "logging" element*:
 
 [source,xml]
 ----
@@ -125,13 +125,13 @@ Therefore it would be a very inconvenient and inefficient if account attributes 
 
 Therefore if a property from an account (or other object) is needed in an object template there are several ways how to do it:
 
-* Use wiki:Inbound+Mapping[inbound mappings] instead.
+* Use xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings] instead.
 Inbound mappings can compute the value and place it directly in the user property.
 Inbound mappings can see both the account and the user.
 And midPoint can make sure that these mappings are executed at the right moment and are not executed when not needed.
 E.g. the mappings will be executed only when midPoint detects a change on the resource.
 
-* Use combination of wiki:Inbound+Mapping[inbound mappings], extended user properties and object template.
+* Use combination of xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings], extended user properties and object template.
 Use object template to the computation.
 Use inbound mappings to copy data from account to the user extended properties (`extension` part of user object).
 Then use the extended properties as input in the user template.

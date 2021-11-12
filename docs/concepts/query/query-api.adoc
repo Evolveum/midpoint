@@ -1351,7 +1351,7 @@ ownes (the one pointing to *Org 1-1-1*) has different relation.
 You can safely skip this section. You _should_ skip this section!
 
 This section is work in progress additions to this document that provides clarification
-and documents improvements related to the new repository (Sqale repo) coming in version 4.4.
+and documents improvements related to the new Native repository coming in version 4.4.
 While not incorporated into the body of the document above, consider anything as work in progress
 on the implementation level as well.
 ====

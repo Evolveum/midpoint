@@ -167,7 +167,7 @@ The complete configuration of the metarole looks like this:
 ++++
 
 Simple integer definition of order may not be sufficient for all the cases.
-There are numerous wiki:Relation[relations] that define how objects relate to each other.
+There are numerous xref:/midpoint/reference/concepts/relation/[relations] that define how objects relate to each other.
 E.g. it may be needed to define different privileges to organization managers than those privileges defined for common organization members.
 Therefore since midPoint 3.5 there is a method how to specify complex order constraints.
 These constraints may define requirements for specific relation, it may define order range and so on.
@@ -211,7 +211,7 @@ E.g. the following inducement will be applied to all situation where the order i
 
 == Delegations (Deputy)
 
-There are special kinds of assignment that is used to define wiki:Deputy[Deputy]. This assignment has wiki:Relation[Relation] set to `deputy`. This is a special case used to delegate the privileges.
+There are special kinds of assignment that is used to define wiki:Deputy[Deputy]. This assignment has xref:/midpoint/reference/concepts/relation/[Relation] set to `deputy`. This is a special case used to delegate the privileges.
 Therefore this delegation assignment is not counted into the normal order when evaluating meta-roles.
 Othewise what was originally order 2 will become order 3 and so on.
 See the wiki:Deputy[Deputy] page for details.

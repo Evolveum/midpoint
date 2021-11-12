@@ -279,4 +279,4 @@ More information can be found on wiki:Access+Certification+Notifications[Access 
 == Security
 
 Individual operations are authorized in a specific way.
-For detailed information, please see wiki:Access+Certification+Security[Access Certification Security] page.
+For detailed information, please see xref:/midpoint/reference/roles-policies/certification/authorization/[Access Certification Security] page.

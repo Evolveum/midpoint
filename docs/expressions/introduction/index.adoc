@@ -43,7 +43,7 @@ Mappings are not only aware of the source values, but they also know how the sou
 Therefore maintaining the xref:/midpoint/reference/concepts/relativity/[relative change model] through the entire midPoint system.
 The mapping also knows what are its sources and targets and therefore also compensates for correct data type conversions.
 Mapping is the best tool to customize midPoint behavior.
-It is used e.g. in wiki:Outbound+Mapping[outbound mappings], wiki:Inbound+Mapping[inbound mappings], xref:/midpoint/reference/roles-policies/assignment/[assignments], xref:/midpoint/reference/roles-policies/rbac/[roles] and so on.
+It is used e.g. in xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings], xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings], xref:/midpoint/reference/roles-policies/assignment/[assignments], xref:/midpoint/reference/roles-policies/rbac/[roles] and so on.
 
 See xref:/midpoint/reference/expressions/mappings/[Mapping] page for more details.
 
@@ -51,7 +51,7 @@ See xref:/midpoint/reference/expressions/mappings/[Mapping] page for more detail
 == Expression
 
 Expression is the part of midPoint that contains logic.
-It is usually part of a mapping, form wiki:Correlation+and+Confirmation+Expressions[correlation and confirmation expressions] and so on.
+It is usually part of a mapping, form xref:/midpoint/reference/synchronization/correlation-and-confirmation-expressions/[correlation and confirmation expressions] and so on.
 The expression can be simple data pointers, invocation of Java classes or there may be complex script code to determine the result.
 Expressions are very flexible, with many options to choose from including the use of literal values, paths to data objects, scripting languages and more.
 

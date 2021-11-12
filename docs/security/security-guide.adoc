@@ -60,7 +60,7 @@ The fix is committed to master branch.
 
 Discovery of severe security issue (CVSS rating: critical)  usually means that new maintenance or patch releases of all supported versions will be published.
 However new releases are unlikely for a medium-severity issues (CVSS rating: high-medium).
-User are advised to use recent build from a wiki:Using+Support+Branch[support branch] for their release.
+User are advised to use recent build from a xref:/midpoint/install/using-support-branch/[support branch] for their release.
 In case that a xref:/support/subscription-sponsoring/[subscriber] needs official release to deploy in their environment, such subscriber should contact Evolveum and a xref:/midpoint/devel/guidelines/development-process/[patch release] will be created in that case.
 But this will not happen automatically for issues of medium and low severity.
 Low severity issues (CVSS rating: low) may not even get backported to support branches unless such action is explicitly requested by a subscriber.
@@ -232,9 +232,9 @@ The expression can easily circumvent those weak protections.
 Therefore do not let any unauthorized user to set up any kind of expression in midPoint.
 *Allowing the right to edit any expression may lead to compromise of system security.*
 
-Some expression security can be achieved by using wiki:Expression+Profiles[expression profiles]. However, the usefulness of this feature is currently limited.
-See wiki:Expression+Profile+Configuration[Expression Profile Configuration] page for details.
-Please consider using xref:/support/subscription-sponsoring/[platform subscription] to  fund wiki:Expression+Profiles:+Full+Implementation[full implementation of expression profiles.]
+Some expression security can be achieved by using xref:/midpoint/reference/expressions/expressions/profiles/[expression profiles]. However, the usefulness of this feature is currently limited.
+See xref:/midpoint/reference/expressions/expressions/profiles/configuration/[Expression Profile Configuration] page for details.
+Please consider using xref:/support/subscription-sponsoring/[platform subscription] to  fund xref:/midpoint/features/planned/expression-profiles/[full implementation of expression profiles.]
 
 
 == Networking

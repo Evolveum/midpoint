@@ -13,7 +13,7 @@ As of midPoint 3.4.x, configuration of workflows is done at various places:
 
 . "Static configuration", e.g. Activiti database URL, is stored in midPoint config file (config.xml).
 
-. Other parts of configuration are stored in wiki:System+Configuration+Object[System Configuration] repository object.
+. Other parts of configuration are stored in xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration] repository object.
 
 . Finally, some information about required approvals is attached to individual objects (e.g. roles being assigned).
 

@@ -48,14 +48,14 @@ The default value for this property is `false`, therefore the roles must be expl
 
 == Workflows and Certification
 
-xref:/midpoint/reference/cases/workflow-3/[Workflows (midPoint 3.x)] and wiki:Access+Certification[access certification] fully support the concept of deputy.
+xref:/midpoint/reference/cases/workflow-3/[Workflows (midPoint 3.x)] and xref:/midpoint/reference/roles-policies/certification/[access certification] fully support the concept of deputy.
 The deputies will have access to the workitems that are assigned to their delegators.
 The deputies can make decisions on these workitems and the decision will advance the workflow (or be recorded in access certification case) as if the delegator made the decision.
 
 [NOTE]
 ====
 The approval schemes and workflow will work well with delegations only if the approvers are defined using the assignment mechanism (available in midPoint 3.5 and later).
-See wiki:Approval[Approval] page for more details.
+See xref:/midpoint/reference/cases/approval/[Approval] page for more details.
 ====
 
 Besides providing authorizations to make decisions, deputies will receive mail notifications intended for the delegator reminding him or her that a decision is to be made.
@@ -69,7 +69,7 @@ So, if an approval work item is assigned to a user X, it is not displayed that X
 
 == Implementation Notes
 
-Deputy delegation are in fact xref:/midpoint/reference/roles-policies/assignment/[assignments]. that have special `deputy`wiki:Relation[relation] in their target reference.
+Deputy delegation are in fact xref:/midpoint/reference/roles-policies/assignment/[assignments]. that have special `deputy`xref:/midpoint/reference/concepts/relation/[relation] in their target reference.
 Unlike most other assignments the target of deputy relation is not a role or org.
 The target of deputy relation is a user.
 This makes perfect sense as the delegation is a relation between two users: the delegator and the deputy.
@@ -168,6 +168,6 @@ Yet.
 
 * xref:/midpoint/reference/roles-policies/assignment/[Assignment]
 
-* wiki:Relation[Relation]
+* xref:/midpoint/reference/concepts/relation/[Relation]
 
 * xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]

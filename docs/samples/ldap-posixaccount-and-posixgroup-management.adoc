@@ -84,7 +84,7 @@ This means, the solution is perfectly managable; and the metaroles work as "role
 
 Another interesting feature is how the uidNumber and gidNumber attributes are generated when creating posixGroup object and posixAccount object in LDAP.
 These attributes are required and must be unique.
-So midPoint wiki:Sequences[Sequences] are used.
+So midPoint xref:/midpoint/reference/expressions/sequences/[Sequences] are used.
 
 TODO more here with fragments?
 
@@ -223,7 +223,7 @@ The following sections describe scenarios prepared for this sample.
 
 . administrator saves the form
 
-. midPoint will generate unique GID number using wiki:Sequences[Sequences] and store it in role's `extension/gidNumber` attribute.
+. midPoint will generate unique GID number using xref:/midpoint/reference/expressions/sequences/[Sequences] and store it in role's `extension/gidNumber` attribute.
 This is done in the metarole's focus mapping named "sequenceGID".
 
 . midPoint will create a new LDAP group in OpenLDAP:
@@ -291,7 +291,7 @@ So all you need is to do is create roles which will have projections - groupOfNa
 
 . administrator saves the form
 
-. midPoint will generate unique UID number using wiki:Sequences[Sequences] and store it in user's `extension/uidNumber` attribute.This is done in the metarole's focus mapping named "sequenceUID" in the higher order inducement (so it will apply to the User, not Role).
+. midPoint will generate unique UID number using xref:/midpoint/reference/expressions/sequences/[Sequences] and store it in user's `extension/uidNumber` attribute.This is done in the metarole's focus mapping named "sequenceUID" in the higher order inducement (so it will apply to the User, not Role).
 
 . midPoint will create a new LDAP account in OpenLDAP if it does not exist yet and posixAccount auxiliary objectClass and its attribute will be computed: +
 

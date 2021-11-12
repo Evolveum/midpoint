@@ -15,8 +15,8 @@ But the tasks can be used in an ad-hoc manner to handle migration tasks such as 
 ====
 All the synchronization tasks are using the same xref:/midpoint/reference/synchronization/introduction/[synchronization mechanism]. See the xref:/midpoint/reference/synchronization/introduction/[Synchronization] page for an introduction.
 
-For all the synchronization tasks to work correctly the wiki:Synchronization+Configuration[synchronization section] of xref:/midpoint/reference/resources/resource-configuration/[resource configuration] must be set up properly.
-See wiki:Synchronization+Configuration[Synchronization Configuration] page for more details.
+For all the synchronization tasks to work correctly the xref:/midpoint/reference/resources/resource-configuration/synchronization/[synchronization section] of xref:/midpoint/reference/resources/resource-configuration/[resource configuration] must be set up properly.
+See xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration] page for more details.
 ====
 
 
@@ -29,7 +29,7 @@ The task needs to know:
 This is specified by using the `objectRef` property of the task.
 
 * What *objects* on the resource to synchronize.
-It has to know which wiki:Kind,+Intent+and+ObjectClass[object classes, kinds or intents] to synchronize.
+It has to know which xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[object classes, kinds or intents] to synchronize.
 This is specified using the properties `objectclass`, `kind` and `intent` of the task extension.
 
 [NOTE]
@@ -106,7 +106,7 @@ The following task will import all objects of `inetOrgPerson` object class from 
 
 * xref:/midpoint/reference/synchronization/introduction/[Synchronization]
 
-* wiki:Synchronization+Configuration[Synchronization Configuration]
+* xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration]
 
 * xref:/midpoint/architecture/concepts/task/[Task]
 

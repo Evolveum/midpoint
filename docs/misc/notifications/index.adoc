@@ -175,7 +175,7 @@ Some examples are shown below:
 
 == Another General Notifier Example
 
-The description of this example can be found on the next wiki page - wiki:General+notification+-+role+assignment+example[General notification - role assignment example].
+The description of this example can be found on the next page - xref:/midpoint/reference/misc/notifications/general/[General notification - role assignment example].
 
 [source,xml]
 ----

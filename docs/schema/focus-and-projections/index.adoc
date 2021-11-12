@@ -45,7 +45,7 @@ image::focus-projection-2.png[]
 
 
 
-The projection shadows are then synchronized with the focus by using midPoint xref:/midpoint/reference/synchronization/introduction/[synchronization] mechanisms, mostly wiki:Inbound+Mapping[inbound mappings] and wiki:Outbound+Mapping[outbound mappings]:
+The projection shadows are then synchronized with the focus by using midPoint xref:/midpoint/reference/synchronization/introduction/[synchronization] mechanisms, mostly xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings] and xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings]:
 
 image::focus-projection-3.png[]
 
@@ -80,7 +80,7 @@ The common thing that all focal objects have are xref:/midpoint/reference/roles-
 
 === Projections
 
-Projections are simply resource objects represented by xref:/midpoint/reference/resources/shadow/[shadow objects]. The shadows contain information about wiki:Kind,+Intent+and+ObjectClass[kind and intent] that are used in synchronization algorithm to sort out projections of the same focal object.
+Projections are simply resource objects represented by xref:/midpoint/reference/resources/shadow/[shadow objects]. The shadows contain information about xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[kind and intent] that are used in synchronization algorithm to sort out projections of the same focal object.
 
 
 == See Also

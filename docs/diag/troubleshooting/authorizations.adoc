@@ -262,4 +262,4 @@ The default end user role is a good example for this:
 
 * xref:/midpoint/reference/security/authorization/[]
 
-* wiki:Authorization+Configuration[Authorization Configuration]
+* xref:/midpoint/reference/security/authorization/configuration/[Authorization Configuration]

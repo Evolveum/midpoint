@@ -54,7 +54,7 @@ If no approvers are defined then the request is not driven through the approval 
 This default can be changed by properly setting up the xref:/midpoint/reference/roles-policies/policy-rules/[policy rules].
 
 Default role approvers are defined by using the xref:/midpoint/reference/roles-policies/assignment/[assignment mechanism]. Role approvers have an assignment pointing to the role that are are approving.
-This assignment has wiki:Relation[Relation] set to _approver_. The default midPoint policy will look for these assignments.
+This assignment has xref:/midpoint/reference/concepts/relation/[Relation] set to _approver_. The default midPoint policy will look for these assignments.
 
 [TIP]
 .Approval in midPoint 3.4.1 and earlier

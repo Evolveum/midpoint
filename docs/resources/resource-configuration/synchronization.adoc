@@ -46,17 +46,17 @@ However if an exception from this rule is needed it can be configured e.g. by us
 
 The resource definition contains `synchronization` section which in turns contains several `objectSynchronization` sections.
 Each `objectSynchronization` section contains synchronization setting for a specific types of resource objects.
-MidPoint determines which definition to use based on wiki:Kind,+Intent+and+ObjectClass[kind, intent and object class] of the resource object.
+MidPoint determines which definition to use based on xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[kind, intent and object class] of the resource object.
 Only one `objectSynchronization` section is used for each event.
 
 The object synchronization policy has several parts:
 
 * *name* and *description* of the object synchronization section are used for debugging purposes
 
-* *objectClass* defines a resource wiki:Kind,+Intent+and+ObjectClass[object class] for which this definition applies.
+* *objectClass* defines a resource xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[object class] for which this definition applies.
 Only objects of this object class will be processed by this definition.
 
-* *kind* and *intent* defines what wiki:Kind,+Intent+and+ObjectClass[kind and intent] will be assigned to the object if it already does not have one.
+* *kind* and *intent* defines what xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[kind and intent] will be assigned to the object if it already does not have one.
 This is also used to determine the correct object synchronization policy, e.g. if more than one policy for a specific object class is used.
 
 * *focusType* defines a focal type that corresponds to this resource object.
@@ -68,7 +68,7 @@ It can be used to temporarily turn off a specific part of a configuration.
 * *condition* is an expression which has to evaluate to true for the policy to be used.
 It can be used for a very fine-grain selection of applicable policies.
 
-* *correlation* and *confirmation* expressions are used to locate appropriate focal object and to determine object xref:/midpoint/reference/synchronization/situations/[situation] (see wiki:Correlation+and+Confirmation+Expressions[Correlation and Confirmation Expressions]).
+* *correlation* and *confirmation* expressions are used to locate appropriate focal object and to determine object xref:/midpoint/reference/synchronization/situations/[situation] (see xref:/midpoint/reference/synchronization/correlation-and-confirmation-expressions/[Correlation and Confirmation Expressions]).
 
 * *objectTemplateRef* is a reference to a specific xref:/midpoint/reference/expressions/object-template/[object template] to be used in this case (e.g. when new user is created as a reaction to an event).
 
@@ -84,7 +84,7 @@ It can be used for a very fine-grain selection of applicable policies.
 Main article: xref:/midpoint/reference/synchronization/situations/[Synchronization Situations]
 
 When midPoint detects an synchronization event it  is categorized into one of the _situations_. The _situation_ describes how the change relates to the midPoint state regarding the changed resource object (account), user and the midPoint policies.
-MidPoint is using xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[links] and wiki:Correlation+and+Confirmation+Expressions[correlation and confirmation expressions] to determine a situation.
+MidPoint is using xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[links] and xref:/midpoint/reference/synchronization/correlation-and-confirmation-expressions/[correlation and confirmation expressions] to determine a situation.
 The xref:/midpoint/reference/synchronization/situations/[Synchronization Situations] page describes the details.
 
 
@@ -271,7 +271,7 @@ In fact most synchronization actions have no more than a few lines of code.
 
 The following configuration snippet illustrates a configuration of an authoritative resource.
 A user will be created when a new resource account is detected, user will be deleted when the account is deleted and so on.
-For this to work well it needs to be supplemented with appropriate wiki:Inbound+Mapping[inbound mappings] which is not shown in the example to keep it focused on the configuration of synchronization part.
+For this to work well it needs to be supplemented with appropriate xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings] which is not shown in the example to keep it focused on the configuration of synchronization part.
 The configuration also includes a lot of optional elements such as `kind`, `intent` and `focusType` which are normally not really necessary as their default values are the same as those explicitly specified in this example.
 
 .Authoritative Resource
@@ -335,7 +335,7 @@ The configuration also includes a lot of optional elements such as `kind`, `inte
 === Reaction Examples
 
 Usual reaction for a `linked` situation is just to synchronize the changes from the resource to the user.
-The actual synchronization is done by standard midPoint synchronization code (xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[Clockwork and Projector]) which is in turn using wiki:Inbound+Mapping[inbound mappings] to do so.
+The actual synchronization is done by standard midPoint synchronization code (xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[Clockwork and Projector]) which is in turn using xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings] to do so.
 Therefore the synchronization reaction simply needs to invoke standard midPoint synchronization code:
 
 [source,xml]
@@ -354,7 +354,7 @@ MidPoint does not synchronize anything by default.
 
 A migration phase is important part of IDM solution deployment.
 Accounts from various resources are linked to an existing user base in this phase.
-wiki:Correlation+and+Confirmation+Expressions[Correlation and Confirmation Expressions] are often used in this phase.
+xref:/midpoint/reference/synchronization/correlation-and-confirmation-expressions/[Correlation and Confirmation Expressions] are often used in this phase.
 When correlation matches the result will be `unlinked` situation.
 A simple account linking is usually the desired action:
 
@@ -373,7 +373,7 @@ A simple account linking is usually the desired action:
 Note that standard midPoint synchronization run is still needed for the link to be created.
 No synchronization means no change.
 But even if the synchronization is executed it does not necessarily mean that the account attributes or the user property values will be synchronized.
-Whether the values are affected is determined by wiki:Inbound+Mapping[inbound mappings] and wiki:Outbound+Mapping[outbound mappings]. If the mappings are empty then only a simple link will be executed.
+Whether the values are affected is determined by xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings] and xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings]. If the mappings are empty then only a simple link will be executed.
 
 Typical authoritative resource will need to create new users when new account is detected.
 This is a reaction to `unmatched` situation.
@@ -392,7 +392,7 @@ The `addFocus` action is used to force the creation of new user:
 ----
 
 The new empty user will be created and the account will be linked to it.
-wiki:Inbound+Mapping[Inbound mappings] and xref:/midpoint/reference/expressions/object-template/[object template] can be used to populate the empty user.
+xref:/midpoint/reference/expressions/mappings/inbound-mapping/[Inbound mappings] and xref:/midpoint/reference/expressions/object-template/[object template] can be used to populate the empty user.
 In fact one of these must be used e.g. to set correct name for the new user.
 
 Non-authorative resource will typically react to `unmatched` situation in a very different way.
@@ -528,7 +528,7 @@ MidPoint is always consulting the <configuration> section when it finds a new re
 And that can happen even if you do not have any explicit synchronization.
 E.g. it can happen during  xref:/midpoint/reference/expressions/expressions/[associationTargetSearch expression], it can even happen during ordinary listing of resource objects, it can happen when midPoint discovers new group that is already associated with an account, etc.
 If the resource behaves correctly and you do not plan to do anything special with these objects you do not need to specify synchronization section at all.
-But you might need to specify the sections if you need some special handling - especially if you need to sort out the objects to wiki:Kind,+Intent+and+ObjectClass[intents].
+But you might need to specify the sections if you need some special handling - especially if you need to sort out the objects to xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[intents].
 
 In that case a minimal synchronization section will do:
 
@@ -612,6 +612,6 @@ As the older versions did not have the `synchronize` flag the side effect is tha
 
 * xref:/midpoint/reference/synchronization/examples/[Synchronization Examples]
 
-* wiki:Correlation+and+Confirmation+Expressions[Correlation and Confirmation Expressions]
+* xref:/midpoint/reference/synchronization/correlation-and-confirmation-expressions/[Correlation and Confirmation Expressions]
 
 * xref:/midpoint/reference/synchronization/consistency/[Consistency mechanism]

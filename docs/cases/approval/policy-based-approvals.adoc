@@ -9,7 +9,7 @@
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
-MidPoint is identity management and governance system, therefore it is quite natural that it implements an wiki:Approval[approval] mechanism.
+MidPoint is identity management and governance system, therefore it is quite natural that it implements an xref:/midpoint/reference/cases/approval/[approval] mechanism.
 
 However, the mechanism that midPoint employs to drive the approvals is quite unique.
 Almost all other IDM systems used workflow engine to drive the approvals.

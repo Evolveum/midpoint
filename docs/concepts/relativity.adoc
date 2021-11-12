@@ -90,6 +90,6 @@ Please see wiki:Complete+Relativity[Complete Relativity] page for more details.
 
 * xref:/midpoint/architecture/concepts/consistency-model/[Consistency Model]
 
-* wiki:Mapping+Relativity[Mapping Relativity]
+* xref:/midpoint/reference/expressions/mappings/mapping-relativity/[Mapping Relativity]
 
 * wiki:Complete+Relativity[Complete Relativity]

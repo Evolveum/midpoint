@@ -13,7 +13,7 @@ But perhaps the most important usage is to enable advanced features of xref:/mid
 MidPoint version 3.9 introduced partial configuration of relations.
 Now it is possible to add new relation that will be used by midPoint in addition to hardcoded relations.
 
-The relations are configured in wiki:System+Configuration+Object[system configuration object]:
+The relations are configured in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object]:
 
 [source,xml]
 ----
@@ -209,6 +209,6 @@ Changing existing (hardcoded) relations is *xref:/midpoint/versioning/experiment
 
 * xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]
 
-* wiki:System+Configuration+Object[System Configuration Object]
+* xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration Object]
 
 * wiki:Relation+Repository[Relation Repository]

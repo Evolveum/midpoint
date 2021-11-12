@@ -54,12 +54,13 @@ The explanation of logging levels can be found on xref:/midpoint/reference/diag/
 == Operation Trace
 
 MidPoint can trace the execution of any operation using a trace mechanism.
-When enabled it records entry and exit of operations between midPoint wiki:Subsystems[subsystems]. This is usually intended for developers but it may come handy when troubleshooting really devious problems.
+When enabled it records entry and exit of operations between midPoint xref:/midpoint/architecture/archive/subsystems/[subsystems].
+This is usually intended for developers but it may come handy when troubleshooting really devious problems.
 It can give other log records a _perspective_ by showing where exactly the error happened and what has midPoint tries to do before that.
 
 Trace can also be used to locate performance problems.
 The trace messages contain indications of how long the operation took.
-Therefore it can be used to roughly locate a bottleneck if some of the operations are slow.
+Therefore it can be used to roughly locate a bottleneck if some operations are slow.
 
 The trace can be configured in *Configuration  Logging* GUI page by setting the *Log subsystem entry/exit* option.
 

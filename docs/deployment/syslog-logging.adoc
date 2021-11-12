@@ -15,11 +15,11 @@ File logging is the default option and it is well supported both in midPoint cor
 Syslog logging is supported since midPoint 3.6 and it is slightly more difficult to configure.
 This page describes the steps needed to configure syslog logging.
 
-MidPoint logging configuration is stored in the wiki:System+Configuration+Object[System Configuration Object]. Therefore this configuration object needs to be modified to set up syslog logging.
+MidPoint logging configuration is stored in the xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration Object]. Therefore this configuration object needs to be modified to set up syslog logging.
 When we need is to change the logging _appender_. Appender is the component that writes log data to a file, console or sends them over the network.
 Default midPoint configuration is set up by using _file appender_ that writes the log data to `idm.log` file.
 This appender has to be replaced by a _syslog appender_ that sends the data to a syslog server instead of writing them to file.
-To do that edit the wiki:System+Configuration+Object[System Configuration Object] and locate logging configuration in the `logging` element.
+To do that edit the xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration Object] and locate logging configuration in the `logging` element.
 There is probably a lot of configured _loggers_ (usually `classLogger` elements).
 The loggers mostly control the granularity of the logging.
 What we are looking for is `appender` element.

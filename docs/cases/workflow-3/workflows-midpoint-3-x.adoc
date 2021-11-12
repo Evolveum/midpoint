@@ -37,9 +37,9 @@ So he opens it, reads it through, and clicks on "Approve" button.
 The operation is executed, and Bob is assigned the requested role.
 Optionally, Alice and/or Bob may be notified by mail about the result.
 
-The workflows are usually used to implement wiki:Approval[approval] processes.
+The workflows are usually used to implement xref:/midpoint/reference/cases/approval/[approval] processes.
 This usage is so frequent that midPoint has a special mechanisms to make approval implementation easy.
-See the wiki:Approval[Approval] page for more details.
+See the xref:/midpoint/reference/cases/approval/[Approval] page for more details.
 
 
 == Notes
@@ -88,4 +88,4 @@ However, this option should be needed to use in only rare situations.
 
 == See Also
 
-* wiki:Approval[Approval]
+* xref:/midpoint/reference/cases/approval/[Approval]

@@ -38,7 +38,7 @@ Also, interaction of a privileged user is required.
 
 == Mitigation
 
-MidPoint users are advised to upgrade their deployments to the latest builds from the wiki:Using+Support+Branch[support branches]. MidPoint 3.6.x users are advised to upgrade to a newer midPoint version.
+MidPoint users are advised to upgrade their deployments to the latest builds from the xref:/midpoint/install/using-support-branch/[support branches]. MidPoint 3.6.x users are advised to upgrade to a newer midPoint version.
 
 As this is a medium severity issue, it is not forcing official maintenance releases of midPoint.
 However, the fix is provided in all the support branches, except for midPoint 3.6 support branch.

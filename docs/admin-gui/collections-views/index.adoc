@@ -37,7 +37,7 @@ Something that midPoint policies can rely on.
 View specifies how a particular collection should be displayed.
 It defines the columns that should be displayed, default sorting, pre-defined filter properties and so on.
 Views are designed to be flexible, customizable.
-E.g. views can adjusted and overridden in wiki:Admin+GUI+Configuration[admin GUI configuration].
+E.g. views can adjusted and overridden in xref:/midpoint/reference/admin-gui/admin-gui-config/[admin GUI configuration].
 
 Although collections and view have different purposes and they are based on different mechanisms, they are almost always used together.
 

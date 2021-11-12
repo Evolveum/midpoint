@@ -21,10 +21,10 @@ The role catalog has two purposes and therefore it is also presented in two slig
 
 == Role Catalog for End Users
 
-The first purpose of role catalog is to make wiki:Role+Request+and+Shopping+Cart[role requests]  easy for *end users*. The role catalog is used to present the roles in a similar way as an e-shop presents the products.
+The first purpose of role catalog is to make xref:/midpoint/reference/admin-gui/role-request/[role requests]  easy for *end users*. The role catalog is used to present the roles in a similar way as an e-shop presents the products.
 The roles are sorted into categories and sub-categories.
 The user may browse the role catalog and select the roles.
-Then the user can put the roles in a wiki:Role+Request+and+Shopping+Cart["shopping cart"] and "buy" them.
+Then the user can put the roles in a xref:/midpoint/reference/admin-gui/role-request/["shopping cart"] and "buy" them.
 This catalog and e-shop paradigm is quite natural for most end users and it requires little to no training.
 
 image::role-request.png[]
@@ -45,7 +45,7 @@ image::role-catalog.png[]
 
 == Role Catalog Implementation and Configuration
 
-See wiki:Role+Catalog+Configuration[Role Catalog Configuration] page for description of role catalog implemenation and configuration details.
+See xref:/midpoint/reference/admin-gui/role-catalog/configuration/[Role Catalog Configuration] page for description of role catalog implemenation and configuration details.
 
 
 == See Also
@@ -54,6 +54,6 @@ See wiki:Role+Catalog+Configuration[Role Catalog Configuration] page for descrip
 
 * xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]
 
-* wiki:Role+Catalog+Configuration[Role Catalog Configuration]
+* xref:/midpoint/reference/admin-gui/role-catalog/configuration/[Role Catalog Configuration]
 
-* wiki:Role+Request+and+Shopping+Cart[Role Request and Shopping Cart]
+* xref:/midpoint/reference/admin-gui/role-request/[Role Request and Shopping Cart]

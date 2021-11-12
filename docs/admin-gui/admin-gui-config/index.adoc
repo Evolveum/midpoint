@@ -9,7 +9,7 @@
 :page-upkeep-status: yellow
 :page-toc: top
 
-Admin GUI configuration is a specialized data structure that is present in wiki:System+Configuration+Object[system configuration object], in all the role-like objects (roles, orgs, services), in the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[user objects] and partially also in archetype objects. The admin GUI configuration structure influences how to user interface is displayed.
+Admin GUI configuration is a specialized data structure that is present in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object], in all the role-like objects (roles, orgs, services), in the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[user objects] and partially also in archetype objects. The admin GUI configuration structure influences how to user interface is displayed.
 Despite its name it applies both to the self-service part and administration part of the user interface.
 
 
@@ -41,12 +41,12 @@ Since midPoint 4.4, the look and feel of GUI has been significantly changed. The
 
 == How It Works
 
-The same admin GUI configuration structure may be specified in wiki:System+Configuration+Object[system configuration object], in all the role-like objects (roles, orgs, services) and also in the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[user objects] (starting from midPoint v 4.1: in all AssignmentHolderType objects). Some parts of admin GUI configuration, such as `*objectDetails*` can be specified also in archetypes.
+The same admin GUI configuration structure may be specified in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object], in all the role-like objects (roles, orgs, services) and also in the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[user objects] (starting from midPoint v 4.1: in all AssignmentHolderType objects). Some parts of admin GUI configuration, such as `*objectDetails*` can be specified also in archetypes.
 When a specific user logs in, midPoint will process all of user's roles to check for applicable authorizations.
 At the same time midPoint also compiles the effective admin GUI configuration.
 Following algorithm is used:
 
-* Admin GUI configuration in the wiki:System+Configuration+Object[system configuration object] is applied first (if present).
+* Admin GUI configuration in the xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object] is applied first (if present).
 
 * Admin GUI configuration from all of the active roles, orgs and services is applied on top of that.
 
@@ -1354,8 +1354,8 @@ Therefore do not allow untrusted users to define sensitive parts of admin GUI co
 
 == See Also
 
-* wiki:System+Configuration+Object[System Configuration Object]
+* xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration Object]
 
 * xref:/midpoint/reference/security/authorization/[Authorization]
 
-* wiki:Show+Only+Active+Users+HOWTO[Show Only Active Users HOWTO]
+* xref:/midpoint/reference/admin-gui/collections-views/show-only-active-users/[Show Only Active Users HOWTO]

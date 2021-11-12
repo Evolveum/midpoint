@@ -9,7 +9,7 @@
 
 == Introduction
 
-MidPoint is very flexible system, especially when it comes to wiki:Approval[approval] and other xref:/midpoint/reference/roles-policies/policy-rules/[policies]. But the flexibility comes at a cost.
+MidPoint is very flexible system, especially when it comes to xref:/midpoint/reference/cases/approval/[approval] and other xref:/midpoint/reference/roles-policies/policy-rules/[policies]. But the flexibility comes at a cost.
 Policy definition can be quite complex.
 Some of this complexity is inherent and cannot really be avoided.
 But once the policies are created then it should be quite easy to apply them to individual objects such as users and roles.
@@ -43,7 +43,7 @@ The `Supervisor` role will be affected by the policy rules.
 
 Following metarole contains "manager" approval policy.
 When this metaroles is applied to ordinary role then the approval policy is applied to that ordinary role.
-When that ordinary role is assigned to a user, the request is driven through an wiki:Approval[approval process]. In this case the approval will be requested from user's manager.
+When that ordinary role is assigned to a user, the request is driven through an xref:/midpoint/reference/cases/approval/[approval process]. In this case the approval will be requested from user's manager.
 The getManagersOidsExceptUser(...) function from wiki:MidPoint+Script+Library[MidPoint Script Library] is used to get the manager.
 
 .Approval by manager
@@ -90,7 +90,7 @@ The getManagersOidsExceptUser(...) function from wiki:MidPoint+Script+Library[Mi
 
 Following metarole contains "approver" approval policy.
 When this metaroles is applied to ordinary role then the approval policy is applied to that ordinary role.
-When that ordinary role is assigned to a user, the request is driven through an wiki:Approval[approval process]. In this case the approval will be requested from the person that is designated as role approver.
+When that ordinary role is assigned to a user, the request is driven through an xref:/midpoint/reference/cases/approval/[approval process]. In this case the approval will be requested from the person that is designated as role approver.
 
 .Approval by approver
 [source,xml]
@@ -128,7 +128,7 @@ When that ordinary role is assigned to a user, the request is driven through an 
 ----
 
 The policy rule above will drive the role through an approval of a role approver.
-Role approver is determined by examining all the users that have this role assigned with a special-purpose approver wiki:Relation[relation]. Please see the wiki:Approval[description of the approval mechanism] for more details.
+Role approver is determined by examining all the users that have this role assigned with a special-purpose approver xref:/midpoint/reference/concepts/relation/[relation]. Please see the xref:/midpoint/reference/cases/approval/[description of the approval mechanism] for more details.
 
 
 == See Also

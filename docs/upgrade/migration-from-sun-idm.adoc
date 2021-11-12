@@ -327,7 +327,7 @@ It describes especially the "hacks" that were often used in Sun IDM and the corr
 
 MidPoint does not have a special identity template.
 Account identifier is considered to be very like an ordinary account attribute.
-Use wiki:Outbound+Mapping[outbound mapping] to set the value of account identifier instead of identity template.
+Use xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mapping] to set the value of account identifier instead of identity template.
 
 
 === Login Roles
@@ -337,5 +337,5 @@ Such roles had only one resource and used the ability of Sun IDM role to set acc
 Other roles then haven't included the resource directly but included the "login role" instead.
 
 Do not use this approach in midPoint.
-MidPoint has an elegant mechanism of wiki:Outbound+Mapping[outbound mappings] that can be used to set resource-global attribute values.
+MidPoint has an elegant mechanism of xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings] that can be used to set resource-global attribute values.
 The ability of a login role to "hold" the account in a disabled state can be done in a much easier way by using xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[activation existence mapping].

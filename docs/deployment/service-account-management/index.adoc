@@ -47,7 +47,7 @@ But keeping track of accounts is something that IDM systems were designed for.
 MidPoint implements a wiki:Services[concept of services] for a several years already.
 Services are special type of objects and it is possible for accounts to be linked to services in a similar way how accounts are linked to users.
 Therefore midPoint can already keep track of service accounts.
-MidPoint can also easily support several wiki:Kind,+Intent+and+ObjectClass[account types] and therefore it can distinguish service accounts and behave accordingly.
+MidPoint can also easily support several xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[account types] and therefore it can distinguish service accounts and behave accordingly.
 
 The idea is that a wiki:Services[service] object in midPoint represents applications, tools, scripts and other components that need service accounts.
 Service accounts are linked to those wiki:Services[service definitions] in midPoint.

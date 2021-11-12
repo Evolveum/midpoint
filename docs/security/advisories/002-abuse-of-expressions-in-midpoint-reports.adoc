@@ -42,7 +42,7 @@ The recommended mitigation is to maintain best practices of midPoint deployment:
 However, adhering to that practice will practically prohibit delegation of any expression-related tasks to administrators with reduced privileges.
 For most of the cases, this can be mitigated by using alternative techniques:
 
-* wiki:Using+Metaroles+for+Policy+Configuration[Metaroles] can be used to group all the necessary logic, including expressions.
+* xref:/midpoint/reference/roles-policies/metaroles/policy/[Metaroles] can be used to group all the necessary logic, including expressions.
 Meta roles can be setup by a trusted administrator.
 Delegated administrators then just "use" the metarole, with possible parametrization using parameters in assignment extension.
 However, even this method is not yet fully supported in midPoint user interface.
@@ -53,13 +53,13 @@ This can be used to make sure that expressions used in the roles are safe.
 This mitigation is applicable for almost all practical cases in midPoint deployment - with a notable exception of reports.
 The metarole-based approach is not applicable to reports at all.
 Lifecycle-based method may be applicable, but it may not be practical.
-Therefore planned midPoint 4.0 release provides partial solution to limit the power of expression by using wiki:Expression+Profiles[Expression Profiles].
+Therefore planned midPoint 4.0 release provides partial solution to limit the power of expression by using xref:/midpoint/reference/expressions/expressions/profiles/[Expression Profiles].
 
 Users of midPoint 3.9 or earlier are advised to strictly restrict ability to specify expressions only to the most trusted users.
 Any user with the ability to specify an expression can gain privileges of midPoint superuser (system administrator).
 This applies to reports as well as any other use of expressions in midPoint.
 
-Users that plan to deploy midPoint 4.0 can use the ability to restrict reporting expression by using wiki:Expression+Profiles[expression profiles]. However, this ability is only applicable to reports and it can only be configured globally.
+Users that plan to deploy midPoint 4.0 can use the ability to restrict reporting expression by using xref:/midpoint/reference/expressions/expressions/profiles/[expression profiles]. However, this ability is only applicable to reports and it can only be configured globally.
 The same advice as above applies to all other midPoint expressions.
 
 
@@ -86,7 +86,7 @@ When it comes to roles, organizational units and services, metarole-based method
 But there is no such option for reports.
 Therefore we have decided, that there is a need for a solution that can address at least the problem with reports.
 Such solution is being developed for midPoint 4.0. However, even for midPoint 4.0 this solution will be very limited.
-Please see wiki:Expression+Profile+Configuration[Expression Profile Configuration] for the details and wiki:Expression+Profiles:+Full+Implementation[Expression Profiles: Full Implementation] for description of the future plans.
+Please see xref:/midpoint/reference/expressions/expressions/profiles/configuration/[Expression Profile Configuration] for the details and xref:/midpoint/features/planned/expression-profiles/[Expression Profiles: Full Implementation] for description of the future plans.
 
 One of the reasons that contributed to the decision to address this issue was a lack of clear documentation.
 While the danger of generic expressions is very obvious to any experienced software engineer, users that lack deep technical knowledge may get confused.

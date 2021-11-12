@@ -43,7 +43,7 @@ Following figure illustrates the way how user, shadows and resource objects work
 User (`<user>`) and account shadow (`<account>`) are midPoint objects stored in midPoint identity repository.
 More precisely only the parts shown in black are stored in the repository, the parts shown in blue and fetched from the resource on demand.
 User and account shadow objects are _linked_. It means that the user is an _owner_ of the specified account.
-User and all owned accounts are xref:/midpoint/reference/synchronization/introduction/[synchronized] using wiki:Inbound+Mapping[inbound] and wiki:Outbound+Mapping[outbound] expressions.
+User and all owned accounts are xref:/midpoint/reference/synchronization/introduction/[synchronized] using xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound] and xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound] expressions.
 
 image::schemas-shadow.png[]
 

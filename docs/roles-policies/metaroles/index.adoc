@@ -74,6 +74,6 @@ Thats what metarole can do.
 
 * xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]
 
-* wiki:Using+Metaroles+for+Policy+Configuration[Using Metaroles for Policy Configuration]
+* xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration]
 
 * xref:/midpoint/reference/schema/archetypes/[Archetypes]

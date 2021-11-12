@@ -14,7 +14,7 @@
 == Introduction
 
 Expression is a part of midPoint configuration that contains logic.
-It is used in xref:/midpoint/reference/expressions/mappings/[mappings], wiki:Correlation+and+Confirmation+Expressions[Correlation and Confirmation Expressions] and may be used in other parts later on.
+It is used in xref:/midpoint/reference/expressions/mappings/[mappings], xref:/midpoint/reference/synchronization/correlation-and-confirmation-expressions/[Correlation and Confirmation Expressions] and may be used in other parts later on.
 Expressions are very flexible.
 They need to be flexible as expressions are the primary tool of customizing midPoint behavior.
 Expressions allow simple and efficient constructions that just pass or generate a value but they also allow invocation of complex scripts.
@@ -165,7 +165,7 @@ Therefore as a rule of the thumb the path constructor should always be preferred
 
 Script constructor is the most flexible of all the constructors as it allows to invoke an expression written in an expression or scripting language.
 There are several script languages to choose from.
-The script expressions are described in more details in a wiki:Script+Expression[Script Expression] page.
+The script expressions are described in more details in a xref:/midpoint/reference/expressions/expressions/script/[Script Expression] page.
 This page only provides few examples.
 
 .Expression constructor using Groovy script
@@ -210,7 +210,7 @@ This page only provides few examples.
 
 ----
 
-See wiki:Script+Expression[Script Expression] page for more details.
+See xref:/midpoint/reference/expressions/expressions/script/[Script Expression] page for more details.
 
 
 === Generate

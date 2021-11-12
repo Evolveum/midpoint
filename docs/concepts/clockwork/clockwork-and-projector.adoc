@@ -16,7 +16,7 @@ TODO: picture
 == Projector
 
 Projector is responsible for computing the changes.
-It is triggered by user changes in GUI, received by service or detected by xref:/midpoint/reference/synchronization/introduction/[synchronization]. Projector recomputes all the wiki:Synchronization+Policies[synchronization policies], applies all xref:/midpoint/reference/expressions/introduction/[mappings and expressions], processes xref:/midpoint/reference/roles-policies/rbac/[RBAC] role assignments and so on.
+It is triggered by user changes in GUI, received by service or detected by xref:/midpoint/reference/synchronization/introduction/[synchronization]. Projector recomputes all the xref:/midpoint/reference/synchronization/policies/[synchronization policies], applies all xref:/midpoint/reference/expressions/introduction/[mappings and expressions], processes xref:/midpoint/reference/roles-policies/rbac/[RBAC] role assignments and so on.
 However, projector is just computing the values.
 It is not yet executing them.
 The result of projector computations are stored in xref:/midpoint/reference/concepts/clockwork/model-context/[model context].
@@ -28,14 +28,14 @@ The object that links to all the projections.
 
 * *Projection* which is typically an account (represented by xref:/midpoint/reference/resources/shadow/[shadow]).
 
-Projector reflects data from the focus to projections (using wiki:Outbound+Mapping[outbound mappings]) and also from the projections to the focus (using wiki:Inbound+Mapping[inbound mappings]). This happens as many times as necessary to get a complete computation result.
+Projector reflects data from the focus to projections (using xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings]) and also from the projections to the focus (using xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings]). This happens as many times as necessary to get a complete computation result.
 
 
 == Clockwork
 
 Clockwork is a controller.
 Clockwork invokes projector to recompute everything that needs to be recomputed.
-Clockwork invokes wiki:Hooks[hooks] to further process the request (e.g. to route it through a xref:/midpoint/reference/cases/workflow-3/[workflow]). This happens several times.
+Clockwork invokes xref:/midpoint/reference/concepts/clockwork/hooks/[hooks] to further process the request (e.g. to route it through a xref:/midpoint/reference/cases/workflow-3/[workflow]). This happens several times.
 Clockwork then proceeds to execute the changes.
 This may also happen several times if xref:/midpoint/reference/resources/provisioning-dependencies/[dependencies] are used.
 Clockwork handles execution errors.
@@ -86,6 +86,6 @@ TODO: more details
 
 * xref:/midpoint/reference/schema/focus-and-projections/[Focus and Projections]
 
-* wiki:Hooks[Hooks]
+* xref:/midpoint/reference/concepts/clockwork/hooks/[Hooks]
 
-* wiki:Projector+and+clockwork+internals[Projector and clockwork internals] (only some sketches there - yet)
+* xref:/midpoint/devel/design/projector-and-clockwork-internals/[Projector and clockwork internals] (only some sketches there - yet)

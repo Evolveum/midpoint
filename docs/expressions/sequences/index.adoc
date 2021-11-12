@@ -56,4 +56,4 @@ See wiki:Using+Sequences[Using Sequences] page for more details.
 
 * xref:configuration.adoc[]
 
-* wiki:Unix+Story+Test[Unix Story Test]
+* xref:/reference/samples/story-tests/unix/[Unix Story Test]

@@ -11,7 +11,7 @@
 :page-toc: top
 
 
-For an introduction to the role catalog concept please see wiki:Role+Catalog[Role Catalog] page.
+For an introduction to the role catalog concept please see xref:/midpoint/reference/admin-gui/role-catalog/[Role Catalog] page.
 
 
 == Role Catalog Implementation
@@ -23,10 +23,9 @@ Remember: MidPoint can have any number of organizational structures and the role
 There may even be several role catalogs at the same time as any midPoint object can be assigned to any number of orgs.
 However, the current limitation is that only one role catalog will be presented to end users.
 
-
 == Role Catalog Root
 
-The root of this role catalog needs to be configured in the wiki:System+Configuration+Object[system configuration object] like this:
+The root of this role catalog needs to be configured in the xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object] like this:
 
 [source,xml]
 ----
@@ -41,12 +40,11 @@ The root of this role catalog needs to be configured in the wiki:System+Configur
 
 The roleCatalogRef reference above points to the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[org] which is the root of the role catalog.
 
-
 == See Also
 
-* wiki:Role+Catalog[Role Catalog]
+* xref:/midpoint/reference/admin-gui/role-catalog/[Role Catalog]
 
-* wiki:Role+Request+and+Shopping+Cart+Configuration[Role Request and Shopping Cart Configuration]
+* xref:/midpoint/reference/admin-gui/role-request/configuration/[Role Request and Shopping Cart Configuration]
 
 * xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
 

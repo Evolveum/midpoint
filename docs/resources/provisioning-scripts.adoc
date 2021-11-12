@@ -33,7 +33,7 @@ Please see connector documentation for a list of supported script languages for 
 [TIP]
 .Provisioning scripts and midPoint script expressions
 ====
-Provisioning scripts are a different kind of animal than midPoint wiki:Script+Expression[script expressions]. Provisioning scripts are usually executed in the target system and they are mostly outside midPoint control.
+Provisioning scripts are a different kind of animal than midPoint xref:/midpoint/reference/expressions/expressions/script/[script expressions]. Provisioning scripts are usually executed in the target system and they are mostly outside midPoint control.
 Therefore also the provisioning script languages are only those languages that are supported by target system.
 ====
 
@@ -56,7 +56,7 @@ MidPoint can provide arguments to the scripts.
 This is almost always needed for the script to do something useful.
 For example a script must know the identifier of a created account to create home directory for that account.
 
-Argument specification may contain midPoint wiki:Script+Expression[script expressions] that determine argument values.
+Argument specification may contain midPoint xref:/midpoint/reference/expressions/expressions/script/[script expressions] that determine argument values.
 There is one important thing to keep in mind: provisioning scripts are usually executed on the resource, but the midPoint expressions that determine argument values are executed in midPoint.
 These expressions are the essential glue that can pass midPoint values to the provisioning scripts.
 
@@ -185,9 +185,9 @@ Note: both resource and resource OID can be used as the first parameter to the e
 .Object kind and script variables
 ====
 MidPoint 3.0 (and later) is designed with xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization] in mind.
-Therefore the provisioning scripts are executed not just for accounts but also for other wiki:Kind,+Intent+and+ObjectClass[kinds of objects]. And there are two major consequences of this:
+Therefore the provisioning scripts are executed not just for accounts but also for other xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[kinds of objects]. And there are two major consequences of this:
 
-* Please keep in mind that unless the script is limited to a particular wiki:Kind,+Intent+and+ObjectClass[kind] of objects then it will be executed for all object kinds that midPoint provisions.
+* Please keep in mind that unless the script is limited to a particular xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[kind] of objects then it will be executed for all object kinds that midPoint provisions.
 This may have unexpected side-effects therefore it is recommended to constraint the scripts to a particular object kind in midPoint 3.0 and later:
 
 [source,xml]

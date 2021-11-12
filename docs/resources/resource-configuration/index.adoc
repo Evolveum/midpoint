@@ -78,7 +78,7 @@ This may include configuration of high-level operation retries and similar techn
 | Synchronization
 | Defines a synchronization properties (configuration) for a resource.
 This applies to all flavors of synchronization (live sync, reconciliation, import, ...)
-| wiki:Synchronization+Configuration[Synchronization Configuration]
+| xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration]
 
 
 | Business

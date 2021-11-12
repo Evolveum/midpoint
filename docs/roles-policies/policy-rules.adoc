@@ -16,7 +16,7 @@
 == Introduction
 
 Policy rules are very powerful mechanism that spans a very wide range of use cases.
-It can be used to define role wiki:Approval[approval], wiki:Role+Lifecycle[lifecycle], policies such as wiki:Segregation+of+Duties[segregation of duties], notifications and other governance and compliance rules.
+It can be used to define role xref:/midpoint/reference/cases/approval/[approval], wiki:Role+Lifecycle[lifecycle], policies such as wiki:Segregation+of+Duties[segregation of duties], notifications and other governance and compliance rules.
 
 Each policy rule has the following parts:
 
@@ -41,14 +41,14 @@ E.g. the rule may be triggered when a role is assigned, when the role is changed
 The situation identifier is stored together with the affected object or assignment and it can be used for reporting.
 
 * *Policy actions* specify the actions that are to be taken when the rule is triggered.
-The actions may range from strong enforcement of the rule (i.e. prohibit the operation) through wiki:Approval[Approval] to a very mild actions such as notifications.
+The actions may range from strong enforcement of the rule (i.e. prohibit the operation) through xref:/midpoint/reference/cases/approval/[Approval] to a very mild actions such as notifications.
 
 Some of these parts may be implicit.
 E.g. if the rule is defined as a xref:/midpoint/reference/roles-policies/metaroles/gensync/[high-order inducement in the metarole] then the focal object or target are implicit and does not need to be explicitly specified.
 
 The policy rules are used to implement wide variety of mechanisms:
 
-* wiki:Approval[Assignment approvals]: policy rules may be used to change the default assignment approval schemes in a very flexible and scalable fashion.
+* xref:/midpoint/reference/cases/approval/[Assignment approvals]: policy rules may be used to change the default assignment approval schemes in a very flexible and scalable fashion.
 
 * wiki:Role+Lifecycle[Role lifecycle management]: policy rules may be used to enforce approvals of new roles before they are used in production.
 They may be used to approve changed role definitions.
@@ -122,7 +122,7 @@ However all the rules are evaluated in the same way regardless of the specific m
 
 === Global Policy Rules
 
-Policy rules can be defined in wiki:System+Configuration+Object[system configuration object]. In this case the rule is evaluated for every operation and it applies to all objects that are matched by the rule focus and target selectors.
+Policy rules can be defined in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object]. In this case the rule is evaluated for every operation and it applies to all objects that are matched by the rule focus and target selectors.
 This method of rule specification has a global scope and therefore the administrator can have high confidence that the rule is applied to all objects to which it should be applied.
 However it may have scalability impact if not used properly.
 Evaluation of the focus and target selectors is usually very fast, therefore a reasonable number of global rules with simple selectors should have only negligible impact on system performance.
@@ -255,14 +255,14 @@ In the future that information can be used e.g. to report approved rule exceptio
 
 This feature is available only in midPoint 3.6 and later.
 
-This feature was also available in midPoint 3.5. However even in midPoint 3.5 this feature was considered *EXPERIMENTAL* except when used for wiki:Role+Lifecycle[Role Lifecycle] and assignment-based wiki:Approval[approvals].
+This feature was also available in midPoint 3.5. However even in midPoint 3.5 this feature was considered *EXPERIMENTAL* except when used for wiki:Role+Lifecycle[Role Lifecycle] and assignment-based xref:/midpoint/reference/cases/approval/[approvals].
 This mechanism was only partially implemented in midPoint 3.5.
 
 == See Also
 
 * wiki:Role+Lifecycle[Role Lifecycle]
 
-* wiki:Approval[Approval]
+* xref:/midpoint/reference/cases/approval/[Approval]
 
 * wiki:Segregation+of+Duties[Segregation of Duties]
 

@@ -244,7 +244,7 @@ But simply speaking the object values are recomputed, mappings are evaluated and
 Let's explain that using an example.
 Let's assume we have a user which has one LDAP account.
 User properties `givenName` and `familyName` are mapped to LDAP attributes `givenName` and `sn` respectively.
-This mapping is implemented by simple wiki:Outbound+Mapping[outbound mappings]. If the `familyName` of a user is changed in GUI then this change is also mapped to the LDAP `sn` attribute and this is changed as well.
+This mapping is implemented by simple xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings]. If the `familyName` of a user is changed in GUI then this change is also mapped to the LDAP `sn` attribute and this is changed as well.
 But how about authorizations? We want to give user the ability to change the family name in the use object.
 This happens from time to time, e.g. when people get married.
 But we do not want to give the user direct access to LDAP accounts.

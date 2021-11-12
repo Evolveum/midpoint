@@ -10,7 +10,7 @@
 
 This guide is only for small customization which can be done directly in midPoint.
 In the case you need more complex customization it is maybe better to create new report template or customize existing one with Jaspersoft Studio.
-How to work with Jaspersoft Studio using live midPoint can be found wiki:Jaspersoft+Studio+-+midPoint+integration+HOWTO[here].
+How to work with Jaspersoft Studio using live midPoint can be found xref:/midpoint/reference/legacy/jaspersoft-studio/[here].
 
 
 == Report customization using midPoint
@@ -234,7 +234,7 @@ The expression can easily circumvent those weak protections.
 Therefore do not let any unauthorized user to set up any kind of expression in midPoint.
 *Allowing the right to edit any expression may lead to compromise of system security.*
 
-Some expression security can be achieved by using wiki:Expression+Profiles[expression profiles].  Expression profiles can be used to limit the capabilities of report expressions, e.g. to limit them to safe operations that just manipulate strings and basic data structures.
+Some expression security can be achieved by using xref:/midpoint/reference/expressions/expressions/profiles/[expression profiles].  Expression profiles can be used to limit the capabilities of report expressions, e.g. to limit them to safe operations that just manipulate strings and basic data structures.
 This seems to work reasonably well for ordinary object-based reports.
 However, when it comes to audit reports, this solution may not be sufficient.
 xref:/midpoint/reference/security/audit/[Audit records] are *not*  midPoint objects, they are just rows in ordinary relational table.
@@ -255,7 +255,7 @@ The xref:/midpoint/reference/security/audit/[structure of an audit table is docu
 MidPoint is neither of those systems and it has no ambition to become one.
 Therefore such integration is likely to be required anyway to construct a complete information security solution.
 
-See wiki:Security+Guide[Security Guide] for more detail regarding security-related functionality of midPoint.
+See xref:/midpoint/reference/security/security-guide/[Security Guide] for more detail regarding security-related functionality of midPoint.
 
 
 == New report
@@ -1256,6 +1256,6 @@ Target of assignment define via name of role variable _role_name_.  Variables _v
 
 == See Also
 
-* wiki:Expression+Profiles[Expression Profiles]
+* xref:/midpoint/reference/expressions/expressions/profiles/[Expression Profiles]
 
-* wiki:Security+Guide[Security Guide]
+* xref:/midpoint/reference/security/security-guide/[Security Guide]

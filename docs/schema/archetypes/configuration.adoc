@@ -66,7 +66,7 @@ Archetype definitions are wiki:Abstract+Role[abstract roles], which means they e
 To apply an archetype to an object simply assign archetype to that object as you would normally assign a role.
 From that point on archetype applies to that object.
 Archetypes being abstract roles makes them really powerful.
-That means archetypes may work as ordinary roles or wiki:Using+Metaroles+for+Policy+Configuration[metaroles]:
+That means archetypes may work as ordinary roles or xref:/midpoint/reference/roles-policies/metaroles/policy/[metaroles]:
 
 [source,xml]
 ----
@@ -120,7 +120,7 @@ But otherwise archetype definitions and object lists are not displayed in the us
 This behavior has several reasons: there may be archetype definitions that are just being prepared, definitions that should not be publicly visible, or there may be just too many definitions to be displayed in the menu.
 Therefore, by default, there will be no additional menu items or "shortcut" buttons for archetypes.
 
-Archetypes can be added to menus and other places of midPoint interface by using xref:/midpoint/reference/admin-gui/collections-views/[object views]. All that is needed is simple definition of a view in wiki:Admin+GUI+Configuration[admin GUI configuration structure]:
+Archetypes can be added to menus and other places of midPoint interface by using xref:/midpoint/reference/admin-gui/collections-views/[object views]. All that is needed is simple definition of a view in xref:/midpoint/reference/admin-gui/admin-gui-config/[admin GUI configuration structure]:
 
 [source,xml]
 ----
@@ -280,7 +280,7 @@ Archetype definitions can specify details of behavior for "archetyped" objects.
 But there are also objects that do not have any archetype.
 We may want to specify behavior for those objects as well.
 And in fact this was possible in midPoint for ages, even though it was not explicitly denoted as having anything to do with archetypes.
-There is `defaultObjectPolicyConfiguration` container in wiki:System+Configuration+Object[system configuration object]:
+There is `defaultObjectPolicyConfiguration` container in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object]:
 
 [source,xml]
 ----
@@ -343,7 +343,7 @@ Business roles are usually composed from smaller roles.
 | Case
 | _none, assigned dynamically +
 _
-| Archetype for cases that describe wiki:Manual+Resource+and+ITSM+Integration[manual provisioning operations].
+| Archetype for cases that describe xref:/midpoint/reference/resources/manual/[manual provisioning operations].
 
 
 | Operation Request
@@ -373,7 +373,7 @@ Please be careful here.
 
 == Authorizations
 
-Archetype can be used as a criterion in wiki:Authorization+Configuration[authorizations]:
+Archetype can be used as a criterion in xref:/midpoint/reference/security/authorization/configuration/[authorizations]:
 
 [source,xml]
 ----

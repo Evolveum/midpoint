@@ -118,7 +118,7 @@ The mugs of all captains should come with owner's name on it, so no scurvy seado
 
 xref:/midpoint/reference/expressions/introduction/[Mappings and expressions] are used to define dynamic implied account attributes.
 wiki:Item+Path[Simple paths] are perhaps the most easy to use and most useful in common situations.
-There are also wiki:Script+Expression[scripting expressions] for more complex cases.
+There are also xref:/midpoint/reference/expressions/expressions/script/[scripting expressions] for more complex cases.
 The default expression language is Groovy, chosen for its similarity to Java.
 However, the expression model is extensible, there are several supported languages and even more expression languages may be added in the future.
 

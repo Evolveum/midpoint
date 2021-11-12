@@ -79,7 +79,7 @@ Please also note the full name of the user is `Jack Sparrow`.
 The IDM model logic needs to map changes in an account to the changes to a user.
 The `schemaHandling` part of the resource definition is used for that.
 The schema handling contains supplementary definition how to handle each of the account attributes.
-That definition may also contain wiki:Inbound+Mapping[inbound mapping] that define how to handle change of the attribute and propagate it within midPoint.
+That definition may also contain xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mapping] that define how to handle change of the attribute and propagate it within midPoint.
 
 The following XML snippet describes the `schemaHandling` part of the Resource where the change originated.
 It describes a default account type for the resource.
@@ -89,7 +89,7 @@ MidPoint can influence that only slightly.
 The way midPoint handles the attributes is described in the `schemaHandling` part.
 Some of the attributes are described here in more details, including `inbound` and `outbound` mappings.
 
-Please note the `schemaHandling` definition of attribute `ri:cn`. It defines an wiki:Inbound+Mapping[inbound mapping] telling midPoint to copy the value of this attribute to the `fullName` property of User object.
+Please note the `schemaHandling` definition of attribute `ri:cn`. It defines an xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mapping] telling midPoint to copy the value of this attribute to the `fullName` property of User object.
 
 .Schema Handling
 [source,xml]
@@ -176,7 +176,7 @@ So model transforms the modification of account attribute `cn` to the modificati
 After applying the change to the user midPoint behaves exactly as if the user was modified from any other source.
 This means midPoint will try to apply (provision) user changes to all user's accounts.
 Therefore midPoint takes user's other account (which is an AD account in this case), fetch definition of AD resource and looks into the `schemaHandling` section.
-But this time it looks for wiki:Outbound+Mapping[outbound expressions]. The resource definition for the AD resource looks like this:
+But this time it looks for xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound expressions]. The resource definition for the AD resource looks like this:
 
 .Schema Handling
 [source,xml]
@@ -233,7 +233,7 @@ But this time it looks for wiki:Outbound+Mapping[outbound expressions]. The reso
 
 ----
 
-The model looks through all the wiki:Outbound+Mapping[outbound expressions], looking where the change of the `fullName` can be applied.
+The model looks through all the xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound expressions], looking where the change of the `fullName` can be applied.
 In that way it figures out the `cn` attribute of the AD resource account should be set to a copy of the `fullName` property of the user.
 Therefore model invokes provisioning service to change the account attribute.
 
@@ -273,7 +273,7 @@ Model does this in two steps.
 Firstly it determines what's the state of the midPoint repository as compared to the new information fetched from the resource, determining a _xref:/midpoint/reference/synchronization/situations/[situation]_. Secondly, it consults the synchronization policy to find out how to react to the situation.
 
 The situation is determined by comparing the change that happened on the Resource (new account, change of existing account, deleted account) and the state of the midPoint repository (account owners).
-It does this by using a part of the synchronization policy known as wiki:Correlation+and+Confirmation+Expressions[Correlation and Confirmation Expressions]. MidPoint tries to use these expressions to find a potential owner for the new account.
+It does this by using a part of the synchronization policy known as xref:/midpoint/reference/synchronization/correlation-and-confirmation-expressions/[Correlation and Confirmation Expressions]. MidPoint tries to use these expressions to find a potential owner for the new account.
 
 In this case the new account was created, therefore it does not have an owner.
 The model will execute _correlation expression_, passing the created account as an parameter.
@@ -333,7 +333,7 @@ The system is configured to create a new user object in IDM repository if this s
 Model subsystem creates new empty user object in memory.
 Then it applies the attributes from the account to the new user object.
 The model does that in a way this is almost the same as application of modifications in the previous example.
-The wiki:Inbound+Mapping[inbound expressions] from `schemaHandling` are used for that.
+The xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound expressions] from `schemaHandling` are used for that.
 
 .Schema Handling
 [source,xml]

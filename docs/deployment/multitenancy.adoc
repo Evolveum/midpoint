@@ -139,7 +139,7 @@ From the technical point of view such authorization apply only if `tenantRef` of
 This authorization works only if both subject and object are multi-tenant.
 I.e. it will not work if subject does not have tenant (no `tenantRef`) or in case that the object does not have tenant.
 Ordinary (non-tenant) authorizations should be used for those cases.
-See wiki:Authorization+Configuration[Authorization Configuration] page for more details.
+See xref:/midpoint/reference/security/authorization/configuration/[Authorization Configuration] page for more details.
 
 
 == Limitations and Future Improvements
@@ -177,4 +177,4 @@ In case that you are interested in any of those improvements you can use xref:/s
 
 * xref:/midpoint/reference/security/authorization/[Authorization]
 
-* wiki:Authorization+Configuration[Authorization Configuration]
+* xref:/midpoint/reference/security/authorization/configuration/[Authorization Configuration]

@@ -297,6 +297,6 @@ Fortunately, such feature is planned: wiki:Data+Provenance[Data Provenance]. If 
 
 * xref:/midpoint/reference/expressions/mappings/[Mapping]
 
-* wiki:Outbound+Mapping[Outbound Mapping]
+* xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound Mapping]
 
 * xref:/midpoint/reference/synchronization/introduction/[Synchronization]

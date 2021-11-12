@@ -13,7 +13,7 @@ They denote *why* is the change being executed and *how* was the change detected
 
 Channels can be used to fine-tune midPoint functionality.
 E.g. channels can be used to limit execution of certain xref:/midpoint/reference/expressions/mappings/[mappings] to specific situations.
-The typical case is to limit application of wiki:Inbound+Mapping[inbound mappings] only to import.
+The typical case is to limit application of xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings] only to import.
 This is done by limiting the mapping to an _import channel_ and therefore it will be executed only when the accounts are imported and will not be executed for common synchronization.
 
 Channels are identified in midPoint by URL.
@@ -76,4 +76,4 @@ link:http://midpoint.evolveum.com/xml/ns/public/model/channels-3#rest[http://mid
 
 * xref:/midpoint/reference/synchronization/flavors/[Synchronization Flavors]
 
-* wiki:Synchronization+Configuration[Synchronization Configuration]
+* xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration]

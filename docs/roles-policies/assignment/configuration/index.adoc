@@ -70,7 +70,7 @@ Therefore if such account is deleted sometime later midPoint will try to re-crea
 Most of the construction assignments assign accounts.
 However there may be several account types: default account, administration account, testing account, ... The assignment may also assign a very different kinds of objects.
 E.g. in xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization] cases an assignment may assign an xref:/midpoint/reference/resources/entitlements/[entitlement] (e.g. a group) to midPoint xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[role.] The `kind` and `intent` elements in the construction part define what resource object is actually assigned.
-See wiki:Kind,+Intent+and+ObjectClass[Kind, Intent and ObjectClass] page for more details.
+See xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[Kind, Intent and ObjectClass] page for more details.
 If no kind and intent are specified then the assignment assigns default account on the specified resource.
 
 Please not that there is a substantial difference between assigning an _account_ to a group and assigning an entitlement (e.g. a group) to a _user_. The former case is what is usually desired: a provisioned account (resource object) is assigned to an existing group (also resource object).
@@ -156,11 +156,11 @@ It produces values similar to "Jack Sparrow is the best pirate Caribbean has eve
     </assignment>
 ----
 
-An observant reader had surely noticed similarity with wiki:Outbound+Mapping[outbound mappings]. The same xref:/midpoint/reference/expressions/mappings/[mapping] principle is used in both outbound mappings and assignments.
+An observant reader had surely noticed similarity with xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings]. The same xref:/midpoint/reference/expressions/mappings/[mapping] principle is used in both outbound mappings and assignments.
 Therefore the full scale of mapping capabilities can be used in assignments.
 
 The values specified by assignments are merged with other policies before the target resource object is provisioned or modified.
-Most importantly the values are merged with the results of wiki:Outbound+Mapping[outbound mappings]. The values are merged by default and no special configuration is required.
+Most importantly the values are merged with the results of xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings]. The values are merged by default and no special configuration is required.
 
 [NOTE]
 .Do not overuse
@@ -172,9 +172,9 @@ Consistent policies are easier to maintain.
 Care should be taken even if this ability is used in a form of xref:/midpoint/reference/roles-policies/rbac/[role inducements]. Some legacy IDM systems had no other way how to define a policy for attribute values than roles.
 Therefore some IDM engineers have tendency to abuse RBAC mechanisms to define global policies.
 This is *not* the case with midPoint.
-MidPoint has a clean and elegant mechanism for specifying resource-global policies: wiki:Outbound+Mapping[outbound mappings].
+MidPoint has a clean and elegant mechanism for specifying resource-global policies: xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings].
 
-*Rule of the thumb:*wiki:Outbound+Mapping[Outbound mappings] should be used to set attribute values if possible.
+*Rule of the thumb:*xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound mappings] should be used to set attribute values if possible.
 If not then xref:/midpoint/reference/roles-policies/rbac/[role inducements] should be used.
 Specifying attribute values in assignments should be used only if no other mechanisms is sufficient to implement the policy.
 
@@ -458,19 +458,19 @@ Therefore when the assignment is processed by midPoint a group `b0001` will be c
 
 Entitlement construction assignments are very similar to the account construction assignments.
 In fact the very same principles apply.
-Therefore for this approach to work well you need to do the same as for accounts: define entitlement in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] which usually includes some wiki:Outbound+Mapping[outbound mappings] to set group identifiers and other attributes.
+Therefore for this approach to work well you need to do the same as for accounts: define entitlement in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] which usually includes some xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings] to set group identifiers and other attributes.
 The xref:/midpoint/reference/resources/entitlements/[Entitlements] page has some examples how to do this.
 
 [TIP]
 .Intent
 ====
-wiki:Kind,+Intent+and+ObjectClass[Intent] setting is usually not used often when working with accounts.
+xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[Intent] setting is usually not used often when working with accounts.
 What is usually desired is to create "default account" for a user.
 Therefore default setting of intent usually works well for accounts and it is often omitted from the configuration.
 However it is quite different for entitlements.
 The concept of "default entitlement" usually does not make any sense.
 We usually want to explicitly assign a "group", "ACL" or "privilege".
-And this is usually specified by using wiki:Kind,+Intent+and+ObjectClass[intent].
+And this is usually specified by using xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[intent].
 
 ====
 

@@ -357,7 +357,7 @@ Since 3.7.2.
 | -
 
 
-| wiki:generate-value[generate-value]
+| xref:/midpoint/reference/misc/bulk/actions/generate-value/[generate-value]
 | Generates value(s) for object(s) coming as input.
 | items
 | Description of what and how to generate.
