@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemProcessing;
@@ -126,8 +127,15 @@ public class MiscSchemaUtil {
         return itemPathList;
     }
 
-    public static SelectorQualifiedGetOptionsType optionsToOptionsType(
+    @Contract("null -> null; !null -> !null")
+    public static SelectorQualifiedGetOptionsType optionsToOptionsBeanNullable(
             Collection<SelectorOptions<GetOperationOptions>> options) {
+        return options != null ?
+                optionsToOptionsBean(options) : null;
+    }
+
+    public static @NotNull SelectorQualifiedGetOptionsType optionsToOptionsBean(
+            @NotNull Collection<SelectorOptions<GetOperationOptions>> options) {
         SelectorQualifiedGetOptionsType optionsType = new SelectorQualifiedGetOptionsType();
         List<SelectorQualifiedGetOptionType> retval = new ArrayList<>();
         for (SelectorOptions<GetOperationOptions> option : options) {

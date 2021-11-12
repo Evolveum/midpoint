@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.component.input;
 
 import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -24,6 +25,8 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by honchar
@@ -99,13 +102,9 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
     protected void onValueChanged(AjaxRequestTarget target) {
     }
 
-    public QName getRelationValue() {
+    public @NotNull QName getRelationValue() {
         QName relationValue = ((DropDownFormGroup<QName>) get(ID_INPUT)).getModelObject();
-        if (relationValue == null) {
-            return PrismConstants.Q_ANY;
-        } else {
-            return relationValue;
-        }
+        return Objects.requireNonNullElse(relationValue, PrismConstants.Q_ANY);
     }
 
     protected String getNullValidDisplayValue() {

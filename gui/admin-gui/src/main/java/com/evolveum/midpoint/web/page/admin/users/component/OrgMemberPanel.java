@@ -11,6 +11,9 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsHelper;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelperOld;
 import org.apache.cxf.common.util.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -22,7 +25,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
-import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
@@ -49,7 +51,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
         } else {
             String oid = getModelObject().getOid();
 
-            ObjectReferenceType ref = MemberOperationsHelper.createReference(getModelObject(), getMemberPanelStorage().getDefaultRelation());
+            ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getModelObject(), getMemberPanelStorage().getDefaultRelation());
             ObjectQuery query = getPageBase().getPrismContext().queryFor(getSearchTypeClass())
                     .type(getSearchTypeClass())
                     .isChildOf(ref.asReferenceValue()).build();
@@ -76,7 +78,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     @Override
     protected void assignMembers(AjaxRequestTarget target, RelationSearchItemConfigurationType relationConfig,
             List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList, boolean isOrgTreePanelVisible) {
-        MemberOperationsHelper.assignOrgMembers(getPageBase(), getModelObject(), target, relationConfig, objectTypes, archetypeRefList);
+        MemberOperationsHelperOld.assignOrgMembers(getPageBase(), getModelObject(), target, relationConfig, objectTypes, archetypeRefList);
     }
 
     @Override

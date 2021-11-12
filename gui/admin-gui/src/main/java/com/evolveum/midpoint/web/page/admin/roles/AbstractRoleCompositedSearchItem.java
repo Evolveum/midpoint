@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.web.page.admin.roles;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsHelper;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -147,7 +148,7 @@ public class AbstractRoleCompositedSearchItem extends SearchItem {
         Class type = getSearch().getTypeClass();
         SearchBoxScopeType scope = getMemberPanelStorage().getScopeSearchItem().getDefaultValue();
         if (SearchBoxScopeType.SUBTREE == scope) {
-            ObjectReferenceType ref = MemberOperationsHelper.createReference(object, null);
+            ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(object, (QName) null);
             return pageBase.getPrismContext().queryFor(type).isChildOf(ref.asReferenceValue()).buildFilter();
         }
 

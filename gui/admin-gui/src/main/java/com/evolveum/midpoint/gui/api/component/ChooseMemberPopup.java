@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsHelper;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
-import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -43,6 +43,7 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -421,10 +422,10 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         return false;
     }
 
-    protected void executeMemberOperation(AbstractRoleType targetObject, ObjectQuery query,
-            QName relation, QName type, AjaxRequestTarget target, PageBase pageBase) {
-        MemberOperationsHelper.assignMembersPerformed(targetObject, query,
-                relation, type, target, pageBase);
+    private void executeMemberOperation(AbstractRoleType targetObject, ObjectQuery query,
+            @NotNull QName relation, QName type, AjaxRequestTarget target, PageBase pageBase) {
+        MemberOperationsHelper.createAndSubmitAssignMembersTask(targetObject, type, query,
+                relation, target, pageBase);
     }
 
     private IModel<List<CompositedIconButtonDto>> createAssignButtonDescriptionModel() {

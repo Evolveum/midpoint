@@ -1476,10 +1476,12 @@ public final class WebComponentUtil {
         }
     }
 
+    @Contract("null -> null; !null -> !null")
     public static PolyStringType createPolyFromOrigString(String str) {
         return createPolyFromOrigString(str, null);
     }
 
+    @Contract("null, _ -> null; !null, _ -> !null")
     public static PolyStringType createPolyFromOrigString(String str, String key) {
         if (str == null) {
             return null;
