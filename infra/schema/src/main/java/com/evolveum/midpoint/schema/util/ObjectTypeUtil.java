@@ -1065,8 +1065,12 @@ public class ObjectTypeUtil {
         }
     }
 
+    public static boolean isIndestructible(@NotNull ObjectType object) {
+        return Boolean.TRUE.equals(object.isIndestructible());
+    }
+
     public static boolean isIndestructible(@NotNull PrismObject<? extends ObjectType> object) {
-        return Boolean.TRUE.equals(object.asObjectable().isIndestructible());
+        return isIndestructible(object.asObjectable());
     }
 
     @FunctionalInterface

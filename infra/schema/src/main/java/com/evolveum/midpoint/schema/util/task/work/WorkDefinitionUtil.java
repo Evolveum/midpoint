@@ -38,6 +38,7 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getReconciliation());
         addTypedParameters(values, definitions.getLiveSynchronization());
         addTypedParameters(values, definitions.getCleanup());
+        addTypedParameters(values, definitions.getDeletion());
         addTypedParameters(values, definitions.getReportExport());
         addTypedParameters(values, definitions.getReportImport());
         addTypedParameters(values, definitions.getDistributedReportExport());

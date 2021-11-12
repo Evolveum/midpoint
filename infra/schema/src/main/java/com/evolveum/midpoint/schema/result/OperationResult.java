@@ -631,7 +631,7 @@ public class OperationResult
      * @return true if the result is success.
      */
     public boolean isSuccess() {
-        return (status == OperationResultStatus.SUCCESS);
+        return status == OperationResultStatus.SUCCESS;
     }
 
     public boolean isWarning() {
@@ -652,7 +652,7 @@ public class OperationResult
     }
 
     public boolean isUnknown() {
-        return (status == OperationResultStatus.UNKNOWN);
+        return status == OperationResultStatus.UNKNOWN;
     }
 
     public boolean isInProgress() {
@@ -660,24 +660,24 @@ public class OperationResult
     }
 
     public boolean isError() {
-        return (status == OperationResultStatus.FATAL_ERROR) ||
-                (status == OperationResultStatus.PARTIAL_ERROR);
+        return status == OperationResultStatus.FATAL_ERROR ||
+                status == OperationResultStatus.PARTIAL_ERROR;
     }
 
     public boolean isFatalError() {
-        return (status == OperationResultStatus.FATAL_ERROR);
+        return status == OperationResultStatus.FATAL_ERROR;
     }
 
     public boolean isPartialError() {
-        return (status == OperationResultStatus.PARTIAL_ERROR);
+        return status == OperationResultStatus.PARTIAL_ERROR;
     }
 
     public boolean isHandledError() {
-        return (status == OperationResultStatus.HANDLED_ERROR);
+        return status == OperationResultStatus.HANDLED_ERROR;
     }
 
     public boolean isNotApplicable() {
-        return (status == OperationResultStatus.NOT_APPLICABLE);
+        return status == OperationResultStatus.NOT_APPLICABLE;
     }
 
     /**

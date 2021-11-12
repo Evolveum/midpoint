@@ -123,7 +123,6 @@
     <logger name="com.evolveum.midpoint.common.validator" level="DEBUG" />
     <logger name="com.evolveum.icf.dummy" level="INFO" />
     <logger name="com.evolveum.midpoint.model.impl.expr" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.model.impl.tasks.old.DeleteTaskHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.repo" level="INFO" />
     <logger name="com.evolveum.midpoint.repo.operation" level="DEBUG" />
     <logger name="com.evolveum.midpoint.repo.sql.util.MidpointPersisterUtil" level="INFO" />

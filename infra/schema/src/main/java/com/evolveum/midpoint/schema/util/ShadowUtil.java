@@ -31,6 +31,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -492,14 +493,13 @@ public class ShadowUtil {
         }
     }
 
-    public static boolean isProtected(PrismObject<? extends ShadowType> shadow) {
-        if (shadow == null) {
-            return false;
-        }
+    public static boolean isProtected(@Nullable ShadowType shadow) {
+        return shadow != null && Boolean.TRUE.equals(shadow.isProtectedObject());
+    }
 
-        ShadowType shadowType = shadow.asObjectable();
-        Boolean protectedObject = shadowType.isProtectedObject();
-        return (protectedObject != null && protectedObject);
+    public static boolean isProtected(PrismObject<? extends ShadowType> shadow) {
+        return isProtected(
+                PrismObject.asObjectable(shadow));
     }
 
     public static boolean isDead(ShadowType shadow) {

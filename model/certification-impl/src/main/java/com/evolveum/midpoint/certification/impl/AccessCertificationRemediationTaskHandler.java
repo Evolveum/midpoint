@@ -68,15 +68,15 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
     public TaskRunResult run(@NotNull RunningTask task) {
         LOGGER.trace("Task run starting");
 
-        OperationResult opResult = new OperationResult(CLASS_DOT+"run");
+        OperationResult opResult = task.getResult().createSubresult(CLASS_DOT+"run");
         opResult.setSummarizeSuccesses(true);
         TaskRunResult runResult = new TaskRunResult();
-        runResult.setOperationResult(opResult);
 
         String campaignOid = task.getObjectOid();
         if (campaignOid == null) {
             LOGGER.error("No campaign OID specified in the task");
             opResult.recordFatalError("No campaign OID specified in the task");
+            runResult.setOperationResultStatus(OperationResultStatus.FATAL_ERROR);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
@@ -88,6 +88,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
             if (!CertCampaignTypeUtil.isRemediationAutomatic(campaign)) {
                 LOGGER.error("Automatic remediation is not configured.");
                 opResult.recordFatalError("Automatic remediation is not configured.");
+                runResult.setOperationResultStatus(OperationResultStatus.FATAL_ERROR);
                 runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
                 return runResult;
             }
@@ -124,6 +125,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
 
             certificationManager.closeCampaign(campaignOid, task, opResult);
 
+            runResult.setOperationResultStatus(OperationResultStatus.SUCCESS);
             runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
             LOGGER.trace("Task run stopping (campaign {})", ObjectTypeUtil.toShortString(campaign));
             return runResult;
@@ -131,6 +133,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
         } catch (Exception e) {     // TODO better error handling
             LoggingUtils.logException(LOGGER, "Error while executing remediation task handler", e);
             opResult.recordFatalError("Error while executing remediation task handler: "+e.getMessage(), e);
+            runResult.setOperationResultStatus(OperationResultStatus.FATAL_ERROR);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
@@ -151,7 +154,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
         return SystemObjectsType.ARCHETYPE_CERTIFICATION_TASK.value();
     }
 
-    public void launch(AccessCertificationCampaignType campaign, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+    void launch(AccessCertificationCampaignType campaign, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 
         LOGGER.info("Launching remediation task handler for campaign {} as asynchronous task", ObjectTypeUtil.toShortString(campaign));
 

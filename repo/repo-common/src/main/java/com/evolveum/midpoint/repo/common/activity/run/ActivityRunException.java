@@ -52,7 +52,7 @@ public class ActivityRunException extends Exception {
     }
 
     ActivityRunResult toActivityRunResult() {
-        return new ActivityRunResult(opResultStatus, runResultStatus);
+        return new ActivityRunResult(opResultStatus, runResultStatus, getCause());
     }
 
     public TaskException toTaskException() {

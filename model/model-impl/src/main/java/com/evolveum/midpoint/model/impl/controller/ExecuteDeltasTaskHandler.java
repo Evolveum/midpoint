@@ -76,7 +76,7 @@ public class ExecuteDeltasTaskHandler implements TaskHandler {
         }
 
         task.getResult().recomputeStatus();
-        runResult.setOperationResult(task.getResult());
+        runResult.setOperationResultStatus(task.getResult().getStatus());
         return runResult;
     }
 

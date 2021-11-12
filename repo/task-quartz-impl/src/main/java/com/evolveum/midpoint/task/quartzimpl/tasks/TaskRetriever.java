@@ -470,6 +470,11 @@ public class TaskRetriever {
         return repositoryService.getObject(TaskType.class, oid, options, result);
     }
 
+    public PrismObject<TaskType> getRepoObjectWithoutResult(String oid, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        return repositoryService.getObject(TaskType.class, oid, null, result);
+    }
+
     private List<PrismObject<TaskType>> listPrerequisiteTasksRaw(TaskQuartzImpl task, OperationResult result) throws SchemaException {
         ObjectQuery query = prismContext.queryFor(TaskType.class)
                 .item(TaskType.F_DEPENDENT).eq(task.getTaskIdentifier())

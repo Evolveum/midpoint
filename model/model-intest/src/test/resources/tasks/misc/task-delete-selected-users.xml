@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="623f261c-4c63-445b-a714-dcde118f227c">
+    <name>delete-selected-users</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <deletion>
+                <objects>
+                    <type>UserType</type>
+                    <query>
+                        <q:filter>
+                            <q:substring>
+                                <q:matching>polyStringOrig</q:matching>
+                                <q:path>name</q:path>
+                                <q:value>user-to-delete-</q:value>
+                            </q:substring>
+                        </q:filter>
+                    </query>
+                </objects>
+            </deletion>
+        </work>
+    </activity>
+</task>

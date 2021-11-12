@@ -26,7 +26,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  * Implementation of {@link TaskInformation} based on new, activity-based tasks.
  * Assumes knowledge of both root and current task.
  */
-class ActivityBasedTaskInformation extends TaskInformation {
+public class ActivityBasedTaskInformation extends TaskInformation {
 
     /**
      * Progress information for the current task and its children.

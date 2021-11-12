@@ -1,0 +1,27 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="889d1313-2a7f-4112-a996-2b84f1f000a7">
+    <name>delete-missing-type</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <deletion>
+                <objects>
+                    <query>
+                        <q:filter>
+                            <q:all/>
+                        </q:filter>
+                    </query>
+                </objects>
+            </deletion>
+        </work>
+    </activity>
+</task>

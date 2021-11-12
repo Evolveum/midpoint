@@ -247,7 +247,7 @@ public abstract class AbstractActivityRun<
             invokePreRunnable(result);
             return runInternal(result);
         } catch (Exception e) {
-            return ActivityRunResult.handleException(e, this);
+            return ActivityRunResult.handleException(e, result, this);
         }
     }
 

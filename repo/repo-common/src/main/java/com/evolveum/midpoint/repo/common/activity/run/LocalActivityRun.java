@@ -76,7 +76,7 @@ public abstract class LocalActivityRun<
             getRunningTask().setExcludedFromStalenessChecking(isExcludedFromStalenessChecking());
             runResult = runLocally(result);
         } catch (Exception e) {
-            runResult = ActivityRunResult.handleException(e, this);
+            runResult = ActivityRunResult.handleException(e, result, this);
         }
         getRunningTask().setExcludedFromStalenessChecking(false);
 

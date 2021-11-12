@@ -85,10 +85,10 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
             String message = "An exception occurred when trying to execute model operation for a case in " + task;
             LoggingUtils.logUnexpectedException(LOGGER, message, e);
             result.recordFatalError(message, e);
-            runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR);        // let's assume it's temporary
+            runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR); // let's assume it's temporary
         }
         task.getResult().recomputeStatus();
-        runResult.setOperationResult(task.getResult());
+        runResult.setOperationResultStatus(task.getResult().getStatus());
         return runResult;
     }
 

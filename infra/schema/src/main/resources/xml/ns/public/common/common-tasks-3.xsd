@@ -1838,6 +1838,13 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
+                <xsd:element name="deletion" type="tns:DeletionWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Deletes specified objects.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
                 <xsd:element name="reportExport" type="tns:ClassicReportExportWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
@@ -5383,7 +5390,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="taskErrorHandlingStrategy" type="tns:ActivityErrorHandlingStrategyType"/>
+    <xsd:element name="activityErrorHandlingStrategy" type="tns:ActivityErrorHandlingStrategyType"/>
 
     <xsd:complexType name="ActivityErrorHandlingStrategyEntryType">
         <xsd:annotation>
@@ -5421,7 +5428,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="taskErrorHandlingStrategyEntry" type="tns:ActivityErrorHandlingStrategyEntryType"/>
+    <xsd:element name="activityErrorHandlingStrategyEntry" type="tns:ActivityErrorHandlingStrategyEntryType"/>
 
     <xsd:complexType name="ErrorSituationSelectorType">
         <xsd:annotation>
@@ -6735,7 +6742,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="recomputationDefinition" type="tns:RecomputationWorkDefinitionType"/>
+    <xsd:element name="recomputationWorkDefinition" type="tns:RecomputationWorkDefinitionType"/>
 
     <xsd:complexType name="IterativeScriptingWorkDefinitionType">
         <xsd:annotation>
@@ -6855,7 +6862,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="triggerScanWorkDefinition" type="tns:FocusValidityScanWorkDefinitionType"/>
+    <xsd:element name="triggerScanWorkDefinition" type="tns:TriggerScanWorkDefinitionType"/>
 
     <xsd:complexType name="ShadowRefreshWorkDefinitionType">
         <xsd:annotation>
@@ -6990,7 +6997,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="reconciliationDefinition" type="tns:ReconciliationWorkDefinitionType"/>
+    <xsd:element name="reconciliationWorkDefinition" type="tns:ReconciliationWorkDefinitionType"/>
 
     <xsd:complexType name="AsyncUpdateWorkDefinitionType">
         <xsd:annotation>
@@ -7017,7 +7024,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="asynchronousUpdateWorkDefinition" type="tns:AsyncUpdateWorkDefinitionType"/>
+    <xsd:element name="asyncUpdateWorkDefinition" type="tns:AsyncUpdateWorkDefinitionType"/>
 
     <xsd:complexType name="ImportWorkDefinitionType">
         <xsd:annotation>
@@ -7082,7 +7089,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="liveSynchronization" type="tns:LiveSyncWorkDefinitionType"/>
+    <xsd:element name="liveSyncWorkDefinition" type="tns:LiveSyncWorkDefinitionType"/>
 
     <xsd:complexType name="CleanupWorkDefinitionType">
         <xsd:annotation>
@@ -7108,7 +7115,27 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="cleanupDefinition" type="tns:CleanupWorkDefinitionType"/>
+    <xsd:element name="cleanupWorkDefinition" type="tns:CleanupWorkDefinitionType"/>
+
+    <xsd:complexType name="DeletionWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Deletes specified objects.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ObjectSetBasedWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="executionOptions" type="tns:ModelExecuteOptionsType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="deletionWorkDefinition" type="tns:DeletionWorkDefinitionType"/>
 
     <xsd:complexType name="AbstractReportWorkDefinitionType">
         <xsd:annotation>

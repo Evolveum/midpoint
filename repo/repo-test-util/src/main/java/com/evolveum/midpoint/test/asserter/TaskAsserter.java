@@ -335,6 +335,13 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return this;
     }
 
+    public TaskAsserter<RA> assertResultMessageContains(String fragment) {
+        OperationResultType result = getTaskBean().getResult();
+        assertThat(result).as("operation result").isNotNull();
+        assertThat(result.getMessage()).as("operation result message").contains(fragment);
+        return this;
+    }
+
     public TaskAsserter<RA> assertCategory(String category) {
         assertEquals(category, getTaskBean().getCategory());
         return this;

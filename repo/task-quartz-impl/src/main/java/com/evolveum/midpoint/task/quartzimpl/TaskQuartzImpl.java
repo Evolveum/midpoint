@@ -264,19 +264,19 @@ public class TaskQuartzImpl implements Task {
         }
     }
 
-    private void updateTaskPrismResult(PrismObject<TaskType> target) {
+    private void updateTaskPrismResult() {
         // TODO in fact, we should synchronize on taskResult here - and synchronization
         //  on prismAccess should be done by callers (where applicable)
         synchronized (prismAccess) {
             if (taskResult != null) {
-                target.asObjectable().setResult(taskResult.createOperationResultType());
-                target.asObjectable().setResultStatus(taskResult.getStatus().createStatusType());
+                taskPrism.asObjectable().setResult(taskResult.createOperationResultType());
+                taskPrism.asObjectable().setResultStatus(taskResult.getStatus().createStatusType());
             } else {
-                target.asObjectable().setResult(null);
+                taskPrism.asObjectable().setResult(null);
                 if (taskResultIncomplete) {
                     // We must not clear result status if the result is present but not known.
                 } else {
-                    target.asObjectable().setResultStatus(null);
+                    taskPrism.asObjectable().setResultStatus(null);
                 }
             }
         }
@@ -325,7 +325,7 @@ public class TaskQuartzImpl implements Task {
         if (isLiveRunningInstance()) {
             throw new IllegalStateException("Cannot get task object from live running task instance");
         } else {
-            updateTaskPrismResult(taskPrism);
+            updateTaskPrismResult();
             return taskPrism;
         }
     }
@@ -1941,17 +1941,25 @@ public class TaskQuartzImpl implements Task {
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
         result.addContext(OperationResult.CONTEXT_OID, getOid());
         try {
-            // Here we conservatively fetch the result. In the future we could optimize this a bit, avoiding result
-            // fetching when not strictly necessary. But it seems that it needs to be fetched most of the time.
-            this.taskPrism = beans.taskRetriever.getRepoObjectWithResult(getOid(), result);
-            updateTaskResult();
+            if (this instanceof RunningTask) {
+                // For running tasks we do NOT update the operation result from repo. The running task itself keeps the most
+                // current value of it. Instead, we update the result in prism from the current value. (Although it may not
+                // be strictly necessary. We hope it won't eat too much memory and CPU cycles. We could get rid of it eventually.)
+                this.taskPrism = beans.taskRetriever.getRepoObjectWithoutResult(getOid(), result);
+                updateTaskPrismResult();
+            } else {
+                // Here we conservatively fetch the result. In the future we could optimize this a bit, avoiding result
+                // fetching when not strictly necessary. But it seems that it needs to be fetched most of the time.
+                this.taskPrism = beans.taskRetriever.getRepoObjectWithResult(getOid(), result);
+                updateTaskResult();
+            }
             setDefaults();
             checkOwnerRefPresent();
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 

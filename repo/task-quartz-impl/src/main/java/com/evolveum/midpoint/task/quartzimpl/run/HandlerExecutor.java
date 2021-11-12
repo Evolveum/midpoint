@@ -37,14 +37,14 @@ public class HandlerExecutor {
             runResult = handler.run(task);
             if (runResult == null) { // Obviously an error in task handler
                 LOGGER.error("Unable to record run finish: task returned null result");
-                runResult = createFailureTaskRunResult(task, "Task returned null result", null);
+                runResult = createFailureTaskRunResult("Task returned null result", null);
             }
         } catch (TaskException e) {
-            runResult = TaskRunResult.createFromTaskException(task, e);
+            runResult = TaskRunResult.createFromTaskException(e);
         } catch (Throwable t) {
             LoggingUtils.logUnexpectedException(LOGGER, "Task handler threw unexpected exception: {}: {}; task = {}",
                     t, t.getClass().getName(), t.getMessage(), task);
-            runResult = createFailureTaskRunResult(task, "Task handler threw unexpected exception: " + t.getMessage(), t);
+            runResult = createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
         }
         LOGGER.trace("runResult is {} for {}", runResult, task);
 

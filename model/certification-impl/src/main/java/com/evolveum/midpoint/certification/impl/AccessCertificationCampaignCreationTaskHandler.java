@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
@@ -56,15 +57,15 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
     public TaskRunResult run(@NotNull RunningTask task) {
         LOGGER.trace("Task run starting");
 
-        OperationResult opResult = new OperationResult(CLASS_DOT+"run");
+        OperationResult opResult = task.getResult().createSubresult(CLASS_DOT+"run");
         opResult.setSummarizeSuccesses(true);
         TaskRunResult runResult = new TaskRunResult();
-        runResult.setOperationResult(opResult);
 
         String definitionOid = task.getObjectOid();
         if (definitionOid == null) {
             LOGGER.error("No definition OID specified in the task");
             opResult.recordFatalError("No definition OID specified in the task");
+            runResult.setOperationResultStatus(OperationResultStatus.FATAL_ERROR);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
@@ -79,6 +80,7 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
         } catch (Exception e) {
             LoggingUtils.logException(LOGGER, "Error while executing 'create campaign' task handler", e);
             opResult.recordFatalError("Error while executing 'create campaign' task handler: " + e.getMessage(), e);
+            runResult.setOperationResultStatus(OperationResultStatus.FATAL_ERROR);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
@@ -91,6 +93,7 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
             op.succeeded();
             opResult.computeStatus();
             runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
+            runResult.setOperationResultStatus(OperationResultStatus.SUCCESS);
             runResult.setProgress(task.getLegacyProgress()+1);
             return runResult;
 
@@ -99,6 +102,7 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
             LoggingUtils.logException(LOGGER, "Error while executing 'create campaign' task handler", e);
             opResult.recordFatalError("Error while executing 'create campaign' task handler: "+e.getMessage(), e);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+            runResult.setOperationResultStatus(OperationResultStatus.FATAL_ERROR);
             return runResult;
         }
     }
