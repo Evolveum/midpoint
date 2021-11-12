@@ -38,7 +38,7 @@ The handler URI associates the task definition with the code.
 == Custom Task Code
 
 The task code must be part of midPoint code.
-Currently perhaps the only feasible way is to recompile midPoint with your custom code in it (see wiki:Source+Code+Customization[Source Code Customization]). The code itself is simply one class that implements the task handler:
+Currently perhaps the only feasible way is to recompile midPoint with your custom code in it (see xref:/midpoint/devel/source/customization/[Source Code Customization]). The code itself is simply one class that implements the task handler:
 
 [source,java]
 ----
@@ -109,4 +109,4 @@ The task instance is passed as a parameter.
 
 * xref:/midpoint/architecture/archive/subsystems/repo/task-manager/task-manager-interface/[Task Manager Interface]
 
-* wiki:Task+Manager+Configuration[Task Manager Configuration]
+* xref:/midpoint/reference/tasks/task-manager/configuration/[Task Manager Configuration]

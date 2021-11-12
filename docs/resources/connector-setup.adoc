@@ -47,7 +47,7 @@ No extra installation is necessary.
 The bundled connectors are provided in the latest stable version available at the time of each particular midPoint release.
 This means that the at least some connector versions are likely to change when midPoint is upgraded.
 Therefore a connector upgrade procedure is usually needed after midPoint is upgraded.
-See wiki:Connector+Upgrade[Connector Upgrade].
+See xref:/midpoint/reference/upgrade/connectors/[Connector Upgrade].
 
 ====
 
@@ -141,7 +141,7 @@ This is a simple case of a `connectorRef` reference:
 ----
 
 This reference simply points to a connector definition (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]) that has an OID `2dee34c1-5a1b-4c53-bbb2-7dd5d8f45533`. This reference must point to an existing and valid connector definition.
-This is the place that needs to be changed during wiki:Connector+Upgrade[Connector Upgrade].
+This is the place that needs to be changed during xref:/midpoint/reference/upgrade/connectors/[Connector Upgrade].
 
 As connector objects are created automatically, it is not possible to predict the OIDs of the connector definitions.
 Therefore if you are maintaining the resource definition files outside midPoint (e.g. in a version control system) then the best way is to use search filter instead of a fixed OID.
@@ -189,13 +189,13 @@ See also xref:/connectors/connid/1.x/connector-server/[Connector Server]
 
 == Upgrade Procedure
 
-See wiki:Connector+Upgrade[Connector Upgrade] page.
+See xref:/midpoint/reference/upgrade/connectors/[Connector Upgrade] page.
 
 
 == See Also
 
 * xref:/midpoint/reference/resources/connid/[ConnId]
 
-* wiki:Connector+Upgrade[Connector Upgrade]
+* xref:/midpoint/reference/upgrade/connectors/[Connector Upgrade]
 
 * xref:/connectors/connid/1.x/connector-server/[Connector Server]

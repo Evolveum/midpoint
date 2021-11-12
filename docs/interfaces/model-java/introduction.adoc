@@ -59,8 +59,8 @@ Therefore an instance of _prism context_  is needed to complete some operations 
 Similarly to other such instances also the prism context is managed by Spring framework.
 Therefore instance of prism context can be obtained by using Spring dependency injection, e.g. using the `@Autowire` annotation.
 
-Please note that most objects are using wiki:PolyString[PolyString] instead of plain strings for some attributes.
-The use of wiki:PolyString[PolyString] provides important advantage in internationalized environment.
+Please note that most objects are using xref:/midpoint/reference/concepts/polystring/[PolyString] instead of plain strings for some attributes.
+The use of xref:/midpoint/reference/concepts/polystring/[PolyString] provides important advantage in internationalized environment.
 E.g. it provides ability for database-independent searches that are quite close to an internationalized full-text search.
 While PolyString values are almost transparent when used for reading they require some attention when constructing objects and deltas.
 
@@ -155,7 +155,7 @@ The key to search methods is wiki:Object+Query[midPoint query language]. This qu
 It may be slightly complex to construct but there are convenient factory methods that can be used for this purpose.
 The following example shows how a simple query is constructed and used in a search.
 Factory methods `createObjectQuery` and `createEqual` are used to construct a simple query.
-The query describes objects for which the `name` property (specified as `ResourceType.F_NAME`) equals to wiki:PolyString[PolyString]`"My Resource`". Once executed this will return all such xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType] objects (which obviously is at most one object as `name` property is unique across all the resources).
+The query describes objects for which the `name` property (specified as `ResourceType.F_NAME`) equals to xref:/midpoint/reference/concepts/polystring/[PolyString]`"My Resource`". Once executed this will return all such xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType] objects (which obviously is at most one object as `name` property is unique across all the resources).
 
 [source,java]
 ----

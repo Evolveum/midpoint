@@ -95,7 +95,7 @@ And that one had to contain the fox.
 The key to efficient troubleshooting is to proceed in a systematic way and quickly locate the parts that cause the problem.
 The ideal way to start troubleshooting is the Clockwork component.
 It is in the middle of the processing.
-Clockwork has a very convenient wiki:Useful+Loggers[logging] output:
+Clockwork has a very convenient xref:/midpoint/reference/diag/logging/useful-loggers/[logging] output:
 
 .com.evolveum.midpoint.model.impl.lens.Clockwork: DEBUG
 [source]

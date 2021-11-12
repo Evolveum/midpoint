@@ -45,7 +45,7 @@ job category, job titles/position, qualification, competency certification, achi
 project, workgroup, team, ad-hoc group, task force, job responsibility group +
 Tenant (in multi-tenant configurations) +
 Location (office, campus, city, country) +
-wiki:User-Friendly+Policy+Selection[Policy category] +
+xref:/midpoint/reference/roles-policies/applicable-policies/[Policy category] +
 xref:/midpoint/reference/admin-gui/role-catalog/[Role catalog category]
 
 
@@ -63,12 +63,12 @@ Therefore there are many benefits:
 * Job categories, titles, qualifications and similar objects can directly include entitlements.
 Therefore if a user is assigned to a job, such user automatically gets all the entitlements needed for that job.
 
-* wiki:Role+Autoassignment[Autoassignment] works as expected.
+* xref:/midpoint/reference/roles-policies/role-autoassignment/[Autoassignment] works as expected.
 As do authorizations.
 xref:/midpoint/reference/cases/approval/[Approval] processes can be applied seamlessly.
 All midPoint concepts applicable to roles can be applied.
 
-* There is also a big benefit from wiki:Management+of+Lawful+Bases+for+Data+Processing+(GDPR)[data protection perspective]. As the entitlements are placed directly into job categories and qualifications it is easy to find the reason or "basis" why the user has such an entitlement.
+* There is also a big benefit from xref:/midpoint/features/planned/lawful-bases-for-data-processing/[data protection perspective]. As the entitlements are placed directly into job categories and qualifications it is easy to find the reason or "basis" why the user has such an entitlement.
 E.g. midPoint knows that user's personal data are provisioned to system X because the user has a job position Y that needs such an account.
 
 * Membership is managed in the same way as for roles.

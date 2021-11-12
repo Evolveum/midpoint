@@ -12,8 +12,7 @@ link:https://www.youtube.com/watch?v=AsSDXznIhGc[t]his video tutorialThis page d
 
 == VMware Player version
 
-
-=== How to start virtual machine in localhost from *.ova/*.ovf file in VMware Player:
+=== How to start virtual machine in localhost from pass:[*.ova/*.ovf] file in VMware Player:
 
 . download electra.ova (*TODO public location?*)
 
@@ -25,7 +24,7 @@ link:https://www.youtube.com/watch?v=AsSDXznIhGc[t]his video tutorialThis page d
 
 . click 'Open a Virtual Machine', change 'File of type' to 'All image files', browse electra.ova and Open
 
-. set name of the new virtual machine (default electra) and browse a Storage where you convert *.ova (Open Virtual Machine Format Image) to *.vmx (VMWare Configuration File) - required approx. 12GB free space
+. set name of the new virtual machine (default electra) and browse a Storage where you convert `pass:[*.ova]` (Open Virtual Machine Format Image) to `pass:[*.vmx]` (VMWare Configuration File) - required approx. 12GB free space
 
 . when you see an alert message about OVF specification conformance click 'Retry', importing takes a few minutes
 
@@ -35,7 +34,7 @@ link:https://www.youtube.com/watch?v=AsSDXznIhGc[t]his video tutorialThis page d
 
 .. go to download folder
 
-.. run command 'VMware-player-4.0.6-1035888.exe /e extract' to extract *.exe content
+.. run command 'VMware-player-4.0.6-1035888.exe /e extract' to extract `pass:[*.exe]` content
 
 .. open/extract network.cab, copy vmnetcfg.exe to VMware Player instalation location
 
@@ -63,12 +62,11 @@ link:https://www.youtube.com/watch?v=AsSDXznIhGc[t]his video tutorialThis page d
 
 . in VMplayer window pres CTRL+ALT to go out, open in browser ip adress (in my cases link:http://192.168.0.109/[http://192.168.0.109/] --> will redirected to midpoint login page) to start midpoint login page
 
-. for more info see wiki:Live+Demo[Live Demo]
+. for more info see xref:/midpoint/demo/[Live Demo]
 
 . to shut down virtual machine run 'sudo poweroff', VMware Player windows is closed
 
-
-=== How to export to ESX from VMWare player (converting *.vmx to *.ovf/*.ova)
+=== How to export to ESX from VMWare player (converting pass:[*.vmx to *.ovf/*.ova])
 
 . download link:https://my.vmware.com/group/vmware/details?productId=352&downloadGroup=OVFTOOL350[ovftool from VMWare]. Install the software and after the installation:
 
@@ -96,10 +94,9 @@ link:https://www.youtube.com/watch?v=AsSDXznIhGc[t]his video tutorialThis page d
 
 . at the end you see 'completed successfully'
 
-. it created also \*.vmdk - VMware virtual disk file and \*.mf checksums
+. it created also `pass:[*.vmdk]` - VMware virtual disk file and `pass:[*.mf]` checksums
 
-. to import in ESX infrastructure you need to send/transfer \*.vmdk and \*.ovf files  (or *.ova)
-
+. to import in ESX infrastructure you need to send/transfer `pass:[*.vmdk]` and `pass:[*.ovf]` files  (or `pass:[*.ova`)
 
 == Oracle VM VirtualBox version
 
@@ -108,7 +105,7 @@ When you develop and change a lot of configuration in demo virtual machine, the 
 VMware Player not support snapshots, but VirtualBox has this nice feature in runtime.
 
 
-=== How to start virtual machine in localhost from *.ova/*.ovf file in Virtualbox:
+=== How to start virtual machine in localhost from pass:[*.ova/*.ovf] file in Virtualbox:
 
 . download Oracle VM Virtualbox, install and run it.
 
@@ -142,14 +139,13 @@ VMware Player not support snapshots, but VirtualBox has this nice feature in run
 
 . in VMplayer window pres left CTRL to go out, open in browser ip adress (in my cases link:http://192.168.0.109/[http://192.168.0.110/] --> will redirected to midpoint login page) to start midpoint login page
 
-. for more info see wiki:Live+Demo[Live Demo]
+. for more info see xref:/midpoint/demo/[Live Demo]
 
 . to shut down virtual machine run 'sudo poweroff', VMware Player windows is closed
 
-
 === How to export to ESX from VirtualBox (*.ova)
 
-In VirtualBox You can export Oracle virtual machine to *.ova/*.ovf format with snapshots. But in some cases VMWare ESX infrastructure not support correctly this feature. The solution is to clone the required snapshot state to a new virtual machine without snapshots and export this new virtual machine.
+In VirtualBox You can export Oracle virtual machine to `pass:[*.ova]`/`pass:[*.ovf]` format with snapshots. But in some cases VMWare ESX infrastructure not support correctly this feature. The solution is to clone the required snapshot state to a new virtual machine without snapshots and export this new virtual machine.
 
 . run Oracle VM Virtualbox, select required virtual machine if you have more then one
 
@@ -159,14 +155,11 @@ In VirtualBox You can export Oracle virtual machine to *.ova/*.ovf format with s
 
 . right click and select 'clone...', enter new machine name (for example  'electra new'), click 'Next', select 'Full clone', click 'Next', select 'Current machine state' and click 'Clone'.
 
-. select 'electra new',  run File --> Export Appliance and save as *.ova.
+. select 'electra new',  run File --> Export Appliance and save as `pass:[*.ova]`.
 
-. you need to import this to VMware Player, run it, check it and export it (see section 'VMware Player version') as *.ovf
+. you need to import this to VMware Player, run it, check it and export it (see section 'VMware Player version') as `pass:[*.ovf]`
 
 .. this workaround is tested with demo electra virtual machine and working well
-
-
-
 
 === How to downgrade VMWare version (*.vmx)
 
@@ -176,12 +169,11 @@ If you need to downgrade VMWare hardware you can do it with link:https://my.vmwa
 
 . click to 'Convert maschine'
 
-. browse Virtual machine file what you need to convert (VMware Player virtual machine directory when we get an error message "The configuration file *.vmx was created by a VMware product that is incompatible with this version of VMware Player and cannot be used.")
+. browse Virtual machine file what you need to convert (VMware Player virtual machine directory when we get an error message "The configuration file `pass:[*.vmx]` was created by a VMware product that is incompatible with this version of VMware Player and cannot be used.")
 
 . click next >, select VMware product: VMware Player 4.0.x, set virtual machine name and new location, click next >, next >, Finish
 
 . converting is started, you can see actual status
-
 
 === How To Set Up Custom Login Page And Google Analytics Code
 
@@ -205,11 +197,6 @@ If you need to downgrade VMWare hardware you can do it with link:https://my.vmwa
 
 .. add snippet surrounded by <!-- begin changes --> ... <!-- end changes -->
 
-
-
-
-
-
 == How to upgrade electra demo from VirtualBox
 
 . test it:
@@ -220,7 +207,7 @@ If you need to downgrade VMWare hardware you can do it with link:https://my.vmwa
 
 .. shadow details are linked?
 
-.. test scenarios from wiki:Live+Demo#LiveDemo-Walkthrough[here]
+.. test scenarios from xref:/midpoint/demo/#walkthrough[here]
 
 .. cleanup after testing
 
@@ -234,14 +221,14 @@ If you need to downgrade VMWare hardware you can do it with link:https://my.vmwa
 
 .. after apt-get update check Provisioning self test & fix "Illegal key size" if java is upgraded
 
-. export virtual machine from Virtual box to \*ova, see "wiki:midPoint+Demo+electra+localhost+HOWTO#midPointDemoelectralocalhostHOWTO-HowtoexporttoESXfromVirtualBox(*.ova)[How to export to ESX from VirtualBox (*.ova)]" chapter
+. export virtual machine from Virtual box to `pass:[*.ova]`, see xref:/midpoint/reference/legacy/demo/electra/#how-to-export-to-esx-from-virtualbox-ova[How to export to ESX from VirtualBox (*.ova)] chapter
 
-. convert \*ova to \*.vmx, open \*.ova in VMware player, see "wiki:midPoint+Demo+electra+localhost+HOWTO#midPointDemoelectralocalhostHOWTO-Howtostartvirtualmachineinlocalhostfrom*.ova[How to start virtual machine in localhost from *.ova/*.ovf file in VMware Player]" chapter and 5.7. points
+. convert `pass:[*.ova]` to `pass:[*.vmx]`, open `pass:[*.ova]` in VMware player, see xref:/midpoint/reference/legacy/demo/electra/#how-to-start-virtual-machine-in-localhost-from-ova-ovf-file-in-virtualbox[How to start virtual machine in localhost from pass:[*.ova/*.ovf] file in VMware Player] chapter and 5.7. points
 
-. created \*.vmx downgrade with vCenter converter, see: wiki:midPoint+Demo+electra+localhost+HOWTO#midPointDemoelectralocalhostHOWTO-HowtodowngradeVMWareversion(*.vmx)[How to downgrade VMWare version (*.vmx)] chapter
+. created `pass:[*.vmx]` downgrade with vCenter converter, see: xref:/midpoint/reference/legacy/demo/electra/#how-to-downgrade-vmware-version-vmx[How to downgrade VMWare version (*.vmx)] chapter
 
 .. run it to check if it's OK - boot loader is OK?
 
-. convert downgraded \*.vmx to \*.ova, see: wiki:midPoint+Demo+electra+localhost+HOWTO#midPointDemoelectralocalhostHOWTO-HowtoexporttoESXfromVMWareplayer(converting*.vmxto*.ovf[How to export to ESX from VMWare player (converting *.vmx to *.ovf/*.ova)] chapter
+. convert downgraded `pass:[*.vmx]` to `pass:[*.ova]`, see: xref:/midpoint/reference/legacy/demo/electra/#how-to-export-to-esx-from-vmware-player-converting-vmx-to-ovf-ova[How to export to ESX from VMWare player (converting *.vmx to *.ovf/*.ova)] chapter
 
-. upload \*.ova result to FTP
+. upload `pass:[*.ova]` result to FTP

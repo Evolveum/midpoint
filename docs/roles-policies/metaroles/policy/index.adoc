@@ -133,7 +133,7 @@ Role approver is determined by examining all the users that have this role assig
 
 == See Also
 
-* wiki:User-Friendly+Policy+Selection[User-Friendly Policy Selection]
+* xref:/midpoint/reference/roles-policies/applicable-policies/[User-Friendly Policy Selection]
 
 * wiki:Applicable+Policy+Configuration[Applicable Policy Configuration]
 

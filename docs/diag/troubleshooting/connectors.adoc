@@ -23,7 +23,7 @@ Therefore when it comes to troubleshooting connector problems there are several 
 
 . *MidPoint*: the midpoint may invoke wrong operation at the first place.
 This may be caused by a misconfiguration or a bug.
-See wiki:Troubleshooting+Mappings[Troubleshooting Mappings] page for a guide how to diagnose these problems.
+See xref:/midpoint/reference/diag/troubleshooting/mappings/[Troubleshooting Mappings] page for a guide how to diagnose these problems.
 
 . *ConnId*: the framework may misinterpret the operation.
 The framework also simulates some operations and it may post-process the results.
@@ -338,7 +338,7 @@ The audit is the easiest way to check that.
 
 == See Also
 
-* wiki:Troubleshooting+Mappings[Troubleshooting Mappings]
+* xref:/midpoint/reference/diag/troubleshooting/mappings/[Troubleshooting Mappings]
 
 * xref:/midpoint/reference/diag/troubleshooting/usual-troubleshooting-steps/[Usual Troubleshooting Steps]
 

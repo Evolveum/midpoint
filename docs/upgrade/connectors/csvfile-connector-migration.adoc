@@ -286,4 +286,4 @@ Therefore please plan the migration to the new connector accordingly.
 
 * xref:/connectors/connid/1.x/icf-issues/[ICF Issues]
 
-* wiki:Release+3.6[Release 3.6]
+* xref:/midpoint/release/3.6/[Release 3.6]

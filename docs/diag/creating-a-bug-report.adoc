@@ -37,7 +37,6 @@ In such a case we will be more than happy to add that message if you let us know
 Or even feel free to add it yourself.
 MidPoint is an open source project and we gladly accept contributions.
 
-
 == Replicating the Problem
 
 The easiest way for us to fix a problem is being able to replicate it.
@@ -49,7 +48,6 @@ We strongly prefer if you could replicate the problem using our link:https://git
 This saves you a lot of time describing your environment to us and it also saves us a lot of time to try to re-create your environment in our lab.
 This approach also helps you to check your configuration and to make sure you are not reporting misconfiguration as a bug.
 
-
 == Non-replicable Problems
 
 If the problem cannot be easily replicated using samples or similar simple setup then we need to work with what we have.
@@ -57,7 +55,6 @@ Therefore we either need to know quite a lot about your environment to be able t
 Or we need an access to your environment or your cooperation with diagnosing the problem.
 In such a case please use your common sense in what comes into the bug report.
 Please keep in mind that midPoint is open source project and the bug reports are public therefore please be careful when providing sensitive information in bug reports.
-
 
 == Submitting a Bug Report
 
@@ -70,7 +67,6 @@ Therefore be careful about submitting a sensitive information.
 If Jira cannot be used then use any available channel, e.g. the one agreed in your service contract (if applicable).
 Although we recommend to use Jira all the time we do not enforce it.
 We appreciate feedback regardless of the channel that is used to reach us.
-
 
 == Usual Content of Bug Report
 
@@ -91,7 +87,7 @@ We prefer if you replicate the problem with one of our link:https://github.com/E
 
 * If there is an exception in the log files please make sure that you include full *stack trace of the exception*. The exception stack trace is usually a very efficient pointer to likely cause of the problem.
 
-* Relevant part of the *log files*. You may want to have a look at wiki:Useful+Loggers[Useful Loggers] to correctly setup your logging to get the most useful data in the logs.* +
+* Relevant part of the *log files*. You may want to have a look at xref:/midpoint/reference/diag/logging/useful-loggers/[Useful Loggers] to correctly set up your logging to get the most useful data in the logs.* +
 *
 
 * Your *environment*: operating system, J2EE application server and its version, Java version, target system version.
@@ -104,14 +100,13 @@ Use your common sense.
 As a rule of the thumb more information is usually better than little information.
 But sometimes too much non-relevant information may obscure the tiny problem that would be obvious if just the right amount of information is provided.
 
-
 == See Also
 
 * xref:/midpoint/reference/diag/troubleshooting/usual-troubleshooting-steps/[Usual Troubleshooting Steps]
 
 * xref:/midpoint/devel/bugfixing/[Bugfixing and Support]
 
-*  xref:/support/bug-tracking-system/[]
+* xref:/support/bug-tracking-system/[]
 
 * xref:/midpoint/reference/diag/troubleshooting/[]
 

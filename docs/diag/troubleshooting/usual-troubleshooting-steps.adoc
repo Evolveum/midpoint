@@ -31,7 +31,7 @@ In such cases there are other steps.
 MidPoint log files record activity of midPoint on xref:/midpoint/reference/diag/logging/log-levels/[several levels]. The next step in troubleshooting should be to have a look at log files.
 All the errors and warnings should be logged there by default.
 This should usually provide enough information to assist in troubleshooting serious misconfigurations or other severe problems.
-The wiki:Useful+Loggers[Useful Loggers] page provides some hints how to get the most useful information in the log files.
+The xref:/midpoint/reference/diag/logging/useful-loggers/[Useful Loggers] page provides some hints how to get the most useful information in the log files.
 
 The logfiles are usually placed in the `logs` directory of you application server or web container.
 

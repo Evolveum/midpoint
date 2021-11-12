@@ -38,7 +38,7 @@ Archetype definition is a special midPoint object (ArchetypeType):
 Archetypes define character and behavior of "archetyped" objects in `archetypePolicy` section.
 This part of archetype definition specifies what icons, color and labels to use, which templates to apply and so on.
 
-Archetypes work like wiki:Abstract+Role[abstract roles], therefore all objects that need to be "archetyped" can be simply assigned to an archetype.
+Archetypes work like xref:/midpoint/architecture/concepts/abstract-role/[abstract roles], therefore all objects that need to be "archetyped" can be simply assigned to an archetype.
 Being a midPoint object, archetype has an natural persistent identifier: xref:/midpoint/devel/prism/concepts/object-identifier/[OID]. OID of the archetype definition is also identifier of archetype itself.
 Each object of that archetype will contain archetype definition OID in `archetypeRef` reference:
 
@@ -62,7 +62,7 @@ The `archetypeRef` reference can also be used to search for all objects of a giv
 
 == Archetypes as Abstract Roles
 
-Archetype definitions are wiki:Abstract+Role[abstract roles], which means they essentially work as a role.
+Archetype definitions are xref:/midpoint/architecture/concepts/abstract-role/[abstract roles], which means they essentially work as a role.
 To apply an archetype to an object simply assign archetype to that object as you would normally assign a role.
 From that point on archetype applies to that object.
 Archetypes being abstract roles makes them really powerful.
@@ -195,7 +195,7 @@ Only an employee can be owner or approver of the business role.
 Please note that in this case `assignmentRelation` specifications are placed in the *inducement* of the archetype, not assignment.
 We want to apply `assignmentRelation` to "archetyped" objects.
 And that is exactly what inducements do.
-But archetype definition are itself first-class midPoint objects - and they are also wiki:Abstract+Role[abstract roles]. Therefore archetype definition can have assignments pointing to it, such as owner of an archetype definition.
+But archetype definition are itself first-class midPoint objects - and they are also xref:/midpoint/architecture/concepts/abstract-role/[abstract roles]. Therefore archetype definition can have assignments pointing to it, such as owner of an archetype definition.
 Therefore the `assignmentRelation` statements in the assignment also make sense if we want to control what objects can be assigned to the archetype definition.
 But placing `assignmentRelation` in inducement is the usual case.
 
@@ -436,7 +436,7 @@ In other words, example above is in midPoint 4.2 translated to inducement with t
 There is quite complex algorithm for merging archetype policies across hierarchy.
 Following examples will show how the merging works.
 The example bellow shows archetype for basic task.
-It contains archetype policy defining the details about how the icon should look like, and two wiki:Sections+(virtual+containers)+in+object+details[GUI virtual containers (sections)] used on task details page - Advanced options and Operational attributes (state)
+It contains archetype policy defining the details about how the icon should look like, and two xref:/midpoint/reference/admin-gui/sections-object-details/[GUI virtual containers (sections)] used on task details page - Advanced options and Operational attributes (state)
 
 .Basic task
 [source,json]
@@ -773,7 +773,7 @@ This is planned to be improved later.
 Therefore users are displayed in the menu as red.
 The plan is to be able to configure this behavior in the future.
 
-Please see wiki:Archetype+Improvements+(Planned+Feature)[Archetype Improvements (Planned Feature)] for future plans regarding archetype functionality development.
+Please see xref:/midpoint/features/planned/archetypes/[Archetype Improvements (Planned Feature)] for future plans regarding archetype functionality development.
 
 
 == See Also
@@ -782,4 +782,4 @@ Please see wiki:Archetype+Improvements+(Planned+Feature)[Archetype Improvements 
 
 * xref:/midpoint/reference/admin-gui/collections-views/[Object Collections and Views]
 
-* wiki:Archetype+Improvements+(Planned+Feature)[Archetype Improvements (Planned Feature)]
+* xref:/midpoint/features/planned/archetypes/[Archetype Improvements (Planned Feature)]

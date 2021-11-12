@@ -65,7 +65,7 @@ Such connectors may be used inside midPoint by deploying them directly to midPoi
 This is the usual case.
 Some of the frequently-used connectors are also bundled directly with midPoint to ease the deployment process.
 MidPoint has the ability to use several versions of the same connector at once which is useful for slowly testing and rolling out new connector versions.
-See wiki:Connector+Upgrade[Connector Upgrade] page for more details.
+See xref:/midpoint/reference/upgrade/connectors/[Connector Upgrade] page for more details.
 
 
 === Remote Connector Server

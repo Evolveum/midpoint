@@ -317,4 +317,4 @@ Please xref:/midpoint/reference/diag/creating-a-bug-report/[report the bug]. We 
 
 * xref:/midpoint/reference/expressions/mappings/[Mapping]
 
-* wiki:Troubleshooting+Mappings[Troubleshooting Mappings]
+* xref:/midpoint/reference/diag/troubleshooting/mappings/[Troubleshooting Mappings]

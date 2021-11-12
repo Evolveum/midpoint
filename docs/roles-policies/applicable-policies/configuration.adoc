@@ -15,7 +15,7 @@ Some of this complexity is inherent and cannot really be avoided.
 But once the policies are created then it should be quite easy to apply them to individual objects such as users and roles.
 And starting from midPoint 3.8 there indeed is a simple way how to apply even a very complex policies.
 
-The general idea of metarole-based configuration and the corresponding user interface is introduced on wiki:User-Friendly+Policy+Selection[User-Friendly Policy Selection] page.
+The general idea of metarole-based configuration and the corresponding user interface is introduced on xref:/midpoint/reference/roles-policies/applicable-policies/[User-Friendly Policy Selection] page.
 This page describes configuration details.
 
 
@@ -127,7 +127,7 @@ Therefore display names can be used almost freely to provide a meaningful inform
 
 == See Also
 
-* wiki:User-Friendly+Policy+Selection[User-Friendly Policy Selection]
+* xref:/midpoint/reference/roles-policies/applicable-policies/[User-Friendly Policy Selection]
 
 * xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration]
 

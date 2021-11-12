@@ -77,7 +77,7 @@ But it can also be used for searching objects of a particular archetypes by the 
 Archetype functionality is a xref:/midpoint/features/synergy/[synergistic feature]. It is designed to fit together with existing midPoint features, such as xref:/midpoint/reference/roles-policies/rbac/[RBAC] and xref:/midpoint/reference/org/organizational-structure/[organizational structure].
 ====
 
-Archetype definition are wiki:Abstract+Role[abstract roles], which means they essentially work as a role.
+Archetype definition are xref:/midpoint/architecture/concepts/abstract-role/[abstract roles], which means they essentially work as a role.
 To apply an archetype to an object simply assign archetype to that object as you would normally assign a role.
 From that point on archetype applies to that object.
 Archetypes being abstract roles makes them really powerful.
@@ -137,14 +137,14 @@ See xref:configuration.adoc[] page for configuration details.
 
 MidPoint 4.0 provides quite a rich archetype functionality.
 However, this can still be improved.
-See wiki:Archetype+Improvements+(Planned+Feature)[Archetype Improvements (Planned Feature)] page for the details.
+See xref:/midpoint/features/planned/archetypes/[Archetype Improvements (Planned Feature)] page for the details.
 
 
 == See Also
 
 * xref:configuration.adoc[]
 
-* wiki:Archetype+Improvements+(Planned+Feature)[Archetype Improvements (Planned Feature)]
+* xref:/midpoint/features/planned/archetypes/[Archetype Improvements (Planned Feature)]
 
 * xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]
 

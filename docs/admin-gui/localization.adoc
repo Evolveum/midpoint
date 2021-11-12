@@ -15,7 +15,7 @@ MidPoint supports localization on many levels:
 * User interface strings are translated to individual languages by using localization catalogs (property files).
 Those translations are maintained by using link:https://www.transifex.com/evolveum/midpoint/dashboard/[transifex.com].
 
-* Localized data may be entered dynamically into midPoint by leveraging wiki:PolyString[PolyString] mechanism.
+* Localized data may be entered dynamically into midPoint by leveraging xref:/midpoint/reference/concepts/polystring/[PolyString] mechanism.
 However, please note that this method wiki:PolyString+Improvements[needs some Improvements].
 
 * Expressions can indicate error conditions by using localizable messages.
@@ -116,6 +116,6 @@ MidPoint does not fully support such deployment and it is expected that a xref:/
 
 * link:https://www.transifex.com/evolveum/midpoint/dashboard/[midPoint page at Transifex]
 
-* wiki:PolyString[PolyString]
+* xref:/midpoint/reference/concepts/polystring/[PolyString]
 
 * xref:/community/[Participation]

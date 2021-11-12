@@ -41,7 +41,7 @@ Note that cluster-wide limits can be specified only for named groups.
 === Setting node-specific limits
 
 Each node in midPoint cluster has its own thread pool for executing tasks.
-(Unless the scheduler on that node is stopped, of course.) The usual size of the pool is 10 threads, but can be configured to any other value using wiki:Task+Manager+Configuration[task manager configuration]. Besides this configuration, a node can declare which execution groups it accepts, and for how many threads.
+(Unless the scheduler on that node is stopped, of course.) The usual size of the pool is 10 threads, but can be configured to any other value using xref:/midpoint/reference/tasks/task-manager/configuration/[task manager configuration]. Besides this configuration, a node can declare which execution groups it accepts, and for how many threads.
 
 The declaration is basically a map of group names to limitations.
 The default setting (after node initialization) is this:

@@ -28,7 +28,6 @@ Provisioning propagation configuration has two parts.
 Firstly the resource has to be configured to postpone (queue) the operations.
 Secondly there needs to be a propagation task that executes the operations.
 
-
 === Resource Configuration
 
 Resource configuration is a simple matter of enabling operation grouping feature by setting a grouping interval:

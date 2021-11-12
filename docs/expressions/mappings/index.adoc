@@ -48,7 +48,7 @@ Because expressions are so flexible they are documented in a separate xref:/midp
 
 The target part defines how the result of the expression should be used.
 In this case the result is to be used as a `description` account attribute.
-The target definition is necessary so the mapping can locate appropriate definition of the target property and therefore make sure that the expression produces a correct data type (e.g. string vs wiki:PolyString[polystring] and that other schema constraints are maintained (e.g. single vs multiple values).
+The target definition is necessary so the mapping can locate appropriate definition of the target property and therefore make sure that the expression produces a correct data type (e.g. string vs xref:/midpoint/reference/concepts/polystring/[polystring] and that other schema constraints are maintained (e.g. single vs multiple values).
 
 This example mapping can be expressed in XML using the same structure:
 
