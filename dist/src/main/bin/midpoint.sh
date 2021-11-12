@@ -19,13 +19,14 @@ JAVA_def_trustStoreType="jceks"
 USE_NOHUP="true"
 
 ENV_MAP_PREFIX="MP_SET_"
+ENV_UNMAP_PREFIX="MP_UNSET_"
 
 ######################
 
 set -eu
 
 if [[ -z ${1:-} ]]; then
-  echo "Usage: midpoint.sh start|stop|generate|init-native [other args...]"
+  echo "Usage: midpoint.sh start|stop|generate|container|init-native [other args...]"
   exit 1
 fi
 
@@ -37,7 +38,7 @@ BASE_DIR=$(cd "${SCRIPT_DIR}/.." && pwd -P)
 
 if [ "${1}" = "init-native" ] ; then
 	echo "Initializing native structure of the db..."
-	if [ "${MP_INIT_DB:-}" = "" ] ; then
+	if [ "${MP_INIT_DB:-}" = "" -a "${MP_INIT_DB_CONCAT:-}" = "" ] ; then
 		echo "MP_INIT_DB variable with target for DB init files was not set - skipping db init file processing..."
 	else
 		if [ "${MP_INIT_DB_CONCAT:-}" = "" ] ; then
@@ -51,11 +52,11 @@ if [ "${1}" = "init-native" ] ; then
 			if [ -e "${BASE_DIR}/doc/config/sql/native-new" ] ; then
 
 				[ -e "${BASE_DIR}/doc/config/sql/native-new/postgres-new.sql" ] && \
-					cp "${BASE_DIR}/doc/config/sql/native-new/postgres-new.sql" "${MP_INIT_DB}/init.sql"
+					cp "${BASE_DIR}/doc/config/sql/native-new/postgres-new.sql" "${MP_INIT_DB_CONCAT}"
 				[ -e "${BASE_DIR}/doc/config/sql/native-new/postgres-new-audit.sql" ] && \
-					cat "${BASE_DIR}/doc/config/sql/native-new/postgres-new-audit.sql" >> "${MP_INIT_DB}/init.sql"
+					cat "${BASE_DIR}/doc/config/sql/native-new/postgres-new-audit.sql" >> "${MP_INIT_DB_CONCAT}"
 				[ -e "${BASE_DIR}/doc/config/sql/native-new/postgres-new-quartz.sql" ] && \
-					cat "${BASE_DIR}/doc/config/sql/native-new/postgres-new-quartz.sql" >> "${MP_INIT_DB}/init.sql"
+					cat "${BASE_DIR}/doc/config/sql/native-new/postgres-new-quartz.sql" >> "${MP_INIT_DB_CONCAT}"
 			else
                                 echo "Location with sql init structure have not been found..."
                                 exit 1
@@ -73,6 +74,18 @@ if [ "${1}" = "init-native" ] ; then
                         exit 1
                 fi
         fi
+	if [ "${MP_DB_PW:-}" != "" ] ; then
+		dd if=/dev/random bs=8 count=3 |base64 | tr -d -c [:alnum:] > ${MP_DB_PW}
+		echo "DB Password generated..."
+	fi
+	if [ "${MP_PW:-}" != "" ] ; then
+		dd if=/dev/random bs=8 count=3 |base64 | tr -d -c [:alnum:] > ${MP_PW}
+		echo "MP Password generated..."
+	fi
+	if [ "${MP_PW_DEF:-}" != "" ] ; then
+		echo -n "changeit" > ${MP_PW_DEF}
+		echo "Default MP Password stored..."
+	fi
 	if [ "${MP_INIT_LOOP:-}" = "" ] ; then
 		echo "All requested operation has been done - init files are ready on requested location..."
 	else
@@ -128,66 +141,70 @@ fi
 
 ###### Backward compatibility for ENV variables ####
 
-[ "${REPO_PORT:-}" != "" ] && db_port=${REPO_PORT}
-if [ "${REPO_DATABASE_TYPE:-}" != "" ]
-then
-	export ${ENV_MAP_PREFIX}midpoint_repository_database="${REPO_DATABASE_TYPE}"
-	[ "${db_port:-}" == "default" ] && db_port=""
-	case ${REPO_DATABASE_TYPE} in
-		h2)
-			[ "${db_port:-}" == "" ] && db_port=5437
-			db_prefix="jdbc:h2:tcp://"
-			db_path="/${REPO_DATABASE:-midpoint}"
-			;;
-		mariadb)
-			[ "${db_port:-}" == "" ] && db_port=3306
-			db_prefix="jdbc:mariadb://"
-			db_path="/${REPO_DATABASE:-midpoint}?characterEncoding=utf8"
-			;;
-		mysql)
-			[ "${db_port:-}" == "" ] && db_port=3306
-			db_prefix="jdbc:mysql://"
-			db_path="/${REPO_DATABASE:-midpoint}?characterEncoding=utf8"
-			;;
-		oracle)
-			[ "${db_port:-}" == "" ] && db_port=1521
-			db_prefix="jdbc:oracle:thin:@"
-			db_path="/xe"
-			;;
-		postgresql)
-			[ "${db_port:-}" == "" ] && db_port=5432
-			db_prefix="jdbc:postgresql://"
-			db_path="/${REPO_DATABASE:-midpoint}"
-			;;
-		sqlserver)
-			[ "${db_port:-}" == "" ] && db_port=1433
-			db_prefix="jdbc:sqlserver://"
-			db_path=";databse=${REPO_DATABASE:-midpoint}"
-			;;
-		*)
-			if [ "${db_port:-}" == "" -a "${REPO_URL:-}" == "" ]
-			then
-				echo "~~~~~ please supply JDBC port for your repository ~~~~~"
-				exit 1
-			fi
-			;;
-	esac
-	[ "${REPO_URL:-}" = "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_jdbcUrl="${db_prefix}${REPO_HOST:-localhost}:${db_port}${db_path}"
+if [ "${MP_NO_ENV_COMPAT:-}" != "1" ] ; then	
+	[ "${REPO_PORT:-}" != "" ] && db_port=${REPO_PORT}
+	if [ "${REPO_DATABASE_TYPE:-}" != "" ]
+	then
+		export ${ENV_MAP_PREFIX}midpoint_repository_database="${REPO_DATABASE_TYPE}"
+		[ "${db_port:-}" == "default" ] && db_port=""
+		case ${REPO_DATABASE_TYPE} in
+			h2)
+				[ "${db_port:-}" == "" ] && db_port=5437
+				db_prefix="jdbc:h2:tcp://"
+				db_path="/${REPO_DATABASE:-midpoint}"
+				;;
+			mariadb)
+				[ "${db_port:-}" == "" ] && db_port=3306
+				db_prefix="jdbc:mariadb://"
+				db_path="/${REPO_DATABASE:-midpoint}?characterEncoding=utf8"
+				;;
+			mysql)
+				[ "${db_port:-}" == "" ] && db_port=3306
+				db_prefix="jdbc:mysql://"
+				db_path="/${REPO_DATABASE:-midpoint}?characterEncoding=utf8"
+				;;
+			oracle)
+				[ "${db_port:-}" == "" ] && db_port=1521
+				db_prefix="jdbc:oracle:thin:@"
+				db_path="/xe"
+				;;
+			postgresql)
+				[ "${db_port:-}" == "" ] && db_port=5432
+				db_prefix="jdbc:postgresql://"
+				db_path="/${REPO_DATABASE:-midpoint}"
+				;;
+			sqlserver)
+				[ "${db_port:-}" == "" ] && db_port=1433
+				db_prefix="jdbc:sqlserver://"
+				db_path=";databse=${REPO_DATABASE:-midpoint}"
+				;;
+			*)
+				if [ "${db_port:-}" == "" -a "${REPO_URL:-}" == "" ]
+				then
+					echo "~~~~~ please supply JDBC port for your repository ~~~~~"
+					exit 1
+				fi
+				;;
+		esac
+		[ "${REPO_URL:-}" = "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_jdbcUrl="${db_prefix}${REPO_HOST:-localhost}:${db_port}${db_path}"
+	fi
+
+	[ "${REPO_URL:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_jdbcUrl="${REPO_URL}"
+	[ "${REPO_USER:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_jdbcUsername="${REPO_USER}"
+	[ "${REPO_PASSWORD_FILE:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_jdbcPassword_FILE="${REPO_PASSWORD_FILE}"
+	[ "${REPO_MISSING_SCHEMA_ACTION:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_missingSchemaAction="${REPO_MISSING_SCHEMA_ACTION}"
+	[ "${REPO_UPGRADEABLE_SCHEMA_ACTION:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_upgradeableSchemaAction="${REPO_UPGRADEABLE_SCHEMA_ACTION}"
+	[ "${REPO_SCHEMA_VARIANT:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_schemaVariant="${REPO_SCHEMA_VARIANT}"
+	[ "${REPO_SCHEMA_VERSION_IF_MISSING:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_schemaVersionIfMissing="${REPO_SCHEMA_VERSION_IF_MISSING}"
+
+	[ "${MP_KEYSTORE_PASSWORD_FILE:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_keystore_keyStorePassword_FILE="${MP_KEYSTORE_PASSWORD_FILE}"
 fi
-
-[ "${REPO_URL:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_jdbcUrl="${REPO_URL}"
-[ "${REPO_USER:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_jdbcUsername="${REPO_USER}"
-[ "${REPO_PASSWORD_FILE:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_jdbcPassword_FILE="${REPO_PASSWORD_FILE}"
-[ "${REPO_MISSING_SCHEMA_ACTION:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_missingSchemaAction="${REPO_MISSING_SCHEMA_ACTION}"
-[ "${REPO_UPGRADEABLE_SCHEMA_ACTION:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_upgradeableSchemaAction="${REPO_UPGRADEABLE_SCHEMA_ACTION}"
-[ "${REPO_SCHEMA_VARIANT:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_schemaVariant="${REPO_SCHEMA_VARIANT}"
-[ "${REPO_SCHEMA_VERSION_IF_MISSING:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_schemaVersionIfMissing="${REPO_SCHEMA_VERSION_IF_MISSING}"
-
-[ "${MP_KEYSTORE_PASSWORD_FILE:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_keystore_keyStorePassword_FILE="${MP_KEYSTORE_PASSWORD_FILE}"
 
 #############################
 
 ###### ENV Variables mapping ######
+
+JAVA_OPTS=" ${JAVA_OPTS:-}"
 
 while read line
 do
@@ -199,13 +216,30 @@ do
 	[ "${_key: -5}" = ".FILE" ] && _key="${_key::$(( ${#_key} - 5 ))}_FILE"
 	###
 
+	echo "Processing variable (MAP) ... ${_key} .:. ${_val}"
+
         if [ "${_key:0:1}" = "." ]
 	then
 		JAVA_OPTS="${JAVA_OPTS:-} -D${_key:1}=\"${_val}\""
 	else
-		JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/ -D${_key}=\"[^\"]*\"//g;s/ -D${_key}=[^[:space:]]*//g") -D${_key}=\"${_val}\""
+		JAVA_OPTS="$(echo -n "${JAVA_OPTS:-}" | sed "s/ -D${_key}=\"[^\"]*\"//g;s/ -D${_key}=[^[:space:]]*//g") -D${_key}=\"${_val}\""
 	fi
 done < <(env | grep "^${ENV_MAP_PREFIX}")
+
+while read line
+do
+        _to_process="${line:${#ENV_UNMAP_PREFIX}}"
+        _key="$(echo -n "${_to_process}" | cut -d = -f 1 | sed "s/_/./g")"
+        _val="$(echo -n "${_to_process}" | cut -d = -f 2-)"
+
+        ### exception for *_FILE key name ###
+        [ "${_key: -5}" = ".FILE" ] && _key="${_key::$(( ${#_key} - 5 ))}_FILE"
+        ###
+
+	echo "Processing variable (UNMAP) ... ${_key} .:. ${_val}"
+
+	JAVA_OPTS="$(echo -n "${JAVA_OPTS:-}" | sed "s/ -D${_key}=\"[^\"]*\"//g;s/ -D${_key}=[^[:space:]]*//g")"
+done < <(env | grep "^${ENV_UNMAP_PREFIX}")
 
 ###################################
 
@@ -322,6 +356,33 @@ fi
 
 #############################################################
 
+if [[ "$1" == "container" ]]; then
+  if ! which "${_RUNJAVA}" &>/dev/null; then
+    echo "${_RUNJAVA} not found (or not executable). Start aborted."
+    exit 1
+  fi
+
+  shift
+
+  echo "Starting midPoint..."
+  echo "MIDPOINT_HOME=${MIDPOINT_HOME}"
+
+  echo -e "\nStarting at $(date)\nMIDPOINT_HOME=${MIDPOINT_HOME}\nJava binary: ${_RUNJAVA}\nJava version:"
+  "${_RUNJAVA}" -version 2>&1
+
+  # shellcheck disable=SC2086
+  if [ "${1:-}" = "" ] ; then
+    eval "\"${_RUNJAVA}\"" \
+      ${JAVA_OPTS} \
+      -jar "\"${BASE_DIR}/lib/midpoint.war\"" 2>&1
+  else
+    eval "\"${_RUNJAVA}\"" \
+      ${JAVA_OPTS} \
+      -jar "\"${BASE_DIR}/lib/midpoint.war\"" \
+      "$@" 2>&1
+  fi
+
+fi
 # ----- Execute The Requested Command -----------------------------------------
 
 if [[ "$1" == "start" ]]; then

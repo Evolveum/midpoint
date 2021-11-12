@@ -1037,11 +1037,10 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                     pagedQuery.getPaging().setMaxSize(maxSize - handledObjectsTotal);
                 }
 
-                // filterAnd() is quite null safe, even for both nulls
-                pagedQuery.setFilter(ObjectQueryUtil.filterAnd(
+                // null safe, even for both nulls - don't use filterAnd which mutates original AND filter
+                pagedQuery.setFilter(ObjectQueryUtil.filterAndImmutable(
                         originalQuery != null ? originalQuery.getFilter() : null,
-                        lastOidCondition(lastProcessedObject, providedOrdering),
-                        prismContext()));
+                        lastOidCondition(lastProcessedObject, providedOrdering)));
 
                 // we don't call public searchObject to avoid subresults and query simplification
                 logSearchInputParameters(type, pagedQuery, "Search object iterative page");
