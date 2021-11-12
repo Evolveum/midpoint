@@ -74,6 +74,18 @@ if [ "${1}" = "init-native" ] ; then
                         exit 1
                 fi
         fi
+	if [ "${MP_DB_PW:-}" != "" ] ; then
+		dd if=/dev/random bs=8 count=3 |base64 | tr -d -c [:alnum:] > ${MP_DB_PW}
+		echo "DB Password generated..."
+	fi
+	if [ "${MP_PW:-}" != "" ] ; then
+		dd if=/dev/random bs=8 count=3 |base64 | tr -d -c [:alnum:] > ${MP_PW}
+		echo "MP Password generated..."
+	fi
+	if [ "${MP_PW_DEF:-}" != "" ] ; then
+		echo -n "changeit" > ${MP_PW_DEF}
+		echo "Default MP Password stored..."
+	fi
 	if [ "${MP_INIT_LOOP:-}" = "" ] ; then
 		echo "All requested operation has been done - init files are ready on requested location..."
 	else
