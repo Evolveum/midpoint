@@ -126,10 +126,11 @@ public class TaskIterativeProgressType implements Serializable {
     }
 
     public String getTitle() {
-        if (performanceInformation.getPartUri() != null) {
+        if (performanceInformation != null && performanceInformation.getPartUri() != null) {
             return getString("TaskIterativeProgress.part." + performanceInformation.getPartUri(), performanceInformation.getItemsProcessed());
         }
-        return getString("TaskOperationStatisticsPanel.processingInfo", performanceInformation.getItemsProcessed());
+        return getString("TaskOperationStatisticsPanel.processingInfo",
+                performanceInformation == null ? "" : performanceInformation.getItemsProcessed());
     }
 
     public String getWallClockThroughput() {
@@ -140,7 +141,7 @@ public class TaskIterativeProgressType implements Serializable {
     }
 
     private boolean containsPerfInfo() {
-        return performanceInformation.getAverageWallClockTime() != null && performanceInformation.getThroughput() != null;
+        return performanceInformation != null && performanceInformation.getAverageWallClockTime() != null && performanceInformation.getThroughput() != null;
     }
 
     public int getTotalCount() {
@@ -216,5 +217,9 @@ public class TaskIterativeProgressType implements Serializable {
         label.setBoxWidth(15);
         legend.setLabels(label);
         return legend;
+    }
+
+    public boolean existPerformanceInformation() {
+        return performanceInformation != null;
     }
 }

@@ -69,11 +69,11 @@ public class TaskPerformanceInformation implements DebugDumpable, Serializable {
                             .asObjectable();
 
             TaskPerformanceInformation subInfo = fromOtherTask(subtask);
-            if (subInfo.parts.size() > 1) {
-                LOGGER.warn("Partitioned task has more than one part - ignoring: {}\n{}", subtask, subInfo.parts);
-            } else {
+//            if (subInfo.parts.size() > 1) {
+//                LOGGER.warn("Partitioned task has more than one part - ignoring: {}\n{}", subtask, subInfo.parts);
+//            } else {
                 partsByUri.putAll(subInfo.parts);
-            }
+//            }
         }
 
         TaskPerformanceInformation info = new TaskPerformanceInformation();

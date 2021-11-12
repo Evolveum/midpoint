@@ -122,6 +122,7 @@ public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInform
                 item.add(createInfoBoxPanel(new PropertyModel<>(progressModel, TaskIterativeProgressType.F_FAILED_BOX), ID_FAILED_ITEM));
                 item.add(createInfoBoxPanel(new PropertyModel<>(progressModel, TaskIterativeProgressType.F_SKIP_BOX), ID_SKIPPED_ITEM));
 
+                item.add(new VisibleBehaviour(() ->progressModel.getObject().existPerformanceInformation()));
             }
         };
         partsView.setOutputMarkupId(true);
