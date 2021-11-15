@@ -120,7 +120,7 @@ It extends user with two custom attributes:
 |===
 
 Attribute name is the name by which midPoint knows the attribute.
-It is used in link:http://wiki.evolveum.com/display/midPoint/Mappings+and+Expressions[mappings] and configuration.
+It is used in xref:/midpoint/reference/expressions/introduction/[mappings] and configuration.
 Display name is what midPoint will display in forms and reports.
 Attribute type determines the type and range or attribute values.
 The schema may also define attribute multiplicity, whether it is mandatory or optional, define the order in which it will be displayed in forms, define a help text, etc.

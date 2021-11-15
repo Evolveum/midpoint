@@ -26,7 +26,7 @@ This page describes how to configure a synchronization policy for a resource.
 
 == Synchronization Algorithm
 
-When midPoint detects an synchronization event it follows the following algorithm:
+When midPoint detects a synchronization event it follows the following algorithm:
 
 . Applicable *synchronization policy* is determined.
 If no synchronization policy can be applied then the event will be ignored.
@@ -83,7 +83,7 @@ It can be used for a very fine-grain selection of applicable policies.
 
 Main article: xref:/midpoint/reference/synchronization/situations/[Synchronization Situations]
 
-When midPoint detects an synchronization event it  is categorized into one of the _situations_. The _situation_ describes how the change relates to the midPoint state regarding the changed resource object (account), user and the midPoint policies.
+When midPoint detects a synchronization event it is categorized into one of the _situations_. The _situation_ describes how the change relates to the midPoint state regarding the changed resource object (account), user and the midPoint policies.
 MidPoint is using xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[links] and xref:/midpoint/reference/synchronization/correlation-and-confirmation-expressions/[correlation and confirmation expressions] to determine a situation.
 The xref:/midpoint/reference/synchronization/situations/[Synchronization Situations] page describes the details.
 
@@ -101,7 +101,7 @@ The xref:/midpoint/reference/concepts/channel/[Channels] page provides more deta
 
 == Reactions
 
-Obviously midPoint has to react to an synchronization event to be really useful.
+Obviously midPoint has to react to a synchronization event to be really useful.
 MidPoint usually reacts to a synchronization event by executing the usual synchronization algorithms that are used to recompute consequences of any other change in the system (i.e. xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[Clockwork and Projector]). As usual midPoint does nothing by default and the execution of this algorithm has to explicitly enabled by using a `synchronize` flag in the reaction.
 
 However synchronization cases are usually little bit more complex than normal provisioning changes.

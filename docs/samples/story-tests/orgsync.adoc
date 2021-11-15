@@ -423,7 +423,7 @@ This is specified by xref:/midpoint/reference/resources/shadow/kind-intent-objec
 
 .... New LDAP group is created.
 
-.... The meta-role also contains an second-order inducement.
+.... The meta-role also contains a second-order inducement.
 This is ignored right now.
 It will be interesting a little while later.
 

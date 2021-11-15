@@ -24,7 +24,7 @@ The Resource Schema Handling is related to the xref:/midpoint/reference/resource
 image::schemas-schemahandling-overview.png[]
 
 While xref:/midpoint/reference/resources/resource-schema/[Resource Schema] is usually generated from the Resource by the connector, the Resource Schema Handling must be manually defined by the IDM administrator.
-Adapting Resource Schema Handling is an substantial part of midPoint customization.
+Adapting Resource Schema Handling is a substantial part of midPoint customization.
 
 Schema handling defines account types and entitlement types.
 Accounts are data records representing user on the Resource, entitlements are objects that can be assigned to accounts (such as groups, roles, privileges, team membership, etc.). See xref:/midpoint/reference/schema/data-model-essentials/[Basic Data Model] for the introduction to these concepts.
