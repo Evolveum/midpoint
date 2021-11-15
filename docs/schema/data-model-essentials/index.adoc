@@ -45,7 +45,7 @@ They are hidden inside the system and even a system administrator does not need 
 
 Objects have _properties_ that contain values.
 Each property has its name.
-The name is in fact wiki:Terminology[QName] but as most of the midPoint schema is in the same namespace it can be considered to be a simple string for the usual case.
+The name is in fact xref:/glossary/[QName] but as most of the midPoint schema is in the same namespace it can be considered to be a simple string for the usual case.
 The object in the diagram above has properties `name`, `fullName`, `givenName` (and others).
 Properties have values that are typically primitive data types such as strings and numbers.
 Also slightly complex data types such as timestamps (date+time), QName and URLs are considered to be primitive data types and can be used as property values.

@@ -175,7 +175,7 @@ Therefore it can usually be scheduled for quite a frequent execution, usually ex
 
 [TIP]
 ====
-This is the same refresh task that is used for wiki:Manual+Resource+Configuration[manual resources]. In fact the mechanism of _pending operations_ is the same for both consistency mechanism and manual resources, therefore also the same refresh task is used.
+This is the same refresh task that is used for xref:/midpoint/reference/resources/manual/configuration/[manual resources]. In fact the mechanism of _pending operations_ is the same for both consistency mechanism and manual resources, therefore also the same refresh task is used.
 
 See wiki:Shadow+Refresh+Task[Shadow Refresh Task] page for more details.
 

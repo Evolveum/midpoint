@@ -83,7 +83,7 @@ It resides on a broker reachable via `mainBrokerConnectionFactory` (a JNDI name 
 
 == Configuration details
 
-See wiki:Asynchronous+Resource+Configuration+(Outbound)[Asynchronous Resource Configuration (Outbound)] page for configuration details.
+See xref:/midpoint/reference/resources/asynchronous/outbound/configuration/[Asynchronous Resource Configuration (Outbound)] page for configuration details.
 
 
 == Current state of the implementation

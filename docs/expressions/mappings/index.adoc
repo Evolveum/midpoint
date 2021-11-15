@@ -397,7 +397,7 @@ These mechanisms can influence when the mapping is applied and when it is not.
 Constraints limit the use of a mapping only to certain situations.
 In such a situation the mapping is applied as usual in other situations the system will pretend that the mapping is not there.
 
-The only applicable constraint is currently *channel constraint*. Application of a mapping can be limited to a specific wiki:Channels[channel]. If the evaluation is done in the context of that channel the mapping will be applied.
+The only applicable constraint is currently *channel constraint*. Application of a mapping can be limited to a specific xref:/midpoint/reference/concepts/channel/[channel]. If the evaluation is done in the context of that channel the mapping will be applied.
 If the channel is different the system will ignore the mapping.
 This constraint is usually used in xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings] to limit them to the import channel and therefore use them only for initial import.
 
@@ -694,7 +694,7 @@ It does not need to specify any _source_ because the value is literal and does n
 
 // TODO: conditional mapping example
 
-See also wiki:Mapping+Evaluation+Examples[Mapping Evaluation Examples] page.
+See also xref:/midpoint/reference/expressions/mappings/mapping-evaluation-examples/[Mapping Evaluation Examples] page.
 
 
 == Expression Evaluators
@@ -1109,7 +1109,7 @@ For that we need to compute a state of attribute values as it _should be_. This 
 But there are also similar cases that apply even in a case of relativistic processing, e.g. if a mapping won't produce a value that it has produced before.
 
 There cases are all about removing existing values.
-Currently midPoint does not record wiki:Data+Provenance[data provenance], therefore we do not know whether a specific value was produced by the mapping or entered by the user.
+Currently midPoint does not record xref:/midpoint/features/planned/data-provenance/[data provenance], therefore we do not know whether a specific value was produced by the mapping or entered by the user.
 Therefore we do not have a simple and reliable way how to decide whether to remove a particular value or not.
 But even if we had support for data provenance there would always be corner cases such as migrations, connecting of a new resources, data errors and so on.
 Therefore a mechanism is needed for a mapping to decide when to remove a particular value and when to keep it.
@@ -1199,4 +1199,4 @@ If you are midPoint link:https://evolveum.com/services/[subscriber], you can req
 
 * xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
-* wiki:Mapping+Evaluation+Examples[Mapping Evaluation Examples]
+* xref:/midpoint/reference/expressions/mappings/mapping-evaluation-examples/[Mapping Evaluation Examples]

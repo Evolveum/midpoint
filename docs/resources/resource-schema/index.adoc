@@ -131,7 +131,7 @@ For example the LDAP `inetOrgPerson` object class should be mapped to `InetOrgPe
 In addition to this, the connector should put `nativeObjectClass` and `nativeAttributeName` XSD annotations in the schema.
 This may be used by the tools and business logic.
 
-The complete process how native resource schema is used by the connector and mapped to Resource Schema is illustrated at wiki:Resource+Schema+Mapping[Resource Schema Mapping] page.
+The complete process how native resource schema is used by the connector and mapped to Resource Schema is illustrated at xref:/midpoint/architecture/archive/interactions/resource-schema-mapping/[Resource Schema Mapping] page.
 
 [TIP]
 ====
@@ -397,7 +397,7 @@ The description may be used as a general comment, it may be displayed when the o
 But, as such definition is not available at run-time, it cannot be mapped to Java using JAXB or similar compile-time technology.
 The resource schema needs to be dynamically interpreted at run-time, which makes the code quite complex.
 
-The wiki:Terminology[attributes] of object class are wiki:Terminology[properties], therefore they theoretically may have a deeper structure.
+The xref:/glossary/[attributes] of object class are xref:/glossary/[properties], therefore they theoretically may have a deeper structure.
 However, midPoint does not care about that structure, it considers the attribute to be opaque.
 If there is a structured attribute, midPoint will pass it unchanged all the way from the connector to the business logic and GUI.
 
@@ -414,4 +414,4 @@ TODO
 
 * xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation]
 
-* wiki:Resource+Schema+Mapping[Resource Schema Mapping]
+* xref:/midpoint/architecture/archive/interactions/resource-schema-mapping/[Resource Schema Mapping]

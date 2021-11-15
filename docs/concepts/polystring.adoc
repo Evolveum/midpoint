@@ -57,7 +57,7 @@ The system will make sure that such PolyString is properly processed and normali
 There are several pre-built normalizers for PolyString that can be used in midPoint deployment.
 And there is an (experimental) option to create a completely custom normalizer.
 
-See wiki:PolyString+Normalization+Configuration[PolyString Normalization Configuration] page for more details.
+See xref:/midpoint/reference/schema/polystring-normalization/[PolyString Normalization Configuration] page for more details.
 
 == Future
 
@@ -68,6 +68,6 @@ See wiki:PolyString+Improvements[PolyString Improvements] page to learn about pl
 
 * wiki:Using+Prism+Objects[Using Prism Objects]
 
-* wiki:PolyString+Normalization+Configuration[PolyString Normalization Configuration]
+* xref:/midpoint/reference/schema/polystring-normalization/[PolyString Normalization Configuration]
 
 * wiki:PolyString+Improvements[PolyString Improvements]

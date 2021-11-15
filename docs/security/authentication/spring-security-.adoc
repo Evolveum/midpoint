@@ -160,6 +160,6 @@ Then, in the midpoint-config.properties set up the concrete values, e.g. the hos
 
 == See also
 
-* wiki:MidPoint+as+CAS+Client+(Apache+CAS+Agent+Method)[MidPoint as CAS Client (Apache CAS Agent Method)]
+* xref:/midpoint/reference/legacy/sso/midpoint-as-cas-client-apache-cas-agent-method-/[MidPoint as CAS Client (Apache CAS Agent Method)]
 
 * wiki:MidPoint+as+CAS+Client+(Java+Jasig+CAS+Client+libraries)[MidPoint as CAS Client (Java Jasig CAS Client libraries)]

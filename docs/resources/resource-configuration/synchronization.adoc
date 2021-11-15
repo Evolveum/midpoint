@@ -90,13 +90,13 @@ The xref:/midpoint/reference/synchronization/situations/[Synchronization Situati
 
 == Channels
 
-Main article: wiki:Channels[Channels]
+Main article: xref:/midpoint/reference/concepts/channel/[Channels]
 
 Channel defines a mechanism that was used to detect a change.
 When it comes to synchronization the channel is usually set to liveSync, reconciliation, discovery or import.
 The channel may be used in the reactions to alter the synchronization behaviour for some cases.
 E.g. a channel definition can be used to define a different behaviour during initial import and during a normal sustained operation.
-The wiki:Channels[Channels] page provides more details about channels.
+The xref:/midpoint/reference/concepts/channel/[Channels] page provides more details about channels.
 
 
 == Reactions
@@ -608,7 +608,7 @@ As the older versions did not have the `synchronize` flag the side effect is tha
 
 * xref:/midpoint/reference/synchronization/situations/[Synchronization Situations]
 
-* wiki:Channels[Channels]
+* xref:/midpoint/reference/concepts/channel/[Channels]
 
 * xref:/midpoint/reference/synchronization/examples/[Synchronization Examples]
 

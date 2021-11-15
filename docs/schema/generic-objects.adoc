@@ -22,13 +22,17 @@ Therefore midPoint provides a much better mechanism for object type extensibilit
 The problem with generic types is that they are just too generic.
 As the type should be able to handle any object type has to be extremely simple.
 Therefore it is not possible to provide almost any built-in functionality to support generic types.
-How should they be displayed in the user interface? Should users be able to assign them? What should be the effect it user assigns them? What rules should be applied to govern generic objects? What about authorizations, auditing, lifecycle, governance, ...
+How should they be displayed in the user interface? Should users be able to assign them?
+What should be the effect it user assigns them? What rules should be applied to govern generic objects?
+What about authorizations, auditing, lifecycle, governance, ...
 
 There is a better solution in midPoint.
-MidPoint has several built-in object types such as xref:/midpoint/reference/roles-policies/rbac/[roles], xref:/midpoint/reference/org/organizational-structure/[orgs], and wiki:Services[services]. Those data types are built to be extensible and in fact, they are quite generic.
+MidPoint has several built-in object types such as xref:/midpoint/reference/roles-policies/rbac/[roles], xref:/midpoint/reference/org/organizational-structure/[orgs], and xref:/midpoint/reference/misc/services/[services].
+Those data types are built to be extensible and in fact, they are quite generic.
 The role does not mean just "role in strict RBAC sense".
 In midPoint, the concept of "role" is much broader.
-MidPoint roles can easily be used to model RBAC roles, but also job categories, job titles/positions, qualifications, competency certifications, achievements - and even wiki:Consent+Management+(GDPR)[data protection consents]. Orgs and services can be used in a similar way:
+MidPoint roles can easily be used to model RBAC roles, but also job categories, job titles/positions, qualifications, competency certifications, achievements - and even xref:/midpoint/features/planned/consent-management/[data protection consents].
+Orgs and services can be used in a similar way:
 
 [%autowidth]
 |===
@@ -36,8 +40,8 @@ MidPoint roles can easily be used to model RBAC roles, but also job categories, 
 
 | Role
 | xref:/midpoint/reference/roles-policies/rbac/[RBAC roles] +
-wiki:Authorization+Roles[Authorization roles] +
-job category, job titles/position, qualification, competency certification, achievement wiki:Consent+Management+(GDPR)[consent]metarole
+xref:/midpoint/reference/security/authorization/roles/[Authorization roles] +
+job category, job titles/position, qualification, competency certification, achievement xref:/midpoint/features/planned/consent-management/[consent]metarole
 
 
 | Org
@@ -56,7 +60,8 @@ Mobile device, printer, "thing" (IoT)
 
 |===
 
-Roles, orgs, and services are what we call _abstract roles_. Which means that all of them behave like roles to some extent.
+Roles, orgs, and services are what we call _abstract roles_.
+Which means that all of them behave like roles to some extent.
 E.g. all of them can be assigned to users, all of them can be subject to policy rules, membership, authorizations and governance policies are evaluated for all of them in a consistent fashion and so on.
 Therefore there are many benefits:
 
@@ -68,7 +73,8 @@ As do authorizations.
 xref:/midpoint/reference/cases/approval/[Approval] processes can be applied seamlessly.
 All midPoint concepts applicable to roles can be applied.
 
-* There is also a big benefit from xref:/midpoint/features/planned/lawful-bases-for-data-processing/[data protection perspective]. As the entitlements are placed directly into job categories and qualifications it is easy to find the reason or "basis" why the user has such an entitlement.
+* There is also a big benefit from xref:/midpoint/features/planned/lawful-bases-for-data-processing/[data protection perspective].
+As the entitlements are placed directly into job categories and qualifications it is easy to find the reason or "basis" why the user has such an entitlement.
 E.g. midPoint knows that user's personal data are provisioned to system X because the user has a job position Y that needs such an account.
 
 * Membership is managed in the same way as for roles.
@@ -161,4 +167,4 @@ Simply speaking, midPoint does not really need the concept of special generic ob
 
 * xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]
 
-* wiki:Subtype[Subtype]
+* xref:/midpoint/reference/schema/subtype/[Subtype]

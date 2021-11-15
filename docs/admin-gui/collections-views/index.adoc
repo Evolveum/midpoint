@@ -49,16 +49,16 @@ See xref:configuration/[] page for more details.
 
 == Future
 
-See wiki:Object+Collections+and+Views+Improvements[Object Collections and Views Improvements] page for the plan to further improve this functionality.
+See xref:/midpoint/features/planned/object-collections-and-views/[Object Collections and Views Improvements] page for the plan to further improve this functionality.
 
 
 == See Also
 
 * xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
 
-* wiki:Object+Collections+and+Views+Configuration[Object Collections and Views Configuration]
+* xref:/midpoint/reference/admin-gui/collections-views/configuration/[Object Collections and Views Configuration]
 
-* wiki:Object+Collections+and+Views+Improvements[Object Collections and Views Improvements]
+* xref:/midpoint/features/planned/object-collections-and-views/[Object Collections and Views Improvements]
 
 * xref:/midpoint/reference/schema/archetypes/[Archetypes]
 

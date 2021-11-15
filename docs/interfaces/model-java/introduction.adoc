@@ -151,7 +151,7 @@ Perhaps the only real exception are _search_ methods.
 These methods are designed to obtain midPoint objects even without knowing their OID.
 In fact these methods are often used to find out OID of an object to be used in other midPoint operations.
 
-The key to search methods is wiki:Object+Query[midPoint query language]. This query language is specific to midPoint and it describes an abstract tree of search criteria.
+The key to search methods is xref:/midpoint/reference/concepts/query/[midPoint query language]. This query language is specific to midPoint and it describes an abstract tree of search criteria.
 It may be slightly complex to construct but there are convenient factory methods that can be used for this purpose.
 The following example shows how a simple query is constructed and used in a search.
 Factory methods `createObjectQuery` and `createEqual` are used to construct a simple query.

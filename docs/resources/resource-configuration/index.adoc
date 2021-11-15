@@ -9,7 +9,7 @@
 :page-toc: top
 
 Resource definition is perhaps the most important part of link:https://evolveum.com/midpoint[midPoint] configuration.
-It configures connection to wiki:Terminology[resource], resource object classes and attributes (xref:/midpoint/reference/resources/resource-schema/[resource schema]), mapping of these attributes to the midPoint user model, resource capabilities, password policies, etc.
+It configures connection to xref:/glossary/[resource], resource object classes and attributes (xref:/midpoint/reference/resources/resource-schema/[resource schema]), mapping of these attributes to the midPoint user model, resource capabilities, password policies, etc.
 
 Resource definition is an ordinary object in midPoint repository.
 Therefore it has its xref:/midpoint/devel/prism/concepts/object-identifier/[OID] and a name that has to be unique across all defined resources.
@@ -54,7 +54,7 @@ E.g. support for real-time synchronization, passwords, activation, etc.
 
 | Scripts
 | Collection of scripts to be executed for various provisioning operations.
-| wiki:Provisioning+Scripts[Provisioning Scripts]
+| xref:/midpoint/reference/resources/provisioning-scripts/[Provisioning Scripts]
 
 
 | Projection
@@ -487,7 +487,7 @@ The "target" parameter is omitted, because it will be the midPoint user state at
 
 === Capabilities
 
-Main article: wiki:Resource+Capabilities[Resource Capabilities]
+Main article: xref:/midpoint/reference/resources/resource-configuration/capabilities/[Resource Capabilities]
 
 Capabilities are definitions of a specific things that a resource can do.
 There is plethora of various resource types and cofiguration.
@@ -564,12 +564,12 @@ Some resources has ability to execute scripts.
 MidPoint binds execution of scripts to specific operations.
 Therefore a script can be automatically executed before of after the account is created, modified or deleted.
 
-See wiki:Provisioning+Scripts[Provisioning Scripts] page for more details.
+See xref:/midpoint/reference/resources/provisioning-scripts/[Provisioning Scripts] page for more details.
 
 
 === Consistency
 
-See wiki:Resource+Consistency+Configuration[Resource Consistency Configuration] for more details.
+See xref:/midpoint/reference/resources/resource-configuration/consistency/[Resource Consistency Configuration] for more details.
 
 This section contains configuration of consistency mechanisms.
 This may include configuration of high-level operation retries and similar technical configuration.

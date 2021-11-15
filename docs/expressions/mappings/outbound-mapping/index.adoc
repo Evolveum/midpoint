@@ -92,8 +92,8 @@ The actual value is determined by the iteration settings.
 
 * xref:/midpoint/reference/expressions/mappings/[Mapping]
 
-* wiki:Mapping+Evaluation+Examples[Mapping Evaluation Examples]
+* xref:/midpoint/reference/expressions/mappings/mapping-evaluation-examples/[Mapping Evaluation Examples]
 
 * xref:/midpoint/reference/expressions/mappings/inbound-mapping/[Inbound Mapping]
 
-* wiki:Unique+Account+Username+HOWTO[Unique Account Username HOWTO]
+* xref:/midpoint/reference/concepts/iteration/unique-account-username/[Unique Account Username HOWTO]

@@ -272,7 +272,7 @@ Note that `orgpath` attribute from HR account is copied to custom `orgpath` prop
 .. The first mapping computes user's full name (this information is not stored in HR)
 
 .. The "Org mapping" is trying to look up an xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] into which the user should belong.
-It is using a wiki:Object+Query[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
+It is using a xref:/midpoint/reference/concepts/query/[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
 The expression inside the query is using the first segment of the `orgpath` as a value, e.g. in this case it would be "Freelance".
 
 .. The query finds no matching xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org.] The expression is set to `createOnDemand` therefore it will try to create the Org.
@@ -396,7 +396,7 @@ This just assigns the "Basic User" role `(role-basic.xml`) . This is a simple xr
 .. The "responsibility role assignment" mapping is processed.
 
 ... The mapping is trying to look up a xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[Role] which the user should have assigned.
-It is using a wiki:Object+Query[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
+It is using a xref:/midpoint/reference/concepts/query/[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
 The expression inside the query is using the value of `responsibility` property from user extension to look up the role.
 The query is constructed in a such a way that this value should match with the value of `responsibility` property in role extension.
 Note that there are two properties that should match: the (multi-valued) `responsibility` in user extension and the (single-valued) `responsibility` in role extension.

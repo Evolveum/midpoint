@@ -91,7 +91,7 @@ image::policy_groups.png[]
 
 There is one more thing to do for this setup to work and that is to set up the organizational unit in system configuration so midPoint user interface can find them.
 
-Please see wiki:Applicable+Policy+Configuration[Applicable Policy Configuration] page for configuration details and examples.
+Please see xref:/midpoint/reference/roles-policies/applicable-policies/configuration/[Applicable Policy Configuration] page for configuration details and examples.
 
 
 == Notes
@@ -101,7 +101,7 @@ This means that some roles have the policies applied and other roles do not.
 And this is decided by system administrator and there is no systemic way how to distinguish when a policy should be applied and when it should not.
 
 If there is indeed a systemic way to apply a policy then there is a better approach: global policy rules.
-Global policy rules can be used to apply the rules to all selected objects based on a wiki:Object+Query[filter]. Therefore the policies can be applied in a systemic way.
+Global policy rules can be used to apply the rules to all selected objects based on a xref:/midpoint/reference/concepts/query/[filter]. Therefore the policies can be applied in a systemic way.
 
 
 == See Also

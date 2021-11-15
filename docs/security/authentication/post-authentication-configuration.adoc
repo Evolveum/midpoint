@@ -128,4 +128,4 @@ After successful post-authentication normal assignments are taken into account.
 
 * xref:/midpoint/reference/security/authorization/configuration/[Authorization Configuration]
 
-* wiki:GUI+Authorizations[GUI Authorizations]
+* xref:/midpoint/reference/security/authorization/admin-gui/[GUI Authorizations]

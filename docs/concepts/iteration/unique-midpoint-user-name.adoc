@@ -9,7 +9,7 @@
 :page-toc: top
 :page-upkeep-status: yellow
 
-Similar to an wiki:Unique+Account+Username+HOWTO[unique account username], unique midPoint user names may be configured.
+Similar to an xref:/midpoint/reference/concepts/iteration/unique-account-username/[unique account username], unique midPoint user names may be configured.
 For example, you may need to generate your user names based on Given Name and Family Name attributes until the user name is unique:
 
 * `john.smith` - found existing user, trying again

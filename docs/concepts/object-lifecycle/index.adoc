@@ -151,4 +151,4 @@ I.e. midPoint is not storing proposed assignments for requested assignments yet.
 
 * xref:/midpoint/reference/concepts/activation/[Activation]
 
-* wiki:Role+Lifecycle[Role Lifecycle]
+* xref:/midpoint/reference/roles-policies/role-lifecycle/[Role Lifecycle]

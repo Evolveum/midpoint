@@ -55,7 +55,7 @@ E.g. Groovy has a nice safe navigation operator (`?.`) that comes really handy h
 focus?.getActivation()?.getAdministrativeStatus()
 ----
 
-However there is a special language that is used to reference items inside prism objects: wiki:Item+Path[item path]. This language is designed to process the paths in a very efficient way and it is used at many places in midPoint.
+However there is a special language that is used to reference items inside prism objects: xref:/midpoint/reference/concepts/item-path/[item path]. This language is designed to process the paths in a very efficient way and it is used at many places in midPoint.
 The item path has a natural way how to reference the items inside a variable:
 
 .Item path

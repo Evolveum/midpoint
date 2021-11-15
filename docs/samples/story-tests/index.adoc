@@ -46,7 +46,7 @@ See existing test classes for examples how to do that.
 Important: do not forget to invoke the superclass method: `super.initSystem(...)`
 
 ** Initialize your resources in the initSystem() method.
-E.g. see wiki:Dummy+Resource[Dummy Resource] page.
+E.g. see xref:/midpoint/devel/testing/dummy-resource/[Dummy Resource] page.
 Use OpenDJController to start embedded LDAP server instance if needed.
 Use other existing test classes as examples.
 

@@ -467,7 +467,7 @@ We can use attribute jasper and in it we can use all attributes for jasper repor
 
 ==== Dashboard
 
-For configuration of dashboard report, please see wiki:Dashboard+configuration#Dashboardconfiguration-Report[Dashboard configuration-Report].
+For configuration of dashboard report, please see xref:/midpoint/reference/admin-gui/dashboards/configuration/#report[Dashboard configuration-Report].
 
 
 ==== Collection

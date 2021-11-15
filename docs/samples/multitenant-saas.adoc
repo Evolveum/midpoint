@@ -395,7 +395,7 @@ Note that `customerName` attribute from CRM account is copied to user's `organiz
 .. The first mapping computes user's full name (this information is not stored in CRM)
 
 .. The "Org mapping - organization member" is trying to look up an xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] into which the user should belong.
-It is using a wiki:Object+Query[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
+It is using a xref:/midpoint/reference/concepts/query/[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
 The expression inside the query is using the `organizationalUnit` value, e.g. in this case it would be "ultra1".
 
 .. The query finds no matching xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org.] The expression is set to `createOnDemand` therefore it will try to create the Org.
@@ -534,7 +534,7 @@ If no address is entered, the administrator who is creating the new user is expe
 .. The first mapping computes user's full name
 
 .. The "Org mapping - organization member" is trying to look up an xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] into which the user should belong.
-It is using a wiki:Object+Query[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
+It is using a xref:/midpoint/reference/concepts/query/[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
 The expression inside the query is using the `organizationalUnit` value, e.g. in this case it would be "ultra1" and it was created before.
 The `organizationalUnit` attribute was set automatically by assigning the organization ("Add member").
 
@@ -634,7 +634,7 @@ If no address is entered, the administrator who is creating the new user is expe
 .. The first mapping computes user's full name
 
 .. The "Org mapping - organization member" is trying to look up an xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] into which the user should belong.
-It is using a wiki:Object+Query[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
+It is using a xref:/midpoint/reference/concepts/query/[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
 The expression inside the query is using the `organizationalUnit` value, e.g. in this case it would be "ultra1" and it was created before.
 The `organizationalUnit` attribute was set automatically by assigning the organization ("Add member").
 

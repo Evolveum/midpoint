@@ -168,7 +168,7 @@ There were also some attempts to provide wiki information (mainly for developers
 Evolveum communication model is based on openness.
 All(!) link:http://wiki.evolveum.com[midPoint documentation] is public.
 All.
-Yes, including link:http://wiki.evolveum.com/display/midPoint/Roadmap[roadmap], various wiki:Tutorials+and+HOWTOs[howtos], guides, tricks and tweaks.
+Yes, including link:http://wiki.evolveum.com/display/midPoint/Roadmap[roadmap], various xref:/midpoint/guides/[howtos], guides, tricks and tweaks.
 
 
 == Discussion/Forum

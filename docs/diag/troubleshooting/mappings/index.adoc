@@ -270,20 +270,20 @@ Understanding Deltas and Triples in Projector
 
 MidPoint is based on xref:/midpoint/reference/concepts/relativity/[the principle of relative changes]. Therefore midPoint will deal with operations as if they add or remove something.
 Sometimes midPoint also cares about the values that are present in the property before the operation (e.g. for reconciliation), but added and removed values are much more important for midPoint.
-Therefore almost all Projector components work with xref:/midpoint/devel/prism/concepts/deltas/[deltas] and wiki:Triple[triples]. The basic process is like this:
+Therefore almost all Projector components work with xref:/midpoint/devel/prism/concepts/deltas/[deltas] and xref:/midpoint/devel/prism/concepts/triple/[triples]. The basic process is like this:
 
 . Input deltas are recorded in xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context] as primary deltas or synchronization deltas
 
 . xref:/midpoint/reference/expressions/mappings/[Mappings] are evaluated.
 Mappings take deltas as input.
-Mappings produce wiki:Triple[triples] for each affected values as output.
+Mappings produce xref:/midpoint/devel/prism/concepts/triple/[triples] for each affected values as output.
 
 . Triples from several mappings are merged together.
 
 . Merged triples are converted back to deltas.
 These are secondary deltas.
 
-Therefore watch the log files for dumps of the wiki:Triple[triples]. There are usually intermediary results that may provide clue what's wrong.
+Therefore watch the log files for dumps of the xref:/midpoint/devel/prism/concepts/triple/[triples]. There are usually intermediary results that may provide clue what's wrong.
 They look like this:
 
 [source]
@@ -516,7 +516,7 @@ The sequence of events is usually roughly like this:
 It is used to determine correct connector type.
 
 . Provisioning computes additional operations needed to execute the delta.
-E.g. there may be wiki:Simulated+Disable+HOWTO[simulated activation] or xref:/midpoint/reference/resources/entitlements/[entitlement associations] to process.
+E.g. there may be xref:/midpoint/reference/resources/resource-configuration/simulated-disable/[simulated activation] or xref:/midpoint/reference/resources/entitlements/[entitlement associations] to process.
 
 . New instance of a connector is initialized by using the configuration in the resource definition.
 This is skipped if existing instance already exists.

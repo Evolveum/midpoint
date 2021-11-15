@@ -37,7 +37,6 @@ The assignments may be very confusing to engineers that are new to identity mana
 This section tries to explain the basic principles and correct use of assignments.
 Good understanding of these principles is critical for efficient midPoint deployment.
 
-
 == Construction Assignments
 
 Construction assignments are "direct" assignments.
@@ -77,7 +76,6 @@ Please not that there is a substantial difference between assigning an _account_
 The later case is a very devious (ab)use of xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization]. Assigning an entitlement to a _user_ causes that a new group will be created for this user and it will be linked to a user.
 This is most like what you do *not* want.
 See the xref:/midpoint/reference/resources/entitlements/[Entitlements] page for more details.
-
 
 === Attributes
 
@@ -180,7 +178,6 @@ Specifying attribute values in assignments should be used only if no other mecha
 
 ====
 
-
 === Strong and Weak Constructions
 
 ++++
@@ -211,7 +208,6 @@ Weak constructions do not cause creation or addition of an account.
 Only strong constructions can do that.
 Weak constructions may be used to enrich the projection with additional data.
 If no strength is specified then the construction defaults to _strong_.
-
 
 === Entitlement Associations
 
@@ -257,7 +253,7 @@ Therefore this kind of entitlement should work just fine even if the group is la
 
 There is also a more sophisticated way how to associate entitlements with accounts inside an assignment.
 There is a special-purpose `associationTargetSearch`xref:/midpoint/reference/expressions/expressions/[expression evaluator] that allows significant flexibility.
-This type of expression is using a wiki:Object+Query[search query] to dynamically locate the entitlement shadow.
+This type of expression is using a xref:/midpoint/reference/concepts/query/[search query] to dynamically locate the entitlement shadow.
 Following example is looking up the group by name:
 
 .Entitlement association using static associationTargetSearch
@@ -328,7 +324,6 @@ If an assignment like this appears in a role, it will use the name of the role t
 Therefore if the name of the role is `foo`, it will look for group with name `group-foo`. This may not be very useful on its own.
 But when it is combined with a xref:/midpoint/reference/roles-policies/metaroles/gensync/[metarole] mechanism then it becomes an extremely powerful tool.
 
-
 === Construction Variables
 
 Following variables can be used in assignment mappings:
@@ -395,13 +390,15 @@ Use assignmentPath instead.
 | `assignmentPath`
 | `AssignmentPath`
 | Sequence of assignments from the focal object to the point of evaluation.
-(More exactly, each item in this sequence is an link:https://github.com/Evolveum/midpoint/blob/master/model/model-api/src/main/java/com/evolveum/midpoint/model/api/context/AssignmentPathSegment.java[AssignmentPathSegment]. It is a structure that contains an assignment augmented with additional information, like the actual source and target objects.) Available since midPoint 3.6.See wiki:Using+Assignment+Path+in+Expressions[Using Assignment Path in Expressions] and wiki:Assignment+Path+Variables+Example[Assignment Path Variables Example]
+(More exactly, each item in this sequence is an link:https://github.com/Evolveum/midpoint/blob/master/model/model-api/src/main/java/com/evolveum/midpoint/model/api/context/AssignmentPathSegment.java[AssignmentPathSegment].
+It is a structure that contains an assignment augmented with additional information, like the actual source and target objects.)
+Available since midPoint 3.6.
+See xref:/midpoint/reference/roles-policies/assignment/using-assignment-path-in-expressions/[Using Assignment Path in Expressions] and xref:/midpoint/reference/roles-policies/assignment/assignment-path-variables-example/[Assignment Path Variables Example]
 
 
 |===
 
-Use of these variables is wiki:Assignment+Path+Variables+Example[illustrated on the example here].
-
+Use of these variables is xref:/midpoint/reference/roles-policies/assignment/assignment-path-variables-example/[illustrated on the example here].
 
 === The loginMode Variable
 
@@ -416,7 +413,6 @@ If it's `true` it means that the evaluation is carried out at login time.
 Conditions to targets that are irrelevant at this moment can then be quickly evaluated to `false`.
 
 This variable is present also in target filtering expressions.
-
 
 === Construction Assignments in Generic Synchronization
 
@@ -480,7 +476,6 @@ However as xref:/midpoint/architecture/archive/data-model/midpoint-common-schema
 See xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement] page for more details.
 Also have a look at xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC] page for an interesting discussion of meta-roles.
 
-
 == Role Assignments
 
 Role assignments are "indirect" assignments.
@@ -501,7 +496,6 @@ Simple role assignment is really a very simple thing:
 
 Almost all of  the power is in the role definition.
 The xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC] and xref:/midpoint/reference/roles-policies/roles-and-policies-configuration/[Roles and Policies Configuration] pages provide much more details about RBAC and role definitions.
-
 
 == Parametric Assignments
 
@@ -610,9 +604,8 @@ Following example illustrates the use of custom assignment parameter `shipName`.
 Such extension may contain any custom data and such data can be used in the expressions in assigned object.
 Such assignment extensions can then be used as a parameters in the roles.
 Therefore a role assignment can specify details such as a department for which the role applies, the branch office, access zone in the building and so on.
-This _parametric_ RBAC structure is a good mechanism to fight the wiki:Role+Explosion[role explosion] problem.
+This _parametric_ RBAC structure is a good mechanism to fight the xref:/iam/role-explosion/[role explosion] problem.
 See xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC] for more details.
-
 
 == Enforcement Modes
 
@@ -627,15 +620,13 @@ In NONE enforcement mode the account is legal anytime it exists regardless of th
 The legality of the account is then used by the xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[activation] mechanism to determine what to do with the account.
 The activation usually deals with illegal accounts and determines whether to delete the account, disable it or do any other action.
 
-
 == Assignments and Mappings
 
 Assignments are often created automatically by midPoint mappings, especially in the xref:/midpoint/reference/expressions/object-template/[object template]. It is perfectly possible to create assignments using a `value`xref:/midpoint/reference/expressions/expressions/[expression evaluator.] However this method works well only for simple cases.
 Therefore there is a specialized `assignmentTargetSearch`xref:/midpoint/reference/expressions/expressions/[expression evaluator] designed for the very specific purpose of creating assignments.
-It is using a wiki:Object+Query[search query] to dynamically locate assignment targets.
+It is using a xref:/midpoint/reference/concepts/query/[search query] to dynamically locate assignment targets.
 It can be configured using inner expressions which makes it a very powerful mechanism.
 See xref:/midpoint/reference/expressions/expressions/[Expression] page for more details.
-
 
 == Referential Integrity
 
@@ -647,7 +638,6 @@ Such "dangling" assignments will be silently ignored in most cases, but they may
 Therefore the best strategy is to avoid creating such "dangling" assignments.
 
 See xref:/midpoint/architecture/concepts/relaxed-referential-integrity/[Relaxed Referential Integrity] page for more details.
-
 
 == See Also
 

@@ -17,8 +17,8 @@ Iteration mechanism can be easily enabled and customized in xref:/midpoint/refer
 
 == See Also
 
-* wiki:Unique+midPoint+User+Name[Unique midPoint User Name]
+* xref:/midpoint/reference/concepts/iteration/unique-midpoint-user-name/[Unique midPoint User Name]
 
-* wiki:Unique+Account+Username+HOWTO[Unique Account Username HOWTO]
+* xref:/midpoint/reference/concepts/iteration/unique-account-username/[Unique Account Username HOWTO]
 
-* wiki:Unique+property+value+HOWTO[Unique property value HOWTO]
+* xref:/midpoint/reference/concepts/iteration/unique-property-value/[Unique property value HOWTO]

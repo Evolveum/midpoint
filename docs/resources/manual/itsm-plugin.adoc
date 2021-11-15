@@ -28,6 +28,6 @@ In fact it is a subclass of midPoint abstract manual connector using xref:/midpo
 
 * xref:/midpoint/reference/resources/manual/[Manual Resource and ITSM Integration]
 
-* wiki:Manual+Resource+Configuration[Manual Resource Configuration]
+* xref:/midpoint/reference/resources/manual/configuration/[Manual Resource Configuration]
 
 * xref:/midpoint/architecture/archive/subsystems/provisioning/ucf/interfaces/[Unified Connector Framework Interfaces]

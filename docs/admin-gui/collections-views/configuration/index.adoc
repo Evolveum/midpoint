@@ -64,7 +64,7 @@ Then the definition is reused in all other places.
 
 It may seem that this is a very little functionality to justify its own object.
 However, most of the functionality is still not implemented.
-See wiki:Object+Collections+and+Views+Improvements[Object Collections and Views Improvements] page for the details.
+See xref:/midpoint/features/planned/object-collections-and-views/[Object Collections and Views Improvements] page for the details.
 
 === Derived Object Collection
 
@@ -485,7 +485,7 @@ Therefore *link:https://evolveum.com/services/professional-support/[midPoint Pla
 
 == See Also
 
-* wiki:Object+Collections+and+Views+Improvements[Object Collections and Views Improvements]
+* xref:/midpoint/features/planned/object-collections-and-views/[Object Collections and Views Improvements]
 
 * xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
 

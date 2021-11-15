@@ -16,7 +16,7 @@
 == Introduction
 
 Policy rules are very powerful mechanism that spans a very wide range of use cases.
-It can be used to define role xref:/midpoint/reference/cases/approval/[approval], wiki:Role+Lifecycle[lifecycle], policies such as wiki:Segregation+of+Duties[segregation of duties], notifications and other governance and compliance rules.
+It can be used to define role xref:/midpoint/reference/cases/approval/[approval], xref:/midpoint/reference/roles-policies/role-lifecycle/[lifecycle], policies such as xref:/midpoint/reference/roles-policies/segregation-of-duties/[segregation of duties], notifications and other governance and compliance rules.
 
 Each policy rule has the following parts:
 
@@ -50,7 +50,7 @@ The policy rules are used to implement wide variety of mechanisms:
 
 * xref:/midpoint/reference/cases/approval/[Assignment approvals]: policy rules may be used to change the default assignment approval schemes in a very flexible and scalable fashion.
 
-* wiki:Role+Lifecycle[Role lifecycle management]: policy rules may be used to enforce approvals of new roles before they are used in production.
+* xref:/midpoint/reference/roles-policies/role-lifecycle/[Role lifecycle management]: policy rules may be used to enforce approvals of new roles before they are used in production.
 They may be used to approve changed role definitions.
 And so on.
 
@@ -235,7 +235,7 @@ See the xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaro
 
 They say that there is always an exception to any rule.
 Whether that is the truth or not, there is often a need to make an exception from a policy rule.
-Common use case is an exception from wiki:Segregation+of+Duties[Segregation of Duties] policy: the policy states that certain roles cannot be combined.
+Common use case is an exception from xref:/midpoint/reference/roles-policies/segregation-of-duties/[Segregation of Duties] policy: the policy states that certain roles cannot be combined.
 But if the request goes through a special approval then it may be allowed.
 This may seem like a straightforward mechanism.
 But it is not.
@@ -255,15 +255,15 @@ In the future that information can be used e.g. to report approved rule exceptio
 
 This feature is available only in midPoint 3.6 and later.
 
-This feature was also available in midPoint 3.5. However even in midPoint 3.5 this feature was considered *EXPERIMENTAL* except when used for wiki:Role+Lifecycle[Role Lifecycle] and assignment-based xref:/midpoint/reference/cases/approval/[approvals].
+This feature was also available in midPoint 3.5. However even in midPoint 3.5 this feature was considered *EXPERIMENTAL* except when used for xref:/midpoint/reference/roles-policies/role-lifecycle/[Role Lifecycle] and assignment-based xref:/midpoint/reference/cases/approval/[approvals].
 This mechanism was only partially implemented in midPoint 3.5.
 
 == See Also
 
-* wiki:Role+Lifecycle[Role Lifecycle]
+* xref:/midpoint/reference/roles-policies/role-lifecycle/[Role Lifecycle]
 
 * xref:/midpoint/reference/cases/approval/[Approval]
 
-* wiki:Segregation+of+Duties[Segregation of Duties]
+* xref:/midpoint/reference/roles-policies/segregation-of-duties/[Segregation of Duties]
 
 * xref:/midpoint/reference/roles-policies/rbac/radio-button-roles/[Radio Button Roles]

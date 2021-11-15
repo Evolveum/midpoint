@@ -44,7 +44,7 @@ The `Supervisor` role will be affected by the policy rules.
 Following metarole contains "manager" approval policy.
 When this metaroles is applied to ordinary role then the approval policy is applied to that ordinary role.
 When that ordinary role is assigned to a user, the request is driven through an xref:/midpoint/reference/cases/approval/[approval process]. In this case the approval will be requested from user's manager.
-The getManagersOidsExceptUser(...) function from wiki:MidPoint+Script+Library[MidPoint Script Library] is used to get the manager.
+The getManagersOidsExceptUser(...) function from xref:/midpoint/reference/expressions/expressions/script/functions/midpoint/[MidPoint Script Library] is used to get the manager.
 
 .Approval by manager
 [source,xml]
@@ -135,6 +135,6 @@ Role approver is determined by examining all the users that have this role assig
 
 * xref:/midpoint/reference/roles-policies/applicable-policies/[User-Friendly Policy Selection]
 
-* wiki:Applicable+Policy+Configuration[Applicable Policy Configuration]
+* xref:/midpoint/reference/roles-policies/applicable-policies/configuration/[Applicable Policy Configuration]
 
 * xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]

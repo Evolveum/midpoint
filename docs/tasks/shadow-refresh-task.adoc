@@ -13,7 +13,7 @@
 
 There are situations, when xref:/midpoint/reference/resources/shadow/[shadow objects] do not entirely reflect the reality.
 Such situations are to be expected, as those "shadows" are actually copies of the data that originate from other systems.
-The shadow objects also contain wiki:Manual+Resource+Configuration[pending operation data] that naturally change in time.
+The shadow objects also contain xref:/midpoint/reference/resources/manual/configuration/[pending operation data] that naturally change in time.
 And there are also cases when the data model evolves and data in the "shadows" need to be updated.
 
 All such situations mean that shadow objects need to _refreshed_. Refresh means that midPoint makes sure that a shadow is internally consistent and to execute all operations that need to be executed in order to re-gain consistency.

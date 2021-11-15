@@ -63,10 +63,10 @@ See xref:/midpoint/reference/expressions/expressions/[Expression] page for more 
 
 == See Also
 
-* wiki:Using+Mappings+and+Expressions[Using Mappings and Expressions]
+* xref:/midpoint/reference/expressions/using-mappings-and-expressions/[Using Mappings and Expressions]
 
 * xref:/midpoint/reference/expressions/mappings/[Mapping]
 
 * xref:/midpoint/reference/expressions/expressions/[Expression]
 
-* wiki:Mapping+Evaluation+Examples[Mapping Evaluation Examples]
+* xref:/midpoint/reference/expressions/mappings/mapping-evaluation-examples/[Mapping Evaluation Examples]

@@ -26,7 +26,6 @@ MidPoint is not a replacement for these tools.
 MidPoint will integrate with them and manage them.
 By leveraging existing tools and integrating it with midPoint it is possible to manage everything from one centralised place.
 
-
 == The Concept of the Service
 
 MidPoint service object is designed to represent logical or physical services or devices such as virtual machines, mobile devices, servers, printers, network devices, application containers ... and essentially almost anything else.
@@ -60,7 +59,6 @@ MidPoint is designed to talk to many different system to completely set up accou
 Now the same approach is used for services.
 MidPoint will make sure all the necessary management, OSS/BSS, monitoring and accounting systems are properly set up when a new service is created.
 
-
 == Defining Resource for Service
 
 It is planned to support automatic creation of resource definition for service.
@@ -87,8 +85,7 @@ For example, let the
 
 * services to represent different things like mobile devices, printers, applications which the users can use.
 
-The brief comparison which object type to use in which situation can be also find wiki:Roles,+Services+and+Orgs[here].
-
+The brief comparison which object type to use in which situation can be also find xref:/midpoint/reference/roles-policies/roles-services-and-orgs/[here].
 
 == See also
 
@@ -96,4 +93,4 @@ The brief comparison which object type to use in which situation can be also fin
 
 * xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]
 
-* wiki:Roles,+Services+and+Orgs[Roles, Services and Orgs]
+* xref:/midpoint/reference/roles-policies/roles-services-and-orgs/[Roles, Services and Orgs]

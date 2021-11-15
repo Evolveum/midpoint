@@ -22,7 +22,7 @@ MidPoint can _simulate_ the capability.
 
 MidPoint can pretend that the connector in fact has an `administrativeStatus` activation capability.
 If midPoint gets a command to disable an account it can convert that operation to a modification of a specific resource attribute.
-This is called _configured_ capability and it is set up in wiki:Resource+Capabilities[Resource Capabilities] section.
+This is called _configured_ capability and it is set up in xref:/midpoint/reference/resources/resource-configuration/capabilities/[Resource Capabilities] section.
 
 
 == DatabaseTable Example
@@ -86,7 +86,7 @@ We want this:
 ----
 
 Fortunately this is very easy to do in midPoint.
-Just add this section to wiki:Resource+Capabilities[Resource Capabilities] section:
+Just add this section to xref:/midpoint/reference/resources/resource-configuration/capabilities/[Resource Capabilities] section:
 
 [source,xml]
 ----
@@ -147,6 +147,6 @@ The rest is the same as in previous example.
 
 * xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]
 
-* wiki:Resource+Capabilities[Resource Capabilities]
+* xref:/midpoint/reference/resources/resource-configuration/capabilities/[Resource Capabilities]
 
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[Resource Schema Handling: Activation]

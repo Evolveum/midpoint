@@ -6,13 +6,11 @@
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2017-05-23T09:39:02.330+02:00
 
-To better illustrate meaning of various wiki:Assignment+Configuration#AssignmentConfiguration-ConstructionVariables[ assignment-related variables] let us present an example.
+To better illustrate meaning of various xref:/midpoint/reference/roles-policies/assignment/configuration/#construction-variables[assignment-related variables] let us present an example.
 
 Here, user `jack` is being assigned a role `Pirate`. This role induces `Sailor`. Both `Pirate` and `Sailor` have assigned `MetaroleCrewMember`. This metarole induces `MetarolePerson`, which induces role `Human`. Each of these roles provides a construction (C1, C2, ..., C5) via an inducement of corresponding order (1 or 2).
 
 image::assignments-variables.png[]
-
-
 
 Let us have a look at various variables used when evaluating individual constructions.
 They can be summarized in the table below.
@@ -224,9 +222,6 @@ An example for evaluation of condition on Human when going through Sailor role:
 
 image::assignments-variables-human-s.png[]
 
-
-
-
 === Path variables for evaluation of conditions on assignments
 
 [%autowidth]
@@ -316,9 +311,6 @@ An example for evaluation of condition on inducement MetarolePerson->Human when 
 
 image::assignments-variables-human-s.png[]
 
-
-
-
 == Abbreviations
 
 [%autowidth]
@@ -343,6 +335,5 @@ image::assignments-variables-human-s.png[]
 
 | H
 | Human
-
 
 |===

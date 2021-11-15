@@ -57,4 +57,4 @@ See xref:/midpoint/reference/expressions/expressions/[Expression] page for more 
 
 * xref:/midpoint/reference/expressions/expressions/[Expression]
 
-* wiki:Mapping+Evaluation+Examples[Mapping Evaluation Examples]
+* xref:/midpoint/reference/expressions/mappings/mapping-evaluation-examples/[Mapping Evaluation Examples]

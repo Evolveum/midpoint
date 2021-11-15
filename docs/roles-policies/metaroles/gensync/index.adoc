@@ -211,10 +211,10 @@ E.g. the following inducement will be applied to all situation where the order i
 
 == Delegations (Deputy)
 
-There are special kinds of assignment that is used to define wiki:Deputy[Deputy]. This assignment has xref:/midpoint/reference/concepts/relation/[Relation] set to `deputy`. This is a special case used to delegate the privileges.
+There are special kinds of assignment that is used to define xref:/midpoint/reference/misc/deputy/[Deputy]. This assignment has xref:/midpoint/reference/concepts/relation/[Relation] set to `deputy`. This is a special case used to delegate the privileges.
 Therefore this delegation assignment is not counted into the normal order when evaluating meta-roles.
 Othewise what was originally order 2 will become order 3 and so on.
-See the wiki:Deputy[Deputy] page for details.
+See the xref:/midpoint/reference/misc/deputy/[Deputy] page for details.
 
 
 == Meta-Meta-Roles

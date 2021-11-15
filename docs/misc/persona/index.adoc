@@ -59,7 +59,7 @@ And only use persona links if the limitation of intents are too prohibitive for 
 
 == Configuration
 
-Please see wiki:Persona+Configuration[Persona Configuration] page for configuration details.
+Please see xref:/midpoint/reference/misc/persona/configuration/[Persona Configuration] page for configuration details.
 
 == See Also
 
@@ -69,4 +69,4 @@ Please see wiki:Persona+Configuration[Persona Configuration] page for configurat
 
 * xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[Kind, Intent and ObjectClass]
 
-* wiki:Persona+Configuration[Persona Configuration]
+* xref:/midpoint/reference/misc/persona/configuration/[Persona Configuration]

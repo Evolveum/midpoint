@@ -156,7 +156,7 @@ See xref:/midpoint/reference/resources/propagation/[Provisioning Propagation] pa
 
 == Configuration
 
-See wiki:Manual+Resource+Configuration[Manual Resource Configuration] page for configuration details.
+See xref:/midpoint/reference/resources/manual/configuration/[Manual Resource Configuration] page for configuration details.
 
 
 == Sample
@@ -166,6 +166,6 @@ Contributed ITSM sample plugin can be found in our link:https://github.com/Evolv
 
 == See Also
 
-* wiki:Manual+Resource+Configuration[Manual Resource Configuration]
+* xref:/midpoint/reference/resources/manual/configuration/[Manual Resource Configuration]
 
 * xref:/midpoint/reference/resources/multi-connector-resource/[Multi-Connector Resource]

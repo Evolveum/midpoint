@@ -289,7 +289,7 @@ This is exactly what range definition does.
 
 For the future, there is an easier and perhaps more intuitive method.
 But that requires remembering the origin (provenance) of each value that midPoint maintains.
-Fortunately, such feature is planned: wiki:Data+Provenance[Data Provenance]. If you are interested in this please consider xref:/support/subscription-sponsoring/[purchasing platform subscription].
+Fortunately, such feature is planned: xref:/midpoint/features/planned/data-provenance/[Data Provenance]. If you are interested in this please consider xref:/support/subscription-sponsoring/[purchasing platform subscription].
 ====
 
 

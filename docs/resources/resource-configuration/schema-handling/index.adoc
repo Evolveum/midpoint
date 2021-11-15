@@ -498,13 +498,13 @@ But that is expected to be a very rare case.
 
 * xref:/midpoint/reference/resources/shadow/[Shadow Objects]
 
-* wiki:Resource+Schema+Mapping[Resource Schema Mapping]
+* xref:/midpoint/architecture/archive/interactions/resource-schema-mapping/[Resource Schema Mapping]
 
 * xref:/midpoint/reference/expressions/mappings/inbound-mapping/[Inbound Mapping]
 
 * xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound Mapping]
 
-* wiki:Mapping+Evaluation+Examples[Mapping Evaluation Examples]
+* xref:/midpoint/reference/expressions/mappings/mapping-evaluation-examples/[Mapping Evaluation Examples]
 
 
 == External links

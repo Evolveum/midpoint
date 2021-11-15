@@ -17,7 +17,7 @@ We want only one of them to be assigned at a time.
 
 This configuration is based on three midPoint mechanisms:
 
-. xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules] that implement (almost) ordinary wiki:Segregation+of+Duties[role exclusion].
+. xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules] that implement (almost) ordinary xref:/midpoint/reference/roles-policies/segregation-of-duties/[role exclusion].
 
 . The "prune" policy action.
 
@@ -106,7 +106,7 @@ And at the end of the operation only one quota role remains assigned to the user
 
 == See Also
 
-* wiki:Segregation+of+Duties[Segregation of Duties]
+* xref:/midpoint/reference/roles-policies/segregation-of-duties/[Segregation of Duties]
 
 * xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
 

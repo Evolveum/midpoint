@@ -155,7 +155,7 @@ This approach is very useful for sophisticated interface clients (such as midPoi
 
 There are some information and examples how to use this interface:
 
-* wiki:IDM+Model+Interface+Introduction[IDM Model Interface Introduction]
+* xref:/midpoint/reference/interfaces/model-java/introduction/[IDM Model Interface Introduction]
 
 * *TODO*: example usage from scripts
 
@@ -176,7 +176,7 @@ There is also a xref:/midpoint/reference/legacy/soap-client/[Model Web Service C
 
 There are few examples of the interface use:
 
-* wiki:Model+Web+Service+Client+Sample[Model Web Service Client Sample] describes a sample code which is part of midPoint source code.
+* xref:/midpoint/reference/legacy/soap-client/sample/[Model Web Service Client Sample] describes a sample code which is part of midPoint source code.
 This sample code is using model client library to invoke midPoint web service.
 
 Note: xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface] is still "version 1" interface.

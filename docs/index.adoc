@@ -21,7 +21,7 @@ Therefore it may be confusing for people that are new to midPoint.
 
 For an easy-to-read introduction to midPoint we highly recommend starting with xref:/book/[MidPoint Book] or https://www.youtube.com/channel/UCSDs8qBlv7MgRKRLu1rU_FQ[videos on Evolveum YouTube channel].
 High-level description of midPoint features can be found in xref:/midpoint/features/current/[] part of this site.
-Instructions for handling particular tasks may also be found in wiki:Tutorials+and+HOWTOs[] section.
+Instructions for handling particular tasks may also be found in xref:/midpoint/guides/[] section.
 
 == Reference Documentation Sections
 
@@ -34,5 +34,5 @@ Instructions for handling particular tasks may also be found in wiki:Tutorials+a
 * xref:/book/[MidPoint Book]
 * https://www.youtube.com/channel/UCSDs8qBlv7MgRKRLu1rU_FQ[Evolveum YouTube channel]
 * xref:/midpoint/features/current/[]
-* wiki:Tutorials+and+HOWTOs[]
+* xref:/midpoint/guides/[]
 * xref:/support/[Subscription and Support]

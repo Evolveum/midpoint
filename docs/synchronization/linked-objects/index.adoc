@@ -411,7 +411,7 @@ An example:
 ----
 
 This rule causes recomputing all linked objects with specified archetype when `name` or `fullName` of the current object is modified.
-See also wiki:recompute[recompute] for more information on object recomputation.
+See also xref:/midpoint/reference/misc/bulk/actions/recompute/[recompute] for more information on object recomputation.
 
 
 === Asynchronous execution
@@ -561,7 +561,7 @@ Or if it is simply expected that users are going to edit more roles via GUI in s
 In such cases you can simply set a recompute trigger on relevant objects instead of recomputing them immediately.
 The trigger can be set either unconditionally, or for a given time in the future.
 The latter option optimizes even the creation of the triggers by skipping triggers that are known to be redundant.
-See wiki:recompute[recompute] for more details.
+See xref:/midpoint/reference/misc/bulk/actions/recompute/[recompute] for more details.
 
 (Note also that triggers can be set synchronously or asynchronously.
 The latter option is suitable for roles with lots of members.)

@@ -10,7 +10,7 @@
 :page-toc: top
 
 
-For basic information about this feature please see xref:/midpoint/reference/admin-gui/dashboards/[Customizable Dashboards] and wiki:Dashboards,+Widgets+and+Reports+Design+Notes[Dashboards, Widgets and Reports Design Notes].
+For basic information about this feature please see xref:/midpoint/reference/admin-gui/dashboards/[Customizable Dashboards] and xref:/midpoint/devel/design/dashboards-widgets-and-reports-design-notes/[Dashboards, Widgets and Reports Design Notes].
 
 Here we describe configurable dashboard and report, which is generated from a dashboard.
 
@@ -110,7 +110,6 @@ Variables:
 
 |===
 
-
 ==== data
 
 Data which widget display.
@@ -188,7 +187,6 @@ Example of widget data source for widget data (asynchronous widget):
 </data>
 ----
 
-
 ==== presentation
 
 Presentation define how will be data presented.
@@ -223,8 +221,6 @@ We support value 'value' and 'unit' now.
 |===
 
 For fiedType "value", we define new type of expression ProportionalExpressionEvaluatorType "proportional" with variable _style_. Variable _style_ is enumeration type with value "percentage" (for example 50%), "value-slash-domain" (for example 5/10), "value-of-domain" (for example 5 of 10) and "value-only" (for example 5).
-
-
 
 ===== variation
 
@@ -286,7 +282,6 @@ This entry contains stat value, together with domain value.
 
 |===
 
-
 ===== view
 
 Last variable of presentation is _view_, this variable is processed for report and we will look on it below.
@@ -326,10 +321,10 @@ Example of `presentation`:
 </presentation>
 ----
 
-
 === Object Collection
 
-You can see basic configuration for objectCollection on wiki:Object+Collections+and+Views+Configuration#ObjectCollectionsandViewsConfiguration-ObjectCollection[Object Collection].  For dashboard we can use policyRule with policyTreshold for define some policySituation.
+You can see basic configuration for objectCollection on xref:/midpoint/reference/admin-gui/collections-views/configuration/#object-collection[Object Collection].
+For dashboard we can use policyRule with policyTreshold for define some policySituation.
 Example of object collection for resource, which have status UP:
 
 [source,xml]
@@ -394,7 +389,6 @@ Next screenshot is displayed link:https://github.com/Evolveum/midpoint-samples/t
 
 image::dashboard-screenshot.png[]
 
-
 == Report
 
 You may generate HTML report from the dashboard.
@@ -418,7 +412,7 @@ For report is important _view_ variable in widget presentation.
 Specifies a view for report of an object collection that is the result of the widget.
 Defines columns of table in report.
 When we don't use view, report will be contained default columns.
-In expression of column you can use variable 'object' which represent searched object or object defined in tag _path_. For more information about view configuration please see wiki:Object+Collections+and+Views+Configuration#ObjectCollectionsandViewsConfiguration-Views[Views].
+In expression of column you can use variable 'object' which represent searched object or object defined in tag _path_. For more information about view configuration please see xref:/midpoint/reference/admin-gui/collections-views/configuration/#views[Views].
 
 [WARNING]
 ====
@@ -524,14 +518,13 @@ We will use _storeExportedWidgetData_, which can have next value:
 
 === Report Examples
 
-wiki:Example+of+dashboard+report:+Shadow+of+resource[Shadow of resource]
+xref:/midpoint/reference/admin-gui/dashboards/example-shadows-on-resource/[Shadow of resource]
 
-wiki:Example+of+dashboard+report:+Number+of+members[Number of members]
+xref:/midpoint/reference/admin-gui/dashboards/example-report-number-of-members/[Number of members]
 
-wiki:Example+of+dashboard+report:+Using+policySituation+for+report[Using policySituation for report]
+xref:/midpoint/reference/admin-gui/dashboards/example-policysituation/[Using policySituation for report]
 
-wiki:Example+of+dashboard+report:+Audit+events+which+change+administrativeStatus+on+resource[Audit events which change administrativeStatus on resource]
-
+xref:/midpoint/reference/admin-gui/dashboards/example-report-audit-administrativestatus/[Audit events which change administrativeStatus on resource]
 
 '''
 

@@ -48,7 +48,7 @@ Most of that can be translated only by people that know the IDM field.
 Therefore even professional translators often struggle with translating midPoint to a new language.
 However, midPoint engineers and users naturally understand the terminology and they make perfect translators.
 On the other hand, Evolveum core team is best utilized in developing the midPoint code.
-And there is still wiki:Planned+Features[so much to do].
+And there is still xref:/midpoint/features/planned/[so much to do].
 
 [TIP]
 .Thank you!
