@@ -72,7 +72,6 @@ To disable workflow altogether, specify the following in config.xml:
 </workflow>
 ----
 
-
 == System configuration object
 
 The configuration object primarily lists change processors that are to be used and their configuration.
@@ -162,7 +161,6 @@ Use at least the following content: <enabled>true</enabled>.
 
 
 |===
-
 
 ====  Aspects
 
@@ -260,8 +258,7 @@ Concluding notes (important):
 
 . Some primary change processor aspects can interfere - e.g. when creating a user with a sensitive role assigned, both "addUserAspect" and "addUserAbstractRoleAssignmentAspect" come into play. Currently, the result is quite unpredictable. For example, a user add approval might be invoked, whereas assignment approval might be not. So, take care that each situation is covered by only one aspect. This restriction is planned to be lifted in future midPoint versions.
 
-
 == Individual objects
 
 Fine-grained configuration of approvals is done at the level of individual objects, e.g. roles.
-For more information, see wiki:Approvals+examples+(legacy)[these examples].
+For more information, see xref:/midpoint/reference/cases/workflow-3/legacy-approvals-examples/[these examples].

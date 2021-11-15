@@ -11,7 +11,7 @@
 [WARNING]
 ====
 Examples mentioned here use legacy (pre-3.5) approach to approvals configuration.
-For a more up-to-date samples please visit wiki:Approval+examples[this page].
+For a more up-to-date samples please visit xref:/midpoint/reference/cases/approval/examples/[this page].
 ====
 
 == Basic how-to

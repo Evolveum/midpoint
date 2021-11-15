@@ -56,9 +56,9 @@ End user will not see the namespace at all, it is just an internal mechanism.
 It is likely that new built-in relations will be introduced in future midPoint versions.
 Using separate namespaces is a mechanism to avoid identifier conflict in future midPoint versions.
 
-Relation can be sorted into wiki:User+Interface+Area+Categories[categories] categories.
+Relation can be sorted into xref:/midpoint/reference/admin-gui/area-categories/[categories] categories.
 Each category determines is which parts of the user interface will be particular relation used.
-See wiki:User+Interface+Area+Categories[User Interface Area Categories] page for more details.
+See xref:/midpoint/reference/admin-gui/area-categories/[User Interface Area Categories] page for more details.
 
 Currently, relation configuration is supposed to be used only to add completely new relations.
 Changing existing (hardcoded) relations is *xref:/midpoint/versioning/experimental/[experimental functionality]*.
@@ -125,7 +125,6 @@ Specifies that the subject gave a consent for using personnel information relate
 
 Note that a relation can be of more than one kind.
 For example, `org:default` is of `member` and `manager` kinds.
-
 
 == Hardcoded Relations
 
@@ -200,7 +199,6 @@ Since midPoint 3.9 this can be extended and even changed.
 Just please note that currently relation configuration is supposed to be used only to add completely new relations.
 Changing existing (hardcoded) relations is *xref:/midpoint/versioning/experimental/[experimental functionality]*.
 
-
 ==  See Also
 
 * xref:index.adoc[Relation]
@@ -211,4 +209,4 @@ Changing existing (hardcoded) relations is *xref:/midpoint/versioning/experiment
 
 * xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration Object]
 
-* wiki:Relation+Repository[Relation Repository]
+* xref:/midpoint/devel/design/relation-repository/[Relation Repository]

@@ -106,4 +106,4 @@ Please see the xref:/midpoint/reference/diag/creating-a-bug-report/[Creating a B
 There are some occasions when all these steps are not enough to diagnose the problem.
 Such (relative rare) occasions usually hits about a programming bug: wrong exception handling, wrong error reporting a wild variety (usually stupid) programming mistakes.
 This is a time for a brutal solution.
-Please see wiki:Aggressive+Log+Report[Aggressive Log Report] for more instructions.
+Please see xref:/midpoint/reference/diag/aggressive-log-report/[Aggressive Log Report] for more instructions.

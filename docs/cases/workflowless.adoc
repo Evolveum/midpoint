@@ -52,7 +52,7 @@ Therefore we have jettisoned the workflow engine in midPoint 4.0.
 Midpoint is using xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] to drive approvals.
 Approval process is computed for each request and dynamically evaluated.
 The approvers, approval stages and policies are computed by midPoint.
-Approval wiki:Case+Management[cases] are created for each approval decision.
+Approval xref:/midpoint/features/planned/case-management/[cases] are created for each approval decision.
 This is what we call xref:/midpoint/reference/cases/approval/policy-based-approvals/[policy-based approvals].
 
 Now, approvals and manual provisioning are not the only things in IDM that require manual interaction.

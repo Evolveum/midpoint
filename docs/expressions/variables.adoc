@@ -224,14 +224,14 @@ The xref:/midpoint/reference/schema/custom-schema-extension/[extension] of syste
 | `integer`
 | object template, outbound
 |
-| Numeric value describing the current wiki:Iteration[iteration]. It starts with 0 and increments on every iteration.
+| Numeric value describing the current xref:/midpoint/reference/concepts/iteration/[iteration]. It starts with 0 and increments on every iteration.
 
 
 | `iterationToken`
 | `string`
 | object template, outbound
 |
-| String value describing the current wiki:Iteration[iteration]. It is usually suffix that is appended to the username or a similar "extension" of the value.
+| String value describing the current xref:/midpoint/reference/concepts/iteration/[iteration]. It is usually suffix that is appended to the username or a similar "extension" of the value.
 It should have different value for every iteration.
 The actual value is determined by the iteration settings.
 

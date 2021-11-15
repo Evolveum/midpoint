@@ -15,7 +15,6 @@ This page applies to midPoint 3.9 or earlier.
 Embedded workflow engine was removed in midPoint 4.0 and midPoint is now completely xref:/midpoint/reference/cases/workflowless/[workflowless]. If you still need manual processes as part of IDM interactions please see xref:/midpoint/reference/cases/approval/policy-based-approvals/[Policy-based approvals] and xref:/midpoint/features/planned/external-workflow-integration/[Workflow Integration].
 ====
 
-
 MidPoint is able to postpone selected actions (for example, role assignment) until they are approved by appropriate authority or authorities.
 The overall process looks then like this:
 
@@ -68,23 +67,21 @@ Or, both Chuck and Dan must approve, but in any order (e.g. Dan before Chuck wou
 . As an ultimate level of flexibility, a custom BPMN 2.0 approval process might be used.
 However, this option should be needed to use in only rare situations.
 
-
 == For more information
 
-. wiki:Approval+examples[Approval examples]
+. xref:/midpoint/reference/cases/approval/examples/[Approval examples]
 
-. wiki:Approvals+examples+(legacy)[Approvals examples (legacy)]
+. xref:/midpoint/reference/cases/workflow-3/legacy-approvals-examples/[Approvals examples (legacy)]
 
 . xref:/midpoint/architecture/archive/subsystems/model/workflow-3/[Architectural description of the Workflow component]
 
-.. wiki:Workflow+Auditing[Workflow auditing]
+.. xref:/midpoint/architecture/archive/subsystems/model/workflow-3/workflow-auditing/[Workflow auditing]
 
 . xref:/midpoint/reference/cases/workflow-3/legacy-pre-3-5-workflow-configuration/[System manager's view on workflows (i.e. workflow configuration)]
 
 . Notes
 
-.. wiki:How+to+use+workflows+in+a+self-service+scenario[How to use workflows in a self-service scenario]
-
+.. xref:/midpoint/devel/design/how-to-use-workflows-in-a-self-service-scenario/[How to use workflows in a self-service scenario]
 
 == See Also
 

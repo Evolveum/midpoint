@@ -19,7 +19,6 @@ There no plans to maintain the Eclipse plugin any further.
 You can go ahead and use it if it works for you, but there will be no further improvements, bug fixes or even security fixes.
 ====
 
-
 . First of all, install the Eclipse.
 During development of this plugin we were working with link:http://www.eclipse.org/downloads/packages/eclipse-ide-java-and-dsl-developers/neonr[Eclipse for Java and DSL Developers] (having great plans for sophisticated editors for midPoint objects) but a link:http://www.eclipse.org/downloads/packages/eclipse-ide-java-developers/neonr[standard one] should be OK as well.
 The latest version (Neon) is recommended.
@@ -39,8 +38,7 @@ image::image2016-9-3-0-1-6.png[]
 image::plugin-chyba.jpg[]
 
 It is related to SSL/TLS and server certificates.
-If you see the exception above, please use the guide to *wiki:Solving+Certificate+Problems[Solving Certificate Problems]*. +
-
+If you see the exception above, please use the guide to xref:/midpoint/reference/legacy/eclipse-plugin/certificate-problems/[Solving Certificate Problems].
 
 . Now select "MidPoint Development Tools" from the list of available software.
 Then click *Next...*
@@ -77,7 +75,7 @@ cd midpoint-ide-plugins\com.evolveum.midpoint.eclipse.parent
 mvn clean install
 ----
 
-The result is then in the file _com.evolveum.midpoint.eclipse.update/target/com.evolveum.midpoint.eclipse.update-x.x.x-SNAPSHOT.zip_. This is the file to be used as archive when adding new software sites (see wiki:Solving+Certificate+Problems[here]).
+The result is then in the file _com.evolveum.midpoint.eclipse.update/target/com.evolveum.midpoint.eclipse.update-x.x.x-SNAPSHOT.zip_. This is the file to be used as archive when adding new software sites (see xref:/midpoint/reference/legacy/eclipse-plugin/certificate-problems/[here]).
 
 
 === Eclipse Groovy plugin instalation

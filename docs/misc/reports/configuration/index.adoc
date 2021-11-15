@@ -12,7 +12,6 @@ This guide is only for small customization which can be done directly in midPoin
 In the case you need more complex customization it is maybe better to create new report template or customize existing one with Jaspersoft Studio.
 How to work with Jaspersoft Studio using live midPoint can be found xref:/midpoint/reference/legacy/jaspersoft-studio/[here].
 
-
 == Report customization using midPoint
 
 After listing reports in midPoint (Reports -> List Reports) and clicking on the configure button you are able to modify some basic report attributes.
@@ -25,24 +24,18 @@ You can change it according to your needs (e.g. font size, font family, ...)
 
 image::report-config.png[]
 
-
-
-
 === Customizing Jasper template
 
 In the midPoint's GUI you have available all the jasper template so it is possible to update it directly with midPoint.
-But, as I stated before, I don't recommend to do complex modifications in the midPoint.
+But, as I stated before, I don't recommend doing complex modifications in the midPoint.
 midPoint is not a reporting tool and for this purpose we decided to use Jasper Report framework.
-I recommend to do only small modification in queries or parameters in midPoint.
-
+I recommend doing only small modification in queries or parameters in midPoint.
 
 . Report parameters - you can add/remove or modify report parameters.
 Support for multi-value parameters exists since 3.6. If you check 'For prompting' attribute, it means that this parameter is shown in the pop-up panel when you run report.
 Report parameters are used as input values to the query.
 +
 image::Screenshot-2017-04-07-16.14.10.png[]
-
-
 
 .. There is a special column Properties.
 After clicking on the Configure link, new popup is shown.
@@ -74,9 +67,6 @@ All the existing midPoint function are available (xref:/midpoint/reference/expre
 
 image::Screenshot-2017-04-07-10.24.35.png[]
 
-
-
-
 === lookupAdding auto-complete to input parameters
 
 image::image2015-10-6-22-1-3.png[]
@@ -105,13 +95,11 @@ This example populates auto-complete with all roles in midPoint:
 </parameter>
 ----
 
-
 Limitations:
 
 * "key" and "label" properties can only reference prism properties of target object, not complex values like containers or references
 
 * "key" and "label" properties can only reference single-value properties, not multi-value
-
 
 === multivalueConfiguring multi-value input parameters
 
@@ -129,7 +117,6 @@ image::Screenshot-2017-04-07-16.14.10.png[]
 
 In the picture above, there are two attributes defined as multivalue - eventType and eventStage.
 As you can see, both of these attributes parameter class is set to java.util.List and the nested class then contains concrete type which will be in the list.
-
 
 === Performance and run-time settings
 
@@ -167,7 +154,6 @@ Limitation: Maximum size of object being stored in any virtualizer is 65K.
 That equals massive number of text in one cell (one column X one row).
 If you encounter "Error virtualizing object link:http://java.io[java.io].UTFDataFormatException" or other problems, you should disable virtualizer.
 
-
 ==== Governors
 
 Another mechanism to control the Jasper report runtime are so-called governors.
@@ -183,8 +169,6 @@ We strongly recommend using them.
 
 Set value to empty or 0 to disable governor.
 
-
-
 ==== Changing delimiter in CSV export
 
 To change delimiter in CSV export you have to define it in jasper template for any report :
@@ -193,34 +177,33 @@ To change delimiter in CSV export you have to define it in jasper template for a
 
 <property name="net.sf.jasperreports.export.csv.field.delimiter" value=";"/>
 
-
 ==== Removing names of fields on all pages except the 1st page in CSV export
 
 To remove names of fields on all report pages except the 1st page in CSV report you have to define "printWhenExpression" in jasper template
 
-* Example
+Example:
 
-<columnHeader> +
-             <band height="24" splitType="Stretch"> +
-                         <printWhenExpression><![CDATA[$V{PAGE_NUMBER}==1]]></printWhenExpression>  +
-                         <frame> +
-                                 <reportElement style="Column header" mode="Transparent" x="0" y="1" width="1000" height="19" isRemoveLineWhenBlank="true" uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a"/> +
-                                 <staticText> +
-                                              <reportElement style="Column header" x="0" y="0" width="300" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/> +
-                                              <textElement textAlignment="Center" verticalAlignment="Middle"/> +
-                                              <text><![CDATA[Name]]></text> +
-                                 </staticText> +
-                         </frame> +
-            </band> +
+[source,xml]
+----
+<columnHeader>
+    <band height="24" splitType="Stretch">
+        <printWhenExpression><![CDATA[$V{PAGE_NUMBER}==1]]></printWhenExpression>
+        <frame>
+            <reportElement style="Column header" mode="Transparent" x="0" y="1" width="1000" height="19" isRemoveLineWhenBlank="true" uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a"/>
+            <staticText>
+                <reportElement style="Column header" x="0" y="0" width="300" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <text><![CDATA[Name]]></text>
+            </staticText>
+        </frame>
+    </band>
 </columnHeader>
-
- +
-
-
+----
 
 == Security Of Report Expressions
 
-Reports often use xref:/midpoint/reference/expressions/introduction/[expressions]. Expressions allow to customize midPoint behavior and they are essential for the success of midPoint deployments.
+Reports often use xref:/midpoint/reference/expressions/introduction/[expressions].
+Expressions allow to customize midPoint behavior and they are essential for the success of midPoint deployments.
 However, the expressions are very powerful and they may even be too powerful for some use cases.
 The expressions can use general-purpose scripting languages such as Groovy or JavaScript.
 Therefore such expressions have almost unlimited capabilities.
@@ -257,7 +240,6 @@ Therefore such integration is likely to be required anyway to construct a comple
 
 See xref:/midpoint/reference/security/security-guide/[Security Guide] for more detail regarding security-related functionality of midPoint.
 
-
 == New report
 
 [WARNING]
@@ -272,7 +254,6 @@ Use at your own risk.
 ====
 
  +
-
 
 [TIP]
 .MidPoint 4.2 and later
@@ -334,7 +315,6 @@ Output filename will be passed to the script as the "file" argument.
 
 |===
 
-
 === Export
 
 For now, export to CSV and HTML is supported.
@@ -362,11 +342,9 @@ Possible _csv_ and _html_.
 
 |===
 
-
 ==== HTML
 
 Configuration of html file format doesn't contain any other attributes.
-
 
 ==== CSV
 
@@ -453,7 +431,6 @@ Possible values is _all, allNonNull, minimal, nonNumeric_ and _none._
 When the delimiter occurs in data, the printer prefixes it with the escape character.
 If the escape character is not set, format validation throws an exception.
 
-
 === Report engine
 
 Report engine define type of report.
@@ -464,11 +441,9 @@ Report engine define type of report.
 Jasper is old deprecated type of reports.
 We can use attribute jasper and in it we can use all attributes for jasper report.
 
-
 ==== Dashboard
 
 For configuration of dashboard report, please see xref:/midpoint/reference/admin-gui/dashboards/configuration/#report[Dashboard configuration-Report].
-
 
 ==== Collection
 
@@ -530,7 +505,6 @@ For example:
 </report>
 ----
 
-
 ===== Filter
 
 We can use only filter with base collection or view where we define object type.
@@ -556,6 +530,7 @@ Example with base collection.
 ----
 
 ===== Parameters
+
 When we want run some report, sometimes we need define some information for input for example role, organization, resource, etc.
 For this situation we can define parameter, which user set before running of the report. For example we want report of all user
 who have accounts on concrete resource. We won't create one report for each resource with different filter but use parameter
@@ -647,6 +622,7 @@ We can use following attributes for parameter:
 |===
 
 ===== Subreports
+
 Subreport defines some object, which we can get from expression. Next we can use this object in column expression,
 so we don't have to search this object in every column expression. For example we need report with accounts(shadows) but we need some columns with attributes from owner of account, so we use subreport where in expression we define search of owner. Next in columns expressions we use owner and we get attributes from it.
 
@@ -707,6 +683,7 @@ Exports report of repository objects or audit reports. Supports bucketing (multi
 Contains two parameter 'reportRef' and 'reportParam'. 'reportRef' represent reference to report object. 'reportParam' represent parameters for report, which are defined via GUI.
 
 === Convert ClassicReportExportWorkDefinitionType to DistributedReportExportWorkDefinitionType
+
 When we run report via Midpoint GUI we can see that midpoint create task with work definition 'reportExport'. If we are run report for object or audit and Midpoint running in clustered mode, then we can convert 'classical' way to distributed. In configuration of task in raw mode we change 'reportExport' to 'distributedReportExport'. We change archetype from 'Report export task' to 'Distributed report export task'. And we add configuration for xref:/midpoint/devel/design/multi-node-partitioned-and-stateful-tasks/[Bucket-based work state management].
 
 == 'Import report'
@@ -733,7 +710,6 @@ Example of imported file:
 "testUser01";"enabled";"2020-07-07T00:00:00.000+02:00";"nick1";"00000000-0000-0000-0000-000000000008,00000000-0000-0000-0000-000000000004";"sub1,sub22"
 "testUser02";"enabled";"2020-07-07T00:00:00.000+02:00";"NICK2";;
 ----
-
 
 ....
 Example bellow shows report (ReportType) configuration for importing CSV file with header and two records above.
@@ -806,7 +782,6 @@ Example bellow shows report (ReportType) configuration for importing CSV file wi
   }
 }
 ----
-
 
 .Report-XML
 [source,xml]
@@ -906,7 +881,6 @@ Example bellow shows report (ReportType) configuration for importing CSV file wi
 
 
 ----
-
 
 ==== Behaviour and Options
 
@@ -1009,8 +983,6 @@ Name is obtained from _Label_ of _DispalyType_ for column, when _Label_ is empty
 
 Definition of column also contains _import/expression_ which can define script for generating items.
 Script have to return real value for example _String_ or _List_ of values for multivalue items for example _List<AssignmentType>. _Script get _input_ variable which is _String_, when item is singlevalue, or _List<String>_, when item is multivalue.
-
-
 
 === Import script
 
@@ -1194,7 +1166,6 @@ Target of assignment define via name of role variable _role_name_.  Variables _v
 
 ----
 
-
 .Example of Import script - JSON
 [source,json]
 ----
@@ -1252,7 +1223,6 @@ Target of assignment define via name of role variable _role_name_.  Variables _v
   }
 }
 ----
-
 
 == See Also
 

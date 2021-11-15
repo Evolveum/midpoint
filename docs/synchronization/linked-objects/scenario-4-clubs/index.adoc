@@ -120,7 +120,7 @@ The second part of data transfer is in user template:
 </objectTemplate>
 ----
 
-(The code could be made a bit more concise if wiki:Named+object+links[named object links] are used.)
+(The code could be made a bit more concise if xref:/midpoint/reference/synchronization/linked-objects/named-object-links/[named object links] are used.)
 
 
 == Change propagation

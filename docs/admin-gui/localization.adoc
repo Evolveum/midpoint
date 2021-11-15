@@ -16,12 +16,12 @@ MidPoint supports localization on many levels:
 Those translations are maintained by using link:https://www.transifex.com/evolveum/midpoint/dashboard/[transifex.com].
 
 * Localized data may be entered dynamically into midPoint by leveraging xref:/midpoint/reference/concepts/polystring/[PolyString] mechanism.
-However, please note that this method wiki:PolyString+Improvements[needs some Improvements].
+However, please note that this method xref:/midpoint/features/planned/polystring/[needs some Improvements].
 
 * Expressions can indicate error conditions by using localizable messages.
 There is also a special expression in the user interface that can take care of some localization properties of error handling.
 
-For translation rules, there is wiki:Translations[Translations] page.
+For translation rules, there is xref:/midpoint/devel/translations/[Translations] page.
 
 
 == Community Effort
@@ -100,7 +100,7 @@ Generally speaking, midPoint is a system that reasonably localizable.
 However, there is always a room for improvement.
 We would like to improve:
 
-* wiki:PolyString+Improvements[PolyString support for multiple languages]
+* xref:/midpoint/features/planned/polystring/[PolyString support for multiple languages]
 
 * Proper use of preferred language, locale and time zone setting in the user profile, including an user-friendly way how to set those values.
 

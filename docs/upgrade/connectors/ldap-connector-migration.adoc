@@ -78,17 +78,17 @@ Therefore the schema will not be polluted by the unfortunate ICF concepts of xre
 
 == LDAP Connectors in midPoint
 
-All midPoint versions up to wiki:Release+3.1.1[Release 3.1.1] used the Legacy+JNDI+LDAP+Connector[legacy SunICF/OpenICF LDAP connector]. This connector was bundled inside midPoint.
+All midPoint versions up to xref:/midpoint/release/3.1.1/[Release 3.1.1] used the Legacy+JNDI+LDAP+Connector[legacy SunICF/OpenICF LDAP connector]. This connector was bundled inside midPoint.
 
-All midPoint versions starting from wiki:Release+3.2[Release 3.2] are using the new xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector]. This connector is bundled inside midPoint.
+All midPoint versions starting from xref:/midpoint/release/3.2/[Release 3.2] are using the new xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector]. This connector is bundled inside midPoint.
 
-Starting from wiki:Release+3.2[Release 3.2] the legacy connector is no longer included inside midPoint.
+Starting from xref:/midpoint/release/3.2/[Release 3.2] the legacy connector is no longer included inside midPoint.
 But it still can be used if the connector JAR file is downloaded and deployed.
 See Legacy+JNDI+LDAP+Connector[Legacy LDAP Connector] page for supported versions and download locations.
 The legacy LDAP connector will not be extended or developed any more.
 But it will be maintained in a working state during a reasonable migration period.
 
-Therefore the change from wiki:Release+3.1.1[Release 3.1.1] (or earlier) to wiki:Release+3.2[Release 3.2] (or later) is an incompatible change when it comes to an LDAP connector.
+Therefore the change from xref:/midpoint/release/3.1.1/[Release 3.1.1] (or earlier) to xref:/midpoint/release/3.2/[Release 3.2] (or later) is an incompatible change when it comes to an LDAP connector.
 The migration steps are described below.
 
 

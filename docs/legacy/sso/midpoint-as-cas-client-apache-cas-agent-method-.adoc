@@ -178,4 +178,4 @@ User can now login to midPoint using CAS
 
 == See Also
 
-** wiki:MidPoint+and+SSO+HOWTO[MidPoint and SSO HOWTO]
+** xref:/midpoint/reference/legacy/sso/[MidPoint and SSO HOWTO]

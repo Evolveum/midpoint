@@ -20,9 +20,9 @@ This scenario helps to understand how midPoint can create both standard LDAP gro
 The roles can be assigned to users to provision either LDAP accounts (inetOrgPerson) with LDAP groups membership, or to extend the standard LDAP account with posixAccount auxiliary object class and make them members of posixGroups.
 One possible usage of posixAccounts and posixGroups can be central Linux access management (using LDAP accounts) and limiting access to specific Linux servers using specific LDAP groups with PAM.
 
-In this scenario, the posixGroups will be created for this purpose (that's why the "Unix" is used in the metarole name), but the actual Linux server configuration is outside of the scope of this story.
+In this scenario, the posixGroups will be created for this purpose (that's why the "Unix" is used in the metarole name), but the actual Linux server configuration is outside the scope of this story.
 
-This sample assumes wiki:OpenLDAP+Installation+and+Configuration[OpenLDAP installation].
+This sample assumes xref:/connectors/resources/ldap/openldap/config/[OpenLDAP installation].
 
 The directory tree structure in OpenLDAP is pretty simple:
 

@@ -183,7 +183,7 @@ Anyone can become a member.
 
 Please note that although support engineers and developers read (and often answer or contribute) the mails, the lists do not substitute support services.
 
-For mailing list and other feedback information please visit wiki:Feedback[this page].
+For mailing list and other feedback information please visit xref:/community/feedback/[this page].
 
 
 == Trainings

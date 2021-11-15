@@ -71,7 +71,7 @@ Low severity issues (CVSS rating: low) may not even get backported to support br
 MidPoint team will publish security advisory at the appropriate time after a security issue is discovered and addressed.
 Security advisories are listed on a dedicated page.
 
-See wiki:Security+Advisories[Security Advisories] page for details.
+See xref:/midpoint/reference/security/advisories/[Security Advisories] page for details.
 
 
 == Default Configuration
@@ -134,7 +134,7 @@ MidPoint supports both methods, as both may be needed in practice.
 And then, of course, there is an option for midPoint not to manage passwords at all.
 
 This pages is giving only a high-level overview of the mechanisms.
-Please see wiki:Password+Storage+Configuration[Password Storage Configuration] page for the details.
+Please see xref:/midpoint/reference/security/credentials/password-storage-configuration/[Password Storage Configuration] page for the details.
 
 
 === Storing Encrypted Passwords
@@ -251,7 +251,7 @@ Due to operating system security reasons and limitations of the Java platform, m
 This is usually not the desired solution, as ports 80 and 443 are usually expected.
 Therefore this is yet another reason for using a network security component in front of midPoint.
 
-See also wiki:Ports+80+and+443[Ports 80 and 443].
+See also xref:/midpoint/reference/deployment/ports-80-and-443/[Ports 80 and 443].
 
 MidPoint deployment that are explicitly deployed into existing web container environment (Apache Tomcat) should adhere to the recommended security practices of the web container.
 As such web container is not under the control of midPoint, midPoint is not responsible for any security issues of such web container.
@@ -334,6 +334,6 @@ The bug bounty program was very successful, resulting in discovery and mitigatio
 
 == See Also
 
-* wiki:Security+Advisories[Security Advisories]
+* xref:/midpoint/reference/security/advisories/[Security Advisories]
 
-* wiki:Ports+80+and+443[Ports 80 and 443]
+* xref:/midpoint/reference/deployment/ports-80-and-443/[Ports 80 and 443]

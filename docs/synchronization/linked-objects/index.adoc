@@ -27,15 +27,15 @@ Here it is.
 
 For those that want to learn by reading code samples, please see
 
-* wiki:Linked+objects+scenario+1:+Hardware+tokens[Linked objects scenario 1: Hardware tokens]
+* xref:/midpoint/reference/synchronization/linked-objects/scenario-1-hardware-tokens/[Linked objects scenario 1: Hardware tokens]
 
-* wiki:Linked+objects+scenario+2:+Devices+owned+by+users[Linked objects scenario 2: Devices owned by users]
+* xref:/midpoint/reference/synchronization/linked-objects/scenario-2-devices-owned-by-users/[Linked objects scenario 2: Devices owned by users]
 
-* wiki:Linked+objects+scenario+3:+Projects[Linked objects scenario 3: Projects]
+* xref:/midpoint/reference/synchronization/linked-objects/scenario-3-projects/[Linked objects scenario 3: Projects]
 
-* wiki:Linked+objects+scenario+4:+Clubs[Linked objects scenario 4: Clubs]
+* xref:/midpoint/reference/synchronization/linked-objects/scenario-4-clubs/[Linked objects scenario 4: Clubs]
 
-* wiki:Linked+objects+scenario+5:+Deletion-safe+organizations[Linked objects scenario 5: Deletion-safe organizations]
+* xref:/midpoint/reference/synchronization/linked-objects/scenario-5-deletion-safe-organizations/[Linked objects scenario 5: Deletion-safe organizations]
 
 
 == Links between objects
@@ -691,7 +691,7 @@ If we only want to trigger the recomputation via triggers, it can be also done o
 But for all other cases, background processing is preferred.
 And, if processing more focus objects with potentially overlapping sets of linked ones, using triggers is strongly advised to avoid repeated recomputation.
 
-. Where to attach change propagation policy rules? For example, in user  device scenario (wiki:Linked+objects+scenario+2:+Devices+owned+by+users[Linked objects scenario 2: Devices owned by users]) policy rule that causes recomputation of linked devices can be put either into user archetype (with order 1 inducement) or device archetype (with order 2 inducement).
+. Where to attach change propagation policy rules? For example, in user  device scenario (xref:/midpoint/reference/synchronization/linked-objects/scenario-2-devices-owned-by-users/[Linked objects scenario 2: Devices owned by users]) policy rule that causes recomputation of linked devices can be put either into user archetype (with order 1 inducement) or device archetype (with order 2 inducement).
 The advantage of the latter case is that it is applied to the user only if the user has at least one device (so sparing some processing time.) The disadvantage is that if a user has multiple devices, the policy rule is present multiple times: once for each device.
 And here comes the distinction: if the rule recomputes _all devices_, this would lead to repeated recomputation of them.
 So, if you have a rule that recomputes all linked objects of a kind, then it should be induced only once, i.e. assigned to the user from user archetype.

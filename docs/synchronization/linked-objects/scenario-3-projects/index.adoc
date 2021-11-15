@@ -8,10 +8,11 @@
 :page-wiki-metadata-modify-date: 2020-06-02T11:25:15.965+02:00
 :page-toc: top
 
-
 [WARNING]
 ====
-This scenario uses unfinished/experimental _wiki:Named+object+links[named object links]_ feature - it is very powerful but even more experimental than linked objects feature as a whole! So beware, everything described here can change any time.
+This scenario uses unfinished/experimental xref:/midpoint/reference/synchronization/linked-objects/named-object-links/[named object links] feature.
+It is very powerful but even more experimental than linked objects feature as a whole!
+So beware, everything described here can change any time.
 ====
 
 == Overview
@@ -28,9 +29,6 @@ The second (named `<P>_groups`, having archetype of `project-groups`) contains g
 
 image::image2020-6-2_11-25-11.png[]
 
-
-
-
 == An implementation overview
 
 As usual, the implementation has two parts:
@@ -40,7 +38,6 @@ There are two simple mappings (that set sub-orgs `name` attribute) that ensure t
 
 . Triggering the recomputation of linked objects.
 There are three policy rules doing that.
-
 
 == Data transfer implementation using mappings
 
@@ -101,7 +98,6 @@ The archetype of `project-groups` looks exactly the same.
 
 inked user (if any).
 And the mapping returns the value for the `description` property accordingly.
-
 
 == Change propagation
 
@@ -209,7 +205,6 @@ Everything else is computed from the archetype itself in the second step.
 
 . And the second step i.e. `s:add` action creates the objects.
 
-
 === Project deletion
 
 What about deletion?
@@ -289,7 +284,6 @@ Unfortunately, those assigned rules are ignored on object deletion, so we must p
 </globalPolicyRule>
 
 ----
-
 
 === Project modification (renaming)
 

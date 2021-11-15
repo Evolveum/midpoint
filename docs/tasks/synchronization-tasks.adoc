@@ -110,6 +110,6 @@ The following task will import all objects of `inetOrgPerson` object class from 
 
 * xref:/midpoint/architecture/concepts/task/[Task]
 
-* wiki:Recompute+Task[Recompute Task]
+* xref:/midpoint/reference/tasks/recompute-task/[Recompute Task]
 
 * xref:/connectors/connid/1.x/connector-development-guide/[Connector Development Guide - DiscoverySupport]

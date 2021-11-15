@@ -19,7 +19,7 @@ It is applicable to the following tasks:
 
 * recomputation,
 
-* iterative bulk actions (see wiki:Scripting+tasks[Scripting tasks]),
+* iterative bulk actions (see xref:/midpoint/reference/misc/bulk/scripting-tasks/[Scripting tasks]),
 
 * reindex.
 
@@ -43,4 +43,4 @@ If the value is 1, one coordinator and one worker is created (so this setting is
 Technically, the feature is implemented in link:https://github.com/Evolveum/midpoint/blob/master/model/model-impl/src/main/java/com/evolveum/midpoint/model/impl/util/AbstractSearchIterativeResultHandler.java[AbstractSearchIterativeResultHandler] that takes care of processing results from iterative searches conducted by these tasks.
 Worker threads can be seen when you open particular task in Task List menu.
 They exist only during the run of a particular task, and are visible only when logged in to the node on which they run.
-wiki:Lightweight+asynchronous+tasks[Lightweight asynchronous tasks] were created just for this purpose.
+xref:/midpoint/devel/design/lightweight-asynchronous-tasks/[Lightweight asynchronous tasks] were created just for this purpose.

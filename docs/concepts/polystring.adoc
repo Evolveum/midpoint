@@ -61,13 +61,13 @@ See xref:/midpoint/reference/schema/polystring-normalization/[PolyString Normali
 
 == Future
 
-See wiki:PolyString+Improvements[PolyString Improvements] page to learn about planned improvements to polystrings.
+See xref:/midpoint/features/planned/polystring/[PolyString Improvements] page to learn about planned improvements to polystrings.
 
 
 == See Also
 
-* wiki:Using+Prism+Objects[Using Prism Objects]
+* xref:/midpoint/devel/prism/concepts/[Using Prism Objects]
 
 * xref:/midpoint/reference/schema/polystring-normalization/[PolyString Normalization Configuration]
 
-* wiki:PolyString+Improvements[PolyString Improvements]
+* xref:/midpoint/features/planned/polystring/[PolyString Improvements]

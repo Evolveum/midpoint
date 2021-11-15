@@ -58,7 +58,7 @@ There is only a single standard intent defined: `default`. As the name suggests 
 ++++
 
 _Tag_ is a differentiator for resource object (e.g. accounts) that have the same value of kind and intent.
-Tag is used in situations when wiki:Multiaccounts+HOWTO[multiple equivalent accounts] are enabled.
+Tag is used in situations when xref:/midpoint/reference/resources/multiaccounts/[multiple equivalent accounts] are enabled.
 Tag is the value that discriminates between such accounts.
 
 Tag is optional.

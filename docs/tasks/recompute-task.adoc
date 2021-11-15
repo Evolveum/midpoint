@@ -27,10 +27,10 @@ Since midPoint 3.6 a lighter recompute flavors may be set up using the model exe
 </task>
 ----
 
-
 == Recompute vs Reconciliation
 
-At the first sight recompute does almost the same job than wiki:Synchronization+Tasks[reconciliation]. But there are important differences:
+At the first sight recompute does almost the same job as xref:/midpoint/reference/tasks/synchronization-tasks/[reconciliation].
+But there are important differences:
 
 * Recompute tasks are iterating over focal objects (users, roles, ...). Reconciliation tasks are iterating over resource objects (accounts, groups).
 Recompute has very little chance to find new resource objects.
@@ -45,7 +45,6 @@ The purpose of recompute is to make sure that internal midPoint data are consist
 Recompute may change the resources (and it really does that in default setting).
 But that is not the primary purpose.
 It is rather a side-effect of updating and re-evaluating focal objects.
-
 
 == Recompute Options
 
@@ -90,9 +89,8 @@ The following example shows configuration for _light recompute_ - recompute proc
 </task>
 ----
 
-
 == See Also
 
-* wiki:Synchronization+Tasks[Synchronization Tasks]
+* xref:/midpoint/reference/tasks/synchronization-tasks/[Synchronization Tasks]
 
 * xref:/connectors/connid/1.x/connector-development-guide/[Connector Development Guide - DiscoverySupport]
