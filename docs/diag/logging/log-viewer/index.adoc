@@ -194,7 +194,7 @@ For example, the following are definitions equivalent to %outline startup and %o
 
 [source]
 ----
-%outline custom containing 'Product information : http://wiki.evolveum.com/display/midPoint' 10 '=========> System startup at ${date} <========='
+%outline custom containing 'Product information : https://docs.evolveum.com/midpoint/' 10 '=========> System startup at ${date} <========='
 %outline custom matching '.*TestUtil\\): =====\\[ (\\w+\\.\\w+) \\]======================================.*' 20 'TEST: ${group:1}'
 ----
 

@@ -37,7 +37,6 @@ Green is used to denote the integrated systems (resources), custom component, et
 But the devil is in the detail and there are many alternative configurations that can be used for midPoint deployment.
 Following sections will provide detailed information about deployment alternatives.
 
-
 == Repository
 
 MidPoint needs a database to store its own data.
@@ -49,7 +48,6 @@ Most of midPoint configuration is stored in the database.
 However for obvious reasons the database configuration needs to be outside the database.
 It is stored in the `config.xml` file in xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory].
 The xref:/midpoint/reference/repository/configuration/[Repository Configuration] page describes the configuration of database access.
-
 
 == Connectors
 
@@ -77,15 +75,17 @@ Whatever the reason might be there is an option to run connectors over the netwo
 The component that allows that is _Remote Connector Server_. There are two implementations of Remote Connector Server.
 One is using Java platform, the second uses .NET Framework.
 
-See link:http://wiki.evolveum.com/display/midPoint/Connector+Server[Connector Server] page for more details.
+See xref:/connectors/connid/1.x/connector-server/[Connector Server] page for more details.
 
 
 ==== Java Remote Connector Server
 
 Java Remote Connector Server is using the same kind of connectors as midPoint is using itself.
-The Java Remote Connector Server is used in situations where a connector needs a local access to some resource.
+The Java Remote Connector Server is used in situations where a connector needs local access to some resource.
 Otherwise is not able to work with it.
-It is usually used for connectors that require local access to files such as link:http://wiki.evolveum.com/display/midPoint/CSVFile+Connector[CSVFile Connector]. This approach avoids the need to copy the file using FTP or a similar mechanism which is difficult to do in a proper way and it is quite error-prone (e.g. problems with partially downloaded files, error handling, atomicity, etc.) Java Remote Connector Server is also used in situations that require firewall traversal or securing insecure communication protocol.
+It is usually used for connectors that require local access to files such as xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV Connector].
+This approach avoids the need to copy the file using FTP or a similar mechanism which is difficult to do in a proper way and it is quite error-prone, e.g. problems with partially downloaded files, error handling, atomicity, etc.
+Java Remote Connector Server is also used in situations that require firewall traversal or securing insecure communication protocol.
 
 image::Connector-Server-Deployment.png[]
 
@@ -108,28 +108,24 @@ See xref:/connectors/connid/1.x/connector-server/dotnet/[.NET Connector Server] 
 
 TODO
 
-
 == High Availability
 
 TODO
-
 
 == Keystore
 
 TODO
 
-See also link:http://wiki.evolveum.com/display/midPoint/Encryption+and+Keys#Keystore[here].
-
+See also xref:/midpoint/reference/security/crypto/#keystore[here].
 
 == Recommendations
 
 TODO: use existing database +
- TODO: do not deploy midPoint with other complex applications in the same container +
- TODO: works well in virtual environment +
- TODO: use Sun Java JDK/JRE +
- TODO: Tomcat is a recommended container (lightweight, opensource, well tested).
+TODO: do not deploy midPoint with other complex applications in the same container +
+TODO: works well in virtual environment +
+TODO: use Sun Java JDK/JRE +
+TODO: Tomcat is a recommended container (lightweight, opensource, well tested).
 Use apache as reverse proxy for flexibility.
-
 
 == See Also
 

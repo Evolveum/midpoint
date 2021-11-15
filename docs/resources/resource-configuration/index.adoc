@@ -88,10 +88,7 @@ This applies to all flavors of synchronization (live sync, reconciliation, impor
 
 |===
 
-
 == Resource Definition Sections
-
-
 
 === Connector Reference
 
@@ -123,7 +120,6 @@ Click on the connector you want to use and copy the "connectorType" value.
 ====
 
 See xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType] for more details regarding connectors, see xref:/midpoint/reference/schema/object-references/[Object References] for more details regarding references.
-
 
 === Resource Configuration
 
@@ -159,7 +155,6 @@ Probably the best way is to start from samples.
 ----
 
 See xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation] for a detailed description how the dynamic schemas work together.
-
 
 === Resource Schema
 
@@ -234,7 +229,6 @@ Similarly for the `inetOrgPerson` objectclass versus ICF `ACCOUNT`{}objectclass 
 
 See xref:/midpoint/reference/resources/resource-schema/[Resource Schema] for more details.
 See xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation] for a detailed description how the dynamic schemas work together.
-
 
 === Schema Handling
 
@@ -412,7 +406,6 @@ The following is an example of "icfs:name" attribute configuration from OpenDJ a
 
 ----
 
-
 ==== Credentials Handling
 
 Credentials (password and password-related information) handling is a special part of Schema Handling and allows you to define how user's credentials will be synchronized.
@@ -452,7 +445,6 @@ The configurable password policy implementation used for generated password is i
 
 ====
 
-
 ==== Activation Handling
 
 The activation/deactivation (account enabled/disabled) handling is a special part of Schema Handling and allows you to define how user's state will be synchronized.
@@ -483,7 +475,6 @@ The "target" parameter is omitted, because it will be the midPoint user state at
 </activation>
 
 ----
-
 
 === Capabilities
 
@@ -557,7 +548,6 @@ You have to have imported OpenDJ advanced sync sample (Configuration->Import obj
 
 ----
 
-
 === Scripts
 
 Some resources has ability to execute scripts.
@@ -565,7 +555,6 @@ MidPoint binds execution of scripts to specific operations.
 Therefore a script can be automatically executed before of after the account is created, modified or deleted.
 
 See xref:/midpoint/reference/resources/provisioning-scripts/[Provisioning Scripts] page for more details.
-
 
 === Consistency
 
@@ -593,7 +582,6 @@ In that case midpoint will normalize any attribute names with regard to the reso
 * `*connectorErrorCriticality*`: Specifies a method that midPoint will use to evaluate criticality of errors: which errors are considered to be critical (stops the operation) and which error are non-critical (operation continues).
 By default network errors are not considered critical, other errors are critical.
 *EXPERIMENTAL*: use with care.
-
 
 === Synchronization
 
@@ -660,7 +648,7 @@ In addition, the resource account will be linked to the midPoint user.
                      The setting here assumes that this resource is authoritative,
                      therefore all accounts created on the resource should be
                      reflected as new users in IDM.
-                     See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
+                     See https://docs.evolveum.com/midpoint/reference/synchronization/situations/
                  -->
 
                 <reaction>
@@ -714,7 +702,6 @@ To change these properties for individual resource the account synchronization s
     <assignmentPolicyEnforcement>full</assignmentPolicyEnforcement>
 </c:AccountSynchronizationSettings>
 ----
-
 
 ==== User Template
 
@@ -773,7 +760,7 @@ This can be utilized to have a last resort value for the "fullName" attribute if
                 created. It only defines resource and account type. The rest of the
                 account parameters are specified by outbound expressions in the
                 account type in the resource definition, as usual.
-                See http://wiki.evolveum.com/display/midPoint/Synchronization
+                See https://docs.evolveum.com/midpoint/reference/synchronization/introduction/
             </description>
             <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
             <intent>default</intent>
@@ -784,13 +771,11 @@ This can be utilized to have a last resort value for the "fullName" attribute if
 
 ----
 
-
 == Samples
 
 The best repository of fresh samples is the link:https://github.com/Evolveum/midpoint/tree/master/samples[samples directory in current development trunk]. There is a lot of examples for various resource types.
 Some samples define just the basic minimum others demonstrate how to configure advanced features.
 The samples have in-line comments to make it easier to understand them.
-
 
 == See Also
 
@@ -803,7 +788,6 @@ The samples have in-line comments to make it easier to understand them.
 * xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation]
 
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]
-
 
 == External links
 
