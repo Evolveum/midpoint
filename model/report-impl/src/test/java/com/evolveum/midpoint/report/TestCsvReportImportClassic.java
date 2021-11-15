@@ -7,8 +7,8 @@
 package com.evolveum.midpoint.report;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
@@ -53,10 +53,14 @@ public class TestCsvReportImportClassic extends TestCsvReport {
     private static final String IMPORT_USERS_FILE_PATH = MidPointTestConstants.TEST_RESOURCES_PATH + "/import/import-users.csv";
     public static final String IMPORT_MODIFY_FILE_PATH = MidPointTestConstants.TEST_RESOURCES_PATH + "/import/import-modify-user.csv";
 
+    // Needed by the import (to proceed without warnings)
+    private static final File ROLE_END_USER_FILE = new File(TEST_DIR_COMMON, "role-end-user.xml");
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
         repoAdd(TASK_IMPORT_CLASSIC, initResult);
+        repoAddObjectFromFile(ROLE_END_USER_FILE, RepoAddOptions.createOverwrite(), false, initResult);
     }
 
     @Test(priority = 100)
