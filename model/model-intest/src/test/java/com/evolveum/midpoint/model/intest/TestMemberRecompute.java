@@ -6,18 +6,10 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.util.List;
-
-import com.evolveum.icf.dummy.resource.DummyGroup;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-
-import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -25,28 +17,34 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.DummyGroup;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Various tests related to recomputation (or other treatment) of members of changed abstract roles.
- * See also https://wiki.evolveum.com/display/midPoint/Linked+objects.
+ * See also https://docs.evolveum.com/midpoint/reference/synchronization/linked-objects/.
  *
  * There are two kinds of organizations here:
  *
- *  - departments:
- *    * orgs are managed directly in midPoint
- *    * members (users-dcs-xxxx, users-cc-xxxx) are recomputed by default, and using direct iterative bulk action task
- *  - clubs:
- *    * orgs are managed by reconciliation from special "clubs" resource, although members are managed by midPoint
- *    * members (alice, bob, chuck) are NOT recomputed by default
- *    * recompute is done using delayed triggers, and is requested e.g. when synchronizing clubs from "clubs" resource
+ * - departments:
+ * * orgs are managed directly in midPoint
+ * * members (users-dcs-xxxx, users-cc-xxxx) are recomputed by default, and using direct iterative bulk action task
+ * - clubs:
+ * * orgs are managed by reconciliation from special "clubs" resource, although members are managed by midPoint
+ * * members (alice, bob, chuck) are NOT recomputed by default
+ * * recompute is done using delayed triggers, and is requested e.g. when synchronizing clubs from "clubs" resource
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -334,13 +332,13 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest imple
                 .assertDisplayName("Levice Chess Club");
         assertUserAfter(USER_ALICE.oid)
                 .triggers()
-                    .assertTriggers(1);
+                .assertTriggers(1);
         assertUserAfter(USER_BOB.oid)
                 .triggers()
-                    .assertTriggers(1);
+                .assertTriggers(1);
         assertUserAfter(USER_CHUCK.oid)
                 .triggers()
-                    .assertTriggers(1); // due to optimization
+                .assertTriggers(1); // due to optimization
 
         try {
             clock.overrideDuration("PT1M"); // this is the delay set for trigger creator
@@ -349,7 +347,7 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest imple
                     .display()
                     .assertSuccess()
                     .rootItemProcessingInformation()
-                        .assertSuccessCount(3);
+                    .assertSuccessCount(3);
         } finally {
             clock.resetOverride();
         }
@@ -357,19 +355,19 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest imple
         assertUser(USER_ALICE.oid, "after trigger processed")
                 .display()
                 .triggers()
-                    .assertNone()
-                    .end()
+                .assertNone()
+                .end()
                 .assertOrganizations("poker (New Poker Club)");
         assertUser(USER_BOB.oid, "after trigger processed")
                 .display()
-                    .triggers()
-                    .assertNone()
+                .triggers()
+                .assertNone()
                 .end()
                 .assertOrganizations("chess (Levice Chess Club)");
         assertUser(USER_CHUCK.oid, "after trigger processed")
                 .display()
-                    .triggers()
-                    .assertNone()
+                .triggers()
+                .assertNone()
                 .end()
                 .assertOrganizations("poker (New Poker Club)", "chess (Levice Chess Club)");
     }

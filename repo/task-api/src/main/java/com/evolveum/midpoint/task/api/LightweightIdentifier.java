@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -16,7 +16,7 @@ import java.util.Objects;
  * for more purposes, such as creating identifiers for tasks or audit records.
  * Lightweight identifiers are used instead.
  *
- * See https://wiki.evolveum.com/display/midPoint/Lightweight+Identifier
+ * See https://docs.evolveum.com/midpoint/architecture/concepts/lightweight-identifier/
  *
  * @author semancik
  */
@@ -58,8 +58,12 @@ public class LightweightIdentifier implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         LightweightIdentifier that = (LightweightIdentifier) o;
         return Objects.equals(string, that.string);
     }

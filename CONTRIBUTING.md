@@ -49,4 +49,4 @@ Git maintains the commit meta-data of the original commit. And this is what will
 Development Guidelines
 ======================
 
-See [Development Guidelines](https://wiki.evolveum.com/display/midPoint/Development+Guidelines)
+See [Development Guidelines](https://docs.evolveum.com/midpoint/devel/guidelines/)

@@ -1,14 +1,21 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyGroup;
@@ -17,25 +24,17 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.test.DummyTestResource;
-
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Various tests related to navigation the links between objects.
- * See also https://wiki.evolveum.com/display/midPoint/Linked+objects.
+ * See also https://docs.evolveum.com/midpoint/reference/synchronization/linked-objects/.
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
 
@@ -54,10 +53,10 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
     private static final TestResource<ArchetypeType> ARCHETYPE_HW_TOKEN = new TestResource<>(HW_TOKENS_DIR, "archetype-hw-token.xml", "21575364-d869-4b96-ac3f-b7b26e0e8540");
     private static final DummyTestResource RESOURCE_HW_TOKENS = new DummyTestResource(HW_TOKENS_DIR, "resource-hw-tokens.xml", "2730a64c-73fc-4c67-8bac-e40b4437931c", "hw-tokens",
             controller -> {
-                    controller.addAttrDef(controller.getDummyResource().getGroupObjectClass(),
-                            ATTR_OWNER_NAME, String.class, false, false);
-                    controller.addAttrDef(controller.getDummyResource().getGroupObjectClass(),
-                            ATTR_OWNER_EMAIL_ADDRESS, String.class, false, false);
+                controller.addAttrDef(controller.getDummyResource().getGroupObjectClass(),
+                        ATTR_OWNER_NAME, String.class, false, false);
+                controller.addAttrDef(controller.getDummyResource().getGroupObjectClass(),
+                        ATTR_OWNER_EMAIL_ADDRESS, String.class, false, false);
             });
 
     private static final TestResource<ServiceType> TOKEN_BLUE = new TestResource<>(HW_TOKENS_DIR, "token-blue.xml", "0e5b7304-ea5c-438e-84d1-2b0ce40517ce");
@@ -260,6 +259,7 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         assertHwToken(TOKEN_BLUE, "blue", "paul", "pdi@m.org");
         assertHwToken(TOKEN_RED, "red", "paul", "pdi@m.org");
     }
+
     /**
      * Move Paul's mailbox. Both blue (enabled) and red (disabled) tokens should be updated.
      */
@@ -663,7 +663,7 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         OrgType ariane = new OrgType(prismContext)
                 .name("ariane")
                 .beginAssignment()
-                    .targetRef(ARCHETYPE_PROJECT.oid, ArchetypeType.COMPLEX_TYPE)
+                .targetRef(ARCHETYPE_PROJECT.oid, ArchetypeType.COMPLEX_TYPE)
                 .end();
         addObject(ariane.asPrismObject(), task, result);
 
@@ -747,21 +747,21 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         OrgType root = new OrgType(prismContext)
                 .name("root")
                 .beginAssignment()
-                    .targetRef(ARCHETYPE_DELETION_SAFE_ORG.oid, ArchetypeType.COMPLEX_TYPE)
+                .targetRef(ARCHETYPE_DELETION_SAFE_ORG.oid, ArchetypeType.COMPLEX_TYPE)
                 .end();
         addObject(root.asPrismObject(), task, result);
 
         OrgType child = new OrgType(prismContext)
                 .name("child")
                 .beginAssignment()
-                    .targetRef(root.getOid(), OrgType.COMPLEX_TYPE)
+                .targetRef(root.getOid(), OrgType.COMPLEX_TYPE)
                 .end();
         addObject(child.asPrismObject(), task, result);
 
         UserType user = new UserType(prismContext)
                 .name("user")
                 .beginAssignment()
-                    .targetRef(root.getOid(), OrgType.COMPLEX_TYPE)
+                .targetRef(root.getOid(), OrgType.COMPLEX_TYPE)
                 .end();
         addObject(user.asPrismObject(), task, result);
 

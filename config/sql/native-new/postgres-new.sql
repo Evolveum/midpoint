@@ -606,7 +606,7 @@ CREATE INDEX m_role_fullTextInfo_idx ON m_role USING gin (fullTextInfo gin_trgm_
 CREATE INDEX m_role_createTimestamp_idx ON m_role (createTimestamp);
 CREATE INDEX m_role_modifyTimestamp_idx ON m_role (modifyTimestamp);
 
--- Represents ServiceType, see https://wiki.evolveum.com/display/midPoint/Service+Account+Management
+-- Represents ServiceType, see https://docs.evolveum.com/midpoint/reference/deployment/service-account-management/
 CREATE TABLE m_service (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('SERVICE') STORED
@@ -632,7 +632,7 @@ CREATE INDEX m_service_fullTextInfo_idx ON m_service USING gin (fullTextInfo gin
 CREATE INDEX m_service_createTimestamp_idx ON m_service (createTimestamp);
 CREATE INDEX m_service_modifyTimestamp_idx ON m_service (modifyTimestamp);
 
--- Represents ArchetypeType, see https://wiki.evolveum.com/display/midPoint/Archetypes
+-- Represents ArchetypeType, see https://docs.evolveum.com/midpoint/reference/schema/archetypes/
 CREATE TABLE m_archetype (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ARCHETYPE') STORED
@@ -792,7 +792,7 @@ END; $$;
 -- endregion
 
 -- region OTHER object tables
--- Represents ResourceType, see https://wiki.evolveum.com/display/midPoint/Resource+Configuration
+-- Represents ResourceType, see https://docs.evolveum.com/midpoint/reference/resources/resource-configuration/
 CREATE TABLE m_resource (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('RESOURCE') STORED
@@ -832,7 +832,7 @@ CREATE TABLE m_ref_resource_business_configuration_approver (
 CREATE INDEX m_ref_resource_biz_config_approver_targetOidRelationId_idx
     ON m_ref_resource_business_configuration_approver (targetOid, relationId);
 
--- Represents ShadowType, see https://wiki.evolveum.com/display/midPoint/Shadow+Objects
+-- Represents ShadowType, see https://docs.evolveum.com/midpoint/reference/resources/shadow/
 -- and also https://docs.evolveum.com/midpoint/reference/schema/focus-and-projections/
 CREATE TABLE m_shadow (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -888,7 +888,7 @@ CREATE INDEX iShadowSyncSituation ON m_shadow (synchronizationSituation);
 CREATE INDEX iShadowPendingOperationCount ON m_shadow (pendingOperationCount);
 */
 
--- Represents NodeType, see https://wiki.evolveum.com/display/midPoint/Managing+cluster+nodes
+-- Represents NodeType, see https://docs.evolveum.com/midpoint/reference/deployment/clustering-ha/managing-cluster-nodes/
 CREATE TABLE m_node (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('NODE') STORED
@@ -909,7 +909,7 @@ CREATE INDEX m_node_nameOrig_idx ON m_node (nameOrig);
 CREATE UNIQUE INDEX m_node_nameNorm_key ON m_node (nameNorm);
 -- not interested in other indexes for this one, this table will be small
 
--- Represents SystemConfigurationType, see https://wiki.evolveum.com/display/midPoint/System+Configuration+Object
+-- Represents SystemConfigurationType, see https://docs.evolveum.com/midpoint/reference/concepts/system-configuration-object/
 CREATE TABLE m_system_configuration (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('SYSTEM_CONFIGURATION') STORED
@@ -927,7 +927,7 @@ CREATE TRIGGER m_system_configuration_oid_delete_tr AFTER DELETE ON m_system_con
 CREATE UNIQUE INDEX m_system_configuration_nameNorm_key ON m_system_configuration (nameNorm);
 -- no need for the name index, m_system_configuration table is very small
 
--- Represents SecurityPolicyType, see https://wiki.evolveum.com/display/midPoint/Security+Policy+Configuration
+-- Represents SecurityPolicyType, see https://docs.evolveum.com/midpoint/reference/security/security-policy/
 CREATE TABLE m_security_policy (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('SECURITY_POLICY') STORED
@@ -952,7 +952,7 @@ CREATE INDEX m_security_policy_fullTextInfo_idx
 CREATE INDEX m_security_policy_createTimestamp_idx ON m_security_policy (createTimestamp);
 CREATE INDEX m_security_policy_modifyTimestamp_idx ON m_security_policy (modifyTimestamp);
 
--- Represents ObjectCollectionType, see https://wiki.evolveum.com/display/midPoint/Object+Collections+and+Views+Configuration
+-- Represents ObjectCollectionType, see https://docs.evolveum.com/midpoint/reference/admin-gui/collections-views/configuration/
 CREATE TABLE m_object_collection (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('OBJECT_COLLECTION') STORED
@@ -977,7 +977,7 @@ CREATE INDEX m_object_collection_fullTextInfo_idx
 CREATE INDEX m_object_collection_createTimestamp_idx ON m_object_collection (createTimestamp);
 CREATE INDEX m_object_collection_modifyTimestamp_idx ON m_object_collection (modifyTimestamp);
 
--- Represents DashboardType, see https://wiki.evolveum.com/display/midPoint/Dashboard+configuration
+-- Represents DashboardType, see https://docs.evolveum.com/midpoint/reference/admin-gui/dashboards/configuration/
 CREATE TABLE m_dashboard (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('DASHBOARD') STORED
@@ -1023,7 +1023,7 @@ CREATE INDEX m_value_policy_policySituation_idx
 CREATE INDEX m_value_policy_createTimestamp_idx ON m_value_policy (createTimestamp);
 CREATE INDEX m_value_policy_modifyTimestamp_idx ON m_value_policy (modifyTimestamp);
 
--- Represents ReportType, see https://wiki.evolveum.com/display/midPoint/Report+Configuration
+-- Represents ReportType, see https://docs.evolveum.com/midpoint/reference/misc/reports/report-configuration/
 CREATE TABLE m_report (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('REPORT') STORED
@@ -1071,7 +1071,7 @@ CREATE INDEX m_report_data_policySituation_idx
 CREATE INDEX m_report_data_createTimestamp_idx ON m_report_data (createTimestamp);
 CREATE INDEX m_report_data_modifyTimestamp_idx ON m_report_data (modifyTimestamp);
 
--- Represents LookupTableType, see https://wiki.evolveum.com/display/midPoint/Lookup+Tables
+-- Represents LookupTableType, see https://docs.evolveum.com/midpoint/reference/misc/lookup-tables/
 CREATE TABLE m_lookup_table (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('LOOKUP_TABLE') STORED
@@ -1111,7 +1111,7 @@ CREATE TABLE m_lookup_table_row (
 
 CREATE UNIQUE INDEX m_lookup_table_row_ownerOid_key_key ON m_lookup_table_row (ownerOid, key);
 
--- Represents ConnectorType, see https://wiki.evolveum.com/display/midPoint/Identity+Connectors
+-- Represents ConnectorType, see https://docs.evolveum.com/connectors/connectors/
 CREATE TABLE m_connector (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('CONNECTOR') STORED
@@ -1149,7 +1149,7 @@ CREATE INDEX m_connector_policySituation_idx
 CREATE INDEX m_connector_createTimestamp_idx ON m_connector (createTimestamp);
 CREATE INDEX m_connector_modifyTimestamp_idx ON m_connector (modifyTimestamp);
 
--- Represents ConnectorHostType, see https://wiki.evolveum.com/display/midPoint/Connector+Server
+-- Represents ConnectorHostType, see https://docs.evolveum.com/connectors/connid/1.x/connector-server/
 CREATE TABLE m_connector_host (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('CONNECTOR_HOST') STORED
@@ -1174,7 +1174,7 @@ CREATE INDEX m_connector_host_policySituation_idx
 CREATE INDEX m_connector_host_createTimestamp_idx ON m_connector_host (createTimestamp);
 CREATE INDEX m_connector_host_modifyTimestamp_idx ON m_connector_host (modifyTimestamp);
 
--- Represents persistent TaskType, see https://wiki.evolveum.com/display/midPoint/Task+Manager
+-- Represents persistent TaskType, see https://docs.evolveum.com/midpoint/reference/tasks/task-manager/
 CREATE TABLE m_task (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('TASK') STORED
@@ -1229,7 +1229,7 @@ CREATE INDEX m_task_modifyTimestamp_idx ON m_task (modifyTimestamp);
 -- endregion
 
 -- region cases
--- Represents CaseType, see https://wiki.evolveum.com/display/midPoint/Case+Management
+-- Represents CaseType, see https://docs.evolveum.com/midpoint/features/planned/case-management/
 CREATE TABLE m_case (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('CASE') STORED
@@ -1334,7 +1334,7 @@ CREATE INDEX m_case_wi_candidate_targetOidRelationId_idx
 -- endregion
 
 -- region Access Certification object tables
--- Represents AccessCertificationDefinitionType, see https://wiki.evolveum.com/display/midPoint/Access+Certification
+-- Represents AccessCertificationDefinitionType, see https://docs.evolveum.com/midpoint/reference/roles-policies/certification/
 CREATE TABLE m_access_cert_definition (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_DEFINITION') STORED
@@ -1555,7 +1555,7 @@ CREATE INDEX m_ref_include_targetOidRelationId_idx
 -- endregion
 
 -- region FunctionLibrary/Sequence/Form tables
--- Represents FunctionLibraryType, see https://wiki.evolveum.com/display/midPoint/Function+Libraries
+-- Represents FunctionLibraryType, see https://docs.evolveum.com/midpoint/reference/expressions/function-libraries/
 CREATE TABLE m_function_library (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('FUNCTION_LIBRARY') STORED
@@ -1576,7 +1576,7 @@ CREATE INDEX m_function_library_subtypes_idx ON m_function_library USING gin(sub
 CREATE INDEX m_function_library_policySituation_idx
     ON m_function_library USING gin(policysituations gin__int_ops);
 
--- Represents SequenceType, see https://wiki.evolveum.com/display/midPoint/Sequences
+-- Represents SequenceType, see https://docs.evolveum.com/midpoint/reference/expressions/sequences/
 CREATE TABLE m_sequence (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('SEQUENCE') STORED
@@ -1598,7 +1598,7 @@ CREATE INDEX m_sequence_policySituation_idx ON m_sequence USING gin(policysituat
 CREATE INDEX m_sequence_createTimestamp_idx ON m_sequence (createTimestamp);
 CREATE INDEX m_sequence_modifyTimestamp_idx ON m_sequence (modifyTimestamp);
 
--- Represents FormType, see https://wiki.evolveum.com/display/midPoint/Custom+forms
+-- Represents FormType, see https://docs.evolveum.com/midpoint/reference/admin-gui/custom-forms/
 CREATE TABLE m_form (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('FORM') STORED
@@ -1622,8 +1622,8 @@ CREATE INDEX m_form_modifyTimestamp_idx ON m_form (modifyTimestamp);
 -- endregion
 
 -- region Assignment/Inducement table
--- Represents AssignmentType, see https://wiki.evolveum.com/display/midPoint/Assignment
--- and also https://wiki.evolveum.com/display/midPoint/Assignment+vs+Inducement
+-- Represents AssignmentType, see https://docs.evolveum.com/midpoint/reference/roles-policies/assignment/
+-- and also https://docs.evolveum.com/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/
 CREATE TABLE m_assignment (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     -- this is different from other containers, this is not generated, app must provide it

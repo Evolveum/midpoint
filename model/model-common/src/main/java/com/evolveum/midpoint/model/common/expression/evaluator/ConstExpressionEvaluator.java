@@ -23,10 +23,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstExpressionEvalu
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Returns zero set with a single value obtained by resolving given <a href="https://wiki.evolveum.com/display/midPoint/Constants">constant</a>.
- * Currently limited to single-valued string constants.
- *
- * @author semancik
+ * Returns zero set with a single value obtained by resolving given https://docs.evolveum.com/midpoint/reference/expressions/constants/[constant].
+ * Currently, limited to single-valued string constants.
  */
 public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefinition>
         extends AbstractExpressionEvaluator<V, D, ConstExpressionEvaluatorType> {

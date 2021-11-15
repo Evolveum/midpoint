@@ -44,7 +44,7 @@ public interface EvaluatedAssignmentTarget extends DebugDumpable, Serializable {
     /**
      * An assignment which assigns the given role (useful for knowing e.g. tenantRef or orgRef).
      * TODO consider providing here also the "magic assignment"
-     * (https://wiki.evolveum.com/display/midPoint/Assignment+Configuration#AssignmentConfiguration-ConstructionVariables)
+     * (https://docs.evolveum.com/midpoint/reference/roles-policies/assignment/configuration/#construction-variables)
      */
     AssignmentType getAssignment();
 
