@@ -14,7 +14,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemProcessing;
@@ -127,106 +126,16 @@ public class MiscSchemaUtil {
         return itemPathList;
     }
 
-    @Contract("null -> null; !null -> !null")
-    public static SelectorQualifiedGetOptionsType optionsToOptionsBeanNullable(
-            Collection<SelectorOptions<GetOperationOptions>> options) {
-        return options != null ?
-                optionsToOptionsBean(options) : null;
-    }
-
-    public static @NotNull SelectorQualifiedGetOptionsType optionsToOptionsBean(
+    @Deprecated // Moved to GetOperationOptionsUtil
+    public static @NotNull SelectorQualifiedGetOptionsType optionsToOptionsType(
             @NotNull Collection<SelectorOptions<GetOperationOptions>> options) {
-        SelectorQualifiedGetOptionsType optionsType = new SelectorQualifiedGetOptionsType();
-        List<SelectorQualifiedGetOptionType> retval = new ArrayList<>();
-        for (SelectorOptions<GetOperationOptions> option : options) {
-            retval.add(selectorOptionToSelectorQualifiedGetOptionType(option));
-        }
-        optionsType.getOption().addAll(retval);
-        return optionsType;
+        return GetOperationOptionsUtil.optionsToOptionsBean(options);
     }
 
-    private static SelectorQualifiedGetOptionType selectorOptionToSelectorQualifiedGetOptionType(
-            SelectorOptions<GetOperationOptions> selectorOption) {
-        OptionObjectSelectorType selectorType = selectorToSelectorType(selectorOption.getSelector());
-        GetOperationOptionsType getOptionsType = getOptionsToGetOptionsType(selectorOption.getOptions());
-        SelectorQualifiedGetOptionType selectorOptionType = new SelectorQualifiedGetOptionType();
-        selectorOptionType.setOptions(getOptionsType);
-        selectorOptionType.setSelector(selectorType);
-        return selectorOptionType;
-    }
-
-    private static OptionObjectSelectorType selectorToSelectorType(ObjectSelector selector) {
-        if (selector == null) {
-            return null;
-        }
-        OptionObjectSelectorType selectorType = new OptionObjectSelectorType();
-        selectorType.setPath(new ItemPathType(selector.getPath()));
-        return selectorType;
-    }
-
-    private static GetOperationOptionsType getOptionsToGetOptionsType(GetOperationOptions options) {
-        GetOperationOptionsType optionsType = new GetOperationOptionsType();
-        optionsType.setRetrieve(RetrieveOption.toRetrieveOptionType(options.getRetrieve()));
-        optionsType.setResolve(options.getResolve());
-        optionsType.setResolveNames(options.getResolveNames());
-        optionsType.setNoFetch(options.getNoFetch());
-        optionsType.setRaw(options.getRaw());
-        optionsType.setTolerateRawData(options.getTolerateRawData());
-        optionsType.setNoDiscovery(options.getDoNotDiscovery());
-        // TODO relational value search query (but it might become obsolete)
-        optionsType.setAllowNotFound(options.getAllowNotFound());
-        optionsType.setPointInTimeType(PointInTimeType.toPointInTimeTypeType(options.getPointInTimeType()));
-        optionsType.setDefinitionProcessing(
-                DefinitionProcessingOption.toDefinitionProcessingOptionType(
-                        options.getDefinitionProcessing()));
-        optionsType.setStaleness(options.getStaleness());
-        optionsType.setDistinct(options.getDistinct());
-        return optionsType;
-    }
-
+    @Deprecated // Moved to GetOperationOptionsUtil
     public static List<SelectorOptions<GetOperationOptions>> optionsTypeToOptions(
-            SelectorQualifiedGetOptionsType objectOptionsType, PrismContext prismContext) {
-        if (objectOptionsType == null) {
-            return null;
-        }
-        List<SelectorOptions<GetOperationOptions>> retval = new ArrayList<>();
-        for (SelectorQualifiedGetOptionType optionType : objectOptionsType.getOption()) {
-            retval.add(selectorQualifiedGetOptionTypeToSelectorOption(optionType, prismContext));
-        }
-        return retval;
-    }
-
-    private static SelectorOptions<GetOperationOptions> selectorQualifiedGetOptionTypeToSelectorOption(
-            SelectorQualifiedGetOptionType objectOptionsType, PrismContext prismContext) {
-        ObjectSelector selector = selectorTypeToSelector(objectOptionsType.getSelector(), prismContext);
-        GetOperationOptions options = getOptionsTypeToGetOptions(objectOptionsType.getOptions());
-        return new SelectorOptions<>(selector, options);
-    }
-
-    private static GetOperationOptions getOptionsTypeToGetOptions(GetOperationOptionsType optionsType) {
-        GetOperationOptions options = new GetOperationOptions();
-        options.setRetrieve(RetrieveOption.fromRetrieveOptionType(optionsType.getRetrieve()));
-        options.setResolve(optionsType.isResolve());
-        options.setResolveNames(optionsType.isResolveNames());
-        options.setNoFetch(optionsType.isNoFetch());
-        options.setRaw(optionsType.isRaw());
-        options.setTolerateRawData(optionsType.isTolerateRawData());
-        options.setDoNotDiscovery(optionsType.isNoDiscovery());
-        // TODO relational value search query (but it might become obsolete)
-        options.setAllowNotFound(optionsType.isAllowNotFound());
-        options.setPointInTimeType(PointInTimeType.toPointInTimeType(optionsType.getPointInTimeType()));
-        options.setDefinitionProcessing(DefinitionProcessingOption.toDefinitionProcessingOption(optionsType.getDefinitionProcessing()));
-        options.setStaleness(optionsType.getStaleness());
-        options.setDistinct(optionsType.isDistinct());
-        return options;
-    }
-
-    private static ObjectSelector selectorTypeToSelector(OptionObjectSelectorType selectorType,
-            PrismContext prismContext) {
-        if (selectorType == null) {
-            return null;
-        }
-        return new ObjectSelector(prismContext.toUniformPath(selectorType.getPath()));
+            SelectorQualifiedGetOptionsType objectOptionsType, @SuppressWarnings("unused") PrismContext unused) {
+        return GetOperationOptionsUtil.optionsBeanToOptions(objectOptionsType);
     }
 
     /**

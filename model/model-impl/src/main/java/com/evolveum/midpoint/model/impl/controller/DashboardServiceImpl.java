@@ -12,13 +12,13 @@ import java.util.*;
 
 import com.evolveum.midpoint.model.api.ModelAuditService;
 
+import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.CollectionStats;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -291,16 +291,16 @@ public class DashboardServiceImpl implements DashboardService {
 
         List<SelectorOptions<GetOperationOptions>> collectionOptions = null;
         if (collection != null) {
-            collectionOptions = MiscSchemaUtil.optionsTypeToOptions(collection.getGetOptions(), prismContext);
+            collectionOptions = GetOperationOptionsUtil.optionsBeanToOptions(collection.getGetOptions());
         } else if (collectionRef.getCollectionRef() != null) {
             @NotNull PrismObject<ObjectCollectionType> collectionFromRef = modelService.getObject(ObjectCollectionType.class, collectionRef.getCollectionRef().getOid(), null, task, result);
-            collectionOptions = MiscSchemaUtil.optionsTypeToOptions(collectionFromRef.asObjectable().getGetOptions(), prismContext);
+            collectionOptions = GetOperationOptionsUtil.optionsBeanToOptions(collectionFromRef.asObjectable().getGetOptions());
         }
         GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder().setFrom(collectionOptions);
         if (collectionRef.getBaseCollectionRef() != null && collectionRef.getBaseCollectionRef().getCollectionRef() != null
                 && collectionRef.getBaseCollectionRef().getCollectionRef().getOid() != null) {
             @NotNull PrismObject<ObjectCollectionType> baseCollection = modelService.getObject(ObjectCollectionType.class, collectionRef.getCollectionRef().getOid(), null, task, result);
-            List<SelectorOptions<GetOperationOptions>> baseCollectionOptions = MiscSchemaUtil.optionsTypeToOptions(baseCollection.asObjectable().getGetOptions(), prismContext);
+            List<SelectorOptions<GetOperationOptions>> baseCollectionOptions = GetOperationOptionsUtil.optionsBeanToOptions(baseCollection.asObjectable().getGetOptions());
             optionsBuilder.mergeFrom(baseCollectionOptions);
         }
         return optionsBuilder.build();

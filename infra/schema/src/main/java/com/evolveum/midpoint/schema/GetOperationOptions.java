@@ -29,6 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingM
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GetOperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * @author semancik
  */
@@ -443,14 +445,15 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return this;
     }
 
-    public static boolean isRaw(GetOperationOptions options) {
-        if (options == null) {
-            return false;
-        }
-        if (options.raw == null) {
-            return false;
-        }
-        return options.raw;
+    /** Returns the `raw` flag, if present. Otherwise returns `null`. */
+    public static @Nullable Boolean getRaw(@Nullable GetOperationOptions options) {
+        return options != null ? options.getRaw() : null;
+    }
+
+    /** Returns the value of the `raw` flag. The default is `false`. */
+    public static boolean isRaw(@Nullable GetOperationOptions options) {
+        return Objects.requireNonNullElse(
+                getRaw(options), false);
     }
 
     /**
@@ -1242,6 +1245,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
     public static Collection<SelectorOptions<GetOperationOptions>> updateToNoFetch(
             Collection<SelectorOptions<GetOperationOptions>> originalOptions) {
         return updateRootOptions(originalOptions, opt -> opt.setNoFetch(true));
+    }
+
+    public static Collection<SelectorOptions<GetOperationOptions>> updateToRaw(
+            Collection<SelectorOptions<GetOperationOptions>> originalOptions, boolean value) {
+        return updateRootOptions(originalOptions, opt -> opt.setRaw(value));
     }
 
     public static Collection<SelectorOptions<GetOperationOptions>> updateToReadWrite(

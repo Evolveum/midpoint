@@ -113,7 +113,7 @@ class SearchHelper {
         definitionsHelper.applyDefinition(ctx, query);
 
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-        if (ProvisioningUtil.shouldDoRepoSearch(rootOptions)) {
+        if (shouldDoRepoSearch(rootOptions)) {
             return searchShadowsInRepositoryIteratively(ctx, query, options, handler, parentResult);
         } else {
             return searchObjectIterativeResource(ctx, query, options, handler, parentResult, rootOptions);
@@ -207,9 +207,9 @@ class SearchHelper {
         List<ObjectFilter> attributeFilter = new ArrayList<>();
         for (ObjectFilter f : conditions) {
             if (f instanceof PropertyValueFilter) { // TODO
-                ItemPath parentPath = ((PropertyValueFilter) f).getParentPath();
+                ItemPath parentPath = ((PropertyValueFilter<?>) f).getParentPath();
                 if (parentPath.isEmpty()) {
-                    QName elementName = ((PropertyValueFilter) f).getElementName();
+                    QName elementName = ((PropertyValueFilter<?>) f).getElementName();
                     if (QNameUtil.match(ShadowType.F_OBJECT_CLASS, elementName) ||
                             QNameUtil.match(ShadowType.F_AUXILIARY_OBJECT_CLASS, elementName) ||
                             QNameUtil.match(ShadowType.F_KIND, elementName) ||
@@ -217,7 +217,7 @@ class SearchHelper {
                         continue;
                     }
                     throw new SchemaException("Cannot combine on-resource and off-resource properties in a shadow search query. Encountered property " +
-                            ((PropertyValueFilter) f).getFullPath());
+                            ((PropertyValueFilter<?>) f).getFullPath());
                 }
                 attributeFilter.add(f);
             } else if (f instanceof NaryLogicalFilter) {
@@ -233,7 +233,7 @@ class SearchHelper {
                                 "Could not translate query filter. Unknown type: " + f);
                     }
                 } else if (subFilters.size() < 1) {
-                    continue;
+                    // continue;
                 } else {
                     attributeFilter.add(subFilters.iterator().next());
                 }
@@ -254,7 +254,6 @@ class SearchHelper {
             } else {
                 throw new SchemaException("Cannot combine on-resource and off-resource properties in a shadow search query. Encountered filter " + f);
             }
-
         }
 
         return attributeFilter;
@@ -268,7 +267,7 @@ class SearchHelper {
         definitionsHelper.applyDefinition(ctx, query);
 
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-        if (ProvisioningUtil.shouldDoRepoSearch(rootOptions)) {
+        if (shouldDoRepoSearch(rootOptions)) {
             return searchShadowsInRepository(ctx, query, options, parentResult);
         } else {
             SearchResultList<PrismObject<ShadowType>> rv = new SearchResultList<>();
@@ -446,6 +445,9 @@ class SearchHelper {
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult objResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             ExpressionEvaluationException, SecurityViolationException {
+
+        // TODO do we really want to do this in raw mode (MID-7419)?
+
         shadowCaretaker.applyAttributesDefinition(ctx, shadow);
         shadowCaretaker.updateShadowState(ctx, shadow);
         // fixing MID-1640; hoping that the protected object filter uses only identifiers
@@ -470,7 +472,7 @@ class SearchHelper {
         definitionsHelper.applyDefinition(ctx, query);
 
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-        if (ProvisioningUtil.shouldDoRepoSearch(rootOptions)) {
+        if (shouldDoRepoSearch(rootOptions)) {
             return shadowManager.countShadows(ctx, query, options, parentResult);
         } else {
             return countResourceObjects(ctx, query, countMethod, parentResult);
@@ -525,6 +527,12 @@ class SearchHelper {
         } else {
             throw new SystemException(cause.getMessage(), cause);
         }
+    }
+
+    private static boolean shouldDoRepoSearch(GetOperationOptions rootOptions) {
+        return GetOperationOptions.isNoFetch(rootOptions) ||
+                GetOperationOptions.isRaw(rootOptions) ||
+                isMaxStaleness(rootOptions);
     }
 
     private enum CountMethod {

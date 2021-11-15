@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 
 import org.jetbrains.annotations.NotNull;
@@ -46,9 +46,6 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -381,7 +378,8 @@ public class CollectionProcessor {
         } else {
             collectionFilter = null;
         }
-        List<SelectorOptions<GetOperationOptions>> collectionOptions = MiscSchemaUtil.optionsTypeToOptions(objectCollectionType.getGetOptions(), prismContext);
+        List<SelectorOptions<GetOperationOptions>> collectionOptions =
+                GetOperationOptionsUtil.optionsBeanToOptions(objectCollectionType.getGetOptions());
         CollectionRefSpecificationType baseCollectionSpecFromCollection = objectCollectionType.getBaseCollection();
         if (baseCollectionSpecFromCollection == null && baseCollectionSpec == null) {
             existingView.setFilter(collectionFilter);

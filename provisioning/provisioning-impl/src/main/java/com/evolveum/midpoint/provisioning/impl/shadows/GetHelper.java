@@ -354,6 +354,7 @@ class GetHelper {
             throw e;
         }
 
+        // TODO do we really want to do this in raw mode (MID-7419)?
         shadowCaretaker.updateShadowState(ctx, repositoryShadow); // must be done before futurizeShadow
         PrismObject<ShadowType> resultShadow = commonHelper.futurizeShadow(ctx, repositoryShadow, null, options, now);
         shadowCaretaker.applyAttributesDefinition(ctx, resultShadow);

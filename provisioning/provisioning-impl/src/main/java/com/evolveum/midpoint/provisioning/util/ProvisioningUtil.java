@@ -561,10 +561,6 @@ public class ProvisioningUtil {
         return caching.getCachingStategy();
     }
 
-    public static boolean shouldDoRepoSearch(GetOperationOptions rootOptions) {
-        return GetOperationOptions.isNoFetch(rootOptions) || GetOperationOptions.isMaxStaleness(rootOptions);
-    }
-
     public static boolean isResourceModification(ItemDelta modification) {
         QName firstPathName = modification.getPath().firstName();
         return isAttributeModification(firstPathName) || isNonAttributeResourceModification(firstPathName);

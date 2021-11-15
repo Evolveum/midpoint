@@ -9,11 +9,18 @@ package com.evolveum.midpoint.model.impl.tasks;
 import static com.evolveum.midpoint.model.api.ModelExecuteOptions.fromModelExecutionOptionsType;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+
+import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -100,6 +107,19 @@ public class DeletionActivityHandler
     static final class MyRun extends
             SearchBasedActivityRun<ObjectType, MyWorkDefinition, DeletionActivityHandler, AbstractActivityWorkStateType> {
 
+        /**
+         * Execute options that will be used. They differ from the configured option in that the raw mode
+         * is applied:
+         *
+         * - in legacy case the value from `optionRaw` (default: `true`) is used,
+         * - in modern case the default of `true` is used.
+         *
+         * (Note that similar structure for the search options is not stored here. The search options
+         * are managed by the activity framework itself. See {@link #customizeSearchOptions(Collection, OperationResult)}.
+         * But the principle of managing raw value in search is the same.)
+         */
+        private ModelExecuteOptions effectiveModelExecuteOptions;
+
         MyRun(@NotNull ActivityRunInstantiationContext<MyWorkDefinition, DeletionActivityHandler> context,
                 String shortName) {
             super(context, shortName);
@@ -112,11 +132,85 @@ public class DeletionActivityHandler
                     .skipWritingOperationExecutionRecords(true); // objects are going to be deleted anyway
         }
 
+        /** Checks the safety of parameters, and fills-in fields in this object. */
         @Override
         public void beforeRun(OperationResult opResult) throws CommonException, ActivityRunException {
+            executeSafetyChecks();
+            effectiveModelExecuteOptions = getExecuteOptionsWithRawSet(
+                    getWorkDefinition().executionOptions);
+        }
+
+        /**
+         * Safety checking: Object deletion can be really dangerous. So let us minimize the chance of user error
+         * by checking the settings.
+         */
+        private void executeSafetyChecks() {
             ObjectSetType objects = getWorkDefinition().getObjectSetSpecification();
             argCheck(objects.getType() != null, "Object type must be specified (this is a safety check)");
             argCheck(objects.getQuery() != null, "Object query must be specified (this is a safety check)");
+            checkRawModeSettings();
+        }
+
+        /**
+         * Before 4.4, the raw mode for both searching and execution was driven by an extension property value `optionRaw`.
+         * (Now mapped to `legacyRawMode`, and always either true or false in the legacy mode.)
+         *
+         * In 4.4 this property is no longer available. Instead, explicit search and execution options can be set.
+         * The default mode for both is raw. And, to minimize chances of user error, we require that either both
+         * are specified, or both are left as default (true).
+         */
+        private void checkRawModeSettings() {
+            if (getWorkDefinition().legacyRawMode != null) {
+                return;
+            }
+            Boolean rawInSearch =
+                    getRaw(GetOperationOptionsUtil.optionsBeanToOptions(
+                            getWorkDefinition().objects.getSearchOptions()));
+
+            Boolean rawInExecution =
+                    ModelExecuteOptions.getRaw(
+                            getWorkDefinition().executionOptions);
+
+            argCheck(rawInSearch != null && rawInExecution != null || rawInSearch == null && rawInExecution == null,
+                    "Neither both search and execution raw mode should be defined, or none "
+                            + "(this is a safety check)");
+        }
+
+        private @Nullable Boolean getRaw(@Nullable Collection<SelectorOptions<GetOperationOptions>> searchOptions) {
+            return GetOperationOptions.getRaw(
+                    SelectorOptions.findRootOptions(searchOptions));
+        }
+
+        @Override
+        public Collection<SelectorOptions<GetOperationOptions>> customizeSearchOptions(
+                Collection<SelectorOptions<GetOperationOptions>> configuredOptions, OperationResult result)
+                throws CommonException {
+            return getSearchOptionsWithRawSet(configuredOptions);
+        }
+
+        /** Returns search options that have `raw` option set (provided or default). */
+        private Collection<SelectorOptions<GetOperationOptions>> getSearchOptionsWithRawSet(
+                @Nullable Collection<SelectorOptions<GetOperationOptions>> configuredOptions) {
+            if (getRaw(configuredOptions) != null) {
+                return configuredOptions;
+            } else {
+                return GetOperationOptions.updateToRaw(configuredOptions, getDefaultRawValue());
+            }
+        }
+
+        /** Returns execute options that have `raw` option set (provided or default). */
+        private ModelExecuteOptions getExecuteOptionsWithRawSet(@NotNull ModelExecuteOptions executeOptions) {
+            if (executeOptions.getRaw() != null) {
+                return executeOptions;
+            } else {
+                return executeOptions.clone()
+                        .raw(getDefaultRawValue());
+            }
+        }
+
+        private boolean getDefaultRawValue() {
+            return Objects.requireNonNullElse(
+                    getWorkDefinition().legacyRawMode, true);
         }
 
         @Override
@@ -144,7 +238,7 @@ public class DeletionActivityHandler
                 return;
             }
 
-            if (!getWorkDefinition().isRawExecution() && isProtectedShadow(object)) {
+            if (!isRawExecution() && isProtectedShadow(object)) {
                 // Protected objects will be prevented from the deletion on the resource
                 // (that is what would occur in non-raw mode), so it's logical to not attempt that at all.
                 // We'll spare some error messages, and (potential) problems with shadows.
@@ -157,41 +251,52 @@ public class DeletionActivityHandler
                     .createDeleteDelta(object.getClass(), object.getOid());
 
             getActivityHandler().modelService.executeChanges(
-                    List.of(delta), getWorkDefinition().executionOptions, workerTask, result);
+                    List.of(delta), effectiveModelExecuteOptions, workerTask, result);
         }
 
         private boolean isProtectedShadow(ObjectType object) {
             return object instanceof ShadowType &&
                     ShadowUtil.isProtected((ShadowType) object);
         }
+
+        boolean isRawExecution() {
+            // We assume that the raw flag is set (true or false) at this moment.
+            return Objects.requireNonNull(
+                    effectiveModelExecuteOptions.getRaw());
+        }
     }
 
     public static class MyWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
+        @Nullable private final Boolean legacyRawMode;
         @NotNull private final ObjectSetType objects;
         @NotNull private final ModelExecuteOptions executionOptions;
 
         MyWorkDefinition(WorkDefinitionSource source) {
             if (source instanceof LegacyWorkDefinitionSource) {
                 LegacyWorkDefinitionSource legacy = (LegacyWorkDefinitionSource) source;
-                objects = ObjectSetUtil.fromLegacySource(legacy);
-                boolean raw = Objects.requireNonNullElse(
+
+                legacyRawMode = Objects.requireNonNullElse(
                         legacy.getExtensionItemRealValue(SchemaConstants.MODEL_EXTENSION_OPTION_RAW, Boolean.class),
-                        true); // Default is intentionally true
-                executionOptions = ModelExecuteOptions.create().raw(raw);
+                        true); // "Raw=true" is the default
+
+                objects = ObjectSetUtil.fromLegacySource(legacy);
+                // Before 4.4, the DeleteTaskHandler did not fetch search nor execution options from the task.
+                // Therefore, we delete the search options, so they will NOT be inadvertently used.
+                objects.setSearchOptions(null);
+
+                executionOptions = ModelExecuteOptions.create(); // Before 4.4 we did not support execution options.
             } else {
                 DeletionWorkDefinitionType typedDefinition = (DeletionWorkDefinitionType)
                         ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
-                objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
+                legacyRawMode = null; // not applicable in new mode
+                objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects()); // Can contain search options.
                 executionOptions = Objects.requireNonNullElseGet(
                         fromModelExecutionOptionsType(typedDefinition.getExecutionOptions()),
-                        () -> ModelExecuteOptions.create().raw()); // Here the default is raw=true as well.
+                        ModelExecuteOptions::create);
             }
             // Intentionally not setting default object type nor query. These must be defined.
-        }
-
-        boolean isRawExecution() {
-            return ModelExecuteOptions.isRaw(executionOptions);
+            // Corresponding safety checks are done before real execution.
         }
 
         @Override
@@ -205,8 +310,10 @@ public class DeletionActivityHandler
 
         @Override
         protected void debugDumpContent(StringBuilder sb, int indent) {
-            DebugUtil.debugDumpWithLabelLn(sb, "objects", objects, indent+1);
-            DebugUtil.debugDumpWithLabelLn(sb, "executionOptions", String.valueOf(executionOptions), indent+1);
+            DebugUtil.debugDumpWithLabelLn(sb, "legacyRawMode", legacyRawMode, indent+1);
+            DebugUtil.debugDumpWithLabelLn(sb, "objects (default for raw not yet applied)", objects, indent+1);
+            DebugUtil.debugDumpWithLabelLn(sb, "executionOptions (default for raw not yet applied)",
+                    String.valueOf(executionOptions), indent+1);
         }
     }
 }

@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleMemberPanel.QueryScope;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
 
@@ -33,7 +34,6 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
@@ -385,7 +385,7 @@ public class MemberOperationsHelper {
         return new ObjectSetType(PrismContext.get())
                 .type(taskSpec.memberType)
                 .query(PrismContext.get().getQueryConverter().createQueryType(taskSpec.memberQuery))
-                .searchOptions(MiscSchemaUtil.optionsToOptionsBeanNullable(taskSpec.options));
+                .searchOptions(GetOperationOptionsUtil.optionsToOptionsBeanNullable(taskSpec.options));
     }
 
     /**

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificat
 import com.evolveum.midpoint.repo.common.activity.definition.RepositoryObjectSetSpecificationImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 import com.google.common.base.MoreObjects;
@@ -29,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -83,7 +83,7 @@ public class SearchSpecification<C extends Containerable> implements DebugDumpab
         return new SearchSpecification<>(
                 containerType,
                 createObjectQuery(containerType, objectSetSpecification.getQueryBean()),
-                MiscSchemaUtil.optionsTypeToOptions(objectSetSpecification.getSearchOptionsBean(), PrismContext.get()),
+                GetOperationOptionsUtil.optionsBeanToOptions(objectSetSpecification.getSearchOptionsBean()),
                 objectSetSpecification.isUseRepositoryDirectly());
     }
 

@@ -92,6 +92,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         if (options == null) {
             return defaultValue;
         }
+        //noinspection unchecked
         Boolean value = (Boolean) options.content.asPrismContainerValue().getPropertyRealValue(itemName, Boolean.class);
         return value != null ? value : defaultValue;
     }
@@ -165,6 +166,10 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 
     public static boolean isRaw(ModelExecuteOptions options) {
         return is(options, ModelExecuteOptionsType.F_RAW);
+    }
+
+    public static Boolean getRaw(ModelExecuteOptions options) {
+        return options != null ? options.getRaw() : null;
     }
 
     @Deprecated // kept because of (expected) external uses; use create(prismContext).raw() instead

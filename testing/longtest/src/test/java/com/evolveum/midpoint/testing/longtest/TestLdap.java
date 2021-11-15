@@ -400,18 +400,13 @@ public class TestLdap extends AbstractLongTest {
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
-        PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_OPENDJ_SHADOWS_OID);
-        OperationResultType deleteTaskResultType = deleteTask.asObjectable().getResult();
-        display("Final delete task result", deleteTaskResultType);
-        TestUtil.assertSuccess(deleteTaskResultType);
-        OperationResult deleteTaskResult = OperationResult.createOperationResult(deleteTaskResultType);
-        TestUtil.assertSuccess(deleteTaskResult);
-        List<OperationResult> opExecResults = deleteTaskResult.findSubresults(ModelService.EXECUTE_CHANGES);
-        assertEquals(1, opExecResults.size());
-        OperationResult opExecResult = opExecResults.get(0);
-        TestUtil.assertSuccess(opExecResult);
-        assertEquals("Wrong exec operation count", 2 * NUM_LDAP_ENTRIES + 8, opExecResult.getCount());
-        assertTrue("Too many subresults: " + deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
+        // @formatter:off
+        assertTask(TASK_DELETE_OPENDJ_SHADOWS_OID, "after")
+                .rootActivityState()
+                    .itemProcessingStatistics()
+                        .display()
+                        .assertTotalCounts(2 * NUM_LDAP_ENTRIES + 8, 0, 0);
+        // @formatter:on
 
         assertOpenDjAccountShadows(0, true, task, result);
         assertUsers(2 * NUM_LDAP_ENTRIES + 8);
@@ -441,20 +436,15 @@ public class TestLdap extends AbstractLongTest {
         // THEN
         then();
 
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, (2 * NUM_LDAP_ENTRIES) / 100 + 2);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 
-        PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_OPENDJ_SHADOWS_OID);
-        OperationResultType deleteTaskResultType = deleteTask.asObjectable().getResult();
-        display("Final delete task result", deleteTaskResultType);
-        TestUtil.assertSuccess(deleteTaskResultType);
-        OperationResult deleteTaskResult = OperationResult.createOperationResult(deleteTaskResultType);
-        TestUtil.assertSuccess(deleteTaskResult);
-        List<OperationResult> opExecResults = deleteTaskResult.findSubresults(ModelService.EXECUTE_CHANGES);
-        assertEquals(1, opExecResults.size());
-        OperationResult opExecResult = opExecResults.get(0);
-        TestUtil.assertSuccess(opExecResult);
-        assertEquals("Wrong exec operation count", 2 * NUM_LDAP_ENTRIES + 8, opExecResult.getCount());
-        assertTrue("Too many subresults: " + deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
+        // @formatter:off
+        assertTask(TASK_DELETE_OPENDJ_SHADOWS_OID, "after")
+                .rootActivityState()
+                    .itemProcessingStatistics()
+                        .display()
+                        .assertTotalCounts(2 * NUM_LDAP_ENTRIES + 8, 0, 1);
+        // @formatter:on
 
         assertOpenDjAccountShadows(1, true, task, result);
         assertUsers(2 * NUM_LDAP_ENTRIES + 8);

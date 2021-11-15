@@ -575,28 +575,32 @@ public class OperationResult
         return null;
     }
 
-    public List<OperationResult> findSubresultsInSubTree(String operation) {
-        List<OperationResult> found = new ArrayList<>();
-        if (subresults == null) {
-            return found;
-        }
-        for (OperationResult subResult : getSubresults()) {
-            List<OperationResult> foundedSubresults = subResult.findSubresultsInSubTree(operation);
-            if (!foundedSubresults.isEmpty()) {
-                found.addAll(foundedSubresults);
-            }
-        }
-        return found;
+    /** Finds given operation in a subtree rooted by the current op. result. Includes this one! */
+    public @NotNull List<OperationResult> findSubresultsDeeply(@NotNull String operation) {
+        List<OperationResult> matching = new ArrayList<>();
+        collectMatchingSubresults(operation, matching);
+        return matching;
     }
 
+    private void collectMatchingSubresults(String operation, List<OperationResult> matching) {
+        if (operation.equals(this.operation)) {
+            matching.add(this);
+        }
+        if (subresults != null) {
+            subresults.forEach(
+                    subresult -> subresult.collectMatchingSubresults(operation, matching));
+        }
+    }
+
+    /** Finds given operation among subresults of the current op. result. */
     public List<OperationResult> findSubresults(String operation) {
         List<OperationResult> found = new ArrayList<>();
         if (subresults == null) {
             return found;
         }
-        for (OperationResult subResult : getSubresults()) {
-            if (operation.equals(subResult.getOperation())) {
-                found.add(subResult);
+        for (OperationResult subresult : subresults) {
+            if (operation.equals(subresult.getOperation())) {
+                found.add(subresult);
             }
         }
         return found;

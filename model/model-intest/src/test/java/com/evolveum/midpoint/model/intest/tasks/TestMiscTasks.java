@@ -21,7 +21,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.task.LegacyTaskInformation;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
@@ -43,6 +42,8 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
             new TestResource<>(TEST_DIR, "task-delete-missing-query-legacy.xml", "c637b877-efe8-43ae-b87f-738bff9062fb");
     private static final TestResource<TaskType> TASK_DELETE_MISSING_TYPE =
             new TestResource<>(TEST_DIR, "task-delete-missing-type.xml", "889d1313-2a7f-4112-a996-2b84f1f000a7");
+    private static final TestResource<TaskType> TASK_DELETE_INCOMPLETE_RAW =
+            new TestResource<>(TEST_DIR, "task-delete-incomplete-raw.xml", "d0053e62-9d48-4c1e-ace8-a8feb1f35f91");
     private static final TestResource<TaskType> TASK_DELETE_SELECTED_USERS =
             new TestResource<>(TEST_DIR, "task-delete-selected-users.xml", "623f261c-4c63-445b-a714-dcde118f227c");
 
@@ -137,6 +138,26 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
                 .display()
                 .assertFatalError()
                 .assertResultMessageContains("Object type must be specified");
+    }
+
+    /**
+     * Checks that deletion activity really requires none or both "raw" flags being set.
+     */
+    @Test
+    public void test125DeleteWithIncompleteRaw() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        addTask(TASK_DELETE_INCOMPLETE_RAW, result);
+        waitForTaskCloseOrSuspend(TASK_DELETE_INCOMPLETE_RAW.oid, 10000);
+
+        then("no query");
+        assertTask(TASK_DELETE_INCOMPLETE_RAW.oid, "after")
+                .display()
+                .assertFatalError()
+                .assertResultMessageContains("Neither both search and execution raw mode should be defined, or none");
     }
 
     /**

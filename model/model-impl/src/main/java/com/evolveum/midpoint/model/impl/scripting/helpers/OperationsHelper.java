@@ -19,7 +19,7 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.Operation;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -135,7 +135,7 @@ public class OperationsHelper {
 
     public Collection<SelectorOptions<GetOperationOptions>> createGetOptions(SelectorQualifiedGetOptionsType optionsBean, boolean noFetch) {
         LOGGER.trace("optionsBean = {}, noFetch = {}", optionsBean, noFetch);
-        Collection<SelectorOptions<GetOperationOptions>> rv = MiscSchemaUtil.optionsTypeToOptions(optionsBean, prismContext);
+        Collection<SelectorOptions<GetOperationOptions>> rv = GetOperationOptionsUtil.optionsBeanToOptions(optionsBean);
         if (noFetch) {
             if (rv == null) {
                 return SelectorOptions.createCollection(GetOperationOptions.createNoFetch());

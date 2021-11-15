@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
@@ -14,6 +16,7 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCol
 import java.io.*;
 import java.util.Objects;
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.Validate;
@@ -377,6 +380,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
             computePolyStrings(deltas);
 
+            LOGGER.debug("MODEL.executeChanges with options={}:\n{}", options, lazy(() -> getDeltasOnSeparateLines(deltas)));
             LOGGER.trace("MODEL.executeChanges(\n  deltas:\n{}\n  options:{}", DebugUtil.debugDumpLazily(deltas, 2), options);
 
             if (InternalsConfig.consistencyChecks) {
@@ -402,6 +406,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             result.computeStatusIfUnknown();
             exitModelMethod();
         }
+    }
+
+    private String getDeltasOnSeparateLines(Collection<? extends ObjectDelta<?>> deltas) {
+        return deltas.stream()
+                .map(delta -> " - " + delta)
+                .collect(Collectors.joining("\n"));
     }
 
     private Collection<ObjectDeltaOperation<? extends ObjectType>> executeChangesNonRaw(
@@ -472,7 +482,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         ExpressionType eventRecordingExpression = null;
 
         PrismObject<SystemConfigurationType> config = systemObjectCache.getSystemConfiguration(result);
-        if (config != null && config.asObjectable() != null && config.asObjectable().getAudit() != null
+        if (config != null && config.asObjectable().getAudit() != null
                 && config.asObjectable().getAudit().getEventRecording() != null) {
             SystemConfigurationAuditEventRecordingType eventRecording = config.asObjectable().getAudit().getEventRecording();
             eventRecordingExpression = eventRecording.getExpression();
