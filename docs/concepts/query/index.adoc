@@ -15,7 +15,19 @@ However, data processing means much more than just a storage of data.
 One of the most important aspects is how to _query_ the data, how to search for objects.
 This too has to be done in a way that is independent of the underlying storage mechanism.
 
-As the _query_ is such as important aspect, midPoint has its own query language (or languages), and a dedicated programming interface (API).
+As the _query_ is such as important aspect, midPoint has its own xref:query-api/[Query API].
+The API supports query specification in multiple languages so it can be used both by midPoint
+user (xref:axiom-query-language/[Axiom], xref:xml-query-language/[XML]) or a programmer (Java API,
+which can also be used in configuration scripts, e.g. in xref:/midpoint/reference/expressions/expressions/script/groovy/[Groovy]).
+
+Query can be used in various contexts:
+
+* for querying objects in the xref:/midpoint/reference/repository/[repository],
+* querying remote objects on the xref:/midpoint/reference/resources/[resources],
+* for collections of objects in-memory - this is more important for a programmer than for midPoint administrators.
+
+Each of the contexts may have some natural limitations which are described in details in xref:query-api/[Query API].
+Queries are often used in Tasks to specify the xref:/midpoint/reference/tasks/activities/object-set-specification/[set of objects] to work on.
 
 == Query Languages
 
@@ -55,9 +67,10 @@ The XML-based language will be still supported for several years, but it will be
 == Query API
 
 MidPoint code deals with data queries all the time.
-Therefore there is a special API designed to represent the queries in native Java form.
-The API can also be used to construct the queries programmatically.
+There is a special API designed to represent the queries as data structures internally.
+The API can also be used to construct the queries programmatically in a fluent style (chained method calls).
+Programmatic query construction can be used not only in midPoint code, but also in xref:/midpoint/reference/expressions/expressions/script/[Script expressions].
 
-Please see xref:query-api/[] for details.
-
-The query API is the same, regardless of the query language.
+Please see an extensive xref:query-api/[Query API] document for further details about the supported query constructs,
+available types of filters and examples how to write queries in various languages.
+The document also specifies what Query API features work in various contexts, that is repository, provisioning or in-memory.
