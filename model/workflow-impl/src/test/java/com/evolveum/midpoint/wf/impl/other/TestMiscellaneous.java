@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.wf.impl.other;
 
 import static java.util.Collections.singletonList;
@@ -15,11 +14,6 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.test.TestResource;
-
-import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -32,10 +26,13 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
@@ -108,8 +105,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        // GIVEN
-
+        given();
         dummyAuditService.clear();
 
         OperationBusinessContextType businessContext = new OperationBusinessContextType();
@@ -125,12 +121,12 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         CaseWorkItemType workItem = getWorkItem(task, result);
         display("Work item", workItem);
 
-        // WHEN
+        when();
         workflowManager.completeWorkItem(WorkItemId.of(workItem),
                 ApprovalUtils.createApproveOutput(prismContext).comment("OK"),
                 null, task, result);
 
-        // THEN
+        then();
         CaseType aCase = getCase(CaseWorkItemUtil.getCaseRequired(workItem).getOid());
         display("workflow context", aCase.getApprovalContext());
         List<? extends CaseEventType> events = aCase.getEvent();
@@ -173,8 +169,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        // GIVEN
-
+        given();
         dummyAuditService.clear();
 
         OperationBusinessContextType businessContext = new OperationBusinessContextType();
@@ -192,12 +187,12 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         CaseWorkItemType workItem = getWorkItem(task, result);
         display("Work item", workItem);
 
-        // WHEN
+        when();
         workflowManager.completeWorkItem(WorkItemId.of(workItem),
                 ApprovalUtils.createApproveOutput(prismContext).comment("OK"),
                 null, task, result);
 
-        // THEN
+        then();
         CaseType aCase = getCase(CaseWorkItemUtil.getCaseRequired(workItem).getOid());
         display("workflow context", aCase.getApprovalContext());
         List<? extends CaseEventType> events = aCase.getEvent();
@@ -240,18 +235,16 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        // GIVEN
-
+        given();
         ModelExecuteOptions options = executeOptions().partialProcessing(
                 new PartialProcessingOptionsType().approvals(PartialProcessingTypeType.SKIP));
         assignRole(userJackOid, ROLE_GOLD.oid, options, task, result);
         assertAssignedRole(getUser(userJackOid), ROLE_GOLD.oid);
 
-        // WHEN
-
+        when();
         assignRole(userJackOid, ROLE_SILVER.oid, task, result);
 
-        // THEN
+        then();
         result.computeStatus();
         TestUtil.assertInProgress("Operation NOT in progress", result);
 
@@ -268,7 +261,8 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         CaseType rootCase = getCase(aCase.getParentRef().getOid());
         waitForCaseClose(rootCase);
 
-        assertNotAssignedRole(userJackOid, ROLE_GOLD.oid, result);            // should be pruned without approval
+        // should be pruned without approval
+        assertNotAssignedRole(userJackOid, ROLE_GOLD.oid, result);
     }
 
     @Test
@@ -278,18 +272,18 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        // GIVEN
+        given();
         setDefaultUserTemplate(null);
         unassignAllRoles(userJackOid);
         assertNotAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
 
         setDefaultUserTemplate(TEMPLATE_ASSIGNING_CAPTAIN.oid);
 
-        // WHEN
+        when();
         // some innocent change
         modifyUserChangePassword(userJackOid, "PaSsWoRd123", task, result);
 
-        // THEN
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -305,19 +299,19 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        // GIVEN
+        given();
         setDefaultUserTemplate(null);
         unassignAllRoles(userJackOid);
         assertNotAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
 
         setDefaultUserTemplate(TEMPLATE_ASSIGNING_CAPTAIN_AFTER.oid);
 
-        // WHEN
+        when();
         // some innocent change
         modifyUserChangePassword(userJackOid, "PaSsWoRd123", task, result);
         // here the captain role appears in evaluatedAssignmentsTriple only in secondary phase; so no approvals are triggered
 
-        // THEN
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -331,15 +325,15 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        // GIVEN
+        given();
         setDefaultUserTemplate(null);
         unassignAllRoles(userJackOid);
         assertNotAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
 
-        // WHEN
+        when();
         assignRole(userJackOid, ROLE_ASSIGNING_CAPTAIN.oid, task, result);
 
-        // THEN
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -353,12 +347,12 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        // GIVEN
+        given();
         setDefaultUserTemplate(null);
         unassignAllRoles(userJackOid);
         assertNotAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
 
-        // WHEN
+        when();
         ObjectDelta<? extends ObjectType> delta =
                 prismContext.deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
@@ -368,7 +362,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
                 new PartialProcessingOptionsType().approvals(PartialProcessingTypeType.SKIP));
         modelService.executeChanges(singletonList(delta), options, task, result);
 
-        // THEN
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
