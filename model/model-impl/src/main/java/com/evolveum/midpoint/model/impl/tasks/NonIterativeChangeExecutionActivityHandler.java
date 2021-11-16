@@ -15,6 +15,13 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityItemProcessingStatistics;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress;
+import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
+import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -33,10 +40,6 @@ import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NonIterativeChangeExecutionWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
@@ -51,6 +54,8 @@ public class NonIterativeChangeExecutionActivityHandler
         NonIterativeChangeExecutionActivityHandler> {
 
     private static final String LEGACY_HANDLER_URI = ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI;
+
+    private static final String OP_EXECUTE = NonIterativeChangeExecutionActivityHandler.class.getName() + ".execute";
 
     @PostConstruct
     public void register() {
@@ -91,21 +96,58 @@ public class NonIterativeChangeExecutionActivityHandler
         }
 
         @Override
-        public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
-            return super.createReportingCharacteristics()
-                    .statisticsSupported(false); // no iterations, no statistics
-        }
-
-        @Override
-        protected @NotNull ActivityRunResult runLocally(OperationResult result)
+        protected @NotNull ActivityRunResult runLocally(OperationResult parentResult)
                 throws CommonException {
 
-            getActivityHandler().beans.modelService.executeChanges(
-                    getWorkDefinition().getParsedDeltas(),
-                    getWorkDefinition().getExecutionOptions(),
-                    getRunningTask(), result);
+            ActivityItemProcessingStatistics.Operation op =
+                    getActivityState().getLiveItemProcessingStatistics().recordOperationStart(
+                            new IterativeOperationStartInfo(
+                                    new IterationItemInformation()));
 
-            return autoComputeRunResult();
+            OperationResult result = parentResult.createSubresult(OP_EXECUTE);
+            try {
+                getActivityHandler().beans.modelService.executeChanges(
+                        getWorkDefinition().getParsedDeltas(),
+                        getWorkDefinition().getExecutionOptions(),
+                        getRunningTask(), result);
+            } catch (Throwable t) {
+                result.recordFatalError(t);
+                updateStatisticsWithOutcome(op, ItemProcessingOutcomeType.FAILURE, t);
+                throw t;
+            } finally {
+                result.close();
+            }
+
+            updateStatisticsOnNormalEnd(op, result);
+
+            return standardRunResult(result.getStatus());
+        }
+
+        /**
+         * See also `ItemProcessingGatekeeper.ProcessingResult#fromOperationResult`. We should eventually deduplicate the code.
+         */
+        private void updateStatisticsOnNormalEnd(ActivityItemProcessingStatistics.Operation op, OperationResult result) {
+            ItemProcessingOutcomeType outcome;
+            if (result.isError()) {
+                outcome = ItemProcessingOutcomeType.FAILURE;
+            } else if (result.isNotApplicable()) {
+                outcome = ItemProcessingOutcomeType.SKIP;
+            } else {
+                outcome = ItemProcessingOutcomeType.SUCCESS;
+            }
+            updateStatisticsWithOutcome(op, outcome, null); // we don't try to find the exception (in case of failure)
+        }
+
+        private void updateStatisticsWithOutcome(ActivityItemProcessingStatistics.Operation op,
+                ItemProcessingOutcomeType outcome, Throwable t) {
+            op.done(outcome, t);
+            getActivityState().getLiveProgress().increment(
+                    qualifiedOutcome(outcome), ActivityProgress.Counters.COMMITTED);
+        }
+
+        private @NotNull QualifiedItemProcessingOutcomeType qualifiedOutcome(ItemProcessingOutcomeType outcome) {
+            return new QualifiedItemProcessingOutcomeType(PrismContext.get())
+                    .outcome(outcome);
         }
     }
 

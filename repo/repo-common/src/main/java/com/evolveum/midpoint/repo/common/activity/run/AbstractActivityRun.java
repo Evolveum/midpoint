@@ -415,13 +415,18 @@ public abstract class AbstractActivityRun<
         return ActivityRunResult.standardResult(canRun());
     }
 
-    /** The status will be computed based on current operation result. (This is ensured by setting the status to `null`.) */
-    protected ActivityRunResult autoComputeRunResult() {
+    /** Finished (with specified status), or interrupted. */
+    protected ActivityRunResult standardRunResult(@Nullable OperationResultStatus status) {
         if (canRun()) {
-            return new ActivityRunResult(null, FINISHED);
+            return new ActivityRunResult(status, FINISHED);
         } else {
             return ActivityRunResult.interrupted();
         }
+    }
+
+    /** The status will be computed based on current operation result. (This is ensured by setting the status to `null`.) */
+    protected ActivityRunResult autoComputeRunResult() {
+        return standardRunResult(null);
     }
 
     public boolean canRun() {
