@@ -150,7 +150,7 @@ public class AccCertResponseComputationHelper {
     }
 
     // We take into account _all_ responses relevant to this stage!
-    // See https://wiki.evolveum.com/display/midPoint/On+Certification+Campaigns+Iteration.
+    // See https://docs.evolveum.com/midpoint/reference/roles-policies/certification/iteration/
     private List<AccessCertificationResponseType> getResponses(AccessCertificationCaseType aCase, int stageNumber, int iteration) {
         List<AccessCertificationResponseType> rv = new ArrayList<>();
         for (AccessCertificationWorkItemType wi : aCase.getWorkItem()) {
@@ -165,7 +165,7 @@ public class AccCertResponseComputationHelper {
         return rv;
     }
 
-    // see https://wiki.evolveum.com/display/midPoint/On+Certification+Campaigns+Iteration
+    // see https://docs.evolveum.com/midpoint/reference/roles-policies/certification/iteration/
     private List<AccessCertificationResponseType> getOutcomesFromCompletedStages(AccessCertificationCaseType aCase,
             Integer additionalStageNumber, AccessCertificationResponseType additionalStageResponse) {
         LOGGER.trace("getOutcomesFromCompletedStages: additionalStageNumber={}, additionalStageResponse={}", additionalStageNumber, additionalStageResponse);

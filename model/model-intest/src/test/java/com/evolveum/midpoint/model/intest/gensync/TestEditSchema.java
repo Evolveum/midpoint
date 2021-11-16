@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -500,7 +500,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         } catch (ObjectAlreadyExistsException ex) {
             exception = true;
         }
-        AssertJUnit.assertFalse(exception);     // as per description in https://wiki.evolveum.com/display/midPoint/Development+with+LookupTable
+        // as per description in https://docs.evolveum.com/midpoint/devel/guides/development-with-lookuptable/
+        AssertJUnit.assertFalse(exception);
 
         then();
         result.computeStatus();
@@ -1443,7 +1444,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         PrismPropertyDefinition<T> objPropDef = object.getDefinition().findPropertyDefinition(path);
         assertNotNull("No definition of property " + path + " in object " + object, objPropDef);
         try {
-            validator.validate(objPropDef, path.toString() + " (objectDef) ");
+            validator.validate(objPropDef, path + " (objectDef) ");
         } catch (Exception | Error e) {
             displayDumpable("Wrong definition", objPropDef);
             throw e;

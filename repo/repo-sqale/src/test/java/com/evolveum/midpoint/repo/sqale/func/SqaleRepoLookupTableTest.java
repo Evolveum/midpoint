@@ -453,7 +453,7 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
         } catch (ObjectAlreadyExistsException ex) {
             exception = true;
         }
-        AssertJUnit.assertFalse(exception);     // as per description in https://wiki.evolveum.com/display/midPoint/Development+with+LookupTable
+        AssertJUnit.assertFalse(exception);     // as per description in https://docs.evolveum.com/midpoint/devel/guides/development-with-lookuptable/
 
         then();
         result.computeStatus();

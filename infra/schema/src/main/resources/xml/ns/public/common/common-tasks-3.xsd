@@ -42,7 +42,7 @@
             <xsd:documentation>
                 TaskType contains information about a task (either transient or persistent).
                 For background information and clarification of various terms used here, please see
-                <a href="https://wiki.evolveum.com/display/midPoint/Task+Manager">wiki:Task Manager</a>
+                <a href="https://docs.evolveum.com/midpoint/reference/tasks/task-manager/">Task Manager</a>
                 and
                 <a href="https://docs.evolveum.com/midpoint/architecture/concepts/task/">Task</a>.
             </xsd:documentation>

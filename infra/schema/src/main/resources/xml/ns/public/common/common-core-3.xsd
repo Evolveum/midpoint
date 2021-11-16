@@ -43,7 +43,7 @@
     <!-- ##      Common Schema Layer     ## -->
     <!-- ################################## -->
 
-    <!-- See https://wiki.evolveum.com/display/midPoint/Common+Schema -->
+    <!-- See https://docs.evolveum.com/midpoint/architecture/archive/data-model/midpoint-common-schema/ -->
 
     <xsd:element name="displayName" type="xsd:string">
         <xsd:annotation>
@@ -10598,7 +10598,7 @@
                                     The inducements will be applied to the user that is assigned to such role.
                                 </p>
                                 <p>
-                                    See <a href="https://wiki.evolveum.com/display/midPoint/Assignment+vs+Inducement">Assignment vs Inducement</a>
+                                    See <a href="https://docs.evolveum.com/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/">Assignment vs Inducement</a>
                                     in midPoint wiki.
                                 </p>
                             </xsd:documentation>
@@ -12657,7 +12657,7 @@
                     administration setup.
                 </p>
                 <p>
-                    See <a href="https://wiki.evolveum.com/display/midPoint/Organizational+Structure">Organizational Structure</a>
+                    See <a href="https://docs.evolveum.com/midpoint/reference/org/organizational-structure/">Organizational Structure</a>
                     in midPoint wiki for a general introduction to the concepts.
                 </p>
                 <p>

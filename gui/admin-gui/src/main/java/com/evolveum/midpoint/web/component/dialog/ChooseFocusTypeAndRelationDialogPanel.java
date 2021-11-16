@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
@@ -102,6 +103,9 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> imp
 
                 ListMultipleChoicePanel<QName> relation = getRelationPanel(getParent());
                 Collection<QName> relationChosen = relation.getModelObject();
+                if (relationChosen.contains(PrismConstants.Q_ANY)) {
+                    relationChosen = getSupportedRelations();
+                }
                 ChooseFocusTypeAndRelationDialogPanel.this.okPerformed(typeChosen, relationChosen, target);
                 getPageBase().hideMainPopup(target);
 
