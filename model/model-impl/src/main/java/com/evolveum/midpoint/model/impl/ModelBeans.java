@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 
 import com.evolveum.midpoint.model.common.SystemObjectCache;
@@ -78,6 +79,7 @@ public class ModelBeans {
     @Autowired public PrismContext prismContext;
     @Autowired public SchemaService schemaService;
     @Autowired public ModelObjectResolver modelObjectResolver;
+    @Autowired public ModelService modelService;
     @Autowired @Qualifier("cacheRepositoryService") public RepositoryService cacheRepositoryService;
     @Autowired public MatchingRuleRegistry matchingRuleRegistry;
     @Autowired public AutoAssignMappingCollector autoAssignMappingCollector;

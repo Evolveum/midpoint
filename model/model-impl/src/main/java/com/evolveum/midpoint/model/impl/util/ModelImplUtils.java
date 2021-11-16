@@ -14,7 +14,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
-import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
@@ -472,23 +471,15 @@ public class ModelImplUtils {
     }
 
     public static SynchronizationObjectsFilterImpl determineSynchronizationObjectsFilter(
-            @NotNull ObjectClassComplexTypeDefinition objectclassDef, Task task) {
-        ShadowKindType kind = getTaskExtensionPropertyValue(task, ModelConstants.KIND_PROPERTY_NAME);
-        String intent = getTaskExtensionPropertyValue(task, ModelConstants.INTENT_PROPERTY_NAME);
-
-        return new SynchronizationObjectsFilterImpl(objectclassDef, kind, intent);
-    }
-
-    public static SynchronizationObjectsFilterImpl determineSynchronizationObjectsFilter(
             ObjectClassComplexTypeDefinition objectclassDef, ResourceObjectSetType resourceObjectSet) {
         return new SynchronizationObjectsFilterImpl(objectclassDef, resourceObjectSet.getKind(), resourceObjectSet.getIntent());
     }
 
     public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, Task task)
             throws SchemaException {
-        QName objectclass = getTaskExtensionPropertyValue(task, ModelConstants.OBJECTCLASS_PROPERTY_NAME);
-        ShadowKindType kind = getTaskExtensionPropertyValue(task, ModelConstants.KIND_PROPERTY_NAME);
-        String intent = getTaskExtensionPropertyValue(task, ModelConstants.INTENT_PROPERTY_NAME);
+        QName objectclass = getTaskExtensionPropertyValue(task, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS);
+        ShadowKindType kind = getTaskExtensionPropertyValue(task, SchemaConstants.MODEL_EXTENSION_KIND);
+        String intent = getTaskExtensionPropertyValue(task, SchemaConstants.MODEL_EXTENSION_INTENT);
 
         return determineObjectClassInternal(refinedSchema, objectclass, kind, intent, task);
     }

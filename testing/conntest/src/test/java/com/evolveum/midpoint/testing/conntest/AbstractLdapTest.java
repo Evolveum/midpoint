@@ -47,7 +47,7 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationTaskHandler;
+import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationLauncher;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -127,7 +127,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     protected MatchingRuleRegistry matchingRuleRegistry;
 
     @Autowired
-    protected ReconciliationTaskHandler reconciliationTaskHandler;
+    protected ReconciliationLauncher reconciliationLauncher;
 
     protected ResourceType resourceType;
     protected PrismObject<ResourceType> resource;

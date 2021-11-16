@@ -1910,10 +1910,17 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="changeExecution" type="tns:ChangeExecutionWorkDefinitionType" minOccurs="0">
+                <xsd:element name="iterativeChangeExecution" type="tns:IterativeChangeExecutionWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             Executes specified changes on specified objects.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="nonIterativeChangeExecution" type="tns:NonIterativeChangeExecutionWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Executes specified changes. The changes specify objects on which they are to be executed.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
@@ -6894,7 +6901,7 @@
     </xsd:complexType>
     <xsd:element name="shadowRefreshWorkDefinition" type="tns:ShadowRefreshWorkDefinitionType"/>
 
-    <xsd:complexType name="ChangeExecutionWorkDefinitionType">
+    <xsd:complexType name="IterativeChangeExecutionWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
                 Executes specified changes on specified objects.
@@ -6913,7 +6920,28 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="changeExecutionWorkDefinition" type="tns:ChangeExecutionWorkDefinitionType"/>
+    <xsd:element name="IterativeChangeExecutionWorkDefinition" type="tns:IterativeChangeExecutionWorkDefinitionType"/>
+
+    <xsd:complexType name="NonIterativeChangeExecutionWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Executes specified changes. The changes specify objects on which they are to be executed.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="delta" type="t:ObjectDeltaType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="executionOptions" type="tns:ModelExecuteOptionsType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="nonIterativeChangeExecutionWorkDefinition" type="tns:NonIterativeChangeExecutionWorkDefinitionType"/>
 
     <xsd:complexType name="ReindexingWorkDefinitionType">
         <xsd:annotation>

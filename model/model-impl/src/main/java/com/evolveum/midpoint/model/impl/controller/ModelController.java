@@ -41,7 +41,7 @@ import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
-import com.evolveum.midpoint.model.impl.sync.tasks.imp.ImportFromResourceTaskHandler;
+import com.evolveum.midpoint.model.impl.sync.tasks.imp.ImportFromResourceLauncher;
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
@@ -130,7 +130,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @Autowired private PrismContext prismContext;
     @Autowired private ProvisioningService provisioning;
     @Autowired private ModelObjectResolver objectResolver;
-    @Autowired private ImportFromResourceTaskHandler importFromResourceTaskHandler;
+    @Autowired private ImportFromResourceLauncher importFromResourceLauncher;
     @Autowired private ObjectImporter objectImporter;
     @Autowired private HookRegistry hookRegistry;
     @Autowired private TaskManager taskManager;
@@ -1451,7 +1451,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
             result.recordStatus(OperationResultStatus.IN_PROGRESS, "Task running in background");
 
-            importFromResourceTaskHandler.launch(resource, objectClass, task, result);
+            importFromResourceLauncher.launch(resource, objectClass, task, result);
 
             // The launch should switch task to asynchronous. It is in/out, so no
             // other action is needed
@@ -1486,7 +1486,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         // TODO: add context to the result
 
         try {
-            boolean wasOk = importFromResourceTaskHandler.importSingleShadow(shadowOid, task, result);
+            boolean wasOk = importFromResourceLauncher.importSingleShadow(shadowOid, task, result);
 
             if (wasOk) {
                 result.recordSuccess();
@@ -2137,12 +2137,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     public void evaluateExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         checkScriptingAuthorization(task, parentResult);
         scriptingExpressionEvaluator.evaluateExpressionInBackground(executeScriptCommand, task, parentResult);
-    }
-
-    @Override
-    public void evaluateIterativeExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        checkScriptingAuthorization(task, parentResult);
-        scriptingExpressionEvaluator.evaluateIterativeExpressionInBackground(executeScriptCommand, task, parentResult);
     }
 
     @Override

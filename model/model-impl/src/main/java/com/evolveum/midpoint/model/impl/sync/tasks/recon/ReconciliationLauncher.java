@@ -6,14 +6,14 @@
  */
 package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
-import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -30,24 +30,13 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * The task handler for reconciliation.
- *
- * This handler takes care of executing reconciliation "runs". It means that the
- * handler "run" method will be as scheduled (every few days). The
- * responsibility is to iterate over accounts and compare the real state with
- * the assumed IDM state.
- *
- * @author Radovan Semancik
- *
+ * Launches reconciliation activity tasks.
  */
 @Component
-@Deprecated
-public class ReconciliationTaskHandler {
+public class ReconciliationLauncher {
 
     @Autowired PrismContext prismContext;
     @Autowired TaskManager taskManager;
@@ -59,15 +48,7 @@ public class ReconciliationTaskHandler {
 
     @Autowired CacheConfigurationManager cacheConfigurationManager;
 
-    private static final Trace LOGGER = TraceManager.getTrace(ReconciliationTaskHandler.class);
-
-    @PostConstruct
-    private void initialize() {
-//        taskManager.registerHandler(ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI, this);
-//        taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_1, this);
-//        taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_2, this);
-//        taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_3, this);
-    }
+    private static final Trace LOGGER = TraceManager.getTrace(ReconciliationLauncher.class);
 
     /**
      * Launch an import. Calling this method will start import in a new
@@ -77,24 +58,36 @@ public class ReconciliationTaskHandler {
 
         LOGGER.info("Launching reconciliation for resource {} as asynchronous task", ObjectTypeUtil.toShortString(resource));
 
-        OperationResult result = parentResult.createSubresult(ReconciliationTaskHandler.class.getName() + ".launch");
+        OperationResult result = parentResult.createSubresult(ReconciliationLauncher.class.getName() + ".launch");
         result.addParam("resource", resource);
         result.addParam("objectclass", objectclass);
-        // TODO
 
         // Set handler URI so we will be called back
         task.setHandlerUri(ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI);
 
-        // Readable task name
         PolyStringType polyString = new PolyStringType("Reconciling " + resource.getName());
         task.setName(polyString);
 
-        // Set reference to the resource
-        task.setObjectRef(ObjectTypeUtil.createObjectRef(resource, prismContext));
+        ObjectReferenceType resourceRef = ObjectTypeUtil.createObjectRef(resource, prismContext);
+
+        // Not strictly necessary but nice to do (activity would fill-in these when started)
+        task.setObjectRef(resourceRef.clone());
+        task.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value());
 
         try {
-            task.setExtensionPropertyValue(ModelConstants.OBJECTCLASS_PROPERTY_NAME, objectclass);
-            task.flushPendingModifications(result);        // just to be sure (if the task was already persistent)
+            // @formatter:off
+            task.setRootActivityDefinition(
+                    new ActivityDefinitionType(PrismContext.get())
+                            .beginWork()
+                                .beginReconciliation()
+                                    .beginResourceObjects()
+                                        .resourceRef(resourceRef.clone())
+                                        .objectclass(objectclass)
+                                    .<ReconciliationWorkDefinitionType>end()
+                                .<WorkDefinitionsType>end()
+                            .end());
+            // @formatter:on
+            task.flushPendingModifications(result); // just to be sure (if the task was already persistent)
         } catch (ObjectNotFoundException e) {
             LOGGER.error("Task object not found, expecting it to exist (task {})", task, e);
             result.recordFatalError("Task object not found", e);
@@ -118,6 +111,7 @@ public class ReconciliationTaskHandler {
         result.setBackgroundTaskOid(task.getOid());
         result.computeStatus("Reconciliation launch failed");
 
-        LOGGER.trace("Reconciliation for resource {} switched to background, control thread returning with task {}", ObjectTypeUtil.toShortString(resource), task);
+        LOGGER.trace("Reconciliation for resource {} switched to background, control thread returning with task {}",
+                ObjectTypeUtil.toShortString(resource), task);
     }
 }

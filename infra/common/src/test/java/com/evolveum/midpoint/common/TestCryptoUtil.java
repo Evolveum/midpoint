@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.common;
 
+import static com.evolveum.midpoint.schema.util.task.work.SpecificWorkDefinitionUtil.*;
+
 import static java.util.Collections.singleton;
 import static org.testng.Assert.fail;
 import static org.testng.AssertJUnit.*;
@@ -18,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.evolveum.midpoint.prism.*;
@@ -144,12 +147,14 @@ public class TestCryptoUtil extends AbstractUnitTest {
      * MID-6086
      */
     @Test
-    public void test127EncryptAddAccountTaskManuallyConstructed() throws Exception {
+    public void test127EncryptAddAccountTaskManuallyConstructedLegacy() throws Exception {
         given();
         PrismContext prismContext = getPrismContext();
         PrismObject<TaskType> task = new TaskType(prismContext)
                 .name("test127")
                 .asPrismObject();
+
+        // This legacy use is OK. We want to check exactly this way of the task construction.
         PrismPropertyDefinition<ObjectDeltaType> deltasDefinition = task.getDefinition()
                 .findPropertyDefinition(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTAS));
         PrismProperty<ObjectDeltaType> deltas = deltasDefinition.instantiate();
@@ -178,6 +183,53 @@ public class TestCryptoUtil extends AbstractUnitTest {
 
         deltas.addRealValue(DeltaConvertor.toObjectDeltaType(userDelta, null));
         task.addExtensionItem(deltas);
+
+        when();
+        CryptoUtil.encryptValues(protector, task);
+
+        then();
+        String serialized = prismContext.xmlSerializer().serialize(task);
+        System.out.println("After encryption:\n" + serialized);
+        assertFalse("Serialized object contains the password!", serialized.contains(PASSWORD_PLAINTEXT));
+
+        CryptoUtil.checkEncrypted(task);
+    }
+
+    /**
+     * MID-6086
+     */
+    @Test
+    public void test128EncryptAddAccountTaskManuallyConstructedNew() throws Exception {
+        given();
+        PrismContext prismContext = getPrismContext();
+        PrismObject<TaskType> task = new TaskType(prismContext)
+                .name("test128")
+                .asPrismObject();
+
+        ShadowType shadow = new ShadowType(prismContext)
+                .name("some-shadow");
+        PrismContainerDefinition<Containerable> attributesDef = shadow.asPrismObject().getDefinition()
+                .findContainerDefinition(ShadowType.F_ATTRIBUTES);
+        PrismContainer<?> attributes = attributesDef.instantiate();
+        shadow.asPrismObject().add(attributes);
+
+        MutablePrismPropertyDefinition<ProtectedStringType> passwordDef = prismContext.definitionFactory()
+                .createPropertyDefinition(
+                        new QName(SchemaConstants.NS_ICF_SCHEMA, "password"), ProtectedStringType.COMPLEX_TYPE);
+        PrismProperty<ProtectedStringType> password = passwordDef.instantiate();
+        ProtectedStringType passwordRealValue = new ProtectedStringType();
+        passwordRealValue.setClearValue(PASSWORD_PLAINTEXT);
+        password.setRealValue(passwordRealValue);
+        attributes.add(password);
+
+        PrismReferenceValue linkToAdd = ObjectTypeUtil.createObjectRefWithFullObject(shadow, prismContext).asReferenceValue();
+        ObjectDelta<UserType> userDelta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF)
+                .add(linkToAdd)
+                .asObjectDelta("some-oid");
+
+        task.asObjectable().setActivity(
+                createNonIterativeChangeExecutionDef(List.of(userDelta), null));
 
         when();
         CryptoUtil.encryptValues(protector, task);

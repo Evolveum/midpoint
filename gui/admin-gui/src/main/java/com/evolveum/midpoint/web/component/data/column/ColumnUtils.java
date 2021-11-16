@@ -307,7 +307,7 @@ public class ColumnUtils {
                             pKind = findPropertyInResourceSet(object.getValue(), ResourceObjectSetType.F_KIND);
                             if (pKind == null) {
                                 pKind = object.getValue().asPrismObject().findProperty(
-                                        ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
+                                        ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND)); // FIXME
                             }
                         } else {
                             pKind = null;
@@ -336,7 +336,7 @@ public class ColumnUtils {
                     pIntent = findPropertyInResourceSet(object.getValue(), ResourceObjectSetType.F_INTENT);
                     if (pIntent == null) {
                         pIntent = object.getValue().asPrismObject().findProperty(
-                                ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
+                                ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT)); // FIXME
                     }
                 } else {
                     pIntent = null;
@@ -363,7 +363,7 @@ public class ColumnUtils {
                     pObjectClass = findPropertyInResourceSet(object.getValue(), ResourceObjectSetType.F_OBJECTCLASS);
                     if (pObjectClass == null) {
                         pObjectClass = object.getValue().asPrismObject().findProperty(
-                                ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS));
+                                ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS)); // FIXME
                     }
                 } else {
                     pObjectClass = null;

@@ -10,6 +10,7 @@ package com.evolveum.midpoint.repo.common.activity.run;
 import static com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress.Counters.COMMITTED;
 import static com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress.Counters.UNCOMMITTED;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.FINISHED;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
@@ -412,6 +413,15 @@ public abstract class AbstractActivityRun<
 
     protected ActivityRunResult standardRunResult() {
         return ActivityRunResult.standardResult(canRun());
+    }
+
+    /** The status will be computed based on current operation result. (This is ensured by setting the status to `null`.) */
+    protected ActivityRunResult autoComputeRunResult() {
+        if (canRun()) {
+            return new ActivityRunResult(null, FINISHED);
+        } else {
+            return ActivityRunResult.interrupted();
+        }
     }
 
     public boolean canRun() {

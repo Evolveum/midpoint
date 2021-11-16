@@ -19,7 +19,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationTaskHandler;
+import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationLauncher;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -69,7 +69,7 @@ public class TestLdapComplex extends AbstractLongTest {
     protected PrismObject<ResourceType> resourceOpenDj;
 
     @Autowired
-    private ReconciliationTaskHandler reconciliationTaskHandler;
+    private ReconciliationLauncher reconciliationLauncher;
 
     @Override
     protected void startResources() throws Exception {
@@ -153,7 +153,7 @@ public class TestLdapComplex extends AbstractLongTest {
         when();
         ResourceType resource = modelService.getObject(
                 ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result).asObjectable();
-        reconciliationTaskHandler.launch(resource,
+        reconciliationLauncher.launch(resource,
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), task, result);
 
         then();

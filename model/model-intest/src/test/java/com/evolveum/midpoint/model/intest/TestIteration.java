@@ -2100,8 +2100,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        importFromResourceTaskHandler.importSingleShadow(shadows.get(0).getOid(), task, result);
-        importFromResourceTaskHandler.importSingleShadow(shadows.get(1).getOid(), task, result);
+        importFromResourceLauncher.importSingleShadow(shadows.get(0).getOid(), task, result);
+        importFromResourceLauncher.importSingleShadow(shadows.get(1).getOid(), task, result);
 
         // THEN
         then();

@@ -1,0 +1,44 @@
+/*
+ * Copyright (C) 2010-2021 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+package com.evolveum.midpoint.schema.util.task.work;
+
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+
+/** Utils for managing work definition for specific activities. */
+public class SpecificWorkDefinitionUtil {
+
+    public static ActivityDefinitionType createNonIterativeChangeExecutionDef(
+            @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
+            @Nullable ModelExecuteOptionsType options) throws SchemaException {
+
+        NonIterativeChangeExecutionWorkDefinitionType workDef =
+                new NonIterativeChangeExecutionWorkDefinitionType(PrismContext.get());
+
+        for (ObjectDelta<?> delta : deltas) {
+            workDef.getDelta().add(
+                    DeltaConvertor.toObjectDeltaType(delta));
+        }
+        workDef.setExecutionOptions(options);
+
+        // @formatter:off
+        return new ActivityDefinitionType(PrismContext.get())
+                .beginWork()
+                .nonIterativeChangeExecution(workDef)
+                .end();
+        // @formatter:on
+    }
+}
