@@ -7,15 +7,9 @@
 package com.evolveum.midpoint.ninja.action.worker;
 
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.impl.NinjaException;
-import com.evolveum.midpoint.ninja.opts.ExportOptions;
 import com.evolveum.midpoint.ninja.opts.VerifyOptions;
-import com.evolveum.midpoint.ninja.util.Log;
-import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismSerializer;
-import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.schema.validator.ObjectValidator;
 import com.evolveum.midpoint.schema.validator.ValidationItem;
 import com.evolveum.midpoint.schema.validator.ValidationResult;
@@ -26,7 +20,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Radovan Semancik
@@ -55,6 +48,9 @@ public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOpt
                         break;
                     case "plannedRemoval":
                         validator.setWarnPlannedRemoval(true);
+                        break;
+                    case "uuid":
+                        validator.setWarnIncorrectOids(true);
                         break;
                     default:
                         System.err.println("Unknown warn option '"+warnCategory+"'");
