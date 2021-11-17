@@ -2262,6 +2262,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.1</a:since>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2276,6 +2277,7 @@
                             <xsd:appinfo>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>4.1</a:deprecatedSince>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2857,6 +2859,7 @@
                             <xsd:appinfo>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>4.3</a:deprecatedSince>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2975,6 +2978,7 @@
                                 <a:displayName>TaskType.structuredProgress</a:displayName>
                                 <a:since>4.3</a:since>
                                 <a:experimental>true</a:experimental>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2994,6 +2998,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.8</a:since>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
