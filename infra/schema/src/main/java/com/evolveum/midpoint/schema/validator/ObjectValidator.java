@@ -6,10 +6,15 @@
  */
 package com.evolveum.midpoint.schema.validator;
 
+import java.util.UUID;
+
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectValue;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -17,7 +22,6 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Validator that can process objects, validate them, check for errors and warning
@@ -45,6 +49,8 @@ public class ObjectValidator {
     private boolean warnDeprecated = false;
     private boolean warnPlannedRemoval = false;
     private String warnPlannedRemovalVersion = null;
+
+    private boolean warnIncorrectOid = false;
 
     public ObjectValidator(PrismContext prismContext) {
         super();
@@ -75,12 +81,18 @@ public class ObjectValidator {
         this.warnPlannedRemovalVersion = warnPlannedRemovalVersion;
     }
 
+    public void setWarnIncorrectOids(boolean value) {
+        this.warnIncorrectOid = value;
+
+    }
+
     public void setAllWarnings() {
         this.warnDeprecated = true;
         this.warnPlannedRemoval = true;
+        this.warnIncorrectOid  = true;
     }
 
-    public <O extends ObjectType> ValidationResult validate(PrismObject<O> object) {
+    public <O extends Objectable> ValidationResult validate(PrismObject<O> object) {
         ValidationResult result = new ValidationResult();
         object.accept(visitable -> visit(visitable, result));
         return result;
@@ -89,6 +101,18 @@ public class ObjectValidator {
     private void visit(Visitable visitable, ValidationResult result) {
         if (visitable instanceof Item<?,?>) {
             visitItem((Item<?,?>)visitable, result);
+        } else if (visitable instanceof PrismValue) {
+            visitValue((PrismValue) visitable, result);
+        }
+    }
+
+    private void visitValue(PrismValue value, ValidationResult result) {
+        if (warnIncorrectOid) {
+            if (value instanceof PrismObjectValue<?>) {
+                checkOid(result, value, ((PrismObjectValue<?>) value).getOid());
+            } else if (value instanceof PrismReferenceValue) {
+                checkOid(result, value, ((PrismReferenceValue) value).getOid());
+            }
         }
     }
 
@@ -100,6 +124,7 @@ public class ObjectValidator {
         if (definition == null) {
             return;
         }
+
         if (warnDeprecated && definition.isDeprecated()) {
             warn(result, item, "deprecated");
         }
@@ -111,6 +136,18 @@ public class ObjectValidator {
                 }
             }
         }
+    }
+
+    private void checkOid(ValidationResult result, PrismValue item, String oid) {
+        if (oid == null) {
+            return;
+        }
+        try {
+            UUID.fromString(oid);
+        } catch (IllegalArgumentException e) {
+            warn(result, (Item<?,?>) item.getParent(), "OID '" + oid + "' is not valid UUID");
+        }
+
     }
 
     private <V extends PrismValue, D extends ItemDefinition> void warn(ValidationResult result, Item<V, D> item, String message) {
