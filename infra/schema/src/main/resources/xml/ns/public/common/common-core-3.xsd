@@ -195,6 +195,8 @@
                     <xsd:appinfo>
                         <a:displayName>ObjectType.subtype</a:displayName>
                         <a:displayOrder>15</a:displayOrder>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.2</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -679,6 +681,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:deprecated>true</a:deprecated>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2094,6 +2097,7 @@
                             <xsd:appinfo>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>4.0</a:deprecatedSince>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2115,6 +2119,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.1</a:since>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2129,6 +2134,7 @@
                             <xsd:appinfo>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>4.1</a:deprecatedSince>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2680,6 +2686,11 @@
                             <xsd:documentation>
                                 A stack of handlers that should be called after the primary one (handlerUri) finishes.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.3</a:deprecatedSince>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="result" type="tns:OperationResultType" minOccurs="0">
@@ -2804,6 +2815,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.8</a:since>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -4925,6 +4937,7 @@
                                 <a:displayOrder>410</a:displayOrder>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>3.8</a:deprecatedSince>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -6246,6 +6259,11 @@
                                 instance-specific resource schema or for other
                                 purposes. If not set a default namespace is assumed.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.3</a:deprecatedSince>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element ref="tns:schema" minOccurs="0">
@@ -7958,6 +7976,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.4</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -8303,6 +8322,7 @@
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
                         <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.4</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -14073,6 +14093,7 @@
                                 <a:displayName>RoleType.roleType</a:displayName>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>3.8</a:deprecatedSince>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -14527,6 +14548,7 @@
                                 <a:displayOrder>120</a:displayOrder>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>3.8</a:deprecatedSince>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -14640,6 +14662,7 @@
                                 <a:displayOrder>120</a:displayOrder>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>3.8</a:deprecatedSince>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -15379,6 +15402,7 @@
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
                         <a:deprecatedSince>4.0</a:deprecatedSince>
+                        <a:plannedRemoval>4.4</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -16657,6 +16681,8 @@
                               <xsd:appinfo>
                                 <a:displayName>DashboardWidgetDataType.auditSearch</a:displayName>
                                 <a:experimental>true</a:experimental>
+                                <a:deprecated>true</a:deprecated>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                               </xsd:appinfo>
                           </xsd:annotation>
                       </xsd:element>
@@ -17111,6 +17137,7 @@
                         <a:displayName>InternalsConfigurationType.subresultStripThreshold</a:displayName>
                         <a:deprecated>true</a:deprecated>
                         <a:deprecatedSince>4.0</a:deprecatedSince>
+                        <a:plannedRemoval>4.4</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -18139,6 +18166,7 @@
                         <a:since>3.4</a:since>
                         <a:displayName>AdminGuiConfigurationType.objectLists</a:displayName>
                         <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.4</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -23418,6 +23446,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>
+                                <a:deprecated>true</a:deprecated>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
