@@ -12,6 +12,9 @@ import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -20,6 +23,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -98,15 +102,21 @@ public class ConstraintReferenceMatcher<AH extends AssignmentHolderType> {
                 targetReference.getFilter(), () -> "No filter in " + contextDescription);
         if (filter == null) {
             filter = PrismContext.get().getQueryConverter().parseFilter(filterBean, objectDefLookingFor);
+
+            VariablesMap variables = new VariablesMap();
+            variables.put(ExpressionConstants.VAR_POLICY_RULE, evalContext.policyRule, EvaluatedPolicyRule.class);
+            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(
+                    new ExpressionEnvironment<>(evalContext.lensContext, null, evalContext.task, operationResult));
             try {
-                // TODO currently no variables are supported, see MID-7390
-                VariablesMap variables = new VariablesMap();
                 filter = ExpressionUtil.evaluateFilterExpressions(filter,
                         variables, MiscSchemaUtil.getExpressionProfile(),
                         expressionFactory, expressionFactory.getPrismContext(), contextDescription,
                         evalContext.task, operationResult);
-            } catch (ObjectNotFoundException | SecurityViolationException | ConfigurationException | CommunicationException | ExpressionEvaluationException e) {
+            } catch (ObjectNotFoundException | SecurityViolationException | ConfigurationException
+                    | CommunicationException | ExpressionEvaluationException e) {
                 throw new SystemException("Error occurred during expression evaluation", e);
+            } finally {
+                ModelExpressionThreadLocalHolder.popExpressionEnvironment();
             }
         }
         return filter.match(object.getValue(), SchemaService.get().matchingRuleRegistry());

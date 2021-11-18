@@ -28,6 +28,15 @@
                                 <expression>
                                     <script>
                                         <code>
+                                            // variable
+                                            assert policyRule != null // EvaluatedPolicyRule
+                                            assert policyRule.assignmentPath != null
+
+                                            // pushed expression environment
+                                            assert midpoint.modelContext != null
+                                            assert midpoint.currentTask != null
+                                            assert midpoint.currentResult != null
+
                                             return "gold"
                                         </code>
                                     </script>
