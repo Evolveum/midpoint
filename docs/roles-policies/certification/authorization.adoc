@@ -96,6 +96,10 @@ At the GUI level, there are the following action URIs available.
 
 
 | My cases to decide
+| <prefix>#myCertificationDecisions
+|
+
+| All cases to decide
 | <prefix>#certificationDecisions
 |
 
