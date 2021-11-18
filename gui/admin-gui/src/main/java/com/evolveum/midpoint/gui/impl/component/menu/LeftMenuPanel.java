@@ -356,16 +356,24 @@ public class LeftMenuPanel extends BasePanel<Void> {
         MenuItem menu = new MenuItem("PageAdmin.menu.top.certification.scheduling", PageTasksCertScheduling.class, params);
         certificationMenu.addMenuItem(menu);
 
-//        if (isFullyAuthorized()) {  // workaround for MID-5917
+        if (isFullyAuthorized()) {  // workaround for MID-7397
             certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.allDecisions", PageCertDecisionsAll.class));
-
-//        }
+        }
         certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.decisions", PageCertDecisions.class));
 
 
         MenuItem newCertificationMenu = new MenuItem("PageAdmin.menu.top.certification.newDefinition", GuiStyleConstants.CLASS_PLUS_CIRCLE, PageCertDefinition.class);
         certificationMenu.addMenuItem(newCertificationMenu);
         return certificationMenu;
+    }
+
+    public boolean isFullyAuthorized() {
+        try {
+            return getPageBase().isAuthorized(AuthorizationConstants.AUTZ_ALL_URL);
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check the authorization", t);
+            return false;
+        }
     }
 
     private MainMenuItem createServerTasksItems() {
