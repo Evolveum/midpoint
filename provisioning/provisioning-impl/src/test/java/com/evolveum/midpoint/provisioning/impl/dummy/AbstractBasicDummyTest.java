@@ -1414,6 +1414,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
             assertNotNull("No ICF NAME", icfName);
             assertEquals("Wrong shadow name (" + shadow.getName() + ")", StringUtils.lowerCase(icfName), StringUtils.lowerCase(shadow.getName().getOrig()));
             assertNotNull("No kind in " + shadow, shadow.getKind());
+            assertNotNull("No shadow lifecycle state in " + shadow, shadow.getShadowLifecycleState());
 
             if (shadow.getKind() == ShadowKindType.ACCOUNT) {
                 if (fullShadow) {
