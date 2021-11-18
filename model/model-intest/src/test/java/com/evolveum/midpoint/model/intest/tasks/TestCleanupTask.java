@@ -19,6 +19,7 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -95,16 +96,38 @@ public class TestCleanupTask extends AbstractEmptyModelIntegrationTest {
         waitForTaskCloseOrSuspend(TASK_CLEANUP_NEW_LIMITED.oid);
 
         then();
+
+        CleaningResult tasks = assertCleanedUpObjects("l", TaskType.class, tasksBefore, result);
+        CleaningResult nodes = assertCleanedUpObjects("l", NodeType.class, nodesBefore, result);
+
+        // @formatter:off
         assertTask(TASK_CLEANUP_NEW_LIMITED.oid, "after")
                 .display()
                 .assertClosed()
                 .assertPartialError()
-                .rootActivityState()
-                    .display(); // TODO check progress and statistics when implemented
+                .activityState(SchemaConstants.PATH_CLOSED_TASKS_CLEANUP)
+                    .progress()
+                        .display()
+                        .assertCommitted(tasks.deleted, 0, tasks.skipped)
+                .end()
+                    .itemProcessingStatistics()
+                        .display()
+                        .assertTotalCounts(tasks.deleted, 0, tasks.skipped)
+                    .end()
+                .end()
+                .activityState(SchemaConstants.PATH_DEAD_NODES_CLEANUP)
+                    .progress()
+                        .display()
+                        .assertCommitted(nodes.deleted, 0, nodes.skipped)
+                    .end()
+                    .itemProcessingStatistics()
+                        .display()
+                        .assertTotalCounts(nodes.deleted, 0, nodes.skipped)
+                    .end()
+                .end();
+        // @formatter:on
 
         assertHistoricAuditRecordPresence(true);
-        assertCleanedUpObjects("l", TaskType.class, tasksBefore, result);
-        assertCleanedUpObjects("l", NodeType.class, nodesBefore, result);
     }
 
     /**
@@ -136,16 +159,38 @@ public class TestCleanupTask extends AbstractEmptyModelIntegrationTest {
         waitForTaskCloseOrSuspend(TASK_CLEANUP_LEGACY_ADMIN.oid);
 
         then();
+
+        CleaningResult tasks = assertCleanedUpObjects("a", TaskType.class, tasksBefore, result);
+        CleaningResult nodes = assertCleanedUpObjects("a", NodeType.class, nodesBefore, result);
+
+        // @formatter:off
         assertTask(TASK_CLEANUP_LEGACY_ADMIN.oid, "after")
                 .display()
                 .assertClosed()
                 .assertSuccess()
-                .rootActivityState()
-                    .display(); // TODO check progress and statistics when implemented
+                .activityState(SchemaConstants.PATH_CLOSED_TASKS_CLEANUP)
+                    .progress()
+                        .display()
+                        .assertCommitted(tasks.deleted, 0, tasks.skipped)
+                    .end()
+                    .itemProcessingStatistics()
+                        .display()
+                        .assertTotalCounts(tasks.deleted, 0, tasks.skipped)
+                    .end()
+                .end()
+                .activityState(SchemaConstants.PATH_DEAD_NODES_CLEANUP)
+                    .progress()
+                        .display()
+                        .assertCommitted(nodes.deleted, 0, nodes.skipped)
+                    .end()
+                    .itemProcessingStatistics()
+                        .display()
+                        .assertTotalCounts(nodes.deleted, 0, nodes.skipped)
+                    .end()
+                .end();
+        // @formatter:on
 
         assertHistoricAuditRecordPresence(false);
-        assertCleanedUpObjects("a", TaskType.class, tasksBefore, result);
-        assertCleanedUpObjects("a", NodeType.class, nodesBefore, result);
     }
 
     private void createHistoricAuditRecord(Task task, OperationResult result) {
@@ -177,8 +222,8 @@ public class TestCleanupTask extends AbstractEmptyModelIntegrationTest {
     }
 
     /** Scenario is "l" for limited user, and "a" for administrator. */
-    private <T extends ObjectType> void assertCleanedUpObjects(String scenario, Class<T> type, List<PrismObject<T>> before,
-            OperationResult result) throws CommonException {
+    private <T extends ObjectType> CleaningResult assertCleanedUpObjects(String scenario, Class<T> type,
+            List<PrismObject<T>> before, OperationResult result) throws CommonException {
         List<PrismObject<T>> after =
                 repositoryService.searchObjects(type, testObjectsQuery(), null, result);
         Set<String> oidsAfter = new HashSet<>(ObjectTypeUtil.getOidsFromPrismObjects(after));
@@ -199,6 +244,26 @@ public class TestCleanupTask extends AbstractEmptyModelIntegrationTest {
         assertThat(notDeleted)
                 .allMatch(willNotBeDeleted(scenario), "will not be deleted")
                 .noneMatch(willBeDeleted(scenario));
+
+        return new CleaningResult(
+                getRelevantItemsCount(deleted),
+                getRelevantItemsCount(notDeleted));
+    }
+
+    /** Returns # of items that should be reflected in task progress and item processing stats. */
+    private <T extends ObjectType> int getRelevantItemsCount(List<PrismObject<T>> objects) {
+        int count = 0;
+        for (PrismObject<T> object : objects) {
+            if (isRelevant(object.asObjectable())) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private boolean isRelevant(ObjectType object) {
+        return !(object instanceof TaskType) ||
+                ((TaskType) object).getParent() == null;
     }
 
     private Predicate<? super PrismObject<?>> willBeDeleted(String scenario) {
@@ -207,5 +272,16 @@ public class TestCleanupTask extends AbstractEmptyModelIntegrationTest {
 
     private Predicate<? super PrismObject<?>> willNotBeDeleted(String scenario) {
         return object -> object.getName().getOrig().contains("[" + scenario + ":will not be deleted]");
+    }
+
+    // Only root task counts are here
+    private static class CleaningResult {
+        final int deleted;
+        final int skipped;
+
+        private CleaningResult(int deleted, int skipped) {
+            this.deleted = deleted;
+            this.skipped = skipped;
+        }
     }
 }

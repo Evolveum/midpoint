@@ -27,6 +27,10 @@ import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDe
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskRun;
 
+import com.evolveum.midpoint.schema.statistics.DummyOperationImpl;
+import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
+import com.evolveum.midpoint.schema.statistics.Operation;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -567,5 +571,15 @@ public abstract class AbstractActivityRun<
 
     public Long getEndTimestamp() {
         return endTimestamp;
+    }
+
+    @Override
+    public Operation recordIterativeOperationStart(@NotNull IterativeOperationStartInfo info) {
+        if (areStatisticsSupported()) {
+            return getActivityState().getLiveStatistics().getLiveItemProcessing()
+                    .recordOperationStart(info);
+        } else {
+            return new DummyOperationImpl(info);
+        }
     }
 }

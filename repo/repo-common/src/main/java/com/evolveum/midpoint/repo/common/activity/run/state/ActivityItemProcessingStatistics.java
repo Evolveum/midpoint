@@ -17,7 +17,14 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
+
+import com.evolveum.midpoint.util.annotation.Experimental;
+
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -29,8 +36,6 @@ import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.Nullable;
 
 /**
  * This is "live" iteration information.
@@ -53,6 +58,10 @@ public class ActivityItemProcessingStatistics extends Initializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityItemProcessingStatistics.class);
 
+    @Experimental
+    private static final String OP_UPDATE_STATISTICS_FOR_SIMPLE_CLIENT = ActivityItemProcessingStatistics.class.getName() +
+            ".updateStatisticsForSimpleClient";
+
     private static final AtomicLong ID_COUNTER = new AtomicLong(0);
 
     /** Current value. Guarded by this. */
@@ -62,6 +71,16 @@ public class ActivityItemProcessingStatistics extends Initializable {
      * Reference to the containing activity state object.
      */
     @NotNull private final CurrentActivityState<?> activityState;
+
+    /**
+     * When we last updated activity statistics for the simple clients.
+     * EXPERIMENTAL. UGLY HACK. PLEASE REMOVE.
+     */
+    @Experimental
+    private long lastStatisticsUpdatedForSimpleClients = System.currentTimeMillis();
+
+    @Experimental
+    private static final long STATISTICS_UPDATE_INTERVAL = 3000L;
 
     ActivityItemProcessingStatistics(@NotNull CurrentActivityState<?> activityState) {
         this.activityState = activityState;
@@ -238,49 +257,6 @@ public class ActivityItemProcessingStatistics extends Initializable {
     }
 
     /**
-     * Operation being recorded: represents an object to which the client reports the end of the operation.
-     * It is called simply {@link Operation} to avoid confusing the clients.
-     */
-    public interface Operation {
-
-        default void succeeded() {
-            done(ItemProcessingOutcomeType.SUCCESS, null);
-        }
-
-        default void skipped() {
-            done(ItemProcessingOutcomeType.SKIP, null);
-        }
-
-        default void failed(Throwable t) {
-            done(ItemProcessingOutcomeType.FAILURE, t);
-        }
-
-        default void done(ItemProcessingOutcomeType outcome, Throwable exception) {
-            QualifiedItemProcessingOutcomeType qualifiedOutcome =
-                    new QualifiedItemProcessingOutcomeType(PrismContext.get())
-                            .outcome(outcome);
-            done(qualifiedOutcome, exception);
-        }
-
-        void done(QualifiedItemProcessingOutcomeType outcome, Throwable exception);
-
-        double getDurationRounded();
-
-        long getEndTimeMillis();
-
-        /** Returns the item characterization for this operation. */
-        @NotNull IterationItemInformation getIterationItemInformation();
-
-        /** Returns start info for this operation. */
-        @NotNull IterativeOperationStartInfo getStartInfo();
-
-        default @Nullable XMLGregorianCalendar getEndTimestamp() {
-            return getEndTimeMillis() != 0 ?
-                    XmlTypeConverter.createXMLGregorianCalendar(getEndTimeMillis()) : null;
-        }
-    }
-
-    /**
      * Real implementation of the {@link Operation} interface.
      */
     public class OperationImpl implements Operation {
@@ -311,11 +287,10 @@ public class ActivityItemProcessingStatistics extends Initializable {
         public void done(QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
             setEndTimes();
             recordOperationEnd(this, outcome, exception);
-//            StructuredProgressCollector progressCollector = startInfo.getStructuredProgressCollector();
-//            if (progressCollector != null) {
-//                ActivityPath activityPath = startInfo.getActivityPath();
-//                progressCollector.incrementStructuredProgress("TODO", outcome); // TODO
-//            }
+            if (startInfo.isSimpleCaller()) {
+                activityState.getLiveProgress().increment(outcome, ActivityProgress.Counters.COMMITTED);
+                updateStatisticsForSimpleClients();
+            }
         }
 
         private void setEndTimes() {
@@ -346,6 +321,22 @@ public class ActivityItemProcessingStatistics extends Initializable {
         @Override
         public @NotNull IterativeOperationStartInfo getStartInfo() {
             return startInfo;
+        }
+    }
+
+    /**
+     * Very ugly hack. We create our own operation result (!!).
+     */
+    @Experimental
+    private void updateStatisticsForSimpleClients() {
+        try {
+            activityState.updateProgressAndStatisticsNoCommit();
+            if (System.currentTimeMillis() > lastStatisticsUpdatedForSimpleClients + STATISTICS_UPDATE_INTERVAL) {
+                lastStatisticsUpdatedForSimpleClients = System.currentTimeMillis();
+                activityState.flushPendingTaskModificationsChecked(new OperationResult(OP_UPDATE_STATISTICS_FOR_SIMPLE_CLIENT));
+            }
+        } catch (ActivityRunException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't update statistics for a simple client in {}", e, this);
         }
     }
 }

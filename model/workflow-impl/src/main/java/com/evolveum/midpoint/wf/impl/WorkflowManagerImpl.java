@@ -183,7 +183,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
 
                 IterativeOperationStartInfo startInfo = new IterativeOperationStartInfo(
                         new IterationItemInformation(rootObsoleteCase));
-                startInfo.setProgressCollector(executionTask); // TODO
+                startInfo.setSimpleCaller(true);
                 Operation op = executionTask.recordIterativeOperationStart(startInfo);
                 try {
                     if (ObjectTypeUtil.isIndestructible(rootObsoleteCase)) {

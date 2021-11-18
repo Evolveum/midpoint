@@ -69,6 +69,7 @@ public final class CleanupPartialActivityRun<CP>
                 getCleanupPolicies(result));
         if (policy != null) {
             try {
+                getRunningTask().setExecutionSupport(this);
                 cleaner.cleanup(policy, getRunningTask(), result);
                 LOGGER.info("{}: Finished", part.label);
             } catch (Exception e) {
@@ -78,6 +79,8 @@ public final class CleanupPartialActivityRun<CP>
                 // But because the status aggregation does not treat this correctly yet (fatal is propagated to the root),
                 // let us report this as partial error for now. FIXME
                 return ActivityRunResult.exception(PARTIAL_ERROR, FINISHED, e);
+            } finally {
+                getRunningTask().setExecutionSupport(null);
             }
         } else {
             LOGGER.trace(part.label + ": No clean up policy for this kind of items present.");

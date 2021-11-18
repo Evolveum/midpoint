@@ -16,7 +16,7 @@ package com.evolveum.midpoint.schema.statistics;
 public interface StatisticsCollector
         extends NotificationStatisticsCollector, MappingStatisticsCollector,
         TaskActionsExecutedCollector, TaskSynchronizationStatisticsCollector,
-        IterativeOperationCollector {
+        TaskIterativeOperationCollector {
 
     /**
      * Records a state message.

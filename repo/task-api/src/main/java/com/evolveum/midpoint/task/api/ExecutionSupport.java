@@ -10,6 +10,8 @@ package com.evolveum.midpoint.task.api;
 import java.util.Collection;
 import java.util.Map;
 
+import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
+import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +40,8 @@ public interface ExecutionSupport {
 
     /** Returns the path of the activity we are executing. */
     @NotNull ActivityPath getActivityPath();
+
+    Operation recordIterativeOperationStart(@NotNull IterativeOperationStartInfo info);
 
     /**
      * Increments given counters related to the activity execution.

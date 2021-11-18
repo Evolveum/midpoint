@@ -16,10 +16,10 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityItemProcessingStatistics;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
+import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -99,7 +99,7 @@ public class NonIterativeChangeExecutionActivityHandler
         protected @NotNull ActivityRunResult runLocally(OperationResult parentResult)
                 throws CommonException {
 
-            ActivityItemProcessingStatistics.Operation op =
+            Operation op =
                     getActivityState().getLiveItemProcessingStatistics().recordOperationStart(
                             new IterativeOperationStartInfo(
                                     new IterationItemInformation()));
@@ -126,7 +126,7 @@ public class NonIterativeChangeExecutionActivityHandler
         /**
          * See also `ItemProcessingGatekeeper.ProcessingResult#fromOperationResult`. We should eventually deduplicate the code.
          */
-        private void updateStatisticsOnNormalEnd(ActivityItemProcessingStatistics.Operation op, OperationResult result) {
+        private void updateStatisticsOnNormalEnd(Operation op, OperationResult result) {
             ItemProcessingOutcomeType outcome;
             if (result.isError()) {
                 outcome = ItemProcessingOutcomeType.FAILURE;
@@ -138,7 +138,7 @@ public class NonIterativeChangeExecutionActivityHandler
             updateStatisticsWithOutcome(op, outcome, null); // we don't try to find the exception (in case of failure)
         }
 
-        private void updateStatisticsWithOutcome(ActivityItemProcessingStatistics.Operation op,
+        private void updateStatisticsWithOutcome(Operation op,
                 ItemProcessingOutcomeType outcome, Throwable t) {
             op.done(outcome, t);
             getActivityState().getLiveProgress().increment(

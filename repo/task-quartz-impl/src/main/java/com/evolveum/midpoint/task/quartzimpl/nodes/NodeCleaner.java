@@ -9,6 +9,7 @@ package com.evolveum.midpoint.task.quartzimpl.nodes;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -23,7 +24,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
-import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.util.TimeBoundary;
@@ -73,7 +73,7 @@ public class NodeCleaner {
                 // This includes last check in time == null
                 LOGGER.info("Deleting dead node {}; last check in time = {}", node, node.asObjectable().getLastCheckInTime());
                 IterativeOperationStartInfo iterativeOperationStartInfo = new IterativeOperationStartInfo(new IterationItemInformation(node));
-                iterativeOperationStartInfo.setProgressCollector(task); // TODO
+                iterativeOperationStartInfo.setSimpleCaller(true);
                 Operation op = task.recordIterativeOperationStart(iterativeOperationStartInfo);
                 if (ObjectTypeUtil.isIndestructible(node)) {
                     LOGGER.debug("Not deleting dead but indestructible node {}", node);
