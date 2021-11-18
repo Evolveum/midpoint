@@ -206,8 +206,8 @@ E.g. the role that is being assigned.
 
 |===
 
-Besides that, there is a special variable *midpoint* pointing to a library of useful functions.
-For their description, please see link:http://fisheye.evolveum.com/browse/~br=trunk/MidPoint/trunk/model/model-impl/src/main/java/com/evolveum/midpoint/model/expr/MidpointFunctions.java?hb=true[com.evolveum.midpoint.model.expr.MidpointFunctions] class.
+There is a special variable *midpoint* pointing to a library of useful functions.
+For their description, please see https://github.com/Evolveum/midpoint/blob/master/model/model-api/src/main/java/com/evolveum/midpoint/model/api/expr/MidpointFunctions.java[MidpointFunctions] class.
 
 A couple of notes about approving by "user's manager":
 

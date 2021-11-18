@@ -12,8 +12,7 @@
 
 * Defined at runtime in Resource definition (`ResourceType`), in the `<schema>` element
 
-* Annotations: link:http://fisheye.evolveum.com/browse/midPoint-git/infra/schema/src/main/resources/xml/ns/public/resource/annotation-2.xsd?hb=true[xml/ns/public/resource/annotation-2.xsd]
-
+* Annotations: https://github.com/Evolveum/midpoint/blob/master/infra/schema/src/main/resources/xml/ns/public/resource/annotation-3.xsd[xml/ns/public/resource/annotation-3.xsd]
 
 == Introduction
 
@@ -22,20 +21,22 @@ Resource schema describes "live" objects such as accounts, groups or entitlement
 
 Specific resource schema depends on the actual resource instance: what type it is, how the adapter/connector is configured, what kind of native schema it is using (e.g. LDAP inetOrgPerson) and how the schema is customized.
 The information that the resource schema describes is dynamic and cannot be expressed as static XML structure.
-Resource schema can only be determined in *run-time*. Dynamic resource schema can vary for each _instance_ of resource, e.g. two LDAP servers using exactly the same product, version, connector and even very similar connector configuration may show a very different resource schema.
+Resource schema can only be determined in *run-time*.
+Dynamic resource schema can vary for each _instance_ of resource, e.g. two LDAP servers using exactly the same product, version, connector and even very similar connector configuration may show a very different resource schema.
 Resource schema is defined using the XSD language as most other schemas in midPoint.
 
 We will refer to parts of the dynamic resource schema using a slightly different terminology than we use for static schemas.
 While the static XSD types in midPoint use `Type` suffix in their XSD names, dynamic resource schema is using a `ObjectClass` suffix for the XSD types.
 This naming distinction avoid confusion between the static parts of midPoint and the dynamic resource schema.
 
-Resource schema works together with another dynamic schema: Connector Schema. The xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation] describes how these two fits together.
-
+Resource schema works together with another dynamic schema: Connector Schema.
+The xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation] describes how these two fits together.
 
 == Motivation
 
 It may look like the resource schema definition is duplicating many objects from the identity schema.
-E.g. the _Object Class_ concept may look like _Object Shadow_, _Account Object Class_ may look like _Account Shadow_. But this is not really the case.
+E.g. the _Object Class_ concept may look like _Object Shadow_, _Account Object Class_ may look like _Account Shadow_.
+But this is not really the case.
 It is not a duplication, but rather an alignment of concepts.
 The resource schema is only available at run-time, therefore we need a static equivalent for these concepts in compile-type, e.g. to be able to store them in repository.
 Identity schema is static and takes that role.
@@ -45,7 +46,6 @@ To be able to store them efficiently and manage them, we need OID which is provi
 The identity schema acts as a mapping between native identifier and the OID.
 Thirdly, the resource schema is a shearing layer on top of identity schema as we want great deal of flexibility in the resource schema.
 That provides the capability of midPoint to adapt to almost any resource schema that we may encounter in the field.
-
 
 == Resource Schema and Resource Schema Handling
 
@@ -64,16 +64,17 @@ This is expressed in the resource schema by appropriate annotations.
 
 The basic principle is:
 
-*  specifies *capabilities of the Resource and Connector*. If does not direcly define how the schema is used (although it may suggest it).
+* Specifies *capabilities of the Resource and Connector*.
+If does not direcly define how the schema is used (although it may suggest it).
 
-* xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] specifies the *decisions of IDM administrators*. It defines how the Resource Schema is used by midPoint to implement parts of IDM logic, present the data to the user, etc.
-
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] specifies the *decisions of IDM administrators*.
+It defines how the Resource Schema is used by midPoint to implement parts of IDM logic, present the data to the user, etc.
 
 == Object Class
 
 _Object Class_ refers to a type of object on the Resource.
 Unix account, Active Directory group, `inetOrgPerson` LDAP objectclass or a schema of `USERS` database table are all _Object Classes_ from the midPoint point of view.
-Object class defines a set of attribute names, types for each attributes and few additional properties.
+Object class defines a set of attribute names, types for each attribute and few additional properties.
 
 Object classes are presented in the form of simple XSD schema objects in midPoint.
 Each object class is a XSD complex type.
@@ -118,7 +119,8 @@ It is generated by the connector (directly or indirectly) as it is in fact a def
 MidPoint has a slightly unusual approach when it comes to the object class and attribute names.
 midPoint does *not* try to map object class names and attribute names to some kind of common "global" structure.
 midPoint is exposing the native resource terminology all the way to business logic and GUI.
-It means that if account object class is known as `inetOrgPerson` on the resource and it contains attribute `cn`, the accounts from that resource will have attribute `cn` and will be presented as being of type `InetOrgPersonObjectClass`. We do not consider the lack of the mapping as a drawback.
+It means that if account object class is known as `inetOrgPerson` on the resource and it contains attribute `cn`, the accounts from that resource will have attribute `cn` and will be presented as being of type `InetOrgPersonObjectClass`.
+We do not consider the lack of the mapping as a drawback.
 The mapping is usually too simplistic to be of any use for real IDM deployments and it only leads to a confusion.
 Therefore we have decided to show the real names through the whole system.
 Note that the attributes can still be transformed and synchronized to other attributes and properties using several midPoint mechanisms, such as inbound and outbound expressions.
@@ -140,12 +142,12 @@ _Resource Object Definition_ is mean to be synonym for _Object Class_ in some of
 
 ====
 
-
 === Object Class Definition Example
 
 Following XSD snippet provides an example of object class definition.
 The example shows how LDAP `person` object class could be presented in the resource schema.
-The example shows a schema presented by ICF connector, therefore some attributes are mangled into tha ICF mandatory format (e.g. LDAP DN is mangled into ICF `pass:[__NAME__]` which is presented in the resource schema as `icfs:name`). See xref:/connectors/connid/1.x/icf-issues/[ICF Issues].
+The example shows a schema presented by ICF connector, therefore some attributes are mangled into tha ICF mandatory format (e.g. LDAP DN is mangled into ICF `pass:[__NAME__]` which is presented in the resource schema as `icfs:name`).
+See xref:/connectors/connid/1.x/icf-issues/[ICF Issues].
 
 .Object Class Example
 [source,xml]
@@ -222,7 +224,6 @@ The example shows a schema presented by ICF connector, therefore some attributes
 
 ----
 
-
 == Resource Object Attribute
 
 Resource object attribute is a property of object class.
@@ -236,14 +237,14 @@ TODO: terminology motivation.
 
 ====
 
-
 == Resource Schema Annotations
 
 There are some aspects of the Resource Schema that cannot be expressed by using just the standard XSD mechanisms.
 Such aspects include designation of identifiers for the Object Class, native object class and attribute names, readable names, etc.
 The midPoint resource schema defines a set of XSD annotations that can be used for this purpose.
 The annotations extend the XSD language to match our needs.
-Some annotations are authoritative information, some are just suggestions (default setting) that can be overridden in the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]. Following sections define the annotations that can be used in the Resource Schema.
+Some annotations are authoritative information, some are just suggestions (default setting) that can be overridden in the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling].
+Following sections define the annotations that can be used in the Resource Schema.
 
 [TIP]
 .Prism Annotations
@@ -251,7 +252,6 @@ Some annotations are authoritative information, some are just suggestions (defau
 Please see also the xref:/midpoint/devel/prism/schema/[Prism Schema] that may also be applicable here.
 
 ====
-
 
 === resourceObject
 
@@ -261,24 +261,20 @@ The complex type marked by this annotation is considered to be a resource object
 Every object in the resource schema should have this marker annotation.
 Complex type definition that do not have this annotation are not considered part of the resource schema unless they are referred from types that have this annotation.
 
-
 === account
 
 Account marker.
 The complex type marked by this annotation is considered to be an account.
-
 
 === default
 
 A flag that specifies whether this object class is a default for its type of object classes.
 E.g. when combined with "account" annotation it marks a default account type.
 
-
 === accountType
 
 Account type specification.
 The annotation contains a simple string value that is used to define account type, e.g. "user" or "admin".
-
 
 === nativeObjectClass
 
@@ -298,7 +294,6 @@ This annotation may appear several times if the object is composed from several 
 
 If not present, the it defaults to the name of the object class XSD type (without namespace).
 
-
 === nativeAttributeName
 
 Native attribute name.
@@ -314,7 +309,6 @@ E.g. in case of LDAP this annotation should contain "cn", "givenName", etc.
 If the resource is not that flexible, the native attribute names may be hardcoded (e.g. "username", "homeDirectory") or may not be present at all.
 
 If not present, the it defaults to the corresponding element name (without namespace).
-
 
 === identifier
 
@@ -336,7 +330,6 @@ E.g. LDAP entryUUID, Unix UID, persistent object identifiers and similar attribu
 Usernames, DNs and similar attributes may be used as well.
 But these are less desirable as they may change.
 Therefore these should be used only if no other option is available.
-
 
 === secondaryIdentifier
 
@@ -364,7 +357,6 @@ Then it can make a uniqueness check for both primary and secondary identifiers b
 Which is much more efficient than trying to create the account on resource and failing (maybe even several times).
 Secondary identifiers may be also used to confirm the equivalence of an object after primary identifier changes and in similar situations.
 
-
 === namingAttribute
 
 Reference to the naming name attribute.
@@ -374,7 +366,6 @@ This may not necessarily be human-readable, but it should be unique within the s
 It should also be admin-friendly in a sense that administrator should be able to quickly interpret that.
 E.g. user names, login names, screen name, DNs and similar attributes are good candidate for naming attribute.
 
-
 === displayNameAttribute
 
 Reference to the display name attribute.
@@ -383,14 +374,12 @@ E.g. if it refers to the ldap:cn attribute then the content of that attribute wi
 This should be used for user-friendly values such as cn, full name, etc.
 There is no requirement for uniqueness.
 
-
 === descriptionAttribute
 
 Reference to the desription attribute.
 This annotation contains a QName of the attribute that should be used as description of resource objects.
 Description is a longer (multi-line) free form-text.
 The description may be used as a general comment, it may be displayed when the object details are shown to the user, etc.
-
 
 == Implementation of Resource Schema
 
@@ -402,7 +391,6 @@ However, midPoint does not care about that structure, it considers the attribute
 If there is a structured attribute, midPoint will pass it unchanged all the way from the connector to the business logic and GUI.
 
 TODO
-
 
 == See Also
 
