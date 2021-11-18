@@ -77,9 +77,9 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
                         label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
                         description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
-                @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_DECISIONS,
-                        label = PageAdminCertification.AUTH_CERTIFICATION_DECISIONS_LABEL,
-                        description = PageAdminCertification.AUTH_CERTIFICATION_DECISIONS_DESCRIPTION)})
+                @AuthorizationAction(actionUri = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS,
+                        label = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS_LABEL,
+                        description = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS_DESCRIPTION)})
 
 public class PageCertDecisions extends PageAdminCertification {
 
