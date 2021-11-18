@@ -119,9 +119,9 @@ if [ "${1}" = "init-native" ] ; then
 			keytool -genseckey -alias default -keystore "${MP_KEYSTORE}" -storetype jceks -keypass midpoint -storepass:file ${keystorepw} -keyalg AES -keysize 128 2>/dev/null
 		fi
 		echo "${MP_CERT}" > "${MP_KEYSTORE}_"
-		while [ -s "${MP_KEYSTORE}_" ]
+		grep -n " CERTIFICATE-----" ${MP_KEYSTORE}_ | cut -d : -f 1 | paste - - | sed "s/\([0-9]*\)[^0-9]*\([0-9]*\)/\1,\2p/" | while read certRange
 		do
-			sed -n '0,/-----END CERTIFICATE-----/p' "${MP_KEYSTORE}_" > "${MP_KEYSTORE}__"
+			sed -n "${certRange}" "${MP_KEYSTORE}_" > "${MP_KEYSTORE}__"
 			echo "- - - - -" >&2
 			subject="$(keytool -printcert -file "${MP_KEYSTORE}__" 2>/dev/null | grep "Owner: " | sed "s/[^:]*: \(.*\)/\1/")"
 			echo "${subject}"
@@ -148,11 +148,10 @@ if [ "${1}" = "init-native" ] ; then
 					keytool -importcert -noprompt -trustcacerts -alias "${subject}" -file "${MP_KEYSTORE}__" -keystore "${MP_KEYSTORE}" -storetype jceks -storepass:file "${keystorepw}" 2>/dev/null
 					sleep 1
 				fi
-				rm "${MP_KEYSTORE}__"
 			else
 				echo "Certificate did not found in the file..." >&2
 			fi
-			sed -i '0,/-----END CERTIFICATE-----/d' ${MP_KEYSTORE}_
+			[ -e "${MP_KEYSTORE}__" ] && rm "${MP_KEYSTORE}__"
 		done
 		[ -e "${MP_KEYSTORE}_" ] && rm -f "${MP_KEYSTORE}_"
 		echo "- - - - -"
