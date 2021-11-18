@@ -12,7 +12,7 @@
 *Status:* Public +
 *Stability: *STABLE +
 *Platform:* Java +
-*Dependencies:*xref:/midpoint/reference/schema/[Data Model], Common schema +
+*Dependencies:* xref:/midpoint/reference/schema/[Data Model], Common schema +
 *Responsible person:* Radovan Semancik
 
 
@@ -264,4 +264,4 @@ development)
 
 == See Also
 
-* wiki:IDM+Model+Interface+Introduction[IDM Model Interface Introduction]
+* xref:/midpoint/reference/interfaces/model-java/introduction/[IDM Model Interface Introduction]

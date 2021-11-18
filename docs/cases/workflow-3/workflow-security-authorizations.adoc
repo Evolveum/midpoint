@@ -239,7 +239,7 @@ But it can be accepted as a short form of "case management work items" (which is
 
 . When implementing Attorney items authorization, we would perhaps need to create a special subclass of `PageCaseWorkItems` (e.g. `PageCaseWorkItemsAttorney`) to be able to attach <prefix>#attorneyCaseWorkItems action URI to it.
 
-. Q: Although the structure of certifications is a bit similar to the one of case management (case  work items), in GUI they have a different terminology - see wiki:Access+Certification+Security[Access Certification Security]:
+. Q: Although the structure of certifications is a bit similar to the one of case management (case  work items), in GUI they have a different terminology - see xref:/midpoint/reference/roles-policies/certification/authorization/[Access Certification Security]:
 
 [%autowidth]
 |===

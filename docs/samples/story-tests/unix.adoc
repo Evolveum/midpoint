@@ -117,4 +117,4 @@ It is assumed that this is both general-purpose directory system and also a dire
 
 * xref:/midpoint/reference/samples/[Configuration Sample]
 
-* wiki:Sequences[Sequences]
+* xref:/midpoint/reference/expressions/sequences/[Sequences]

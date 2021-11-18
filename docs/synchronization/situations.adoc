@@ -7,7 +7,7 @@
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2014-01-07T15:56:54.069+01:00
 
-When midPoint detects an synchronization event it  is categorized into one of the _situations_. The _situation_ describes how the change relates to the midPoint state regarding the changed resource object (account), user and the midPoint policies.
+When midPoint detects a synchronization event it  is categorized into one of the _situations_. The _situation_ describes how the change relates to the midPoint state regarding the changed resource object (account), user and the midPoint policies.
 
 
 == Situations
@@ -94,7 +94,7 @@ MidPoint is using the following algorithm to determine a situation:
 The owner is an object that has a xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[link] to this resource object.
 If an owner is found then the situation is *linked*.
 
-. wiki:Correlation+and+Confirmation+Expressions[Correlation and confirmation expressions] are used to determine a potential owner for the resource object.
+. xref:/midpoint/reference/synchronization/correlation-and-confirmation-expressions/[Correlation and confirmation expressions] are used to determine a potential owner for the resource object.
 If any potential owners are found the situation is *unlinked* or *disputed*.
 
 . The situation is *unmatched*.
@@ -145,6 +145,6 @@ h| 2 or more
 
 * xref:/midpoint/reference/synchronization/introduction/[Synchronization]
 
-* wiki:Synchronization+Configuration[Synchronization Configuration]
+* xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration]
 
-* wiki:Correlation+and+Confirmation+Expressions[Correlation and Confirmation Expressions]
+* xref:/midpoint/reference/synchronization/correlation-and-confirmation-expressions/[Correlation and Confirmation Expressions]

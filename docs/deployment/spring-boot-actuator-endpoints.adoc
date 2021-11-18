@@ -43,7 +43,7 @@ Each of them is accessible on 'BASE_MIDPOINT_URL'/actuator/'NAME_OF_ENDPOINT'.
 
 |===
 
-wiki:Spring+Boot+Actuator+Endpoints+Authorizations[Spring Boot Actuator Endpoints Authorizations] page shows authorizations for individual endpoint.
+xref:/midpoint/reference/security/authorization/actuators/[Spring Boot Actuator Endpoints Authorizations] page shows authorizations for individual endpoint.
 
 You can see all available links on _'BASE_MIDPOINT_URL'/actuator_.
 

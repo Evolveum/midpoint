@@ -33,7 +33,7 @@ Just like good old Unix pipelines.
 
 The scripts are currently represented using standard midPoint prism structures, externalized as XML, JSON or YAML documents.
 A specialized text-based language was once conceived (and experimentally implemented), but it is not currently available.
-Hoping its time will come it is described wiki:Bulk+actions+(unordered+notes)[here].
+Hoping its time will come it is described xref:/midpoint/devel/design/bulk-actions-notes-/[here].
 
 .Example 1: Recomputing all users without full name
 [source,xml]
@@ -186,7 +186,7 @@ Currently there are the following kinds of expressions:
 |===
 | Name | Meaning
 
-| wiki:Search[search]
+| xref:/midpoint/reference/misc/bulk/search/[search]
 | Retrieves a set of objects via searchObjects model call.
 
 
@@ -195,24 +195,24 @@ Currently there are the following kinds of expressions:
 Typical actions are add, modify, delete, enable, disable, assign, resolve, log, ...
 
 
-| wiki:Select[select]
+| xref:/midpoint/reference/misc/bulk/select/[select]
 | Selects a given item (container, reference, property) from the input data and copies its value(s) into output.
 For example, accepts a list of users and selects only their accounts.
 
 
-| wiki:Filter+Content[filterContent]
+| xref:/midpoint/reference/misc/bulk/filter-content/[filterContent]
 | Removes selected items from the input data.
 For example, give a list of users, removes all the data except for names and password values.
 (Since 3.6.)
 
 
-| wiki:Pipeline[pipeline]
+| xref:/midpoint/reference/misc/bulk/pipeline/[pipeline]
 | Chains a set of expression together.
 They are executed one after another; input sent to the pipeline as a whole is sent to the first expression.
 Output of the last expression is considered to be the output of the whole pipeline.
 
 
-| wiki:Sequence[sequence]
+| xref:/midpoint/reference/misc/bulk/sequence/[sequence]
 | Sequence of command expressions.
 They are executed one after another; input sent to the sequence as a whole is then sent individually to each expression.
 Output of the last expression is considered to be the output of the whole sequence.
@@ -357,7 +357,7 @@ Since 3.7.2.
 | -
 
 
-| wiki:generate-value[generate-value]
+| xref:/midpoint/reference/misc/bulk/actions/generate-value/[generate-value]
 | Generates value(s) for object(s) coming as input.
 | items
 | Description of what and how to generate.

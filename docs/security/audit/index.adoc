@@ -459,7 +459,7 @@ It is not stable.
 The implementation may contain bugs, the configuration may change at any moment without any warning and it may not work at all.
 Use at your own risk.
 This feature is not covered by midPoint support.
-In case that you are interested in link:/support/subscription-sponsoring/[supporting] development of this feature, please consider purchasing link:https://evolveum.com/services/professional-support/[midPoint Platform subscription].
+In case that you are interested in xref:/support/subscription-sponsoring/[supporting] development of this feature, please consider purchasing link:https://evolveum.com/services/professional-support/[midPoint Platform subscription].
 ====
 
 [TIP]
@@ -507,7 +507,7 @@ It is not stable.
 The implementation may contain bugs, the configuration may change at any moment without any warning and it may not work at all.
 Use at your own risk.
 This feature is not covered by midPoint support.
-In case that you are interested in link:/support/subscription-sponsoring/[supporting] development of this feature, please consider purchasing link:https://evolveum.com/services/professional-support/[midPoint Platform subscription].
+In case that you are interested in xref:/support/subscription-sponsoring/[supporting] development of this feature, please consider purchasing link:https://evolveum.com/services/professional-support/[midPoint Platform subscription].
 ====
 
 [TIP]

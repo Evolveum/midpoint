@@ -102,6 +102,6 @@ Please see xref:/midpoint/reference/concepts/relation/relation-configuration/[Re
 
 * xref:/midpoint/reference/roles-policies/assignment/[Assignment]
 
-* wiki:Deputy[Deputy]
+* xref:/midpoint/reference/misc/deputy/[Deputy]
 
 * xref:/midpoint/reference/concepts/relation/relation-configuration/[Relation Configuration]

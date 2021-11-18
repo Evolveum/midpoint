@@ -83,13 +83,13 @@ While midPoint is built with relativity in mind, this relativity is not complete
 MidPoint evolution, and especially financial and scheduling constraints, forced us to make compromises during midPoint development.
 This does not affect correctness of midPoint computation, but it may affect performance.
 The deployments that rely on a lightweight processing of large number of small changes may be affected.
-Please see wiki:Complete+Relativity[Complete Relativity] page for more details.
+Please see xref:/midpoint/features/planned/complete-relativity/[Complete Relativity] page for more details.
 
 
 == See Also
 
 * xref:/midpoint/architecture/concepts/consistency-model/[Consistency Model]
 
-* wiki:Mapping+Relativity[Mapping Relativity]
+* xref:/midpoint/reference/expressions/mappings/mapping-relativity/[Mapping Relativity]
 
-* wiki:Complete+Relativity[Complete Relativity]
+* xref:/midpoint/features/planned/complete-relativity/[Complete Relativity]

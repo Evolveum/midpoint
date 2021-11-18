@@ -21,7 +21,6 @@ TODO: better explanation:
 
 * correct support for multi-value properties
 
-
 == Scripting Expressions in Mappings
 
 Most expression types used in mappings are built to work with deltas `(asIs` expressions, `path` expressions) and they do it correctly and efficiently.
@@ -64,7 +63,6 @@ TODO: better explanation:
 * Picture how a delta is translated through SCRIPTING mapping
 
 * relative and absolute mode
-
 
 === Expression null Values
 
@@ -117,7 +115,6 @@ There is also a convenient xref:/midpoint/reference/expressions/expressions/scri
     </condition>
 </mapping>
 ----
-
 
 == Mapping Condition
 
@@ -217,15 +214,13 @@ There are other settings such as mapping _range_. A condition that is `false` wi
 Whereas mapping expression can only control the value that the mapping produces.
 But it cannot control other processing of that value that takes place in the mapping.
 
-
 == Limitations
 
 While midPoint is built with xref:/midpoint/reference/concepts/relativity/[Relativity] in mind, this relativity is not complete.
 MidPoint evolution, and especially financial and scheduling constraints, forced us to make compromises during midPoint development.
 This does not affect correctness of midPoint computation, but it may affect performance.
 The deployments that rely on a lightweight processing of large number of small changes may be affected.
-Please see wiki:Complete+Relativity[Complete Relativity] page for more details.
-
+Please see xref:/midpoint/features/planned/complete-relativity/[Complete Relativity] page for more details.
 
 == See Also
 
@@ -233,4 +228,4 @@ Please see wiki:Complete+Relativity[Complete Relativity] page for more details.
 
 * xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
-* wiki:Complete+Relativity[Complete Relativity]
+* xref:/midpoint/features/planned/complete-relativity/[Complete Relativity]

@@ -18,7 +18,7 @@ Here we show how to do that.
 
 == Example
 
-Let us consider the example mentioned wiki:Using+Assignment+Path+in+Expressions[here] (copied here for simplicity):
+Let us consider the example mentioned xref:/midpoint/reference/roles-policies/assignment/using-assignment-path-in-expressions/[here] (copied here for simplicity):
 
 We "stamp" each focus with the description of assigned role.
 

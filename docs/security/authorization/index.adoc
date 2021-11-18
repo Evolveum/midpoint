@@ -37,12 +37,12 @@ image::configuration/security-role-org.png[]
 Authorization concept is an integral part of xref:/midpoint/architecture/[midPoint architecture]. Authorization are enforced at several layers of midPoint component structure to assure complete authorization coverage.
 This can also be utilized to create a very complex authorization schemes, e.g. enterprise delegated authorization, partial multi-tenancy, segregation of organizational units, compartmentization, etc.
 
-The wiki:Authorization+Configuration[Authorization Configuration] pages provides a detailed description of the configuration of midPoint authorization statements.
+The xref:/midpoint/reference/security/authorization/configuration/[Authorization Configuration] pages provides a detailed description of the configuration of midPoint authorization statements.
 
 
 == See Also
 
-* wiki:Authorization+Configuration[Authorization Configuration]
+* xref:/midpoint/reference/security/authorization/configuration/[Authorization Configuration]
 
 * xref:/midpoint/reference/roles-policies/rbac/[]
 

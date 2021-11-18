@@ -22,7 +22,6 @@ Logout + login.
 . Enjoy!
 ====
 
-
 == Overview
 
 _Tracing_ is an unofficial and highly experimental feature of midPoint troubleshooting.
@@ -45,7 +44,6 @@ Analysis can be carried out via:
 
 . IntelliJ IDEA plugin (but this feature is not finished there).
 
-
 == Enabling experimental features
 
 To record (via GUI) or to view traces you have to enable experimental features of midPoint GUI:
@@ -53,7 +51,6 @@ To record (via GUI) or to view traces you have to enable experimental features o
 image::image2019-10-14_15-22-46.png[]
 
 After the change, please log out and log in, in order to apply the changed settings.
-
 
 == Recording traces via GUI
 
@@ -72,7 +69,6 @@ Here we collect only basic information, so the impact on performance is quite lo
 
 After operation is complete, the trace is stored in `trace`  subdirectory of midPoint home directory.
 It can be obtained either directly from there, or downloaded/viewed from within _Created reports _menu item (see below).
-
 
 == Recording traces for background tasks
 
@@ -104,7 +100,6 @@ A task can record the trace(s) for objects being processed by including the foll
 </task>
 ----
 
-
 == Analyzing traces via GUI
 
 First you need to open _Created reports_ page:
@@ -121,13 +116,11 @@ But subsequent visualizations of the same trace (with changed parameters) should
 (Also make sure you get enough heap when opening large traces.
 ☺)
 
-More information about the Trace view is on wiki:Trace+visualization[Trace visualization] page.
-
+More information about the Trace view is on xref:/midpoint/reference/diag/troubleshooting/troubleshooting-with-traces/trace-visualization/[Trace visualization] page.
 
 == Analyzing traces via IDEA plugin
 
 TODO
-
 
 == Tracing customization
 
@@ -158,7 +151,6 @@ An example of adding workflow module logging:
     </tracingTypeProfile>
 </profile>
 ----
-
 
 == Authorizations
 

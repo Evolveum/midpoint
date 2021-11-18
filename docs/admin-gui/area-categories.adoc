@@ -13,7 +13,7 @@
 
 MidPoint user interface is getting more and more complex as midPoint functionality increases.
 MidPoint user interface is also getting more and more customizable. This means that it may be quite confusing if all parts of the user interface dealt with complete set of midPoint functionality.
-For example, there are several types of wiki:Relation[relations] used in midPoint.
+For example, there are several types of xref:/midpoint/reference/concepts/relation/[relations] used in midPoint.
 The relation mechanism is a generic reusable mechanism used by almost all parts of midPoint.
 But we do not want all parts of user interface to deal with all the relation types.
 For example pages and components that are focused on identity governance only care about governance-related relations such as `owner` or `approver`. Organizational structure pages do not really care about these, but `manager` relation is very important for them.

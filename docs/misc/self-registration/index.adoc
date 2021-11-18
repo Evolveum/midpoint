@@ -363,7 +363,7 @@ Configuration looks as follows:
 The important setting for the notifier is attribute <confirmationMethod>.
 According to the value for the confirmation method, confirmation link/pin is generated to verify user.
 Other parts of configuration are same as for other notifiers.
-Details for notification configuration are described wiki:Configuring+notifications[here].
+Details for notification configuration are described xref:/midpoint/reference/misc/notifications/configuration/[here].
 
 
 == How it works

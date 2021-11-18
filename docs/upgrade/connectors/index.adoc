@@ -205,6 +205,6 @@ Evolveum offers xref:/support/subscription-sponsoring/[subscription programs] th
 
 == See Also
 
-* wiki:Connector+Setup[Connector Setup]
+* xref:/midpoint/reference/resources/connector-setup/[Connector Setup]
 
 * xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation]

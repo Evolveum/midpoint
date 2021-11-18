@@ -58,7 +58,7 @@ There is only a single standard intent defined: `default`. As the name suggests 
 ++++
 
 _Tag_ is a differentiator for resource object (e.g. accounts) that have the same value of kind and intent.
-Tag is used in situations when wiki:Multiaccounts+HOWTO[multiple equivalent accounts] are enabled.
+Tag is used in situations when xref:/midpoint/reference/resources/multiaccounts/[multiple equivalent accounts] are enabled.
 Tag is the value that discriminates between such accounts.
 
 Tag is optional.
@@ -114,7 +114,7 @@ Therefore midPoint maps object classes to (kind, intent) tuples.
 The mapping on the outbound side is defined in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]. This maps (kind, intent) to object class.
 In this case midPoint has a lot of information about the intended use and type of the object in this case and the information is quite reliable.
 This configuration can be very declarative and straightforward.
-The mapping on the inbound side is defined in wiki:Synchronization+Configuration[Synchronization Configuration]. This maps object class to (kind, intent) tuple.This mapping is not a very reliable and straightforward because all the midPoint really knows about the object is its object class and attributes.
+The mapping on the inbound side is defined in xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration]. This maps object class to (kind, intent) tuple.This mapping is not a very reliable and straightforward because all the midPoint really knows about the object is its object class and attributes.
 Therefore this configuration needs to be much more flexible and allow some kind of "guesswork" to correctly sort out the object.
 
 
@@ -193,7 +193,7 @@ Therefore midPoint allows the two grouping mechanisms to coexist (and may keep t
 
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]
 
-* wiki:Synchronization+Configuration[Synchronization Configuration]
+* xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration]
 
 * xref:/midpoint/reference/resources/resource-schema/[Resource Schema]
 

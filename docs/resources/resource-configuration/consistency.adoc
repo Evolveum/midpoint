@@ -62,9 +62,8 @@ But, theoretically, it has two limitations:
 
 But even avoidDuplicateValues is OK, despite the theoretical limitations. The  avoidDuplicateValues feature is used often and so far we haven't see any major issues in practice.
 
-
 == See Also
 
 * xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]
 
-* wiki:LDAP+Explanation[LDAP Explanation]
+* xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/ldap-explanation/[LDAP Explanation]

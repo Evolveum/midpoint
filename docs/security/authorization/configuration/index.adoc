@@ -21,7 +21,6 @@ The authorization is enforced on several levels allowing for an unprecedented fl
 The authorization model is seamlessly integrated with the xref:/midpoint/reference/roles-policies/rbac/[RBAC mechanism]. Therefore it is easy to use even a complex authorization schemas in an IDM solution.
 As the authorization statements are integrated with RBAC roles then they can be hierarchical (nested), they can be subject to an approval process and so on.
 
-
 == Authorization Model
 
 Authorization model of midPoint is based on the widely used subject-action-object authorization triple.
@@ -85,7 +84,6 @@ The actual XML definition of the `CC Operator` role looks like this:
 </role>
 ----
 
-
 == Default Deny and Other Rules
 
 MidPoint implements *default deny* policy.
@@ -101,7 +99,6 @@ Therefore use it with caution.
 
 If a statement does not specify any decision then `allow` decision is assumed.
 
-
 == Authorization Enforcement
 
 MidPoint enforces authorizations on several layers (or phases).
@@ -109,7 +106,7 @@ Each operation needs to pass all the authorization phases in order to be success
 In a normal case the operation need to pass authorization on three layers:
 
 * *GUI* or *Service* authorization.
-A user needs to have appropriate wiki:GUI+Authorizations[GUI authorization] to access the relevant GUI page.
+A user needs to have appropriate xref:/midpoint/reference/security/authorization/admin-gui/[GUI authorization] to access the relevant GUI page.
 Without this authorization the operation cannot be started.
 This similarly applies to service access such as SOAP or REST service.
 An appropriate authorization to access that particular service is needed otherwise the operation will be refused as unauthorized before it even starts.
@@ -194,7 +191,6 @@ This is possible because the "core" authorizations work on the same actions and 
 However GUI and service authorizations use different actions and they usually do not use object specification at all.
 Therefore GUI and service authorization needs to be defined explicitly.
 
-
 == GUI and Service Authorizations
 
 GUI and Service authorizations are usually very simple.
@@ -210,9 +206,8 @@ E.g.
     </authorization>
 ----
 
-See the wiki:GUI+Authorizations[GUI Authorizations] page for a full list of supported GUI actions.
-See the wiki:Service+Authorizations[Service Authorizations] page for similar list of service authorizations.
-
+See the xref:/midpoint/reference/security/authorization/admin-gui/[GUI Authorizations] page for a full list of supported GUI actions.
+See the xref:/midpoint/reference/security/authorization/service/[Service Authorizations] page for similar list of service authorizations.
 
 == "Core" Authorizations
 
@@ -227,7 +222,7 @@ And this is exactly what happens here.
 Each operation is authorized when it goes through the IDM Model component.
 This applies to all normal operations which includes operations initiated from GUI and all the remote services (SOAP, REST) as all of these components are using the xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface]. As this interface is used almost universally in midPoint the action URIs used for authorization are also based on the operation names of the xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface] - with some minor adjustments to make them practical.
 
-See the wiki:IDM+Model+Authorizations[IDM Model Authorizations] page for list of action URLs for the "core" authorizations.
+See the xref:/midpoint/reference/security/authorization/model/[IDM Model Authorizations] page for list of action URLs for the "core" authorizations.
 
 
 === Authorization phases
@@ -244,7 +239,7 @@ But simply speaking the object values are recomputed, mappings are evaluated and
 Let's explain that using an example.
 Let's assume we have a user which has one LDAP account.
 User properties `givenName` and `familyName` are mapped to LDAP attributes `givenName` and `sn` respectively.
-This mapping is implemented by simple wiki:Outbound+Mapping[outbound mappings]. If the `familyName` of a user is changed in GUI then this change is also mapped to the LDAP `sn` attribute and this is changed as well.
+This mapping is implemented by simple xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings]. If the `familyName` of a user is changed in GUI then this change is also mapped to the LDAP `sn` attribute and this is changed as well.
 But how about authorizations? We want to give user the ability to change the family name in the use object.
 This happens from time to time, e.g. when people get married.
 But we do not want to give the user direct access to LDAP accounts.
@@ -316,7 +311,6 @@ This is necessary because this authorization applies to different object than pr
 Previous authorizations applied to a user as an object.
 But this authorization applies to a shadow.
 It is important to realize that change of one object can result in a change of a different object, e.g. as xref:/midpoint/reference/schema/focus-and-projections/[data are mapped between focus and projections]. And authorizations needs to be set up accordingly.
-
 
 === actionsObject Authorization Actions
 
@@ -394,7 +388,6 @@ For example both `partialExecution` and `modify` authorization are needed to exe
 
 |===
 
-
 === Read, Get and Search
 
 Up until midPoint 3.9 there was only one _read_ authorization that governed all the read operations.
@@ -442,7 +435,6 @@ Therefore *it is essential not to make get authorization too broad.* Only use th
 The _read_ authorization is still supported for compatibility and convenience reasons.
 It can be understood as a shortcut for specifying both _get_ and _search_ authorizations.
 
-
 == Superuser Authorization
 
 There is one special authorization action in midPoint which can allow (or deny) any operation on any object.
@@ -462,7 +454,6 @@ The default `administrator` user in midPoint is *not* hard-coded.
 It is just an regular user which has the above role.
 This gives super-user abilities to this user.
 However it can be freely modified and replaced with a better least-privilege administrative model.
-
 
 == Object Specification
 
@@ -484,7 +475,6 @@ In the following case it only applies to shadows:
   </authorization>
 ----
 
-
 === Object Selection by Query Filter
 
 Authorization applies only to objects that match specified query.
@@ -504,7 +494,6 @@ In the following case it only applies to objects that have property `locality` s
     </object>
   </authorization>
 ----
-
 
 === Object Selection by Archetype
 
@@ -531,7 +520,6 @@ See also xref:/midpoint/reference/schema/archetypes/[Archetypes].
 
 ====
 
-
 === Object Selection by Organization Structure Membership
 
 Authorization applies only to objects that are members of a specific xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org]. In the following case it only applies to member of Org identified by OID `1f82e908-0072-11e4-9532-001e8c717e5b`.
@@ -547,7 +535,6 @@ Authorization applies only to objects that are members of a specific xref:/midpo
 ----
 
 This is good for delegated administration to fixed organizational subtrees.
-
 
 === Object Selection by Organization Structure Relation
 
@@ -576,7 +563,6 @@ But please note that this authorization may degrade performance if the subject h
 The `<orgRelation>` mechanism is available in midPoint 3.4 and later.
 ====
 
-
 === Self Object Selection
 
 Authorization applies only to objects that represent the user which initiates the operation.
@@ -591,7 +577,6 @@ I.e. if the object is also a subject of the operation.
     </object>
   </authorization>
 ----
-
 
 === Object Selection by Owner
 
@@ -630,7 +615,6 @@ E.g. the following example only applies to objects that have owner who is a full
   </authorization>
 ----
 
-
 === Object Selection by Tenant
 
 ++++
@@ -660,7 +644,6 @@ This authorization works only if both subject and object are multi-tenant.
 I.e. it will not work if subject does not have tenant (no `tenantRef`) or in case that the object does not have tenant.
 Ordinary (non-tenant) authorizations should be used for those cases.
 
-
 === Object Selection Combinations
 
 The object selection criteria can be combined in almost any meaningful way.
@@ -686,7 +669,6 @@ E.g. the following authorization only applies to user objects that have locality
     </object>
   </authorization>
 ----
-
 
 === Zone of Control
 
@@ -732,7 +714,7 @@ In such cases it was really easy to get the authorization statements wrong and g
 Therefore the behavior was changed in midPoint 3.9 and such operations are no longer allowed (but see also below).
 In midPoint 3.9 the zone of control is maintained.
 MidPoint will not allow any operation where modification of an object would result in that object getting out of authorization zone of control.
-This has important implications especially for wiki:Multitenancy[multitenant deployments].
+This has important implications especially for xref:/midpoint/reference/deployment/multitenancy/[multitenant deployments].
 
 Even though the behavior of midPoint 3.9 zone of control is now more intuitive and much more secure, there may be cases when we need to allow operations that are going outside of zone of control.
 In that case there is a new `zoneOfControl` configuration clause for authorizations.
@@ -748,7 +730,6 @@ Authorizations that need to break zone of control boundaries or authorizations t
         ...
     </authorization>
 ----
-
 
 == Target
 
@@ -807,7 +788,7 @@ Therefore there is a solution.
 
 There are two authorizations that are designed for the purpose of controlling the assignment and unassignment on a fine level.
 These authorizations are designed to be target-aware.
-The target is the object which is assigned or unassigned (role, org, service or wiki:Deputy[deputy user]). This can be used to precisely control which objects may be assigned or unassigned.
+The target is the object which is assigned or unassigned (role, org, service or xref:/midpoint/reference/misc/deputy/[deputy user]). This can be used to precisely control which objects may be assigned or unassigned.
 
 However, assgin/unassign authorizations make sense only in the request phase.
 The primary goal of these authorizations is to limit the _targets_ of assignment.
@@ -815,7 +796,6 @@ And that is processed only in the request phase.
 All that execution phase can see is just a modification of the `assignment` container.
 Therefore for the assign/unassign authorizations to work correctly, you have to allow _assign_ in the request phase and _modification_ of `assignment` container in the execution phase.
 The default end user role is a good example for this.
-
 
 === Inducement Authorizations
 
@@ -849,7 +829,6 @@ The default behavior of assignment/inducement authorizations is to apply only to
 Therefore if no `orderConstraints` clause is present, then the authorization allows assignments only.
 This behavior is slightly different than other authorization clauses, where no clause means no limitation.
 But this this behavior was chosen for compatibility reasons.
-
 
 == Expressions
 
@@ -902,7 +881,6 @@ Those are almost certain to have a severe negative impact on system performance.
 If you need complex computation, it is perhaps better to compute the value in xref:/midpoint/reference/expressions/object-template/[object template] and place it into property of the object (e.g. user extension property).
 Then use only the result of the computation stored in that property in authorization expressions.
 ====
-
 
 == Item Authorizations
 
@@ -994,14 +972,13 @@ This exception only allows midPoint logic to modify those properties without exp
 [TIP]
 .Motivation
 ====
- Strictly speaking, there would be no need for these exceptions.
+Strictly speaking, there would be no need for these exceptions.
 The modification can be allowed by regular authorizations.
 However, that would mean, that every practical authorization must contain those items.
 That is error-prone, it is a maintenance burden and it is even an obstacle for evolveability.
 E.g. if similar properties are added in future midPoint versions (which is likely) then all existing authorizations much be updated.
 The cost of slightly increased perceived security is not justified by those operational issues.
 ====
-
 
 == Authorizations and Performance
 
@@ -1022,7 +999,6 @@ This is the most efficient option.
 However if there is a large number of applicable authorizations and they are complex the resulting "masking" filter can be very complex.
 This may place additional load on the database.
 
-
 == Best Practice
 
 * If possible always specify <type> in the authorizations.
@@ -1036,10 +1012,9 @@ I.e. avoid placing all the authorization in a single role.
 This would mean that almost all of them have to evaluated for almost every operation.
 If you distribute the authorization to several roles and distribute the roles to users then a lower number of authorizations needs to be evaluated in average.
 
-
 == Troubleshooting
 
-Main article: wiki:Troubleshooting+Authorizations[Troubleshooting Authorizations]
+Main article: xref:/midpoint/reference/diag/troubleshooting/authorizations/[Troubleshooting Authorizations]
 
 Authorizations can be tricky.
 Especially if there is a large number of them and they are complex.
@@ -1068,11 +1043,9 @@ Please note that enabling the authorization trace has a *severe impact on system
 This trace is not designed to be continually enabled.
 It is just a troubleshooting tool that is supposed to be used mostly in devel/testing environments to set up a proper security policy.
 
-See wiki:Troubleshooting+Authorizations[Troubleshooting Authorizations] for more details.
-
+See xref:/midpoint/reference/diag/troubleshooting/authorizations/[Troubleshooting Authorizations] for more details.
 
 == Examples
-
 
 === Self-Service Password Change
 
@@ -1182,11 +1155,10 @@ Therefore the complete configuration for self-service password change looks like
     </authorization>
 ----
 
-
 [TIP]
 .Implementation note
 ====
- The ...#modify and ...#changeCredentials authorizations are evaluated in almost the same way by the model.
+The ...#modify and ...#changeCredentials authorizations are evaluated in almost the same way by the model.
 The both allow the modification of the properties specified in the `item` declaration.
 The primary difference is in the way how GUI presents and enforces the authorizations.
 The ...#modify authorization is used in the _edit schema_ (refined schema).
@@ -1200,16 +1172,15 @@ And this page will require old user password (if it is set up to do it).
 The bottom line is that the specifics of password change interactions are implemented and enforced in the xref:/midpoint/architecture/archive/subsystems/gui/[GUI]. xref:/midpoint/architecture/archive/subsystems/model/[The Model] is only concerned whether the password change is allowed or denied, but it does not care about the actual process.
 ====
 
-
 == See Also
 
-* wiki:Troubleshooting+Authorizations[Troubleshooting Authorizations]
+* xref:/midpoint/reference/diag/troubleshooting/authorizations/[Troubleshooting Authorizations]
 
-* wiki:GUI+Authorizations[GUI Authorizations]
+* xref:/midpoint/reference/security/authorization/admin-gui/[GUI Authorizations]
 
-* wiki:Service+Authorizations[Service Authorizations]
+* xref:/midpoint/reference/security/authorization/service/[Service Authorizations]
 
-* wiki:IDM+Model+Authorizations[IDM Model Authorizations]
+* xref:/midpoint/reference/security/authorization/model/[IDM Model Authorizations]
 
 * xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
 

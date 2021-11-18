@@ -10,14 +10,13 @@
 
 In the midPoint, we now support these GUI actions:
 
-
 == Overall Administration Actions
 
 [%autowidth]
 |===
 | Action | Allowed access to page | Note
 
-|  http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#all
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#all
 | All GUI pages
 |
 
@@ -41,68 +40,51 @@ In the midPoint, we now support these GUI actions:
 | All administration configuration pages (including the actions)
 |
 
-
-
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#allWorkItems
 | All administration pages for work items (including the actions)
-| Since 4.0to 3.9
+| Since 4.0
 
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#reportsAll[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#reportsAll]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#reportsAll
 | All administration pages for reports (including the actions)
 |
-
-
 
 |
 | All administration pages for tasks (including the actions)
 |
-
-
 
 |
 | All administration pages for org.
 structure (including the actions)
 |
 
-
-
 |
 | All pages for access certification (including actions)
 | Since 3.4
-
 
 |
 | All pages for archetypes
 | Since 4.0
 
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#dashboard[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAssign]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAssign
 | Assign menu item authorization on the Assignment tab
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#dashboard[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassign]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassign
 | Unassign menu item authorization on the Assignment tab
 |
 
 
 
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#dashboard[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassignAllMembers]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassignAllMembers
 | Unassign all members menu item authorization on the Assignment tab
 |
 
-
-
-| link:[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#previewChange]s
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#previewChanges
 | Authorization required to access preview changes page.
 The authorization is also check while deciding if previewButton should be shown.
 | Since 4.1
 
-
 |===
-
 
 == selfActionsSelf-service Actions
 
@@ -114,26 +96,21 @@ The authorization is also check while deciding if previewButton should be shown.
 | All self-service pages
 | Since 3.3
 
-
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfDashboard
 | Self-service Home
 | Since 3.3
-
 
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfProfile
 | Self-service profile
 | Since 3.3
 
-
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfCredentials
 | Self-service credentials
 | Since 3.3
 
-
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfRequestRole
 | Self-service request a role
 | 3.4-3.5.x, not supported in 3.6+
-
 
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfRequestAssignmentDEPRECATED
 | Self-service request a role
@@ -141,16 +118,13 @@ The authorization is also check while deciding if previewButton should be shown.
 deprecated since 4.0.1 +
 use #selfRequestAssignments instead
 
-
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfRequestAssignments
 | Self-service request a role
 | Since 3.6
 
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#postAuthentication[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#postAuthentication]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#postAuthentication
 | Post-authentication
 | Since 3.8.1
-
 
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#assignmentDetails
 | Self-service assignment details
@@ -158,23 +132,21 @@ use #selfRequestAssignments instead
 
 |===
 
-
 == homeActionsAdministration Dashboard Actions
 
 [%autowidth]
 |===
 | Action | Allowed access to page | Note
 
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#dashboard[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#dashboard]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#dashboard
 | Administration dashboard
 |
 
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#myPasswords[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myPasswords]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myPasswords
 | My passwords
 | Page removed in 3.3, see self-service credentials page instead
 
 |===
-
 
 == userActionsUser actions
 
@@ -182,38 +154,27 @@ use #selfRequestAssignments instead
 |===
 | Action | Allowed access to page | Note
 
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#users]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#users
 | List users
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#u]ser
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#user
 | Create user
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#userDetails]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#userDetails
 | Edit user
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#findUsers[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#findUsers]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#findUsers
 | Find users
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#usersView]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#usersView
 | Showing menu items for xref:/midpoint/reference/admin-gui/collections-views/[views] that are configured for users.
 |
 
-
-
 |===
-
 
 == resourceActionsResource actions
 
@@ -221,43 +182,31 @@ use #selfRequestAssignments instead
 |===
 | Action | Allowed access to page | Note
 
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resources]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resources
 | List resources
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resource]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resource
 | Create resource (xml editor)
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resource]Details
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resourceDetails
 | Details of resource
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resourceEdit]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resourceEdit
 | Edit resource
 | Resource Wizard
 
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resourcesAccount]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resourcesAccount
 | Listing accounts on resource
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#resourceWizard[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resourceWizard]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resourceWizard
 | Resource wizard
 |
 
-
-
 |===
-
 
 == roleActionsRole actions
 
@@ -265,73 +214,51 @@ use #selfRequestAssignments instead
 |===
 | Action | Allowed access to page | Note
 
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roles]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roles
 | List roles
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#role]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#role
 | Create role
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#role]Details
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roleDetails
 | Details of role (including editing)
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAssignMember[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAssignMember]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAssignMember
 | Assign/manage role members (role/service details, "Members" tab)
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAddMember[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAddMember]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAddMember
 | Create new member (role/service details, "Members" tab)
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassignMember[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassignMember]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassignMember
 | Unassign member (role/service details, "Members" tab)
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminRecomputeMember[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminRecomputeMember]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminRecomputeMember
 | Recompute member (role/service details, "Members" tab)
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAssignGovernance[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAssignGovernance]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAssignGovernance
 | Assign member (role details, "Governance" tab)
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassignGovernance[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassignGovernance]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassignGovernance
 | Unssign member (role details, "Governance" tab)
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAddGovernance[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAddGovernance]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAddGovernance
 | Create new member (role details, "Governance" tab)
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#rolesView]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#rolesView
 | Showing menu items for xref:/midpoint/reference/admin-gui/collections-views/[views] that are configured for roles.
 | Since 4.0.1
 
-
 |===
-
 
 == orgStructureActionsOrg. structure actions
 
@@ -339,169 +266,71 @@ use #selfRequestAssignments instead
 |===
 | Action | Allowed access to page | Note
 
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgStruct[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgStruct]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgStruct
 | Org.
 tree main menu
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#orgTree[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgTree]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgTree
 | Org.
 tree hierarchy
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#orgUnit[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnit]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnit
 | Org.
 unit details (including editing) and New org.
 link (based on #read, #modify, #add and #delete model authorizations)
 |
 
-
-
 |===
 
-
 == orgActions Organization actions
-
-
 
 [%autowidth]
 |===
 | Action | Allowed access to page | Note
 
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgAll]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgAll
 | TODO: #orgTree + #orgStruct?
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgTree]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgTree
 | Org tree hierarchy
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnit]
-| Org.
-unit details (including editing) and New org.
-link (based on #read, #modify, #add and #delete model authorizations)
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnit
+| Org. unit details (including editing) and New org. link (based on #read, #modify, #add and #delete model authorizations)
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAssignOrgMember]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAssignOrgMember
 | Authorization for Assign menu item on the org Managers and Members panels (e.g. Assign Managers, Assign Members)
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassignOrgMember]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassignOrgMember
 | Authorization for Unassign menu item on the org Managers and Members panels (e.g. Unassign selected members)
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAddOrgMember]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAddOrgMember
 | Authorization for Create menu item on the org Managers and Members panels (e.g. Create manager, Create member)
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminDeleteOrgMember]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminDeleteOrgMember
 | Authorization for Delete menu item on the org Managers and Members panels (e.g. Delete all managers, Delete member, Delete all (focus) members)
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminRecomputeOrgMember]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminRecomputeOrgMember
 | Authorization for Recompute menu item on the org Managers and Members panels (e.g. Recompute all managers, Recompute selected members, Recompute direct members, Recompute all members)
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminOrgMove]
-|  Authorization for Move organization menu item
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminOrgMove
+| Authorization for Move organization menu item
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminOrgMakeRoot]
-|  Authorization for Make root organization menu item
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminOrgMakeRoot
+| Authorization for Make root organization menu item
 |
-
-
 
 |===
-
-[%autowidth]
-|===
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgAll]
-| TODO: #orgTree + #orgStruct?
-|
-
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgTree]
-| Org tree hierarchy
-|
-
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnit]
-| Org.
-unit details (including editing) and New org.
-link (based on #read, #modify, #add and #delete model authorizations)
-|
-
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAssignOrgMember]
-| Authorization for Assign menu item on the org Managers and Members panels (e.g. Assign Managers, Assign Members)
-|
-
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassignOrgMember]
-| Authorization for Unassign menu item on the org Managers and Members panels (e.g. Unassign selected members)
-|
-
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAddOrgMember]
-| Authorization for Create menu item on the org Managers and Members panels (e.g. Create manager, Create member)
-|
-
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminDeleteOrgMember]
-| Authorization for Delete menu item on the org Managers and Members panels (e.g. Delete all managers, Delete member, Delete all (focus) members)
-|
-
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminRecomputeOrgMember]
-| Authorization for Recompute menu item on the org Managers and Members panels (e.g. Recompute all managers, Recompute selected members, Recompute direct members, Recompute all members)
-|
-
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminOrgMove]
-|  Authorization for Move organization menu item
-|
-
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminOrgMakeRoot]
-|  Authorization for Make root organization menu item
-|
-
-
-
-|===
-
 
 == configurationActionsConfiguration actions
 
@@ -509,50 +338,35 @@ link (based on #read, #modify, #add and #delete model authorizations)
 |===
 | Action | Allowed access to page | Note
 
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#debugs]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#debugs
 | Repository objects
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#debug]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#debug
 | Edit repository object
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configImport]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configImport
 | Import object
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configLogging]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configLogging
 | Logging settings
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#configSystemConfiguration[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configSystemConfiguration]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configSystemConfiguration
 | System configuration
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#configSystemConfiguration[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configAbout]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configAbout
 | About system, self tests for repository and provisioning
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#configSystemConfiguration[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configSyncAccounts]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configSyncAccounts
 | Accounts synchronization information
 |
 
-
-
 |===
-
 
 == workItemsActionsWork items actions
 
@@ -560,62 +374,43 @@ link (based on #read, #modify, #add and #delete model authorizations)
 |===
 | Action | Allowed access to page | Note
 
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#workItems]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#workItems
 | List work items
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myWorkItems]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myWorkItems
 | My work items
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#workItem]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#workItem
 | Edit work item
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#attorneyWorkItems]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#attorneyWorkItems
 | Attorney items
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#claimableWorkItems]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#claimableWorkItems
 | Items claimable by me
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#allRequests]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#allRequests
 | All requests
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myRequests]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myRequests
 | My requests
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#requestsAboutMe]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#requestsAboutMe
 | Requests about me
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#workItemsProcessInstance]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#workItemsProcessInstance
 | Process instance (Work items)
 |
 
-
-
 |===
-
 
 == reportActionsReport actions
 
@@ -623,31 +418,23 @@ link (based on #read, #modify, #add and #delete model authorizations)
 |===
 | Action | Allowed access to page | Note
 
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#reports]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#reports
 | List reports
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#createdReports]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#createdReports
 | Created reports
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#auditRead]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#auditRead
 | Reading audit log data
 | since 3.5
 
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#auditLogViewer]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#auditLogViewer
 | Audit log viewer page
 |
 
-
-
 |===
-
 
 == taskActionsTask actions
 
@@ -655,32 +442,23 @@ link (based on #read, #modify, #add and #delete model authorizations)
 |===
 | Action | Allowed access to page | Note
 
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#tasks]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#tasks
 | List tasks
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#taskAdd]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#taskAdd
 | Create task
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#taskDetails]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#taskDetails
 | Task details
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#task[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#task]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#task
 | Edit task
 |
 
-
-
 |===
-
 
 == orgStructureActionsOrg. structure actions
 
@@ -688,30 +466,19 @@ link (based on #read, #modify, #add and #delete model authorizations)
 |===
 | Action | Allowed access to page | Note
 
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgStruct[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgStruct]
-| Org.
-tree menu
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgStruct
+| Org. tree menu
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#orgTree[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgTree]
-| Org.
-tree hierarchy
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgTree
+| Org. tree hierarchy
 |
 
-
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#orgUnit[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnit]
-| Org.
-unit details (including editing) and New org.
-link
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnit
+| Org. unit details (including editing) and New org. link
 |
-
-
 
 |===
-
 
 == archetypeActionsArchetype actions
 
@@ -719,30 +486,25 @@ link
 |===
 | Action | Allowed access to page | Note
 
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#archetypes[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#archetypes]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#archetypes
 | List archetypes
 | Since 4.0
 
-
-| link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#archetype[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#archetype]
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#archetype
 | Edit archetype
 | Since 4.0
 
-
 |===
-
 
 == certificationActionsAccess certification actions
 
-Please see wiki:Access+Certification+Security[Access Certification Security] for detailed list.
-
+Please see xref:/midpoint/reference/roles-policies/certification/authorization/[Access Certification Security] for detailed list.
 
 == Focal object tabs authorizations
 
 Display of object detail tabs is *not* controlled by authorizations.
-wiki:Admin+GUI+Configuration[Admin GUI Configuration] is used to control this behavior.
-
+xref:/midpoint/reference/admin-gui/admin-gui-config/[Admin GUI Configuration] is used to control this behavior.
 
 == See also:
 
-* wiki:Admin+GUI+Configuration[Admin GUI Configuration]
+* xref:/midpoint/reference/admin-gui/admin-gui-config/[Admin GUI Configuration]

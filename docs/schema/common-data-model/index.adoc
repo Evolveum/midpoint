@@ -12,7 +12,7 @@
 
 It is typical even for medium enterprises that IDM solution covers tens of systems.
 Such situation results in unmaintainable maze of transformation rules if a "full mesh" approach is chosen.
-MidPoint is an wiki:IDM+Means+Integration[identity integration] system.
+MidPoint is an xref:/midpoint/architecture/principles/idm-means-integration/[identity integration] system.
 Its goal is to allow simpler hub-and-spoke integration approach as opposed to quite complex full mesh integration.
 
 Some identity systems pretend to be a hub-and-spoke systems by network topology but they internally try to map attributes directly from one account to another account.
@@ -41,7 +41,6 @@ The midPoint model is based on multi-valued properties grouped into objects, lim
 This model is sufficient for vast majority of IDM cases, it is rich enough to be able to work with it in midPoint code and yet it is simple enough to be easy to map to other models.
 The model is in principle very similar to the data model of LDAP - one of the most successful identity integration technology.
 
-
 == Multivalue and Unordered
 
 It is quite clear why we need multi-valued attributes.
@@ -57,7 +56,6 @@ Also, we would require every potential identity repository to support ordered va
 Even if we do not support value ordering in the basic model we do not really prohibit ordered fields.
 Ordered fields just need to be stored as complex single-valued attributes creating an ordered structure internally.
 This can be done in quite an elegant way in XML or JSON data representation.
-
 
 == Accounts and Account Shadows
 
@@ -93,7 +91,6 @@ image::synchronization-user-account.png[]
 
 See xref:/midpoint/reference/resources/shadow/[Shadow Objects] for more information.
 
-
 == Other Common Models
 
 Before creating our own common model we have looked around for existing solutions.
@@ -111,7 +108,7 @@ Unfortunately, standard SPML does not define any specific schema for PSOs (provi
 There is a draft of "standard schema" from 2007, but that is far from finished.
 The schema draft link:http://markmail.org/thread/fqzisf62l4yw5lzk[received a lot of critique] from OASIS provisioning TC members, but then suddenly the work of entire TC stopped.
 The SPML TC seems to be non-functional to this day.
-See wiki:Junkyard[junkyard page] for more details.
+See xref:/midpoint/architecture/junkyard/[junkyard page] for more details.
 
 One of the inspirational model for the midPoint model is a model called "link:http://identityhappens.blogspot.com/2009/03/user-identity-reference-model-march.html[General User Identity Reference Model]". It is indeed very generic conceptual model that is not directly applicable.
 Yet the final midPoint model was inspired by it and it is somehow compliant with this model.
@@ -134,9 +131,8 @@ There is also a scientific link:http://storm.alert.sk/work/papers/dissertation/[
 Yet, this model is very theoretical and not directly applicable.
 It was used as a guiding principle while creating a specific midPoint data model.
 
-
 == See Also
 
 * xref:/midpoint/reference/schema/[Data Model]
 
-* wiki:IDM+Means+Integration[IDM Means Integration]
+* xref:/midpoint/architecture/principles/idm-means-integration/[IDM Means Integration]

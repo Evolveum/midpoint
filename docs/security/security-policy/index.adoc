@@ -220,7 +220,7 @@ E.g. password has to be changed every 30 days
 
 == Referencing Security Policy
 
-The security policy object is usually referenced from wiki:System+Configuration+Object[System Configuration Object]:
+The security policy object is usually referenced from xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration Object]:
 
 [source,xml]
 ----
@@ -238,6 +238,6 @@ Since midPoint 3.6 the security policy may also be specified for each xref:/midp
 
 == See Also
 
-* wiki:Password-Related+Configuration[Password-Related Configuration]
+* xref:/midpoint/reference/security/credentials/password-related-configuration/[Password-Related Configuration]
 
 * xref:/midpoint/reference/security/credentials/password-policy/[Password Policy]

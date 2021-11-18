@@ -32,7 +32,7 @@ As user privileges and not revoked immediately, there is an "interval of vulnera
 
 == Mitigation
 
-Partial solution for the problem is provided in wiki:Release+4.0[midPoint 4.0]: administrator can explicitly delete sessions of affected user.
+Partial solution for the problem is provided in xref:/midpoint/release/4.0/[midPoint 4.0]: administrator can explicitly delete sessions of affected user.
 There is a new "Logged-in users" page under "Internals configuration".
 
 

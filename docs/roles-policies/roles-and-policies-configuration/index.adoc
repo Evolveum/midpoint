@@ -15,7 +15,7 @@ midPoint is using a (very) extended version of Role-Based Access Control (RBAC) 
 RBAC is originally defined as mostly static structure of users and roles.
 The original RBAC defines that user assigned to the role gets all the rights implied by the role.
 If two users have the same role, they have the same rights.
-However, this leads to the problem of wiki:Role+Explosion[Role Explosion]. We hope to solve that problem by enhancing RBAC model with logic.
+However, this leads to the problem of xref:/iam/role-explosion/[Role Explosion]. We hope to solve that problem by enhancing RBAC model with logic.
 We add ability to specify expressions in role definitions that determine how and when the role is used.
 Therefore the role can adapt to the attributes of user that has the role or even the role assignment itself can be parametrized.
 This allows to construct RBAC structures that are using fewer roles and that are much more manageable.
@@ -80,7 +80,6 @@ The (simplified) role definitions in XML is as follows:
 
 ----
 
-
 == Implied Accounts
 
 If the `captain` and `pirate` roles get assigned to Jack, the result should be that Jack has three accounts: Maritime Information System account, Rum Supply Management account and Shipwreck Cove account.
@@ -117,8 +116,8 @@ The mugs of all captains should come with owner's name on it, so no scurvy seado
 ****
 
 xref:/midpoint/reference/expressions/introduction/[Mappings and expressions] are used to define dynamic implied account attributes.
-wiki:Item+Path[Simple paths] are perhaps the most easy to use and most useful in common situations.
-There are also wiki:Script+Expression[scripting expressions] for more complex cases.
+xref:/midpoint/reference/concepts/item-path/[Simple paths] are perhaps the most easy to use and most useful in common situations.
+There are also xref:/midpoint/reference/expressions/expressions/script/[scripting expressions] for more complex cases.
 The default expression language is Groovy, chosen for its similarity to Java.
 However, the expression model is extensible, there are several supported languages and even more expression languages may be added in the future.
 
@@ -181,7 +180,6 @@ Implied account attributes usually do not need to define the entire set of accou
 There may be other roles that may assign different attributes to the same account, more values to the same attributes of the account and even conflicting values.
 The account may also have existing attributes that are managed by "native" tools (outside IDM) or there may be exceptions from the RBAC policy specified for that account using attribute specification in xref:/midpoint/reference/roles-policies/assignment/[assignments].
 
-
 === Implied Account Entitlements
 
 But perhaps the most useful feature of roles is that a role can imply entitlements of account on the resource.
@@ -218,7 +216,6 @@ The XML role definition is as follows:
 
 ----
 
-
 == Assignments
 
 Main article: xref:/midpoint/reference/roles-policies/assignment/[Assignment], xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration]
@@ -248,7 +245,6 @@ Assignments may be conditional, limited to a specific time period or provide par
 
 See xref:/midpoint/reference/roles-policies/assignment/[Assignment] and xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] pages for more details about assignments.
 
-
 == Inducements
 
 Main article: xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement]
@@ -269,7 +265,6 @@ Unless you are creating a very complex setup there is a simple rule of the thumb
 
 See xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement] for more details.
 
-
 == Role Hierarchy
 
 Roles contain inducements which have identical structure to user assignments.
@@ -279,16 +274,13 @@ An example of a role hierarchy is provided in the following diagram.
 
 image::rbac-6.png[]
 
-
 == Roles and Organizational Structure
 
-See wiki:Roles,+Services+and+Orgs[Roles, Services and Orgs]
-
+See xref:/midpoint/reference/roles-policies/roles-services-and-orgs/[Roles, Services and Orgs]
 
 == Meta-Roles
 
 See xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]
-
 
 == Idempotent Roles
 
@@ -350,7 +342,6 @@ Typical example is a "basic" roles that is assigned to almost any user and that 
 Note: it is perfectly OK for some dynamic roles to be marked as idempotent - even if the role contains complex expressions and conditions.
 If those conditions depend only on the environment or properties of the focus then their outcome does not depend on their position in assignment/inducement hierarchy and these roles can be made idempotent.
 
-
 == See Also
 
 * xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
@@ -361,9 +352,9 @@ If those conditions depend only on the environment or properties of the focus th
 
 * xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement]
 
-* wiki:Roles,+Services+and+Orgs[Roles, Services and Orgs]
+* xref:/midpoint/reference/roles-policies/roles-services-and-orgs/[Roles, Services and Orgs]
 
-* wiki:RBAC+Best+Practice[RBAC Best Practice]
+* xref:/midpoint/reference/roles-policies/rbac/best-practice/[RBAC Best Practice]
 
 * xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]
 

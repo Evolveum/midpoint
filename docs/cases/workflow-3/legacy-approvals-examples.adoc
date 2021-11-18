@@ -11,7 +11,7 @@
 [WARNING]
 ====
 Examples mentioned here use legacy (pre-3.5) approach to approvals configuration.
-For a more up-to-date samples please visit wiki:Approval+examples[this page].
+For a more up-to-date samples please visit xref:/midpoint/reference/cases/approval/examples/[this page].
 ====
 
 == Basic how-to
@@ -171,7 +171,7 @@ Because he is a member of F0006, you will see that even if approval process star
 
 Now let's have a look at expressions.
 
-Expression can be of any supported type, be it wiki:Script+Expression[script expression] or xref:/midpoint/reference/expressions/expressions/[any other expression type].
+Expression can be of any supported type, be it xref:/midpoint/reference/expressions/expressions/script/[script expression] or xref:/midpoint/reference/expressions/expressions/[any other expression type].
 
 Concerning script expressions, there are the following variables available:
 

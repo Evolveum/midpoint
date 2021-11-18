@@ -7,13 +7,12 @@
 :page-wiki-metadata-modify-user: lskublik
 :page-wiki-metadata-modify-date: 2020-09-04T08:41:08.212+02:00
 
-Please see wiki:Dashboard+configuration[Dashboard configuration] for basic information about configuration variables and Auditing-Custom column for steps how to add custom column.
+Please see xref:/midpoint/reference/admin-gui/dashboards/configuration/[Dashboard configuration] for basic information about configuration variables and Auditing-Custom column for steps how to add custom column.
 
 
 == Usecase
 
 Administrator needs display all audit events which contains delta with changes on administrativeStatus of account on resource R1
-
 
 == Configuration
 
@@ -195,7 +194,6 @@ When we have object collection, then import Dashboard object with widget for our
 After successful import of dashboard object and reload of page you can see dashboard in menu *Dashboards* > *Changes of administrativeStatus(R1)*.
 
 We want report with table of audit events, so we import dashboard report.
-
 
 .Report
 [source,xml]

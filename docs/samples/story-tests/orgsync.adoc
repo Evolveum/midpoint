@@ -264,7 +264,7 @@ orgpath: Freelance/Ministry of Rum
 The synchronization part of HR resource definition.
 The reaction is `addFocus` therefore a new user is created.
 
-. The account data are copied to the new user by wiki:Inbound+Mapping[inbound mappings] on HR resource.
+. The account data are copied to the new user by xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings] on HR resource.
 Note that `orgpath` attribute from HR account is copied to custom `orgpath` property in user extension.
 
 . User template takes over (`object-template-user.xml`)
@@ -272,7 +272,7 @@ Note that `orgpath` attribute from HR account is copied to custom `orgpath` prop
 .. The first mapping computes user's full name (this information is not stored in HR)
 
 .. The "Org mapping" is trying to look up an xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] into which the user should belong.
-It is using a wiki:Object+Query[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
+It is using a xref:/midpoint/reference/concepts/query/[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
 The expression inside the query is using the first segment of the `orgpath` as a value, e.g. in this case it would be "Freelance".
 
 .. The query finds no matching xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org.] The expression is set to `createOnDemand` therefore it will try to create the Org.
@@ -306,9 +306,9 @@ This meta-role contains `inducement` which specifies that a new `ou` resource ob
 .... The projections are computed for an LDAP resource.
 The projections have a form of LDAP organizationalUnit objects.
 This is defined in the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[schema handling] part of LDAP resource definition.
-The inducement specifies an wiki:Kind,+Intent+and+ObjectClass[(kind, intent)] tuple which is used to locate a matching definition in the schemaHandling.
+The inducement specifies an xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[(kind, intent)] tuple which is used to locate a matching definition in the schemaHandling.
 
-.... The wiki:Outbound+Mapping[outbound mappings] are used to compute a correct DN for the new "ou" object in LDAP.
+.... The xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings] are used to compute a correct DN for the new "ou" object in LDAP.
 The `orgpath` property is once again used to compute a correct DN.
 
 .... LDAP organizationalUnit object is created.
@@ -353,7 +353,7 @@ The user now has a full name and two assignments:
 
 .. The "Basic Role" assigns an LDAP account to the user.
 But does not specify anything else.
-The wiki:Outbound+Mapping[outbound mappings] from the OpenDJ resource definition are used to fill in account attribute values.
+The xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings] from the OpenDJ resource definition are used to fill in account attribute values.
 
 ... The outbound mappings are used especially to construct the DN of the account.
 The `orgpath` value is used once again to do that.
@@ -381,7 +381,7 @@ responsibilities: canibalism
 . This record is picked up by livesync configured for HR resource.
 The synchronization part of HR resource definition.
 The reaction is `addFocus` therefore a new user is created. +
-The account data are copied to the new user by wiki:Inbound+Mapping[inbound mappings] on HR resource.
+The account data are copied to the new user by xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings] on HR resource.
 Note that `responsibilities` attribute from HR account is copied to custom multi-valued property `responsibility` in user extension.
 
 . User template takes over (`object-template-user.xml`)
@@ -396,7 +396,7 @@ This just assigns the "Basic User" role `(role-basic.xml`) . This is a simple xr
 .. The "responsibility role assignment" mapping is processed.
 
 ... The mapping is trying to look up a xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[Role] which the user should have assigned.
-It is using a wiki:Object+Query[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
+It is using a xref:/midpoint/reference/concepts/query/[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
 The expression inside the query is using the value of `responsibility` property from user extension to look up the role.
 The query is constructed in a such a way that this value should match with the value of `responsibility` property in role extension.
 Note that there are two properties that should match: the (multi-valued) `responsibility` in user extension and the (single-valued) `responsibility` in role extension.
@@ -417,13 +417,13 @@ The `R_` prefix is used to avoid collistion with other roles in the system.
 
 .... The meta-role contains an inducement which specifies that a xref:/midpoint/reference/schema/focus-and-projections/[projection] should be created for the role on the LDAP resource.
 The projection should be a group entitlement.
-This is specified by wiki:Kind,+Intent+and+ObjectClass[(kind, intent)] tuple which points to the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[schema handling] part of LDAP resource definition.
+This is specified by xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[(kind, intent)] tuple which points to the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[schema handling] part of LDAP resource definition.
 
-.... The wiki:Outbound+Mapping[outbound mappings] are used to compute a correct DN for the new group object in LDAP.
+.... The xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings] are used to compute a correct DN for the new group object in LDAP.
 
 .... New LDAP group is created.
 
-.... The meta-role also contains an second-order inducement.
+.... The meta-role also contains a second-order inducement.
 This is ignored right now.
 It will be interesting a little while later.
 
@@ -455,7 +455,7 @@ The user now has a full name and two assignments: +
 
 .. The "Basic Role" assigns an LDAP account to the user.
 But does not specify anything else.
-The wiki:Outbound+Mapping[outbound mappings] from the OpenDJ resource definition are used to fill in account attribute values.
+The xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings] from the OpenDJ resource definition are used to fill in account attribute values.
 
 ... The outbound mappings are used especially to construct the DN of the account.
 There in `orgpath` value therefore a default DN with "ou=people" is used instead.

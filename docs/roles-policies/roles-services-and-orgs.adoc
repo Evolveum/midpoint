@@ -21,7 +21,7 @@ Roles can be xref:/midpoint/reference/roles-policies/rbac/[very flexible and dyn
 Generally speaking roles can contain xref:/midpoint/reference/expressions/introduction/[mappings and expressions] to create a very dynamic structures.
 Roles can be personalized for each particular user, e.g. by using xref:/midpoint/reference/roles-policies/assignment/[assignment parameters].
 
-* *wiki:Services[Services]* are used to represent servers, mobile devices, printers, virtual machines, "things" (as in IoT) and other objects whose are not entirely users, orgs or roles.
+* *xref:/midpoint/reference/misc/services/[Services]* are used to represent servers, mobile devices, printers, virtual machines, "things" (as in IoT) and other objects whose are not entirely users, orgs or roles.
 Each service can also behave as a role.
 You can use service to define provisioning and access control rules, but you can also provision the services itself.
 
@@ -125,4 +125,4 @@ If a sub-org belongs to a super-org this does *not* mean that the sub-org automa
 
 * xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]
 
-* wiki:Services[Services]
+* xref:/midpoint/reference/misc/services/[Services]

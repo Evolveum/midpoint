@@ -31,7 +31,7 @@ Attacker cannot gain access to any other information or any unauthorized operati
 
 == Mitigation
 
-Users of affected MidPoint versions are advised to upgrade their deployments to the latest builds from the wiki:Using+Support+Branch[support branches].
+Users of affected MidPoint versions are advised to upgrade their deployments to the latest builds from the xref:/midpoint/install/using-support-branch/[support branches].
 
 As this is a loq severity issue, it is not forcing official maintenance releases of midPoint.
 However, the fix is provided in all the support branches.

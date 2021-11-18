@@ -29,7 +29,7 @@ Therefore we provide a couple of use cases for illustration.
 
 === Semi-Manual Resources
 
-MidPoint 3.6 has a basic support for wiki:Manual+Resource+and+ITSM+Integration[manual and semi-manual resources]. In these cases the operation is executed manual by a human operator.
+MidPoint 3.6 has a basic support for xref:/midpoint/reference/resources/manual/[manual and semi-manual resources]. In these cases the operation is executed manual by a human operator.
 Therefore the operation takes some time and midPoint has a limited visibility to the operation effects.
 In case of semi-manual resources midPoint has a way how to (more or less) directly read the resource content.
 However, some deployments will prefer to use CSV-formatted exports for reading the data.
@@ -44,7 +44,7 @@ In this case one manual resource for writing and one ordinary resource for readi
 
 === Provisioning and Scripting Operations
 
-Let's have a big LDAP server with "NIS" schema (link:https://www.ietf.org/rfc/rfc2307.txt[RFC2307]). MidPoint is an wiki:Unix+Story+Test[excellent choice] to manage such a system.
+Let's have a big LDAP server with "NIS" schema (link:https://www.ietf.org/rfc/rfc2307.txt[RFC2307]). MidPoint is an xref:/reference/samples/story-tests/unix/[excellent choice] to manage such a system.
 However, managing UNIX account in LDAP is usually not enough.
 The account will not be of much use without a home directory.
 Of course, Unix PAM can be set up to automatically create home directory.
@@ -104,4 +104,4 @@ In fact midPoint currently relies on that caching-only read capability to be ena
 
 == See Also
 
-* wiki:Manual+Resource+and+ITSM+Integration[Manual Resource and ITSM Integration]
+* xref:/midpoint/reference/resources/manual/[Manual Resource and ITSM Integration]

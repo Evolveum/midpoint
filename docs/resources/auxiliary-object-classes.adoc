@@ -11,7 +11,7 @@
 :page-upkeep-status: yellow
 
 
-Type of every xref:/midpoint/reference/resources/shadow/[resource objects] that midPoint deals is defined by its wiki:Kind,+Intent+and+ObjectClass[object class]. The object class defines the basic structure of the object: whether it is account, group or organizational unit.
+Type of every xref:/midpoint/reference/resources/shadow/[resource objects] that midPoint deals is defined by its xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[object class]. The object class defines the basic structure of the object: whether it is account, group or organizational unit.
 But some resources also have additional object classes that can extend the objects with additional attributes.
 We refer to these additional object classes as _auxiliary object classes_.
 
@@ -116,7 +116,7 @@ And the role also contains mappings for the attributes that are specific to the 
 
 When the Unix User role is assigned to a user, midPoint takes care that the `posixAccount` auxiliary object classes is added to the existing account and that all the necessary attributes are added as well.
 And (even more importantly) also the other way around: when the Unix role is unassigned midPoint will remove the `posixAccount` auxiliary object class and also all the attribute values.
-It is very important to remove the attribute values together with the auxiliary object class, otherwise the operation will end with an schema violation error.
+It is very important to remove the attribute values together with the auxiliary object class, otherwise the operation will end with a schema violation error.
 But midPoint takes care to work with auxiliary object classes properly.
 
 [TIP]
@@ -124,7 +124,7 @@ But midPoint takes care to work with auxiliary object classes properly.
 ====
 There are even more things to make really good configuration to manage LDAP server with the NIS (RFC2307) schema.
 Auxiliary object classes are just one part of the story.
-See the wiki:Unix+Story+Test[Unix Story Test] for a complete configuration example.
+See the xref:/reference/samples/story-tests/unix/[Unix Story Test] for a complete configuration example.
 ====
 
 
@@ -179,4 +179,4 @@ To preserve them, it is possible to use the tolerant flag set to true within the
 
 == See Also
 
-* wiki:Unix+Story+Test[Unix Story Test]
+* xref:/reference/samples/story-tests/unix/[Unix Story Test]

@@ -24,10 +24,10 @@ Starting with 4.3, it becomes a reality.
 
 image::Asynchronous-provisioning.png[]
 
-The idea of asynchronous provisioning is very similar to the one of wiki:Manual+Resource+and+ITSM+Integration[manual provisioning]. Generally, when midPoint has something to do on a resource (like creating, updating, or deleting an account), the provisioning module asks a connector to do that.
+The idea of asynchronous provisioning is very similar to the one of xref:/midpoint/reference/resources/manual/[manual provisioning]. Generally, when midPoint has something to do on a resource (like creating, updating, or deleting an account), the provisioning module asks a connector to do that.
 For synchronous resources, the connector ensures the execution of the operation, and informs provisioning module about the result.
 But not in the case of _asynchronous provisioning connector_. Here the connector sends a _request_ (e.g. a JMS message containing JSON-encoded data about the requested operation) to specified _target_ (e.g. JMS queue), where it will wait until the real target system retrieves and processes it.
-And because midPoint has no access to the target system to know about the current state of the account, the provisioning keeps all the account attributes in the repository using a mechanism called wiki:Attribute+Caching[attribute caching].
+And because midPoint has no access to the target system to know about the current state of the account, the provisioning keeps all the account attributes in the repository using a mechanism called xref:/midpoint/reference/resources/attribute-caching/[attribute caching].
 
 
 == Configuration overview
@@ -83,7 +83,7 @@ It resides on a broker reachable via `mainBrokerConnectionFactory` (a JNDI name 
 
 == Configuration details
 
-See wiki:Asynchronous+Resource+Configuration+(Outbound)[Asynchronous Resource Configuration (Outbound)] page for configuration details.
+See xref:/midpoint/reference/resources/asynchronous/outbound/configuration/[Asynchronous Resource Configuration (Outbound)] page for configuration details.
 
 
 == Current state of the implementation

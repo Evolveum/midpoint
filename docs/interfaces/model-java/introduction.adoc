@@ -15,9 +15,7 @@
 
 *TODO*
 
-
 == IDM Model Interface Concepts
-
 
 === Working With Objects
 
@@ -41,7 +39,6 @@ This interface provides uniform access to all objects regardless of how and wher
 You can simply read an object and the implementation will figure out how to do that.
 And the implementation will take care of merging the data from several sources, process meta-data, data caching, type conversion and any other mechanism that needs to take place to work with the data.
 
-
 === Prism Objects and Deltas
 
 Almost all business data are represented in midPoint in a form of xref:/midpoint/devel/prism/[Prism Objects]. xref:/midpoint/devel/prism/[Prism] is somehow lightweight and very powerful data representation framework.
@@ -59,11 +56,10 @@ Therefore an instance of _prism context_  is needed to complete some operations 
 Similarly to other such instances also the prism context is managed by Spring framework.
 Therefore instance of prism context can be obtained by using Spring dependency injection, e.g. using the `@Autowire` annotation.
 
-Please note that most objects are using wiki:PolyString[PolyString] instead of plain strings for some attributes.
-The use of wiki:PolyString[PolyString] provides important advantage in internationalized environment.
+Please note that most objects are using xref:/midpoint/reference/concepts/polystring/[PolyString] instead of plain strings for some attributes.
+The use of xref:/midpoint/reference/concepts/polystring/[PolyString] provides important advantage in internationalized environment.
 E.g. it provides ability for database-independent searches that are quite close to an internationalized full-text search.
 While PolyString values are almost transparent when used for reading they require some attention when constructing objects and deltas.
-
 
 === Interface and Implementation
 
@@ -82,7 +78,6 @@ import com.evolveum.midpoint.model.api.ModelService;
 @Autowire(required=true)
 private ModelService modelService;
 ----
-
 
 === Operational Status, Security Context and Error Handling
 
@@ -117,7 +112,6 @@ Operation result structure will be filled with details of every significant sub-
 The overall status will indicate _partial error_ and one of the sub-operations will be set to _fatal error_. As this structure is intended for human readability and machine processability it can be used for variety of purposes.
 It can be used to display detailed error information to the user, to automatically react to certain situation or for any similar purpose.
 
-
 == Reading Objects
 
 Reading objects is the simplest and perhaps also the most often used operation.
@@ -143,7 +137,6 @@ PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, 
 PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, "399e161c-5c19-11e3-9cd0-001e8c717e5b", null, task, result);
 ----
 
-
 == Searching Objects
 
 If you want to do anything interesting with a midPoint object you need to know its xref:/midpoint/devel/prism/concepts/object-identifier/[OID]. Most methods need an OID to be able to work properly.
@@ -151,11 +144,11 @@ Perhaps the only real exception are _search_ methods.
 These methods are designed to obtain midPoint objects even without knowing their OID.
 In fact these methods are often used to find out OID of an object to be used in other midPoint operations.
 
-The key to search methods is wiki:Object+Query[midPoint query language]. This query language is specific to midPoint and it describes an abstract tree of search criteria.
+The key to search methods is xref:/midpoint/reference/concepts/query/[midPoint query language]. This query language is specific to midPoint and it describes an abstract tree of search criteria.
 It may be slightly complex to construct but there are convenient factory methods that can be used for this purpose.
 The following example shows how a simple query is constructed and used in a search.
 Factory methods `createObjectQuery` and `createEqual` are used to construct a simple query.
-The query describes objects for which the `name` property (specified as `ResourceType.F_NAME`) equals to wiki:PolyString[PolyString]`"My Resource`". Once executed this will return all such xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType] objects (which obviously is at most one object as `name` property is unique across all the resources).
+The query describes objects for which the `name` property (specified as `ResourceType.F_NAME`) equals to xref:/midpoint/reference/concepts/polystring/[PolyString]`"My Resource`". Once executed this will return all such xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType] objects (which obviously is at most one object as `name` property is unique across all the resources).
 
 [source,java]
 ----
@@ -183,7 +176,6 @@ ResultHandler<UserType> handler = new ResultHandler<UserType>() {
     };
 modelService.searchObjectsIterative(UserType.class, query, handler, null, task, result);
 ----
-
 
 == Creating, Modifying and Deleting Objects
 
@@ -219,7 +211,6 @@ modelService.executeChanges(deltas, null, task, result);
 If you need an OID of a newly created object then have a look at the delta after the operation.
 The OID will be set back to the original (input) delta.
 
-
 === Modifying Objects
 
 Object modification is also using similar process, just the delta construction is different:
@@ -245,7 +236,6 @@ modelService.executeChanges(deltas, null, task, result);
 The modification is much more powerful than just this simple example.
 A modify delta can contain several modifications of various modify types (see xref:/midpoint/devel/prism/concepts/deltas/[Deltas]). There may also be more than one object delta in the collection, e.g. to modify user and its accounts in a single midPoint operation (but see limitations below).
 
-
 === Deleting Objects
 
 Object deletion is quite simple and it is also using similar process:
@@ -268,7 +258,6 @@ Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createColl
 modelService.executeChanges(deltas, null, task, result);
 ----
 
-
 === Limitations and Misc Notes
 
 The `executeChanges` method can take several deltas at once.
@@ -287,16 +276,13 @@ The tests are accessing the instance using the same Java API as is described her
 Therefore you can find a lot more examples of the API usage by looking at the tests.
 The test reside in `model/model-intest` component of the xref:/midpoint/devel/source/structure/[midPoint source code]. Especially `TestModelServiceContract` is a nice comprehensive test that provides a good overview of basic API operations.
 
-
 == Misc Operations
 
 TODO: findShadowOwner, countObjects, testResource
 
-
 == Advanced Features
 
 TODO: options: partial reads, resolve, paging, ...
-
 
 == See Also
 
@@ -304,6 +290,6 @@ TODO: options: partial reads, resolve, paging, ...
 
 * xref:/midpoint/devel/prism/[Prism Objects]
 
-* wiki:Using+Prism+Objects[Using Prism Objects]
+* xref:/midpoint/devel/prism/concepts/[Using Prism Objects]
 
-* wiki:Invoking+MidPoint+Services+HOWTO[Invoking MidPoint Services HOWTO]
+* xref:/midpoint/reference/interfaces/invoking-midpoint-services/[Invoking MidPoint Services HOWTO]

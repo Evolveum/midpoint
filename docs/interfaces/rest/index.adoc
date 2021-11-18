@@ -227,7 +227,7 @@ In this case midPoint API redirects the client to a task object that can be used
 | Client errors.
 The client has sent request that cannot be processed.
 This indicates usual situation that are well handled by the midPoint code.
-Maybe the client request to create conflicting object, delete non-existent object, modification that violates the schema an so on.The xref:/midpoint/architecture/concepts/operation-result/[OperationResult] structure is usually provided in the response to provide more details about the situation.
+Maybe the client request to create conflicting object, delete non-existent object, modification that violates the schema and so on.The xref:/midpoint/architecture/concepts/operation-result/[OperationResult] structure is usually provided in the response to provide more details about the situation.
 
 
 | 5xx

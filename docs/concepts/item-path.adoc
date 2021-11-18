@@ -55,7 +55,7 @@ The following table provides example paths and their meaning.
 == Variables
 
 Variable definition may be used in the first segment of the item path (and *only* in the first segments).
-Variable name starts with a dollar sign (`$`). Variables are used in some situations, e.g. in xref:/midpoint/reference/expressions/introduction/[mapping expressions], wiki:Correlation+and+Confirmation+Expressions[correlation and confirmation expressions,] etc.
+Variable name starts with a dollar sign (`$`). Variables are used in some situations, e.g. in xref:/midpoint/reference/expressions/introduction/[mapping expressions], xref:/midpoint/reference/synchronization/correlation-and-confirmation-expressions/[correlation and confirmation expressions,] etc.
 The variable specification is optional.
 If not specified the path applies to appropriate default object which is usually a user or an account.
 Therefore the paths `$user/fullName` and `fullName` are often equivalent.

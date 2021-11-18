@@ -15,7 +15,7 @@ Which means that the account will be deleted.
 This is the default behavior.
 But it can be changed.
 Disabling the account instead of deleting is a common requirement.
-And this can be quite easily achieved by adjusting the xref:/midpoint/reference/concepts/activation/[activation] wiki:Outbound+Mapping[outbound mappings].
+And this can be quite easily achieved by adjusting the xref:/midpoint/reference/concepts/activation/[activation] xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings].
 
 
 == How To Do It
@@ -138,4 +138,4 @@ It also has configuration to eventually delete the account after some time and a
 
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[Resource Schema Handling: Activation]
 
-* wiki:Outbound+Mapping[Outbound Mapping]
+* xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound Mapping]

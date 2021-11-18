@@ -110,4 +110,4 @@ The report will be generated even if there is an error during the execution of t
 
 == See Also
 
-** wiki:Report+Configuration[Report configuration]
+** xref:/midpoint/reference/misc/reports/configuration/[Report configuration]

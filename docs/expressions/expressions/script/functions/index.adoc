@@ -89,7 +89,7 @@ Please see xref:/midpoint/reference/diag/logging/log-levels/[Log Levels] page fo
 
 == MidPoint Library
 
-Main article: wiki:MidPoint+Script+Library[MidPoint Script Library]
+Main article: xref:/midpoint/reference/expressions/expressions/script/functions/midpoint/[MidPoint Script Library]
 
 MidPoint function library provides access to midPoint internals.
 It provides complex functions that contain IDM-specific and midPoint-specific logic.

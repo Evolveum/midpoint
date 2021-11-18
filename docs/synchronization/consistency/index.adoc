@@ -14,13 +14,13 @@
 == Introduction
 
 Consistency mechanism is a part of midPoint that takes care of cases when midPoint cannot carry out the operation as it wants to.
-wiki:IDM+Consistency[Inconsistencies] form in these cases.
+xref:/iam/idm-consistency/[Inconsistencies] form in these cases.
 Inconsistencies are the difference between what _midPoint thinks that should be_ and what _really is_. Inconsistencies may happen if midPoint wants to create an account but the resource is down, if midPoint try to create an account but it finds that the account already exists and in many more cases.
 These may be caused by network outages, resource downtime, changes that happen outside midPoint, parallel and concurrent execution of tasks and also by technology limitations (e.g. connector unable to report all the changes).
 In practice inconsistencies happen all the time.
 Therefore a mechanism to handle them is an essential part of any IDM solution.
 
-Please see the wiki:IDM+Consistency[IDM Consistency] page for short introduction to one of the consistency issues and wiki:Consistency+Theory[Consistency Theory] for an theoretical introduction to the consistency problem.
+Please see the xref:/iam/idm-consistency/[IDM Consistency] page for short introduction to one of the consistency issues and xref:/midpoint/reference/synchronization/consistency/theory/[Consistency Theory] for an theoretical introduction to the consistency problem.
 
 
 == Consistency in midPoint
@@ -64,7 +64,7 @@ MidPoint will re-try the failed operation later.
 
 [TIP]
 ====
-The same data structure is used for all asynchronous operations in midPoint, such as operations on wiki:Manual+Resource+and+ITSM+Integration[manual resources.] This is an example of wiki:Synergistic+Features[synergy] of several midPoint features.
+The same data structure is used for all asynchronous operations in midPoint, such as operations on xref:/midpoint/reference/resources/manual/[manual resources.] This is an example of xref:/midpoint/features/synergy/[synergy] of several midPoint features.
 ====
 
 
@@ -143,7 +143,7 @@ This may be also explicitly invoked by a refresh task (see below).
 
 === Refresh Task
 
-Main page: wiki:Shadow+Refresh+Task[Shadow Refresh Task]
+Main page: xref:/midpoint/reference/tasks/shadow-refresh-task/[Shadow Refresh Task]
 
 If the shadow refresh operation is left entirely to a chance then strange things may happen.
 Some shadows may not get refreshed for a long time.
@@ -175,9 +175,9 @@ Therefore it can usually be scheduled for quite a frequent execution, usually ex
 
 [TIP]
 ====
-This is the same refresh task that is used for wiki:Manual+Resource+Configuration[manual resources]. In fact the mechanism of _pending operations_ is the same for both consistency mechanism and manual resources, therefore also the same refresh task is used.
+This is the same refresh task that is used for xref:/midpoint/reference/resources/manual/configuration/[manual resources]. In fact the mechanism of _pending operations_ is the same for both consistency mechanism and manual resources, therefore also the same refresh task is used.
 
-See wiki:Shadow+Refresh+Task[Shadow Refresh Task] page for more details.
+See xref:/midpoint/reference/tasks/shadow-refresh-task/[Shadow Refresh Task] page for more details.
 
 ====
 
@@ -242,18 +242,18 @@ In the direction from midpoint's repository to external resource, we search thro
 
 This page describes consistency mechanism used in midPoint 3.9 and later versions.
 MidPoint has consistency mechanism since almost the beginning.
-However, the mechanism was revised and significantly updated in midPoint 3.9. For information about the earlier versions please see wiki:Consistency+mechanism+(3.8+and+earlier)[Consistency mechanism (3.8 and earlier)] page.
+However, the mechanism was revised and significantly updated in midPoint 3.9. For information about the earlier versions please see xref:/midpoint/reference/synchronization/consistency/leagacy/[Consistency mechanism (3.8 and earlier)] page.
 
 == See Also
 
-* wiki:IDM+Consistency[IDM Consistency]
+* xref:/iam/idm-consistency/[IDM Consistency]
 
-* wiki:Consistency+Theory[Consistency Theory]
+* xref:/midpoint/reference/synchronization/consistency/theory/[Consistency Theory]
 
 * xref:/midpoint/reference/concepts/relativity/[Relativity]
 
 * xref:/midpoint/reference/synchronization/introduction/[Reconciliation process]
 
-* wiki:Shadow+Refresh+Task[Shadow Refresh Task]
+* xref:/midpoint/reference/tasks/shadow-refresh-task/[Shadow Refresh Task]
 
 * xref:/connectors/connid/1.x/connector-development-guide/[Connector Development Guide - DiscoverySupport]

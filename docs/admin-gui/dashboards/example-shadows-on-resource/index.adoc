@@ -7,7 +7,7 @@
 :page-wiki-metadata-modify-user: lskublik
 :page-wiki-metadata-modify-date: 2020-05-04T13:07:47.860+02:00
 
-Please see wiki:Dashboard+configuration[Dashboard configuration] for basic information about configuration variables.
+Please see xref:/midpoint/reference/admin-gui/dashboards/configuration/[Dashboard configuration] for basic information about configuration variables.
 
 
 == Usecase

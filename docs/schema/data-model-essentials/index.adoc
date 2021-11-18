@@ -22,7 +22,6 @@ The description of a data model presented here is simplified.
 For the full description of the model please see xref:/midpoint/reference/schema/[Data Model] page and the documentation inside the schema files (XSD).
 ====
 
-
 == Objects
 
 MidPoint repository is object-oriented.
@@ -45,7 +44,7 @@ They are hidden inside the system and even a system administrator does not need 
 
 Objects have _properties_ that contain values.
 Each property has its name.
-The name is in fact wiki:Terminology[QName] but as most of the midPoint schema is in the same namespace it can be considered to be a simple string for the usual case.
+The name is in fact xref:/glossary/[QName] but as most of the midPoint schema is in the same namespace it can be considered to be a simple string for the usual case.
 The object in the diagram above has properties `name`, `fullName`, `givenName` (and others).
 Properties have values that are typically primitive data types such as strings and numbers.
 Also slightly complex data types such as timestamps (date+time), QName and URLs are considered to be primitive data types and can be used as property values.
@@ -134,7 +133,6 @@ This allows the data to be stored efficiently in a form of relational database t
 
 ====
 
-
 == Object Types
 
 All basic types of objects are defined in file common-2a.xsd that can be downloaded link:https://svn.evolveum.com/midpoint/trunk/infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd[here]. Following table summarizes the basic object types used in midPoint:
@@ -151,9 +149,9 @@ All basic types of objects are defined in file common-2a.xsd that can be downloa
 | Shadow
 | ShadowType
 | Local copy of any object on the provisioning resource that is related to provisioning.
- +
- It may be account, group, role (on the target system), privilege, security label,  +
- organizational unit or anything else that is worth managing in identity management.
++
+It may be account, group, role (on the target system), privilege, security label,  +
+organizational unit or anything else that is worth managing in identity management.
 
 [NOTE]
 .Attention
@@ -161,7 +159,6 @@ All basic types of objects are defined in file common-2a.xsd that can be downloa
 In 2.1.x versions there was used AccountShadowType to represent user account in the Resource.
 Now Shadow (2.2 version) contains property `kind` that can be set to value _account_
 ====
-
 
 | Resource
 | xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType]
@@ -210,7 +207,6 @@ These terms are interchangeable for most practical purposes.
 
 ====
 
-
 == User and Accounts
 
 User and account are two fundamental concepts of identity management systems.
@@ -255,7 +251,6 @@ Even such a simple attribute as person full name may be troublesome.
 E.g. one resource requires user full name to be stored in a single string attribute in unicode form.
 Other resource requires to keep first name and last name in separate attributes that cannot hold national characters.
 It is a responsibility of midPoint to handle this variability and integrate the accounts.
-
 
 == Account Shadow
 
@@ -304,7 +299,6 @@ Most of the attributes, activation data and credential data are fetched from the
 This approach provides semi-unified view of all accounts.
 All the account on all the resources are presented in the same form and the presented data are fresh.
 
-
 == Resource
 
 Resource definition (also known as xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType]) is an object in midPoint repository that describes an resource.
@@ -329,10 +323,9 @@ image::schemas-datamodel-resource.png[]
 Resource definition is perhaps the most important object from a point of view of midPoint administration and configuration.
 Significant part of midPoint functionality is controlled by xref:/midpoint/reference/resources/resource-configuration/[configuration of the resource definition].
 
-
 == Connector
 
-Main article: link:http://wiki.evolveum.com/display/midPoint/Identity+Connectors[Identity Connectors]
+Main article: xref:/connectors/connectors/[Identity Connectors]
 
 xref:/connectors/[Connector] is a piece of code that is used to access the resource (target or source system).
 It is kind of a "driver" that talk to the resource using its native protocol and translates that to the data structures that are understood by midPoint.
@@ -348,22 +341,19 @@ image::schemas-datamodel-connector.png[]
 
 TODO: Remote connector, connector upgrade
 
-
 == Role
 
-Main article: link:http://wiki.evolveum.com/display/midPoint/midPoint+RBAC[midPoint RBAC]
+Main article: xref:/midpoint/reference/roles-policies/rbac/[midPoint RBAC]
 
 TODO
 
 For more details see xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[RoleType].
-
 
 == More Documentation
 
 The xref:/midpoint/reference/schema/[Data Model] page provides in-depth description of the data model design principles and purpose (although it may be slightly outdated).
 
 The xref:/midpoint/reference/schema/schemadoc/[SchemaDoc] page contains links to data model documentation that is automatically generated from schema files.
-
 
 == See Also
 

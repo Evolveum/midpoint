@@ -11,10 +11,12 @@
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
-MidPoint has several built-in object types such as xref:/midpoint/reference/roles-policies/rbac/[roles], xref:/midpoint/reference/org/organizational-structure/[orgs], and wiki:Services[services]. Those object types may look innocent at the first sight.
+MidPoint has several built-in object types such as xref:/midpoint/reference/roles-policies/rbac/[roles], xref:/midpoint/reference/org/organizational-structure/[orgs], and xref:/midpoint/reference/misc/services/[services].
+Those object types may look innocent at the first sight.
 They look like ordinary concepts that almost any other IDM system has.
 But there is much more under the surface.
-Roles, orgs, and services can act as a smart replacement for wiki:Generic+Objects[generic objects]. Roles, orgs, and services can be used to model a broad variety of object types: job categories, titles, projects, teams, responsibilities, locations, policy categories, devices, ...
+Roles, orgs, and services can act as a smart replacement for xref:/midpoint/reference/schema/generic-objects/[generic objects].
+Roles, orgs, and services can be used to model a broad variety of object types: job categories, titles, projects, teams, responsibilities, locations, policy categories, devices, ...
 
 Subtype is a schema property that can be used to distinguish those data types.
 It is simple, multi-valued property.
@@ -33,10 +35,9 @@ Subtypes will be most likely deprecated sometime during midPoint 4.x lifetime an
 
 Historical note: the original idea was to implement archetypes as an extension of the subtype functionality.
 But it was discovered during the detailed design of archetype functionality that we can do it much better.
-Current form of archetype functionality wiki:Synergistic+Features[fits perfectly] with existing midPoint features and it is much more powerful than originally planned.
+Current form of archetype functionality xref:/midpoint/features/synergy/[fits perfectly] with existing midPoint features and it is much more powerful than originally planned.
 Therefore the idea of subtype-based archetypes was dropped.
 ====
-
 
 == Subtypes and Metaroles
 
@@ -45,15 +46,14 @@ The purpose of subtype is to be able to quickly look for objects of a particular
 Therefore it has to be simple to be efficiently indexed and processed even in big midPoint deployments.
 
 This also means that subtype alone cannot define all the complexities of behavior set for individual object types.
-Therefore subtype is often combined with wiki:Using+Metaroles+for+Policy+Configuration[metaroles]. Metaroles are a very efficient mechanism to specify common behavior and policies for groups of objects.
-
+Therefore subtype is often combined with xref:/midpoint/reference/roles-policies/metaroles/policy/[metaroles]. Metaroles are a very efficient mechanism to specify common behavior and policies for groups of objects.
 
 == See Also
 
-* wiki:Generic+Objects[Generic Objects]
+* xref:/midpoint/reference/schema/generic-objects/[Generic Objects]
 
 * xref:/midpoint/reference/schema/archetypes/[Archetypes]
 
-* wiki:Using+Metaroles+for+Policy+Configuration[Using Metaroles for Policy Configuration]
+* xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration]
 
 * xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]

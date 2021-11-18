@@ -48,7 +48,7 @@ MidPoint will try to create the `midpoint.home` directory if it does not already
 
 | icf-connectors/
 | location for all link:http://wikis.sun.com/display/IdentityConnectors/Identity+Connectors+Framework[ICF] based connectors
-| Some connectors are bundled with Midpoint or can be found in link:/connectors/connectors/[Identity Connectors] section.
+| Some connectors are bundled with Midpoint or can be found in xref:/connectors/connectors/[Identity Connectors] section.
 
 
 | idm-legacy/

@@ -67,7 +67,7 @@ Therefore we have created a completely custom user interface form to manage the 
 The custom form is implemented in Java and it is using link:https://wicket.apache.org/[Apache Wicket] components to interact with the user.
 Code of the custom form is located in `com.example.midpoint.gui.forms.ConfigurationTableTabPanel` class.
 This class implements Wicket _panel_ - one of the basic user interface components in Wicket framework.
-MidPoint is configured to use this class as a custom form in the wiki:Admin+GUI+Configuration[admin GUI configuration] section of the operator role:
+MidPoint is configured to use this class as a custom form in the xref:/midpoint/reference/admin-gui/admin-gui-config/[admin GUI configuration] section of the operator role:
 
 [source,xml]
 ----
@@ -206,7 +206,7 @@ Most important files:
 
 * link:https://github.com/Evolveum/midpoint-overlay-example/blob/master/src/main/resources/initial-objects/921-role-meta-transform-org.xml[921-role-meta-transform-org.xml]: metarole which contains the transform algorithm (mapping)
 
-* link:https://github.com/Evolveum/midpoint-overlay-example/blob/master/src/main/resources/initial-objects/900-role-superoperator.xml[900-role-superoperator.xml]: operator role which contains custom form definition (using wiki:Admin+GUI+Configuration[admin GUI configuration])
+* link:https://github.com/Evolveum/midpoint-overlay-example/blob/master/src/main/resources/initial-objects/900-role-superoperator.xml[900-role-superoperator.xml]: operator role which contains custom form definition (using xref:/midpoint/reference/admin-gui/admin-gui-config/[admin GUI configuration])
 
 * link:https://github.com/Evolveum/midpoint-overlay-example/blob/master/src/main/java/com/example/midpoint/gui/forms/ConfigurationTableTabPanel.java[ConfigurationTableTabPanel.java]: Java source code of the custom form (using Apache Wicket components)
 

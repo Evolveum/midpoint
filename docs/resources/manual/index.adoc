@@ -31,7 +31,7 @@ The basic principle of manual connectors is the storage of operation xref:/midpo
 MidPoint also remembers the state of the operation and the reference to a case/ticket that is used to track operation progress.
 This reference is used to update operation status.
 
-MidPoint usually keeps cached version of the account in midPoint xref:/midpoint/architecture/archive/subsystems/repo/[repository]. In fact the same mechanism that is used for wiki:Attribute+Caching[attribute caching] is used here.
+MidPoint usually keeps cached version of the account in midPoint xref:/midpoint/architecture/archive/subsystems/repo/[repository]. In fact the same mechanism that is used for xref:/midpoint/reference/resources/attribute-caching/[attribute caching] is used here.
 MidPoint keeps the cached data mostly for presentation purposes - we would like to show how we think that the account looks like.
 
 Pure manual resources are disconnected from the target system.
@@ -50,7 +50,7 @@ In this case two connectors are combined for the same resource:
 These operations are executed manually by system administrator.
 
 * Ordinary (on-line) connector is used for reading the data.
-This is typically wiki:CSV+Connector[CSV connector] that contains the data exported from the target system.
+This is typically xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV connector] that contains the data exported from the target system.
 This is usually scheduled export script.
 
 Provisioning operations on a semi-manual resources are executed in exactly the same way as in pure-manual resources.
@@ -62,7 +62,7 @@ Therefore midPoint can detect whether accounts has been illegally changed on the
 MidPoint can also automatically create new tickets for system administrators to fix inconsistencies between the policy and real state of the account in the target system.
 
 In theory any kind of ordinary xref:/connectors/connectors/[identity connector] can be combined with the manual connector to create a semi-manual resource.
-This is allowed by midPoint's unique wiki:Multi-Connector+Resource[multi-connector feature].
+This is allowed by midPoint's unique xref:/midpoint/reference/resources/multi-connector-resource/[multi-connector feature].
 
 
 == Internal Provisioning Cases
@@ -151,12 +151,12 @@ In such case midPoint will not execute operations immediately.
 Requested changes will get queued for (reasonably short) time.
 Then midPoint will execute all the changes at once in a single operation.
 
-See wiki:Provisioning+Propagation[Provisioning Propagation] page for more details.
+See xref:/midpoint/reference/resources/propagation/[Provisioning Propagation] page for more details.
 
 
 == Configuration
 
-See wiki:Manual+Resource+Configuration[Manual Resource Configuration] page for configuration details.
+See xref:/midpoint/reference/resources/manual/configuration/[Manual Resource Configuration] page for configuration details.
 
 
 == Sample
@@ -166,6 +166,6 @@ Contributed ITSM sample plugin can be found in our link:https://github.com/Evolv
 
 == See Also
 
-* wiki:Manual+Resource+Configuration[Manual Resource Configuration]
+* xref:/midpoint/reference/resources/manual/configuration/[Manual Resource Configuration]
 
-* wiki:Multi-Connector+Resource[Multi-Connector Resource]
+* xref:/midpoint/reference/resources/multi-connector-resource/[Multi-Connector Resource]

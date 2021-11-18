@@ -49,11 +49,11 @@ This may seem simple, but the real power in using sequences are in combination w
 
 This mapping will take a counter from the sequence and place it in the target property.
 The mapping will also make sure that the value is returned to the sequence for reclamation in case that the processing fails.
-See wiki:Using+Sequences[Using Sequences] page for more details.
+See xref:/midpoint/reference/expressions/sequences/configuration/[Using Sequences] page for more details.
 
 
 == See Also
 
 * xref:configuration.adoc[]
 
-* wiki:Unix+Story+Test[Unix Story Test]
+* xref:/reference/samples/story-tests/unix/[Unix Story Test]

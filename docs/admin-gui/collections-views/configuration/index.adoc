@@ -35,7 +35,7 @@ Something that midPoint policies can rely on.
 View specifies how a particular collection should be displayed.
 It defines the columns that should be displayed, default sorting, pre-defined filter properties and so on.
 Views are designed to be flexible, customizable.
-E.g. views can adjusted and overridden in wiki:Admin+GUI+Configuration[admin GUI configuration].
+E.g. views can adjusted and overridden in xref:/midpoint/reference/admin-gui/admin-gui-config/[admin GUI configuration].
 
 Although collections and view have different purposes and they are based on different mechanisms, they are almost always used together.
 
@@ -64,7 +64,7 @@ Then the definition is reused in all other places.
 
 It may seem that this is a very little functionality to justify its own object.
 However, most of the functionality is still not implemented.
-See wiki:Object+Collections+and+Views+Improvements[Object Collections and Views Improvements] page for the details.
+See xref:/midpoint/features/planned/object-collections-and-views/[Object Collections and Views Improvements] page for the details.
 
 === Derived Object Collection
 
@@ -113,7 +113,7 @@ All the authorizations, views and dashboards should adapt automatically.
 
 View is a concept from the presentation layer.
 Simply speaking, a view specifies details of how a specific collection should be presented.
-Views are defined in wiki:Admin+GUI+Configuration[admin GUI configuration] data structures:
+Views are defined in xref:/midpoint/reference/admin-gui/admin-gui-config/[admin GUI configuration] data structures:
 
 [source,xml]
 ----
@@ -148,7 +148,7 @@ Business people will be interested in just the basic important details about use
 Security personnel will want to see status of the user and risk level.
 System administrators will be interested in the number of accounts and technical details.
 And so on.
-Placing definition of view in wiki:Admin+GUI+Configuration[admin GUI configuration] makes it easy to specify all those details in the appropriate roles.
+Placing definition of view in xref:/midpoint/reference/admin-gui/admin-gui-config/[admin GUI configuration] makes it easy to specify all those details in the appropriate roles.
 Therefore all the roles will have they own customized presentation of the data.
 
 
@@ -485,7 +485,7 @@ Therefore *link:https://evolveum.com/services/professional-support/[midPoint Pla
 
 == See Also
 
-* wiki:Object+Collections+and+Views+Improvements[Object Collections and Views Improvements]
+* xref:/midpoint/features/planned/object-collections-and-views/[Object Collections and Views Improvements]
 
 * xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
 

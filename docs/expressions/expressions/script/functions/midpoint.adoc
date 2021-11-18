@@ -72,7 +72,7 @@ Searches through all object of a specified type and returns a count of such obje
 |===
 
 
-You may want to have a look at wiki:IDM+Model+Interface+Introduction[IDM Model Interface Introduction] to see examples how to use these methods.
+You may want to have a look at xref:/midpoint/reference/interfaces/model-java/introduction/[IDM Model Interface Introduction] to see examples how to use these methods.
 Just keep in mind that the scripting library has a simplified versions of these methods therefore the task and result parameters are supplied automatically and do no need to be specified explicitly.
 
 
@@ -116,4 +116,4 @@ columns:
 
 == See Also
 
-* wiki:IDM+Model+Interface+Introduction[IDM Model Interface Introduction]
+* xref:/midpoint/reference/interfaces/model-java/introduction/[IDM Model Interface Introduction]

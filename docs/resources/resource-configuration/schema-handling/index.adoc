@@ -24,7 +24,7 @@ The Resource Schema Handling is related to the xref:/midpoint/reference/resource
 image::schemas-schemahandling-overview.png[]
 
 While xref:/midpoint/reference/resources/resource-schema/[Resource Schema] is usually generated from the Resource by the connector, the Resource Schema Handling must be manually defined by the IDM administrator.
-Adapting Resource Schema Handling is an substantial part of midPoint customization.
+Adapting Resource Schema Handling is a substantial part of midPoint customization.
 
 Schema handling defines account types and entitlement types.
 Accounts are data records representing user on the Resource, entitlements are objects that can be assigned to accounts (such as groups, roles, privileges, team membership, etc.). See xref:/midpoint/reference/schema/data-model-essentials/[Basic Data Model] for the introduction to these concepts.
@@ -51,7 +51,7 @@ Having this part of the configuration right significantly simplifies the overall
 MidPoint identifies each type of resource object by using a *(kind, intent)* tuple.
 I.e. each resource object has a *kind* and an *intent*. Kind defines what the object _is_, intent specified how the object _behaves_.
 
-See the wiki:Kind,+Intent+and+ObjectClass[Kind, Intent and ObjectClass] page for more details on kind and intent.
+See the xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[Kind, Intent and ObjectClass] page for more details on kind and intent.
 
 
 === Object Class
@@ -65,7 +65,7 @@ MidPoint then known quite well what to do with _default account_.
 _Object class_ is an term used by midPoint connectors.
 Therefore object class definition is passed to the connector.
 
-See wiki:Kind,+Intent+and+ObjectClass[Kind, Intent and ObjectClass] page for more details.
+See xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[Kind, Intent and ObjectClass] page for more details.
 
 
 === The Definition
@@ -115,10 +115,10 @@ This is a human readable name used in GUI and similar tools.
 ** *Limitations* of the attribute.
 E.g. administrator can make the attribute read-only even if the connector can both read and write the attribute value.
 
-** *wiki:Outbound+Mapping[Outbound Mapping]* defines how the attribute value is created when the account is created or updated.
+** *xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound Mapping]* defines how the attribute value is created when the account is created or updated.
 It defines the data flow out of midPont to the resource.
 
-** *wiki:Inbound+Mapping[Inbound Mapping]* defines how the attribute value is used when a change of the account is detected on the Resource.
+** *xref:/midpoint/reference/expressions/mappings/inbound-mapping/[Inbound Mapping]* defines how the attribute value is used when a change of the account is detected on the Resource.
 It defines data flow from the resource into midPoint.
 
 ** Other aspects such as tolerance, ability to ignore the attribute, etc.
@@ -128,8 +128,8 @@ It defines data flow from the resource into midPoint.
 * *Credentials* handling defines how credentials are synchronized for this account.
 Which usually includes only section for:
 
-** *Password* defines a password synchronization properties, it usually contains wiki:Outbound+Mapping[Outbound Mapping] definition.
-It may also contain wiki:Inbound+Mapping[Inbound Mapping] but as most resources hash their password this has a very limited use.
+** *Password* defines a password synchronization properties, it usually contains xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound Mapping] definition.
+It may also contain xref:/midpoint/reference/expressions/mappings/inbound-mapping/[Inbound Mapping] but as most resources hash their password this has a very limited use.
 
 
 
@@ -139,10 +139,10 @@ It usually contains section for:
 ** *Existence mapping* determines when the object should and should not exist.
 
 ** *Administrative status* mapping defines how activation administrative status is synchronized with the resource.
-It may contain wiki:Outbound+Mapping[outbound] and wiki:Inbound+Mapping[inbound] mappings.
+It may contain xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound] and xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound] mappings.
 
 ** *Validity* mappings defines how validity dates (`validFrom`, `validTo`) are synchronized with the resource.
-It may contain wiki:Outbound+Mapping[outbound] and wiki:Inbound+Mapping[inbound] mappings.
+It may contain xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound] and xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound] mappings.
 
 
 
@@ -281,10 +281,10 @@ Therefore please forgive us this little non-intuitive weirdness.
 
 Perhaps the most powerful parts of the definition are xref:/midpoint/reference/expressions/mappings/[mappings] that take two slightly distinct forms:
 
-* *wiki:Outbound+Mapping[Outbound Mapping]* defines how the attribute value is created when the account is created or updated.
+* *xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound Mapping]* defines how the attribute value is created when the account is created or updated.
 It defines the data flow out of midPont to the resource.
 
-* *wiki:Inbound+Mapping[Inbound Mapping]* defines how the attribute value is used when a change of the account is detected on the Resource.
+* *xref:/midpoint/reference/expressions/mappings/inbound-mapping/[Inbound Mapping]* defines how the attribute value is used when a change of the account is detected on the Resource.
 It defines data flow from the resource into midPoint.
 
 TODO: expand
@@ -498,13 +498,13 @@ But that is expected to be a very rare case.
 
 * xref:/midpoint/reference/resources/shadow/[Shadow Objects]
 
-* wiki:Resource+Schema+Mapping[Resource Schema Mapping]
+* xref:/midpoint/architecture/archive/interactions/resource-schema-mapping/[Resource Schema Mapping]
 
-* wiki:Inbound+Mapping[Inbound Mapping]
+* xref:/midpoint/reference/expressions/mappings/inbound-mapping/[Inbound Mapping]
 
-* wiki:Outbound+Mapping[Outbound Mapping]
+* xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound Mapping]
 
-* wiki:Mapping+Evaluation+Examples[Mapping Evaluation Examples]
+* xref:/midpoint/reference/expressions/mappings/mapping-evaluation-examples/[Mapping Evaluation Examples]
 
 
 == External links

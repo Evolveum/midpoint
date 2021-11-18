@@ -31,7 +31,6 @@ They are useful e.g. to notify in cases when a recurring task (like a reconcilia
 
 . *Custom notifications.* These can be used for any other purposes.
 
-
 == Some simple examples
 
 Configuration of notifications is currently done within SystemConfiguration object.
@@ -100,7 +99,6 @@ Some examples are shown below:
 </notificationConfiguration>
 
 ----
-
 
 == General Notifier Example
 
@@ -172,10 +170,9 @@ Some examples are shown below:
 </notificationConfiguration>
 ----
 
-
 == Another General Notifier Example
 
-The description of this example can be found on the next wiki page - wiki:General+notification+-+role+assignment+example[General notification - role assignment example].
+The description of this example can be found on the next page - xref:/midpoint/reference/misc/notifications/general/[General notification - role assignment example].
 
 [source,xml]
 ----
@@ -358,7 +355,6 @@ The description of this example can be found on the next wiki page - wiki:Genera
     </notificationConfiguration>
 ----
 
-
 == A bit of theory related to event handling
 
 When something potentially of interest occurs, an *event* is generated.
@@ -419,7 +415,6 @@ Examples are:
 
 |===
 
-
 === Filters
 
 A filter is a component that does not generate notifications, but passes through (or filters out) defined subsets of notifications.
@@ -458,7 +453,6 @@ There are currently the following kinds of filters:
 A filter can be specified as part of a notifier - in that case it defines which classes of events get processed by that notifier.
 Or a filter can be a standalone part of a handler chain (see below).
 
-
 === Special kinds of handlers
 
 There are two special kinds of handlers:
@@ -480,7 +474,6 @@ Processing within a chain continues until an event is filtered out.
 
 |===
 
-
 === Mail attachments
 
 ++++
@@ -490,7 +483,6 @@ Processing within a chain continues until an event is filtered out.
 
 We can define attachments for mail.
 We have two choices, adding attributes to the xml or writing of script.
-
 
 .Example of attachments
 [source,xml]
@@ -539,7 +531,6 @@ We have two choices, adding attributes to the xml or writing of script.
 
 ----
 
-
 ==== Attributes
 
 If we use attachment, then we have two choices, insert the content to the xml or use file.
@@ -577,7 +568,6 @@ E.g. <c:contentId>&lt;customerLogo&gt;</c:contentId> is referenced in HTML as <i
 
 |===
 
-
 === Executing the handlers
 
 When an event is created, all the handlers defined at the level of <notificationConfiguration> are executed.
@@ -586,18 +576,16 @@ Some more advanced examples:
 
 TODO
 
-For instructions how to configure notifiers, filters, and transports please see wiki:Configuring+notifications[administrator's guide].
+For instructions how to configure notifiers, filters, and transports please see xref:/midpoint/reference/misc/notifications/configuration/[administrator's guide].
 
-To send HTML emails, set <contentType>text/html; charset=UTF-8</contentType> and put to <bodyExpression> escaped HTML in single quote.
-
+To send HTML emails, set `<contentType>text/html; charset=UTF-8</contentType>` and put to `<bodyExpression>` escaped HTML in single quote.
 
 === Custom notifications
 
-These are briefly described in the wiki:Sending+custom+notifications+HOWTO[Sending custom notifications HOWTO].
-
+These are briefly described in the xref:/midpoint/reference/misc/notifications/sending-custom-notifications/[Sending custom notifications HOWTO].
 
 == See Also
 
-* wiki:Configuring+notifications[Configuring notifications]
+* xref:/midpoint/reference/misc/notifications/configuration/[Configuring notifications]
 
-* wiki:Using+Velocity+Templates+for+Notifications[Using Velocity Templates for Notifications]
+* xref:/midpoint/reference/misc/notifications/velocity/[Using Velocity Templates for Notifications]

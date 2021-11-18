@@ -9,13 +9,13 @@
 :page-since: "3.8"
 :page-upkeep-status: yellow
 
-MidPoint is very flexible system, especially when it comes to wiki:Approval[approval] and other xref:/midpoint/reference/roles-policies/policy-rules/[policies]. But the flexibility comes at a cost.
+MidPoint is very flexible system, especially when it comes to xref:/midpoint/reference/cases/approval/[approval] and other xref:/midpoint/reference/roles-policies/policy-rules/[policies]. But the flexibility comes at a cost.
 Policy definition can be quite complex.
 Some of this complexity is inherent and cannot really be avoided.
 But once the policies are created then it should be quite easy to apply them to individual objects such as users and roles.
 And starting from midPoint 3.8 there indeed is a simple way how to apply even a very complex policies.
 
-The general idea of metarole-based configuration and the corresponding user interface is introduced on wiki:User-Friendly+Policy+Selection[User-Friendly Policy Selection] page.
+The general idea of metarole-based configuration and the corresponding user interface is introduced on xref:/midpoint/reference/roles-policies/applicable-policies/[User-Friendly Policy Selection] page.
 This page describes configuration details.
 
 
@@ -109,7 +109,7 @@ Therefore the complete configuration may look like this:
 </role>
 ----
 
-See wiki:Using+Metaroles+for+Policy+Configuration[Using Metaroles for Policy Configuration] page for a more specific examples of approval policy specification in a metarole.
+See xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration] page for a more specific examples of approval policy specification in a metarole.
 
 [TIP]
 .Display names
@@ -127,9 +127,9 @@ Therefore display names can be used almost freely to provide a meaningful inform
 
 == See Also
 
-* wiki:User-Friendly+Policy+Selection[User-Friendly Policy Selection]
+* xref:/midpoint/reference/roles-policies/applicable-policies/[User-Friendly Policy Selection]
 
-* wiki:Using+Metaroles+for+Policy+Configuration[Using Metaroles for Policy Configuration]
+* xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration]
 
 * xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
 

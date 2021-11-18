@@ -29,10 +29,10 @@ This flexibility is a fundamental part of midPoint design and it work incredibly
 However, flexibility also has a dark side.
 MidPoint expressions are powerful.
 But for some purposes they may be just too powerful.
-Expressions, and especially wiki:Script+Expression[scripting expressions], can do anything.
+Expressions, and especially xref:/midpoint/reference/expressions/expressions/script/[scripting expressions], can do anything.
 This can be abused by a malevolent attacker to gain unauthorized access to data, disable the system or do almost any kind of damage.
 This is the very nature of customization based on scripting.
-Even though the dangers are quite obvious and self-explanatory, we have wiki:Security+Guide[warned] the users about this all the time.
+Even though the dangers are quite obvious and self-explanatory, we have xref:/midpoint/reference/security/security-guide/[warned] the users about this all the time.
 The recommendation was not to allow any untrusted user to set up any expression.
 
 However, there is a limit to such an recommendation.
@@ -42,7 +42,7 @@ And it is also difficult to imagine a life with just a static roles.
 That would easily lead to role explosion.
 Thanks to midPoint design, there were ways how to work around this problem:
 
-* wiki:Using+Metaroles+for+Policy+Configuration[Metaroles] can be used to group all the necessary logic, including expressions.
+* xref:/midpoint/reference/roles-policies/metaroles/policy/[Metaroles] can be used to group all the necessary logic, including expressions.
 Meta roles can be setup by a trusted administrator.
 Delegated administrators then just "use" the metarole, with possible parametrization using parameters in assignment extension.
 However, even this method is not yet fully supported in midPoint user interface.
@@ -61,7 +61,7 @@ Expression profiles are definitions, what an expression can and cannot do.
 For example an expression profile may dictate, that particular expression can only use `asIs` and `path` evaluators.
 And in case that `script` evaluator is used, only Groovy can be used as a scripting language, the script should be type-checked and only use of particular safe classes should be allowed.
 
-Expression profiles are defined in wiki:System+Configuration+Object[system configuration.] That part is quite easy.
+Expression profiles are defined in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration.] That part is quite easy.
 But it is much more difficult to specify which expression should be constrained by which profile.
 Profile specification cannot part of expression itself.
 In that case anyone that can modify an expression could also change the profile and there would be no security at all.
@@ -82,7 +82,7 @@ See xref:configuration.adoc[] page for the details.
 The implementation of expression profiles in current midPoint versions is very limited.
 But that can be improved.
 
-Please see wiki:Expression+Profiles:+Full+Implementation[Expression Profiles: Full Implementation] page for the details about our plans for the future of expression profiles.
+Please see xref:/midpoint/features/planned/expression-profiles/[Expression Profiles: Full Implementation] page for the details about our plans for the future of expression profiles.
 
 
 == See Also
@@ -91,4 +91,4 @@ Please see wiki:Expression+Profiles:+Full+Implementation[Expression Profiles: Fu
 
 * xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
-* wiki:Security+Guide[Security Guide]
+* xref:/midpoint/reference/security/security-guide/[Security Guide]

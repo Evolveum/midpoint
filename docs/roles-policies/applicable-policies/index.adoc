@@ -13,13 +13,13 @@
 
 == Introduction
 
-MidPoint is very flexible system, especially when it comes to wiki:Approval[approval] and other xref:/midpoint/reference/roles-policies/policy-rules/[policies]. But the flexibility comes at a cost.
+MidPoint is very flexible system, especially when it comes to xref:/midpoint/reference/cases/approval/[approval] and other xref:/midpoint/reference/roles-policies/policy-rules/[policies]. But the flexibility comes at a cost.
 Policy definition can be quite complex.
 Some of this complexity is inherent and cannot really be avoided.
 But once the policies are created then it should be quite easy to apply them to individual objects such as users and roles.
 And starting from midPoint 3.8 there indeed is a simple way how to apply even a very complex policies.
 
-The basic idea is to express the policies in a form of wiki:Using+Metaroles+for+Policy+Configuration[metaroles]. For example the policy that drives role assignment through an approval will be expressed in "approval by manager" metarole.
+The basic idea is to express the policies in a form of xref:/midpoint/reference/roles-policies/metaroles/policy/[metaroles]. For example the policy that drives role assignment through an approval will be expressed in "approval by manager" metarole.
 This metarole will contain all the xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] necessary to express the approval policy.
 Those policy rules may be quite complex, but they are all conveniently packed into the metarole.
 All that remains is to assign the metarole to an object to which it should apply - which is usually a role.
@@ -71,7 +71,7 @@ The policies from the "Approval by owner" metarole will be automatically applied
 == Configuration
 
 Obviously, the first step is to set up the metaroles themselves.
-The wiki:Using+Metaroles+for+Policy+Configuration[Using Metaroles for Policy Configuration] page describes the basic principle and also provides some examples.
+The xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration] page describes the basic principle and also provides some examples.
 
 However, there is yet another configuration to be made.
 MidPoint user interface has to know which "applicable policies" to display.
@@ -91,7 +91,7 @@ image::policy_groups.png[]
 
 There is one more thing to do for this setup to work and that is to set up the organizational unit in system configuration so midPoint user interface can find them.
 
-Please see wiki:Applicable+Policy+Configuration[Applicable Policy Configuration] page for configuration details and examples.
+Please see xref:/midpoint/reference/roles-policies/applicable-policies/configuration/[Applicable Policy Configuration] page for configuration details and examples.
 
 
 == Notes
@@ -101,13 +101,13 @@ This means that some roles have the policies applied and other roles do not.
 And this is decided by system administrator and there is no systemic way how to distinguish when a policy should be applied and when it should not.
 
 If there is indeed a systemic way to apply a policy then there is a better approach: global policy rules.
-Global policy rules can be used to apply the rules to all selected objects based on a wiki:Object+Query[filter]. Therefore the policies can be applied in a systemic way.
+Global policy rules can be used to apply the rules to all selected objects based on a xref:/midpoint/reference/concepts/query/[filter]. Therefore the policies can be applied in a systemic way.
 
 
 == See Also
 
 * xref:configuration.adoc[]
 
-* wiki:Using+Metaroles+for+Policy+Configuration[Using Metaroles for Policy Configuration]
+* xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration]
 
 * xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]

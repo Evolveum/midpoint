@@ -112,14 +112,14 @@ The use of sequence expressions in outbound, inbound or any other place is not s
 
 == Example: UNIX systems
 
-See wiki:Unix+Story+Test[Unix Story Test] for a complete example that is using sequences.
+See xref:/reference/samples/story-tests/unix/[Unix Story Test] for a complete example that is using sequences.
 The test is using sequences to assign Unix UID and GID numbers.
 
 
 == See Also
 
-* wiki:Sequences[Sequences]
+* xref:/midpoint/reference/expressions/sequences/[Sequences]
 
 * xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
-* wiki:Unix+Story+Test[Unix Story Test]
+* xref:/reference/samples/story-tests/unix/[Unix Story Test]

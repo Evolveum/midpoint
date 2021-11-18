@@ -13,11 +13,11 @@
 
 There are situations, when xref:/midpoint/reference/resources/shadow/[shadow objects] do not entirely reflect the reality.
 Such situations are to be expected, as those "shadows" are actually copies of the data that originate from other systems.
-The shadow objects also contain wiki:Manual+Resource+Configuration[pending operation data] that naturally change in time.
+The shadow objects also contain xref:/midpoint/reference/resources/manual/configuration/[pending operation data] that naturally change in time.
 And there are also cases when the data model evolves and data in the "shadows" need to be updated.
 
 All such situations mean that shadow objects need to _refreshed_. Refresh means that midPoint makes sure that a shadow is internally consistent and to execute all operations that need to be executed in order to re-gain consistency.
-Shadow refresh will try to finish pending operations, e.g. xref:/midpoint/reference/synchronization/consistency/[re-try failed operations]. Refresh will update the status of wiki:Manual+Resource+and+ITSM+Integration[manual operations]. And so on.
+Shadow refresh will try to finish pending operations, e.g. xref:/midpoint/reference/synchronization/consistency/[re-try failed operations]. Refresh will update the status of xref:/midpoint/reference/resources/manual/[manual operations]. And so on.
 Refresh task will also make sure that application-level indexes for shadow objects are right.
 Therefore it can be useful in migration scenarios or in cases that system configuration was changed and stored data need to be updated.
 
@@ -129,6 +129,6 @@ Therefore it can usually be scheduled for quite a frequent execution, usually ex
 
 == See Also
 
-* wiki:Manual+Resource+and+ITSM+Integration[Manual Resource and ITSM Integration]
+* xref:/midpoint/reference/resources/manual/[Manual Resource and ITSM Integration]
 
 * xref:/midpoint/reference/synchronization/consistency/[Consistency mechanism]

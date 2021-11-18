@@ -32,7 +32,7 @@ Therefore if user's actions results in a computed value such value is displayed 
 
 == Mitigation
 
-Users of affected MidPoint versions are advised to upgrade their deployments to the latest builds from the wiki:Using+Support+Branch[support branches]. Users of midPoint 3.8 and earlier are advised to upgrade to midPoint 3.9.
+Users of affected MidPoint versions are advised to upgrade their deployments to the latest builds from the xref:/midpoint/install/using-support-branch/[support branches]. Users of midPoint 3.8 and earlier are advised to upgrade to midPoint 3.9.
 
 As this is a medium severity issue, it is not forcing official maintenance releases of midPoint.
 The fix is provided in support branch for midPoint 3.9.x. The fix is *not*  provided in support branches of midPoint 3.8.x and earlier due to a code incompatibility.

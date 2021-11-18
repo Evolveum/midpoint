@@ -9,7 +9,9 @@
 :page-upkeep-status: yellow
 :page-toc: top
 
-Admin GUI configuration is a specialized data structure that is present in wiki:System+Configuration+Object[system configuration object], in all the role-like objects (roles, orgs, services) and also in the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[user objects]. The admin GUI configuration structure influences how to user interface is displayed.
+Admin GUI configuration is a specialized data structure that is present in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object],
+in all the role-like objects (roles, orgs, services) and also in the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[user objects].
+The admin GUI configuration structure influences how to user interface is displayed.
 Despite its name it applies both to the self-service part and administration part of the user interface.
 
 
@@ -37,15 +39,14 @@ However the compatibility will be maintained and this setting will also remain h
 
 * *`feedbackMessagesHook`*: Script hook configuration which can be used to modify operation results shown in GUI.
 
-
 == How It Works
 
-The same admin GUI configuration structure may be specified in wiki:System+Configuration+Object[system configuration object], in all the role-like objects (roles, orgs, services) and also in the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[user objects] (starting from midPoint v 4.1: in all AssignmentHolderType objects).
+The same admin GUI configuration structure may be specified in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object], in all the role-like objects (roles, orgs, services) and also in the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[user objects] (starting from midPoint v 4.1: in all AssignmentHolderType objects).
 When a specific user logs in, midPoint will process all of user's roles to check for applicable authorizations.
 At the same time midPoint also compiles the effective admin GUI configuration.
 Following algorithm is used:
 
-* Admin GUI configuration in the wiki:System+Configuration+Object[system configuration object] is applied first (if present).
+* Admin GUI configuration in the xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object] is applied first (if present).
 
 * Admin GUI configuration from all of the active roles, orgs and services is applied on top of that.
 
@@ -231,9 +232,7 @@ These are the URIs:
 
 |===
 
-
 == Examples
-
 
 === Show Only Some Default Forms
 
@@ -267,7 +266,6 @@ If user has this role the he will see only basic tab and assignments.
 The projections, history and other tabs will be hidden.
 Of course, if the user has more roles that gives access to more tabs that he will see these tabs as well.
 
-
 === New Custom Form in a Role
 
 The following example adds a completely custom user form (Java class).
@@ -295,7 +293,6 @@ The form implemented in the `com.piracy.form.PirateUserPanel` will be used to di
 There is no `includeDefaultForms` setting.
 Therefore the default forms will not be displayed in this case.
 User that have just this one role will see just this one custom tab.
-
 
 === Hiding User Dashboard Widgets
 
@@ -406,7 +403,6 @@ Possible widget identifiers on the self dashboard page:
 
 |===
 
-
 === Custom columns configuration
 
 To customize columns in the object list table, please, see use the following example
@@ -487,7 +483,7 @@ If not specified then it defaults to automatic visibility.`
 | `Name of the column that has to be displayed before this column.
 This value +
 defines ordering in which the columns should be displayed.
- +
++
 The first column has no value in this element. +
 If there are multiple columns that specify the same preceding columns then +
 the implementation may choose any ordering of such columns.
@@ -497,7 +493,6 @@ time (alphabeting ordering based on "path" or displayOrder from the schema +
 are good candidates for deterministic ordering).`
 
 |===
-
 
 == Custom actions for object lists
 
@@ -526,7 +521,6 @@ To configure custom actions, please, use the following example
 ----
 
 Xml for the task template object you can find by the link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/templates/task-template-change-description.xml[following link]. After custom action is configured in the admin gui configuration section, you can find action link among menu items on the appropriate type object list panel.image::custom_action_screen.png[]
-
 
 == Admin GUI Configuration and Authorizations
 
@@ -574,7 +568,6 @@ This link will be displayed only if the user has authorization that allow the ac
 Secondly, inclusion of default forms and the `automatic` visibility mode of widgets are authorization-sensitive.
 This means that form or widget will be displayed only if the user has access to the data that are displayed.
 
-
 == Feedback Messages Hook
 
 Feedback messages hook configuration allows operation result preprocessing before it's shown in GUI.
@@ -619,18 +612,16 @@ To see changes made in this part of configuration, user needs to do logout/login
 </adminGuiConfiguration>
 ----
 
-
 == Security
 
 Some parts of admin GUI configuration may contain xref:/midpoint/reference/expressions/expressions/[expressions]. Expressions are pieces of code that are executed inside midPoint server.
 As such expressions has to be inherently trusted.
 Therefore do not allow untrusted users to define sensitive parts of admin GUI configuration.
 
-
 == See Also
 
-* wiki:System+Configuration+Object[System Configuration Object]
+* xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration Object]
 
 * xref:/midpoint/reference/security/authorization/[Authorization]
 
-* wiki:Show+Only+Active+Users+HOWTO[Show Only Active Users HOWTO]
+* xref:/midpoint/reference/admin-gui/collections-views/show-only-active-users/[Show Only Active Users HOWTO]

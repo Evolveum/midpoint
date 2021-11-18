@@ -11,7 +11,7 @@
 
 A _trace_ contains a record of a midPoint operation execution.
 Traces are used to diagnose either functional or performance issues.
-For a broader context please see wiki:Troubleshooting+with+traces[Troubleshooting with traces] page.
+For a broader context please see xref:/midpoint/reference/diag/troubleshooting/troubleshooting-with-traces/[Troubleshooting with traces] page.
 
 Here we describe how a trace can be viewed using midPoint GUI.
 

@@ -302,4 +302,4 @@ The recommendation for inexperienced engineers is to use long-term support (LTS)
 
 * xref:/midpoint/reference/upgrade/database-schema-upgrade/[Database Schema Upgrade]
 
-* wiki:Upgradeability[Upgradeability]
+* xref:/midpoint/reference/upgrade/upgradeability/[Upgradeability]

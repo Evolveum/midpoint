@@ -11,7 +11,7 @@
 
 == Introduction
 
-See wiki:Manual+Resource+and+ITSM+Integration[Manual Resource and ITSM Integration] for an introduction to the topic.
+See xref:/midpoint/reference/resources/manual/[Manual Resource and ITSM Integration] for an introduction to the topic.
 
 
 == ITSM Plugin Implementation
@@ -26,8 +26,8 @@ In fact it is a subclass of midPoint abstract manual connector using xref:/midpo
 
 == See Also
 
-* wiki:Manual+Resource+and+ITSM+Integration[Manual Resource and ITSM Integration]
+* xref:/midpoint/reference/resources/manual/[Manual Resource and ITSM Integration]
 
-* wiki:Manual+Resource+Configuration[Manual Resource Configuration]
+* xref:/midpoint/reference/resources/manual/configuration/[Manual Resource Configuration]
 
 * xref:/midpoint/architecture/archive/subsystems/provisioning/ucf/interfaces/[Unified Connector Framework Interfaces]
