@@ -159,12 +159,12 @@ if [ "${1}" = "init-native" ] ; then
 		echo "- - - - -"
 	fi
 	echo "All requested operation has been done - init files are ready on requested location..."
+	if [ "${MP_CHECK:-}" != "" ] ; then
+		rm "${MP_CHECK}"
+	fi
 	if [ "${MP_INIT_LOOP:-}" != "" ] ; then
 		echo "Looping to keep container UP"
 		tail -f /dev/null
-	fi
-	if [ "${MP_CHECK:-}" != "" ] ; then
-		rm "${MP_CHECK}"
 	fi
 	exit 0
 fi	
