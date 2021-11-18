@@ -23,10 +23,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
 import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
-import com.evolveum.midpoint.schema.statistics.ActionsExecutedCollector;
-import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
-import com.evolveum.midpoint.schema.statistics.Operation;
-import com.evolveum.midpoint.schema.statistics.SynchronizationStatisticsCollector;
+import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -2192,8 +2189,13 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public @NotNull Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
-        return statistics.recordIterativeOperationStart(operation);
+    public @NotNull Operation recordIterativeOperationStart(@NotNull IterativeOperationStartInfo info) {
+        ExecutionSupport executionSupport = getExecutionSupport();
+        if (executionSupport != null) {
+            return executionSupport.recordIterativeOperationStart(info);
+        } else {
+            return new DummyOperationImpl(info);
+        }
     }
 
     @Override

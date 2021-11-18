@@ -384,6 +384,7 @@ public class ShadowCaretaker {
         }
     }
 
+    /** Determines and updates the shadow state. */
     public void updateShadowState(ProvisioningContext ctx, PrismObject<ShadowType> shadow)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
             ObjectNotFoundException {
@@ -391,7 +392,8 @@ public class ShadowCaretaker {
         shadow.asObjectable().setShadowLifecycleState(state);
     }
 
-    public @NotNull ShadowLifecycleStateType determineAndUpdateShadowState(ProvisioningContext ctx,
+    /** Determines and updates (and returns) the shadow state. */
+    public @NotNull ShadowLifecycleStateType updateAndReturnShadowState(ProvisioningContext ctx,
             PrismObject<ShadowType> shadow, XMLGregorianCalendar now)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {

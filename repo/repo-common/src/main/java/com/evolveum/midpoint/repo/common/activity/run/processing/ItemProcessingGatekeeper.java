@@ -12,7 +12,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.*;
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityItemProcessingStatistics.Operation;
+import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStatistics;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingConditionEvaluator.AdditionalVariableProvider;
 import com.evolveum.midpoint.repo.common.activity.run.reports.ActivityReportUtil;

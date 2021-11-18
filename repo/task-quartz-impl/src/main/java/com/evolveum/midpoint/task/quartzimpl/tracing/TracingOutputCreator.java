@@ -88,10 +88,8 @@ public class TracingOutputCreator {
             selectedNodeInformation.setClustered(localNode.isClustered());
             environment.setNodeRef(ObjectTypeUtil.createObjectRefWithFullObject(selectedNodeInformation, prismContext));
         }
-        TaskType taskClone = task.getRawTaskObjectClone().asObjectable(); // is it OK that we use not updated op. result?
-        if (taskClone.getResult() != null) {
-            taskClone.getResult().getPartialResults().clear();
-        }
+        TaskType taskClone = task.getRawTaskObjectClone().asObjectable();
+        taskClone.asPrismObject().removeProperty(TaskType.F_RESULT); // There are some issues with incomplete="true" flag
         environment.setTaskRef(ObjectTypeUtil.createObjectRefWithFullObject(taskClone, prismContext));
         return environment;
     }

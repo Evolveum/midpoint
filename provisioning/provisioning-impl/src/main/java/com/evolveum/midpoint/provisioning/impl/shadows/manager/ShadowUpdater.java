@@ -996,6 +996,7 @@ class ShadowUpdater {
                 repositoryService.getObject(ShadowType.class, repoShadow.getOid(), options, result);
 
         shadowCaretaker.applyAttributesDefinition(shadowCtx, retrievedRepoShadow);
+        shadowCaretaker.updateShadowState(shadowCtx, retrievedRepoShadow);
 
         LOGGER.trace("Full repo shadow:\n{}", retrievedRepoShadow.debugDumpLazily(1));
 

@@ -8,10 +8,10 @@
 package com.evolveum.midpoint.repo.common.tasks.handlers.simple;
 
 import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityItemProcessingStatistics;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 
+import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
@@ -57,7 +57,7 @@ final class SimpleMockActivityRun
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         String message = activity.getWorkDefinition().getMessage();
 
-        ActivityItemProcessingStatistics.Operation operation = activityState.getLiveItemProcessingStatistics()
+        Operation operation = activityState.getLiveItemProcessingStatistics()
                 .recordOperationStart(new IterativeOperationStartInfo(
                         new IterationItemInformation(message, null, null, null)));
 

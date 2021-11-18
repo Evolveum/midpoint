@@ -190,21 +190,6 @@ public class Statistics {
         environmentalPerformanceInformation.recordMappingOperation(objectOid, objectName, objectTypeName, mappingName, duration);
     }
 
-    @NotNull
-    public Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
-        return new Operation() {
-            @Override
-            public double getDurationRounded() {
-                return 0;
-            }
-
-            @Override
-            public long getEndTimeMillis() {
-                return 0;
-            }
-        };
-    }
-
     private void resetEnvironmentalPerformanceInformation(EnvironmentalPerformanceInformationType value) {
         environmentalPerformanceInformation = new EnvironmentalPerformanceInformation(value);
     }

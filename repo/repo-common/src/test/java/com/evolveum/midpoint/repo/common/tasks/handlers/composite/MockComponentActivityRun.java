@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityItemProcessingStatistics.Operation;
+import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;

@@ -25,14 +25,10 @@ public class IterativeOperationStartInfo {
     private final long startTimeNanos;
 
     /**
-     * If present, we use this object to increment the progress on operation completion.
-     * This is useful because there is a lot of shared information, e.g. qualified outcome.
-     *
-     * Currently not implemented.
-     *
-     * TODO implement or throw away
+     * Brutal hack. Indicates that the caller is a simple one, and wants us to do everything related.
+     * So we'll increase the progress, and commit stats as well.
      */
-    private ProgressCollector progressCollector;
+    private boolean simpleCaller;
 
     public IterativeOperationStartInfo(@NotNull IterationItemInformation item) {
         this.item = item;
@@ -53,12 +49,12 @@ public class IterativeOperationStartInfo {
         return startTimeNanos;
     }
 
-    public ProgressCollector getProgressCollector() {
-        return progressCollector;
+    public boolean isSimpleCaller() {
+        return simpleCaller;
     }
 
-    public void setProgressCollector(ProgressCollector progressCollector) {
-        this.progressCollector = progressCollector;
+    public void setSimpleCaller(boolean simpleCaller) {
+        this.simpleCaller = simpleCaller;
     }
 
     @Override
@@ -66,7 +62,7 @@ public class IterativeOperationStartInfo {
         return getClass().getSimpleName() + "{" +
                 "item=" + item +
                 ", startTimeMillis=" + startTimeMillis +
-                ", progressCollector=" + progressCollector +
+                ", simpleCaller=" + simpleCaller +
                 '}';
     }
 }

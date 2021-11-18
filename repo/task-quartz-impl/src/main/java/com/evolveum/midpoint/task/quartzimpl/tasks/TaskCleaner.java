@@ -87,7 +87,7 @@ public class TaskCleaner {
 
             IterativeOperationStartInfo iterativeOperationStartInfo = new IterativeOperationStartInfo(
                     new IterationItemInformation(rootTaskPrism));
-            iterativeOperationStartInfo.setProgressCollector(executionTask); // TODO
+            iterativeOperationStartInfo.setSimpleCaller(true);
             Operation op = executionTask.recordIterativeOperationStart(iterativeOperationStartInfo);
             try {
                 // get whole tree

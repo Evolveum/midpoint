@@ -174,7 +174,7 @@ class GetHelper {
             throw e;
         }
 
-        ShadowLifecycleStateType shadowState = shadowCaretaker.determineAndUpdateShadowState(ctx, repoShadow, now);
+        ShadowLifecycleStateType shadowState = shadowCaretaker.updateAndReturnShadowState(ctx, repoShadow, now);
         LOGGER.trace("State of shadow {}: {}", repoShadow, shadowState);
 
         if (canImmediatelyReturnCached(options, repoShadow, shadowState, resource)) {
