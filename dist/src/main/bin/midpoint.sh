@@ -39,13 +39,13 @@ BASE_DIR=$(cd "${SCRIPT_DIR}/.." && pwd -P)
 if [ "${1}" = "init-native" ] ; then
 	echo "Initializing native structure of the db..."
 	if [ "${MP_INIT_DB:-}" = "" -a "${MP_INIT_DB_CONCAT:-}" = "" ] ; then
-		echo "MP_INIT_DB variable with target for DB init files was not set - skipping db init file processing..."
+		echo "MP_INIT_DB variable with target for DB init files was not set - skipping db init file processing..." >&2
 	else
 		if [ "${MP_INIT_DB_CONCAT:-}" = "" ] ; then
 			if [ -e "${BASE_DIR}/doc/config/sql/native-new" ] ; then
 				find "${BASE_DIR}/doc/config/sql/native-new/" -type f -name "postgres-new*.sql" ! -name "postgres-new-upgrade.sql" -exec cp \{\} "${MP_INIT_DB}/" \;
 			else
-				echo "Location with sql init structure have not been found..."
+				echo "Location with sql init structure (source) have not been found..." >&2
 				exit 1
 			fi
 		else
@@ -58,7 +58,7 @@ if [ "${1}" = "init-native" ] ; then
 				[ -e "${BASE_DIR}/doc/config/sql/native-new/postgres-new-quartz.sql" ] && \
 					cat "${BASE_DIR}/doc/config/sql/native-new/postgres-new-quartz.sql" >> "${MP_INIT_DB_CONCAT}"
 			else
-                                echo "Location with sql init structure have not been found..."
+				echo "Location with sql init structure (source) have not been found..." >&2
                                 exit 1
                         fi
 
@@ -67,30 +67,92 @@ if [ "${1}" = "init-native" ] ; then
 	if [ "${MP_INIT_CFG:-}" = "" ] ; then
 		echo "MP_INIT_CFG variable with target for config.xml was not set - skipping config.xml file processing..."
         else
-                if [ -e "${BASE_DIR}/doc/config/config-native.xml" ] ; then
-                        cp "${BASE_DIR}/doc/config/config-native.xml" ${MP_INIT_CFG}/config.xml
+                if [ -e "${BASE_DIR}/doc/config/config-native.xml" ]; then
+			if [ ! -e ${MP_INIT_CFG}/config.xml ] ; then
+	                        cp "${BASE_DIR}/doc/config/config-native.xml" ${MP_INIT_CFG}/config.xml
+			else
+				echo "File already exists... Skipping"
+			fi
                 else
-                        echo "Location with config.xml have not been found..."
+                        echo "Source location with config.xml have not been found..." >&2
                         exit 1
                 fi
         fi
 	if [ "${MP_DB_PW:-}" != "" ] ; then
-		dd if=/dev/random bs=8 count=3 |base64 | tr -d -c [:alnum:] > ${MP_DB_PW}
-		echo "DB Password generated..."
+		if [ ! -e ${MP_DB_PW} ] ; then
+			dd if=/dev/random bs=8 count=3 |base64 | tr -d -c [:alnum:] > ${MP_DB_PW}
+			echo "DB Password generated..."
+		else
+			echo "Destination file with DB Password already exists... Skipping" >&2
+		fi
 	fi
 	if [ "${MP_PW:-}" != "" ] ; then
-		dd if=/dev/random bs=8 count=3 |base64 | tr -d -c [:alnum:] > ${MP_PW}
-		echo "MP Password generated..."
+		if [ ! -e ${MP_PW} ] ; then
+			dd if=/dev/random bs=8 count=3 |base64 | tr -d -c [:alnum:] > ${MP_PW}
+			echo "MP Password generated..."
+		else
+			echo "Destination file with the generated MP Password already exists... Skipping" >&2
+		fi
 	fi
 	if [ "${MP_PW_DEF:-}" != "" ] ; then
-		echo -n "changeit" > ${MP_PW_DEF}
-		echo "Default MP Password stored..."
+		if [ ! -e ${MP_PW_DEF} ] ; then
+			echo -n "changeit" > ${MP_PW_DEF}
+			echo "Default MP Password stored..."
+		else
+			echo "Destination file with the default MP Password already exists... Skipping" >&2
+		fi
 	fi
-	if [ "${MP_INIT_LOOP:-}" = "" ] ; then
-		echo "All requested operation has been done - init files are ready on requested location..."
-	else
-		echo "All requested operation has been done - init files are ready on requested location..."
-		echo "Looping to keep kontainer UP"
+	if [ "${MP_CERT:-}" != "" ] ; then
+		if [ "${MP_KEYSTORE:-}" = "" ] ; then
+			echo "Keystore path has not been set..." >&2
+			exit 1
+		fi
+		keystorepw="${MP_PW:-${MP_PW_DEF:-}}"
+		if [ "${keystorepw}" = "" ] ; then
+			echo "Keystore password file path has not been set..." >&2
+			exit 1
+		fi
+		if [ ! -e "${MP_KEYSTORE:-}" ] ; then
+			keytool -genseckey -alias default -keystore "${MP_KEYSTORE}" -storetype jceks -keypass midpoint -storepass:file ${keystorepw} -keyalg AES -keysize 128 2>/dev/null
+		fi
+		echo "${MP_CERT}" > "${MP_KEYSTORE}__"
+		echo "- - - - -" >&2
+		keytool -printcert -file "${MP_KEYSTORE}__" | \
+		  sed -n "/Certificate fingerprints:/,/^[A-Z]/p" | \
+		  grep -v "^[A-Z]" | \
+		  sed "s/[[:space:]][^:]*: \(.*\)/\1/" | while read line
+		do
+			touch "${MP_KEYSTORE}__.exists"
+			if [ $(keytool -list -keystore ${MP_KEYSTORE} -storetype jceks -storepass:file ${keystorepw} 2>/dev/null | grep -c "${line}") -gt 0 ]
+			then
+				echo "${line} .:. Found" >&2
+				touch "${MP_KEYSTORE}__.found"
+			else
+				echo "${line} .:. Not Found" >&2
+			fi
+		done
+		if [ -e "${MP_KEYSTORE}__.exists" ]
+		then
+			rm "${MP_KEYSTORE}__.exists"
+			if [ -e "${MP_KEYSTORE}__.found" ]
+			then
+				echo "Fingerprint found in the certstore - certificate exists..." >&2
+				rm "${MP_KEYSTORE}__.found"
+			else
+				echo "Adding cert to certstore..." >&2
+				keytool -importcert -noprompt -trustcacerts -alias "custom_$(date +%s)" -file "${MP_KEYSTORE}__" -keystore "${MP_KEYSTORE}" -storetype jceks -storepass:file "${keystorepw}" 2>/dev/null
+			fi
+			rm "${MP_KEYSTORE}__"
+		else
+			echo "Certificate did not found in the file..." >&2
+		fi
+		echo "- - - - -"
+		keytool -list -keystore ${MP_KEYSTORE} -storetype jceks -storepass:file ${keystorepw} 2>/dev/null
+		echo "- - - - -"
+	fi
+	echo "All requested operation has been done - init files are ready on requested location..."
+	if [ "${MP_INIT_LOOP:-}" != "" ] ; then
+		echo "Looping to keep container UP"
 		tail -f /dev/null
 	fi
 	exit 0
