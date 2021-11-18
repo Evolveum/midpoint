@@ -38,16 +38,22 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
     private static final long serialVersionUID = 1L;
     private static final TransformableItemDefinition REMOVED = new Removed();
     private final Map<QName,ItemDefinition<?>> overrides = new HashMap<>();
-    private final ComplexTypeDefinition delegate;
+
+    private transient  DelegatedItem<ComplexTypeDefinition> delegate;
     private transient List<ItemDefinition<?>> definitionsCache;
 
     public TransformableComplexTypeDefinition(ComplexTypeDefinition delegate) {
-        this.delegate = delegate;
+        var schemaDef = PrismContext.get().getSchemaRegistry().findComplexTypeDefinitionByType(delegate.getTypeName());
+        if (schemaDef == delegate) {
+            this.delegate = new DelegatedItem.StaticComplexType(delegate);
+        } else {
+            this.delegate = new DelegatedItem.FullySerializable<ComplexTypeDefinition>(delegate);
+        }
     }
 
     @Override
     public ComplexTypeDefinition delegate() {
-        return delegate;
+        return delegate.get();
     }
 
     public static TransformableComplexTypeDefinition from(ComplexTypeDefinition complexTypeDefinition) {
@@ -71,7 +77,7 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
         if (originalItem == null) {
             return null;
         }
-        ItemDefinition<?> overriden = overrides.computeIfAbsent(originalItem.getItemName(), k -> TransformableItemDefinition.from(originalItem));
+        ItemDefinition<?> overriden = overrides.computeIfAbsent(originalItem.getItemName(), k -> TransformableItemDefinition.from(originalItem).attachTo(this));
         if (overriden instanceof Removed) {
             return null;
         }
@@ -90,7 +96,16 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
     @Override
     public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz) {
         // FIXME: Implement proper
-        return overriden(ComplexTypeDefinitionDelegator.super.findItemDefinition(path, clazz));
+        var firstChild = overriden(ComplexTypeDefinitionDelegator.super.findItemDefinition(path));
+        if (firstChild == null) {
+            return null;
+        }
+        var rest = path.rest();
+        if (rest.isEmpty()) {
+            return clazz.cast(firstChild);
+        }
+        return firstChild.findItemDefinition(path, clazz);
+
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -246,7 +261,6 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
         }
     }
 
-
     public static class ObjectClass extends TransformableComplexTypeDefinition
             implements ObjectClassTypeDefinitionDelegator, PartiallyMutableComplexTypeDefinition.ObjectClassDefinition {
 
@@ -288,6 +302,11 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
     private static class Removed extends TransformableItemDefinition {
 
         private static final long serialVersionUID = 1L;
+
+        @Override
+        public ItemDefinition delegate() {
+            return null;
+        }
 
         protected Removed() {
             super(null);

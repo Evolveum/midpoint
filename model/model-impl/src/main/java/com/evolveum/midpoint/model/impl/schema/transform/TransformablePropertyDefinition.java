@@ -96,14 +96,6 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         }
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    protected <ID extends ItemDefinition<?>> ID apply(ID originalItem) {
-        return (ID) publicView();
-    }
-
-
-
     @Override
     protected PrismPropertyDefinition<T> publicView() {
         return this;

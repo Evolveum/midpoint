@@ -1,12 +1,12 @@
 /*
-
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
+
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 import java.util.Collections;
 import java.util.List;
@@ -15,13 +15,6 @@ import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.context.EvaluationOrder;
-import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
-
-import com.evolveum.midpoint.util.MiscUtil;
-
-import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,29 +22,29 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.EvaluatedExclusionTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentTargetImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
-
-import static com.evolveum.midpoint.util.DebugUtil.lazy;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 
 /**
  * Evaluates exclusion policy constraints.
@@ -68,11 +61,15 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
     @Autowired private ConstraintEvaluatorHelper evaluatorHelper;
     @Autowired private PrismContext prismContext;
     @Autowired private RelationRegistry relationRegistry;
+    @Autowired private ExpressionFactory expressionFactory;
 
     @Override
-    public <AH extends AssignmentHolderType> EvaluatedExclusionTrigger evaluate(@NotNull JAXBElement<ExclusionPolicyConstraintType> constraint,
-            @NotNull PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <AH extends AssignmentHolderType> EvaluatedExclusionTrigger evaluate(
+            @NotNull JAXBElement<ExclusionPolicyConstraintType> constraint,
+            @NotNull PolicyRuleEvaluationContext<AH> rctx,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
                 .build();
@@ -103,6 +100,8 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 
             List<OrderConstraintsType> targetOrderConstraints = defaultIfEmpty(constraint.getValue().getTargetOrderConstraint());
             List<EvaluatedAssignmentTargetImpl> nonNegativeTargetsA = ctx.evaluatedAssignment.getNonNegativeTargets();
+            ConstraintReferenceMatcher<AH> refMatcher = new ConstraintReferenceMatcher<>(
+                    ctx, constraint.getValue().getTargetRef(), expressionFactory, result, LOGGER);
 
             for (EvaluatedAssignmentImpl<AH> assignmentB : ctx.evaluatedAssignmentTriple.getNonNegativeValues()) { // MID-6403
                 if (assignmentB == ctx.evaluatedAssignment) { // currently there is no other way of comparing the evaluated assignments
@@ -115,7 +114,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
                                 + " Path={}, constraints={}", targetB, targetB.getAssignmentPath(), targetOrderConstraints);
                         continue;
                     }
-                    if (!refMatchesTarget(constraint.getValue().getTargetRef(), targetB.getTarget(), "exclusion constraint")) {
+                    if (!refMatcher.refMatchesTarget(targetB.getTarget(), "exclusion constraint")) {
                         LOGGER.trace("Target {} OID does not match exclusion filter", targetB);
                         continue;
                     }
@@ -125,8 +124,8 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
                             continue targetB;
                         }
                     }
-                    EvaluatedExclusionTrigger rv =
-                            createTrigger(ctx.evaluatedAssignment, assignmentB, targetB, constraint, ctx.policyRule, ctx, result);
+                    EvaluatedExclusionTrigger rv = createTrigger(
+                            ctx.evaluatedAssignment, assignmentB, targetB, constraint, ctx.policyRule, ctx, result);
                     result.addReturn("trigger", rv.toDiagShortcut());
                     return rv;
                 }
@@ -154,7 +153,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
             return true;
         } else {
             LOGGER.trace("Target B of {} is covered by assignment A considered, but with different order (A={} vs B={})."
-                            + " Not skipping.", targetB, orderA, orderB);
+                    + " Not skipping.", targetB, orderA, orderB);
             return false;
         }
     }
@@ -193,7 +192,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
                     .anyMatch(segment -> segment.matches(sourceOrderConstraints));
             if (!found) {
                 LOGGER.trace("No segment in assignment path to the assigned policy rule does not match source order "
-                        + "constraints, not triggering. Whole path={}, constraints={}", ctx.policyRule.getAssignmentPath(),
+                                + "constraints, not triggering. Whole path={}, constraints={}", ctx.policyRule.getAssignmentPath(),
                         sourceOrderConstraints);
                 return true;
             }
@@ -219,42 +218,6 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 
     private List<OrderConstraintsType> defaultOrderConstraints() {
         return Collections.singletonList(new OrderConstraintsType(prismContext).order(1));
-    }
-
-    /**
-     * @param reference Reference defined in the exclusion (or other) constraint. We match it against the object.
-     * @param object Object we want to match against the reference.
-     */
-    static boolean refMatchesTarget(ObjectReferenceType reference, PrismObject<?> object, String context)
-            throws SchemaException {
-        if (reference == null) {
-            return true; // this means we rely on comparing relations (represented by order constraints in exclusion case)
-        }
-        if (object.getOid() == null) {
-            LOGGER.warn("OID-less object to be matched against reference in a constraint: {}", object);
-            return false;
-        }
-        if (reference.getOid() != null) {
-            return object.getOid().equals(reference.getOid());
-        }
-        if (reference.getResolutionTime() == EvaluationTimeType.RUN) {
-            return filterMatches(reference, object, context);
-        }
-        throw new SchemaException("Neither OID nor filter in " + context);
-    }
-
-    private static boolean filterMatches(@NotNull ObjectReferenceType reference, PrismObject<?> object, String context)
-            throws SchemaException {
-        QName typeNameLookingFor = MoreObjects.firstNonNull(reference.getType(), ObjectType.COMPLEX_TYPE);
-        @SuppressWarnings("rawtypes")
-        PrismObjectDefinition objectDefLookingFor = PrismContext.get().getSchemaRegistry()
-                .findObjectDefinitionByType(typeNameLookingFor);
-        if (!object.canRepresent(objectDefLookingFor.getCompileTimeClass())) {
-            return false;
-        }
-        SearchFilterType filterBean = MiscUtil.requireNonNull(reference.getFilter(), () -> "No filter in " + context);
-        ObjectFilter filter = PrismContext.get().getQueryConverter().parseFilter(filterBean, objectDefLookingFor);
-        return filter.match(object.getValue(), SchemaService.get().matchingRuleRegistry());
     }
 
     private <AH extends AssignmentHolderType> EvaluatedExclusionTrigger createTrigger(EvaluatedAssignmentImpl<AH> assignmentA,
@@ -303,7 +266,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
         }
         List<ObjectType> objects = path.getFirstOrderChain();
         return objects.isEmpty() ?
-                ObjectTypeUtil.toObjectable(defaultObject) : objects.get(objects.size()-1);
+                ObjectTypeUtil.toObjectable(defaultObject) : objects.get(objects.size() - 1);
     }
 
     private LocalizableMessage createObjectInfo(AssignmentPath path, PrismObject<?> defaultObject, boolean startsWithUppercase) {
@@ -314,7 +277,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
         if (objects.isEmpty()) {        // shouldn't occur
             return ObjectTypeUtil.createDisplayInformation(defaultObject, startsWithUppercase);
         }
-        PrismObject<?> last = objects.get(objects.size()-1).asPrismObject();
+        PrismObject<?> last = objects.get(objects.size() - 1).asPrismObject();
         if (objects.size() == 1) {
             return ObjectTypeUtil.createDisplayInformation(last, startsWithUppercase);
         }
@@ -323,6 +286,4 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
                 .collect(Collectors.joining(" -> "));
         return ObjectTypeUtil.createDisplayInformationWithPath(last, startsWithUppercase, pathString);
     }
-
-
 }

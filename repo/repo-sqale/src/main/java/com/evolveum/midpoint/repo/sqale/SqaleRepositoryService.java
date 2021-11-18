@@ -1732,7 +1732,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
             // Modified code from SqlQueryExecutor.list()
             SimulatedSqlQuery<Object> simulatedQuery = new SimulatedSqlQuery<>(
-                    sqlRepoContext.getQuerydslTemplates(), jdbcSession.connection(), request.isTranslateOnly());
+                    sqlRepoContext.getQuerydslConfiguration(), jdbcSession.connection(), request.isTranslateOnly());
             SqaleQueryContext<S, Q, R> context =
                     SqaleQueryContext.from(type, sqlRepoContext, simulatedQuery, null);
 

@@ -1,27 +1,28 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.wf.impl;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
+import java.util.*;
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.util.*;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 
 /**
- *  Holds static configuration of workflows (from config.xml file).
+ * Holds static configuration of workflows (from config.xml file).
  */
 @Component
 @DependsOn({ "midpointConfiguration" })
@@ -38,7 +39,7 @@ public class WfConfiguration {
 
     private boolean enabled;
 
-    private List<ChangeProcessor> changeProcessors = new ArrayList<>();
+    private final List<ChangeProcessor> changeProcessors = new ArrayList<>();
 
     @PostConstruct
     void initialize() {
@@ -55,15 +56,15 @@ public class WfConfiguration {
         Set<String> knownKeysSet = new HashSet<>(KNOWN_KEYS);
         Set<String> deprecatedKeysSet = new HashSet<>(DEPRECATED_KEYS);
 
-        //noinspection unchecked
         Iterator<String> keyIterator = c.getKeys();
-        while (keyIterator.hasNext())  {
+        while (keyIterator.hasNext()) {
             String keyName = keyIterator.next();
-            String normalizedKeyName = StringUtils.substringBefore(keyName, ".");                       // because of subkeys
+            String normalizedKeyName = StringUtils.substringBefore(keyName, "."); // because of sub-keys
             if (deprecatedKeysSet.contains(keyName) || deprecatedKeysSet.contains(normalizedKeyName)) {
-                throw new SystemException("Deprecated key " + keyName + " in workflow configuration. Please see https://wiki.evolveum.com/display/midPoint/Workflow+configuration.");
+                throw new SystemException("Deprecated key " + keyName + " in workflow configuration."
+                        + " Please see: https://docs.evolveum.com/midpoint/reference/cases/workflow-3/new-3-5-workflow-configuration/");
             }
-            if (!knownKeysSet.contains(keyName) && !knownKeysSet.contains(normalizedKeyName)) {         // ...we need to test both because of keys like 'midpoint.home'
+            if (!knownKeysSet.contains(keyName) && !knownKeysSet.contains(normalizedKeyName)) { // ...we need to test both because of keys like 'midpoint.home'
                 throw new SystemException("Unknown key " + keyName + " in workflow configuration");
             }
         }
@@ -71,15 +72,6 @@ public class WfConfiguration {
 
     public boolean isEnabled() {
         return enabled;
-    }
-
-    public ChangeProcessor findChangeProcessor(String processorClassName) {
-        for (ChangeProcessor cp : changeProcessors) {
-            if (cp.getClass().getName().equals(processorClassName)) {
-                return cp;
-            }
-        }
-        throw new IllegalStateException("Change processor " + processorClassName + " is not registered.");
     }
 
     public void registerProcessor(ChangeProcessor changeProcessor) {
