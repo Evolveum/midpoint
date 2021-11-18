@@ -7,14 +7,12 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 
 /**
@@ -30,17 +28,21 @@ abstract class AbstractSingleRunTaskCreator extends ScriptingTaskCreator {
     TaskType createTaskForSingleRunScript(ExecuteScriptType executeScript, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        TaskType newTask = createArchetypedTask(result);
-        setScriptInTask(newTask, executeScript);
-        return customizeTask(newTask, result);
-    }
 
-    @NotNull
-    private TaskType createArchetypedTask(OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        return super.createEmptyTask(result)
+        // @formatter:off
+        TaskType newTask = super.createEmptyTask(result)
                 .beginAssignment()
                     .targetRef(SystemObjectsType.ARCHETYPE_SINGLE_BULK_ACTION_TASK.value(), ArchetypeType.COMPLEX_TYPE)
+                .<TaskType>end()
+                .beginActivity()
+                    .beginWork()
+                        .beginNonIterativeScripting()
+                            .scriptExecutionRequest(executeScript)
+                        .<WorkDefinitionsType>end()
+                    .<ActivityDefinitionType>end()
                 .end();
+        // @formatter:on
+
+        return customizeTask(newTask, result);
     }
 }

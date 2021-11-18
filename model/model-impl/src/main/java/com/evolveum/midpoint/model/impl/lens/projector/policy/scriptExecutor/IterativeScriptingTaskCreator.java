@@ -9,20 +9,15 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.api.query.CompleteQuery;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
@@ -46,27 +41,35 @@ class IterativeScriptingTaskCreator extends ScriptingTaskCreator {
             throw new UnsupportedOperationException("Explicit input with iterative task execution is not supported yet.");
         }
 
-        TaskType newTask = createArchetypedTask(result);
-        CompleteQuery<?> completeQuery = createCompleteQuery(result);
-
-        setObjectTypeInTask(newTask, completeQuery);
-        setQueryInTask(newTask, completeQuery);
-        setScriptInTask(newTask, executeScript);
+        // @formatter:off
+        TaskType newTask = super.createEmptyTask(result)
+                .beginAssignment()
+                    .targetRef(SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value(), ArchetypeType.COMPLEX_TYPE)
+                .<TaskType>end()
+                .beginActivity()
+                    .beginWork()
+                        .beginIterativeScripting()
+                            .objects(
+                                    createObjectSet(result))
+                            .scriptExecutionRequest(executeScript)
+                        .<WorkDefinitionsType>end()
+                    .<ActivityDefinitionType>end()
+                .end();
+        // @formatter:on
 
         return customizeTask(newTask, result);
     }
 
-    @NotNull
-    private TaskType createArchetypedTask(OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        return super.createEmptyTask(result)
-                .beginAssignment()
-                    .targetRef(SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value(), ArchetypeType.COMPLEX_TYPE)
-                .end();
+    private @NotNull ObjectSetType createObjectSet(OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        CompleteQuery<?> completeQuery = createCompleteQuery(result);
+        return new ObjectSetType(PrismContext.get())
+                .type(getTypeName(completeQuery))
+                .query(getQueryBean(completeQuery));
     }
 
-    @NotNull
-    private CompleteQuery<?> createCompleteQuery(OperationResult result)
+    private @NotNull CompleteQuery<?> createCompleteQuery(OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
 
@@ -75,28 +78,16 @@ class IterativeScriptingTaskCreator extends ScriptingTaskCreator {
         return objectSet.asQuery();
     }
 
-    private void setQueryInTask(TaskType taskBean, CompleteQuery<?> union) throws SchemaException {
-        QueryType queryBean = beans.prismContext.getQueryConverter().createQueryType(union.getQuery());
-        //noinspection unchecked
-        PrismPropertyDefinition<QueryType> queryDef = beans.prismContext.getSchemaRegistry()
-                .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-        PrismProperty<QueryType> queryProp = queryDef.instantiate();
-        queryProp.setRealValue(queryBean);
-        taskBean.asPrismObject().addExtensionItem(queryProp);
+    private @NotNull QName getTypeName(@NotNull CompleteQuery<?> completeQuery) {
+        QName typeName = schemaRegistry.determineTypeForClass(completeQuery.getType());
+        if (typeName == null || !schemaRegistry.isAssignableFrom(ObjectType.class, typeName)) {
+            throw new IllegalStateException("Type for class " + completeQuery.getType() + " is unknown or not an ObjectType: " + typeName);
+        }
+        return typeName;
     }
 
-    private void setObjectTypeInTask(TaskType taskBean, CompleteQuery<?> union)
-            throws SchemaException {
-        QName typeName = schemaRegistry.determineTypeForClass(union.getType());
-        if (typeName == null || !schemaRegistry.isAssignableFrom(ObjectType.class, typeName)) {
-            throw new IllegalStateException("Type for class " + union.getType() + " is unknown or not an ObjectType: " + typeName);
-        }
-
-        //noinspection unchecked
-        PrismPropertyDefinition<QName> objectTypeDef = beans.prismContext.getSchemaRegistry()
-                .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
-        PrismProperty<QName> objectTypeProp = objectTypeDef.instantiate();
-        objectTypeProp.setRealValue(typeName);
-        taskBean.asPrismObject().addExtensionItem(objectTypeProp);
+    private QueryType getQueryBean(@NotNull CompleteQuery<?> completeQuery) throws SchemaException {
+        return beans.prismContext.getQueryConverter()
+                .createQueryType(completeQuery.getQuery());
     }
 }

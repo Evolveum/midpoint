@@ -225,8 +225,9 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest imple
         assertTask(recomputeTask, "recompute task after")
                 .display()
                 .assertSuccess()
-                .assertArchetypeRef(SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value())
-                .assertExtensionValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS.getLocalPart(), 3);
+                .assertArchetypeRef(SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value());
+        assertThat(recomputeTask.getRootActivityDefinitionOrClone().getDistribution().getWorkerThreads())
+                .as("worker threads").isEqualTo(3);
 
         assertUserAfterByUsername("user-dcs-0000")
                 .assertCostCenter("07999");
@@ -319,8 +320,10 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest imple
             assertTask(triggeringTask.asObjectable(), "triggering task")
                     .display()
                     .assertName(TASK_TRIGGER_CLUB_MEMBERS_RECOMPUTATION_NAME)
-                    .assertArchetypeRef(SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value())
-                    .assertExtensionValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS.getLocalPart(), 4); // see resource-clubs.xml
+                    .assertArchetypeRef(SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value());
+            assertThat(triggeringTask.asObjectable().getActivity().getDistribution().getWorkerThreads())
+                    .as("worker threads").isEqualTo(4); // see resource-clubs.xml
+
             waitForTaskFinish(triggeringTask.getOid(), false);
         }
 

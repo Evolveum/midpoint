@@ -270,28 +270,6 @@ public abstract class SchemaConstants {
     public static final QName CHANNEL_REMEDIATION_QNAME = new QName(NS_CHANNEL, "remediation");
     public static final String CHANNEL_REMEDIATION_URI = qNameToUri(CHANNEL_REMEDIATION_QNAME);
 
-    public static final String NS_MODEL_EXTENSION = NS_MODEL + "/extension-3";
-
-    public static final ItemName MODEL_EXTENSION_DRY_RUN = new ItemName(NS_MODEL_EXTENSION, "dryRun");
-    public static final ItemName MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS = new ItemName(NS_MODEL_EXTENSION, "retryLiveSyncErrors");
-    public static final ItemName MODEL_EXTENSION_LIVE_SYNC_ERROR_HANDLING_STRATEGY = new ItemName(NS_MODEL_EXTENSION, "liveSyncErrorHandlingStrategy");
-    public static final ItemName MODEL_EXTENSION_UPDATE_LIVE_SYNC_TOKEN_IN_DRY_RUN = new ItemName(NS_MODEL_EXTENSION, "updateLiveSyncTokenInDryRun");
-    public static final ItemName MODEL_EXTENSION_LIVE_SYNC_BATCH_SIZE = new ItemName(NS_MODEL_EXTENSION, "liveSyncBatchSize");
-    public static final ItemName MODEL_EXTENSION_KIND = new ItemName(NS_MODEL_EXTENSION, "kind");
-    public static final ItemName MODEL_EXTENSION_INTENT = new ItemName(NS_MODEL_EXTENSION, "intent");
-    public static final ItemName MODEL_EXTENSION_OBJECTCLASS = new ItemName(NS_MODEL_EXTENSION, "objectclass");
-    public static final ItemName MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME = new ItemName(
-            NS_MODEL_EXTENSION, "lastScanTimestamp");
-    public static final ItemName MODEL_EXTENSION_PROFILING_INTERVAL = new ItemName(NS_MODEL_EXTENSION, "profilingInterval");
-    public static final ItemName MODEL_EXTENSION_TRACING_INTERVAL = new ItemName(NS_MODEL_EXTENSION, "tracingInterval");
-    public static final ItemName MODEL_EXTENSION_TRACING_PROFILE = new ItemName(NS_MODEL_EXTENSION, "tracingProfile");
-    public static final ItemName MODEL_EXTENSION_TRACING_ROOT = new ItemName(NS_MODEL_EXTENSION, "tracingRoot");
-    public static final ItemName MODEL_EXTENSION_TRACING = new ItemName(NS_MODEL_EXTENSION, "tracing");
-    public static final ItemName MODEL_EXTENSION_REPORTING_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "reporting");
-
-    public static final ItemName LEGACY_NOT_UPDATED_DURATION_PROPERTY_NAME =
-            new ItemName(NS_MODEL_EXTENSION, "notUpdatedShadowsDuration");
-
     public static final String NS_MODEL_DISABLE_REASON = NS_MODEL + "/disableReason";
     public static final String MODEL_DISABLE_REASON_EXPLICIT =
             qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "explicit"));
@@ -351,17 +329,51 @@ public abstract class SchemaConstants {
     public static final QName MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE_QNAME = new QName(NS_MODEL_CERTIFICATION_OUTCOME, "noResponse");
     public static final String MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE = qNameToUri(MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE_QNAME);        // only for aggregated decisions
 
-    public static final ItemName MODEL_EXTENSION_OBJECT_TYPE = new ItemName(NS_MODEL_EXTENSION, "objectType"); // TODO DeleteTaskHandler + iterative scripting policy rule
-    public static final ItemName MODEL_EXTENSION_OBJECT_QUERY = new ItemName(NS_MODEL_EXTENSION, "objectQuery"); // TODO DeleteTaskHandler + iter. scripting rule + reconcile affected
+    // Model constants in task extension
+
+    public static final String NS_MODEL_EXTENSION = NS_MODEL + "/extension-3";
+
+    public static final ItemName LEGACY_NOT_UPDATED_DURATION_PROPERTY_NAME =
+            new ItemName(NS_MODEL_EXTENSION, "notUpdatedShadowsDuration");
+
+    public static final ItemName MODEL_EXTENSION_DRY_RUN = new ItemName(NS_MODEL_EXTENSION, "dryRun");
+    public static final ItemPath PATH_MODEL_EXTENSION_DRY_RUN = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN);
+
+    public static final ItemName MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS = new ItemName(NS_MODEL_EXTENSION, "retryLiveSyncErrors");
+    public static final ItemName MODEL_EXTENSION_LIVE_SYNC_ERROR_HANDLING_STRATEGY = new ItemName(NS_MODEL_EXTENSION, "liveSyncErrorHandlingStrategy");
+    public static final ItemName MODEL_EXTENSION_UPDATE_LIVE_SYNC_TOKEN_IN_DRY_RUN = new ItemName(NS_MODEL_EXTENSION, "updateLiveSyncTokenInDryRun");
+    public static final ItemName MODEL_EXTENSION_LIVE_SYNC_BATCH_SIZE = new ItemName(NS_MODEL_EXTENSION, "liveSyncBatchSize");
+    public static final ItemName MODEL_EXTENSION_KIND = new ItemName(NS_MODEL_EXTENSION, "kind"); // FIXME there are some GUI uses
+    public static final ItemName MODEL_EXTENSION_INTENT = new ItemName(NS_MODEL_EXTENSION, "intent"); // FIXME there are some GUI uses
+    public static final ItemName MODEL_EXTENSION_OBJECTCLASS = new ItemName(NS_MODEL_EXTENSION, "objectclass"); // FIXME there are some GUI uses
+    public static final ItemName MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME = new ItemName(
+            NS_MODEL_EXTENSION, "lastScanTimestamp");
+    public static final ItemName MODEL_EXTENSION_PROFILING_INTERVAL = new ItemName(NS_MODEL_EXTENSION, "profilingInterval");
+    public static final ItemName MODEL_EXTENSION_TRACING_INTERVAL = new ItemName(NS_MODEL_EXTENSION, "tracingInterval");
+    public static final ItemName MODEL_EXTENSION_TRACING_PROFILE = new ItemName(NS_MODEL_EXTENSION, "tracingProfile");
+    public static final ItemName MODEL_EXTENSION_TRACING_ROOT = new ItemName(NS_MODEL_EXTENSION, "tracingRoot");
+    public static final ItemName MODEL_EXTENSION_TRACING = new ItemName(NS_MODEL_EXTENSION, "tracing");
+    public static final ItemName MODEL_EXTENSION_REPORTING_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "reporting");
+
+    public static final ItemName MODEL_EXTENSION_OBJECT_TYPE = new ItemName(NS_MODEL_EXTENSION, "objectType");
+    public static final ItemPath PATH_MODEL_EXTENSION_OBJECT_TYPE = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
+
+    public static final ItemName MODEL_EXTENSION_OBJECT_QUERY = new ItemName(NS_MODEL_EXTENSION, "objectQuery");
+    public static final ItemPath PATH_MODEL_EXTENSION_OBJECT_QUERY = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+
     public static final ItemName MODEL_EXTENSION_SEARCH_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "searchOptions");
     public static final ItemName MODEL_EXTENSION_USE_REPOSITORY_DIRECTLY = new ItemName(NS_MODEL_EXTENSION, "useRepositoryDirectly");
     public static final ItemName MODEL_EXTENSION_ITERATION_METHOD = new ItemName(NS_MODEL_EXTENSION, "iterationMethod");
     public static final ItemName MODEL_EXTENSION_FAILED_OBJECTS_SELECTOR = new ItemName(NS_MODEL_EXTENSION, "failedObjectsSelector");
-    public static final ItemName MODEL_EXTENSION_OBJECT_DELTA = new ItemName(NS_MODEL_EXTENSION, "objectDelta"); // TODO ExecuteDeltasTaskHandler
-    public static final ItemName MODEL_EXTENSION_OBJECT_DELTAS = new ItemName(NS_MODEL_EXTENSION, "objectDeltas"); // TODO ExecuteDeltasTaskHandler
+
+    public static final ItemName MODEL_EXTENSION_OBJECT_DELTA = new ItemName(NS_MODEL_EXTENSION, "objectDelta");
+    public static final ItemPath PATH_MODEL_EXTENSION_OBJECT_DELTA = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
+
+    public static final ItemName MODEL_EXTENSION_OBJECT_DELTAS = new ItemName(NS_MODEL_EXTENSION, "objectDeltas");
     public static final ItemName MODEL_EXTENSION_WORKER_THREADS = new ItemName(NS_MODEL_EXTENSION, "workerThreads");
-    public static final ItemName MODEL_EXTENSION_OPTION_RAW = new ItemName(NS_MODEL_EXTENSION, "optionRaw"); // TODO DeleteTaskHandler
-    public static final ItemName MODEL_EXTENSION_EXECUTE_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "executeOptions"); // TODO ExecuteDeltasTaskHandler
+    public static final ItemName MODEL_EXTENSION_OPTION_RAW = new ItemName(NS_MODEL_EXTENSION, "optionRaw");
+    public static final ItemName MODEL_EXTENSION_EXECUTE_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "executeOptions");
+    public static final ItemPath PATH_MODEL_EXTENSION_EXECUTE_OPTIONS = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
     public static final ItemName MODEL_EXTENSION_MODEL_EXECUTE_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "modelExecuteOptions");
 
     public static final ItemName MODEL_EXTENSION_DIAGNOSE = new ItemName(NS_MODEL_EXTENSION, "diagnose");
@@ -572,11 +584,6 @@ public abstract class SchemaConstants {
     public static final ItemPath PATH_CREDENTIALS_PASSWORD = ItemPath
             .create(SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD);
 
-    public static final ItemPath PATH_MODEL_EXTENSION_OBJECT_QUERY = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-    public static final ItemPath PATH_MODEL_EXTENSION_OBJECT_TYPE = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
-    public static final ItemPath PATH_MODEL_EXTENSION_OBJECT_DELTA = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
-    public static final ItemPath PATH_MODEL_EXTENSION_EXECUTE_OPTIONS = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
-    public static final ItemPath PATH_MODEL_EXTENSION_DRY_RUN = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN);
     public static final ItemPath PATH_CREDENTIALS_PASSWORD_HISTORY_ENTRY = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_HISTORY_ENTRY);
     public static final ItemPath PATH_CREDENTIALS_PASSWORD_VALUE_POLICY_REF = ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_VALUE_POLICY_REF);
     public static final ItemPath PATH_CREDENTIALS_PASSWORD_HISTORY_LENGTH = ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH);

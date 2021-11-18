@@ -1,13 +1,14 @@
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+
     <name>Student</name>
     <assignment>
         <!-- this is just to test when the assignment constraint is triggered and when not -->
@@ -208,7 +209,25 @@
             <policyConstraints>
                 <hasAssignment>
                     <name>has-student-assignment</name>
-                    <targetRef oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5" type="RoleType"/>
+                    <!-- Shows filter usage with expression, implemented with MID-7390. -->
+                    <!--<targetRef oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5" type="RoleType"/>-->
+                    <targetRef>
+                        <resolutionTime>run</resolutionTime>
+                        <type>RoleType</type>
+                        <filter>
+                            <q:equal>
+                                <q:path>name</q:path>
+                                <!--<q:value>Student</q:value> would be simpler, of course -->
+                                <expression>
+                                    <script>
+                                        <code>
+                                            return "Student"
+                                        </code>
+                                    </script>
+                                </expression>
+                            </q:equal>
+                        </filter>
+                    </targetRef>
                     <!-- no state means current+new -->
                 </hasAssignment>
             </policyConstraints>

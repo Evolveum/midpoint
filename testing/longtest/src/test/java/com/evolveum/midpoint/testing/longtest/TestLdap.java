@@ -23,8 +23,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationTaskHandler;
+import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationLauncher;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -81,7 +80,7 @@ public class TestLdap extends AbstractLongTest {
     protected PrismObject<ResourceType> resourceOpenDj;
 
     @Autowired
-    private ReconciliationTaskHandler reconciliationTaskHandler;
+    private ReconciliationLauncher reconciliationLauncher;
 
     @Override
     protected void startResources() throws Exception {
@@ -362,7 +361,7 @@ public class TestLdap extends AbstractLongTest {
 
         // WHEN
         when();
-        reconciliationTaskHandler.launch(resource,
+        reconciliationLauncher.launch(resource,
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
 
         // THEN
@@ -443,7 +442,7 @@ public class TestLdap extends AbstractLongTest {
                 .rootActivityState()
                     .itemProcessingStatistics()
                         .display()
-                        .assertTotalCounts(2 * NUM_LDAP_ENTRIES + 8, 0, 1);
+                        .assertTotalCounts(2 * NUM_LDAP_ENTRIES + 8, 0, 0);
         // @formatter:on
 
         assertOpenDjAccountShadows(1, true, task, result);

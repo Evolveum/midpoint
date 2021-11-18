@@ -1,11 +1,22 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
+
+import static java.util.Collections.emptySet;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedHasAssignmentTrigger;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
@@ -16,33 +27,22 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluati
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static java.util.Collections.emptySet;
 
 @Component
 public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluator<HasAssignmentPolicyConstraintType> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(HasAssignmentConstraintEvaluator.class);
 
     private static final String OP_EVALUATE = HasAssignmentConstraintEvaluator.class.getName() + ".evaluate";
 
@@ -51,10 +51,14 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 
     @Autowired private ConstraintEvaluatorHelper evaluatorHelper;
     @Autowired private PrismContext prismContext;
+    @Autowired private ExpressionFactory expressionFactory;
 
     @Override
-    public <AH extends AssignmentHolderType> EvaluatedHasAssignmentTrigger evaluate(@NotNull JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
-            @NotNull PolicyRuleEvaluationContext<AH> ctx, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <AH extends AssignmentHolderType> EvaluatedHasAssignmentTrigger evaluate(
+            @NotNull JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
+            @NotNull PolicyRuleEvaluationContext<AH> ctx, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
@@ -62,7 +66,8 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
         try {
             boolean shouldExist = QNameUtil.match(constraintElement.getName(), PolicyConstraintsType.F_HAS_ASSIGNMENT);
             HasAssignmentPolicyConstraintType constraint = constraintElement.getValue();
-            if (constraint.getTargetRef() == null) {
+            ObjectReferenceType constraintTargetRef = constraint.getTargetRef();
+            if (constraintTargetRef == null) {
                 throw new SchemaException("No targetRef in hasAssignment constraint");
             }
 
@@ -77,6 +82,9 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
             boolean allowIndirect = !Boolean.TRUE.equals(constraint.isDirect());
             boolean allowEnabled = !Boolean.FALSE.equals(constraint.isEnabled());
             boolean allowDisabled = !Boolean.TRUE.equals(constraint.isEnabled());
+
+            ConstraintReferenceMatcher<AH> refMatcher = new ConstraintReferenceMatcher<>(
+                    ctx, constraintTargetRef, expressionFactory, result, LOGGER);
 
             List<PrismObject<?>> matchingTargets = new ArrayList<>();
             for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) { // MID-6403
@@ -95,7 +103,7 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
                     if (!(allowEnabled && target.isValid() || allowDisabled && !target.isValid())) {
                         continue;
                     }
-                    if (!relationMatches(constraint.getTargetRef().getRelation(), constraint.getRelation(),
+                    if (!relationMatches(constraintTargetRef.getRelation(), constraint.getRelation(),
                             target.getAssignment())) {
                         continue;
                     }
@@ -110,8 +118,7 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
                     if (!(allowPlus && isPlus || allowZero && isZero || allowMinus && isMinus)) {
                         continue;
                     }
-                    if (ExclusionConstraintEvaluator
-                            .refMatchesTarget(constraint.getTargetRef(), target.getTarget(), "hasAssignment constraint")) {
+                    if (refMatcher.refMatchesTarget(target.getTarget(), "hasAssignment constraint")) {
                         // TODO more specific trigger, containing information on matching assignment; see ExclusionConstraintEvaluator
                         matchingTargets.add(target.getTarget());
                     }

@@ -19,6 +19,7 @@ import java.util.UUID;
 
 import org.testng.Assert;
 import org.testng.SkipException;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -51,6 +52,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Each test method is completely self-contained.
  */
 public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
+
+    @AfterMethod
+    public void methodCleanup() {
+        queryRecorder.stopRecording();
+    }
 
     @Test
     public void test000Sanity() {
@@ -434,19 +440,27 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
 
     @Test
     public void test500ExecuteQueryDiagnostics() throws Exception {
+        // also known as "Query Playground"
         OperationResult result = createOperationResult();
 
         given("some objects are in the repository");
         String name = "user" + getTestNumber();
         repositoryService.addObject(
-                new UserType(prismContext).name(name).asPrismObject(),
+                new UserType(prismContext).name(name)
+                        .activation(new ActivationType(prismContext).administrativeStatus(ActivationStatusType.ENABLED))
+                        .asPrismObject(),
                 null, result);
+        queryRecorder.clearBufferAndStartRecording();
 
         when("executeQueryDiagnostics is called with query");
         RepositoryQueryDiagRequest request = new RepositoryQueryDiagRequest();
         request.setType(UserType.class);
         request.setQuery(prismContext.queryFor(UserType.class)
                 .item(UserType.F_NAME).eqPoly(name)
+                .and()
+                // custom types, reproduces MID-7425
+                .item(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)
+                .eq(ActivationStatusType.ENABLED)
                 .build());
         RepositoryQueryDiagResponse response = repositoryService.executeQueryDiagnostics(request, result);
 
@@ -457,10 +471,38 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
                 .containsExactly(name);
         assertThat(response.getImplementationLevelQuery()).asString()
                 .isEqualToIgnoringWhitespace("select u.oid, u.fullObject from m_user u"
+                        + " where u.nameNorm = ? and u.nameOrig = ? and u.administrativeStatus = ?"
+                        + " limit ?");
+
+        assertThat(queryRecorder.getQueryBuffer()).hasSize(1);
+    }
+
+    @Test
+    public void test501ExecuteQueryDiagnosticsTranslateOnly() {
+        // also known as "Query Playground"
+        OperationResult result = createOperationResult();
+
+        given("diag request with translate only = true");
+        queryRecorder.clearBufferAndStartRecording();
+        RepositoryQueryDiagRequest request = new RepositoryQueryDiagRequest();
+        request.setType(UserType.class);
+        request.setTranslateOnly(true);
+        request.setQuery(prismContext.queryFor(UserType.class)
+                .item(UserType.F_NAME).eqPoly("whatever")
+                .build());
+
+        when("executeQueryDiagnostics is called with query");
+        RepositoryQueryDiagResponse response = repositoryService.executeQueryDiagnostics(request, result);
+
+        then("query is translated but not executed");
+        assertThat(response).isNotNull();
+        assertThat(response.getQueryResult()).isNullOrEmpty();
+        assertThat(response.getImplementationLevelQuery()).asString()
+                .isEqualToIgnoringWhitespace("select u.oid, u.fullObject from m_user u"
                         + " where u.nameNorm = ? and u.nameOrig = ?"
                         + " limit ?");
 
-        // test for "translateOnly = true" is omitted, but it works, see
+        assertThat(queryRecorder.getQueryBuffer()).isEmpty();
     }
 
     // region low-level tests

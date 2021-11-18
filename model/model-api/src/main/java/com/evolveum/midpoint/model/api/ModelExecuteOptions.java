@@ -417,6 +417,10 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 
     //endregion
 
+    public static ModelExecuteOptionsType toModelExecutionOptionsBean(ModelExecuteOptions options) {
+        return options != null ? options.toModelExecutionOptionsType() : null;
+    }
+
     public ModelExecuteOptionsType toModelExecutionOptionsType() {
         return clone().content; // cloning for safety reasons
     }

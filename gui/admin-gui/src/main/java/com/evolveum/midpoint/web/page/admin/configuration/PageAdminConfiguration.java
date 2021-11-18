@@ -7,26 +7,24 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DeletionWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author lazyman
@@ -44,45 +42,42 @@ public class PageAdminConfiguration extends PageAdmin {
         super(parameters);
     }
 
-    protected String deleteObjectsAsync(QName type, ObjectQuery objectQuery, boolean raw, String taskName,
-            OperationResult result)
-                    throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+    /**
+     * Creates and submits a deletion activity task.
+     *
+     * The task is created with the default mode i.e. raw.
+     */
+    String deleteObjectsAsync(@NotNull QName type, @Nullable ObjectQuery objectQuery, @NotNull String taskName,
+            @NotNull OperationResult result) throws SchemaException {
 
         Task task = createSimpleTask(result.getOperation());
-        task.setHandlerUri(ModelPublicConstants.DELETE_TASK_HANDLER_URI);
 
-        if (objectQuery == null) {
-            objectQuery = getPrismContext().queryFactory().createQuery();
-        }
-
-        QueryType query = getQueryConverter().createQueryType(objectQuery);
-
-        PrismPropertyDefinition queryDef = getPrismContext().definitionFactory().createPropertyDefinition(
-                SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.COMPLEX_TYPE);
-        PrismProperty<QueryType> queryProp = queryDef.instantiate();
-        queryProp.setRealValue(query);
-        task.setExtensionProperty(queryProp);
-
-        PrismPropertyDefinition typeDef = getPrismContext().definitionFactory().createPropertyDefinition(
-                SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE, DOMUtil.XSD_QNAME);
-        PrismProperty<QName> typeProp = typeDef.instantiate();
-        typeProp.setRealValue(type);
-        task.setExtensionProperty(typeProp);
-
-        PrismPropertyDefinition rawDef = getPrismContext().definitionFactory().createPropertyDefinition(
-                SchemaConstants.MODEL_EXTENSION_OPTION_RAW, DOMUtil.XSD_BOOLEAN);
-        PrismProperty<Boolean> rawProp = rawDef.instantiate();
-        rawProp.setRealValue(raw);
-        task.setExtensionProperty(rawProp);
+        // @formatter:off
+        ActivityDefinitionType definition = new ActivityDefinitionType(PrismContext.get())
+                .beginWork()
+                    .beginDeletion()
+                        .beginObjects()
+                            .type(type)
+                            .query(createQueryBean(objectQuery))
+                        .<DeletionWorkDefinitionType>end()
+                    .<WorkDefinitionsType>end()
+                .end();
+        // @formatter:on
 
         task.setName(taskName);
-        task.flushPendingModifications(result);
-
+        task.setRootActivityDefinition(definition);
         task.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
 
-        TaskManager taskManager = getTaskManager();
-        taskManager.switchToBackground(task, result);
+        getTaskManager().switchToBackground(task, result);
         result.setBackgroundTaskOid(task.getOid());
         return task.getOid();
+    }
+
+    private @NotNull QueryType createQueryBean(@Nullable ObjectQuery query) throws SchemaException {
+        if (query != null) {
+            return getQueryConverter().createQueryType(query);
+        } else {
+            return new QueryType();
+        }
     }
 }

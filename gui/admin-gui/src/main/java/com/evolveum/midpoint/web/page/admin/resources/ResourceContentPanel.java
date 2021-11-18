@@ -497,12 +497,12 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         List<TaskType> tasksForKind = new ArrayList<>();
         for (PrismObject<TaskType> task : tasks) {
             PrismProperty<ShadowKindType> taskKind = task
-                    .findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
+                    .findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND)); // FIXME
             ShadowKindType taskKindValue = null;
 
             if (taskKind == null) {
                 PrismProperty<QName> taskObjectClass = task
-                        .findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS));
+                        .findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS)); // FIXME
 
                 if (taskObjectClass == null) {
                     LOGGER.warn("Bad task definition. Task {} doesn't contain definition either of objectClass or kind/intent", task.getOid());
@@ -537,7 +537,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                 taskKindValue = taskKind.getRealValue();
 
                 PrismProperty<String> taskIntent = task.findProperty(
-                        ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
+                        ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT)); // FIXME
                 String taskIntentValue = null;
                 if (taskIntent != null) {
                     taskIntentValue = taskIntent.getRealValue();

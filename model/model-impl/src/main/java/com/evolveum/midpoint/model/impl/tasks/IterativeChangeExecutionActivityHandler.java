@@ -48,18 +48,18 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
  * Executes specified deltas on specified set of objects.
  */
 @Component
-public class ChangeExecutionActivityHandler
+public class IterativeChangeExecutionActivityHandler
         extends SimpleActivityHandler<
             ObjectType,
-            ChangeExecutionActivityHandler.MyWorkDefinition,
-            ChangeExecutionActivityHandler> {
+            IterativeChangeExecutionActivityHandler.MyWorkDefinition,
+            IterativeChangeExecutionActivityHandler> {
 
     private static final String LEGACY_HANDLER_URI = ModelPublicConstants.EXECUTE_CHANGES_TASK_HANDLER_URI;
-    private static final Trace LOGGER = TraceManager.getTrace(ChangeExecutionActivityHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(IterativeChangeExecutionActivityHandler.class);
 
     @Override
     protected @NotNull QName getWorkDefinitionTypeName() {
-        return ChangeExecutionWorkDefinitionType.COMPLEX_TYPE;
+        return IterativeChangeExecutionWorkDefinitionType.COMPLEX_TYPE;
     }
 
     @Override
@@ -73,7 +73,7 @@ public class ChangeExecutionActivityHandler
     }
 
     @Override
-    protected @NotNull ExecutionSupplier<ObjectType, MyWorkDefinition, ChangeExecutionActivityHandler> getExecutionSupplier() {
+    protected @NotNull ExecutionSupplier<ObjectType, MyWorkDefinition, IterativeChangeExecutionActivityHandler> getExecutionSupplier() {
         return MyRun::new;
     }
 
@@ -89,18 +89,18 @@ public class ChangeExecutionActivityHandler
 
     @Override
     protected @NotNull String getShortName() {
-        return "Change execution";
+        return "Iterative change execution";
     }
 
     @Override
     public String getIdentifierPrefix() {
-        return "change-execution";
+        return "iterative-change-execution";
     }
 
     static final class MyRun extends
-            SearchBasedActivityRun<ObjectType, MyWorkDefinition, ChangeExecutionActivityHandler, AbstractActivityWorkStateType> {
+            SearchBasedActivityRun<ObjectType, MyWorkDefinition, IterativeChangeExecutionActivityHandler, AbstractActivityWorkStateType> {
 
-        MyRun(@NotNull ActivityRunInstantiationContext<MyWorkDefinition, ChangeExecutionActivityHandler> context,
+        MyRun(@NotNull ActivityRunInstantiationContext<MyWorkDefinition, IterativeChangeExecutionActivityHandler> context,
                 String shortName) {
             super(context, shortName);
             setInstanceReady();
@@ -147,7 +147,7 @@ public class ChangeExecutionActivityHandler
                 delta = legacy.getExtensionItemRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA, ObjectDeltaType.class);
                 executionOptions = ModelImplUtils.getModelExecuteOptions(legacy.getTaskExtension());
             } else {
-                ChangeExecutionWorkDefinitionType typedDefinition = (ChangeExecutionWorkDefinitionType)
+                IterativeChangeExecutionWorkDefinitionType typedDefinition = (IterativeChangeExecutionWorkDefinitionType)
                         ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
                 objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
                 delta = typedDefinition.getDelta();

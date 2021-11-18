@@ -419,21 +419,21 @@ public class ResourceDetailsTabPanel extends BasePanel<PrismObject<ResourceType>
         List<TaskType> syncTasks = new ArrayList<>();
         for (PrismObject<TaskType> task : tasks) {
             PrismProperty<ShadowKindType> taskKind = task
-                    .findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
+                    .findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND)); // FIXME
             ShadowKindType taskKindValue = null;
             if (taskKind != null) {
                 taskKindValue = taskKind.getRealValue();
             }
 
             PrismProperty<String> taskIntent = task
-                    .findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
+                    .findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT)); // FIXME
             String taskIntentValue = null;
             if (taskIntent != null) {
                 taskIntentValue = taskIntent.getRealValue();
             }
 
             PrismProperty<QName> taskObjectClass = task.findProperty(
-                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS));
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS)); // FIXME
             QName taskObjectClassValue = null;
             if (taskObjectClass != null) {
                 taskObjectClassValue = taskObjectClass.getRealValue();
