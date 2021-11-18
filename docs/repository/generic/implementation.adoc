@@ -1,5 +1,7 @@
 = Generic SQL Repository Implementation
 :page-wiki-name: Generic SQL Repository Implementation
+:page-nav-title: Implementation
+:page-display-order: 20
 :page-wiki-id: 4424005
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2012-06-18T10:16:38.030+02:00

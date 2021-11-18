@@ -1,11 +1,12 @@
 = Generic Repository Configuration
 :page-wiki-name: Generic Repository Configuration
+:page-nav-title: Repository Configuration
+:page-display-order: 10
 :page-wiki-id: 4882498
 :page-wiki-metadata-create-user: vix
 :page-wiki-metadata-create-date: 2012-08-06T14:55:55.920+02:00
 :page-wiki-metadata-modify-user: virgo
 :page-wiki-metadata-modify-date: 2020-12-03T19:19:37.315+01:00
-:page-nav-title: Repository Configuration
 :page-toc: top
 
 [NOTE]
