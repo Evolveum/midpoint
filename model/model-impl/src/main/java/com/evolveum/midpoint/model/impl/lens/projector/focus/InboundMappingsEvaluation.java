@@ -162,7 +162,9 @@ class InboundMappingsEvaluation<F extends FocusType> {
             this.projectionDefinition = projectionContext.getCompositeObjectClassDefinition();
         }
 
-        private void collectOrEvaluate() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        private void collectOrEvaluate()
+                throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+                ConfigurationException, ExpressionEvaluationException {
 
             if (!projectionContext.isDoReconciliation() && aPrioriDelta == null &&
                     !LensUtil.hasDependentContext(context, projectionContext) && !projectionContext.isFullShadow() &&
@@ -193,7 +195,8 @@ class InboundMappingsEvaluation<F extends FocusType> {
         }
 
         private void collectOrEvaluateProjectionMappings()
-                throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException, CommunicationException, SecurityViolationException {
+                throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException,
+                CommunicationException, SecurityViolationException {
 
             loadIfAnyStrong();
             if (shouldStop()) {
@@ -248,8 +251,10 @@ class InboundMappingsEvaluation<F extends FocusType> {
             final ItemDelta<V, D> attributeAPrioriDelta;
             if (aPrioriDelta != null) {
                 attributeAPrioriDelta = aPrioriDelta.findItemDelta(ItemPath.create(SchemaConstants.C_ATTRIBUTES, attributeName));
-                if (attributeAPrioriDelta == null && !projectionContext.isFullShadow() && !LensUtil.hasDependentContext(context, projectionContext)) {
-                    LOGGER.trace("Skipping inbound for {} in {}: Not a full shadow and account a priori delta exists, but doesn't have change for the attribute.",
+                if (attributeAPrioriDelta == null && !projectionContext.isFullShadow() &&
+                        !LensUtil.hasDependentContext(context, projectionContext)) {
+                    LOGGER.trace("Skipping inbound for {} in {}: Not a full shadow and account a priori delta exists, "
+                                    + "but doesn't have change for the attribute.",
                             attributeName, projectionContext.getResourceShadowDiscriminator());
                     return;
                 }
@@ -293,7 +298,8 @@ class InboundMappingsEvaluation<F extends FocusType> {
                     return;
                 }
 
-                if (attributeAPrioriDelta == null && !projectionContext.isFullShadow() && !LensUtil.hasDependentContext(context, projectionContext)) {
+                if (attributeAPrioriDelta == null && !projectionContext.isFullShadow() &&
+                        !LensUtil.hasDependentContext(context, projectionContext)) {
                     LOGGER.trace("Skipping inbound for {} in {}: Not a full shadow and no a priori delta for processed property.",
                             attributeName, projectionContext.getResourceShadowDiscriminator());
                     return;
@@ -322,7 +328,8 @@ class InboundMappingsEvaluation<F extends FocusType> {
                         DebugUtil.debugDumpLazily(currentAttribute, 1));
 
                 //noinspection unchecked
-                collectMapping(inboundMappingBean, attributeName, currentAttribute, attributeAPrioriDelta, (D) attributeDef, null);
+                collectMapping(inboundMappingBean, attributeName, currentAttribute, attributeAPrioriDelta, (D) attributeDef,
+                        null);
             }
         }
 
@@ -538,11 +545,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
         }
 
         private boolean shouldStop() {
-            return stop || isBroken();
-        }
-
-        private boolean isBroken() {
-            return projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN;
+            return stop || projectionContext.isBroken();
         }
 
         private void collectAuxiliaryObjectClassInbounds() throws SchemaException, ExpressionEvaluationException,
@@ -863,7 +866,8 @@ class InboundMappingsEvaluation<F extends FocusType> {
 
         private void loadIfAnyStrong() throws SchemaException {
             if (!projectionContext.isFullShadow() && !projectionContext.isGone() && hasAnyStrongMapping()) {
-                LOGGER.trace("There are strong inbound mappings, but the shadow hasn't be fully loaded yet. Trying to load full shadow now.");
+                LOGGER.trace("There are strong inbound mappings, but the shadow hasn't be fully loaded yet. "
+                        + "Trying to load full shadow now.");
                 doLoad();
             }
         }
@@ -883,7 +887,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 // todo change to trace level eventually
                 LOGGER.warn("Attempted to execute inbound expression on account shadow {} WITHOUT full account. Trying to load the account now.", projectionContext.getOid());
                 doLoad();
-                if (!isBroken() && !projectionContext.isFullShadow()) {
+                if (!projectionContext.isBroken() && !projectionContext.isFullShadow()) {
                     if (projectionContext.isHigherOrder()) {
                         // higher-order context. It is OK not to load this
                         LOGGER.trace("Skipped load of higher-order account with shadow OID {} skipping inbound processing on it", projectionContext.getOid());
