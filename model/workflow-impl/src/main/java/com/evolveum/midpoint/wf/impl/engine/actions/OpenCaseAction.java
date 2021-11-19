@@ -47,7 +47,7 @@ public class OpenCaseAction extends RequestedAction<OpenCaseRequest> {
                 LOGGER.debug("Case was already opened; its state is {}", currentState);
                 next = null;
             } else {
-                engine.auditHelper.prepareProcessStartRecord(ctx, result);
+                engine.wfAuditHelper.prepareProcessStartRecord(ctx, result);
                 ctx.prepareNotification(new DelayedNotification.ProcessStart(currentCase));
 
                 if (!approvalCase) {

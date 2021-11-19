@@ -170,14 +170,14 @@ public class EngineInvocationContext implements DebugDumpable {
                         engine.executionHelper.closeCaseInRepository(currentCase, result);
                     }
 
-                    engine.auditHelper.prepareProcessEndRecord(this, result);
+                    engine.wfAuditHelper.prepareProcessEndRecord(this, result);
                     prepareNotification(new DelayedNotification.ProcessEnd(currentCase));
                 } catch (PreconditionViolationException e) {
                     throw new SystemException(e);
                 }
             }
 
-            engine.auditHelper.auditPreparedRecords(this, result);
+            engine.wfAuditHelper.auditPreparedRecords(this, result);
             engine.notificationHelper.sendPreparedNotifications(this, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
