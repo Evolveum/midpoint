@@ -13,7 +13,7 @@ import javax.persistence.*;
 
 import org.hibernate.annotations.ForeignKey;
 
-import com.evolveum.midpoint.repo.sql.data.common.OperationResultFull;
+import com.evolveum.midpoint.repo.sql.data.common.ROperationResultFull;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RChangeType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
@@ -29,7 +29,7 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 @IdClass(RObjectDeltaOperationId.class)
 @Table(name = RObjectDeltaOperation.TABLE_NAME, indexes = {
         @Index(name = "iAuditDeltaRecordId", columnList = COLUMN_RECORD_ID) })
-public class RObjectDeltaOperation implements OperationResultFull, EntityState {
+public class RObjectDeltaOperation implements ROperationResultFull, EntityState {
 
     private static final long serialVersionUID = -1065600513263271161L;
 

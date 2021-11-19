@@ -54,7 +54,7 @@ public class PrismEntityMapper {
         MAPPERS.put(new Key(OperationExecutionType.class, ROperationExecution.class), new OperationExecutionMapper());
         MAPPERS.put(new Key(CaseWorkItemType.class, RCaseWorkItem.class), new CaseWorkItemMapper());
 
-        MAPPERS.put(new Key(OperationResultType.class, OperationResult.class), new OperationResultMapper());
+        MAPPERS.put(new Key(OperationResultType.class, ROperationResult.class), new OperationResultMapper());
         MAPPERS.put(new Key(MetadataType.class, Metadata.class), new MetadataMapper());
 
         MAPPERS.put(new Key(byte[].class, RFocusPhoto.class), new RFocusPhotoMapper());
