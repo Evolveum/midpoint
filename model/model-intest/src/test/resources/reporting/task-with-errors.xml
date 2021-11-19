@@ -1,0 +1,121 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        oid="cfcfa2d8-ba8a-45b3-af94-3a4e5774768a"
+        version="92">
+    <name>task-with-errors</name>
+    <assignment id="3">
+        <targetRef oid="00000000-0000-0000-0000-000000000502" relation="org:default" type="c:ArchetypeType">
+            <!-- Recomputation task -->
+        </targetRef>
+    </assignment>
+    <taskIdentifier>1637335063207-0-1</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+        <!-- administrator -->
+    </ownerRef>
+    <executionState>closed</executionState>
+    <schedulingState>closed</schedulingState>
+    <resultStatus>success</resultStatus>
+    <activity>
+        <work>
+            <recomputation>
+                <objects>
+                    <type>FocusType</type>
+                </objects>
+            </recomputation>
+        </work>
+        <distribution>
+            <buckets>
+                <oidSegmentation>
+                    <depth>1</depth>
+                </oidSegmentation>
+            </buckets>
+            <workers>
+                <workersPerNode id="1">
+                    <count>2</count>
+                </workersPerNode>
+            </workers>
+        </distribution>
+    </activity>
+    <activityState>
+        <activity>
+            <realizationState>complete</realizationState>
+            <resultStatus>success</resultStatus>
+            <realizationStartTimestamp>2021-11-19T16:17:43.338+01:00</realizationStartTimestamp>
+            <realizationEndTimestamp>2021-11-19T16:17:44.854+01:00</realizationEndTimestamp>
+            <runStartTimestamp>2021-11-19T16:17:43.338+01:00</runStartTimestamp>
+            <runEndTimestamp>2021-11-19T16:17:43.403+01:00</runEndTimestamp>
+            <statistics>
+                <itemProcessing/>
+                <bucketManagement/>
+            </statistics>
+            <bucketing>
+                <bucket id="20">
+                    <sequentialNumber>17</sequentialNumber>
+                    <state>complete</state>
+                    <content xsi:type="c:StringIntervalWorkBucketContentType">
+                        <from>f</from>
+                    </content>
+                    <workerRef oid="8d5909f6-7d8b-4c01-913b-42ba0bcf6ef7" relation="org:default" type="c:TaskType">
+                        <!-- Worker DefaultNode:2 for root activity in Recompute bucketed workers -->
+                    </workerRef>
+                </bucket>
+                <numberOfBuckets>17</numberOfBuckets>
+                <bucketsProcessingRole>coordinator</bucketsProcessingRole>
+                <scavenging>true</scavenging>
+                <workComplete>true</workComplete>
+            </bucketing>
+            <workState/>
+            <persistence>singleRealization</persistence>
+        </activity>
+        <tree>
+            <realizationState>complete</realizationState>
+            <activity>
+                <realizationState>complete</realizationState>
+                <resultStatus>success</resultStatus>
+                <bucketProgress>
+                    <totalBuckets>17</totalBuckets>
+                    <completeBuckets>17</completeBuckets>
+                </bucketProgress>
+                <task>
+                    <taskRef oid="8d5909f6-7d8b-4c01-913b-42ba0bcf6ef7" relation="org:default" type="c:TaskType">
+                        <targetName>Worker DefaultNode:2 for root activity in Recompute bucketed workers</targetName>
+                    </taskRef>
+                    <node>DefaultNode</node>
+                    <bucketsProcessingRole>worker</bucketsProcessingRole>
+                    <executionState>notRunning</executionState>
+                    <progress>
+                        <successfullyProcessed>3</successfullyProcessed>
+                        <!--<failed>100</failed>-->
+                        <skipped>0</skipped>
+                    </progress>
+                    <resultStatus>success</resultStatus>
+                </task>
+                <task>
+                    <taskRef oid="3d288cce-898d-49b9-8987-ce9e6116bb0b" relation="org:default" type="c:TaskType">
+                        <targetName>Worker DefaultNode:1 for root activity in Recompute bucketed workers</targetName>
+                    </taskRef>
+                    <node>DefaultNode</node>
+                    <bucketsProcessingRole>worker</bucketsProcessingRole>
+                    <executionState>notRunning</executionState>
+                    <progress>
+                        <successfullyProcessed>33</successfullyProcessed>
+                        <failed>10</failed>
+                        <skipped>0</skipped>
+                    </progress>
+                    <resultStatus>success</resultStatus>
+                </task>
+                <progressInformationVisibility>visible</progressInformationVisibility>
+                <persistence>singleRealization</persistence>
+            </activity>
+        </tree>
+    </activityState>
+</task>

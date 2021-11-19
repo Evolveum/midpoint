@@ -95,8 +95,17 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     public static final long WAIT_FOR_TASK_STOP = 2000L;
 
+    /**
+     * Does this panel show root tasks only?
+     */
+    private boolean rootTasksOnly;
+
     public TaskTablePanel(String id, Collection<SelectorOptions<GetOperationOptions>> options) {
         super(id, TaskType.class, options);
+    }
+
+    void setRootTasksOnly(boolean rootTasksOnly) {
+        this.rootTasksOnly = rootTasksOnly;
     }
 
     @Override
@@ -235,7 +244,13 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
         columns.add(createTaskExecutionStateColumn());
 
-        columns.add(createNodesColumn()); // TODO reconsider
+        // We should display "Executing at" (the Nodes column) only for root tasks. The reason is that
+        // the TaskInformation does not provide adequate methods to get the information for subtasks.
+        // See MID-7309.
+        if (rootTasksOnly) {
+            columns.add(createNodesColumn());
+        }
+
         columns.add(createProgressColumn());
         columns.add(createErrorsColumn());
         columns.add(createTaskStatusIconColumn());

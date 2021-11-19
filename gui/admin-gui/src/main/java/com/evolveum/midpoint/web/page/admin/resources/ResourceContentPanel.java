@@ -409,6 +409,9 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
             taskType.getAssignment().add(ObjectTypeUtil.createAssignmentTo(archetypeOid, ObjectTypes.ARCHETYPE, getPrismContext()));
         }
         taskType.setOwnerRef(ObjectTypeUtil.createObjectRef(SecurityUtils.getPrincipalUser().getOid(), ObjectTypes.USER));
+        taskType.setObjectRef(
+                ObjectTypeUtil.createObjectRef(
+                        getResourceType()));
 
         WebComponentUtil.dispatchToObjectDetailsPage(taskType.asPrismObject(), this);
     }

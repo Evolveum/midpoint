@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sql.helpers.delta;
 
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
+import com.evolveum.midpoint.repo.sql.data.common.ROperationResult;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.helpers.mapper.Mapper;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
@@ -26,8 +26,8 @@ class OperationResultUpdate extends BaseUpdate {
     }
 
     void handleItemDelta() {
-        if (!(object instanceof OperationResult)) {
-            throw new SystemException("Bean is not instance of " + OperationResult.class + ", shouldn't happen");
+        if (!(object instanceof ROperationResult)) {
+            throw new SystemException("Bean is not instance of " + ROperationResult.class + ", shouldn't happen");
         }
 
         PrismValue value;
@@ -43,11 +43,11 @@ class OperationResultUpdate extends BaseUpdate {
         context.setOwner(object);
 
         if (value != null) {
-            beans.prismEntityMapper.mapPrismValue(value, OperationResult.class, context);
+            beans.prismEntityMapper.mapPrismValue(value, ROperationResult.class, context);
         } else {
             // todo clean this up
             // we know that mapper supports mapping null value, but still this code smells
-            Mapper mapper = beans.prismEntityMapper.getMapper(OperationResultType.class, OperationResult.class);
+            Mapper mapper = beans.prismEntityMapper.getMapper(OperationResultType.class, ROperationResult.class);
             //noinspection unchecked
             mapper.map(null, context);
         }

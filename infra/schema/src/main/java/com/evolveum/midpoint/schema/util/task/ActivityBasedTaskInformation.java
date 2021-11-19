@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.util.DebugUtil;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.Objects;
 
 /**
  * Implementation of {@link TaskInformation} based on new, activity-based tasks.
@@ -140,6 +141,7 @@ public class ActivityBasedTaskInformation extends TaskInformation {
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         sb.append(super.debugDump(indent));
+        sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "progress", progressInformation, indent + 1);
         return sb.toString();
     }
@@ -153,7 +155,11 @@ public class ActivityBasedTaskInformation extends TaskInformation {
         return ActivityTreeUtil.getAllLocalStates(task.getActivityState()).stream()
                 .filter(s -> s.getWorkState() instanceof LiveSyncWorkStateType)
                 .map(s -> ((LiveSyncWorkStateType) s.getWorkState()).getToken())
-                .filter(token -> token != null)
+                .filter(Objects::nonNull)
                 .findFirst().orElse(null);
+    }
+
+    public @NotNull ActivityProgressInformation getProgressInformation() {
+        return progressInformation;
     }
 }

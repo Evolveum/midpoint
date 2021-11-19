@@ -42,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 @ForeignKey(name = "fk_task")
 @Persister(impl = MidPointJoinedPersister.class)
 @DynamicUpdate
-public class RTask extends RObject implements OperationResultFull {
+public class RTask extends RObject implements ROperationResultFull {
 
     private RPolyString nameCopy;
     private String taskIdentifier;

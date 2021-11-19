@@ -1,16 +1,25 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.wf.impl.engine.helpers;
+
+import static com.evolveum.midpoint.audit.api.AuditEventStage.EXECUTION;
+import static com.evolveum.midpoint.audit.api.AuditEventType.WORKFLOW_PROCESS_INSTANCE;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -19,9 +28,9 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -37,31 +46,20 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.audit.api.AuditEventStage.EXECUTION;
-import static com.evolveum.midpoint.audit.api.AuditEventType.WORKFLOW_PROCESS_INSTANCE;
 
 /**
- *  Deals with preparation and recording of audit events.
+ * Deals with preparation and recording of audit events.
  */
-@Component("wfAuditHelper")
-public class AuditHelper {
+@Component
+public class WfAuditHelper {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AuditHelper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(WfAuditHelper.class);
 
-    @Autowired private AuditService auditService;
     @Autowired private SecurityContextManager securityContextManager;
     @Autowired private PrismContext prismContext;
     @Autowired private MiscHelper miscHelper;
     @Autowired private SchemaService schemaService;
-    @Autowired private PrimaryChangeProcessor primaryChangeProcessor;   // todo
+    @Autowired private PrimaryChangeProcessor primaryChangeProcessor; // TODO
     @Autowired private com.evolveum.midpoint.model.impl.util.AuditHelper modelAuditHelper;
 
     @Autowired
@@ -89,16 +87,15 @@ public class AuditHelper {
     }
     //endregion
 
-
     //region Preparation of audit events
     public AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, OperationResult result) {
-
         ApprovalContextType wfc = aCase.getApprovalContext();
 
         AuditEventRecord record = new AuditEventRecord();
         record.setEventType(WORKFLOW_PROCESS_INSTANCE);
         record.setEventStage(stage);
-        record.setInitiator(miscHelper.getRequesterIfExists(aCase, result), prismContext);           // set real principal in case of explicitly requested process termination (MID-4263)
+        // set real principal in case of explicitly requested process termination (MID-4263)
+        record.setInitiator(miscHelper.getRequesterIfExists(aCase, result), prismContext);
 
         // TODO we could be more strict and allow non-existence of object only in case of "object add" delta. But we are not.
         ObjectReferenceType objectRef = resolveIfNeeded(aCase.getObjectRef(), true, result);
@@ -156,6 +153,7 @@ public class AuditHelper {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private List<ObjectReferenceType> resolveIfNeeded(List<ObjectReferenceType> refs, boolean optional, OperationResult result) {
         return refs.stream()
                 .map(ref -> resolveIfNeeded(ref, optional, result))
@@ -239,7 +237,7 @@ public class AuditHelper {
                 record.addPropertyValue(WorkflowConstants.AUDIT_COMMENT, output.getComment());
             }
         } else {
-            message.append("(no decision)");        // TODO
+            message.append("(no decision)"); // TODO
         }
         record.setMessage(message.toString());
         return record;
@@ -258,5 +256,4 @@ public class AuditHelper {
         }
     }
     //endregion
-
 }
