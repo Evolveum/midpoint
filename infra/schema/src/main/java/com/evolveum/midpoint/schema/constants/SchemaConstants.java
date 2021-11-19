@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import static com.evolveum.midpoint.util.QNameUtil.qNameToUri;
@@ -616,4 +617,12 @@ public abstract class SchemaConstants {
     public static final String ID_DEAD_NODES_CLEANUP = "deadNodes";
     public static final String ID_OUTPUT_REPORTS_CLEANUP = "outputReports";
     public static final String ID_CLOSED_CERTIFICATION_CAMPAIGNS_CLEANUP = "closedCertificationCampaigns";
+
+    public static final ActivityPath PATH_AUDIT_RECORDS_CLEANUP = ActivityPath.fromId(ID_AUDIT_RECORDS_CLEANUP);
+    public static final ActivityPath PATH_CLOSED_TASKS_CLEANUP = ActivityPath.fromId(ID_CLOSED_TASKS_CLEANUP);
+    public static final ActivityPath PATH_CLOSED_CASES_CLEANUP = ActivityPath.fromId(ID_CLOSED_CASES_CLEANUP);
+    public static final ActivityPath PATH_DEAD_NODES_CLEANUP = ActivityPath.fromId(ID_DEAD_NODES_CLEANUP);
+    public static final ActivityPath PATH_OUTPUT_REPORTS_CLEANUP = ActivityPath.fromId(ID_OUTPUT_REPORTS_CLEANUP);
+    public static final ActivityPath PATH_CLOSED_CERTIFICATION_CAMPAIGNS_CLEANUP =
+            ActivityPath.fromId(ID_CLOSED_CERTIFICATION_CAMPAIGNS_CLEANUP);
 }

@@ -105,9 +105,14 @@ public class SchrodingerComponentInitListener implements IComponentInitializatio
             model = component.getDefaultModel();
         } else if (component.getInnermostModel() instanceof StringResourceModel) {
             model = component.getInnermostModel();
-        } else if (component.getDefaultModel() instanceof ReadOnlyModel &&
-                component.getDefaultModelObject() instanceof String) {
-            model = component.getDefaultModel();
+        } else if (component.getDefaultModel() instanceof ReadOnlyModel) {
+            try {
+                if (component.getDefaultModelObject() instanceof String) {
+                    model = component.getDefaultModel();
+                }
+            } catch (Exception e) {
+                LOGGER.error("Schrodinger localization handling failed", e);
+            }
         }
 
         if (model == null) {

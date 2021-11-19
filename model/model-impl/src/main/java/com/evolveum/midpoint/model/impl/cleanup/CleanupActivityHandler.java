@@ -85,6 +85,8 @@ public class CleanupActivityHandler
         ArrayList<Activity<?, ?>> children = new ArrayList<>();
 
         // TODO or should we create only activities that correspond to real work we are going to do?
+        //  Actually, it's not that easy. In the work definition we have only explicit policies.
+        //  If they are null, policies from system config should be used.
 
         ActivityStateDefinition<AbstractActivityWorkStateType> stateDef = ActivityStateDefinition.normal();
         children.add(EmbeddedActivity.create(

@@ -12,8 +12,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
 
-@Deprecated // TODO migrate to activity reporting, see MID-7209
-public interface IterativeOperationCollector {
+/**
+ * Support for recording iterative operations directly on tasks - where activities are not available.
+ */
+public interface TaskIterativeOperationCollector {
 
     /**
      * Records the start of iterative operation.
@@ -36,5 +38,5 @@ public interface IterativeOperationCollector {
      * Records the start of iterative operation.
      * The operation end is recorded by calling appropriate method on the returned object.
      */
-    @NotNull Operation recordIterativeOperationStart(IterativeOperationStartInfo operation);
+    @NotNull Operation recordIterativeOperationStart(@NotNull IterativeOperationStartInfo info);
 }
