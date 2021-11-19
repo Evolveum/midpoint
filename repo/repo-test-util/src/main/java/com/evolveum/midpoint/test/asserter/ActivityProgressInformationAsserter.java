@@ -115,6 +115,13 @@ public class ActivityProgressInformationAsserter<RA> extends AbstractAsserter<RA
         return this;
     }
 
+    public ActivityProgressInformationAsserter<RA> assertItems(int progress, int errors, Integer expectedProgress) {
+        assertThat(getProgress()).as("progress").isEqualTo(progress);
+        assertThat(getErrors()).as("errors").isEqualTo(errors);
+        assertThat(getExpectedProgress()).as("expected progress").isEqualTo(expectedProgress);
+        return this;
+    }
+
     public ActivityProgressInformationAsserter<RA> assertExpectedItems(Integer expectedTotal) {
         assertThat(getExpectedProgress()).as("expected progress").isEqualTo(expectedTotal);
         return this;
@@ -123,6 +130,11 @@ public class ActivityProgressInformationAsserter<RA> extends AbstractAsserter<RA
     private int getProgress() {
         ItemsProgressInformation itemsProgress = information.getItemsProgress();
         return itemsProgress != null ? itemsProgress.getProgress() : 0;
+    }
+
+    private int getErrors() {
+        ItemsProgressInformation itemsProgress = information.getItemsProgress();
+        return itemsProgress != null ? itemsProgress.getErrors() : 0;
     }
 
     private @Nullable Integer getExpectedProgress() {

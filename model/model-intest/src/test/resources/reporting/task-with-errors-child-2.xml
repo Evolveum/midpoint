@@ -1,0 +1,109 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        oid="8d5909f6-7d8b-4c01-913b-42ba0bcf6ef7">
+    <name>Worker DefaultNode:2 for root activity in task-with-errors</name>
+    <taskIdentifier>1637335063357-0-1</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+        <!-- administrator -->
+    </ownerRef>
+    <parent>1637335063207-0-1</parent>
+    <executionState>closed</executionState>
+    <schedulingState>closed</schedulingState>
+    <result>
+        <operation>run</operation>
+        <status>success</status>
+        <importance>normal</importance>
+        <end>2021-11-19T16:17:44.498+01:00</end>
+        <token>1000000000000000169</token>
+    </result>
+    <resultStatus>success</resultStatus>
+    <lastRunStartTimestamp>2021-11-19T16:17:43.438+01:00</lastRunStartTimestamp>
+    <lastRunFinishTimestamp>2021-11-19T16:17:44.498+01:00</lastRunFinishTimestamp>
+    <completionTimestamp>2021-11-19T16:17:44.512+01:00</completionTimestamp>
+    <progress>3</progress>
+    <binding>loose</binding>
+    <executionConstraints>
+        <group>DefaultNode</group>
+    </executionConstraints>
+    <activityState>
+        <localRoot/>
+        <taskRole>worker</taskRole>
+        <activity>
+            <realizationState>complete</realizationState>
+            <resultStatus>success</resultStatus>
+            <realizationStartTimestamp>2021-11-19T16:17:43.338+01:00</realizationStartTimestamp>
+            <realizationEndTimestamp>2021-11-19T16:17:44.464+01:00</realizationEndTimestamp>
+            <runStartTimestamp>2021-11-19T16:17:43.456+01:00</runStartTimestamp>
+            <runEndTimestamp>2021-11-19T16:17:44.464+01:00</runEndTimestamp>
+            <progress>
+                <committed id="40">
+                    <outcome>
+                        <outcome>success</outcome>
+                    </outcome>
+                    <count>3</count>
+                </committed>
+            </progress>
+            <statistics>
+                <itemProcessing>
+                    <processed id="42">
+                        <outcome>
+                            <outcome>success</outcome>
+                        </outcome>
+                        <count>3</count>
+                        <duration>66.28</duration>
+                        <lastItem>
+                            <name>t1</name>
+                            <type>c:UserType</type>
+                            <oid>b8d7f336-d636-48fc-80d4-68cf22f5329c</oid>
+                            <startTimestamp>2021-11-19T16:17:44.148+01:00</startTimestamp>
+                            <endTimestamp>2021-11-19T16:17:44.166+01:00</endTimestamp>
+                            <operationId>18</operationId>
+                        </lastItem>
+                    </processed>
+                    <run id="41">
+                        <startTimestamp>2021-11-19T16:17:43.456+01:00</startTimestamp>
+                        <endTimestamp>2021-11-19T16:17:44.464+01:00</endTimestamp>
+                    </run>
+                </itemProcessing>
+                <actionsExecuted/>
+                <bucketManagement>
+                    <operation>
+                        <name>getWorkBucket.createdNew</name>
+                        <count>15</count>
+                        <totalTime>234</totalTime>
+                        <minTime>9</minTime>
+                        <maxTime>90</maxTime>
+                    </operation>
+                    <operation>
+                        <name>completeWorkBucket</name>
+                        <count>15</count>
+                        <totalTime>155</totalTime>
+                        <minTime>9</minTime>
+                        <maxTime>12</maxTime>
+                    </operation>
+                    <operation>
+                        <name>getWorkBucket.noMoreBucketsNotScavenger</name>
+                        <count>1</count>
+                        <totalTime>43</totalTime>
+                        <minTime>43</minTime>
+                        <maxTime>43</maxTime>
+                    </operation>
+                </bucketManagement>
+            </statistics>
+            <bucketing>
+                <bucketsProcessingRole>worker</bucketsProcessingRole>
+                <scavenger>false</scavenger>
+            </bucketing>
+            <workState/>
+            <persistence>singleRealization</persistence>
+        </activity>
+    </activityState>
+</task>

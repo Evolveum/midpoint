@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import static com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource.FULL_STATE_ONLY;
 import static com.evolveum.midpoint.schema.util.task.TaskResolver.empty;
 import static com.evolveum.midpoint.util.MiscUtil.assertCheck;
 
@@ -252,7 +253,7 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     public ActivityProgressInformationAsserter<TaskAsserter<RA>> progressInformation() {
         ActivityProgressInformationAsserter<TaskAsserter<RA>> asserter =
                 new ActivityProgressInformationAsserter<>(
-                        ActivityProgressInformation.fromRootTask(getObjectable(), TaskResolver.empty()),
+                        ActivityProgressInformation.fromRootTask(getObjectable(), FULL_STATE_ONLY),
                         this,
                         getDetails());
         copySetupTo(asserter);
