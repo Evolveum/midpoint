@@ -24,7 +24,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
@@ -42,7 +41,6 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
-import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DetailsPageSaveMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -158,7 +156,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
             }
         };
         save.add(new VisibleBehaviour(this::isSaveButtonVisible));
-        save.add(new EnableBehaviour(this::isSaveButtonEnabled));
+        save.add(new EnableBehaviour(this::isSavePreviewButtonEnabled));
         save.titleAsLabel(true);
         save.setOutputMarkupId(true);
         save.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
@@ -179,7 +177,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         return !getModelObject().isReadOnly() && !isForcedPreview();
     }
 
-    protected boolean isSaveButtonEnabled() {
+    protected boolean isSavePreviewButtonEnabled() {
         return true;
     }
 

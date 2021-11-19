@@ -25,12 +25,12 @@ public class UserOperationalButtonsPanel extends FocusOperationalButtonsPanel<Us
         this.delegationsModel = delegationsModel;
     }
 
-    protected boolean isSaveButtonEnabled() {
+    protected boolean isSavePreviewButtonEnabled() {
         //in case user isn't allowed to modify focus data but has
         // e.g. #assign authorization, Save button is disabled on page load.
         // Save button becomes enabled if some changes are made
         // on the Delegations panel
-        return isDelegationAddedOrRemoved() || super.isSaveButtonEnabled();
+        return isDelegationAddedOrRemoved() || super.isSavePreviewButtonEnabled();
     }
 
 
