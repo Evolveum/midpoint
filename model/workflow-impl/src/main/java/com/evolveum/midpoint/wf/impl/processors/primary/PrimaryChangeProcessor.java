@@ -50,7 +50,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.request.OpenCaseRequest;
 import com.evolveum.midpoint.wf.impl.engine.EngineInvocationContext;
 import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
-import com.evolveum.midpoint.wf.impl.engine.helpers.AuditHelper;
+import com.evolveum.midpoint.wf.impl.engine.helpers.WfAuditHelper;
 import com.evolveum.midpoint.wf.impl.execution.ExecutionHelper;
 import com.evolveum.midpoint.wf.impl.processes.common.StageComputeHelper;
 import com.evolveum.midpoint.wf.impl.processors.*;
@@ -71,7 +71,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     @Autowired private ConfigurationHelper configurationHelper;
     @Autowired private ModelHelper modelHelper;
-    @Autowired private AuditHelper auditHelper;
+    @Autowired private WfAuditHelper wfAuditHelper;
     @Autowired private StageComputeHelper stageComputeHelper;
     @Autowired private PcpGeneralHelper generalHelper;
     @Autowired private MiscHelper miscHelper;
@@ -468,7 +468,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     //region Auditing
     @Override
     public AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, ApprovalContextType wfContext, OperationResult result) {
-        AuditEventRecord auditEventRecord = auditHelper.prepareProcessInstanceAuditRecord(aCase, stage, result);
+        AuditEventRecord auditEventRecord = wfAuditHelper.prepareProcessInstanceAuditRecord(aCase, stage, result);
         addDeltaIfNeeded(auditEventRecord, stage == REQUEST, aCase);
         return auditEventRecord;
     }
@@ -497,7 +497,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     @Override
     public AuditEventRecord prepareWorkItemCreatedAuditRecord(CaseWorkItemType workItem, CaseType aCase,
             OperationResult result) {
-        AuditEventRecord auditEventRecord = auditHelper.prepareWorkItemCreatedAuditRecord(workItem, aCase, result);
+        AuditEventRecord auditEventRecord = wfAuditHelper.prepareWorkItemCreatedAuditRecord(workItem, aCase, result);
         addDeltaIfNeeded(auditEventRecord, true, aCase);
         return auditEventRecord;
     }
@@ -505,7 +505,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     @Override
     public AuditEventRecord prepareWorkItemDeletedAuditRecord(CaseWorkItemType workItem, WorkItemEventCauseInformationType cause,
             CaseType aCase, OperationResult result) {
-        AuditEventRecord auditEventRecord = auditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause, aCase, result);
+        AuditEventRecord auditEventRecord = wfAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause, aCase, result);
         addDeltaIfNeeded(auditEventRecord, true, aCase);
         return auditEventRecord;
     }

@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.access.AuthorizationHelper;
-import com.evolveum.midpoint.wf.impl.engine.helpers.AuditHelper;
+import com.evolveum.midpoint.wf.impl.engine.helpers.WfAuditHelper;
 import com.evolveum.midpoint.wf.impl.engine.helpers.NotificationHelper;
 import com.evolveum.midpoint.wf.impl.engine.helpers.TriggerHelper;
 import com.evolveum.midpoint.wf.impl.engine.helpers.WorkItemHelper;
@@ -62,7 +62,7 @@ public class ExecutionHelper {
     public RepositoryService repositoryService;
     @Autowired public PrismContext prismContext;
     @Autowired private TaskManager taskManager;
-    @Autowired public AuditHelper auditHelper;
+    @Autowired public WfAuditHelper wfAuditHelper;
     @Autowired public NotificationHelper notificationHelper;
     @Autowired public StageComputeHelper stageComputeHelper;
     @Autowired public PrimaryChangeProcessor primaryChangeProcessor;   // todo
