@@ -303,14 +303,15 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase {
             setResponsePage(PageAssignmentShoppingCart.class);
             return;
         }
-        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
-            result.setMessage(createStringResource("PageAssignmentsList.requestError").getString());
-            target.add(getFeedbackPanel());
-            target.add(PageAssignmentsList.this.get(ID_FORM));
-        } else {
+        if (WebComponentUtil.isSuccessOrHandledError(result)
+                || OperationResultStatus.IN_PROGRESS.equals(result.getStatus())) {
             clearStorage();
             result.setMessage(createStringResource("PageAssignmentsList.requestSuccess").getString());
             setResponsePage(PageAssignmentShoppingCart.class);
+        } else {
+            result.setMessage(createStringResource("PageAssignmentsList.requestError").getString());
+            target.add(getFeedbackPanel());
+            target.add(PageAssignmentsList.this.get(ID_FORM));
         }
         showResult(result);
     }
