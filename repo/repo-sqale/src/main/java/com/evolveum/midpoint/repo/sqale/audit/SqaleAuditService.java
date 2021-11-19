@@ -281,6 +281,9 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         Set<String> changedItemPaths = new HashSet<>();
         for (MAuditDelta delta : deltas) {
             try {
+                // TODO: this calls compat parser, but for just serialized deltas we could be strict too
+                //  See MID-7431, this currently just shows ERROR with ignore message and no stack trace.
+                //  We could either check parseResult.parsingContext.has/getWarnings, or use strict and catch (probably better).
                 RepositoryObjectParseResult<ObjectDeltaType> parseResult =
                         sqlRepoContext.parsePrismObject(delta.serializedDelta, ObjectDeltaType.class);
                 ObjectDeltaType deltaBean = parseResult.prismValue;
