@@ -222,3 +222,77 @@ LIMIT 10;
 
 Then the use the SQL commands from section above to obtain settings and list of the largest objects.
 After that any other relevant query depending on the situation - locks, vacuum info, etc.
+
+== Collation (ordering)
+
+Depending on the chosen https://www.postgresql.org/docs/13/collation.html[collation] ordering
+of text fields can be case-insensitive or not.
+To see it quickly, one can use select like this:
+
+[source,sql]
+----
+select * from (values ('a'), ('B'), ('Z'), ('x'), ('Č'),
+    ('@'), ('_'), ('%'), ('^'), ('5'), ('47'), ('持')) as t(text)
+  order by text -- collation "C"
+----
+
+With additional `collation "x"` one can see various results for other collations.
+If `en_US.UTF-8` is used during database creation (recommended by midPoint docs) the ordering
+of the select above should be case-insensitive.
+Collation used by default for each database can be determined like so:
+
+[source,sql]
+----
+select datname, datcollate from pg_database;
+-- returns among others: midpoint,en_US.UTF-8
+----
+
+Funny enough, this default collation name may not be a valid name for `COLLATION "collation-name"`
+clause but for `en_US.UTF-8` it seems to act the same as `collate "en_US.utf8"` (or `en_US`).
+The list of valid collation names can be obtained from `pg_collation` table:
+
+[source,sql]
+----
+select * from pg_collation;
+----
+
+As explained in the https://www.postgresql.org/docs/13/collation.html[collation documentation],
+there is a default collation (`collprovider = 'd'`), libc based collations (`d`) and ICU collations
+(`i`) if compiled with it (PG 13 on Ubuntu contains these too).
+
+[NOTE]
+ICU collations https://stackoverflow.com/q/61048789/658826[can't be used as database defaults].
+
+It is possible to create tables or single columns with non-default collation.
+To list columns with different collation one can use this select (with or without `table_schema`
+filter, select based on https://dba.stackexchange.com/a/29947/157622[this answer]):
+
+[source,sql]
+----
+select table_schema, table_name, column_name, collation_name
+  from information_schema.columns
+  where collation_name is not null and table_schema = 'public'
+order by table_schema, table_name, ordinal_position;
+----
+
+[NOTE]
+If query is used with custom `COLLATE` regularly the table should be indexed accordingly.
+
+[WARNING]
+====
+If case-sensitive locale is used when case-insensitive behavior is expected it may result in
+unexpected results.
+The old repository uses `VARCHAR` type for OIDs and bucket defining queries for extreme boundaries
+accidentally caught more than was intended.
+E.g. `oid > 'FF'` can also include all the OIDs starting with lower-case A through F, if interpreted
+case-sensitively - which it is with `collate "C"` for example (but not with `en_US` at least not
+for PG 12 or 13).
+See bug:MID-6468[] for possible problem manifestation.
+====
+
+=== Creating DB with other collation
+
+As described in the notes for https://www.postgresql.org/docs/13/sql-createdatabase.html[CREATE DATABASE]
+one may need to specify `template0` as a template for database creation with different collation.
+Adding collation support for other languages to the operating system and then adding it to PG
+is beyond this page, but is described in the https://www.postgresql.org/docs/13/collation.html[docs].
