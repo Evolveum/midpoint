@@ -25,6 +25,7 @@ import javax.annotation.PreDestroy;
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManagedConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManualConnectorInstance;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -290,6 +291,10 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
                 connectorSpec.getConnectorConfiguration().getValue() : null;
         if (connectorConfigurationVal == null) {
             SchemaException e = new SchemaException("No connector configuration in "+connectorSpec);
+            if (connector instanceof AbstractManualConnectorInstance) {
+                result.recordWarning(e);
+                return;
+            }
             result.recordFatalError(e);
             throw e;
         }
