@@ -81,7 +81,8 @@ public class FocusOperationalButtonsPanel<F extends FocusType> extends Assignmen
     }
 
     private void createPreviewButton(RepeatingView repeatingView) {
-        AjaxIconButton preview = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_PREVIEW), Model.of("Preview changes")) {
+        AjaxIconButton preview = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_PREVIEW),
+                getPageBase().createStringResource("pageAdminFocus.button.previewChanges")) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 previewPerformed(ajaxRequestTarget);
