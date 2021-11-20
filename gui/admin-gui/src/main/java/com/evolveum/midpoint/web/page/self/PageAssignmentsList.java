@@ -172,8 +172,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase {
                 if (requestButton != null) {
                     refreshRequestButton(requestButton);
                 }
+                target.add(getFeedbackPanel());
                 target.add(requestButton);
-                target.add(get(createComponentPath(ID_FORM, ID_TARGET_USER_PANEL)));
             }
         };
         mainForm.add(panel);
@@ -213,7 +213,6 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase {
 
         };
 
-        targetUserPanel.add(new VisibleBehaviour(this::isRequestButtonEnabled));
         targetUserPanel.setOutputMarkupId(true);
         mainForm.add(targetUserPanel);
 
