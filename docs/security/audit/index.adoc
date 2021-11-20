@@ -27,99 +27,83 @@ It should be eventually possible to reconstruct a partial historical state of th
 |
 | The exact moment in time that the audit record was generated
 
-
 | Event Identifier
 | `eid`
 | Unique identification of an audit event.
 It is a xref:/midpoint/architecture/concepts/lightweight-identifier/[Lightweight Identifier].
-
 
 | Event Type
 | `et`
 | Type of audit event.
 It describes what kind of operation was executed (adding an object, modification, user login, ...)
 
-
 | Event Stage
 | `es`
 | Stage of event processing: request of execution.
 See below.
-
 
 | Session Identifier
 | `sid`
 | Identifier of the interactive session in which the event have taken place.
 For security reason this is different than the content of the session cookie.
 
-
 | Task Identifier
 | `tid`
 | Unique identification of a task that this event is a part.
 It is a xref:/midpoint/architecture/concepts/lightweight-identifier/[Lightweight Identifier].
-
 
 | Task OID
 | `toid`
 | xref:/midpoint/devel/prism/concepts/object-identifier/[OID] of a task that this event is part of (if the task is persistent).
 Since 4.3 the OID of the task tree root is used, if applicable.
 
-
 | Host Identifier
 | `hid`
 | Identifier of a host that generated the audit record.
 This is the host name corresponding to a network interface that accepted the HTTP request.
 
-
 | Node Identifier
 | `nid`
 | Identifier of a node in a midPoint cluster that generated the audit record.
 
-
 | Remote Host Address
 | `raddr`
 | Network address of a remote host that originated the request causing this event.
-
 
 | Initiator
 | `I`
 | User that initiated ("caused") the event.
 It may the user that started the operation from a GUI or web service interface, the user that is owner of the task that recorded the event, etc.
 
-
 | Target
 | `T`
 | Object that is a primary target of an operation (if applicable).
 In case that operation targets more than one object, the "primary" or the most important is recorded (e.g. the user object)
 
-
 | Target Owner
 | `TO`
 | Owner of the object that is a target of this operation (if applicable).
-E.g. a owner of a task that is being stopped, owner of an account that is being modified, etc.
-
+E.g. an owner of a task that is being stopped, owner of an account that is being modified, etc.
 
 | Deltas
 | `D`
 | The changes that are being made to the targets.
 Deltas contain detailed information about the operation.
 
-
 | Channel
 | `ch`
 | The xref:/midpoint/reference/concepts/channel/[channel] that was the source of the operation that this record describes
 
-
 | Outcome
 | `o`
 | Result of the operation: success, failure, partial failure, etc.
-
 
 |===
 
 === Event Types
 
 Event type defines the kind of operation that was executed.
-Currently defined event types are defined in the table below.
+Currently defined event types are shown in the table below.
 
 [NOTE]
 Column *Event DB ID* is relevant only for the older xref:/midpoint/reference/repository/generic/[Generic Repository].
@@ -592,8 +576,8 @@ After adding of this configuration is needed restart of midpoint.
 </systemConfiguration>
 ----
 
-We can use script in expression for obtaining some special information.
-In script we can use variable '_target_' , which represent target object of audit record and '_auditRecord_' type _AuditEventRecord_, which represent audit record itself.
+We can use a script in expression for obtaining some special information.
+In the script we can use variable `target`, which represent target object of audit record, and `auditRecord`, which represent audit record itself (type `AuditEventRecord`).
 
 Next example about custom column you can see on link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/audit[https://github.com/Evolveum/midpoint-samples/tree/master/samples/audit].
 
@@ -607,7 +591,8 @@ This feature is available only in midPoint 4.2 and later.
 
 From version 4.1 Midpoint support flexible authentication, so we can configure different authentication for different channels. You can find configuration on .
 
-From version 4.2 channels for _rest _and_ actuator_ default don't create audit records about session creation or termination. You can turn on it via variable in System Configuration _audit->eventRecording->recordSessionlessAccess_.
+From version 4.2 channels for _rest_ and _actuator_ do not create audit records about session creation or termination by default.
+You can turn it on via variable in System Configuration _audit->eventRecording->recordSessionlessAccess_.
 
 == Separate repository configuration for audit
 
@@ -617,6 +602,6 @@ From version 4.2 channels for _rest _and_ actuator_ default don't create audit r
 This feature is available only in midPoint 4.2 and later.
 ====
 
-By default audit uses the same data source like the main repository.
+By default, audit uses the same data source like the main repository.
 From version 4.2 it is possible to set up audit in different database.
 For more and examples see: xref:/midpoint/reference/security/audit/configuration/[Audit configuration]

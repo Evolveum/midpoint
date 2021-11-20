@@ -2,6 +2,7 @@
 :page-since: "4.4"
 :page-upkeep-status: orange
 :page-keywords: [ 'PostgreSQL', 'repository', 'database' ]
+:page-display-order: 40
 
 MidPoint stores its data in a relational database.
 The database of choice for midPoint is PostgreSQL, leading open source relational database.

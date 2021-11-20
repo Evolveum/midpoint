@@ -8,6 +8,8 @@
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: red
+:page-display-order: 20
+:page-toc: top
 
 [TIP]
 .TL;DR

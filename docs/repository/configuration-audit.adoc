@@ -1,53 +1,34 @@
-= Repository Configuration
-:page-nav-title: Configuration
-:page-display-order: 10
+= SQL Audit Trail Configuration
+:page-nav-title: Audit Configuration
+:page-display-order: 15
+:page-since: "4.4"
 :page-toc: top
 
 [IMPORTANT]
-This page documents only the new Native repository introduced in midPoint 4.4.
-For old Generic repository configuration see xref:../generic/configuration/[this page].
+This page documents only the audit configuration for the new Native repository introduced in midPoint 4.4.
+For old Generic repository configuration see xref:../generic/configuration-audit/[this page].
 
 == Configuration overview
 
-By default, the repository configuration is stored in `config.xml` inside
+SQL auditing is configured in `config.xml` inside
 xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory],
 also known as `midpoint.home`.
 
-This directory will be created upon the very first start of midPoint.
-For historical and convenience reasons the default generated `config.xml` is preconfigured for
-the Generic repository using embedded H2 database.
+See xref:/midpoint/reference/security/audit/[Auditing] for more general information about auditing
+and some other configuration options, not specific for the SQL trail implementation.
+These options, often realized via *SystemConfiguration* object customizations, are not covered in this document.
 
-To enable new Native repository, the following steps are necessary:
+// TODO reference main configuration, explain the interaction between them, clean the options below
 
-. Prepare PostgreSQL database as described in xref:../native-postgresql/usage/[Using Native PostgreSQL Repository].
-. Change the `config.xml` to use the Native repository.
+<audit>
+<auditService>
+<auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+</auditService>
+<auditService>
+<auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
+</auditService>
+</audit>
 
-And that's it - now you can run midPoint with the Native repository!
-
-[TIP]
-See the file `doc/config/config-native.xml` provided in the distribution archive for an example of simple Native repository configuration.
-You can also see it online [here].
-If you use this example, don't forget to rename it to `config.xml` after dropping it to `midpoint.home`.
-
-But let's elaborate a bit about the `config.xml` changes:
-
-* You can start with the generated `config.xml`.
-Open it, remove the configuration for H2 and uncomment the `repository` and `audit` configuration
-prepared in the comments.
-
-* Don't forget to change the audit factory class, again, the proper value is provided in the comments.
-See xref:configuration-audit.adoc[]
-
-* Customize connection to the database using `jdbcUrl` and other basic configuration options show below.
-
-Configuring large-scale setup with multiple midPoint nodes requires more effort:
-
-* Check the xref:/midpoint/reference/deployment/clustering-ha/[Clustering / high availability setup]
-documentation for how to set up multiple midPoint nodes.
-
-* Tips about configuring the database server can be found xref:../native-postgresql/postgresql-configuration/[here].
-
-* See also advanced repository options described in the tables below.
 
 == Configuration options
 

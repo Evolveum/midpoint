@@ -8,6 +8,7 @@
 :page-alias: { "parent" : "/midpoint/guides/" }
 :page-since: "3.6"
 :page-upkeep-status: yellow
+:page-display-order: 60
 :page-toc: top
 
 == Background information
