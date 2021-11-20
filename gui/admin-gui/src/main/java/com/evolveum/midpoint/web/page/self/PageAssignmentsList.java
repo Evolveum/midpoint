@@ -14,8 +14,12 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 
 import com.evolveum.midpoint.web.application.Url;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.TextArea;
@@ -162,6 +166,15 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase {
                 return false;
             }
 
+            @Override
+            protected void reloadMainFormButtons(AjaxRequestTarget target) {
+                Component requestButton = PageAssignmentsList.this.get(createComponentPath(ID_FORM, ID_REQUEST_BUTTON));
+                if (requestButton != null) {
+                    refreshRequestButton(requestButton);
+                }
+                target.add(requestButton);
+                target.add(get(createComponentPath(ID_FORM, ID_TARGET_USER_PANEL)));
+            }
         };
         mainForm.add(panel);
 
@@ -200,6 +213,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase {
 
         };
 
+        targetUserPanel.add(new VisibleBehaviour(this::isRequestButtonEnabled));
         targetUserPanel.setOutputMarkupId(true);
         mainForm.add(targetUserPanel);
 
@@ -238,14 +252,11 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase {
         requestAssignments.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isEnabled() {
-                return (getSessionStorage().getRoleCatalog().isMultiUserRequest() ||
-                        onlyWarnings() || areConflictsResolved()) &&
-                        !conflictProblemExists &&
-                        getSessionStorage().getRoleCatalog().getAssignmentShoppingCart() != null &&
-                        getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() > 0;
+                return isRequestButtonEnabled();
             }
         });
         mainForm.add(requestAssignments);
+        refreshRequestButton(requestAssignments);
 
         AjaxSubmitButton resolveAssignments = new AjaxSubmitButton(ID_RESOLVE_CONFLICTS_BUTTON,
                 createStringResource("PageAssignmentsList.resolveConflicts")) {
@@ -270,6 +281,23 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase {
         });
         mainForm.add(resolveAssignments);
 
+    }
+
+    private void refreshRequestButton(Component requestButton) {
+        if (isRequestButtonEnabled()) {
+            requestButton.add(AttributeModifier.remove("disabled"));
+        } else {
+            warn(createStringResource("PageAssignmentsList.message.notContainsAssignments").getString());
+            requestButton.add(AttributeModifier.replace("disabled", ""));
+        }
+    }
+
+    private boolean isRequestButtonEnabled() {
+        return (getSessionStorage().getRoleCatalog().isMultiUserRequest() ||
+                onlyWarnings() || areConflictsResolved()) &&
+                !conflictProblemExists &&
+                getSessionStorage().getRoleCatalog().getAssignmentShoppingCart() != null &&
+                getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() > 0;
     }
 
     private void onSingleUserRequestPerformed(AjaxRequestTarget target) {
