@@ -1,0 +1,115 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        oid="3d288cce-898d-49b9-8987-ce9e6116bb0b">
+    <name>Worker DefaultNode:1 for root activity in task-with-errors</name>
+    <taskIdentifier>1637335063362-0-1</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+        <!-- administrator -->
+    </ownerRef>
+    <parent>1637335063207-0-1</parent>
+    <executionState>closed</executionState>
+    <schedulingState>closed</schedulingState>
+    <resultStatus>success</resultStatus>
+    <lastRunStartTimestamp>2021-11-19T16:17:43.442+01:00</lastRunStartTimestamp>
+    <lastRunFinishTimestamp>2021-11-19T16:17:44.737+01:00</lastRunFinishTimestamp>
+    <completionTimestamp>2021-11-19T16:17:44.747+01:00</completionTimestamp>
+    <progress>133</progress>
+    <binding>loose</binding>
+    <executionConstraints>
+        <group>DefaultNode</group>
+    </executionConstraints>
+    <activityState>
+        <localRoot/>
+        <taskRole>worker</taskRole>
+        <activity>
+            <realizationState>complete</realizationState>
+            <resultStatus>success</resultStatus>
+            <realizationStartTimestamp>2021-11-19T16:17:43.338+01:00</realizationStartTimestamp>
+            <realizationEndTimestamp>2021-11-19T16:17:44.707+01:00</realizationEndTimestamp>
+            <runStartTimestamp>2021-11-19T16:17:43.456+01:00</runStartTimestamp>
+            <runEndTimestamp>2021-11-19T16:17:44.707+01:00</runEndTimestamp>
+            <progress>
+                <committed id="6">
+                    <outcome>
+                        <outcome>success</outcome>
+                    </outcome>
+                    <count>33</count>
+                </committed>
+                <committed>
+                    <outcome>
+                        <outcome>failure</outcome>
+                    </outcome>
+                    <count>10</count>
+                </committed>
+            </progress>
+            <statistics>
+                <itemProcessing>
+                    <processed id="8">
+                        <outcome>
+                            <outcome>success</outcome>
+                        </outcome>
+                        <count>33</count>
+                        <duration>705.6899999999997</duration>
+                        <lastItem>
+                            <name>Internal</name>
+                            <type>c:ServiceType</type>
+                            <oid>00000000-0000-0000-0000-000000000600</oid>
+                            <startTimestamp>2021-11-19T16:17:44.625+01:00</startTimestamp>
+                            <endTimestamp>2021-11-19T16:17:44.646+01:00</endTimestamp>
+                            <operationId>35</operationId>
+                        </lastItem>
+                    </processed>
+                    <processed>
+                        <outcome>
+                            <outcome>failure</outcome>
+                        </outcome>
+                        <count>20</count>
+                        <duration>1000</duration>
+                    </processed>
+                    <run id="7">
+                        <startTimestamp>2021-11-19T16:17:43.456+01:00</startTimestamp>
+                        <endTimestamp>2021-11-19T16:17:44.707+01:00</endTimestamp>
+                    </run>
+                </itemProcessing>
+                <actionsExecuted/>
+                <bucketManagement>
+                    <operation>
+                        <name>getWorkBucket.createdNew</name>
+                        <count>2</count>
+                        <totalTime>19</totalTime>
+                        <minTime>9</minTime>
+                        <maxTime>10</maxTime>
+                    </operation>
+                    <operation>
+                        <name>completeWorkBucket</name>
+                        <count>2</count>
+                        <totalTime>18</totalTime>
+                        <minTime>9</minTime>
+                        <maxTime>9</maxTime>
+                    </operation>
+                    <operation>
+                        <name>getWorkBucket.noMoreBucketsDefinite</name>
+                        <count>1</count>
+                        <totalTime>19</totalTime>
+                        <minTime>19</minTime>
+                        <maxTime>19</maxTime>
+                    </operation>
+                </bucketManagement>
+            </statistics>
+            <bucketing>
+                <bucketsProcessingRole>worker</bucketsProcessingRole>
+                <scavenger>true</scavenger>
+            </bucketing>
+            <workState/>
+            <persistence>singleRealization</persistence>
+        </activity>
+    </activityState>
+</task>

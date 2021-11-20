@@ -95,6 +95,7 @@ public class PageTasks extends PageAdmin {
                 return UserProfileStorage.TableId.TABLE_TASKS;
             }
         };
+        tablePanel.setRootTasksOnly(true);
         add(tablePanel);
     }
 

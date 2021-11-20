@@ -88,19 +88,18 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
     /**
      * Prepares the information from a root task. The task may or may not have its children resolved.
      */
-    public static @NotNull ActivityProgressInformation fromRootTask(@NotNull TaskType task,
-            @NotNull TaskResolver resolver) {
-        return fromTask(task, ActivityPath.empty(), resolver);
+    public static @NotNull ActivityProgressInformation fromRootTask(@NotNull TaskType task, @NotNull InformationSource source) {
+        return fromRootTask(task, TaskResolver.empty(), source);
     }
 
+    /**
+     * Prepares the information from a root task. The task may or may not have its children resolved.
+     *
+     * Note: the `resolver` parameter is dubious. Consider removing it.
+     */
     public static @NotNull ActivityProgressInformation fromRootTask(@NotNull TaskType task,
-            @NotNull InformationSource source) {
-        return ActivityProgressInformationBuilder.fromTask(task, ActivityPath.empty(), TaskResolver.empty(), source);
-    }
-
-    public static @NotNull ActivityProgressInformation fromTask(@NotNull TaskType task, @NotNull ActivityPath activityPath,
-            @NotNull TaskResolver resolver) {
-        return ActivityProgressInformationBuilder.fromTask(task, activityPath, resolver, InformationSource.FULL_STATE_ONLY);
+            @NotNull TaskResolver resolver, @NotNull InformationSource source) {
+        return ActivityProgressInformationBuilder.fromTask(task, ActivityPath.empty(), resolver, source);
     }
 
     public String getActivityIdentifier() {

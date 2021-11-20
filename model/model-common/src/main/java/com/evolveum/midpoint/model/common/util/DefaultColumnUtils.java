@@ -34,6 +34,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import static com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource.*;
+
 /**
  * Column related utilities shared by reporting and GUI.
  */
@@ -258,7 +260,7 @@ public class DefaultColumnUtils {
             } else if (itemPath.equivalent(TaskType.F_PROGRESS)) {
                 // TODO revise this; re-add "stalled since" information
                 if (ActivityStateUtil.isProgressAvailableLocally(task)) {
-                    ActivityProgressInformation progress = ActivityProgressInformation.fromRootTask(task, TaskResolver.empty());
+                    ActivityProgressInformation progress = ActivityProgressInformation.fromRootTask(task, FULL_STATE_PREFERRED);
                     return progress.toHumanReadableString(false); // TODO create toLocalizedString method
                 } else {
                     return "";
