@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil.*;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -19,9 +21,10 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
 
 public class ResourceObjectSetUtil {
 
@@ -59,5 +62,24 @@ public class ResourceObjectSetUtil {
 
     public static @NotNull ResourceObjectSetType fromConfiguration(ResourceObjectSetType resourceObjects) {
          return resourceObjects != null ? resourceObjects : new ResourceObjectSetType(PrismContext.get());
+    }
+
+    public static @Nullable ResourceObjectSetType fromTask(TaskType task){
+        if (Objects.isNull(task) || Objects.isNull(task.getActivity()) || Objects.isNull(task.getActivity().getWork())) {
+            return null;
+        }
+        WorkDefinitionsType work = task.getActivity().getWork();
+        if (!Objects.isNull(work.getReconciliation()) && !Objects.isNull(work.getReconciliation().getResourceObjects())){
+            return work.getReconciliation().getResourceObjects();
+        }
+
+        if (!Objects.isNull(work.getLiveSynchronization()) && !Objects.isNull(work.getLiveSynchronization().getResourceObjects())){
+            return work.getLiveSynchronization().getResourceObjects();
+        }
+
+        if (!Objects.isNull(work.getImport()) && !Objects.isNull(work.getImport().getResourceObjects())){
+            return work.getImport().getResourceObjects();
+        }
+        return null;
     }
 }

@@ -45,6 +45,8 @@ public class DefaultColumnUtils {
     private static final Map<Class<? extends Containerable>, List<ColumnWrapper>> COLUMNS_DEF;
     private static final List<ColumnWrapper> OBJECT_COLUMNS_DEF;
 
+    private static final ItemPath TASK_ERRORS = ItemPath.create("taskErrors");
+
     static {
 
         OBJECT_COLUMNS_DEF = Collections.singletonList(new ColumnWrapper(ObjectType.F_NAME));
@@ -83,9 +85,9 @@ public class DefaultColumnUtils {
                         new ColumnWrapper(TaskType.F_OBJECT_REF),
                         new ColumnWrapper(TaskType.F_NODE_AS_OBSERVED, "pageTasks.task.executingAt"),
                         new ColumnWrapper(TaskType.F_COMPLETION_TIMESTAMP, "TaskType.currentRunTime"),
-                        new ColumnWrapper(TaskType.F_PROGRESS),
                         new ColumnWrapper(TaskType.F_SCHEDULE, "pageTasks.task.scheduledToRunAgain"),
-                        // TODO re-add total failure count
+                        new ColumnWrapper(TaskType.F_PROGRESS),
+                        new ColumnWrapper(TASK_ERRORS, "pageTasks.task.errors"),
                         new ColumnWrapper(TaskType.F_RESULT_STATUS)))
                 .put(ShadowType.class, Arrays.asList(
                         new ColumnWrapper(ShadowType.F_NAME),
@@ -265,6 +267,13 @@ public class DefaultColumnUtils {
                 } else {
                     return "";
                 }
+            } else if (itemPath.equivalent(TASK_ERRORS)) {
+                if (ActivityStateUtil.isProgressAvailableLocally(task)) {
+                    ActivityProgressInformation progress = ActivityProgressInformation.fromRootTask(task, FULL_STATE_PREFERRED);
+                    return String.valueOf(progress.getErrorsRecursive());
+                } else {
+                    return "0";
+                }
             }
         } else if (object instanceof AuditEventRecordType) {
             for (AuditEventRecordCustomColumnPropertyType customColumn : ((AuditEventRecordType)object).getCustomColumnProperty()) {
@@ -273,9 +282,6 @@ public class DefaultColumnUtils {
                 }
             }
         }
-        // TODO What about total failure count? Originally it resided in
-        //  $task/operationStat/iterativeTaskInformation/totalFailureCount but it is no longer there.
-        //  (It has no fixed item path.) See MID-7130
         return null;
     }
 
@@ -286,7 +292,8 @@ public class DefaultColumnUtils {
         if (value instanceof TaskType) {
             return itemPath.equivalent(TaskType.F_COMPLETION_TIMESTAMP)
                     || itemPath.equivalent(TaskType.F_SCHEDULE)
-                    || itemPath.equivalent(TaskType.F_PROGRESS); // TODO also total failure count
+                    || itemPath.equivalent(TaskType.F_PROGRESS)
+                    || itemPath.equivalent(TASK_ERRORS);
         } else if (value instanceof AuditEventRecordType) {
             for (AuditEventRecordCustomColumnPropertyType customColumn : ((AuditEventRecordType)value).getCustomColumnProperty()) {
                 if (customColumn.getName().equals(itemPath.toString())) {

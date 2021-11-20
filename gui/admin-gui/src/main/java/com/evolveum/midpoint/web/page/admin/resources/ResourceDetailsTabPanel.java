@@ -9,7 +9,10 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -55,6 +58,8 @@ import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceConfigurationDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
 
 public class ResourceDetailsTabPanel extends BasePanel<PrismObject<ResourceType>> {
 
@@ -418,25 +423,15 @@ public class ResourceDetailsTabPanel extends BasePanel<PrismObject<ResourceType>
             throws SchemaException {
         List<TaskType> syncTasks = new ArrayList<>();
         for (PrismObject<TaskType> task : tasks) {
-            PrismProperty<ShadowKindType> taskKind = task
-                    .findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND)); // FIXME
             ShadowKindType taskKindValue = null;
-            if (taskKind != null) {
-                taskKindValue = taskKind.getRealValue();
-            }
-
-            PrismProperty<String> taskIntent = task
-                    .findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT)); // FIXME
             String taskIntentValue = null;
-            if (taskIntent != null) {
-                taskIntentValue = taskIntent.getRealValue();
-            }
-
-            PrismProperty<QName> taskObjectClass = task.findProperty(
-                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS)); // FIXME
             QName taskObjectClassValue = null;
-            if (taskObjectClass != null) {
-                taskObjectClassValue = taskObjectClass.getRealValue();
+
+            @Nullable ResourceObjectSetType resourceSet = ResourceObjectSetUtil.fromTask(task.asObjectable());
+            if (!Objects.isNull(resourceSet)) {
+                taskKindValue = resourceSet.getKind();
+                taskIntentValue = resourceSet.getIntent();
+                taskObjectClassValue = resourceSet.getObjectclass();
             }
 
             // TODO: unify with determineObjectClass in Utils (model-impl, which

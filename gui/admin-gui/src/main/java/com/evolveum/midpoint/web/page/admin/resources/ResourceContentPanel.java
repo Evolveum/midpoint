@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -20,6 +21,7 @@ import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionVi
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
@@ -91,6 +93,8 @@ import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentTabPanel.Operation;
 import com.evolveum.midpoint.web.session.SessionStorage;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Implementation classes : ResourceContentResourcePanel,
@@ -499,58 +503,51 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     private List<TaskType> getTasksForKind(List<PrismObject<TaskType>> tasks) {
         List<TaskType> tasksForKind = new ArrayList<>();
         for (PrismObject<TaskType> task : tasks) {
-            PrismProperty<ShadowKindType> taskKind = task
-                    .findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND)); // FIXME
-            ShadowKindType taskKindValue = null;
+            ShadowKindType taskKindValue;
 
-            if (taskKind == null) {
-                PrismProperty<QName> taskObjectClass = task
-                        .findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS)); // FIXME
-
-                if (taskObjectClass == null) {
-                    LOGGER.warn("Bad task definition. Task {} doesn't contain definition either of objectClass or kind/intent", task.getOid());
-                    continue;
-                }
-
-                QName objectClass = getObjectClass();
-                if (objectClass == null) {
-                    LOGGER.trace("Trying to determine objectClass for kind: {}, intent: {}", getKind(), getIntent());
-                    RefinedObjectClassDefinition objectClassDef = null;
-                    try {
-                        objectClassDef = getDefinitionByKind();
-                    } catch (SchemaException e) {
-                        LOGGER.error("Failed to search for objectClass definition. Reason: {}", e.getMessage(), e);
-                    }
-                    if (objectClassDef == null) {
-                        LOGGER.warn("Cannot find any definition for kind: {}, intent: {}", getKind(), getIntent());
+            @Nullable ResourceObjectSetType resourceSet = ResourceObjectSetUtil.fromTask(task.asObjectable());
+            if (!java.util.Objects.isNull(resourceSet)) {
+                taskKindValue = resourceSet.getKind();
+                if (Objects.isNull(taskKindValue)) {
+                    QName taskObjectClass = resourceSet.getObjectclass();
+                    if (Objects.isNull(taskObjectClass)) {
+                        LOGGER.warn("Bad task definition. Task {} doesn't contain definition either of objectClass or kind/intent", task.getOid());
                         continue;
                     }
 
-                    objectClass = objectClassDef.getTypeName();
-                }
+                    QName objectClass = getObjectClass();
+                    if (Objects.isNull(objectClass)) {
+                        LOGGER.trace("Trying to determine objectClass for kind: {}, intent: {}", getKind(), getIntent());
+                        RefinedObjectClassDefinition objectClassDef = null;
+                        try {
+                            objectClassDef = getDefinitionByKind();
+                        } catch (SchemaException e) {
+                            LOGGER.error("Failed to search for objectClass definition. Reason: {}", e.getMessage(), e);
+                        }
+                        if (objectClassDef == null) {
+                            LOGGER.warn("Cannot find any definition for kind: {}, intent: {}", getKind(), getIntent());
+                            continue;
+                        }
 
-                if (QNameUtil.match(objectClass, taskObjectClass.getRealValue())) {
-                    tasksForKind.add(task.asObjectable());
-                }
+                        objectClass = objectClassDef.getTypeName();
+                    }
 
-                continue;
-            }
-
-            if (taskKind != null) {
-                taskKindValue = taskKind.getRealValue();
-
-                PrismProperty<String> taskIntent = task.findProperty(
-                        ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT)); // FIXME
-                String taskIntentValue = null;
-                if (taskIntent != null) {
-                    taskIntentValue = taskIntent.getRealValue();
-                }
-                if (StringUtils.isNotEmpty(getIntent())) {
-                    if (getKind() == taskKindValue && getIntent().equals(taskIntentValue)) {
+                    if (QNameUtil.match(objectClass, taskObjectClass)) {
                         tasksForKind.add(task.asObjectable());
                     }
-                } else if (getKind() == taskKindValue) {
-                    tasksForKind.add(task.asObjectable());
+
+                    continue;
+
+                }
+                else {
+                    String taskIntentValue = resourceSet.getIntent();
+                    if (StringUtils.isNotEmpty(getIntent())) {
+                        if (getKind() == taskKindValue && getIntent().equals(taskIntentValue)) {
+                            tasksForKind.add(task.asObjectable());
+                        }
+                    } else if (getKind() == taskKindValue) {
+                        tasksForKind.add(task.asObjectable());
+                    }
                 }
             }
         }
