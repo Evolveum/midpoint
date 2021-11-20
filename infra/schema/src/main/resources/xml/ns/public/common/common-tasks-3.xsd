@@ -1999,6 +1999,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:experimental>true</a:experimental>
+                        <a:displayName>ActivitiesTailoringType.insertBefore</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2009,6 +2010,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:experimental>true</a:experimental>
+                        <a:displayName>ActivitiesTailoringType.insertAfter</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2017,6 +2019,9 @@
                     <xsd:documentation>
                         TODO
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ActivitiesTailoringType.change</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
