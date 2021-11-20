@@ -121,62 +121,72 @@ Deltas contain detailed information about the operation.
 Event type defines the kind of operation that was executed.
 Currently defined event types are defined in the table below.
 
+[NOTE]
+Column *Event DB ID* is relevant only for the older xref:/midpoint/reference/repository/generic/[Generic Repository].
+The new xref:/midpoint/reference/repository/native-postgrsql/[Native PostgreSQL Repository] uses custom types displaying the name in the first column.
+
 [%autowidth]
 |===
 | Event Type | Event DB ID | Description
 
+| `GET_OBJECT`
+| 0
+| Unused
+
 | `ADD_OBJECT`
 | 1
-| Creating a new object (e.g adding a user, account, resource, ...)
-
+| Creating a new object (e.g. adding a user, account, resource, ...)
 
 | `MODIFY_OBJECT`
 | 2
 | Modification of an existing object
 
-
 | `DELETE_OBJECT`
 | 3
 | Removing an object
 
-
 | `EXECUTE_CHANGES_RAW`
 | 4
 | Executing changes directly in the repository, e.g. changes made via debug pages.
-
 
 | `SYNCHRONIZATION`
 | 5
 | Synchronizing a change notification.
 This type should only be present in `REQUEST` stage, the `EXECUTION` stage of the event will provide a more specific event type.
 
-
 | `CREATE_SESSION`
 | 6
 | Creating a new session, e.g. user login.
 
-
 | `TERMINATE_SESSION`
 | 7
 | End of a session, e.g. user logout.
-
 
 | `WORK_ITEM`
 | 8
 | Creation or completion of a work item (e.g. a request to approve particular assignment).
 See xref:/midpoint/architecture/archive/subsystems/model/workflow-3/workflow-auditing/[Workflow Auditing].
 
-
 | `WORKFLOW_PROCESS_INSTANCE`
 | 9
 | Creation or completion of a workflow process instance (may include 0, 1 or many work items).
 See xref:/midpoint/architecture/archive/subsystems/model/workflow-3/workflow-auditing/[Workflow Auditing].
 
-
 | `RECONCILIATION`
 | 10
 | Initiation or completion of reconciliation
 
+| `SUSPEND_TASK`
+| 11
+| Suspending a task
+
+| `RESUME_TASK`
+| 12
+| Resuming a task
+
+| `RUN_TASK_IMMEDIATELY`
+| 13
+| Running a task immediately (now)
 
 |===
 
@@ -189,6 +199,10 @@ This may include processing xref:/midpoint/reference/roles-policies/rbac/[RBAC],
 Therefore, the details of the operation may considerably differ at the beginning of the operation and at the end.
 Event stages are defined to denote this difference and to record events at various stages through the operation lifecycle.
 
+[NOTE]
+Column *Event DB ID* is relevant only for the older xref:/midpoint/reference/repository/generic/[Generic Repository].
+The new xref:/midpoint/reference/repository/native-postgrsql/[Native PostgreSQL Repository] uses custom types displaying the name in the first column.
+
 [%autowidth]
 |===
 | Event Stage | Stage DB ID | Description
@@ -198,12 +212,10 @@ Event stages are defined to denote this difference and to record events at vario
 | The operation is requested.
 The record shows operation details (e.g. deltas) in the form as originally intended by the user or client.
 
-
 | `EXECUTION`
 | 1
 | The operation after execution.
 The record shows operation details (e.g. deltas) in the form as it was executed.
-
 
 |===
 
@@ -211,7 +223,7 @@ Other stages may be added in the future (e.g. stage for approvals or workflow st
 
 There is usually one request and one execution record for each operation.
 E.g. the request record contains the delta that assigns role to a user.
-The execution record will also contain that delta but it may contain additional deltas, e.g. deltas for adding new accounts implied by the role.
+The execution record will also contain that delta, but it may contain additional deltas, e.g. deltas for adding new accounts implied by the role.
 In some cases there may be several execution records for a single request record.
 This happens if the execution happens in several waves.
 E.g. a role is assigned to a user.
@@ -226,15 +238,18 @@ This situation may also happen even if there are no approvals, e.g. in case of r
 The result of the executed operation.
 All the possible values are described in the following table.
 
+[NOTE]
+Column *Event DB ID* is relevant only for the older xref:/midpoint/reference/repository/generic/[Generic Repository].
+The new xref:/midpoint/reference/repository/native-postgrsql/[Native PostgreSQL Repository] uses custom types displaying the name in the first column.
+
 [%autowidth]
 |===
-| Event Outcome | Outcome DB ID | Decritption
+| Event Outcome | Outcome DB ID | Description
 
 | `SUCCESS`
 | 0
 | Used when operation and sub operations finish successfully.
 The operation is completed and the result is final.
-
 
 | `WARNING`
 | 1
@@ -242,19 +257,16 @@ The operation is completed and the result is final.
 For example operation code recovered from some error and after that operation finished successfully.
 The operation is completed and the result is final.
 
-
 | `PARTIAL_ERROR`
 | 2
 | Used when operation contains at least one operation witch status `SUCCESS`/`WARNING`
 and at least one operation with status `FATAL_ERROR`.
 The operation is completed and the result is final.
 
-
 | `FATAL_ERROR`
 | 3
 | Used when operation didn't finish correctly.
 The operation is completed and the result is final.
-
 
 | `NOT_APPLICABLE`
 | 4
@@ -264,7 +276,6 @@ This is different from `UNKNOWN`, as in this case we really know that its result
 In `UNKNOWN` case we know nothing.
 The operation is completed and the result is final.
 
-
 | `IN_PROGRESS`
 | 5
 | The operation is being executed.
@@ -272,12 +283,10 @@ This is set for operations that are executed asynchronously or take a significan
 Short synchronous operations do not need to set this status, they may go well with the default `UNKNOWN` status.
 The operation is in progress and the final result is not yet known.
 
-
 | `UNKNOWN`
 | 6
 | No information about operation is present.
 Presence of this status usually means programming bug, e.g. someone forgot to set or compute appropriate operation result.
-
 
 | `HANDLED_ERROR`
 | 7
@@ -285,7 +294,6 @@ Presence of this status usually means programming bug, e.g. someone forgot to se
 It is equivalent to success for all practical cases except for displaying the result.
 But using success status for this situation might be misleading.
 The operation is completed and the result is final.
-
 
 |===
 
