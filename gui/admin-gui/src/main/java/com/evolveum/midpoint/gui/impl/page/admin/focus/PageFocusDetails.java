@@ -8,8 +8,11 @@ package com.evolveum.midpoint.gui.impl.page.admin.focus;
 
 import java.time.Duration;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
@@ -88,9 +91,21 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
     }
 
     @Override
+    protected Collection<CompiledObjectCollectionView> findAllApplicableArchetypeViews() {
+        if (getObjectDetailsModels().isSelfProfile()) {
+            return Collections.emptyList();
+        }
+        return super.findAllApplicableArchetypeViews();
+    }
+
+    @Override
     protected FocusOperationalButtonsPanel<F> createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<F>> wrapperModel) {
         return new FocusOperationalButtonsPanel<>(id, wrapperModel, getObjectDetailsModels().getExecuteOptionsModel(), getObjectDetailsModels().isSelfProfile()) {
 
+            @Override
+            protected void refresh(AjaxRequestTarget target) {
+                PageFocusDetails.this.refresh(target);
+            }
             @Override
             protected void savePerformed(AjaxRequestTarget target) {
                 PageFocusDetails.this.savePerformed(target);

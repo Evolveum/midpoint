@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignment
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.web.component.*;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.AttributeModifier;
@@ -121,6 +122,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
             }
         };
         newObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        newObjectButton.add(new VisibleBehaviour(() -> isCreateNewObjectVisible()));
         bar.add(newObjectButton);
         return bar;
     }

@@ -14,6 +14,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -188,13 +190,38 @@ public class PrismContainerWrapperImpl<C extends Containerable>
 
     @Override
     public PrismContainerValueWrapper<C> findContainerValue(ItemPath path) {
-        if (isSingleValue()) {
-            return findValue(0L);
-        } else if (!path.startsWithId()) {
-            throw new UnsupportedOperationException("Cannot get value from multivalue container without specified container id.");
-        } else {
-            return findValue(path.firstToId());
+        try {
+            Object last = path.last();
+            if (ItemPath.isId(last)) {
+                path = path.allExceptLast();
+            }
+            PrismContainerWrapper containerWrapper = findContainer(path);
+
+            if (!(containerWrapper instanceof PrismContainerWrapperImpl)) {
+                throw new UnsupportedOperationException("Cannot find container wrapper for " + path + ". Unsupported parent found: " + containerWrapper);
+            }
+
+            PrismContainerWrapperImpl containerWrapperImpl = (PrismContainerWrapperImpl) containerWrapper;
+            if (ItemPath.isId(last)) {
+                return containerWrapperImpl.findValue((Long) last);
+            } else {
+                if (isSingleValue()) {
+                    return containerWrapperImpl.findValue(null);
+                }
+                throw new UnsupportedOperationException("Cannot get value from multivalue container without specified container id.");
+            }
+
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception while trying to find container value with path {}, parentContainer {}", e, path, this);
+            return null;
         }
+//        if (isSingleValue()) {
+//            return findValue(0L);
+//        } else if (!path.startsWithId()) {
+//            throw new UnsupportedOperationException("Cannot get value from multivalue container without specified container id.");
+//        } else {
+//            return findValue(path.firstToId());
+//        }
     }
 
     public PrismContainerDefinition<C> getItemDefinition() {

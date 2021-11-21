@@ -123,6 +123,10 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable>
         return containerValue;
     }
 
+    public ContainerPanelConfigurationType getConfig() {
+        return config;
+    }
+
     protected ItemVisibility getBasicTabVisibity(ItemWrapper<?, ?> itemWrapper) { //, ItemPath parentPath) {
         return ItemVisibility.AUTO;
     }

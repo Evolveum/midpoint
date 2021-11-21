@@ -9,12 +9,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.report;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 
-import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.report.component.ReportOperationalButtonsPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -80,7 +78,7 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
     }
 
     @Override
-    protected Class<ReportType> getType() {
+    public Class<ReportType> getType() {
         return ReportType.class;
     }
 
@@ -92,6 +90,12 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
     @Override
     protected ReportOperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<ReportType>> wrapperModel) {
         return new ReportOperationalButtonsPanel(id, wrapperModel) {
+
+            @Override
+            protected void refresh(AjaxRequestTarget target) {
+                PageReport.this.refresh(target);
+            }
+
             @Override
             protected Boolean isEditObject() {
                 return PageReport.this.isEditObject();

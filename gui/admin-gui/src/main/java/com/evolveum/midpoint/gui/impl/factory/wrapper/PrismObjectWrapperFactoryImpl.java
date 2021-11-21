@@ -126,13 +126,20 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
             DisplayType display = virtualContainer.getDisplay();
 
             //TODO: support full polystring -> translations could be defined directly there.
-            mCtd.setDisplayName(WebComponentUtil.getOrigStringFromPoly(display.getLabel()));
-            mCtd.setHelp(WebComponentUtil.getOrigStringFromPoly(display.getHelp()));
+            if (display == null || display.getLabel() == null) {
+                mCtd.setDisplayName("N/A");
+            } else {
+                mCtd.setDisplayName(WebComponentUtil.getOrigStringFromPoly(display.getLabel()));
+                mCtd.setHelp(WebComponentUtil.getOrigStringFromPoly(display.getHelp()));
+            }
+
             mCtd.setRuntimeSchema(true);
 
             MutablePrismContainerDefinition<?> def = getPrismContext().definitionFactory().createContainerDefinition(VIRTUAL_CONTAINER, mCtd);
             def.setMaxOccurs(1);
-            def.setDisplayName(WebComponentUtil.getOrigStringFromPoly(display.getLabel()));
+            if (display != null && display.getLabel() != null) {
+                def.setDisplayName(WebComponentUtil.getOrigStringFromPoly(display.getLabel()));
+            }
             def.setDynamic(true);
             def.setRuntimeSchema(true);
 

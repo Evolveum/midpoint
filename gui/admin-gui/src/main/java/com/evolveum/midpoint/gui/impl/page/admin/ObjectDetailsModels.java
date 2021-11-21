@@ -31,13 +31,9 @@ import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
 
 public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
 
@@ -74,7 +70,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
                     ctx.setReadOnly(isReadonly());
                 }
                 try {
-                    return factory.createObjectWrapper(prismObject, isEditUser(prismObject) ? ItemStatus.NOT_CHANGED : ItemStatus.ADDED, ctx);
+                    return factory.createObjectWrapper(prismObject, isEditObject(prismObject) ? ItemStatus.NOT_CHANGED : ItemStatus.ADDED, ctx);
                 } catch (SchemaException e) {
                     //TODO:
                     return null;
@@ -86,7 +82,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
         detailsPageConfigurationModel = new LoadableModel<>(false) {
             @Override
             protected GuiObjectDetailsPageType load() {
-                return loadDetailsPageConfiguration(prismObjectModel.getObject());
+                return loadDetailsPageConfiguration(prismObjectModel.getObject()).clone();
             }
         };
 
@@ -156,7 +152,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
         return summaryModel;
     }
 
-    private boolean isEditUser(PrismObject<O> prismObject) {
+    public boolean isEditObject(PrismObject<O> prismObject) {
         return prismObject.getOid() != null;
     }
 

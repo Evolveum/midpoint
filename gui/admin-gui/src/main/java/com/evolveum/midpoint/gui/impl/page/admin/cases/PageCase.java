@@ -46,7 +46,7 @@ public class PageCase extends PageAssignmentHolderDetails<CaseType, AssignmentHo
     }
 
     @Override
-    protected Class<CaseType> getType() {
+    public Class<CaseType> getType() {
         return CaseType.class;
     }
 

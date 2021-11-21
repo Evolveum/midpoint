@@ -48,7 +48,6 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
 
     public DisplayNamePanel(String id, IModel<C> model) {
         super(id, model);
-
     }
 
     @Override

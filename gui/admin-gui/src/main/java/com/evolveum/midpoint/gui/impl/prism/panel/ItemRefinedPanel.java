@@ -10,8 +10,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -37,8 +39,11 @@ public class ItemRefinedPanel<C extends ItemRefinedDefinitionType> extends BaseP
 
     private static final String ID_TABLE = "table";
 
-    public ItemRefinedPanel(String id, IModel<PrismContainerWrapper<C>> model) {
+    private ContainerPanelConfigurationType config;
+
+    public ItemRefinedPanel(String id, IModel<PrismContainerWrapper<C>> model, ContainerPanelConfigurationType config) {
         super(id, model);
+        this.config = config;
     }
 
     @Override
@@ -61,10 +66,12 @@ public class ItemRefinedPanel<C extends ItemRefinedDefinitionType> extends BaseP
                         return new DisplayNamePanel<>(displayNamePanelId, displayNameModel) {
                             @Override
                             protected IModel<String> createHeaderModel() {
-                                if (getModelObject().getRef() != null) {
-                                    return Model.of(getModelObject().getRef().toString());
-                                }
-                                return getPageBase().createStringResource("feedbackMessagePanel.message.undefined");
+                                return createDisplayNameForRefinedItem(getModelObject());
+                            }
+
+                            @Override
+                            protected IModel<String> getDescriptionLabelModel() {
+                                return new ReadOnlyModel<>(() -> getModelObject().getDescription());
                             }
                         };
                     }
@@ -78,7 +85,7 @@ public class ItemRefinedPanel<C extends ItemRefinedDefinitionType> extends BaseP
 
             @Override
             protected boolean isCreateNewObjectVisible() {
-                return true;
+                return false;
             }
 
             @Override
@@ -116,8 +123,48 @@ public class ItemRefinedPanel<C extends ItemRefinedDefinitionType> extends BaseP
             protected IColumn<PrismContainerValueWrapper<C>, String> createCheckboxColumn() {
                 return ItemRefinedPanel.this.createCheckboxColumn();
             }
+
+            @Override
+            public void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel, List<PrismContainerValueWrapper<C>> listItems) {
+                if (customEditItemPerformed(target, rowModel, listItems)) {
+                    return;
+                }
+                super.editItemPerformed(target, rowModel, listItems);
+            }
+
+            @Override
+            protected List<InlineMenuItem> createInlineMenu() {
+                return createRefinedItemInlineMenu(getDefaultMenuActions());
+            }
         };
         add(table);
+    }
+
+    private IModel<String> createDisplayNameForRefinedItem(C refinedItem) {
+        return new ReadOnlyModel<>(() -> {
+            if (refinedItem.getDisplayName() != null) {
+                return refinedItem.getDisplayName();
+            }
+
+            if (refinedItem.getRef() != null) {
+                return refinedItem.getRef().toString();
+            }
+
+            return getPageBase().createStringResource("feedbackMessagePanel.message.undefined").getString();
+        });
+
+    }
+
+    protected List<InlineMenuItem> createRefinedItemInlineMenu(List<InlineMenuItem> defaultActions) {
+        return defaultActions;
+    }
+
+    public ContainerPanelConfigurationType getConfig() {
+        return config;
+    }
+
+    protected boolean customEditItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel, List<PrismContainerValueWrapper<C>> listItmes) {
+        return false;
     }
 
     protected IColumn<PrismContainerValueWrapper<C>, String> createCheckboxColumn() {
@@ -129,7 +176,7 @@ public class ItemRefinedPanel<C extends ItemRefinedDefinitionType> extends BaseP
     }
 
     protected boolean allowLinkForFirstColumn() {
-        return false;
+        return true;
     }
 
     protected List<IColumn<PrismContainerValueWrapper<C>, String>> createAdditionalColumns() {

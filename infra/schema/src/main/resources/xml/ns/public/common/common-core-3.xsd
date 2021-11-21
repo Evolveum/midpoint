@@ -15577,6 +15577,61 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
+    <xsd:complexType name="PrismConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Prism specific configuration, mainly for performance optimizations and tunning
+            </xsd:documentation>
+            <xsd:appinfo>
+              <a:container/>
+              <a:since>4.4</a:since>
+              <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="useSerializationProxies" type="xsd:boolean" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Enables use of serialization proxies for java serialization of Prism definitions
+                        loaded from static schema.
+
+                        This should decrease memory footprint in serialized form (mainly gui ssesions).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="indexPropertyValues" type="xsd:boolean" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Enables in-memory indexing of property values.
+
+                        This speedups processing of multivalue properties with large number of values, since
+                        it uses more memory for indexing.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="propertyValuesIndexTreshold" type="xsd:int" default="50">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Treshold after which property value indexing is enabled. Small values of treshold (eg. 10 or less)
+                        does not provide any significant benefit, so it is better to enable value indexing
+                        only for larger properties.
+
+                        Default value is 50.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="InternalsConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -15760,6 +15815,17 @@
                         <a:since>4.2</a:since>
                         <a:experimental>true</a:experimental>
                         <a:displayName>InternalsConfigurationType.memoryDiagnostics</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element minOccurs="0" name="prism" type="tns:PrismConfigurationType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Configuration of Prism features.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                        <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

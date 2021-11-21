@@ -7,9 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.archetype;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusDetails;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 
@@ -57,7 +55,7 @@ public class PageArchetype extends PageFocusDetails<ArchetypeType, FocusDetailsM
     }
 
     @Override
-    protected Class<ArchetypeType> getType() {
+    public Class<ArchetypeType> getType() {
         return ArchetypeType.class;
     }
 

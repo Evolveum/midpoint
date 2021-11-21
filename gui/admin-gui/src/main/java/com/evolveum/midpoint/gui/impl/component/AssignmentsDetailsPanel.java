@@ -226,7 +226,7 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new AssignmentConstructionPanel(panelId, PrismContainerWrapperModel.fromContainerValueWrapper(getModel(), AssignmentType.F_CONSTRUCTION));
+                return new AssignmentConstructionPanel(panelId, PrismContainerWrapperModel.fromContainerValueWrapper(getModel(), AssignmentType.F_CONSTRUCTION), getConfig());
             }
         };
 //        return createTabs("AssignmentType.construction", AssignmentType.F_CONSTRUCTION, ConstructionType.COMPLEX_TYPE);

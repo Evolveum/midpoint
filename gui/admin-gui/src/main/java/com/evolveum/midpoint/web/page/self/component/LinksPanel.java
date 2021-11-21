@@ -6,12 +6,8 @@
  */
 package com.evolveum.midpoint.web.page.self.component;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.List;
+import javax.servlet.ServletContext;
 
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -21,16 +17,16 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.protocol.http.WebApplication;
 
-import javax.servlet.ServletContext;
-
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
 
 /**
  * @author Kate Honchar
  */
 public class LinksPanel extends BasePanel<List<RichHyperlinkType>> {
-
-    private static final String DOT_CLASS = LinksPanel.class.getName() + ".";
 
     private static final String ID_IMAGE = "imageId";
     private static final String ID_LINK = "link";
@@ -89,7 +85,7 @@ public class LinksPanel extends BasePanel<List<RichHyperlinkType>> {
             }
 
             WebMarkupContainer column = new WebMarkupContainer(columnView.newChildId());
-            Link<Void> linkItem = new Link<Void>(ID_LINK) {
+            Link<Void> linkItem = new Link<>(ID_LINK) {
 
                 private static final long serialVersionUID = 1L;
 
@@ -137,28 +133,20 @@ public class LinksPanel extends BasePanel<List<RichHyperlinkType>> {
                 }
             });
 
-            linkItem.add(new Label(ID_LABEL, new IModel<String>() {
-
-                @Override
-                public String getObject() {
-                    String key = link.getLabel();
-                    if (key == null) {
-                        return null;
-                    }
-                    return getString(key, null, key);
+            linkItem.add(new Label(ID_LABEL, (IModel<String>) () -> {
+                String key = link.getLabel();
+                if (key == null) {
+                    return null;
                 }
+                return getString(key, null, key);
             }));
 
-            Label description = new Label(ID_DESCRIPTION, new IModel<String>() {
-
-                @Override
-                public String getObject() {
-                    String desc = link.getDescription();
-                    if (desc == null) {
-                        return null;
-                    }
-                    return getString(desc, null, desc);
+            Label description = new Label(ID_DESCRIPTION, (IModel<String>) () -> {
+                String desc = link.getDescription();
+                if (desc == null) {
+                    return null;
                 }
+                return getString(desc, null, desc);
             });
             description.setEnabled(false);
             linkItem.add(description);
@@ -175,7 +163,7 @@ public class LinksPanel extends BasePanel<List<RichHyperlinkType>> {
             }
         }
 
-        if (row != null && columnView != null && !isRowAdded){
+        if (row != null && !isRowAdded){
             row.add(columnView);
             rowView.add(row);
         }

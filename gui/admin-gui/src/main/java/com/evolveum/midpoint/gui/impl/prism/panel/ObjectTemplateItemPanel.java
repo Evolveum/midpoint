@@ -40,7 +40,7 @@ import java.util.List;
 public class ObjectTemplateItemPanel extends ItemRefinedPanel<ObjectTemplateItemDefinitionType> {
 
     public ObjectTemplateItemPanel(String id, IModel<PrismContainerWrapper<ObjectTemplateItemDefinitionType>> model) {
-        super(id, model);
+        super(id, model, null);
     }
 
     @Override

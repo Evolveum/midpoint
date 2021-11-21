@@ -128,6 +128,7 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_RESOURCE_UNKNOWN = "fa fa-question";
     public static final String CLASS_ICON_RESOURCE_MAINTENANCE = "fa fa-wrench";
     public static final String CLASS_ICON_RESOURCE_SCHEMA = "fa fa-code";
+    public static final String CLASS_ICON_RESOURCE_SCHEMA_HANDLING_COLORED = "fa fa-exchange";
     public static final String CLASS_ICON_ASSIGNMENTS = "fa fa-bank";
     public static final String CLASS_SHADOW_ICON_REQUEST = "fa fa-pencil-square-o";
     public static final String CLASS_ICON_TACHOMETER = "fa fa-tachometer";

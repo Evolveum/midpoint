@@ -69,7 +69,7 @@ import java.util.Objects;
 
 @PanelType(name = "resourceDetails")
 @PanelInstance(identifier = "resourceDetails", applicableForType = ResourceType.class, applicableForOperation = OperationTypeType.MODIFY, defaultPanel = true,
-        display = @PanelDisplay(label = "PageResource.tab.details", order = 10))
+        display = @PanelDisplay(label = "PageResource.tab.details", icon = "fa fa-info", order = 10))
 public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceDetailsTabPanel.class);

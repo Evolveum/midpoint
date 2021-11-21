@@ -224,6 +224,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     private void prepareNewContainers(AjaxRequestTarget target, List<PrismContainerDefinition<?>> containers) {
         Task task = getPageBase().createSimpleTask("Create child containers");
         WrapperContext ctx = new WrapperContext(task, task.getResult());
+        ctx.setCreateIfEmpty(true);
         containers.forEach(container -> {
             try {
                 ItemWrapper iw = getPageBase().createItemWrapper(container, getModelObject(), ctx);

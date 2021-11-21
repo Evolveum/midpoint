@@ -188,7 +188,6 @@ public class PageTasks extends PageAdmin {
         propertiesToGet.add(TaskType.F_NODE_AS_OBSERVED);
         propertiesToGet.add(TaskType.F_NEXT_RUN_START_TIMESTAMP);
         propertiesToGet.add(TaskType.F_NEXT_RETRY_TIMESTAMP);
-        propertiesToGet.add(TaskType.F_SUBTASK_REF);
 
         GetOperationOptionsBuilder getOperationOptionsBuilder = getSchemaService().getOperationOptionsBuilder();
         getOperationOptionsBuilder = getOperationOptionsBuilder.resolveNames();

@@ -1806,10 +1806,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public <ID extends ItemDefinition, IW extends ItemWrapper> IW createItemWrapper(ID def, PrismContainerValueWrapper<?> parent, WrapperContext ctx) throws SchemaException {
 
-        PrismContainerWrapperFactory<?> factory = registry.findContainerWrapperFactory(parent.getDefinition());
+        ItemWrapperFactory<IW, ?, ?> factory = registry.findWrapperFactory(def, parent.getNewValue());
         ctx.setShowEmpty(true);
         ctx.setCreateIfEmpty(true);
-        return (IW) factory.createWrapper(parent, def, ctx);
+        return factory.createWrapper(parent, def, ctx);
     }
 
     public <I extends Item, IW extends ItemWrapper> IW createItemWrapper(I item, ItemStatus status, WrapperContext ctx) throws SchemaException {

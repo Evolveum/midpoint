@@ -13,6 +13,7 @@ import java.util.Map;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.UserOperationalButtonsPanel;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -85,7 +86,7 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
     }
 
     @Override
-    protected Class<UserType> getType() {
+    public Class<UserType> getType() {
         return UserType.class;
     }
 
@@ -125,6 +126,10 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
             private static final long serialVersionUID = 1L;
 
             @Override
+            protected void refresh(AjaxRequestTarget target) {
+                PageUser.this.refresh(target);
+            }
+            @Override
             protected void savePerformed(AjaxRequestTarget target) {
                 PageUser.this.savePerformed(target);
             }
@@ -133,6 +138,7 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
             protected void previewPerformed(AjaxRequestTarget target) {
                 PageUser.this.previewPerformed(target);
             }
+
         };
     }
 

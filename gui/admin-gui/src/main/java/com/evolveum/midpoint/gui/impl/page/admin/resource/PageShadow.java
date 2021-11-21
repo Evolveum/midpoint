@@ -56,7 +56,7 @@ public class PageShadow extends AbstractPageObjectDetails<ShadowType, ShadowDeta
     }
 
     @Override
-    protected Class<ShadowType> getType() {
+    public Class<ShadowType> getType() {
         return ShadowType.class;
     }
 

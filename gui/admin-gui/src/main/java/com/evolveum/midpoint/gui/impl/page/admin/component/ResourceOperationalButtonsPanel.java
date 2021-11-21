@@ -116,26 +116,6 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
         refreshSchema.add(AttributeAppender.append("class", "btn-default btn-sm"));
         resourceButtons.add(refreshSchema);
 
-//        AjaxIconButton configurationEdit = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_EDIT_MENU_ITEM),
-//                createStringResource("pageResource.button.configurationEdit")) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                startWizard(true, false);
-//            }
-//        };
-//        configurationEdit.showTitleAsLabel(true);
-//        configurationEdit.add(new VisibleEnableBehaviour() {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public boolean isVisible() {
-//                return canEdit(getObjectType());
-//            }
-//        });
-//        configurationEdit.add(AttributeAppender.append("class", "btn-default btn-sm"));
-//        resourceButtons.add(configurationEdit);
         AjaxIconButton wizardShow = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_WIZARD),
                 createStringResource("pageResource.button.wizardShow")) {
             private static final long serialVersionUID = 1L;

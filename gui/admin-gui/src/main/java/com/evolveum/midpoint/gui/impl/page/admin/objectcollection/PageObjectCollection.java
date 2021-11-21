@@ -58,7 +58,7 @@ public class PageObjectCollection extends PageAssignmentHolderDetails<ObjectColl
     }
 
     @Override
-    protected Class<ObjectCollectionType> getType() {
+    public Class<ObjectCollectionType> getType() {
         return ObjectCollectionType.class;
     }
 

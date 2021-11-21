@@ -127,7 +127,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         };
     }
 
-    private Collection<CompiledObjectCollectionView> findAllApplicableArchetypeViews() {
+    protected Collection<CompiledObjectCollectionView> findAllApplicableArchetypeViews() {
         return getCompiledGuiProfile().findAllApplicableArchetypeViews(getType(), OperationTypeType.ADD);
     }
 
@@ -137,23 +137,8 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         return new AssignmentHolderOperationalButtonsPanel<>(id, wrapperModel) {
 
             @Override
-            protected void addArchetypePerformed(AjaxRequestTarget target, List<AssignmentType> newAssignmentsList) {
-                OperationResult result = new OperationResult(OPERATION_EXECUTE_ARCHETYPE_CHANGES);
-                if (newAssignmentsList.size() > 1) {
-                    result.recordWarning(getString("PageAdminObjectDetails.change.archetype.more.than.one.selected"));
-                    getPageBase().showResult(result);
-                    target.add(getPageBase().getFeedbackPanel());
-                    return;
-                }
-
-                AssignmentType oldArchetypAssignment = getOldArchetypeAssignment(result);
-                if (oldArchetypAssignment == null) {
-                    getPageBase().showResult(result);
-                    target.add(getPageBase().getFeedbackPanel());
-                    return;
-                }
-
-                changeArchetype(oldArchetypAssignment, newAssignmentsList, result, target);
+            protected void refresh(AjaxRequestTarget target) {
+                PageAssignmentHolderDetails.this.refresh(target);
             }
 
             @Override
@@ -161,49 +146,6 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                 PageAssignmentHolderDetails.this.savePerformed(target);
             }
         };
-    }
-
-    private void changeArchetype(AssignmentType oldArchetypAssignment, List<AssignmentType> newAssignmentsList, OperationResult result, AjaxRequestTarget target) {
-        try {
-            ObjectDelta<AH> delta = getPrismContext().deltaFor(getModelPrismObject().getCompileTimeClass())
-                    .item(AssignmentHolderType.F_ASSIGNMENT)
-                    .delete(oldArchetypAssignment.clone())
-                    .asObjectDelta(getModelPrismObject().getOid());
-            delta.addModificationAddContainer(AssignmentHolderType.F_ASSIGNMENT, newAssignmentsList.iterator().next());
-
-            Task task = createSimpleTask(OPERATION_EXECUTE_ARCHETYPE_CHANGES);
-            getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
-
-        } catch (Exception e) {
-            LOGGER.error("Cannot find assignment wrapper: {}", e.getMessage(), e);
-            result.recordFatalError(getString("PageAdminObjectDetails.change.archetype.failed", e.getMessage()), e);
-
-        }
-        result.computeStatusIfUnknown();
-        showResult(result);
-        target.add(getFeedbackPanel());
-        PageAssignmentHolderDetails.this.refresh(target);
-    }
-
-    private AssignmentType getOldArchetypeAssignment(OperationResult result) {
-        PrismContainer<AssignmentType> assignmentContainer = getModelWrapperObject().getObjectOld().findContainer(AssignmentHolderType.F_ASSIGNMENT);
-        if (assignmentContainer == null) {
-            //should not happen either
-            result.recordWarning(getString("PageAdminObjectDetails.archetype.change.not.supported"));
-            return null;
-        }
-
-        List<AssignmentType> oldAssignments = assignmentContainer.getRealValues().stream().filter(WebComponentUtil::isArchetypeAssignment).collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(oldAssignments)) {
-            result.recordWarning(getString("PageAdminObjectDetails.archetype.change.not.supported"));
-            return null;
-        }
-
-        if (oldAssignments.size() > 1) {
-            result.recordFatalError(getString("PageAdminObjectDetails.archetype.change.no.single.archetype"));
-            return null;
-        }
-        return oldAssignments.iterator().next();
     }
 
     protected AHDM createObjectDetailsModels(PrismObject<AH> object) {

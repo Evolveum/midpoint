@@ -47,7 +47,7 @@ public class PageOrg extends PageFocusDetails<OrgType, FocusDetailsModels<OrgTyp
     }
 
     @Override
-    protected Class<OrgType> getType() {
+    public Class<OrgType> getType() {
         return OrgType.class;
     }
 

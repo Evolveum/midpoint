@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -66,6 +67,10 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType, M extends Ob
 
     public PrismObjectWrapper<O> getObjectWrapper() {
         return getObjectWrapperModel().getObject();
+    }
+
+    public PrismObject<O> getObjectWrapperObject() {
+        return getObjectWrapper().getObject();
     }
 
     protected abstract void initLayout();

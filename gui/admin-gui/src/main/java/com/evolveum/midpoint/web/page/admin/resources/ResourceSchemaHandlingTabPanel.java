@@ -125,7 +125,7 @@ public class ResourceSchemaHandlingTabPanel extends BasePanel<PrismContainerWrap
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new ResourceAttributePanel(panelId, PrismContainerWrapperModel.fromContainerValueWrapper(getModel(), ResourceObjectTypeDefinitionType.F_ATTRIBUTE));
+                        return new ResourceAttributePanel(panelId, PrismContainerWrapperModel.fromContainerValueWrapper(getModel(), ResourceObjectTypeDefinitionType.F_ATTRIBUTE), null);
                     }
                 });
                 return tabs;

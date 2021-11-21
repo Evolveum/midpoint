@@ -854,6 +854,10 @@
                                 Basic info section will contains attributes describing organizationalUnit, emailAddress
                                 or job position and additional info will contain attributes about user's nickname and so on.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecatedSince>4.4</a:deprecatedSince>
+                                <a:deprecated/>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="panel" type="tns:ContainerPanelConfigurationType" minOccurs="0" maxOccurs="unbounded">
@@ -863,8 +867,7 @@
                                     Specifies which panels will be show, in which order, ...
                                 </p>
                                 <xsd:appinfo>
-                                    <a:deprecatedSince>4.4</a:deprecatedSince>
-                                    <a:deprecated/>
+                                    <a:since>4.4</a:since>
                                 </xsd:appinfo>
                             </xsd:documentation>
                         </xsd:annotation>

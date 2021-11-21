@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.objecttemplate;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -55,7 +54,7 @@ public class PageObjectTemplate extends PageAssignmentHolderDetails<ObjectTempla
     }
 
     @Override
-    protected Class<ObjectTemplateType> getType() {
+    public Class<ObjectTemplateType> getType() {
         return ObjectTemplateType.class;
     }
 
