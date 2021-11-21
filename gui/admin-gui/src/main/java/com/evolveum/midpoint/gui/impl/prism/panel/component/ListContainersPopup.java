@@ -8,6 +8,11 @@ package com.evolveum.midpoint.gui.impl.prism.panel.component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -32,6 +37,8 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.CheckFormGroup;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author katka
@@ -59,15 +66,32 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
         initLayout();
     }
 
+    private ContainersPopupDto createContainersPopupDto(PrismContainerDefinition<C> def) {
+        return new ContainersPopupDto(false, def) {
+
+            @Override
+            public String getDisplayName() {
+                if (getModelObject().getDefinition() == null) {
+                    return super.getDisplayName();
+                }
+                QName typeName = getModelObject().getDefinition().getTypeName();
+                if (typeName == null) {
+                    return super.getDisplayName();
+                }
+                return typeName.getLocalPart() + "." + getItemName();
+            }
+        };
+    }
+
     private void initLayout() {
 
-        IModel<List<ContainersPopupDto>> popupModel = new LoadableModel<List<ContainersPopupDto>>(false) {
+        IModel<List<ContainersPopupDto>> popupModel = new LoadableModel<>(false) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             protected List<ContainersPopupDto> load() {
-                List<PrismContainerDefinition<C>> defs = null;
+                List<PrismContainerDefinition<C>> defs;
                 try {
                     defs = getModelObject().getChildContainers();
                 } catch (SchemaException e) {
@@ -75,9 +99,10 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
                     getSession().error("ListContainersPopup.children.list.failed");
                     defs = new ArrayList<>();
                 }
-                List<ContainersPopupDto> modelObject = new ArrayList<>(defs.size());
+                List<ContainersPopupDto> modelObject = defs.stream().filter(def -> def.isExperimental() ? WebModelServiceUtils.isEnableExperimentalFeature(getPageBase()) : true)
+                                .map(def -> createContainersPopupDto(def))
+                                        .collect(Collectors.toList());
 
-                defs.forEach(def -> modelObject.add(new ContainersPopupDto(false, def)));
                 return modelObject;
             }
         };
@@ -89,7 +114,7 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
             @Override
             protected void populateItem(ListItem<ContainersPopupDto> item) {
 
-                CheckFormGroup checkFormGroup = new CheckFormGroup(ID_SELECTED, new PropertyModel<Boolean>(item.getModel(), "selected"),
+                CheckFormGroup checkFormGroup = new CheckFormGroup(ID_SELECTED, new PropertyModel<>(item.getModel(), "selected"),
                         new StringResourceModel("ListContainersPopup.selected"), "col-md-2", "col-md-10") {
 
                     protected boolean getLabelVisible() {
