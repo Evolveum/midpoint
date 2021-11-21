@@ -73,11 +73,6 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
     }
 
     protected void initHeaderLabel(){
-
-//        WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
-//        labelContainer.setOutputMarkupId(true);
-//        add(labelContainer);
-
         createTitle();
         createHelpText();
         createExperimentalTooltip();
@@ -87,12 +82,8 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
         //TODO: pending operations
     }
 
-//    protected WebMarkupContainer getLabelContainer() {
-//        return (WebMarkupContainer)get(ID_LABEL_CONTAINER);
-//    }
-
     private void createTitle() {
-        Component displayName = createTitle(new PropertyModel<>(getModel(), "displayName"));//.of(getModel(), IW::getDisplayName));
+        Component displayName = createTitle(new PropertyModel<>(getModel(), "displayName"));
         displayName.add(new AttributeModifier("style", getDeprecatedCss())); //TODO create deprecated css class?
 
         add(displayName);
@@ -107,7 +98,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
         IModel<String> helpModel = new PropertyModel<>(getModel(), "help");
         help.add(AttributeModifier.replace("title",createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
         help.add(new InfoTooltipBehavior());
-        help.add(new VisibleBehaviour(() -> isHelpTextVisible()));
+        help.add(new VisibleBehaviour(this::isHelpTextVisible));
         add(help);
     }
 
@@ -137,7 +128,8 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 
     private void createDeprecated() {
         Label deprecated = new Label(ID_DEPRECATED);
-        deprecated.add(AttributeModifier.replace("deprecated", new PropertyModel<>(getModel(), "deprecatedSince")));
+        deprecated.add(AttributeModifier.replace("title",
+                createStringResource("ItemHeaderPanel.deprecated", getModelObject() != null && getModelObject().getDeprecatedSince() != null ? getModelObject().getDeprecatedSince() : "N/A")));
         deprecated.add(new InfoTooltipBehavior() {
 
             private static final long serialVersionUID = 1L;
@@ -146,8 +138,6 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
             public String getCssClass() {
                 return "fa fa-fw fa-warning text-warning";
             }
-
-
         });
         deprecated.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().isDeprecated()));
         add(deprecated);
@@ -164,7 +154,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
     }
 
     protected void initButtons() {
-        AjaxLink<Void> addButton = new AjaxLink<Void>(ID_ADD_BUTTON) {
+        AjaxLink<Void> addButton = new AjaxLink<>(ID_ADD_BUTTON) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -188,7 +178,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
         });
         add(addButton);
 
-        AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_REMOVE_BUTTON) {
+        AjaxLink<Void> removeButton = new AjaxLink<>(ID_REMOVE_BUTTON) {
             private static final long serialVersionUID = 1L;
 
             @Override
