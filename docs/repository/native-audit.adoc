@@ -1,12 +1,12 @@
-= SQL Audit Trail Configuration
-:page-nav-title: Audit Configuration
+= Native PostgreSQL Audit Trail
+:page-nav-title: SQL Audit
 :page-display-order: 15
 :page-since: "4.4"
 :page-toc: top
 
 [IMPORTANT]
-This page documents only the audit configuration for the new Native repository introduced in midPoint 4.4.
-For old Generic repository configuration see xref:../generic/configuration-audit/[this page].
+This page documents the audit trail based on the new Native PostgreSQL Repository introduced in midPoint 4.4.
+For the old Generic SQL audit trail see xref:../generic/generic-audit/[this page].
 
 == Configuration overview
 
@@ -18,17 +18,29 @@ See xref:/midpoint/reference/security/audit/[Auditing] for more general informat
 and some other configuration options, not specific for the SQL trail implementation.
 These options, often realized via *SystemConfiguration* object customizations, are not covered in this document.
 
-// TODO reference main configuration, explain the interaction between them, clean the options below
+SQL audit trail for the Native Repository is enabled in `audit` configuration element by
+adding `auditService` element containing `auditServiceFactoryClass` element with the value
+`com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory`.
 
+For example, the `audit` section may look like this (the first `auditService` is not related to the repository):
+
+[source,xml]
+----
 <audit>
-<auditService>
-<auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
-</auditService>
-<auditService>
-<auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
-</auditService>
+    <auditService>
+        <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+    </auditService>
+    <auditService>
+        <auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
+    <auditService>
 </audit>
+----
 
+Without further configuration, audit uses the same datasource as the main repository.
+The audit tables (see below) must be part of the repository database in that case.
+
+
+// TODO reference main configuration, explain the interaction between them, clean the options below
 
 == Configuration options
 

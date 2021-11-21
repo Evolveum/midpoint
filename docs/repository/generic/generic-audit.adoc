@@ -1,53 +1,43 @@
-= Repository Configuration
-:page-nav-title: Configuration
-:page-display-order: 10
+= Generic SQL Audit Trail
+:page-nav-title: SQL Audit
+:page-display-order: 15
+:page-since: "4.4"
 :page-toc: top
 
 [IMPORTANT]
-This page documents only the new Native repository introduced in midPoint 4.4.
-For old Generic repository configuration see xref:../generic/configuration/[this page].
+This page documents the audit trail based on the old Generic SQL Repository.
+For the new Native PostgreSQL audit trail see xref:/midpoint/reference/repository/native-audit/[this page].
 
 == Configuration overview
 
-By default, the repository configuration is stored in `config.xml` inside
+SQL auditing is configured in `config.xml` inside
 xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory],
 also known as `midpoint.home`.
 
-This directory will be created upon the very first start of midPoint.
-For historical and convenience reasons the default generated `config.xml` is preconfigured for
-the Generic repository using embedded H2 database.
+See xref:/midpoint/reference/security/audit/[Auditing] for more general information about auditing
+and some other configuration options, not specific for the SQL trail implementation.
+These options, often realized via *SystemConfiguration* object customizations, are not covered in this document.
 
-To enable new Native repository, the following steps are necessary:
+SQL audit trail for the old Generic Repository is enabled in `audit` configuration element by
+adding `auditService` element containing `auditServiceFactoryClass` element with the value
+`com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory`.
 
-. Prepare PostgreSQL database as described in xref:../native-postgresql/usage/[Using Native PostgreSQL Repository].
-. Change the `config.xml` to use the Native repository.
+For example, the `audit` section may look like this (the first `auditService` is not related to the repository):
 
-And that's it - now you can run midPoint with the Native repository!
+[source,xml]
+----
+<audit>
+    <auditService>
+        <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+    </auditService>
+    <auditService>
+        <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
+    <auditService>
+</audit>
+----
 
-[TIP]
-See the file `doc/config/config-native.xml` provided in the distribution archive for an example of simple Native repository configuration.
-You can also see it online [here].
-If you use this example, don't forget to rename it to `config.xml` after dropping it to `midpoint.home`.
-
-But let's elaborate a bit about the `config.xml` changes:
-
-* You can start with the generated `config.xml`.
-Open it, remove the configuration for H2 and uncomment the `repository` and `audit` configuration
-prepared in the comments.
-
-* Don't forget to change the audit factory class, again, the proper value is provided in the comments.
-See xref:native-audit.adoc[]
-
-* Customize connection to the database using `jdbcUrl` and other basic configuration options show below.
-
-Configuring large-scale setup with multiple midPoint nodes requires more effort:
-
-* Check the xref:/midpoint/reference/deployment/clustering-ha/[Clustering / high availability setup]
-documentation for how to set up multiple midPoint nodes.
-
-* Tips about configuring the database server can be found xref:../native-postgresql/postgresql-configuration/[here].
-
-* See also advanced repository options described in the tables below.
+Without further configuration, audit uses the same datasource as the main repository.
+The audit tables (see below) must be part of the repository database - which is the default.
 
 == Configuration options
 
@@ -218,53 +208,88 @@ is too high compared to the time used for processing the page results.
 There are no options for compression as this is left to PostgreSQL.
 This also makes the inspection of the values in the columns easier.
 
-== Index tuning
+== Audit tables
 
-[NOTE]
-This section is not updated and cleaned-up for the new repository.
-It will probably be part of xref:../native-postgresql/db-maintenance/[DB maintenance] page later.
+Audit logs are stored in five tables whose structure is described in code block below (part of DB script for H2 database).
+You can find table structures for different DB vendors in out link:https://github.com/Evolveum/midpoint/tree/master/config/sql/midpoint/3.1[git], or in distribution packages in folder `config/sql/midpoint/<version>`.
 
-Anything that is externalized into columns and related tables (like extensions, references, etc.) is effectively searchable using xref:../concepts/query/query-api/[].
-It is not possible to search for information stored only in the serialized form of the object.
-But _searchable_ and _efficiently searchable_ are two different things.
+* `id` column in `m_audit_event` table is now generated by default (auto increment).
 
-For some tables (object types) and some columns no indexes are needed, but for others they typically are.
-MidPoint is provided with all essential indexes out of the box.
-Despite that it is possible to come up with real-life queries that will perform badly.
-While it is possible to cover nearly all needs by more and more indexes, it is not necessarily
-a good idea to have them all created by default.
-Indexes also take space and if not necessary only add cost to insert/update operation without really helping.
+* Columns `delta` and `fullResult` in `m_audit_delta` table are optionally compressed using GZIP.
 
-For any non-trivial installation it is recommended to check the database performance logs/statistics regularly to identify sluggish queries.
-When identified check existing (predefined) indexes whether they should have covered the case and investigate why they didn't.
-If the existing index does not cover the case, don't be afraid to add the index according to your specific needs.
-
-Following notes and tips can be helpful:
-
-* Don't index each column separately if the critical query uses multiple where conditions,
-use https://use-the-index-luke.com/sql/where-clause/the-equals-operator/concatenated-keys[multi-column index] instead.
-Order of columns is important.
-* Searching using `like` (especially with `%` at the start of the value) or case-insensitive
-search often require specific indexes.
-Consult your database resources; some databases don't offer function-based index and indexing the column using lower/upper (depending on the used query) may not be possible.
-Some databases offer specialized indexes, e.g. PostgreSQL trigram indexes that can significantly boost performance.
-* In general, don't index columns with low-cardinality (e.g. boolean or integer representing enum
-with just a few distinct values) alone.
-Leave the column unindexed and let other indexes do the job first.
-Searching only by such a column is not recommended.
-It is however possible to use low-cardinality column in multi-column index, and it may be beneficial
-when it is the first column (of course, only selects using the column in `WHERE` use such an index).
-* It is possible to use `where` clause in an index when only specific values are selected often
-, e.g. value indicating active user.
-This is called https://use-the-index-luke.com/sql/where-clause/partial-and-filtered-indexes[partial index].
-This is typical for low variability columns (booleans, enums), using them in where part of the
-index is good, and it also makes the index size smaller.
+.Audit tables in H2 database
+[source,sql]
+----
+CREATE TABLE m_audit_delta (
+  checksum          VARCHAR(32) NOT NULL,
+  record_id         BIGINT      NOT NULL,
+  delta             BLOB,
+  deltaOid          VARCHAR(36),
+  deltaType         INTEGER,
+  fullResult        BLOB,
+  objectName_norm   VARCHAR(255),
+  objectName_orig   VARCHAR(255),
+  resourceName_norm VARCHAR(255),
+  resourceName_orig VARCHAR(255),
+  resourceOid       VARCHAR(36),
+  status            INTEGER,
+  PRIMARY KEY (record_id, checksum)
+);
+CREATE TABLE m_audit_event (
+  id                BIGINT GENERATED BY DEFAULT AS IDENTITY,
+  attorneyName      VARCHAR(255),
+  attorneyOid       VARCHAR(36),
+  channel           VARCHAR(255),
+  eventIdentifier   VARCHAR(255),
+  eventStage        INTEGER,
+  eventType         INTEGER,
+  hostIdentifier    VARCHAR(255),
+  initiatorName     VARCHAR(255),
+  initiatorOid      VARCHAR(36),
+  initiatorType     INTEGER,
+  message           VARCHAR(1024),
+  nodeIdentifier    VARCHAR(255),
+  outcome           INTEGER,
+  parameter         VARCHAR(255),
+  remoteHostAddress VARCHAR(255),
+  result            VARCHAR(255),
+  sessionIdentifier VARCHAR(255),
+  targetName        VARCHAR(255),
+  targetOid         VARCHAR(36),
+  targetOwnerName   VARCHAR(255),
+  targetOwnerOid    VARCHAR(36),
+  targetOwnerType   INTEGER,
+  targetType        INTEGER,
+  taskIdentifier    VARCHAR(255),
+  taskOID           VARCHAR(255),
+  timestampValue    TIMESTAMP,
+  PRIMARY KEY (id)
+);
+CREATE TABLE m_audit_item (
+  changedItemPath VARCHAR(255) NOT NULL,
+  record_id       BIGINT       NOT NULL,
+  PRIMARY KEY (record_id, changedItemPath)
+);
+CREATE TABLE m_audit_prop_value (
+  id        BIGINT GENERATED BY DEFAULT AS IDENTITY,
+  name      VARCHAR(255),
+  record_id BIGINT,
+  value     VARCHAR(1024),
+  PRIMARY KEY (id)
+);
+CREATE TABLE m_audit_ref_value (
+  id              BIGINT GENERATED BY DEFAULT AS IDENTITY,
+  name            VARCHAR(255),
+  oid             VARCHAR(36),
+  record_id       BIGINT,
+  targetName_norm VARCHAR(255),
+  targetName_orig VARCHAR(255),
+  type            VARCHAR(255),
+  PRIMARY KEY (id)
+);
+----
 
 == See Also
 
+* xref:../generic/[Generic SQL Repository]
 * xref:../native-postgresql/[Native PostgreSQL Repository]
-* xref:../generic/[Old Generic Repository]
-* xref:/midpoint/reference/deployment/clustering-ha/[Clustering / high availability setup]
-* xref:/midpoint/reference/repository/native-postgresql/migration/[Migration to Native PostgreSQL Repository]
-// TODO separate audit repository link
-* xref:/midpoint/reference/tasks/task-manager/configuration/[Task Manager Configuration]
