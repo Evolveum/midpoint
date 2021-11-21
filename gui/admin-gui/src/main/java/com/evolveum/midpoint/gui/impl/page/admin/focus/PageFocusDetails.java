@@ -92,6 +92,10 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
         return new FocusOperationalButtonsPanel<>(id, wrapperModel, getObjectDetailsModels().getExecuteOptionsModel(), getObjectDetailsModels().isSelfProfile()) {
 
             @Override
+            protected void refresh(AjaxRequestTarget target) {
+                PageFocusDetails.this.refresh(target);
+            }
+            @Override
             protected void savePerformed(AjaxRequestTarget target) {
                 PageFocusDetails.this.savePerformed(target);
             }

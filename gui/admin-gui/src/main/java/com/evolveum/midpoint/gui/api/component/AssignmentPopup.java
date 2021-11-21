@@ -206,7 +206,7 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
         TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TABS_PANEL, getPageBase(), tabs, null);
         tabPanel.setOutputMarkupId(true);
         tabPanel.setOutputMarkupPlaceholderTag(true);
-        tabPanel.add(new VisibleBehaviour(() -> !getModelObject().isSelectionVisible()));
+        tabPanel.add(new VisibleBehaviour(() -> getModelObject() != null && !getModelObject().isSelectionVisible()));
         form.addOrReplace(tabPanel);
     }
 

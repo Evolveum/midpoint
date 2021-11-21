@@ -24,6 +24,8 @@ import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.Cache;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -117,6 +119,10 @@ public class ArchetypeManager implements Cache {
     }
 
     public <O extends AssignmentHolderType> List<ObjectReferenceType> determineArchetypeRefs(PrismObject<O> assignmentHolder) throws SchemaException {
+        return determineArchetypeRefs(assignmentHolder, null);
+    }
+
+    public <O extends AssignmentHolderType> List<ObjectReferenceType> determineArchetypeRefs(PrismObject<O> assignmentHolder, ObjectDelta<O> delta) throws SchemaException {
         if (assignmentHolder == null) {
             return null;
         }
@@ -129,13 +135,35 @@ public class ArchetypeManager implements Cache {
         List<ObjectReferenceType> archetypeRefs = new ArrayList<>(assignmentHolder.asObjectable().getArchetypeRef());
 
         for (ObjectReferenceType archetypeAssignmentRef : archetypeAssignmentsRefs) {
-            if (archetypeRefs.contains(archetypeAssignmentRef)
-                    || archetypeRefs.stream().anyMatch(archetypeRef -> archetypeRef.getOid().equals(archetypeAssignmentRef.getOid()))) {
+            if (isNotApplicableArchetypeRef(archetypeAssignmentRef, archetypeRefs, delta)) {
                 continue;
             }
             archetypeRefs.add(archetypeAssignmentRef);
         }
         return archetypeRefs;
+    }
+
+    private <O extends AssignmentHolderType> boolean isNotApplicableArchetypeRef(ObjectReferenceType archetypeAssignmentRef, List<ObjectReferenceType> archetypeRefs, ObjectDelta<O> delta) {
+        if (archetypeRefs.contains(archetypeAssignmentRef)) {
+            return true;
+        }
+        if (archetypeRefs.stream().anyMatch(archetypeRef -> archetypeRef.getOid().equals(archetypeAssignmentRef.getOid()))) {
+            return true;
+        }
+
+        if (delta != null) {
+            ContainerDelta<AssignmentType> assignmentTypeContainerDelta = delta.findContainerDelta(AssignmentHolderType.F_ASSIGNMENT);
+            Collection<AssignmentType> assignmentsToDelete = (Collection<AssignmentType>) assignmentTypeContainerDelta.getRealValuesToDelete();
+            for (AssignmentType assignmentToDelete : assignmentsToDelete) {
+                if (assignmentToDelete.getTargetRef() == null || !QNameUtil.match(assignmentToDelete.getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE)) {
+                    continue;
+                }
+                if (archetypeRefs.stream().anyMatch(archetypeRef -> archetypeRef.getOid().equals(assignmentToDelete.getTargetRef().getOid()))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private <O extends AssignmentHolderType> List<ObjectReferenceType> determineArchetypesFromAssignments(O assignmentHolder) {
@@ -150,8 +178,12 @@ public class ArchetypeManager implements Cache {
     }
 
     public <O extends AssignmentHolderType> List<PrismObject<ArchetypeType>> determineArchetypes(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException {
+        return determineArchetypes(assignmentHolder, null, result);
+    }
+
+    public <AH extends AssignmentHolderType> List<PrismObject<ArchetypeType>> determineArchetypes(PrismObject<AH> assignmentHolder, ObjectDelta<AH> delta, OperationResult result) throws SchemaException {
         List<PrismObject<ArchetypeType>> archetypes = new ArrayList<>();
-        List<ObjectReferenceType> archetypeRefs = determineArchetypeRefs(assignmentHolder);
+        List<ObjectReferenceType> archetypeRefs = determineArchetypeRefs(assignmentHolder, delta);
         if (archetypeRefs == null) {
             return null;
         }
@@ -173,19 +205,32 @@ public class ArchetypeManager implements Cache {
 
     public <O extends ObjectType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> object, OperationResult result)
             throws SchemaException, ConfigurationException {
-        if (object == null) {
+        return determineArchetypePolicy(object, null, result);
+    }
+
+    public <O extends ObjectType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> object, ObjectDelta<O> delta, OperationResult result)
+            throws SchemaException, ConfigurationException {
+        if (object == null || object.getCompileTimeClass() == null) {
             return null;
         }
 
-        ArchetypePolicyType archetypePolicy = computeArchetypePolicy(object, result);
+        if (!AssignmentHolderType.class.isAssignableFrom(object.getCompileTimeClass())) {
+            return null;
+        }
+
+        ArchetypePolicyType archetypePolicy = computeArchetypePolicy((PrismObject) object,(ObjectDelta<? extends AssignmentHolderType>) delta, result);
         // Try to find appropriate system configuration section for this object.
         ObjectPolicyConfigurationType objectPolicy = determineObjectPolicyConfiguration(object, result);
 
         return merge(archetypePolicy, objectPolicy);
     }
 
-    private <O extends ObjectType> ArchetypePolicyType computeArchetypePolicy(PrismObject<O> object, OperationResult result) throws SchemaException {
-        @SuppressWarnings("unchecked") List<PrismObject<ArchetypeType>> archetypes = determineArchetypes((PrismObject<? extends AssignmentHolderType>) object, result);
+//    private <O extends ObjectType> ArchetypePolicyType computeArchetypePolicy(PrismObject<O> object, OperationResult result) throws SchemaException {
+//        return computeArchetypePolicy(object, null, result);
+//    }
+
+    private <O extends AssignmentHolderType> ArchetypePolicyType computeArchetypePolicy(PrismObject<O> object, ObjectDelta<O> delta, OperationResult result) throws SchemaException {
+        List<PrismObject<ArchetypeType>> archetypes = determineArchetypes(object, delta, result);
         if (archetypes == null) {
             return null;
         }

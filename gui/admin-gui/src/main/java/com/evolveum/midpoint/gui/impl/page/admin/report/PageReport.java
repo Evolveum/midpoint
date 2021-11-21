@@ -90,6 +90,12 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
     @Override
     protected ReportOperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<ReportType>> wrapperModel) {
         return new ReportOperationalButtonsPanel(id, wrapperModel) {
+
+            @Override
+            protected void refresh(AjaxRequestTarget target) {
+                PageReport.this.refresh(target);
+            }
+
             @Override
             protected Boolean isEditObject() {
                 return PageReport.this.isEditObject();

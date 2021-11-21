@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.AssignmentPopup;
+import com.evolveum.midpoint.gui.api.component.AssignmentPopupDto;
 import com.evolveum.midpoint.gui.api.component.FocusTypeAssignmentPopupTabPanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -16,16 +17,22 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -61,6 +68,7 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
 
     private static final String DOT_CLASS = AssignmentHolderOperationalButtonsPanel.class.getName() + ".";
     protected static final String OPERATION_LOAD_FILTERED_ARCHETYPES = DOT_CLASS + "loadFilteredArchetypes";
+    protected static final String OPERATION_EXECUTE_ARCHETYPE_CHANGES = DOT_CLASS + "executeArchetypeChanges";
 
     public AssignmentHolderOperationalButtonsPanel(String id, LoadableModel<PrismObjectWrapper<AH>> model) {
         super(id, model);
@@ -93,7 +101,7 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
 
     private void changeArchetypeButtonClicked(AjaxRequestTarget target) {
 
-        AssignmentPopup changeArchetypePopup = new AssignmentPopup(getPageBase().getMainPopupBodyId(), null) {
+        AssignmentPopup changeArchetypePopup = new AssignmentPopup(getPageBase().getMainPopupBodyId(), Model.of(new AssignmentPopupDto(null))) {
 
             private static final long serialVersionUID = 1L;
 
@@ -185,8 +193,71 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
 
     //TODO make abstract
     protected void addArchetypePerformed(AjaxRequestTarget target, List<AssignmentType> newAssignmentsList) {
+        OperationResult result = new OperationResult(OPERATION_EXECUTE_ARCHETYPE_CHANGES);
+        if (newAssignmentsList.size() > 1) {
+            result.recordWarning(getString("PageAdminObjectDetails.change.archetype.more.than.one.selected"));
+            getPageBase().showResult(result);
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        AssignmentType oldArchetypAssignment = getOldArchetypeAssignment(result);
+        if (oldArchetypAssignment == null) {
+            getPageBase().showResult(result);
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        changeArchetype(oldArchetypAssignment, newAssignmentsList, result, target);
+    }
+
+    private void changeArchetype(AssignmentType oldArchetypAssignment, List<AssignmentType> newAssignmentsList, OperationResult result, AjaxRequestTarget target) {
+        try {
+            ObjectDelta<AH> delta = getPrismContext().deltaFor(getPrismObject().getCompileTimeClass())
+                    .item(AssignmentHolderType.F_ASSIGNMENT)
+                    .delete(oldArchetypAssignment.clone())
+                    .asObjectDelta(getPrismObject().getOid());
+            delta.addModificationAddContainer(AssignmentHolderType.F_ASSIGNMENT, newAssignmentsList.iterator().next());
+
+            Task task = getPageBase().createSimpleTask(OPERATION_EXECUTE_ARCHETYPE_CHANGES);
+            getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
+
+        } catch (Exception e) {
+            LOGGER.error("Cannot find assignment wrapper: {}", e.getMessage(), e);
+            result.recordFatalError(getString("PageAdminObjectDetails.change.archetype.failed", e.getMessage()), e);
+
+        }
+        result.computeStatusIfUnknown();
+        getPageBase().showResult(result);
+        target.add(getPageBase().getFeedbackPanel());
+        refresh(target);
+    }
+
+    protected void refresh(AjaxRequestTarget target) {
 
     }
+
+    private AssignmentType getOldArchetypeAssignment(OperationResult result) {
+        PrismContainer<AssignmentType> assignmentContainer = getModelObject().getObjectOld().findContainer(AssignmentHolderType.F_ASSIGNMENT);
+        if (assignmentContainer == null) {
+            //should not happen either
+            result.recordWarning(getString("PageAdminObjectDetails.archetype.change.not.supported"));
+            return null;
+        }
+
+        List<AssignmentType> oldAssignments = assignmentContainer.getRealValues().stream().filter(WebComponentUtil::isArchetypeAssignment).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(oldAssignments)) {
+            result.recordWarning(getString("PageAdminObjectDetails.archetype.change.not.supported"));
+            return null;
+        }
+
+        if (oldAssignments.size() > 1) {
+            result.recordFatalError(getString("PageAdminObjectDetails.archetype.change.no.single.archetype"));
+            return null;
+        }
+        return oldAssignments.iterator().next();
+    }
+
 
     private ObjectReferenceType getObjectArchetypeRef() {
         PrismObjectWrapper<AH> objectWrapper = getModelObject();

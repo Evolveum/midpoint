@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -97,7 +99,8 @@ public class ContextLoader implements ProjectorProcessor {
             return null;
         }
         PrismObject<F> object = context.getFocusContext().getObjectAny();
-        return archetypeManager.determineArchetypePolicy(object, result);
+        ObjectDelta<F> delta = context.getFocusContext().getPrimaryDelta();
+        return archetypeManager.determineArchetypePolicy(object, delta, result);
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
