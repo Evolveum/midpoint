@@ -6,32 +6,9 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
+import java.util.*;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -46,55 +23,71 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.ObjectLinkColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentTabPanel.Operation;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
-
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Implementation classes : ResourceContentResourcePanel,
@@ -133,7 +126,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
     IModel<PrismObject<ResourceType>> resourceModel;
 
-    private ContainerPanelConfigurationType config;
+    private final ContainerPanelConfigurationType config;
 
     public ResourceContentPanel(String id, IModel<PrismObject<ResourceType>> resourceModel, QName objectClass,
             ShadowKindType kind, String intent, String searchMode, ContainerPanelConfigurationType config) {
@@ -238,8 +231,8 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         initShadowStatistics(totals);
 
         MainObjectListPanel<ShadowType> shadowListPanel =
-                new MainObjectListPanel<ShadowType>(ID_TABLE,
-                ShadowType.class, createSearchOptions(), getPanelConfiguration()) {
+                new MainObjectListPanel<>(ID_TABLE,
+                        ShadowType.class, createSearchOptions(), getPanelConfiguration()) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -362,7 +355,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         List<TaskType> filteredByKindIntentTasks = getTasksForKind(tasksList);
-                        redirectToTasksListPage(createInTaskOidQuery(filteredByKindIntentTasks), archetypeOid, target);
+                        redirectToTasksListPage(createInTaskOidQuery(filteredByKindIntentTasks), archetypeOid);
                     }
                 };
             }
@@ -379,7 +372,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        newTaskPerformed(archetypeOid, target);
+                        newTaskPerformed(archetypeOid);
                     }
                 };
             }
@@ -387,7 +380,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         items.add(item);
 
         DropdownButtonPanel button = new DropdownButtonPanel(id,
-                new DropdownButtonDto(String.valueOf(tasksList != null ? tasksList.size() : 0), icon, label, items)) {
+                new DropdownButtonDto(String.valueOf(tasksList.size()), icon, label, items)) {
             @Override
             protected String getSpecialDropdownMenuClass() {
                 return "pull-left";
@@ -397,7 +390,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
     }
 
-    private void newTaskPerformed(String archetypeOid, AjaxRequestTarget target) {
+    private void newTaskPerformed(String archetypeOid) {
         TaskType taskType = new TaskType(getPageBase().getPrismContext());
 
         if (SystemObjectsType.ARCHETYPE_IMPORT_TASK.value().equals(archetypeOid)) {
@@ -472,7 +465,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                 .build();
     }
 
-    private void redirectToTasksListPage(ObjectQuery tasksQuery, String archetypeOid, AjaxRequestTarget target) {
+    private void redirectToTasksListPage(ObjectQuery tasksQuery, String archetypeOid) {
         String taskCollectionViewName = getTaskCollectionViewNameByArchetypeOid(archetypeOid);
         PageParameters pageParameters = new PageParameters();
         if (StringUtils.isNotEmpty(taskCollectionViewName)) {
@@ -535,8 +528,6 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                     if (QNameUtil.match(objectClass, taskObjectClass)) {
                         tasksForKind.add(task.asObjectable());
                     }
-
-                    continue;
 
                 }
                 else {
@@ -613,7 +604,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
         List<IColumn<SelectableBean<ShadowType>, String>> columns = new ArrayList<>();
 
-        IColumn<SelectableBean<ShadowType>, String> identifiersColumn = new AbstractColumn<SelectableBean<ShadowType>, String>(
+        IColumn<SelectableBean<ShadowType>, String> identifiersColumn = new AbstractColumn<>(
                 createStringResource("pageContentAccounts.identifiers")) {
             private static final long serialVersionUID = 1L;
 
@@ -640,20 +631,19 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
         columns.addAll(ColumnUtils.createColumns(columnDefs));
 
-        ObjectLinkColumn<SelectableBean<ShadowType>> ownerColumn = new ObjectLinkColumn<SelectableBean<ShadowType>>(
+        ObjectLinkColumn<SelectableBean<ShadowType>> ownerColumn = new ObjectLinkColumn<>(
                 createStringResource("pageContentAccounts.owner")) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected IModel<FocusType> createLinkModel(final IModel<SelectableBean<ShadowType>> rowModel) {
 
-                return new IModel<FocusType>() {
+                return new IModel<>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public FocusType getObject() {
-                        FocusType owner = loadShadowOwner(rowModel);
-                        return owner;
+                        return loadShadowOwner(rowModel);
                     }
 
                 };
@@ -662,12 +652,12 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ShadowType>> rowModel,
                     ObjectType targetObjectType) {
-                ownerDetailsPerformed(target, (FocusType) targetObjectType);
+                ownerDetailsPerformed((FocusType) targetObjectType);
             }
         };
         columns.add(ownerColumn);
 
-        columns.add(new AbstractColumn<SelectableBean<ShadowType>, String>(
+        columns.add(new AbstractColumn<>(
                 createStringResource("PageAccounts.accounts.pendingOperations")) {
 
             private static final long serialVersionUID = 1L;
@@ -682,7 +672,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         return columns;
     }
 
-    private void ownerDetailsPerformed(AjaxRequestTarget target, FocusType owner) {
+    private void ownerDetailsPerformed(FocusType owner) {
         if (owner == null) {
             return;
         }
@@ -710,9 +700,6 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         }
 
         WebComponentUtil.dispatchToObjectDetailsPage(ShadowType.class, accountOid, this, false);
-//        PageParameters parameters = new PageParameters();
-//        parameters.add(OnePageParameterEncoder.PARAMETER, accountOid);
-//        getPageBase().navigateToNext(PageAccount.class, parameters);
     }
 
     private <F extends FocusType> F loadShadowOwner(String shadowOid) {
@@ -745,7 +732,6 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         return null;
     }
 
-    @SuppressWarnings("serial")
     private List<InlineMenuItem> createRowMenuItems() {
         List<InlineMenuItem> items = new ArrayList<>();
 
@@ -812,8 +798,6 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
             }
         });
 
-//        items.add(new InlineMenuItem());
-
         items.add(new ButtonInlineMenuItem(createStringResource("pageContentAccounts.menu.importAccount"), true) {
             private static final long serialVersionUID = 1L;
 
@@ -874,7 +858,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
                         final SelectableBeanImpl<ShadowType> shadow = getRowModel().getObject();
-                        ObjectBrowserPanel<FocusType> browser = new ObjectBrowserPanel<FocusType>(
+                        ObjectBrowserPanel<FocusType> browser = new ObjectBrowserPanel<>(
                                 getPageBase().getMainPopupBodyId(), UserType.class,
                                 WebComponentUtil.createFocusTypeList(), false, getPageBase()) {
 
@@ -975,10 +959,8 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                         shadow.getOid());
                 getPageBase().getModelService().executeChanges(
                         MiscUtil.createCollection(deleteDelta), opts, task, result);
-            } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-                    | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                    | PolicyViolationException | SecurityViolationException e) {
-                result.recordPartialError("Could not delete object " + shadow, e);
+            } catch (Throwable e) {
+                result.recordPartialError("Could not delete " + shadow + ", reason: " + e.getMessage(), e);
                 LOGGER.error("Could not delete {}, using option {}", shadow, opts, e);
             }
         }
@@ -992,19 +974,15 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
     private IModel<String> createDeleteConfirmString(final ShadowType selected, final String oneDeleteKey,
             final String moreDeleteKey) {
-        return new IModel<String>() {
-
-            @Override
-            public String getObject() {
-                List<ShadowType> selectedShadow = getSelectedShadowsList(selected);
-                if (selectedShadow.size() == 1) {
-                    ShadowType first = selectedShadow.get(0);
-                    String name = WebComponentUtil.getName(first);
-                    return getPageBase().createStringResource(oneDeleteKey, name).getString();
-                }
-                return getPageBase().createStringResource(moreDeleteKey, selectedShadow.size())
-                        .getString();
+        return () -> {
+            List<ShadowType> selectedShadow = getSelectedShadowsList(selected);
+            if (selectedShadow.size() == 1) {
+                ShadowType first = selectedShadow.get(0);
+                String name = WebComponentUtil.getName(first);
+                return getPageBase().createStringResource(oneDeleteKey, name).getString();
             }
+            return getPageBase().createStringResource(moreDeleteKey, selectedShadow.size())
+                    .getString();
         };
     }
 
@@ -1141,10 +1119,8 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         deltas.add(objectDelta);
         try {
-            if (!deltas.isEmpty()) {
-                getPageBase().getModelService().executeChanges(deltas, null, task, result);
+            getPageBase().getModelService().executeChanges(deltas, null, task, result);
 
-            }
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
                 | ExpressionEvaluationException | CommunicationException | ConfigurationException
                 | PolicyViolationException | SecurityViolationException e) {
