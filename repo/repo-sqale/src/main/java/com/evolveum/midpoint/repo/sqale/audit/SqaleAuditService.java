@@ -251,7 +251,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                 try {
                     executionResult.cleanupResult();
                 } catch (Exception e) {
-                    logger.warn("Execution result cleanup exception (reported, but ignored otherwise).", e);
+                    logger.warn("Execution result cleanup exception (reported, but ignored otherwise): {}", e.toString());
                 }
                 break;
             default:
