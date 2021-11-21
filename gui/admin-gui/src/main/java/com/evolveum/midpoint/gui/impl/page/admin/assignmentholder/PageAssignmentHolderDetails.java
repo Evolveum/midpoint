@@ -127,7 +127,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         };
     }
 
-    private Collection<CompiledObjectCollectionView> findAllApplicableArchetypeViews() {
+    protected Collection<CompiledObjectCollectionView> findAllApplicableArchetypeViews() {
         return getCompiledGuiProfile().findAllApplicableArchetypeViews(getType(), OperationTypeType.ADD);
     }
 

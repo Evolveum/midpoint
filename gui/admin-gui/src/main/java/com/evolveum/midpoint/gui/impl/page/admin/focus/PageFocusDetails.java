@@ -8,8 +8,11 @@ package com.evolveum.midpoint.gui.impl.page.admin.focus;
 
 import java.time.Duration;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
@@ -85,6 +88,14 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
 
     public void setSaveOnConfigure(boolean saveOnConfigure) {
         this.saveOnConfigure = saveOnConfigure;
+    }
+
+    @Override
+    protected Collection<CompiledObjectCollectionView> findAllApplicableArchetypeViews() {
+        if (getObjectDetailsModels().isSelfProfile()) {
+            return Collections.emptyList();
+        }
+        return super.findAllApplicableArchetypeViews();
     }
 
     @Override
