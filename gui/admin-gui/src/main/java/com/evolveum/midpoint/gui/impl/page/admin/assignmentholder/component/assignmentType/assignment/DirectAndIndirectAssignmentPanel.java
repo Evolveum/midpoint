@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
@@ -232,6 +233,11 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
                 }
             }
         };
+    }
+
+    @Override
+    protected List<InlineMenuItem> createInlineMenu() {
+        return new ArrayList<>();
     }
 
     @Override
