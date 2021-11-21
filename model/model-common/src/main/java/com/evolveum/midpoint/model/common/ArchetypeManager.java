@@ -154,6 +154,9 @@ public class ArchetypeManager implements Cache {
         if (delta != null) {
             ContainerDelta<AssignmentType> assignmentTypeContainerDelta = delta.findContainerDelta(AssignmentHolderType.F_ASSIGNMENT);
             Collection<AssignmentType> assignmentsToDelete = (Collection<AssignmentType>) assignmentTypeContainerDelta.getRealValuesToDelete();
+            if (assignmentsToDelete == null) {
+                return false;
+            }
             for (AssignmentType assignmentToDelete : assignmentsToDelete) {
                 if (assignmentToDelete.getTargetRef() == null || !QNameUtil.match(assignmentToDelete.getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE)) {
                     continue;
