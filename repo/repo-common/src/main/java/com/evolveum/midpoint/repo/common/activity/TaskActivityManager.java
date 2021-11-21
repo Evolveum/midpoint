@@ -63,11 +63,13 @@ public class TaskActivityManager {
     @Autowired private CommonTaskBeans beans;
 
     // TODO reconsider the concept of resolver (as it is useless now - we have to fetch the subtasks manually!)
+    /** Assumes that the whole task tree is loaded. */
     public ActivityProgressInformation getProgressInformationFromTaskTree(String rootTaskOid, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         return ActivityProgressInformation.fromRootTask(
                 getTaskWithSubtasks(rootTaskOid, result),
-                createTaskResolver(result));
+                createTaskResolver(result),
+                InformationSource.FULL_STATE_ONLY);
     }
 
     public ActivityProgressInformation getProgressInformation(@NotNull String rootTaskOid, @NotNull InformationSource source,

@@ -10,12 +10,12 @@ package com.evolveum.midpoint.model.impl.sync.tasks.sync;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
@@ -31,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 public class LiveSyncActivityHandler
         extends ModelActivityHandler<LiveSyncWorkDefinition, LiveSyncActivityHandler> {
 
-    private static final String LEGACY_HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/live-sync/handler-3";
+    private static final String LEGACY_HANDLER_URI = ModelPublicConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/live-sync/handler-3";
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value();
 
     @PostConstruct

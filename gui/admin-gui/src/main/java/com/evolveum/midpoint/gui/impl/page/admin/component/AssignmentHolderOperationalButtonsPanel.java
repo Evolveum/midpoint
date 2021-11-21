@@ -242,7 +242,7 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
         getPageBase().showMainPopup(popupable, target);
     }
 
-    protected boolean isSaveButtonEnabled() {
+    protected boolean isSavePreviewButtonEnabled() {
         //in case user isn't allowed to modify focus data but has
         // e.g. #assign authorization, Save button is disabled on page load.
         // Save button becomes enabled just if some changes are made

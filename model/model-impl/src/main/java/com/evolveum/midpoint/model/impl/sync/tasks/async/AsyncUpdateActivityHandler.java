@@ -10,20 +10,17 @@ package com.evolveum.midpoint.model.impl.sync.tasks.async;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
-import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateWorkDefinitionType;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.impl.ModelConstants;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 /**
@@ -33,8 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 public class AsyncUpdateActivityHandler
         extends ModelActivityHandler<AsyncUpdateWorkDefinition, AsyncUpdateActivityHandler> {
 
-    private static final String LEGACY_HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/async-update/handler-3";
-    private static final Trace LOGGER = TraceManager.getTrace(AsyncUpdateActivityHandler.class);
+    private static final String LEGACY_HANDLER_URI = ModelPublicConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/async-update/handler-3";
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_ASYNC_UPDATE_TASK.value();
 
     @PostConstruct

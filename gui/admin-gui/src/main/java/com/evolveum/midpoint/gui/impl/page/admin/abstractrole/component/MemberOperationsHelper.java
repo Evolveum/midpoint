@@ -7,272 +7,262 @@
 package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleMemberPanel.QueryScope;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
+
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
-import com.evolveum.midpoint.gui.api.component.ChooseArchetypeMemberPopup;
-import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
-import com.evolveum.midpoint.gui.api.component.ChooseOrgMemberPopup;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+
+/**
+ * Creates and optionally submits tasks for member operations on abstract roles. Does not include pure GUI aspects.
+ *
+ * @see MemberOperationsGuiHelper
+ */
 public class MemberOperationsHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractRoleMemberPanel.class);
 
-    public static final String UNASSIGN_OPERATION = "unassign";
-    public static final String ASSIGN_OPERATION = "assign";
-    public static final String DELETE_OPERATION = "delete";
-    public static final String ROLE_PARAMETER = "role";
-    public static final String RELATION_PARAMETER = "relation";
+    // TODO why these discrepancies in operation key names?
+    private static final String OP_KEY_UNASSIGN = "Remove";
+    private static final String OP_KEY_ASSIGN = "Add";
+    private static final String OP_KEY_DELETE = "delete";
+    private static final String OP_KEY_RECOMPUTE = "Recompute";
 
-    public static <R extends AbstractRoleType> Task createUnassignMembersTask(PageBase pageBase, R targetObject, AbstractRoleMemberPanel.QueryScope scope,
-            ObjectQuery query, Collection<QName> relations, QName type, AjaxRequestTarget target) {
+    private static final String OP_SUBMIT_TASK = MemberOperationsHelper.class.getName() + ".submitMemberOperationTask";
 
-        String taskNameBuilder = getTaskName("Remove", scope, targetObject, "from");
-        String taskName = pageBase.createStringResource(taskNameBuilder,
-                WebComponentUtil.getDisplayNameOrName(targetObject.asPrismObject())).getString();
-        Task operationalTask = pageBase.createSimpleTask(taskName);
+    //region Unassigning members
 
-        ExecuteScriptType script = new ExecuteScriptType();
-        ActionExpressionType expression = new ActionExpressionType();
-        expression.setType(UNASSIGN_OPERATION);
+    /**
+     * Creates and executes (i.e. submits) member unassign task: an iterative scripting task that un-assigns members
+     * of a given abstract role
+     *
+     * @param targetObject Role whose members are to be unassigned
+     * @param scope What members should be processed (selected / all / all deeply), seemingly used only for task name creation
+     * @param memberType Type of members to be processed
+     * @param memberQuery Query selecting members that are to be processed
+     * @param relations Relations to unassign. Not null, not empty.
+     *
+     */
+    public static void createAndSubmitUnassignMembersTask(AbstractRoleType targetObject, QueryScope scope, QName memberType,
+            ObjectQuery memberQuery, Collection<QName> relations, AjaxRequestTarget target, PageBase pageBase) {
+        Task task = createUnassignMembersTask(targetObject, scope, memberType, memberQuery, relations, target, pageBase);
+        submitTaskIfPossible(task, target, pageBase);
+    }
 
-        //hack using fake definition because of type
-        PrismPropertyDefinition<Object> def = pageBase.getPrismContext().definitionFactory().createPropertyDefinition(
-                AbstractRoleType.F_NAME, DOMUtil.XSD_STRING);
-        PrismValue value = pageBase.getPrismContext().itemFactory().createValue(targetObject.getOid());
+    /**
+     * Creates the member unassignment task.
+     *
+     * @see #createAndSubmitUnassignMembersTask(AbstractRoleType, QueryScope, QName, ObjectQuery, Collection,
+     * AjaxRequestTarget, PageBase)
+     *
+     * @return null if there's an error; the error is shown in such a case
+     */
+    public static @Nullable Task createUnassignMembersTask(AbstractRoleType targetObject, QueryScope scope, QName memberType,
+            ObjectQuery memberQuery, @NotNull Collection<QName> relations, AjaxRequestTarget target, PageBase pageBase) {
+
+        String targetOid = targetObject.getOid();
+
+        argCheck(!relations.isEmpty(), "No relations provided");
+        argCheck(targetOid != null, "Target object without OID: %s", targetObject);
+
+        ExecuteScriptType script = createUnassignBulkAction(targetOid, relations);
+
+        String operationKey = getOperationKey(OP_KEY_UNASSIGN, scope, targetObject, "from");
+        PolyStringType taskName = createTaskNameFromKey(operationKey, targetObject, pageBase);
+
+        return createScriptingMemberOperationTask(
+                new MemberOpTaskSpec(
+                        getOperationName(taskName),
+                        taskName,
+                        memberType,
+                        memberQuery,
+                        null),
+                script,
+                pageBase, target);
+    }
+
+    /** Creates a bulk action (script) that un-assigns given role with given relations from provided objects. */
+    @NotNull
+    private static ExecuteScriptType createUnassignBulkAction(@NotNull String targetOid, @NotNull Collection<QName> relations) {
+        List<PrismReferenceValue> matchingTargetReferences = relations.stream()
+                .map(relation -> new ObjectReferenceType()
+                        .oid(targetOid)
+                        .relation(relation)
+                        .asReferenceValue())
+                .collect(Collectors.toList());
+
+        ObjectFilter assignmentFilter = PrismContext.get().queryFor(AssignmentType.class)
+                .item(AssignmentType.F_TARGET_REF)
+                .ref(matchingTargetReferences, true)
+                .buildFilter();
+
+        SearchFilterType assignmentFilterBean;
         try {
-            value.applyDefinition(def);
+            assignmentFilterBean = PrismContext.get().getQueryConverter().createSearchFilterType(assignmentFilter);
         } catch (SchemaException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Can not apply definition " + def, e);
-            operationalTask.getResult().recordFatalError(pageBase.createStringResource("MemberOperationsHelper.message.unassignMembersPerformed.fatalError", def).getString(), e);
+            throw new SystemException("Unexpected schema exception: " + e.getMessage(), e);
         }
-        expression.parameter(new ActionParameterValueType().name(ROLE_PARAMETER).value(
-                new RawType(value, DOMUtil.XSD_STRING, pageBase.getPrismContext())));
-        if(relations != null) {
-            relations.forEach(relation -> expression.parameter(new ActionParameterValueType().name(RELATION_PARAMETER).value(QNameUtil.qNameToUri(relation))));
-        }
-        script.setScriptingExpression(new JAXBElement<>(SchemaConstants.S_ACTION,
-                ActionExpressionType.class, expression));
 
-        return createScriptingMemberOperationTask(operationalTask, type, query, script, null, operationalTask.getResult(),
-                pageBase, WebComponentUtil.createPolyFromOrigString(taskName), target);
-    }
-
-    public static <R extends AbstractRoleType> void unassignMembersPerformed(PageBase pageBase, R targetObject, AbstractRoleMemberPanel.QueryScope scope,
-            ObjectQuery query, Collection<QName> relations, QName type, AjaxRequestTarget target) {
-        Task executableTask = createUnassignMembersTask(pageBase, targetObject, scope, query, relations, type, target);
-        executeMemberOperationTask(pageBase, executableTask, target);
-    }
-
-    public static void assignMembersPerformed(AbstractRoleType targetObject, ObjectQuery query,
-            QName relation, QName type, AjaxRequestTarget target, PageBase pageBase) {
-        String taskNameBuilder = getTaskName("Add", null, targetObject, "to");
-        String taskName = pageBase.createStringResource(taskNameBuilder,
-                WebComponentUtil.getDisplayNameOrName(targetObject.asPrismObject())).getString();
-        Task operationalTask = pageBase.createSimpleTask(taskName);
+        UnassignActionExpressionType unassignAction = new UnassignActionExpressionType()
+                .filter(assignmentFilterBean);
 
         ExecuteScriptType script = new ExecuteScriptType();
-        ActionExpressionType expression = new ActionExpressionType();
-        expression.setType(ASSIGN_OPERATION);
+        script.setScriptingExpression(
+                new JAXBElement<>(SchemaConstantsGenerated.SC_UNASSIGN, UnassignActionExpressionType.class, unassignAction));
+        return script;
+    }
+    //endregion
 
-        PrismReferenceValue value = pageBase.getPrismContext().itemFactory()
-                .createReferenceValue(targetObject.getOid(), WebComponentUtil.classToQName(pageBase.getPrismContext(), targetObject.getClass()));
-        expression.parameter(new ActionParameterValueType().name(ROLE_PARAMETER).value(
-                new RawType(value, ObjectReferenceType.COMPLEX_TYPE, pageBase.getPrismContext())));
-        if(relation != null) {
-            expression.parameter(new ActionParameterValueType().name(RELATION_PARAMETER).value(QNameUtil.qNameToUri(relation)));
-        }
-        script.setScriptingExpression(new JAXBElement<>(SchemaConstants.S_ACTION,
-                ActionExpressionType.class, expression));
+    //region Assigning members
+    public static void createAndSubmitAssignMembersTask(AbstractRoleType targetObject, QName memberType, ObjectQuery memberQuery,
+            @NotNull QName relation, AjaxRequestTarget target, PageBase pageBase) {
 
-        createAndExecuteScriptingMemberOperationTask(pageBase, operationalTask, type, query, script,
-                WebComponentUtil.createPolyFromOrigString(taskName), target);
+        String targetOid = targetObject.getOid();
+        argCheck(targetOid != null, "Target object without OID: %s", targetObject);
+
+        ExecuteScriptType script = createAssignBulkAction(targetObject, relation);
+
+        String operationKey = getOperationKey(OP_KEY_ASSIGN, null, targetObject, "to");
+        PolyStringType taskName = createTaskNameFromKey(operationKey, targetObject, pageBase);
+
+        Task task = createScriptingMemberOperationTask(
+                new MemberOpTaskSpec(
+                        getOperationName(taskName),
+                        taskName,
+                        memberType,
+                        memberQuery,
+                        null),
+                script,
+                pageBase, target);
+
+        submitTaskIfPossible(task, target, pageBase);
     }
 
-    public static <R extends AbstractRoleType> void deleteMembersPerformed(R targetObject,
-            PageBase pageBase, AbstractRoleMemberPanel.QueryScope scope, ObjectQuery query, AjaxRequestTarget target) {
-        Task task = createDeleteMembersTask(targetObject, pageBase, scope, query, target);
-        if (task != null) {
-            executeMemberOperationTask(pageBase, task, target);
-        }
-    }
-
-    public static <R extends AbstractRoleType> void recomputeMembersPerformed(R targetObject,
-            PageBase pageBase, AbstractRoleMemberPanel.QueryScope scope, ObjectQuery query, AjaxRequestTarget target) {
-        Task task = createRecomputeMembersTask(targetObject, pageBase, scope, query, target);
-        if (task != null) {
-            executeMemberOperationTask(pageBase, task, target);
-        }
-    }
-
-    public static <R extends AbstractRoleType> Task createRecomputeMembersTask(R targetObject, PageBase pageBase, AbstractRoleMemberPanel.QueryScope scope,
-            ObjectQuery query, AjaxRequestTarget target) {
-        String taskNameBuilder = getTaskName("Recompute", scope, targetObject, "of");
-        String taskName = pageBase.createStringResource(taskNameBuilder,
-                WebComponentUtil.getDisplayNameOrName(targetObject.asPrismObject())).getString();
-        Task operationalTask = pageBase.createSimpleTask(taskName);
-
-        OperationResult parentResult = operationalTask.getResult();
-        return createRecomputeMemberOperationTask(operationalTask, AssignmentHolderType.COMPLEX_TYPE, query,
-                null, parentResult, pageBase, WebComponentUtil.createPolyFromOrigString(taskName), target);
-    }
-
-    private static <R extends AbstractRoleType> Task createDeleteMembersTask(R targetObject, PageBase pageBase, AbstractRoleMemberPanel.QueryScope scope,
-            ObjectQuery query, AjaxRequestTarget target) {
-        QName defaultType = AssignmentHolderType.COMPLEX_TYPE;
-
-        String taskNameBuilder = getTaskName(DELETE_OPERATION, scope, targetObject, "of");
-        String taskName = pageBase.createStringResource(taskNameBuilder,
-                WebComponentUtil.getDisplayNameOrName(targetObject.asPrismObject())).getString();
-        Task operationalTask = pageBase.createSimpleTask(taskName);
+    /** Creates a bulk action (script) that assigns given role with given relation to an input object. */
+    private static @NotNull ExecuteScriptType createAssignBulkAction(AbstractRoleType targetObject, @NotNull QName relation) {
+        AssignActionExpressionType assignAction = new AssignActionExpressionType()
+                .targetRef(ObjectTypeUtil.createObjectRef(targetObject, relation));
 
         ExecuteScriptType script = new ExecuteScriptType();
-        ActionExpressionType expression = new ActionExpressionType();
-        expression.setType("delete");
+        script.setScriptingExpression(
+                new JAXBElement<>(SchemaConstantsGenerated.SC_ASSIGN, AssignActionExpressionType.class, assignAction));
+        return script;
+    }
+    //endregion
 
-        script.setScriptingExpression(new JAXBElement<>(SchemaConstants.S_ACTION,
-                ActionExpressionType.class, expression));
+    //region Deleting members
+    public static void createAndSubmitDeleteMembersTask(AbstractRoleType targetObject, QueryScope scope, ObjectQuery memberQuery,
+            AjaxRequestTarget target, PageBase pageBase) {
 
-        return createScriptingMemberOperationTask(pageBase, operationalTask, defaultType, query, script,
-                SelectorOptions.createCollection(GetOperationOptions.createDistinct()),
-                WebComponentUtil.createPolyFromOrigString(taskName), target);
+        ExecuteScriptType script = createDeleteBulkAction();
+
+        String operationKey = getOperationKey(OP_KEY_DELETE, scope, targetObject, "of");
+        PolyStringType taskName = createTaskNameFromKey(operationKey, targetObject, pageBase);
+
+        Task task = createScriptingMemberOperationTask(
+                new MemberOpTaskSpec(
+                        getOperationName(taskName),
+                        taskName,
+                        AssignmentHolderType.COMPLEX_TYPE,
+                        memberQuery,
+                        null),
+                script,
+                pageBase, target);
+
+        submitTaskIfPossible(task, target, pageBase);
     }
 
-    public static <R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
-                                                                  RelationSearchItemConfigurationType relationConfig, List<QName> objectTypes) {
-        assignMembers(pageBase, targetRefObject, target, relationConfig, objectTypes, true);
+    @NotNull
+    private static ExecuteScriptType createDeleteBulkAction() {
+        ExecuteScriptType script = new ExecuteScriptType();
+        DeleteActionExpressionType deleteAction = new DeleteActionExpressionType();
+        script.setScriptingExpression(
+                new JAXBElement<>(SchemaConstantsGenerated.SC_DELETE, DeleteActionExpressionType.class, deleteAction));
+        return script;
+    }
+    //endregion
 
+    //region Recomputing members
+    /** Creates and submits a task that recomputes the role members. */
+    public static void createAndSubmitRecomputeMembersTask(AbstractRoleType targetObject, QueryScope scope,
+            ObjectQuery memberQuery, AjaxRequestTarget target, PageBase pageBase) {
+        Task task = createRecomputeMembersTask(targetObject, scope, memberQuery, target, pageBase);
+        submitTaskIfPossible(task, target, pageBase);
     }
 
-    public static <R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
-                                                                  RelationSearchItemConfigurationType relationConfig, List<QName> objectTypes, boolean isOrgTreePanelVisible) {
-        assignMembers(pageBase, targetRefObject, target, relationConfig, objectTypes, new ArrayList<>(), isOrgTreePanelVisible);
+    /** Creates a task that recomputes the role members. */
+    public static Task createRecomputeMembersTask(AbstractRoleType targetObject, QueryScope scope, ObjectQuery memberQuery,
+            AjaxRequestTarget target, PageBase pageBase) {
+
+        String operationKey = getOperationKey(OP_KEY_RECOMPUTE, scope, targetObject, "of");
+        PolyStringType taskName = createTaskNameFromKey(operationKey, targetObject, pageBase);
+
+        return createRecomputeMembersTask(
+                new MemberOpTaskSpec(
+                        getOperationName(taskName),
+                        taskName,
+                        AssignmentHolderType.COMPLEX_TYPE,
+                        memberQuery,
+                        null),
+                target, pageBase);
     }
+    //endregion
 
-    public static <O extends ObjectType, R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
-                                                                                        RelationSearchItemConfigurationType relationConfig, List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList, boolean isOrgTreePanelVisible) {
-
-        ChooseMemberPopup<O, R> browser = new ChooseMemberPopup<>(pageBase.getMainPopupBodyId(), relationConfig, null) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected R getAssignmentTargetRefObject(){
-                return targetRefObject;
-            }
-
-            @Override
-            protected List<QName> getAvailableObjectTypes(){
-                return objectTypes;
-            }
-
-            @Override
-            protected List<ObjectReferenceType> getArchetypeRefList(){
-                return archetypeRefList;
-            }
-
-            @Override
-            protected boolean isOrgTreeVisible(){
-                return isOrgTreePanelVisible;
-            }
-        };
-        browser.setOutputMarkupId(true);
-        pageBase.showMainPopup(browser, target);
-    }
-
-    public static <O extends ObjectType> void assignOrgMembers(PageBase pageBase, OrgType targetRefObject, AjaxRequestTarget target,
-                                                               RelationSearchItemConfigurationType relationConfig, List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList) {
-        ChooseOrgMemberPopup<O> browser = new ChooseOrgMemberPopup<>(pageBase.getMainPopupBodyId(), relationConfig) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected OrgType getAssignmentTargetRefObject(){
-                return targetRefObject;
-            }
-
-            @Override
-            protected List<QName> getAvailableObjectTypes(){
-                return objectTypes;
-            }
-
-            @Override
-            protected List<ObjectReferenceType> getArchetypeRefList(){
-                return archetypeRefList;
-            }
-        };
-
-        browser.setOutputMarkupId(true);
-        pageBase.showMainPopup(browser, target);
-    }
-
-    public static <O extends AssignmentHolderType> void assignArchetypeMembers(PageBase pageBase, ArchetypeType targetRefObject, AjaxRequestTarget target,
-                                                                               RelationSearchItemConfigurationType relationConfig, List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList) {
-        ChooseArchetypeMemberPopup<O> browser = new ChooseArchetypeMemberPopup<>(pageBase.getMainPopupBodyId(), relationConfig) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected ArchetypeType getAssignmentTargetRefObject(){
-                return targetRefObject;
-            }
-
-            @Override
-            protected List<QName> getAvailableObjectTypes(){
-                return objectTypes;
-            }
-
-            @Override
-            protected List<ObjectReferenceType> getArchetypeRefList(){
-                return archetypeRefList;
-            }
-        };
-
-        browser.setOutputMarkupId(true);
-        pageBase.showMainPopup(browser, target);
-    }
-
-    public static <R extends AbstractRoleType> ObjectQuery createDirectMemberQuery(R targetObject, QName objectType, Collection<QName> relations, ObjectReferenceType tenant, ObjectReferenceType project, PrismContext prismContext) {
+    //region Query formulation
+    /**
+     * Creates a query covering all direct (assigned) members of an abstract role.
+     *
+     * @param targetObject The role.
+     * @param memberType Type of members to be looked for.
+     * @param relations Relations (of member->target assignment) to be looked for.
+     * Should not be empty (although it is not guaranteed now).
+     * @param tenant Tenant to be looked for (assignment/tenantRef)
+     * @param project Org to be looked for (assignment/orgRef)
+     */
+    public static <R extends AbstractRoleType> @NotNull ObjectQuery createDirectMemberQuery(R targetObject,
+            @NotNull QName memberType, Collection<QName> relations, ObjectReferenceType tenant, ObjectReferenceType project) {
         // We assume tenantRef.relation and orgRef.relation are always default ones (see also MID-3581)
-        S_FilterEntry q0 = prismContext.queryFor(AssignmentHolderType.class);
-        if (objectType != null && !AssignmentHolderType.COMPLEX_TYPE.equals(objectType)) {
-            q0 = q0.type(objectType);
+        S_FilterEntry q0 = PrismContext.get().queryFor(AssignmentHolderType.class);
+        if (!AssignmentHolderType.COMPLEX_TYPE.equals(memberType)) {
+            q0 = q0.type(memberType);
         }
 
         // Use exists filter to build a query like this:
@@ -291,32 +281,44 @@ public class MemberOperationsHelper {
         }
 
         ObjectQuery query = q.endBlock().build();
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Searching members of role {} with query:\n{}", targetObject.getOid(), query.debugDump());
-        }
+        LOGGER.trace("Searching members of role {} with query:\n{}", targetObject.getOid(), query.debugDumpLazily());
         return query;
     }
 
-    public static <R extends AbstractRoleType> List<PrismReferenceValue> createReferenceValuesList(R targetObject, Collection<QName> relations) {
-        List<PrismReferenceValue> referenceValuesList = new ArrayList<>();
-        relations.forEach(relation -> referenceValuesList.add(createReference(targetObject, relation).asReferenceValue()));
-        return referenceValuesList;
+    /**
+     * Creates reference values pointing to given target with given relations.
+     *
+     * @param relations The relations. Must be at least one, otherwise the resulting list (to be used in a query, presumably)
+     * will be empty, making the query wrong.
+     */
+    public static @NotNull List<PrismReferenceValue> createReferenceValuesList(@NotNull AbstractRoleType targetObject,
+            @NotNull Collection<QName> relations) {
+        argCheck(!relations.isEmpty(), "At least one relation must be specified");
+        return relations.stream()
+                .map(relation -> ObjectTypeUtil.createObjectRef(targetObject, relation).asReferenceValue())
+                .collect(Collectors.toList());
     }
 
-    public static <O extends ObjectType> ObjectQuery createSelectedObjectsQuery(List<O> selectedObjects,
-            PrismContext prismContext) {
-        Set<String> oids = getFocusOidToRecompute(selectedObjects);
-        return prismContext.queryFor(AssignmentHolderType.class).id(oids.toArray(new String[0])).build();
+    /**
+     * Creates a query covering all selected objects (converts list of objects to a multivalued "OID" query).
+     */
+    public static @NotNull ObjectQuery createSelectedObjectsQuery(@NotNull List<? extends ObjectType> selectedObjects) {
+        Set<String> oids = new HashSet<>(ObjectTypeUtil.getOids(selectedObjects));
+        return PrismContext.get().queryFor(AssignmentHolderType.class)
+                .id(oids.toArray(new String[0]))
+                .build();
     }
+    //endregion
 
-    public static <O extends ObjectType> Set<String> getFocusOidToRecompute(List<O> selectedObjects) {
-        Set<String> oids = new HashSet<>();
-        selectedObjects.forEach(f -> oids.add(f.getOid()));
-        return oids;
-    }
-
-    private static <R extends AbstractRoleType> String getTaskName(String operation, AbstractRoleMemberPanel.QueryScope scope, R targetObject, String preposition) {
-        StringBuilder nameBuilder = new StringBuilder("operation." + operation);
+    //region Task preparation and submission for execution
+    /**
+     * Creates a localization key for task name in the form of `operation.OPERATION.SCOPE.members.PREPOSITION.TARGET-TYPE`.
+     * It is also the operation name for tasks being created.
+     */
+    private static <R extends AbstractRoleType> String getOperationKey(String operation, QueryScope scope,
+            R targetObject, String preposition) {
+        StringBuilder nameBuilder = new StringBuilder("operation.");
+        nameBuilder.append(operation);
         nameBuilder.append(".");
         if (scope != null) {
             nameBuilder.append(scope.name());
@@ -334,102 +336,175 @@ public class MemberOperationsHelper {
         return nameBuilder.toString().toLowerCase();
     }
 
-    public static <R extends AbstractRoleType> ObjectReferenceType createReference(R targetObject, QName relation) {
-        return ObjectTypeUtil.createObjectRef(targetObject, relation);
+    /** Creates a task name from the localization key. */
+    private static @NotNull PolyStringType createTaskNameFromKey(String operationKey, AbstractRoleType targetObject,
+            PageBase pageBase) {
+        String nameOrig = pageBase
+                .getString(operationKey, WebComponentUtil.getDisplayNameOrName(targetObject.asPrismObject()));
+        return WebComponentUtil.createPolyFromOrigString(nameOrig);
     }
 
-    protected static Task createScriptingMemberOperationTask(PageBase modelServiceLocator, Task operationalTask, QName type, ObjectQuery memberQuery,
-            ExecuteScriptType script, Collection<SelectorOptions<GetOperationOptions>> option, PolyStringType taskName, AjaxRequestTarget target) {
-
-        OperationResult parentResult = operationalTask.getResult();
-        return createScriptingMemberOperationTask(operationalTask, type, memberQuery, script, option, parentResult,
-                modelServiceLocator, taskName, target);
-    }
-
-    protected static void createAndExecuteScriptingMemberOperationTask(PageBase modelServiceLocator, Task operationalTask,
-            QName type, ObjectQuery memberQuery, ExecuteScriptType script, PolyStringType taskName, AjaxRequestTarget target) {
-
-        OperationResult parentResult = operationalTask.getResult();
-        Task executableTask = createScriptingMemberOperationTask(operationalTask, type, memberQuery, script, null, parentResult,
-                modelServiceLocator, taskName, target);
-        if (executableTask != null) {
-            executeMemberOperationTask(executableTask, parentResult, modelServiceLocator);
-        }
-        target.add(modelServiceLocator.getFeedbackPanel());
-    }
-
-    protected static void executeMemberOperationTask(PageBase modelServiceLocator, Task operationalTask, AjaxRequestTarget target) {
-        OperationResult parentResult = operationalTask.getResult();
-        executeMemberOperationTask(operationalTask, parentResult, modelServiceLocator);
-        target.add(modelServiceLocator.getFeedbackPanel());
-    }
-
-    public static Task createScriptingMemberOperationTask(Task operationalTask, QName type, ObjectQuery memberQuery,
-            ExecuteScriptType script, Collection<SelectorOptions<GetOperationOptions>> option, OperationResult parentResult,
-            PageBase pageBase, PolyStringType taskName, AjaxRequestTarget target) {
+    /**
+     * Creates a task that will execute given script on all abstract role members.
+     *
+     * @param taskSpec Specification of the member operation task
+     * @param script Script to be executed on individual members
+     *
+     * @return null if there's an error
+     */
+    private static @Nullable Task createScriptingMemberOperationTask(@NotNull MemberOpTaskSpec taskSpec,
+            @NotNull ExecuteScriptType script, PageBase pageBase, AjaxRequestTarget target) {
 
         try {
-            createTask(operationalTask, type, memberQuery, option, taskName, pageBase);
+
+            // @formatter:off
+            ActivityDefinitionType activityDefinition = new ActivityDefinitionType(PrismContext.get())
+                    .beginWork()
+                        .beginIterativeScripting()
+                            .objects(createObjectSetBean(taskSpec))
+                            .scriptExecutionRequest(script)
+                        .<WorkDefinitionsType>end()
+                    .end();
+            // @formatter:on
+
+            Task task = createTaskForActivity(taskSpec, activityDefinition, pageBase);
+
+            // Must be executed after task is created (to have task + its operation result)
             pageBase.getSecurityEnforcer().authorize(ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(),
-                    null, AuthorizationParameters.EMPTY, null, operationalTask, parentResult);
-            operationalTask.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, script);
-            operationalTask.setHandlerUri(ModelPublicConstants.ITERATIVE_SCRIPT_EXECUTION_TASK_HANDLER_URI);
-            operationalTask.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value());
-            return operationalTask;
+                    null, AuthorizationParameters.EMPTY, null, task, task.getResult());
+
+            return task;
+
         } catch (Exception e) {
-            parentResult.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.startPerformed.fatalError.createTask").getString(), e);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create bulk action task", e);
-            target.add(pageBase.getFeedbackPanel());
+            processTaskCreationException(e, taskSpec.operationName, target, pageBase);
             return null;
         }
     }
 
-    public static Task createRecomputeMemberOperationTask(Task operationalTask, QName type, ObjectQuery memberQuery,
-            Collection<SelectorOptions<GetOperationOptions>> option, OperationResult parentResult,
-            PageBase pageBase, PolyStringType taskName, AjaxRequestTarget target) {
+    private static ObjectSetType createObjectSetBean(@NotNull MemberOpTaskSpec taskSpec) throws SchemaException {
+        return new ObjectSetType(PrismContext.get())
+                .type(taskSpec.memberType)
+                .query(PrismContext.get().getQueryConverter().createQueryType(taskSpec.memberQuery))
+                .searchOptions(GetOperationOptionsUtil.optionsToOptionsBeanNullable(taskSpec.options));
+    }
+
+    /**
+     * Creates a task that recomputes the members. We do not use scripting for backwards-compatibility
+     * reasons (this task does not require #executeScript authorization).
+     *
+     * The method does exist just for the sake of symmetry with {@link #createScriptingMemberOperationTask(MemberOpTaskSpec,
+     * ExecuteScriptType, PageBase, AjaxRequestTarget)}.
+     *
+     * @param taskSpec Specification of the member operation task
+     *
+     * @return null if there's an error
+     */
+    @SuppressWarnings("SameParameterValue")
+    private static @Nullable Task createRecomputeMembersTask(@NotNull MemberOpTaskSpec taskSpec,
+            AjaxRequestTarget target, PageBase pageBase) {
+
         try {
-            createTask(operationalTask, type, memberQuery, option, taskName, pageBase);
+
+            // @formatter:off
+            ActivityDefinitionType activityDefinition = new ActivityDefinitionType(PrismContext.get())
+                    .beginWork()
+                        .beginRecomputation()
+                            .objects(createObjectSetBean(taskSpec))
+                        .<WorkDefinitionsType>end()
+                    .end();
+            // @formatter:on
+
+            Task task = createTaskForActivity(taskSpec, activityDefinition, pageBase);
+
+            // Must be executed after task is created (to have task + its operation result)
             pageBase.getSecurityEnforcer().authorize(ModelAuthorizationAction.RECOMPUTE.getUrl(),
-                    null, AuthorizationParameters.EMPTY, null, operationalTask, parentResult);
-            operationalTask.setHandlerUri(ModelPublicConstants.RECOMPUTE_HANDLER_URI);
-            operationalTask.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value());
-            return operationalTask;
+                    null, AuthorizationParameters.EMPTY, null, task, task.getResult());
+
+            return task;
+
         } catch (Exception e) {
-            parentResult.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.startPerformed.fatalError.createTask").getString(), e);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create bulk action task", e);
-            target.add(pageBase.getFeedbackPanel());
+            processTaskCreationException(e, taskSpec.operationName, target, pageBase);
             return null;
         }
     }
 
-    private static void createTask(Task operationalTask, QName type, ObjectQuery memberQuery, Collection<SelectorOptions<GetOperationOptions>> option,
-            PolyStringType taskName, PageBase pageBase) throws SchemaException {
+    private static void processTaskCreationException(@NotNull Exception e, @NotNull String operationKey,
+            AjaxRequestTarget target, PageBase pageBase) {
+        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create member processing task", e);
+        OperationResult dummyResult = new OperationResult(operationKey);
+        dummyResult.recordFatalError(pageBase.getString("WebComponentUtil.message.startPerformed.fatalError.createTask"), e);
+        pageBase.showResult(dummyResult);
+        target.add(pageBase.getFeedbackPanel());
+    }
+
+    /**
+     * Creates a task that will execute given script on all abstract role members.
+     *
+     * @param taskSpec Specification of the member operation task
+     * @param activityDefinition Activity that should be put into the task
+     */
+    private static @NotNull Task createTaskForActivity(@NotNull MemberOpTaskSpec taskSpec,
+            @NotNull ActivityDefinitionType activityDefinition, @NotNull PageBase pageBase) throws SchemaException {
+
+        Task task = pageBase.createSimpleTask(taskSpec.operationName);
+        task.setName(taskSpec.taskName);
         MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
-        operationalTask.setOwner(owner.getFocus().asPrismObject());
+        task.setOwner(owner.getFocus().asPrismObject());
+        task.setInitiallyRunnable();
+        task.setThreadStopAction(ThreadStopActionType.RESTART);
+        task.setSchedule(
+                new ScheduleType(PrismContext.get())
+                        .misfireAction(MisfireActionType.EXECUTE_IMMEDIATELY));
+        task.setRootActivityDefinition(activityDefinition);
+        return task;
+    }
 
-        operationalTask.setInitiallyRunnable();
-        operationalTask.setThreadStopAction(ThreadStopActionType.RESTART);
-        ScheduleType schedule = new ScheduleType(PrismContext.get());
-        schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
-        operationalTask.setSchedule(schedule);
-        operationalTask.setName(taskName);
-
-        QueryType queryType = pageBase.getQueryConverter().createQueryType(memberQuery);
-        operationalTask.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, queryType);
-        operationalTask.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE, type);
-        if (option != null) {
-            operationalTask.setExtensionContainerValue(SchemaConstants.MODEL_EXTENSION_SEARCH_OPTIONS,
-                    MiscSchemaUtil.optionsToOptionsType(option));
+    private static void submitTaskIfPossible(@Nullable Task task, AjaxRequestTarget target, PageBase pageBase) {
+        if (task != null) {
+            OperationResult taskResult = task.getResult();
+            OperationResult result = taskResult.createSubresult(OP_SUBMIT_TASK);
+            try {
+                pageBase.getTaskManager().switchToBackground(task, result);
+            } catch (Throwable t) {
+                result.recordFatalError(t);
+                throw t;
+            } finally {
+                result.close();
+            }
+            taskResult.setInProgress();
+            taskResult.setBackgroundTaskOid(task.getOid());
+            pageBase.showResult(taskResult);
+            target.add(pageBase.getFeedbackPanel());
+        } else {
+            // we assume there's an error shown in the feedback panel
         }
     }
+    //endregion
 
-    public static void executeMemberOperationTask(Task operationalTask, OperationResult parentResult, PageBase pageBase) {
-        OperationResult result = parentResult.createSubresult("evaluateExpressionInBackground");
-        pageBase.getTaskManager().switchToBackground(operationalTask, result);
-        result.computeStatus();
-        parentResult.setInProgress();
-        parentResult.setBackgroundTaskOid(operationalTask.getOid());
-        pageBase.showResult(parentResult);
+    /**
+     * This is a hack. Normally, operation names in operation result should be the localization keys. In this class,
+     * however, the keys (like `operation.recompute.all_direct.members.of.org`) expect a parameter to be resolved.
+     * So we use the translated names instead.
+     */
+    private static String getOperationName(PolyStringType taskName) {
+        return taskName.getOrig();
     }
 
+    /** Specification of member operation. Created to avoid lengthy parameters lists. */
+    private static class MemberOpTaskSpec {
+        @NotNull private final String operationName;
+        @NotNull private final PolyStringType taskName;
+        @NotNull private final QName memberType;
+        @Nullable private final ObjectQuery memberQuery;
+        @Nullable private final Collection<SelectorOptions<GetOperationOptions>> options;
+
+        private MemberOpTaskSpec(@NotNull String operationName, @NotNull PolyStringType taskName, @NotNull QName memberType,
+                @Nullable ObjectQuery memberQuery, @Nullable Collection<SelectorOptions<GetOperationOptions>> options) {
+            this.operationName = operationName;
+            this.taskName = taskName;
+            this.memberType = memberType;
+            this.memberQuery = memberQuery;
+            this.options = options;
+        }
+    }
 }

@@ -19,7 +19,6 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.ShadowState;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -29,6 +28,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +58,7 @@ public class ShadowDeltaComputer {
     @NotNull
     ObjectDelta<ShadowType> computeShadowDelta(@NotNull ProvisioningContext ctx,
             @NotNull PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceObject,
-            ObjectDelta<ShadowType> resourceObjectDelta, ShadowState shadowState)
+            ObjectDelta<ShadowType> resourceObjectDelta, ShadowLifecycleStateType shadowState)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
 
@@ -106,10 +106,10 @@ public class ShadowDeltaComputer {
         }
     }
 
-    private void addExistsDelta(ShadowState shadowState, ObjectDelta<ShadowType> computedShadowDelta) {
+    private void addExistsDelta(ShadowLifecycleStateType shadowState, ObjectDelta<ShadowType> computedShadowDelta) {
         // Resource object obviously exists in this case. However, we do not want to mess with isExists flag in some
         // situations (e.g. in CORPSE state) as this existence may be just a quantum illusion.
-        if (shadowState == ShadowState.CONCEPTION || shadowState == ShadowState.GESTATION) {
+        if (shadowState == ShadowLifecycleStateType.CONCEIVED || shadowState == ShadowLifecycleStateType.GESTATING) {
             PropertyDelta<Boolean> existsDelta = computedShadowDelta.createPropertyModification(ShadowType.F_EXISTS);
             existsDelta.setRealValuesToReplace(true);
             computedShadowDelta.addModification(existsDelta);

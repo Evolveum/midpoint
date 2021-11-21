@@ -26,15 +26,22 @@ public class TransformableObjectDefinition<O extends Objectable> extends Transfo
     implements ObjectDefinitionDelegator<O>, MutablePrismObjectDefinition<O> {
 
     public TransformableObjectDefinition(PrismObjectDefinition<O> delegate) {
-        super(delegate);
+        this(delegate, delegate.getComplexTypeDefinition());
     }
 
     public TransformableObjectDefinition(PrismObjectDefinition<O> delegate, ComplexTypeDefinition typedef) {
         super(delegate, typedef);
+        delegatedItem(new DelegatedItem.ObjectDef(delegate()));
     }
 
     public static <O extends Objectable> TransformableObjectDefinition<O> of(PrismObjectDefinition<O> originalItem) {
         return new TransformableObjectDefinition<>(originalItem);
+    }
+
+    @Override
+    ItemDefinition<?> attachTo(TransformableComplexTypeDefinition complexType) {
+        // NOOP
+        return this;
     }
 
     @Override

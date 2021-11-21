@@ -8,14 +8,23 @@
 package com.evolveum.midpoint.model.impl.cleanup;
 
 import java.util.ArrayList;
+import java.util.function.Predicate;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.CompositeActivityRun;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +52,9 @@ public class CleanupActivityHandler
     public static final String LEGACY_HANDLER_URI = ModelPublicConstants.CLEANUP_TASK_HANDLER_URI;
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_CLEANUP_TASK.value();
 
+    private static final Trace LOGGER = TraceManager.getTrace(CleanupActivityHandler.class);
+
+    @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private TaskManager taskManager;
     @Autowired private AuditService auditService;
     @Autowired(required = false) private WorkflowManager workflowManager;
@@ -73,6 +85,8 @@ public class CleanupActivityHandler
         ArrayList<Activity<?, ?>> children = new ArrayList<>();
 
         // TODO or should we create only activities that correspond to real work we are going to do?
+        //  Actually, it's not that easy. In the work definition we have only explicit policies.
+        //  If they are null, policies from system config should be used.
 
         ActivityStateDefinition<AbstractActivityWorkStateType> stateDef = ActivityStateDefinition.normal();
         children.add(EmbeddedActivity.create(
@@ -80,7 +94,7 @@ public class CleanupActivityHandler
                 (context, result) ->
                         new CleanupPartialActivityRun<>(
                                 context, Part.AUDIT_RECORDS, CleanupPoliciesType::getAuditRecords,
-                                (p, task, result1) -> auditService.cleanupAudit(p, result1)),
+                                this::cleanupAudit),
                 null,
                 (i) -> Part.AUDIT_RECORDS.identifier,
                 stateDef,
@@ -91,7 +105,7 @@ public class CleanupActivityHandler
                 (context, result) ->
                         new CleanupPartialActivityRun<>(
                                 context, Part.CLOSED_TASKS, CleanupPoliciesType::getClosedTasks,
-                                (p, task, result1) -> taskManager.cleanupTasks(p, task, result1)),
+                                this::cleanupTasks),
                 null,
                 (i) -> Part.CLOSED_TASKS.identifier,
                 stateDef,
@@ -113,7 +127,7 @@ public class CleanupActivityHandler
                 (context, result) ->
                         new CleanupPartialActivityRun<>(
                                 context, Part.DEAD_NODES, CleanupPoliciesType::getDeadNodes,
-                                (p, task, result1) -> taskManager.cleanupNodes(p, task, result1)),
+                                this::cleanupNodes),
                 null,
                 (i) -> Part.DEAD_NODES.identifier,
                 stateDef,
@@ -124,7 +138,7 @@ public class CleanupActivityHandler
                 (context, result) ->
                         new CleanupPartialActivityRun<>(
                                 context, Part.OUTPUT_REPORTS, CleanupPoliciesType::getOutputReports,
-                                (p, task, result1) -> cleanupReports(p, result1)),
+                                this::cleanupReports),
                 null,
                 (i) -> Part.OUTPUT_REPORTS.identifier,
                 stateDef,
@@ -135,7 +149,7 @@ public class CleanupActivityHandler
                 (context, result) ->
                         new CleanupPartialActivityRun<>(
                                 context, Part.CLOSED_CERTIFICATION_CAMPAIGNS, CleanupPoliciesType::getClosedCertificationCampaigns,
-                                (p, task, result1) -> certificationService.cleanupCampaigns(p, task, result1)),
+                                this::cleanupCampaigns),
                 null,
                 (i) -> Part.CLOSED_CERTIFICATION_CAMPAIGNS.identifier,
                 stateDef,
@@ -144,22 +158,68 @@ public class CleanupActivityHandler
         return children;
     }
 
-    private void cleanupCases(CleanupPolicyType p, RunningTask task, OperationResult result1)
+    private void cleanupAudit(CleanupPolicyType p, RunningTask task, OperationResult result) throws CommonException {
+        // Global authorization (we cannot filter by containerables yet)
+        securityEnforcer.authorize(ModelAuthorizationAction.CLEANUP_AUDIT_RECORDS.getUrl(), null,
+                AuthorizationParameters.EMPTY, null, task, result);
+        auditService.cleanupAudit(p, result);
+    }
+
+    private void cleanupTasks(CleanupPolicyType p, RunningTask task, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
+        // Authorization by selector
+        taskManager.cleanupTasks(p, createAutzSelector(task, result), task, result);
+    }
+
+    private void cleanupCases(CleanupPolicyType p, RunningTask task, OperationResult result)
+            throws CommonException {
         if (workflowManager != null) {
-            workflowManager.cleanupCases(p, task, result1);
+            // No autz check needed. Workflow manager does it for us (by relying on model API).
+            workflowManager.cleanupCases(p, task, result);
         } else {
             throw new IllegalStateException("Workflow manager was not autowired, cases cleanup will be skipped.");
         }
     }
 
-    private void cleanupReports(CleanupPolicyType p, OperationResult result) {
+    private void cleanupNodes(DeadNodeCleanupPolicyType p, RunningTask task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        // Authorization by selector
+        taskManager.cleanupNodes(p, createAutzSelector(task, result), task, result);
+    }
+
+    private void cleanupReports(CleanupPolicyType p, RunningTask task, OperationResult result) {
         if (reportManager != null) {
-            reportManager.cleanupReports(p, result);
+            // No autz check needed. Report manager does it for us (by relying on model API).
+            reportManager.cleanupReports(p, task, result);
         } else {
             //TODO improve dependencies for report-impl (probably for tests) and set autowire to required
             throw new IllegalStateException("Report manager was not autowired, reports cleanup will be skipped.");
         }
+    }
+
+    private void cleanupCampaigns(CleanupPolicyType p, RunningTask task, OperationResult result1) {
+        // No autz check needed. Certification manager does it for us (by relying on model API).
+        certificationService.cleanupCampaigns(p, task, result1);
+    }
+
+    private <T extends ObjectType> Predicate<T> createAutzSelector(@NotNull Task task, @NotNull OperationResult result) {
+        return object -> {
+            try {
+                boolean authorizedToDelete = securityEnforcer.isAuthorized(
+                        ModelAuthorizationAction.DELETE.getUrl(),
+                        null,
+                        AuthorizationParameters.Builder.buildObject(object.asPrismObject()),
+                        null, task, result);
+                if (authorizedToDelete) {
+                    return true;
+                } else {
+                    LOGGER.debug("Cleanup of {} rejected by authorizations", object);
+                    return false;
+                }
+            } catch (CommonException e) {
+                throw new SystemException("Couldn't evaluate authorizations needed to cleanup (delete) " + object, e);
+            }
+        };
     }
 
     @Override

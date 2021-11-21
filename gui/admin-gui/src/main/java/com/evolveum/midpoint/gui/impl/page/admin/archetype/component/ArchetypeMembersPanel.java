@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.archetype.component;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleMemberPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsGuiHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -17,7 +18,6 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelInstances;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -56,7 +56,8 @@ public class ArchetypeMembersPanel extends AbstractRoleMemberPanel<ArchetypeType
 
     @Override
     protected void assignMembers(AjaxRequestTarget target, RelationSearchItemConfigurationType relationConfig, List objectTypes, List archetypeRefList, boolean isOrgTreePanelVisible) {
-        MemberOperationsHelper.assignArchetypeMembers(getPageBase(), getModelObject(), target, relationConfig,
+        //noinspection unchecked
+        MemberOperationsGuiHelper.assignArchetypeMembers(getPageBase(), getModelObject(), target, relationConfig,
                 objectTypes, archetypeRefList);
     }
 

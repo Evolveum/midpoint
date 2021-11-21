@@ -12,6 +12,8 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.util.*;
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -86,7 +88,10 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         if (duration.getSign() > 0) {
             duration = duration.negate();
         }
-        long minValue = duration.getTimeInMillis(new Date());
+        long minValue =
+                XmlTypeConverter.toMillis(
+                        XmlTypeConverter.addDuration(
+                                XmlTypeConverter.createXMLGregorianCalendar(), duration));
 
         Iterator<AuditEventRecord> iterator = records.iterator();
         while (iterator.hasNext()) {

@@ -12,6 +12,8 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.Clock;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -47,6 +49,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 public class ShadowCaretaker {
 
     @Autowired private PrismContext prismContext;
+    @Autowired private Clock clock;
 
     public void applyAttributesDefinition(ProvisioningContext ctx, ObjectDelta<ShadowType> delta)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
@@ -235,7 +238,7 @@ public class ShadowCaretaker {
         if (pendingOperations.isEmpty()) {
             return resultShadow;
         }
-        ShadowType resultShadowType = resultShadow.asObjectable();
+        ShadowType resultShadowBean = resultShadow.asObjectable();
         List<PendingOperationType> sortedOperations = sortPendingOperations(pendingOperations);
         Duration gracePeriod = ProvisioningUtil.getGracePeriod(ctx);
         boolean resourceReadIsCachingOnly = ProvisioningUtil.resourceReadIsCachingOnly(ctx.getResource());
@@ -272,14 +275,15 @@ public class ShadowCaretaker {
                 // In that case the object was obviously already created. The data that we have from the
                 // resource are going to be more precise than the pending ADD delta (which might not have been applied completely)
                 if (resourceShadow == null) {
-                    ShadowType shadowType = repoShadow.asObjectable();
+                    ShadowType repoShadowBean = repoShadow.asObjectable();
                     resultShadow = pendingDelta.getObjectToAdd().clone();
                     resultShadow.setOid(repoShadow.getOid());
-                    resultShadowType = resultShadow.asObjectable();
-                    resultShadowType.setExists(true);
-                    resultShadowType.setName(shadowType.getName());
-                    List<PendingOperationType> newPendingOperations = resultShadowType.getPendingOperation();
-                    for (PendingOperationType pendingOperation2: shadowType.getPendingOperation()) {
+                    resultShadowBean = resultShadow.asObjectable();
+                    resultShadowBean.setExists(true);
+                    resultShadowBean.setName(repoShadowBean.getName());
+                    resultShadowBean.setShadowLifecycleState(repoShadowBean.getShadowLifecycleState());
+                    List<PendingOperationType> newPendingOperations = resultShadowBean.getPendingOperation();
+                    for (PendingOperationType pendingOperation2: repoShadowBean.getPendingOperation()) {
                         newPendingOperations.add(pendingOperation2.clone());
                     }
                     applyAttributesDefinition(ctx, resultShadow);
@@ -289,9 +293,9 @@ public class ShadowCaretaker {
                 pendingDelta.applyTo(resultShadow);
             }
             if (pendingDelta.isDelete()) {
-                resultShadowType.setDead(true);
-                resultShadowType.setExists(false);
-                resultShadowType.setPrimaryIdentifierValue(null);
+                resultShadowBean.setDead(true);
+                resultShadowBean.setExists(false);
+                resultShadowBean.setPrimaryIdentifierValue(null);
             }
         }
         // TODO: check schema, remove non-readable attributes, activation, password, etc.
@@ -313,9 +317,12 @@ public class ShadowCaretaker {
         return sortedList;
     }
 
-    public ChangeTypeType findPreviousPendingLifecycleOperationInGracePeriod(ProvisioningContext ctx, PrismObject<ShadowType> shadow, XMLGregorianCalendar now) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public ChangeTypeType findPreviousPendingLifecycleOperationInGracePeriod(ProvisioningContext ctx,
+            PrismObject<ShadowType> shadow, XMLGregorianCalendar now)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
         List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
-        if (pendingOperations == null || pendingOperations.isEmpty()) {
+        if (pendingOperations.isEmpty()) {
             return null;
         }
         Duration gracePeriod = ProvisioningUtil.getGracePeriod(ctx);
@@ -347,30 +354,51 @@ public class ShadowCaretaker {
     // NOTE: detection of quantum states (gestation, corpse) might not be precise. E.g. the shadow may already be
     // tombstone because it is not in the snapshot. But as long as the pending operation is in grace we will still
     // detect it as corpse. But that should not cause any big problems.
-    public ShadowState determineShadowState(ProvisioningContext ctx, PrismObject<ShadowType> shadow, XMLGregorianCalendar now) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        ShadowType shadowType = shadow.asObjectable();
+    public @NotNull ShadowLifecycleStateType determineShadowState(ProvisioningContext ctx, PrismObject<ShadowType> shadow, XMLGregorianCalendar now)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        ShadowType shadowBean = shadow.asObjectable();
         ChangeTypeType pendingLifecycleOperation = findPreviousPendingLifecycleOperationInGracePeriod(ctx, shadow, now);
-        if (ShadowUtil.isDead(shadowType)) {
+        if (ShadowUtil.isDead(shadowBean)) {
             if (pendingLifecycleOperation == ChangeTypeType.DELETE) {
-                return ShadowState.CORPSE;
+                return ShadowLifecycleStateType.CORPSE;
             } else {
-                return ShadowState.TOMBSTONE;
+                return ShadowLifecycleStateType.TOMBSTONE;
             }
         }
-        if (ShadowUtil.isExists(shadowType)) {
+        if (ShadowUtil.isExists(shadowBean)) {
             if (pendingLifecycleOperation == ChangeTypeType.DELETE) {
-                return ShadowState.REAPING;
+                return ShadowLifecycleStateType.REAPING;
             } else if (pendingLifecycleOperation == ChangeTypeType.ADD) {
-                return ShadowState.GESTATION;
+                return ShadowLifecycleStateType.GESTATING;
             } else {
-                return ShadowState.LIFE;
+                return ShadowLifecycleStateType.LIVE;
             }
         }
-        if (SchemaConstants.LIFECYCLE_PROPOSED.equals(shadowType.getLifecycleState())) {
-            return ShadowState.PROPOSED;
+        // FIXME currently we don't work correctly with the object lifecycle for shadows. E.g. some shadows are marked
+        //  as proposed, even if they are active in fact. So be careful with this.
+        if (SchemaConstants.LIFECYCLE_PROPOSED.equals(shadowBean.getLifecycleState())) {
+            return ShadowLifecycleStateType.PROPOSED;
         } else {
-            return ShadowState.CONCEPTION;
+            return ShadowLifecycleStateType.CONCEIVED;
         }
     }
 
+    /** Determines and updates the shadow state. */
+    public void updateShadowState(ProvisioningContext ctx, PrismObject<ShadowType> shadow)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            ObjectNotFoundException {
+        ShadowLifecycleStateType state = determineShadowState(ctx, shadow, clock.currentTimeXMLGregorianCalendar());
+        shadow.asObjectable().setShadowLifecycleState(state);
+    }
+
+    /** Determines and updates (and returns) the shadow state. */
+    public @NotNull ShadowLifecycleStateType updateAndReturnShadowState(ProvisioningContext ctx,
+            PrismObject<ShadowType> shadow, XMLGregorianCalendar now)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        ShadowLifecycleStateType state = determineShadowState(ctx, shadow, now);
+        shadow.asObjectable().setShadowLifecycleState(state);
+        return state;
+    }
 }

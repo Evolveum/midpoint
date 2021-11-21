@@ -12,7 +12,9 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsGuiHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsHelper;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelInstances;
@@ -28,8 +30,9 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
 
 @PanelType(name = "orgMembers")
 @PanelInstances(instances = {
@@ -50,7 +53,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     }
 
     @Override
-    protected ObjectQuery getActionQuery(QueryScope scope, Collection<QName> relations) {
+    protected ObjectQuery getActionQuery(QueryScope scope, @NotNull Collection<QName> relations) {
         if (getMemberPanelStorage().isSearchScope(SearchBoxScopeType.ONE_LEVEL) ||
                 (getMemberPanelStorage().isSearchScope(SearchBoxScopeType.SUBTREE)
                         && !QueryScope.ALL.equals(scope))) {
@@ -58,7 +61,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
         } else {
             String oid = getModelObject().getOid();
 
-            ObjectReferenceType ref = MemberOperationsHelper.createReference(getModelObject(), getMemberPanelStorage().getDefaultRelation());
+            ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getModelObject(), getMemberPanelStorage().getDefaultRelation());
             ObjectQuery query = getPageBase().getPrismContext().queryFor(getSearchTypeClass())
                     .type(getSearchTypeClass())
                     .isChildOf(ref.asReferenceValue()).build();
@@ -85,7 +88,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     @Override
     protected void assignMembers(AjaxRequestTarget target, RelationSearchItemConfigurationType relationConfig,
             List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList, boolean isOrgTreePanelVisible) {
-        MemberOperationsHelper.assignOrgMembers(getPageBase(), getModelObject(), target, relationConfig, objectTypes, archetypeRefList);
+        MemberOperationsGuiHelper.assignOrgMembers(getPageBase(), getModelObject(), target, relationConfig, objectTypes, archetypeRefList);
     }
 
     @Override
@@ -150,7 +153,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     }
 
     @Override
-    protected List<QName> getRelationsForRecomputeTask() {
+    protected @NotNull List<QName> getRelationsForRecomputeTask() {
         if (CollectionUtils.isEmpty(getMemberPanelStorage().getSupportedRelations())) {
             return Collections.singletonList(PrismConstants.Q_ANY);
         }

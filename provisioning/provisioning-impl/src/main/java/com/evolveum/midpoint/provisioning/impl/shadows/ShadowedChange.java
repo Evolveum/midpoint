@@ -137,6 +137,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
 
         try {
             applyAttributesDefinition();
+            determineShadowState();
 
             if (!isDelete()) {
                 PrismObject<ShadowType> resourceObject = determineCurrentResourceObject(result);
@@ -355,6 +356,12 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
         }
     }
 
+    private void determineShadowState()
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            ObjectNotFoundException {
+        beans.shadowCaretaker.updateShadowState(context, repoShadow);
+    }
+
     public boolean isDelete() {
         return resourceObjectChange.isDelete();
     }
@@ -441,6 +448,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
             throw new NotApplicableException();
         }
         context = beans.shadowCaretaker.applyAttributesDefinition(context, currentShadow);
+        beans.shadowCaretaker.updateShadowState(context, currentShadow);
         return currentShadow;
     }
 

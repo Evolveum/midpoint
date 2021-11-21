@@ -96,6 +96,10 @@ public class SqlRepoContext {
         return querydslConfig.getTemplates();
     }
 
+    public Configuration getQuerydslConfiguration() {
+        return querydslConfig;
+    }
+
     public SQLInsertClause newInsert(Connection connection, RelationalPath<?> entity) {
         return new SQLInsertClause(connection, querydslConfig, entity);
     }

@@ -17,7 +17,10 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectCon
 
 import com.evolveum.midpoint.schema.*;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -48,10 +51,6 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Helps with the `get` operation.
@@ -77,7 +76,7 @@ class GetHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(GetHelper.class);
 
-    public PrismObject<ShadowType> getShadow(String oid, PrismObject<ShadowType> repoShadow,
+    public @NotNull PrismObject<ShadowType> getShadow(String oid, PrismObject<ShadowType> repoShadow,
             Collection<ResourceAttribute<?>> identifiersOverride, Collection<SelectorOptions<GetOperationOptions>> options,
             Task task, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
@@ -88,7 +87,7 @@ class GetHelper {
         if (repoShadow == null) {
             LOGGER.trace("Start getting object with oid {}; identifiers override = {}", oid, identifiersOverride);
         } else {
-            LOGGER.trace("Start getting object {}; identifiers override = {}", repoShadow, identifiersOverride);
+            LOGGER.trace("Start getting object '{}'; identifiers override = {}", repoShadow, identifiersOverride);
         }
 
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
@@ -120,6 +119,7 @@ class GetHelper {
                 //TODO maybe change assertDefinition to consider rawOption?
                 parentResult.computeStatusIfUnknown();
                 parentResult.muteError();
+                shadowCaretaker.updateShadowState(ctx, repoShadow);
                 return repoShadow;
             }
             throw e;
@@ -149,6 +149,7 @@ class GetHelper {
                 PrismObject<ShadowType> handledShadow = handleGetError(ctx, repoShadow, rootOptions, ex, task, parentResult);
                 validateShadow(handledShadow, true);
                 shadowCaretaker.applyAttributesDefinition(ctx, handledShadow);
+                shadowCaretaker.updateShadowState(ctx, handledShadow);
                 return handledShadow;
             } catch (GenericFrameworkException | ObjectAlreadyExistsException | PolicyViolationException e) {
                 throw new SystemException(e.getMessage(), e);
@@ -173,7 +174,7 @@ class GetHelper {
             throw e;
         }
 
-        ShadowState shadowState = shadowCaretaker.determineShadowState(ctx, repoShadow, now);
+        ShadowLifecycleStateType shadowState = shadowCaretaker.updateAndReturnShadowState(ctx, repoShadow, now);
         LOGGER.trace("State of shadow {}: {}", repoShadow, shadowState);
 
         if (canImmediatelyReturnCached(options, repoShadow, shadowState, resource)) {
@@ -208,9 +209,11 @@ class GetHelper {
                         // Get of uncreated shadow, but we want current state. Therefore we have to throw an error because
                         // the object does not exist yet - to our best knowledge. But we cannot really throw ObjectNotFound here.
                         // ObjectNotFound is a positive indication that the object does not exist.
-                        // We do not know that for sure because resource is unavailable. The object might have been created in the meantime.
+                        // We do not know that for sure because resource is unavailable.
+                        // The object might have been created in the meantime.
                         throw new GenericConnectorException(
-                                "Unable to get object from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
+                                "Unable to get object from the resource. Probably it has not been created yet because "
+                                        + "of previous unavailability of the resource.");
                     }
                 }
 
@@ -231,9 +234,9 @@ class GetHelper {
 
             } catch (ObjectNotFoundException e) {
                 // This may be OK, e.g. for connectors that have running async add operation.
-                if (shadowState == ShadowState.CONCEPTION || shadowState == ShadowState.GESTATION) {
+                if (shadowState == ShadowLifecycleStateType.CONCEIVED || shadowState == ShadowLifecycleStateType.GESTATING) {
                     LOGGER.trace("{} was not found, but we can return cached shadow because it is in {} state", repoShadow, shadowState);
-                    parentResult.deleteLastSubresultIfError();        // we don't want to see 'warning-like' orange boxes in GUI (TODO reconsider this)
+                    parentResult.deleteLastSubresultIfError(); // we don't want to see 'warning-like' orange boxes in GUI (TODO reconsider this)
                     parentResult.recordSuccess();
 
                     PrismObject<ShadowType> resultShadow = commonHelper.futurizeShadow(ctx, repoShadow, null, options, now);
@@ -300,6 +303,9 @@ class GetHelper {
                     // is returned
                     parentResult.setStatus(OperationResultStatus.PARTIAL_ERROR);
                 }
+                // We update the shadow lifecycle state because we are not sure if the handledShadow is the same
+                // as repoShadow (that has its state set).
+                shadowCaretaker.updateShadowState(ctx, handledShadow); // must be called before futurizeShadow
                 PrismObject<ShadowType> futurizedShadow = commonHelper.futurizeShadow(ctx, handledShadow, null, options, now);
                 validateShadow(futurizedShadow, true);
                 return futurizedShadow;
@@ -329,10 +335,10 @@ class GetHelper {
         return isForceRefresh(rootOptions) || isForceRetry(rootOptions) || ResourceTypeUtil.isRefreshOnRead(resource);
     }
 
-    private PrismObject<ShadowType> processNoFetchGet(ProvisioningContext ctx,
+    private @NotNull PrismObject<ShadowType> processNoFetchGet(ProvisioningContext ctx,
             PrismObject<ShadowType> repositoryShadow, Collection<SelectorOptions<GetOperationOptions>> options,
             XMLGregorianCalendar now, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         LOGGER.trace("Processing noFetch get for {}", repositoryShadow);
 
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
@@ -348,9 +354,10 @@ class GetHelper {
             throw e;
         }
 
+        // TODO do we really want to do this in raw mode (MID-7419)?
+        shadowCaretaker.updateShadowState(ctx, repositoryShadow); // must be done before futurizeShadow
         PrismObject<ShadowType> resultShadow = commonHelper.futurizeShadow(ctx, repositoryShadow, null, options, now);
         shadowCaretaker.applyAttributesDefinition(ctx, resultShadow);
-
         return resultShadow;
     }
 
@@ -372,11 +379,13 @@ class GetHelper {
         return handler.handleGetError(ctx, repositoryShadow, rootOptions, cause, task, parentResult);
     }
 
-    private boolean canImmediatelyReturnCached(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow, ShadowState shadowState, ResourceType resource) throws ConfigurationException {
+    private boolean canImmediatelyReturnCached(Collection<SelectorOptions<GetOperationOptions>> options,
+            PrismObject<ShadowType> repositoryShadow, ShadowLifecycleStateType shadowState, ResourceType resource)
+            throws ConfigurationException {
         if (ProvisioningUtil.resourceReadIsCachingOnly(resource)) {
             return true;
         }
-        if (shadowState == ShadowState.TOMBSTONE) {
+        if (shadowState == ShadowLifecycleStateType.TOMBSTONE) {
             // Once shadow is buried it stays nine feet under. Therefore there is no point in trying to access the resource.
             // NOTE: this is just for tombstone! Schrodinger's shadows (corpse) will still work as if they were alive.
             return true;

@@ -124,6 +124,7 @@ public class ItemsProgressInformation implements DebugDumpable, Serializable {
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.debugDumpWithLabelLn(sb, "Progress", progress, indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "Errors", errors, indent);
         DebugUtil.debugDumpWithLabel(sb, "Expected progress", expectedProgress, indent);
         return sb.toString();
     }

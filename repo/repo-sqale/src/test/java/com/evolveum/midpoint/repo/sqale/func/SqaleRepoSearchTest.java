@@ -603,6 +603,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test146SearchTaskByEnumValueProvidedAsStringIsNotSupported() {
+        // Support for string is possible if EnumItemFilterProcessor is typed to <?> and some ifs added,
+        // similar to TimestampItemFilterProcessor, but right now we don't bother.
         given("query for enum equality using string value");
         OperationResult operationResult = createOperationResult();
         ObjectQuery query = prismContext.queryFor(TaskType.class)

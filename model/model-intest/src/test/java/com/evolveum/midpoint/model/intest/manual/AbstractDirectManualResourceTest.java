@@ -1888,7 +1888,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         assertShadowActivationAdministrativeStatusFromCache(repoShadowAsserter, ActivationStatusType.ENABLED);
 
         assertModelShadowFuture(accountWillOid)
-            .assertLife()
+            .assertLive()
             .assertAdministrativeStatus(ActivationStatusType.ENABLED)
             .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)

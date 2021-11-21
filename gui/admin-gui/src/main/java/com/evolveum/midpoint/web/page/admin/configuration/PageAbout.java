@@ -62,7 +62,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
@@ -564,7 +563,7 @@ public class PageAbout extends PageAdminConfiguration {
         try {
             QName type = ObjectType.COMPLEX_TYPE;
             taskOid = deleteObjectsAsync(type, factory.createQuery(
-                    factory.createAnd(notTaskFilter, notNodeFilter)), true,
+                    factory.createAnd(notTaskFilter, notNodeFilter)),
                     taskName, result);
 
         } catch (Exception ex) {

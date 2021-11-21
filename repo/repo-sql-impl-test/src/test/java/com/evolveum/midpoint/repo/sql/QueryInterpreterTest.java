@@ -3548,24 +3548,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false)
-    // different types of properties that are to be compared (polystring vs string in this case) are not supported yet
-    public void test557OrganizationEqualsCostCenter() throws Exception {
-        Session session = open();
-
-        try {
-            /*
-             * ### User: organization = costCenter
-             */
-            ObjectQuery query = prismContext.queryFor(UserType.class)
-                    .item(UserType.F_ORGANIZATION).eq(UserType.F_COST_CENTER)
-                    .build();
-            getInterpretedQuery(session, UserType.class, query);
-        } finally {
-            close(session);
-        }
-    }
-
     @Test
     public void test560DecisionsNotAnswered() throws Exception {
         Session session = open();

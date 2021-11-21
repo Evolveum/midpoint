@@ -1,0 +1,73 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+
+    <!-- [cleanable] = limited user has the authorization to delete this object -->
+    <!-- [l:will / will not be deleted] = this object will or will not be deleted by limited user -->
+    <!-- [a:will / will not be deleted] = this object will or will not be deleted by administrator -->
+
+    <task oid="7a9d7961-f88a-4c3a-8fcf-7e1c751934e2">
+        <name>test task 0 [standalone] [cleanable] indestructible [l:will not be deleted] [a:will not be deleted]</name>
+        <taskIdentifier>0</taskIdentifier>
+        <executionState>closed</executionState>
+        <completionTimestamp>2010-01-01T00:00:00</completionTimestamp>
+        <indestructible>true</indestructible>
+    </task>
+    <task oid="6a3d0ac2-9d19-4aee-89fd-f35e5af24099">
+        <name>test task 1 [standalone] [cleanable] [l:will be deleted] [a:will be deleted]</name>
+        <taskIdentifier>1</taskIdentifier>
+        <executionState>closed</executionState>
+        <completionTimestamp>2010-01-01T00:00:00</completionTimestamp>
+    </task>
+    <task oid="01a40b2c-b5bc-44e0-ba17-35ce83b6b57f">
+        <name>test task 2 [standalone] [not cleanable] [l:will not be deleted] [a:will be deleted]</name>
+        <taskIdentifier>2</taskIdentifier>
+        <executionState>closed</executionState>
+        <completionTimestamp>2010-01-01T00:00:00</completionTimestamp>
+    </task>
+    <task oid="a62b6986-1730-4a0c-b95d-586ce21c5e7e">
+        <name>test task 3 [root] [cleanable] [l:will be deleted] [a:will be deleted]</name>
+        <taskIdentifier>3</taskIdentifier>
+        <executionState>closed</executionState>
+        <completionTimestamp>2010-01-01T00:00:00</completionTimestamp>
+    </task>
+    <task oid="8b92fa21-3f37-4f44-84d9-22a0e19dc0dd">
+        <name>test task 4 [subtask] [cleanable] [l:will be deleted] [a:will be deleted]</name>
+        <taskIdentifier>4</taskIdentifier>
+        <parent>3</parent>
+        <executionState>closed</executionState>
+        <completionTimestamp>2010-01-01T00:00:00</completionTimestamp>
+    </task>
+    <task oid="668918a0-5d8f-4a02-aca9-e682f697a556">
+        <name>test task 5 [root] [cleanable] but with non-cleanable child [l:will not be deleted] [a:will be deleted]</name>
+        <taskIdentifier>5</taskIdentifier>
+        <executionState>closed</executionState>
+        <completionTimestamp>2010-01-01T00:00:00</completionTimestamp>
+    </task>
+    <task oid="2741076e-e9d4-422d-b763-d3a487a7d129">
+        <name>test task 6 [subtask] [not cleanable] [l:will not be deleted] [a:will be deleted]</name>
+        <taskIdentifier>6</taskIdentifier>
+        <parent>5</parent>
+        <executionState>closed</executionState>
+        <completionTimestamp>2010-01-01T00:00:00</completionTimestamp>
+    </task>
+
+    <node oid="317c65d1-9f58-4325-b883-402cb050d217">
+        <name>test node 0 [cleanable] indestructible [l:will not be deleted] [a:will not be deleted]</name>
+        <operationalState>down</operationalState>
+        <indestructible>true</indestructible>
+    </node>
+    <node oid="dddab214-3270-4af5-bbf2-a3a0901fb0b0">
+        <name>test node 1 [cleanable] [l:will be deleted] [a:will be deleted]</name>
+        <operationalState>down</operationalState>
+    </node>
+    <node oid="1a92df55-35ba-4ac0-8f09-cf7789123eef">
+        <name>test node 2 [not cleanable] [l:will not be deleted] [a:will be deleted]</name>
+        <operationalState>down</operationalState>
+    </node>
+</objects>

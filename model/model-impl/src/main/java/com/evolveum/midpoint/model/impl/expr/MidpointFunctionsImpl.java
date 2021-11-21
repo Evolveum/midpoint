@@ -319,7 +319,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             return false;
         }
 
-        if (projectionContext.isTombstone()) {
+        if (projectionContext.isGone()) {
             return false;
         }
 
@@ -1692,7 +1692,25 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         newTask.setOwnerRef(createObjectRef(principal.getFocus(), prismContext));
         newTask.setExecutionState(RUNNABLE);
         newTask.setSchedulingState(TaskSchedulingStateType.READY);
-        newTask.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
+        newTask.setActivity(null);
+        NonIterativeChangeExecutionWorkDefinitionType workDef = newTask.beginActivity()
+                .beginWork()
+                .beginNonIterativeChangeExecution();
+        workDef.getDelta().addAll(
+                getDeltaBeans(deltas));
+        if (options != null) {
+            workDef.setExecutionOptions(
+                    options.toModelExecutionOptionsType());
+        }
+
+        ObjectDelta<TaskType> taskAddDelta = DeltaFactory.Object.createAddDelta(newTask.asPrismObject());
+        Collection<ObjectDeltaOperation<? extends ObjectType>> operations = modelService
+                .executeChanges(singleton(taskAddDelta), null, opTask, result);
+        return (TaskType) operations.iterator().next().getObjectDelta().getObjectToAdd().asObjectable();
+    }
+
+    @NotNull
+    private List<ObjectDeltaType> getDeltaBeans(Collection<ObjectDelta<?>> deltas) throws SchemaException {
         if (deltas.isEmpty()) {
             throw new IllegalArgumentException("No deltas to execute");
         }
@@ -1701,23 +1719,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             //noinspection unchecked
             deltasBeans.add(DeltaConvertor.toObjectDeltaType((ObjectDelta<? extends com.evolveum.prism.xml.ns._public.types_3.ObjectType>) delta));
         }
-        //noinspection unchecked
-        PrismPropertyDefinition<ObjectDeltaType> deltasDefinition = prismContext.getSchemaRegistry()
-                .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTAS);
-        PrismProperty<ObjectDeltaType> deltasProperty = deltasDefinition.instantiate();
-        deltasProperty.setRealValues(deltasBeans.toArray(new ObjectDeltaType[0]));
-        newTask.asPrismObject().addExtensionItem(deltasProperty);
-        if (options != null) {
-            PrismContainerDefinition<ModelExecuteOptionsType> optionsDefinition = prismContext.getSchemaRegistry()
-                    .findContainerDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
-            PrismContainer<ModelExecuteOptionsType> optionsContainer = optionsDefinition.instantiate();
-            optionsContainer.setRealValue(options.toModelExecutionOptionsType());
-            newTask.asPrismObject().addExtensionItem(optionsContainer);
-        }
-        ObjectDelta<TaskType> taskAddDelta = DeltaFactory.Object.createAddDelta(newTask.asPrismObject());
-        Collection<ObjectDeltaOperation<? extends ObjectType>> operations = modelService
-                .executeChanges(singleton(taskAddDelta), null, opTask, result);
-        return (TaskType) operations.iterator().next().getObjectDelta().getObjectToAdd().asObjectable();
+        return deltasBeans;
     }
 
     @Override

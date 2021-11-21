@@ -70,10 +70,36 @@ public class TaskRunResult implements Serializable {
         IS_WAITING
     }
 
-    protected Long progress; // null means "do not update, take whatever is in the task"
+    /**
+     * Progress to be recorded in the task. Null means "do not update, take whatever is in the task".
+     */
+    protected Long progress;
+
+    /**
+     * Final status of the run. It drives what should be done next. (E.g. repeat the run in the case of temporary
+     * errors and recurring tasks.)
+     */
     protected TaskRunResultStatus runResultStatus;
-    @Deprecated protected OperationResult operationResult;
+
+    /**
+     * Status to be reported to the user.
+     */
     protected OperationResultStatus operationResultStatus;
+
+    /**
+     * An exception that has occurred and that is going to be recorded at the root of the operation result.
+     * This is the "main" exception that caused the task run to be stopped. (It should be recorded somewhere
+     * in the operation result as well, if possible. But here it is designated as _the_ cause of the run being stopped.)
+     *
+     * If null, we will not overwrite the value that is computed for the result.
+     */
+    protected Throwable throwable;
+
+    /**
+     * Message that should be recorded in the root operation result. It has the same meaning as {@link #throwable}.
+     * (Including the fact that if it's null, it won't overwrite whatever is in the result.)
+     */
+    protected String message;
 
     /**
      * @return the progress
@@ -100,16 +126,6 @@ public class TaskRunResult implements Serializable {
         this.runResultStatus = status;
     }
 
-    @Deprecated
-    public OperationResult getOperationResult() {
-        return operationResult;
-    }
-
-    @Deprecated
-    public void setOperationResult(OperationResult operationResult) {
-        this.operationResult = operationResult;
-    }
-
     public OperationResultStatus getOperationResultStatus() {
         return operationResultStatus;
     }
@@ -118,20 +134,41 @@ public class TaskRunResult implements Serializable {
         this.operationResultStatus = operationResultStatus;
     }
 
+    public Throwable getThrowable() {
+        return throwable;
+    }
+
+    public void setThrowable(Throwable throwable) {
+        this.throwable = throwable;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof TaskRunResult)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         TaskRunResult that = (TaskRunResult) o;
         return Objects.equals(progress, that.progress) &&
                 runResultStatus == that.runResultStatus &&
-                Objects.equals(operationResult, that.operationResult) &&
-                operationResultStatus == that.operationResultStatus;
+                operationResultStatus == that.operationResultStatus &&
+                Objects.equals(throwable, that.throwable) &&
+                Objects.equals(message, that.message);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(progress, runResultStatus, operationResult, operationResultStatus);
+        return Objects.hash(progress, runResultStatus, operationResultStatus, throwable, message);
     }
 
     @Override
@@ -141,48 +178,21 @@ public class TaskRunResult implements Serializable {
                 + ")";
     }
 
-    @NotNull public static TaskRunResult createFailureTaskRunResult(RunningTask task, String message, Throwable t) {
-        TaskRunResult runResult = createRunResult(task);
-        if (t != null) {
-            runResult.getOperationResult().recordFatalError(message, t);
-        } else {
-            runResult.getOperationResult().recordFatalError(message);
-        }
-        runResult.setOperationResultStatus(OperationResultStatus.FATAL_ERROR);
-        runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-        return runResult;
-    }
-
-    @NotNull public static TaskRunResult createSuccessTaskRunResult(RunningTask task) {
-        TaskRunResult runResult = createRunResult(task);
-        runResult.getOperationResult().recordSuccess();
-        runResult.setOperationResultStatus(OperationResultStatus.SUCCESS);
-        runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-        return runResult;
-    }
-
-    @NotNull public static TaskRunResult createInterruptedTaskRunResult(RunningTask task) {
-        TaskRunResult runResult = createRunResult(task);
-        runResult.getOperationResult().recordSuccess(); // TODO ok?
-        runResult.setOperationResultStatus(OperationResultStatus.SUCCESS); // TODO ok?
-        runResult.setRunResultStatus(TaskRunResultStatus.INTERRUPTED);
-        return runResult;
-    }
-
-    @NotNull public static TaskRunResult createFromTaskException(RunningTask task, TaskException e) {
-        TaskRunResult runResult = createRunResult(task);
-        runResult.getOperationResult().recordStatus(e.getOpResultStatus(), e.getFullMessage(), e.getCause());
-        runResult.setOperationResultStatus(e.getOpResultStatus());
-        runResult.setRunResultStatus(e.getRunResultStatus());
-        return runResult;
-    }
-
-    private static TaskRunResult createRunResult(RunningTask task) {
+    @NotNull public static TaskRunResult createFailureTaskRunResult(String message, Throwable t) {
         TaskRunResult runResult = new TaskRunResult();
-        runResult.setOperationResult(
-                Objects.requireNonNullElseGet(
-                        task.getResult(),
-                        () -> new OperationResult(TaskConstants.OP_EXECUTE_HANDLER)));
+        runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+        runResult.setOperationResultStatus(OperationResultStatus.FATAL_ERROR);
+        runResult.setThrowable(t);
+        runResult.setMessage(message);
+        return runResult;
+    }
+
+    @NotNull public static TaskRunResult createFromTaskException(TaskException e) {
+        TaskRunResult runResult = new TaskRunResult();
+        runResult.setRunResultStatus(e.getRunResultStatus());
+        runResult.setOperationResultStatus(e.getOpResultStatus());
+        runResult.setThrowable(e.getCause());
+        runResult.setMessage(e.getFullMessage());
         return runResult;
     }
 

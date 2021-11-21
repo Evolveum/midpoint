@@ -90,7 +90,8 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
     }
 
     private void createOptionsDropdownButton(List<InlineMenuItem> items) {
-        DropdownButtonDto model = new DropdownButtonDto(null, GuiStyleConstants.CLASS_OPTIONS_BUTTON_ICON, "Options", items);
+        DropdownButtonDto model = new DropdownButtonDto(null, GuiStyleConstants.CLASS_OPTIONS_BUTTON_ICON,
+                getPageBase().createStringResource("ExecuteChangeOptionsPanel.options").getString(), items);
         DropdownButtonPanel dropdownButtonPanel = new DropdownButtonPanel(ID_OPTIONS, model) {
 
             @Override

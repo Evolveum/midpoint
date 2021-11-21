@@ -1,20 +1,49 @@
 <?xml version="1.0" ?>
 <!--
-  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <role oid="2330f9df-83bc-4270-86fc-27fca2b616a7"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+
     <name>prize</name>
     <inducement>
         <policyRule>
             <name>pruning-gold</name>
             <policyConstraints>
                 <exclusion>
-                    <targetRef oid="0b3ad53e-7c1d-41d0-a447-ce94cd25c46a" type="RoleType"/>    <!-- gold -->
+                    <!--<targetRef oid="0b3ad53e-7c1d-41d0-a447-ce94cd25c46a" type="RoleType"/>-->
+                    <!-- This is alternative way of returning the target ref and this checks MID-7390 -->
+                    <targetRef>
+                        <resolutionTime>run</resolutionTime>
+                        <type>RoleType</type>
+                        <filter>
+                            <q:equal>
+                                <q:path>name</q:path>
+                                <!--<q:value>gold</q:value> simpler, but worked before MID-7390 -->
+                                <expression>
+                                    <script>
+                                        <code>
+                                            // variable
+                                            assert policyRule != null // EvaluatedPolicyRule
+                                            assert policyRule.assignmentPath != null
+
+                                            // pushed expression environment
+                                            assert midpoint.modelContext != null
+                                            assert midpoint.currentTask != null
+                                            assert midpoint.currentResult != null
+
+                                            return "gold"
+                                        </code>
+                                    </script>
+                                </expression>
+                            </q:equal>
+                        </filter>
+                    </targetRef>
                 </exclusion>
             </policyConstraints>
             <policyActions>
@@ -22,6 +51,7 @@
             </policyActions>
         </policyRule>
     </inducement>
+    <!-- TODO: Are some asserts missing in TestMiscellaneous? You can remove all below and tests still pass. -->
     <inducement>
         <policyRule>
             <name>pruning-silver</name>

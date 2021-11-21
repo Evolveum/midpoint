@@ -12,6 +12,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconCssStyle;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
@@ -44,7 +45,6 @@ import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
@@ -95,8 +95,17 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     public static final long WAIT_FOR_TASK_STOP = 2000L;
 
+    /**
+     * Does this panel show root tasks only?
+     */
+    private boolean rootTasksOnly;
+
     public TaskTablePanel(String id, Collection<SelectorOptions<GetOperationOptions>> options) {
         super(id, TaskType.class, options);
+    }
+
+    void setRootTasksOnly(boolean rootTasksOnly) {
+        this.rootTasksOnly = rootTasksOnly;
     }
 
     @Override
@@ -235,7 +244,13 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
         columns.add(createTaskExecutionStateColumn());
 
-        columns.add(createNodesColumn()); // TODO reconsider
+        // We should display "Executing at" (the Nodes column) only for root tasks. The reason is that
+        // the TaskInformation does not provide adequate methods to get the information for subtasks.
+        // See MID-7309.
+        if (rootTasksOnly) {
+            columns.add(createNodesColumn());
+        }
+
         columns.add(createProgressColumn());
         columns.add(createErrorsColumn());
         columns.add(createTaskStatusIconColumn());
@@ -739,12 +754,19 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         task.setName("Closed tasks cleanup");
 
         try {
-            CleanupPolicyType policy = new CleanupPolicyType();
-            policy.setMaxAge(XmlTypeConverter.createDuration(0));
-
-            CleanupPoliciesType policies = new CleanupPoliciesType(getPrismContext());
-            policies.setClosedTasks(policy);
-            task.setExtensionContainerValue(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES, policies);
+            // @formatter:off
+            task.setRootActivityDefinition(
+                    new ActivityDefinitionType(PrismContext.get())
+                        .beginWork()
+                            .beginCleanup()
+                                .beginPolicies()
+                                    .beginClosedTasks()
+                                        .maxAge(XmlTypeConverter.createDuration(0))
+                                    .<CleanupPoliciesType>end()
+                                .<CleanupWorkDefinitionType>end()
+                            .<WorkDefinitionsType>end()
+                        .end());
+            // @formatter:on
         } catch (SchemaException e) {
             LOGGER.error("Error dealing with schema (task {})", task, e);
             launchResult.recordFatalError(
@@ -813,8 +835,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         return null;
     }
 
-    /** Creates {@link TaskInformationUtil} based on current table row and (in subclasses) the whole activity tree overview.
-     * @return*/
+    /** Creates {@link TaskInformationUtil} based on current table row and (in subclasses) the whole activity tree overview. */
     @NotNull
     protected TaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
         return TaskInformationUtil.getOrCreateInfo(selectableTaskBean, null);

@@ -6,20 +6,19 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <c:user oid="c0c010c0-d34d-b33f-f00d-999111111888"
-   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <c:name>john</c:name>
-    <c:fullName>john weak</c:fullName>
-    <c:givenName>john</c:givenName>
-    <c:familyName>weak</c:familyName>
+    <c:subtype>manager</c:subtype>
     <c:locality>l</c:locality>
     <c:credentials>
         <c:password>
             <c:value>
-                <c:clearValue>deadmentellnotales</c:clearValue>
+                <t:clearValue>deadmentellnotales</t:clearValue>
             </c:value>
         </c:password>
     </c:credentials>
-    <c:subtype>manager</c:subtype>
+    <c:fullName>john weak</c:fullName>
+    <c:givenName>john</c:givenName>
+    <c:familyName>weak</c:familyName>
 </c:user>

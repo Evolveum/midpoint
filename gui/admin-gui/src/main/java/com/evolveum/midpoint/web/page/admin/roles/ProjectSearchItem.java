@@ -72,7 +72,7 @@ public class ProjectSearchItem extends SpecialSearchItem {
 //        S_AtomicFilterExit q = prismContext.queryFor(type).exists(AssignmentHolderType.F_ASSIGNMENT)
 //                .block()
 //                .item(AssignmentType.F_TARGET_REF)
-//                .ref(MemberOperationsHelper.createReferenceValuesList(object, relations));
+//                .ref(MemberOperationsHelperOld.createReferenceValuesList(object, relations));
 //
 //        if (!getMemberPanelStorage().isProjectEmpty()) {
 //            q = q.and().item(AssignmentType.F_ORG_REF).ref(getMemberPanelStorage().getProject().getOid());

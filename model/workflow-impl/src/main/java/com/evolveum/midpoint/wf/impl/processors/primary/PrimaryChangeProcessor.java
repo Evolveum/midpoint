@@ -1,17 +1,31 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.wf.impl.processors.primary;
+
+import static com.evolveum.midpoint.audit.api.AuditEventStage.REQUEST;
+import static com.evolveum.midpoint.model.api.context.ModelState.PRIMARY;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
@@ -20,14 +34,13 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -37,7 +50,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.request.OpenCaseRequest;
 import com.evolveum.midpoint.wf.impl.engine.EngineInvocationContext;
 import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
-import com.evolveum.midpoint.wf.impl.engine.helpers.AuditHelper;
+import com.evolveum.midpoint.wf.impl.engine.helpers.WfAuditHelper;
 import com.evolveum.midpoint.wf.impl.execution.ExecutionHelper;
 import com.evolveum.midpoint.wf.impl.processes.common.StageComputeHelper;
 import com.evolveum.midpoint.wf.impl.processors.*;
@@ -45,25 +58,7 @@ import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspe
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.collections4.CollectionUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.audit.api.AuditEventStage.REQUEST;
-import static com.evolveum.midpoint.model.api.context.ModelState.PRIMARY;
-
-/**
- * @author mederly
- */
 @Component
 public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
@@ -76,18 +71,18 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     @Autowired private ConfigurationHelper configurationHelper;
     @Autowired private ModelHelper modelHelper;
-    @Autowired private AuditHelper auditHelper;
+    @Autowired private WfAuditHelper wfAuditHelper;
     @Autowired private StageComputeHelper stageComputeHelper;
     @Autowired private PcpGeneralHelper generalHelper;
     @Autowired private MiscHelper miscHelper;
     @Autowired private ExecutionHelper executionHelper;
-    @Autowired private TaskManager taskManager;
+
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
     @Autowired private WorkflowEngine workflowEngine;
 
-    private List<PrimaryChangeAspect> allChangeAspects = new ArrayList<>();
+    private final List<PrimaryChangeAspect> allChangeAspects = new ArrayList<>();
 
     //region Configuration
     // =================================================================================== Configuration
@@ -171,7 +166,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
     }
 
-    private void removeEmptyProcesses(List<PcpStartInstruction> instructions, ModelInvocationContext ctx,
+    private void removeEmptyProcesses(List<PcpStartInstruction> instructions, ModelInvocationContext<?> ctx,
             OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         for (Iterator<PcpStartInstruction> iterator = instructions.iterator(); iterator.hasNext(); ) {
@@ -186,8 +181,9 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     // skippability because of no approvers was already tested; see ApprovalSchemaHelper.shouldBeSkipped
     public boolean isEmpty(PcpStartInstruction instruction,
-            StageComputeHelper stageComputeHelper, ModelInvocationContext ctx, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            StageComputeHelper stageComputeHelper, ModelInvocationContext<?> ctx, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
         ApprovalContextType actx = instruction.getApprovalContext();
         if (actx == null) {
             return true;
@@ -212,12 +208,13 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     private String evaluateAutoCompleteExpression(CaseType aCase,
             ApprovalStageDefinitionType stageDef, PcpStartInstruction instruction,
-            StageComputeHelper stageComputeHelper, ModelInvocationContext ctx, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        VariablesMap variables = stageComputeHelper.getDefaultVariables(aCase, instruction.getApprovalContext(), ctx.task.getChannel(), result);
+            StageComputeHelper stageComputeHelper, ModelInvocationContext<?> ctx, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
+        VariablesMap variables = stageComputeHelper.getDefaultVariables(
+                aCase, instruction.getApprovalContext(), ctx.task.getChannel(), result);
         return stageComputeHelper.evaluateAutoCompleteExpression(stageDef, variables, ctx.task, result);
     }
-
 
     private <O extends ObjectType> List<PcpStartInstruction> gatherStartInstructions(
             @NotNull ObjectTreeDeltas<O> changesBeingDecomposed, @NotNull ModelInvocationContext<O> ctx,
@@ -254,7 +251,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
                 .collect(Collectors.toList());
     }
 
-    private void logAspectResult(PrimaryChangeAspect aspect, List<? extends StartInstruction> instructions, ObjectTreeDeltas changesBeingDecomposed) {
+    private void logAspectResult(PrimaryChangeAspect aspect, List<? extends StartInstruction> instructions, ObjectTreeDeltas<?> changesBeingDecomposed) {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("\n---[ Aspect {} returned the following process start instructions (count: {}) ]---",
                     aspect.getClass(), instructions == null ? "(null)" : instructions.size());
@@ -367,7 +364,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
     }
 
-    private LensContext contextCopyWithNoDelta(ModelContext<?> context) {
+    private LensContext<?> contextCopyWithNoDelta(ModelContext<?> context) {
         LensContext<?> contextCopy = ((LensContext<?>) context).clone();
         contextCopy.getFocusContext().setPrimaryDeltaAfterStart(null);
         Collection<LensProjectionContext> projectionContexts = contextCopy.getProjectionContexts();
@@ -466,13 +463,12 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
     }
 
-
     //endregion
 
     //region Auditing
     @Override
     public AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, ApprovalContextType wfContext, OperationResult result) {
-        AuditEventRecord auditEventRecord = auditHelper.prepareProcessInstanceAuditRecord(aCase, stage, result);
+        AuditEventRecord auditEventRecord = wfAuditHelper.prepareProcessInstanceAuditRecord(aCase, stage, result);
         addDeltaIfNeeded(auditEventRecord, stage == REQUEST, aCase);
         return auditEventRecord;
     }
@@ -501,7 +497,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     @Override
     public AuditEventRecord prepareWorkItemCreatedAuditRecord(CaseWorkItemType workItem, CaseType aCase,
             OperationResult result) {
-        AuditEventRecord auditEventRecord = auditHelper.prepareWorkItemCreatedAuditRecord(workItem, aCase, result);
+        AuditEventRecord auditEventRecord = wfAuditHelper.prepareWorkItemCreatedAuditRecord(workItem, aCase, result);
         addDeltaIfNeeded(auditEventRecord, true, aCase);
         return auditEventRecord;
     }
@@ -509,14 +505,13 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     @Override
     public AuditEventRecord prepareWorkItemDeletedAuditRecord(CaseWorkItemType workItem, WorkItemEventCauseInformationType cause,
             CaseType aCase, OperationResult result) {
-        AuditEventRecord auditEventRecord = auditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause, aCase, result);
+        AuditEventRecord auditEventRecord = wfAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause, aCase, result);
         addDeltaIfNeeded(auditEventRecord, true, aCase);
         return auditEventRecord;
     }
     //endregion
 
     //region Getters and setters
-
 
     public void registerChangeAspect(PrimaryChangeAspect changeAspect, boolean first) {
         LOGGER.trace("Registering aspect implemented by {}; first={}", changeAspect.getClass(), first);

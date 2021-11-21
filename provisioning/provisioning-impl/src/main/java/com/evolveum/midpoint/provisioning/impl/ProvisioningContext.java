@@ -459,8 +459,8 @@ public class ProvisioningContext extends StateReporter {
         } else if (shadowCoordinates != null) {
             sb.append(shadowCoordinates.getResourceOid());
         }
-        if (shadowCoordinates != null && shadowCoordinates.isTombstone()) {
-            sb.append(" TOMBSTONE");
+        if (shadowCoordinates != null && shadowCoordinates.isGone()) {
+            sb.append(" GONE");
         }
         return sb.toString();
     }

@@ -11,6 +11,7 @@ import java.util.Collection;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.PipelineItem;
@@ -23,7 +24,6 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SelectorQualifiedGetOptionsType;
@@ -52,7 +52,7 @@ public class ResolveExecutor extends BaseActionExecutor {
         Collection<SelectorOptions<GetOperationOptions>> options;
         if (action instanceof ResolveReferenceActionExpressionType) {
             SelectorQualifiedGetOptionsType optionsBean = ((ResolveReferenceActionExpressionType) action).getOptions();
-            options = MiscSchemaUtil.optionsTypeToOptions(optionsBean, prismContext);
+            options = GetOperationOptionsUtil.optionsBeanToOptions(optionsBean);
         } else {
             boolean noFetch = expressionHelper.getArgumentAsBoolean(action.getParameter(), PARAM_NO_FETCH, input, context, false, NAME, globalResult);
             options = schemaService.getOperationOptionsBuilder().noFetch(noFetch).build();

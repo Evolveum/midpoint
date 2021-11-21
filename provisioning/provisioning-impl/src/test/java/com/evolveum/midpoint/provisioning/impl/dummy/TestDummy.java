@@ -571,6 +571,46 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSteadyResource();
     }
 
+    /**
+     * Raw search should not go to the resource as well.
+     */
+    @Test
+    public void test111bSearchIterativeRaw() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID,
+                new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
+                        SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext);
+
+        final List<PrismObject<ShadowType>> foundObjects = new ArrayList<>();
+        ResultHandler<ShadowType> handler = (shadow, parentResult) -> {
+            foundObjects.add(shadow);
+            assertTrue(shadow.canRepresent(ShadowType.class));
+            return true;
+        };
+
+        Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createRawCollection();
+
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
+
+        when();
+        provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, null, result);
+
+        then();
+        assertSuccess(result);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
+
+        display("Found shadows", foundObjects);
+
+        assertEquals(4, foundObjects.size());
+        checkUniqueness(foundObjects);
+        // In raw mode there should be no protected shadow info. But currently this is not implemented fully: MID-7419
+        //assertProtected(foundObjects, 0);
+
+        assertSteadyResource();
+    }
+
     @Test
     public void test112SearchIterativeKindIntent() throws Exception {
         // GIVEN

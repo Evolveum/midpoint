@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.impl.util.mock;
 
 import java.util.*;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -118,7 +120,10 @@ public class MockFactory {
 
             @Override
             public <T extends ObjectType> void applyDefinition(PrismObject<T> object, Task task, OperationResult parentResult) {
+            }
 
+            @Override
+            public void determineShadowState(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
             }
 
             @Override

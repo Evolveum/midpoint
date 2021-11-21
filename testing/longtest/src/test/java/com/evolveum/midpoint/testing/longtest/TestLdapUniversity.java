@@ -28,7 +28,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.common.ProfilingConfigurationManager;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationTaskHandler;
+import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationLauncher;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -68,7 +68,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
     protected ResourceType resourceOpenDjType;
     protected PrismObject<ResourceType> resourceOpenDj;
 
-    @Autowired private ReconciliationTaskHandler reconciliationTaskHandler;
+    @Autowired private ReconciliationLauncher reconciliationLauncher;
     @Autowired private MidpointConfiguration midpointConfiguration;
 
     @Override
@@ -186,7 +186,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 
         when();
         ResourceType resource = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result).asObjectable();
-        reconciliationTaskHandler.launch(
+        reconciliationLauncher.launch(
                 resource, new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
 
         then();

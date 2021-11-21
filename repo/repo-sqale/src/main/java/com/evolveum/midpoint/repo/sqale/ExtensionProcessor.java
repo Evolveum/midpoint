@@ -38,7 +38,7 @@ public class ExtensionProcessor {
         for (Item<?, ?> item : prismContainerValue.getItems()) {
             try {
                 Objects.requireNonNull(item, "Object for converting must not be null.");
-                ItemDefinition extDef = item.getDefinition();
+                ItemDefinition<?> extDef = item.getDefinition();
                 if (extDef == null) {
                     continue; // item does not have definition, skipping
                 }
@@ -62,7 +62,7 @@ public class ExtensionProcessor {
     /** Returns ext item definition or null if the item is not indexed and should be skipped. */
     @Nullable
     public ExtensionProcessor.ExtItemInfo findExtensionItem(
-            ItemDefinition<?> definition, MExtItemHolderType holderType) {
+            @NotNull ItemDefinition<?> definition, MExtItemHolderType holderType) {
         MExtItem extItem = resolveExtensionItem(definition, holderType);
         if (extItem == null) {
             return null; // not-indexed, returning null
@@ -149,9 +149,7 @@ public class ExtensionProcessor {
      * Returns null if the item is not indexed.
      */
     public MExtItem resolveExtensionItem(
-            ItemDefinition<?> definition, MExtItemHolderType holderType) {
-        Objects.requireNonNull(definition,
-                "Item '" + definition.getItemName() + "' without definition can't be saved.");
+            @NotNull ItemDefinition<?> definition, MExtItemHolderType holderType) {
         if (definition instanceof PrismContainerDefinition<?>) {
             // Skip containers for now
             return null;

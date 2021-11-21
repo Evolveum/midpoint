@@ -624,10 +624,10 @@ public class PageDebugList extends PageAdminConfiguration {
         try {
             if (dto.getDeleteUsers()) {
                 ObjectQuery query = createDeleteAllUsersQuery();
-                taskOid = deleteObjectsAsync(UserType.COMPLEX_TYPE, query, true, "Delete all users", result);
+                taskOid = deleteObjectsAsync(UserType.COMPLEX_TYPE, query, "Delete all users", result);
             }
             if (dto.getDeleteOrgs()) {
-                taskOid = deleteObjectsAsync(OrgType.COMPLEX_TYPE, null, true, "Delete all orgs", result);
+                taskOid = deleteObjectsAsync(OrgType.COMPLEX_TYPE, null, "Delete all orgs", result);
             }
             if (dto.getDeleteAccountShadow()) {
                 taskOid = deleteAllShadowsConfirmed(result, true);
@@ -674,7 +674,7 @@ public class PageDebugList extends PageAdminConfiguration {
             query = factory.createQuery(factory.createNot(kindFilter));
         }
 
-        return deleteObjectsAsync(ShadowType.COMPLEX_TYPE, query, true, taskName, result);
+        return deleteObjectsAsync(ShadowType.COMPLEX_TYPE, query, taskName, result);
 
     }
 
@@ -759,7 +759,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
             QName type = ObjectTypes.getObjectType(getType()).getTypeQName();
 
-            taskOid = deleteObjectsAsync(type, query, true, "Delete all of type " + type.getLocalPart(),
+            taskOid = deleteObjectsAsync(type, query, "Delete all of type " + type.getLocalPart(),
                     result);
 
             info(getString("pageDebugList.messsage.deleteAllOfType", getType()));
@@ -888,7 +888,7 @@ public class PageDebugList extends PageAdminConfiguration {
             QName type = ShadowType.COMPLEX_TYPE;
 
 
-            taskOid = deleteObjectsAsync(type, objectQuery, true,
+            taskOid = deleteObjectsAsync(type, objectQuery,
                     "Delete shadows on " + resourceName, result);
             info(getString("pageDebugList.messsage.deleteAllShadowsStarted", resourceName));
         } catch (Exception ex) {

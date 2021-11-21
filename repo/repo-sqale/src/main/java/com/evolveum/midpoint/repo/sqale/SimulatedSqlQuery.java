@@ -11,8 +11,8 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import com.querydsl.sql.Configuration;
 import com.querydsl.sql.SQLQuery;
-import com.querydsl.sql.SQLTemplates;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,10 +33,10 @@ public class SimulatedSqlQuery<T> extends SQLQuery<T> {
     private Map<String, RepositoryQueryDiagResponse.ParameterValue> params;
 
     public SimulatedSqlQuery(
-            @NotNull SQLTemplates querydslTemplates,
+            @NotNull Configuration querydslConfiguration,
             @Nullable Connection conn,
             boolean simulationOnly) {
-        super(conn, querydslTemplates);
+        super(conn, querydslConfiguration);
         this.simulationOnly = simulationOnly;
     }
 

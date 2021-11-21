@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schema.util.task.work;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -68,13 +69,14 @@ public class LegacyWorkDefinitionSource implements WorkDefinitionSource {
     }
 
     // TODO move to prism-api
-    public <T> Collection<T> getExtensionItemRealValues(ItemName name, Class<T> expectedClass) {
+    public @NotNull <T> Collection<T> getExtensionItemRealValues(ItemName name, Class<T> expectedClass) {
         PrismContainerValue<?> taskExtension = getTaskExtension();
+        //noinspection unchecked
         return taskExtension != null ?
                 taskExtension.getAllValues(name).stream()
                         .filter(Objects::nonNull)
                         .map(val -> (T) val.getRealValue())
                         .collect(Collectors.toList()) :
-                null;
+                List.of();
     }
 }

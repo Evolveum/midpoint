@@ -13,8 +13,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowDiscriminatorType;
@@ -36,26 +34,25 @@ import org.apache.commons.lang3.ObjectUtils;
  *
  * @author Radovan Semancik
  */
-public class ResourceShadowDiscriminator implements Serializable, DebugDumpable, ShortDumpable, HumanReadableDescribable {
-
-    private static final Trace LOGGER = TraceManager.getTrace(ResourceShadowDiscriminator.class);
+public class ResourceShadowDiscriminator
+        implements Serializable, DebugDumpable, ShortDumpable, HumanReadableDescribable, Cloneable {
 
     private static final long serialVersionUID = 346600684011645741L;
 
     private final String resourceOid;
-    private ShadowKindType kind = ShadowKindType.ACCOUNT;
-    private String intent;
+    private final ShadowKindType kind;
+    private final String intent;
     private final String tag;
     private QName objectClass;
-    private boolean tombstone;
+    private boolean gone;
     private int order = 0;
 
-    public ResourceShadowDiscriminator(String resourceOid, ShadowKindType kind, String intent, String tag, boolean tombstone) {
+    public ResourceShadowDiscriminator(String resourceOid, ShadowKindType kind, String intent, String tag, boolean gone) {
         this.resourceOid = resourceOid;
-        this.tombstone = tombstone;
+        this.kind = kind;
+        this.intent = intent;
         this.tag = tag;
-        setIntent(intent);
-        setKind(kind);
+        this.gone = gone;
     }
 
     public ResourceShadowDiscriminator(ShadowDiscriminatorType accRefType) {
@@ -63,23 +60,21 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
     }
 
     public ResourceShadowDiscriminator(ShadowDiscriminatorType accRefType, String defaultResourceOid, ShadowKindType defaultKind) {
-        ShadowKindType kind = accRefType.getKind();
-        if (kind == null) {
-            kind = defaultKind;
-        }
         if (accRefType.getResourceRef() == null) {
             this.resourceOid = defaultResourceOid;
         } else {
             this.resourceOid = accRefType.getResourceRef().getOid();
         }
-        this.tombstone = false;
-        setIntent(accRefType.getIntent());
-        setKind(kind);
+        this.gone = false;
+        this.kind = Objects.requireNonNullElse(accRefType.getKind(), defaultKind);
+        this.intent = accRefType.getIntent();
         this.tag = null;
     }
 
     public ResourceShadowDiscriminator(String resourceOid) {
         this.resourceOid = resourceOid;
+        this.kind = ShadowKindType.ACCOUNT;
+        this.intent = null;
         this.tag = null;
     }
 
@@ -87,6 +82,7 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
         this.resourceOid = resourceOid;
         this.objectClass = objectClass;
         this.kind = null;
+        this.intent = null;
         this.tag = null;
     }
 
@@ -98,19 +94,8 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
         return kind;
     }
 
-    private void setKind(ShadowKindType kind) {
-        this.kind = kind;
-    }
-
     public String getIntent() {
         return intent;
-    }
-
-    private void setIntent(String intent) {
-//        if (intent == null) {
-//            intent = SchemaConstants.INTENT_DEFAULT;
-//        }
-        this.intent = intent;
     }
 
     public String getTag() {
@@ -134,18 +119,20 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
     }
 
     /**
-     * Tombstone flag is true: the account no longer exists. The data we have are the latest metadata we were able to get.
-     * The projection will be marked as tombstone if we discover that the associated resource object is gone. Or the shadow
-     * is gone and we can no longer associate the resource object. In any way the tombstoned projection is marked for removal.
+     * "Gone" flag is true: the account no longer exists. The data we have are the latest metadata we were able to get.
+     * The projection will be marked as gone if we discover that the associated resource object is gone. Or the shadow
+     * is gone and we can no longer associate the resource object. In any way the "gone" projection is marked for removal.
      * It will be eventually unlinked and the shadow will be deleted. The shadow may stay around in the "dead" state for
      * some time for reporting purposes.
+     *
+     * In the terms of shadow lifecycle state, this covers corpse and tombstone states.
      */
-    public boolean isTombstone() {
-        return tombstone;
+    public boolean isGone() {
+        return gone;
     }
 
-    public void setTombstone(boolean tombstone) {
-        this.tombstone = tombstone;
+    public void setGone(boolean gone) {
+        this.gone = gone;
     }
 
     public boolean isWildcard() {
@@ -163,7 +150,7 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
         bean.setResourceRef(resourceRef);
 
         bean.setObjectClassName(objectClass);
-        bean.setTombstone(tombstone);
+        bean.setTombstone(gone);
         bean.setDiscriminatorOrder(order);
         return bean;
     }
@@ -200,7 +187,7 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
         result = prime * result + order;
         result = prime * result + ((resourceOid == null) ? 0 : resourceOid.hashCode());
         result = prime * result + ((tag == null) ? 0 : tag.hashCode());
-        result = prime * result + (tombstone ? 1231 : 1237);
+        result = prime * result + (gone ? 1231 : 1237);
         return result;
     }
 
@@ -250,7 +237,7 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
         } else if (!tag.equals(other.tag)) {
             return false;
         }
-        if (tombstone != other.tombstone) {
+        if (gone != other.gone) {
             return false;
         }
         return true;
@@ -277,7 +264,7 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
         } else if (!resourceOid.equals(other.resourceOid)) {
             return false;
         }
-        if (tombstone != other.tombstone) return false;
+        if (gone != other.gone) return false;
         return true;
     }
 
@@ -317,8 +304,8 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
             sb.append(" order=");
             sb.append(order);
         }
-        if (tombstone) {
-            sb.append(" TOMBSTONE");
+        if (gone) {
+            sb.append(" GONE");
         }
     }
 
@@ -344,8 +331,25 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
         DebugUtil.debugDumpWithLabelLn(sb, "intent", indent, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "tag", tag, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "objectClass", objectClass, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "tombstone", tombstone, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "gone", gone, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "order", order, indent + 1);
         return sb.toString();
+    }
+
+    @Override
+    public ResourceShadowDiscriminator clone() {
+        try {
+            return (ResourceShadowDiscriminator) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
+    }
+
+    /** Copies everything except for object class name and order. */
+    public ResourceShadowDiscriminator cloneBasic() {
+        ResourceShadowDiscriminator clone = clone();
+        clone.objectClass = null;
+        clone.order = 0;
+        return clone;
     }
 }

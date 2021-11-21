@@ -13,7 +13,7 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
-import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelper;
+import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelperOld;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -45,7 +45,7 @@ public class ArchetypeMembersPanel extends AbstractRoleMemberPanel<ArchetypeType
 
     protected void assignMembers(AjaxRequestTarget target, RelationSearchItemConfigurationType relationConfig,
             List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList, boolean isOrgTreePanelVisible) {
-        MemberOperationsHelper.assignArchetypeMembers(getPageBase(), getModelObject(), target, relationConfig,
+        MemberOperationsHelperOld.assignArchetypeMembers(getPageBase(), getModelObject(), target, relationConfig,
                 objectTypes, archetypeRefList);
     }
 

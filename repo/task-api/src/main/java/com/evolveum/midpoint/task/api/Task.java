@@ -834,10 +834,14 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
 
     //region Activities
     /**
-     * Retrieves the definition of task parts.
+     * Retrieves the definition of the [root] activity.
      */
     default ActivityDefinitionType getRootActivityDefinitionOrClone() {
         return getContainerableOrClone(TaskType.F_ACTIVITY, ActivityDefinitionType.class);
+    }
+
+    default void setRootActivityDefinition(ActivityDefinitionType activityDefinition) throws SchemaException {
+        setItemRealValues(TaskType.F_ACTIVITY, activityDefinition);
     }
 
     /**
@@ -970,5 +974,8 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
         return null;
     }
 
+    default boolean isIndestructible() {
+        return Boolean.TRUE.equals(getPropertyRealValue(TaskType.F_INDESTRUCTIBLE, Boolean.class));
+    }
     //endregion
 }

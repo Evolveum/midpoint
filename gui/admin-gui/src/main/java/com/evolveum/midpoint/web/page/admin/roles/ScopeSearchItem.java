@@ -53,7 +53,7 @@ public class ScopeSearchItem extends SpecialSearchItem {
 //            return null;
 //        }
 //        Class type = getSearch().getTypeClass();
-//        ObjectReferenceType ref = MemberOperationsHelper.createReference(object, null);
+//        ObjectReferenceType ref = MemberOperationsHelperOld.createReference(object, null);
 //        return pageBase.getPrismContext().queryFor(type).isChildOf(ref.asReferenceValue()).buildFilter();
     }
 

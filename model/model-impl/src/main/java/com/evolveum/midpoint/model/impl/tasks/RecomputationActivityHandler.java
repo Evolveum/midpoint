@@ -41,7 +41,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Executes specified deltas on specified set of objects.
+ * Recomputes specified objects.
  */
 @Component
 public class RecomputationActivityHandler

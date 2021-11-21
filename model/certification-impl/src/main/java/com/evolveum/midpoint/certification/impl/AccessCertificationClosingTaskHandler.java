@@ -76,15 +76,15 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
     public TaskRunResult run(@NotNull RunningTask task) {
         LOGGER.debug("Task run starting");
 
-        OperationResult opResult = new OperationResult(CLASS_DOT+"run");
+        OperationResult opResult = task.getResult().createSubresult(CLASS_DOT+"run");
         opResult.setSummarizeSuccesses(true);
         TaskRunResult runResult = new TaskRunResult();
-        runResult.setOperationResult(opResult);
 
         String campaignOid = task.getObjectOid();
         if (campaignOid == null) {
             LOGGER.error("No campaign OID specified in the task");
             opResult.recordFatalError("No campaign OID specified in the task");
+            runResult.setOperationResultStatus(OperationResultStatus.FATAL_ERROR);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
@@ -100,6 +100,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
             systemConfigurationObject = objectCache.getSystemConfiguration(opResult);
         } catch (ObjectNotFoundException|SchemaException e) {
             opResult.computeStatus();
+            runResult.setOperationResultStatus(OperationResultStatus.FATAL_ERROR);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             LoggingUtils.logUnexpectedException(LOGGER, "Closing task couldn't start for campaign {} because of unexpected exception", e, campaignOid);
             return runResult;
@@ -114,6 +115,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
         runContext.objectContextMap.forEach((oid, ctx) -> applyMetadataDeltas(ctx, runContext, opResult));
 
         opResult.computeStatus();
+        runResult.setOperationResultStatus(OperationResultStatus.SUCCESS);
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
         LOGGER.debug("Task run stopping (campaign {})", toShortString(campaign));
         return runResult;
@@ -241,7 +243,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
         return SystemObjectsType.ARCHETYPE_CERTIFICATION_TASK.value();
     }
 
-    public void launch(AccessCertificationCampaignType campaign, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+    void launch(AccessCertificationCampaignType campaign, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 
         LOGGER.debug("Launching closing task handler for campaign {} as asynchronous task", toShortString(campaign));
 

@@ -38,6 +38,7 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getReconciliation());
         addTypedParameters(values, definitions.getLiveSynchronization());
         addTypedParameters(values, definitions.getCleanup());
+        addTypedParameters(values, definitions.getDeletion());
         addTypedParameters(values, definitions.getReportExport());
         addTypedParameters(values, definitions.getReportImport());
         addTypedParameters(values, definitions.getDistributedReportExport());
@@ -46,7 +47,8 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getFocusValidityScan());
         addTypedParameters(values, definitions.getTriggerScan());
         addTypedParameters(values, definitions.getShadowRefresh());
-        addTypedParameters(values, definitions.getChangeExecution());
+        addTypedParameters(values, definitions.getIterativeChangeExecution());
+        addTypedParameters(values, definitions.getNonIterativeChangeExecution());
         addTypedParameters(values, definitions.getReindexing());
         addTypedParameters(values, definitions.getShadowCleanup());
         addTypedParameters(values, definitions.getObjectIntegrityCheck());

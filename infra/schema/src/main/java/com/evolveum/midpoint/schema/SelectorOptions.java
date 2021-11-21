@@ -123,7 +123,9 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
         return null;
     }
 
-    public static <T> Collection<SelectorOptions<T>> updateRootOptions(Collection<SelectorOptions<T>> options, Consumer<T> updater, Supplier<T> newValueSupplier) {
+    // newValueSupplier should be not null as well (unless the caller is 100% sure it won't be needed)
+    public static <T> @NotNull Collection<SelectorOptions<T>> updateRootOptions(@Nullable Collection<SelectorOptions<T>> options,
+            @NotNull Consumer<T> updater, Supplier<T> newValueSupplier) {
         if (options == null) {
             options = new ArrayList<>();
         }

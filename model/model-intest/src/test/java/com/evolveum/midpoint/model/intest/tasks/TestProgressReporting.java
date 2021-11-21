@@ -6,9 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest.tasks;
 
-import static com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource.FULL_STATE_PREFERRED;
-
-import static com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource.TREE_OVERVIEW_PREFERRED;
+import static com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertTrue;
@@ -20,6 +18,10 @@ import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.Collection;
 import java.util.List;
+
+import com.evolveum.midpoint.schema.util.task.ActivityBasedTaskInformation;
+import com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource;
+import com.evolveum.midpoint.schema.util.task.TaskInformation;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -43,9 +45,11 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Tests for MID-6011.
+ * Tests for progress-related issues, like MID-6011.
+ *
+ * Normally, such tests should be part of test classes devoted to specific activity handlers,
+ * but some generic ones can be also here.
  */
-@Deprecated // TODO move progress checking functionality to task-specific tests
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
@@ -80,6 +84,13 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
     private static final TestResource<TaskType> METAROLE_SLOWING_DOWN
             = new TestResource<>(TEST_DIR, "metarole-slowing-down.xml", "b7218b57-fb8a-4dfd-a4c0-976849a4640c");
 
+    private static final TestResource<TaskType> TASK_WITH_ERRORS
+            = new TestResource<>(TEST_DIR, "task-with-errors.xml", "cfcfa2d8-ba8a-45b3-af94-3a4e5774768a");
+    private static final TestResource<TaskType> TASK_WITH_ERRORS_CHILD_1
+            = new TestResource<>(TEST_DIR, "task-with-errors-child-1.xml", "3d288cce-898d-49b9-8987-ce9e6116bb0b");
+    private static final TestResource<TaskType> TASK_WITH_ERRORS_CHILD_2
+            = new TestResource<>(TEST_DIR, "task-with-errors-child-2.xml", "8d5909f6-7d8b-4c01-913b-42ba0bcf6ef7");
+
     private static final int USERS = 400;
     private static final int ROLES = 400;
 
@@ -92,6 +103,10 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
 
         addObject(METAROLE_SLOWING_DOWN, initTask, initResult);
         createShadowWithPendingOperation();
+
+        repoAdd(TASK_WITH_ERRORS, initResult);
+        repoAdd(TASK_WITH_ERRORS_CHILD_1, initResult);
+        repoAdd(TASK_WITH_ERRORS_CHILD_2, initResult);
     }
 
     @Override
@@ -516,5 +531,124 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         assertThat(treePreferred.getItemsProgress())
                 .as("items progress in tree-preferred")
                 .isEqualTo(fullPreferred.getItemsProgress());
+    }
+
+    /**
+     * Let us check whether we correctly determine the error counters from stored tasks.
+     *
+     * Checking both at the level of {@link TaskInformation} and {@link ActivityProgressInformation}.
+     * (The latter can be used to specify various {@link InformationSource} options.)
+     *
+     * MID-7339
+     */
+    @Test
+    public void test200ErrorCounters() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        TaskType rootOnlyBean = taskManager
+                .getTask(TASK_WITH_ERRORS.oid, null, result)
+                .getRawTaskObjectClonedIfNecessary().asObjectable();
+
+        TaskType fullTreeBean = taskManager
+                .getTaskTree(TASK_WITH_ERRORS.oid, result)
+                .getRawTaskObjectClonedIfNecessary().asObjectable();
+
+        assertThat(fullTreeBean.getSubtaskRef()).as("subtask refs").hasSize(2);
+        assertThat(TaskTreeUtil.allSubtasksAreResolved(fullTreeBean)).as("all subtasks resolved").isTrue();
+
+        // ------------------------------------------------------------- Checking TaskInformation when only root task is fetched.
+        when("TI - root only");
+        var taskInfoOnlyRoot = TaskInformation.createForTask(rootOnlyBean, null);
+
+        then("TI - root only");
+        displayDumpable("task info (root only)", taskInfoOnlyRoot);
+        assertProgress(((ActivityBasedTaskInformation) taskInfoOnlyRoot).getProgressInformation(), "only root")
+                .display()
+                .assertItems(46, 10, null);
+
+        // -------------------------------------------------------------- Checking TaskInformation when the full tree is fetched.
+        when("TI - full tree");
+        var taskInfoFullTree = TaskInformation.createForTask(fullTreeBean, null);
+
+        then("TI - full tree");
+        displayDumpable("task info (full tree)", taskInfoFullTree);
+        assertProgress(((ActivityBasedTaskInformation) taskInfoFullTree).getProgressInformation(), "full tree")
+                .display()
+                .assertItems(46, 10, null);
+
+        // ------------------------------------------------- Checking ActivityProgressInformation when only root task is fetched.
+        when("API - root only - tree overview only");
+        var apiRootOnlyOverviewOnly =
+                ActivityProgressInformation.fromRootTask(rootOnlyBean, TREE_OVERVIEW_ONLY);
+
+        then("API - root only - tree overview only");
+        assertProgress(apiRootOnlyOverviewOnly, "root only - tree overview only")
+                .display()
+                .assertItems(46, 10, null);
+
+        when("API - root only - tree overview preferred");
+        var apiRootOnlyOverviewPreferred =
+                ActivityProgressInformation.fromRootTask(rootOnlyBean, TREE_OVERVIEW_PREFERRED);
+
+        then("API - root only - tree overview preferred");
+        assertProgress(apiRootOnlyOverviewPreferred, "root only - tree overview preferred")
+                .display()
+                .assertItems(46, 10, null);
+
+        when("API - root only - full state preferred");
+        var apiRootOnlyFullPreferred =
+                ActivityProgressInformation.fromRootTask(rootOnlyBean, FULL_STATE_PREFERRED);
+
+        then("API - root only - full state preferred");
+        assertProgress(apiRootOnlyFullPreferred, "root only - full state preferred")
+                .display()
+                .assertItems(46, 10, null);
+
+        when("API - root only - full state only");
+        try {
+            ActivityProgressInformation.fromRootTask(rootOnlyBean, FULL_STATE_ONLY);
+        } catch (IllegalStateException e) {
+            displayExpectedException(e);
+            assertThat(e).hasMessageContaining("Full activity state is not present");
+        }
+
+        // ------------------------------------------------- Checking ActivityProgressInformation when the whole tree is fetched.
+        when("API - full tree - tree overview only");
+        var apiFullTreeOverviewOnly =
+                ActivityProgressInformation.fromRootTask(fullTreeBean, TREE_OVERVIEW_ONLY);
+
+        then("API - full tree - tree overview only");
+        assertProgress(apiFullTreeOverviewOnly, "full tree - tree overview only")
+                .display()
+                .assertItems(46, 10, null);
+
+        when("API - full tree - tree overview preferred");
+        var apiFullTreeOverviewPreferred =
+                ActivityProgressInformation.fromRootTask(fullTreeBean, TREE_OVERVIEW_PREFERRED);
+
+        then("API - full tree - tree overview preferred");
+        assertProgress(apiFullTreeOverviewPreferred, "full tree - tree overview preferred")
+                .display()
+                .assertItems(46, 10, null);
+
+        when("API - full tree - full state preferred");
+        var apiFullTreeFullPreferred =
+                ActivityProgressInformation.fromRootTask(fullTreeBean, FULL_STATE_PREFERRED);
+
+        then("API - full tree - full state preferred");
+        assertProgress(apiFullTreeFullPreferred, "full tree - full state preferred")
+                .display()
+                .assertItems(46, 10, null);
+
+        when("API - full tree - full state only");
+        var apiFullTreeFullOnly =
+                ActivityProgressInformation.fromRootTask(fullTreeBean, FULL_STATE_ONLY);
+
+        then("API - full tree - full state only");
+        assertProgress(apiFullTreeFullOnly, "full tree - full state preferred")
+                .display()
+                .assertItems(46, 10, null);
     }
 }

@@ -1,24 +1,21 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.wf.impl.other;
 
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.test.TestResource;
-
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -29,10 +26,13 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
@@ -64,6 +64,8 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     private static final TestResource<UserType> USER_LAUNCHPAD = new TestResource<>(TEST_RESOURCE_DIR, "user-launchpad.xml", "00880478-d006-4fc8-9d3a-87b5ec546c40");
     private static final TestResource<RoleType> ROLE_VAULT_ACCESS = new TestResource<>(TEST_RESOURCE_DIR, "role-vault-access.xml", "f6f95936-8714-4c7d-abdf-6cd3e6d2d6cc");
     private static final TestResource<RoleType> ROLE_ACCOUNTANT = new TestResource<>(TEST_RESOURCE_DIR, "role-accountant.xml", "5653fc70-3007-4f62-82dd-a36e0673505b");
+
+    private static final TestResource<TaskType> TASK_CLEANUP = new TestResource<>(TEST_RESOURCE_DIR, "task-cleanup.xml", "781a7c9a-7b37-45c6-9154-5e57f5ad077f");
 
     @Override
     protected PrismObject<UserType> getDefaultActor() {
@@ -103,8 +105,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        // GIVEN
-
+        given();
         dummyAuditService.clear();
 
         OperationBusinessContextType businessContext = new OperationBusinessContextType();
@@ -120,12 +121,12 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         CaseWorkItemType workItem = getWorkItem(task, result);
         display("Work item", workItem);
 
-        // WHEN
+        when();
         workflowManager.completeWorkItem(WorkItemId.of(workItem),
                 ApprovalUtils.createApproveOutput(prismContext).comment("OK"),
                 null, task, result);
 
-        // THEN
+        then();
         CaseType aCase = getCase(CaseWorkItemUtil.getCaseRequired(workItem).getOid());
         display("workflow context", aCase.getApprovalContext());
         List<? extends CaseEventType> events = aCase.getEvent();
@@ -168,8 +169,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        // GIVEN
-
+        given();
         dummyAuditService.clear();
 
         OperationBusinessContextType businessContext = new OperationBusinessContextType();
@@ -187,12 +187,12 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         CaseWorkItemType workItem = getWorkItem(task, result);
         display("Work item", workItem);
 
-        // WHEN
+        when();
         workflowManager.completeWorkItem(WorkItemId.of(workItem),
                 ApprovalUtils.createApproveOutput(prismContext).comment("OK"),
                 null, task, result);
 
-        // THEN
+        then();
         CaseType aCase = getCase(CaseWorkItemUtil.getCaseRequired(workItem).getOid());
         display("workflow context", aCase.getApprovalContext());
         List<? extends CaseEventType> events = aCase.getEvent();
@@ -235,18 +235,16 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        // GIVEN
-
+        given();
         ModelExecuteOptions options = executeOptions().partialProcessing(
                 new PartialProcessingOptionsType().approvals(PartialProcessingTypeType.SKIP));
         assignRole(userJackOid, ROLE_GOLD.oid, options, task, result);
         assertAssignedRole(getUser(userJackOid), ROLE_GOLD.oid);
 
-        // WHEN
-
+        when();
         assignRole(userJackOid, ROLE_SILVER.oid, task, result);
 
-        // THEN
+        then();
         result.computeStatus();
         TestUtil.assertInProgress("Operation NOT in progress", result);
 
@@ -263,7 +261,8 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         CaseType rootCase = getCase(aCase.getParentRef().getOid());
         waitForCaseClose(rootCase);
 
-        assertNotAssignedRole(userJackOid, ROLE_GOLD.oid, result);            // should be pruned without approval
+        // should be pruned without approval
+        assertNotAssignedRole(userJackOid, ROLE_GOLD.oid, result);
     }
 
     @Test
@@ -273,18 +272,18 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        // GIVEN
+        given();
         setDefaultUserTemplate(null);
         unassignAllRoles(userJackOid);
         assertNotAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
 
         setDefaultUserTemplate(TEMPLATE_ASSIGNING_CAPTAIN.oid);
 
-        // WHEN
+        when();
         // some innocent change
         modifyUserChangePassword(userJackOid, "PaSsWoRd123", task, result);
 
-        // THEN
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -300,19 +299,19 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        // GIVEN
+        given();
         setDefaultUserTemplate(null);
         unassignAllRoles(userJackOid);
         assertNotAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
 
         setDefaultUserTemplate(TEMPLATE_ASSIGNING_CAPTAIN_AFTER.oid);
 
-        // WHEN
+        when();
         // some innocent change
         modifyUserChangePassword(userJackOid, "PaSsWoRd123", task, result);
         // here the captain role appears in evaluatedAssignmentsTriple only in secondary phase; so no approvals are triggered
 
-        // THEN
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -326,15 +325,15 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        // GIVEN
+        given();
         setDefaultUserTemplate(null);
         unassignAllRoles(userJackOid);
         assertNotAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
 
-        // WHEN
+        when();
         assignRole(userJackOid, ROLE_ASSIGNING_CAPTAIN.oid, task, result);
 
-        // THEN
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -348,12 +347,12 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        // GIVEN
+        given();
         setDefaultUserTemplate(null);
         unassignAllRoles(userJackOid);
         assertNotAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
 
-        // WHEN
+        when();
         ObjectDelta<? extends ObjectType> delta =
                 prismContext.deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
@@ -363,7 +362,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
                 new PartialProcessingOptionsType().approvals(PartialProcessingTypeType.SKIP));
         modelService.executeChanges(singletonList(delta), options, task, result);
 
-        // THEN
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -604,4 +603,117 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         // @formatter:on
     }
 
+    /**
+     * Cleans up closed cases.
+     *
+     * Marks one root and one non-root case as indestructible, just to check if they survive the cleanup.
+     *
+     * Expected survivors:
+     * - indestructible root and all of its children,
+     * - indestructible child (selected in such a way that it has no children).
+     */
+    @Test
+    public void test999CaseCleanup() throws Exception {
+        given("mark indestructible cases");
+        OperationResult result = getTestOperationResult();
+
+        List<PrismObject<CaseType>> allCases = repositoryService.searchObjects(CaseType.class, null, null, result);
+        List<CaseType> closedCases = selectClosedCases(allCases);
+        display("closed cases (" + closedCases.size() + " out of " + allCases.size() + ")", closedCases);
+
+        List<CaseType> closedRootCases = closedCases.stream()
+                .filter(c -> c.getParentRef() == null)
+                .collect(Collectors.toList());
+
+        assertThat(closedRootCases).as("closed root cases").hasSizeGreaterThanOrEqualTo(2);
+
+        CaseType indestructibleRoot = closedRootCases.get(0);
+        markIndestructible(indestructibleRoot.getOid(), result);
+
+        List<CaseType> indestructibleRootChildren = selectChildren(indestructibleRoot.getOid(), closedCases);
+        display("Children of indestructible root", indestructibleRootChildren);
+
+        CaseType indestructibleChild = selectIndestructibleChild(closedCases, closedRootCases, indestructibleRoot);
+        markIndestructible(indestructibleChild.getOid(), result);
+
+        when();
+        addTask(TASK_CLEANUP, result);
+        waitForTaskCloseOrSuspend(TASK_CLEANUP.oid, 20000);
+
+        then();
+        List<PrismObject<CaseType>> allCasesAfter = repositoryService.searchObjects(CaseType.class, null, null, result);
+        List<CaseType> closedCasesAfter = selectClosedCases(allCasesAfter);
+        display("closed cases after (" + closedCasesAfter.size() + " out of " + allCasesAfter.size() + ")",
+                closedCasesAfter);
+
+        assertThat(closedCasesAfter).as("closed cases after").hasSize(2 + indestructibleRootChildren.size());
+        assertThat(selectOids(closedCasesAfter))
+                .as("OIDs of closed cases after")
+                .containsExactlyInAnyOrderElementsOf(
+                        selectOids(
+                                List.of(indestructibleRoot),
+                                indestructibleRootChildren,
+                                List.of(indestructibleChild)));
+    }
+
+    @SafeVarargs
+    private Set<String> selectOids(List<CaseType>... cases) {
+        return Arrays.stream(cases)
+                .flatMap(Collection::stream)
+                .map(CaseType::getOid)
+                .collect(Collectors.toSet());
+    }
+
+    private List<CaseType> selectChildren(String oid, List<CaseType> allCases) {
+        List<CaseType> directChildren = allCases.stream()
+                .filter(c -> c.getParentRef() != null && c.getParentRef().getOid().equals(oid))
+                .collect(Collectors.toList());
+        List<CaseType> children = new ArrayList<>(directChildren);
+        directChildren.forEach(ch ->
+                children.addAll(selectChildren(ch.getOid(), allCases)));
+        return children;
+    }
+
+    @NotNull
+    private List<CaseType> selectClosedCases(List<PrismObject<CaseType>> allCases) {
+        return allCases.stream()
+                .map(c -> c.asObjectable())
+                .filter(CaseTypeUtil::isClosed)
+                .collect(Collectors.toList());
+    }
+
+    private void markIndestructible(String oid, OperationResult result) throws CommonException {
+        System.out.println("Marking case " + oid + " as indestructible");
+        repositoryService.modifyObject(
+                CaseType.class, oid,
+                deltaFor(CaseType.class)
+                        .item(CaseType.F_INDESTRUCTIBLE)
+                        .replace(true)
+                        .asItemDeltas(),
+                result);
+    }
+
+    /** Finds a direct, child-less child of a root that is other than `excludedRoot`. */
+    private CaseType selectIndestructibleChild(List<CaseType> closedCases, List<CaseType> closedRootCases, CaseType excludedRoot) {
+        for (CaseType aCase : closedCases) {
+            if (aCase.getParentRef() != null &&
+                    !aCase.getParentRef().getOid().equals(excludedRoot.getOid()) &&
+                    isDirectChildOfSomeRoot(aCase, closedRootCases) &&
+                    isChildLess(aCase, closedCases)) {
+                return aCase; // This is a direct, child-less child of a root that is different from excludedRoot.
+            }
+        }
+        throw new AssertionError("Suitable child case was not found");
+    }
+
+    /** Assumes that aCase has a parent. */
+    private boolean isDirectChildOfSomeRoot(CaseType aCase, List<CaseType> closedRootCases) {
+        return closedRootCases.stream()
+                .anyMatch(root -> aCase.getParentRef().getOid().equals(root.getOid()));
+    }
+
+    private boolean isChildLess(CaseType aCase, List<CaseType> closedCases) {
+        return closedCases.stream()
+                .noneMatch(c -> c.getParentRef() != null && c.getParentRef().getOid().equals(aCase.getOid()));
+    }
 }

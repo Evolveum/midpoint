@@ -38,7 +38,6 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.sync.tasks.recon.DebugReconciliationResultListener;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
@@ -2768,6 +2767,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong number of objects found", 6, objects.size());
     }
 
+    /**
+     * Deleting dummy shadows in raw mode: searching in repo, and deleting from the repo.
+     */
     @Test
     public void test900DeleteDummyShadows() throws Exception {
         // GIVEN
@@ -2793,18 +2795,29 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         then();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
+        // @formatter:off
+        assertTask(TASK_DELETE_DUMMY_SHADOWS.oid, "after")
+                .rootActivityState()
+                    .itemProcessingStatistics()
+                        .display()
+                        .assertTotalCounts(18, 0, 0); // deleted also protected shadows
+        // @formatter:on
+
+        // Checking operation result internal structure.
         PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_DUMMY_SHADOWS.oid);
-        OperationResultType deleteTaskResultType = deleteTask.asObjectable().getResult();
-        display("Final delete task result", deleteTaskResultType);
-        TestUtil.assertSuccess(deleteTaskResultType);
-        OperationResult deleteTaskResult = OperationResult.createOperationResult(deleteTaskResultType);
+        OperationResultType deleteTaskResultBean = deleteTask.asObjectable().getResult();
+        display("Final delete task result", deleteTaskResultBean);
+
+        TestUtil.assertSuccess(deleteTaskResultBean);
+        OperationResult deleteTaskResult = OperationResult.createOperationResult(deleteTaskResultBean);
         TestUtil.assertSuccess(deleteTaskResult);
-        List<OperationResult> opExecResults = deleteTaskResult.findSubresults(ModelService.EXECUTE_CHANGES);
-        assertEquals(1, opExecResults.size());
-        OperationResult opExecResult = opExecResults.get(0);
-        TestUtil.assertSuccess(opExecResult);
-        assertEquals("Wrong exec operation count", 18, opExecResult.getCount());
-        assertTrue("Too many subresults: " + deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
+
+        String OP_PROCESS = "com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingGatekeeper.process";
+        List<OperationResult> processSearchResults = deleteTaskResult.findSubresultsDeeply(OP_PROCESS);
+        assertThat(processSearchResults).as("'process item' operation results").hasSize(11);
+        assertThat(processSearchResults.get(processSearchResults.size() - 1).getHiddenRecordsCount())
+                .as("hidden operation results")
+                .isEqualTo(8);
 
         assertUsers(getNumberOfUsers() + 12);
 
@@ -2812,6 +2825,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountShadows(17, false, task, result);
     }
 
+    /**
+     * Deleting dummy _accounts_ i.e. in non-raw mode: searching on resource, and deleting from the resource.
+     */
     @Test
     public void test910DeleteDummyAccounts() throws Exception {
         // GIVEN
@@ -2835,20 +2851,18 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         then();
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1); // One search operation
 
-        PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_DUMMY_ACCOUNTS.oid);
-        OperationResultType deleteTaskResultType = deleteTask.asObjectable().getResult();
-        display("Final delete task result", deleteTaskResultType);
-        TestUtil.assertSuccess(deleteTaskResultType);
-        OperationResult deleteTaskResult = OperationResult.createOperationResult(deleteTaskResultType);
-        TestUtil.assertSuccess(deleteTaskResult);
-        List<OperationResult> opExecResults = deleteTaskResult.findSubresults(ModelService.EXECUTE_CHANGES);
-        assertEquals(1, opExecResults.size());
-        OperationResult opExecResult = opExecResults.get(0);
-        TestUtil.assertSuccess(opExecResult);
-        assertEquals("Wrong exec operation count", 15, opExecResult.getCount());
-        assertTrue("Too many subresults: " + deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
+        // @formatter:off
+        assertTask(TASK_DELETE_DUMMY_ACCOUNTS.oid, "after")
+                .rootActivityState()
+                    .itemProcessingStatistics()
+                        .display()
+                        .assertTotalCounts(15, 0, 2); // two protected accounts not deleted
+        // @formatter:on
+
+        // Operation result structure is currently not as neat as when pure repo access is used.
+        // So let's skip these tests for now.
 
         assertUsers(getNumberOfUsers() + 12);
 
@@ -2856,7 +2870,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountShadows(2, false, task, result);
     }
 
-    private void assertDummyAccountShadows(int expected, boolean raw, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private void assertDummyAccountShadows(int expected, boolean raw, Task task, OperationResult result) throws CommonException {
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID,
                 DUMMY_ACCOUNT_OBJECT_CLASS, prismContext);
 

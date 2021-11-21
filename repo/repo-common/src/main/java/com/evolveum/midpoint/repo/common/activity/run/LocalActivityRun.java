@@ -51,6 +51,8 @@ public abstract class LocalActivityRun<
 
     private static final Trace LOGGER = TraceManager.getTrace(LocalActivityRun.class);
 
+    private static final String OP_RUN_LOCALLY = LocalActivityRun.class.getName() + ".runLocally";
+
     private static final long DEFAULT_TREE_PROGRESS_UPDATE_INTERVAL_FOR_STANDALONE = 9000;
     private static final long DEFAULT_TREE_PROGRESS_UPDATE_INTERVAL_FOR_WORKERS = 60000;
 
@@ -71,16 +73,20 @@ public abstract class LocalActivityRun<
             throws ActivityRunException {
 
         updateStateOnRunStart(result);
+
         ActivityRunResult runResult;
+        OperationResult localResult = result.createSubresult(OP_RUN_LOCALLY);
         try {
             getRunningTask().setExcludedFromStalenessChecking(isExcludedFromStalenessChecking());
-            runResult = runLocally(result);
+            runResult = runLocally(localResult);
         } catch (Exception e) {
-            runResult = ActivityRunResult.handleException(e, this);
+            runResult = ActivityRunResult.handleException(e, localResult, this); // sets the local result status
+        } finally {
+            localResult.close();
         }
         getRunningTask().setExcludedFromStalenessChecking(false);
 
-        updateStateOnRunEnd(result, runResult);
+        updateStateOnRunEnd(localResult, runResult, result);
         return runResult;
     }
 
@@ -125,11 +131,15 @@ public abstract class LocalActivityRun<
         }
     }
 
-    private void updateStateOnRunEnd(OperationResult result, ActivityRunResult runResult)
-            throws ActivityRunException {
+    private void updateStateOnRunEnd(@NotNull OperationResult closedLocalResult, @NotNull ActivityRunResult runResult,
+            @NotNull OperationResult result) throws ActivityRunException {
+
         noteEndTimestampIfNone();
         activityState.setRunEndTimestamp(endTimestamp);
 
+        if (runResult.getOperationResultStatus() == null) {
+            runResult.setOperationResultStatus(closedLocalResult.getStatus());
+        }
         setCurrentResultStatus(runResult.getOperationResultStatus());
 
         getTreeStateOverview().recordLocalRunFinish(this, runResult, result);

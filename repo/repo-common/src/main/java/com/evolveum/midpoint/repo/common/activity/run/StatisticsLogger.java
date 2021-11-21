@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.activity.run;
 
-import static com.evolveum.midpoint.repo.common.activity.run.state.ActivityItemProcessingStatistics.Operation;
+import com.evolveum.midpoint.schema.statistics.Operation;
 
 import java.util.Locale;
 import java.util.function.Function;

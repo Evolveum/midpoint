@@ -40,4 +40,14 @@ public enum ShadowLivenessState {
             return LIVE;
         }
     }
+
+    public static ShadowLivenessState forShadowWithState(PrismObject<ShadowType> shadow) {
+        if (shadow == null) {
+            return DELETED;
+        } else if (ShadowUtil.isGone(shadow.asObjectable())) {
+            return DEAD;
+        } else {
+            return LIVE;
+        }
+    }
 }

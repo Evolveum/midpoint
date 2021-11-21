@@ -75,7 +75,7 @@ public class MissingShadowContextRefresher<F extends ObjectType> {
             return;
         }
 
-        LOGGER.trace("Trying to compensate for ObjectNotFoundException.");
+        LOGGER.trace("Trying to compensate for ObjectNotFoundException or resource object not found.");
         boolean compensated;
         if (!GetOperationOptions.isDoNotDiscovery(SelectorOptions.findRootOptions(options))) {
             // The account might have been re-created by the discovery.
@@ -88,10 +88,15 @@ public class MissingShadowContextRefresher<F extends ObjectType> {
         }
 
         if (compensated) {
-            LOGGER.trace("ObjectNotFound error is compensated, continuing");
+            LOGGER.trace("'No resource object' error is compensated, continuing");
         } else {
-            LOGGER.trace("ObjectNotFound error is not compensated, setting context to tombstone");
-            projectionContext.markTombstone();
+            if (projectionContext.isReaping()) {
+                LOGGER.trace("'No resource object' error is not compensated, but the shadow is in reaping state -"
+                        + " NOT setting context as gone");
+            } else {
+                LOGGER.trace("'No resource object' error is not compensated, setting context as gone");
+                projectionContext.markGone();
+            }
         }
     }
 
@@ -108,12 +113,16 @@ public class MissingShadowContextRefresher<F extends ObjectType> {
         LensFocusContext<F> focusContext = context.getFocusContextRequired();
         for (ObjectReferenceType linkRef : reloadedFocus.getLinkRef()) {
             if (linkRef.getOid().equals(projectionContext.getOid())) {
-                // The deleted shadow is still in the linkRef. This should not happen, but it obviously happens sometimes.
-                // Maybe some strange race condition? Anyway, we want a robust behavior and this linkRef should NOT be there.
-                // So simple remove it.
-                LOGGER.warn("The OID {} of deleted shadow still exists in the linkRef after discovery ({}), removing it",
-                        projectionContext.getOid(), reloadedFocusObject);
-                swallowUnlinkDelta(focusContext, linkRef);
+                if (projectionContext.isReaping()) {
+                    LOGGER.trace("Not deleting linkRef for {} because the shadow is being reaped", projectionContext.getOid());
+                } else {
+                    // The deleted shadow is still in the linkRef. This should not happen, but it obviously happens sometimes.
+                    // Maybe some strange race condition? Anyway, we want a robust behavior and this linkRef should NOT be there.
+                    // So simply remove it.
+                    LOGGER.warn("The OID {} of deleted shadow still exists in the linkRef after discovery ({}), removing it",
+                            projectionContext.getOid(), reloadedFocusObject);
+                    swallowUnlinkDelta(focusContext, linkRef);
+                }
                 continue;
             }
             boolean found = context.getProjectionContexts().stream()

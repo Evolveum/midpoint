@@ -10,8 +10,6 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
 import java.nio.file.AccessDeniedException;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import javax.naming.AuthenticationException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -32,6 +30,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -51,7 +50,7 @@ public class RestExceptionHandler {
     })
     public ResponseEntity<?> badRequestHandler(
             Exception ex, HttpServletRequest request) {
-        return errorResponse(HttpStatus.BAD_REQUEST, request, ex.getMessage());
+        return errorResponse(HttpStatus.BAD_REQUEST, request, ex);
     }
 
     @ExceptionHandler({
@@ -61,7 +60,6 @@ public class RestExceptionHandler {
     public ResponseEntity<?> badRequestHandlerShowingMostSpecificCause(
             Exception ex, HttpServletRequest request) {
         Throwable cause = NestedExceptionUtils.getMostSpecificCause(ex);
-        String message = cause.getMessage();
         /* useful for generic JSON parsing, but not needed with our custom JSON parser/formatter
         if (cause instanceof UnrecognizedPropertyException) {
             UnrecognizedPropertyException upex = (UnrecognizedPropertyException) cause;
@@ -69,73 +67,69 @@ public class RestExceptionHandler {
                     + "], known properties: " + upex.getKnownPropertyIds();
         }
         */
-        return errorResponse(HttpStatus.BAD_REQUEST, request, message);
+        return errorResponse(HttpStatus.BAD_REQUEST, request, cause);
     }
 
     // Normally not used, auth filter before the controller will not let it here.
     // Left here as a fallback if something in the chain changes.
     @ExceptionHandler({ AuthenticationException.class })
     public ResponseEntity<?> unauthorizedHandler(Exception ex, HttpServletRequest request) {
-        return errorResponse(HttpStatus.UNAUTHORIZED, request, ex.getMessage());
+        return errorResponse(HttpStatus.UNAUTHORIZED, request, ex);
     }
 
     // Not used currently, left here as a fallback if something in the chain changes.
     @ExceptionHandler({ AccessDeniedException.class })
     public ResponseEntity<?> forbiddenHandler(Exception ex, HttpServletRequest request) {
-        return errorResponse(HttpStatus.FORBIDDEN, request, ex.getMessage());
+        return errorResponse(HttpStatus.FORBIDDEN, request, ex);
     }
 
     @ExceptionHandler({ HttpRequestMethodNotSupportedException.class })
     public ResponseEntity<?> methodNotAllowedHandler(
             Exception ex, HttpServletRequest request) {
-        return errorResponse(HttpStatus.METHOD_NOT_ALLOWED, request, ex.getMessage());
+        return errorResponse(HttpStatus.METHOD_NOT_ALLOWED, request, ex);
     }
 
     @ExceptionHandler({ HttpMediaTypeNotAcceptableException.class })
     public ResponseEntity<?> notAcceptableHandler(
             Exception ex, HttpServletRequest request) {
-        return errorResponse(HttpStatus.NOT_ACCEPTABLE, request, ex.getMessage());
+        return errorResponse(HttpStatus.NOT_ACCEPTABLE, request, ex);
     }
 
     @ExceptionHandler({ HttpMediaTypeNotSupportedException.class })
     public ResponseEntity<?> unsupportedMediaTypeHandler(
             Exception ex, HttpServletRequest request) {
-        return errorResponse(HttpStatus.UNSUPPORTED_MEDIA_TYPE, request, ex.getMessage());
+        return errorResponse(HttpStatus.UNSUPPORTED_MEDIA_TYPE, request, ex);
     }
 
     @ExceptionHandler(AsyncRequestTimeoutException.class)
     public ResponseEntity<?> serviceUnavailableHandler(
             Exception ex, HttpServletRequest request) {
-        return errorResponse(SERVICE_UNAVAILABLE, request, ex.getMessage());
+        return errorResponse(SERVICE_UNAVAILABLE, request, ex);
     }
 
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<?> handleResponseStatusException(
             ResponseStatusException ex, HttpServletRequest request) {
-        return errorResponse(ex.getStatus(), request, ex.getReason());
+        return errorResponse(ex.getStatus(), request, ex);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> defaultHandler(
             Exception ex, HttpServletRequest request, HttpServletResponse response) {
         LOGGER.warn("Unexpected exception causing HTTP 500", ex);
-        return errorResponse(INTERNAL_SERVER_ERROR, request, ex.getMessage());
+        return errorResponse(INTERNAL_SERVER_ERROR, request, ex);
     }
 
     private ResponseEntity<?> errorResponse(
-            HttpStatus status, HttpServletRequest request, String message) {
+            HttpStatus status, HttpServletRequest request, Throwable ex) {
+        String message = ex.getMessage();
         LOGGER.debug("HTTP error status {} with message: {}", status.value(), message);
-        return ResponseEntity.status(status)
-                .body(createErrorDto(request, status, message));
-    }
 
-    public static Map<String, Object> createErrorDto(
-            HttpServletRequest request, HttpStatus status, String message) {
-        Map<String, Object> errorDto = new LinkedHashMap<>();
-        errorDto.put("error", status.getReasonPhrase());
-        errorDto.put("message", message);
-        errorDto.put("status", status.value());
-        errorDto.put("path", request.getRequestURI());
-        return errorDto;
+        OperationResult result = new OperationResult(request.getRequestURI())
+                .addParam("status", status.value())
+                .addParam("error", status.getReasonPhrase());
+        result.recordFatalError(ex);
+
+        return ResponseEntity.status(status).body(result.createOperationResultType());
     }
 }

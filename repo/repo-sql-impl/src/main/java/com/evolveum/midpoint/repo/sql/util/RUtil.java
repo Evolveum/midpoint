@@ -218,25 +218,25 @@ public final class RUtil {
     }
 
     public static void copyResultFromJAXB(QName itemName, OperationResultType jaxb,
-            OperationResult repo, PrismContext prismContext) throws DtoTranslationException {
+            ROperationResult repo, PrismContext prismContext) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
 
         if (jaxb == null) {
             repo.setStatus(null);
-            if (repo instanceof OperationResultFull) {
-                ((OperationResultFull) repo).setFullResult(null);
+            if (repo instanceof ROperationResultFull) {
+                ((ROperationResultFull) repo).setFullResult(null);
             }
 
             return;
         }
 
         repo.setStatus(getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
-        if (repo instanceof OperationResultFull) {
+        if (repo instanceof ROperationResultFull) {
             try {
                 // TODO MID-6303 should this be affected by configured fullObjectFormat?
                 String full = prismContext.xmlSerializer().serializeRealValue(jaxb, itemName);
                 byte[] data = RUtil.getBytesFromSerializedForm(full, true);
-                ((OperationResultFull) repo).setFullResult(data);
+                ((ROperationResultFull) repo).setFullResult(data);
             } catch (Exception ex) {
                 throw new DtoTranslationException(ex.getMessage(), ex);
             }

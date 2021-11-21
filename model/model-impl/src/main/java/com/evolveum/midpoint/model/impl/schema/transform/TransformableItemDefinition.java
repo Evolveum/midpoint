@@ -37,8 +37,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
 
     private static final long serialVersionUID = 1L;
 
-    private D delegate;
-
+    private DelegatedItem<D> delegate;
 
     private boolean allowAdd = true;
     private boolean allowRead = true;
@@ -75,13 +74,11 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
             this.emphasized = copyOf.emphasized;
             this.deprecated = copyOf.deprecated;
             this.experimental = copyOf.experimental;
-
             this.valueEnumerationRef = copyOf.valueEnumerationRef;
-            this.delegate = copyOf.delegate();
+            this.delegate = copyOf.delegate;
         } else {
-            this.delegate = delegate;
+            this.delegate = new DelegatedItem.FullySerializable<>(delegate);
         }
-
 
     }
 
@@ -126,7 +123,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
 
     @Override
     public D delegate() {
-        return delegate;
+        return delegate.get();
     }
 
     @Override
@@ -152,13 +149,13 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
 
     @Override
     public int getMaxOccurs() {
-        return preferLocal(maxOccurs, delegate.getMaxOccurs());
+        return preferLocal(maxOccurs, delegate().getMaxOccurs());
     }
 
 
     @Override
     public ItemProcessing getProcessing() {
-        return preferLocal(processing, delegate.getProcessing());
+        return preferLocal(processing, delegate().getProcessing());
     }
 
 
@@ -175,15 +172,6 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     @Override
     public void setCanRead(boolean val) {
         allowRead = val;
-    }
-
-
-    @SuppressWarnings("unchecked")
-    protected <ID extends ItemDefinition<?>> ID apply(ID originalItem) {
-        if (delegate == null) {
-            delegate = (D) originalItem;
-        }
-        return (ID) publicView();
     }
 
     protected abstract D publicView();
@@ -207,7 +195,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
 
     @Override
     public void revive(PrismContext prismContext) {
-        delegate.revive(prismContext);
+        delegate().revive(prismContext);
     }
 
     public static TransformableItemDefinition<?, ?> access(ItemDefinition<?> itemDef) {
@@ -332,9 +320,9 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     }
 
     static void apply(ItemDefinition<?> overriden, ItemDefinition<?> originalItem) {
-        if (overriden instanceof TransformableItemDefinition) {
-            ((TransformableItemDefinition) overriden).apply(originalItem);
-        }
+        //if (overriden instanceof TransformableItemDefinition) {
+        //    ((TransformableItemDefinition) overriden).apply(originalItem);
+        //}
     }
 
     @Override
@@ -357,7 +345,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
 
     @Override
     public String toString() {
-        return "Transformable:" + delegate.toString();
+        return "Transformable:" + delegate().toString();
     }
 
     @Override
@@ -365,5 +353,19 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
         var deleg = delegate().instantiate(name);
         ((Item<?,ItemDefinition>)deleg).setDefinition(this);
         return deleg;
+    }
+
+
+    ItemDefinition<?> attachTo(TransformableComplexTypeDefinition complexType) {
+        var delegateDef = complexType.delegate().findItemDefinition(getItemName());
+        // If definition is same object as definition from schema - reuse it
+        if (delegateDef == delegate()) {
+                delegate = new DelegatedItem.ComplexTypeDerived<>(complexType, delegate());
+        }
+        return this;
+    }
+
+    protected void delegatedItem(DelegatedItem<D> deleg) {
+        this.delegate = deleg;
     }
 }

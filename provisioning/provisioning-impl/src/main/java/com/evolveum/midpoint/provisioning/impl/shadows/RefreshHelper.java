@@ -528,7 +528,8 @@ class RefreshHelper {
 
         // Explicitly check for zero deadRetentionPeriod to avoid some split-millisecond issues with dead shadow deletion.
         // If we have zero deadRetentionPeriod, we should get rid of all dead shadows immediately.
-        if (XmlTypeConverter.isZero(deadRetentionPeriod) || ProvisioningUtil.isOverPeriod(now, expirationPeriod, lastActivityTimestamp)) {
+        if (XmlTypeConverter.isZero(deadRetentionPeriod) || expirationPeriod == null ||
+                lastActivityTimestamp == null || XmlTypeConverter.isAfterInterval(lastActivityTimestamp, expirationPeriod, now)) {
             // Perish you stinking corpse!
             LOGGER.debug("Deleting dead {} because it is expired", repoShadow);
             shadowManager.deleteShadow(ctx, repoShadow, parentResult);

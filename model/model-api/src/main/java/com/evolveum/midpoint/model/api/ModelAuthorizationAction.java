@@ -88,6 +88,9 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
     IMPORT_REPORT("importReport", "Import report", "IMPORT_REPORT_HELP"),
 
     @Experimental
+    CLEANUP_AUDIT_RECORDS("cleanupAuditRecords", "Clean up audit records", "CLEANUP_AUDIT_RECORDS_HELP"),
+
+    @Experimental
     RECORD_TRACE("recordTrace", "Record trace", "RECORD_TRACE_HELP"),
 
     @Experimental

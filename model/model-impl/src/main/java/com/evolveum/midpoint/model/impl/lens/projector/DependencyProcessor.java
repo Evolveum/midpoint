@@ -190,7 +190,7 @@ public class DependencyProcessor {
             // started, we checked at the beginning). Therefore this context must have been visited again.
             // therefore there is a circular dependency. Therefore we need to create another context to split it.
             ResourceShadowDiscriminator origDiscr = projectionContext.getResourceShadowDiscriminator();
-            ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(origDiscr.getResourceOid(), origDiscr.getKind(), origDiscr.getIntent(), origDiscr.getTag(), origDiscr.isTombstone());
+            ResourceShadowDiscriminator discr = origDiscr.cloneBasic(); // TODO why not copy object class name as well?
             discr.setOrder(determinedOrder);
             if (!projectionContext.compareResourceShadowDiscriminator(discr, true)){
                 resultAccountContext = createAnotherContext(context, projectionContext, discr);
@@ -398,7 +398,7 @@ public class DependencyProcessor {
     private <F extends ObjectType> LensProjectionContext createAnotherContext(LensContext<F> context, LensProjectionContext origProjectionContext,
             int determinedOrder) {
         ResourceShadowDiscriminator origDiscr = origProjectionContext.getResourceShadowDiscriminator();
-        ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(origDiscr.getResourceOid(), origDiscr.getKind(), origDiscr.getIntent(), origDiscr.getTag(), origDiscr.isTombstone());
+        ResourceShadowDiscriminator discr = origDiscr.cloneBasic(); // todo why not cloning object class name?
         discr.setOrder(determinedOrder);
         return createAnotherContext(context, origProjectionContext, discr);
     }

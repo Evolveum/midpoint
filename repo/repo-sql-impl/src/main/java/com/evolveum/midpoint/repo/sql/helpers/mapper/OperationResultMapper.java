@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.repo.sql.helpers.mapper;
 
-import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
+import com.evolveum.midpoint.repo.sql.data.common.ROperationResult;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -20,11 +20,11 @@ import javax.xml.namespace.QName;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class OperationResultMapper implements Mapper<OperationResultType, OperationResult> {
+public class OperationResultMapper implements Mapper<OperationResultType, ROperationResult> {
 
     @Override
-    public OperationResult map(OperationResultType input, MapperContext context) {
-        OperationResult repo = (OperationResult) context.getOwner();
+    public ROperationResult map(OperationResultType input, MapperContext context) {
+        ROperationResult repo = (ROperationResult) context.getOwner();
 
         try {
             RUtil.copyResultFromJAXB(new QName(SchemaConstantsGenerated.NS_COMMON, "result"), input, repo, context.getPrismContext());

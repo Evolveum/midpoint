@@ -82,9 +82,9 @@ public class ProjectionContextFinder<F extends ObjectType, MA extends ModelConte
         }
 
         if (dead != null) {
-            if (dead && !projCtx.getResourceShadowDiscriminator().isTombstone()) {
+            if (dead && !projCtx.isGone()) {
                 return false;
-            } else if (!dead && projCtx.getResourceShadowDiscriminator().isTombstone()) {
+            } else if (!dead && projCtx.isGone()) {
                 return false;
             }
         }

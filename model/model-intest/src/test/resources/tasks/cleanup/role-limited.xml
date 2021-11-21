@@ -1,0 +1,38 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="1a90eaf4-03ed-4f23-a64b-1aaebc57ae57">
+    <name>limited</name>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+        <object>
+            <type>TaskType</type>
+            <filter>
+                <q:substring>
+                    <q:path>name</q:path>
+                    <q:value>[cleanable]</q:value>
+                    <q:anchorStart>false</q:anchorStart>
+                    <q:anchorEnd>false</q:anchorEnd>
+                </q:substring>
+            </filter>
+        </object>
+        <object>
+            <type>NodeType</type>
+            <filter>
+                <q:substring>
+                    <q:path>name</q:path>
+                    <q:value>[cleanable]</q:value>
+                    <q:anchorStart>false</q:anchorStart>
+                    <q:anchorEnd>false</q:anchorEnd>
+                </q:substring>
+            </filter>
+        </object>
+    </authorization>
+</role>

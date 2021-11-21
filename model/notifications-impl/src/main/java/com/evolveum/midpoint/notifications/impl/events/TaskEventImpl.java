@@ -9,21 +9,16 @@ package com.evolveum.midpoint.notifications.impl.events;
 
 import com.evolveum.midpoint.notifications.api.events.TaskEvent;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class TaskEventImpl extends BaseEventImpl implements TaskEvent {
-
-    private static final Trace LOGGER = TraceManager.getTrace(TaskEventImpl.class);
 
     @NotNull private final Task task;
     @Nullable private final TaskRunResult taskRunResult;            // nullable only if operationType == ADD
@@ -82,18 +77,27 @@ public class TaskEventImpl extends BaseEventImpl implements TaskEvent {
         if (eventStatus == null) {
             return false;
         }
-        if (taskRunResult == null || taskRunResult.getOperationResult() == null) {
+        OperationResultStatus status = getOperationResultStatus();
+        if (status == null) {
             // TODO consider if we really want to return 'true' for both success and in_progress here
             return eventStatus == EventStatusType.SUCCESS || eventStatus == EventStatusType.ALSO_SUCCESS || eventStatus == EventStatusType.IN_PROGRESS;
         }
-        OperationResult result = taskRunResult.getOperationResult();
+
         switch (eventStatus) {
             case SUCCESS:
-            case ALSO_SUCCESS: return result.isSuccess() || result.isHandledError() || result.isWarning();
-            case IN_PROGRESS: return false;
-            case FAILURE: return result.isError();
-            case ONLY_FAILURE: return result.isFatalError();
-            default: throw new IllegalStateException("Invalid eventStatusType: " + eventStatus);
+            case ALSO_SUCCESS:
+                return status == OperationResultStatus.SUCCESS ||
+                        status == OperationResultStatus.HANDLED_ERROR ||
+                        status == OperationResultStatus.WARNING;
+            case IN_PROGRESS:
+                return false;
+            case FAILURE:
+                return status == OperationResultStatus.FATAL_ERROR ||
+                    status == OperationResultStatus.PARTIAL_ERROR;
+            case ONLY_FAILURE:
+                return status == OperationResultStatus.FATAL_ERROR;
+            default:
+                throw new IllegalStateException("Invalid eventStatusType: " + eventStatus);
         }
     }
 
@@ -114,12 +118,24 @@ public class TaskEventImpl extends BaseEventImpl implements TaskEvent {
 
     @Override
     public OperationResultStatus getOperationResultStatus() {
-        return taskRunResult != null && taskRunResult.getOperationResult() != null ? taskRunResult.getOperationResult().getStatus() : null;
+        if (taskRunResult != null && taskRunResult.getOperationResultStatus() != null) {
+            return taskRunResult.getOperationResultStatus();
+        } else if (task.getResult() != null) {
+            return task.getResult().getStatus();
+        } else {
+            return null;
+        }
     }
 
     @Override
     public String getMessage() {
-        return taskRunResult != null && taskRunResult.getOperationResult() != null ? taskRunResult.getOperationResult().getMessage() : null;
+        if (taskRunResult != null && taskRunResult.getMessage() != null) {
+            return taskRunResult.getMessage();
+        } else if (task.getResult() != null) {
+            return task.getResult().getMessage();
+        } else {
+            return null;
+        }
     }
 
     @Override

@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import static com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource.FULL_STATE_ONLY;
 import static com.evolveum.midpoint.schema.util.task.TaskResolver.empty;
 import static com.evolveum.midpoint.util.MiscUtil.assertCheck;
 
@@ -252,7 +253,7 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     public ActivityProgressInformationAsserter<TaskAsserter<RA>> progressInformation() {
         ActivityProgressInformationAsserter<TaskAsserter<RA>> asserter =
                 new ActivityProgressInformationAsserter<>(
-                        ActivityProgressInformation.fromRootTask(getObjectable(), TaskResolver.empty()),
+                        ActivityProgressInformation.fromRootTask(getObjectable(), FULL_STATE_ONLY),
                         this,
                         getDetails());
         copySetupTo(asserter);
@@ -332,6 +333,13 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
                     .as("result status")
                     .isEqualTo(OperationResultStatusType.FATAL_ERROR);
         }
+        return this;
+    }
+
+    public TaskAsserter<RA> assertResultMessageContains(String fragment) {
+        OperationResultType result = getTaskBean().getResult();
+        assertThat(result).as("operation result").isNotNull();
+        assertThat(result.getMessage()).as("operation result message").contains(fragment);
         return this;
     }
 

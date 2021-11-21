@@ -2100,8 +2100,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        importFromResourceTaskHandler.importSingleShadow(shadows.get(0).getOid(), task, result);
-        importFromResourceTaskHandler.importSingleShadow(shadows.get(1).getOid(), task, result);
+        importFromResourceLauncher.importSingleShadow(shadows.get(0).getOid(), task, result);
+        importFromResourceLauncher.importSingleShadow(shadows.get(1).getOid(), task, result);
 
         // THEN
         then();
@@ -2169,5 +2169,43 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assert objects.size() == 1 : "Too many objects found for additional name " + additionalName + ": " + objects;
         PrismObject<UserType> user = objects.iterator().next();
         return user.asObjectable().getIterationToken();
+    }
+
+    /**
+     * Cases doesn't have to have unique names. We need skip constraints check for CaseType.
+     * It's not direct relation with iteration, but function for skipping is in IterationHelper.
+     */
+    @Test
+    public void test900SkippingConstraintsCheckForCaseType() throws Exception {
+
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // adding two object with same names
+        addObject(new CaseType().name("test case").asPrismObject());
+        String caseOid = addObject(new CaseType().name("test case").asPrismObject());
+
+        dummyAuditService.clear();
+
+        ObjectDelta<CaseType> modifyDelta = prismContext.deltaFactory().object()
+                .createModificationReplaceProperty(CaseType.class, caseOid, CaseType.F_DESCRIPTION, "descriptionmodify");
+
+        // WHEN
+        when();
+        executeChanges(modifyDelta, null, task, result);
+
+        // THEN
+        then();
+        assertSuccess(result);
+
+        // Check audit
+        displayDumpable("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, CaseType.class);
+        dummyAuditService.assertExecutionSuccess();
     }
 }

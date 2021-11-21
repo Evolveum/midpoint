@@ -71,6 +71,11 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         this((PrismContext) null);
     }
 
+    /** Assumes that {@link PrismContext#get()} can be called. Which usually is, after midPoint is initialized. */
+    public static ModelExecuteOptions create() {
+        return new ModelExecuteOptions(PrismContext.get());
+    }
+
     public static ModelExecuteOptions create(PrismContext prismContext) {
         return new ModelExecuteOptions(prismContext);
     }
@@ -87,6 +92,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         if (options == null) {
             return defaultValue;
         }
+        //noinspection unchecked
         Boolean value = (Boolean) options.content.asPrismContainerValue().getPropertyRealValue(itemName, Boolean.class);
         return value != null ? value : defaultValue;
     }
@@ -160,6 +166,10 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 
     public static boolean isRaw(ModelExecuteOptions options) {
         return is(options, ModelExecuteOptionsType.F_RAW);
+    }
+
+    public static Boolean getRaw(ModelExecuteOptions options) {
+        return options != null ? options.getRaw() : null;
     }
 
     @Deprecated // kept because of (expected) external uses; use create(prismContext).raw() instead
@@ -406,6 +416,10 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
     }
 
     //endregion
+
+    public static ModelExecuteOptionsType toModelExecutionOptionsBean(ModelExecuteOptions options) {
+        return options != null ? options.toModelExecutionOptionsType() : null;
+    }
 
     public ModelExecuteOptionsType toModelExecutionOptionsType() {
         return clone().content; // cloning for safety reasons

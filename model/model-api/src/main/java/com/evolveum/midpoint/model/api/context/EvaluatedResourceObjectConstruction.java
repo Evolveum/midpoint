@@ -1,20 +1,20 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.api.context;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import java.io.Serializable;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Serializable;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
  * Facade interface that provides insight about construction that was evaluated by projector code.
@@ -67,7 +67,7 @@ public interface EvaluatedResourceObjectConstruction extends DebugDumpable, Seri
 
     /**
      * Is the construction weak (i.e. conditional)?
-     * https://wiki.evolveum.com/display/midPoint/Assignment+Configuration#AssignmentConfiguration-StrongandWeakConstructions
+     * https://docs.evolveum.com/midpoint/reference/roles-policies/assignment/configuration/#strong-and-weak-constructions
      */
     boolean isWeak();
 }

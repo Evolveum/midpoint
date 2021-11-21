@@ -632,12 +632,13 @@
                     <xsd:element name="targetRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                <p>
-                                    Target of exclusion. The object defining this "exclusion" and
-                                    the object defined as target cannot be assigned at the same time.
-                                    Filter in the reference may be used to dynamically exclude broader
-                                    range of roles - assuming that runtime resolution is used.
-                                </p>
+                                Target of exclusion. The object defining this "exclusion" and
+                                the object defined as target cannot be assigned at the same time.
+                                Filter in the reference may be used to dynamically exclude broader
+                                range of roles - assuming that runtime resolution is used.
+
+                                If script expression is used in the filter, following variables are available:
+                                - `policyRule`: currently evaluated policy rule (type EvaluatedPolicyRule)
                             </xsd:documentation>
                             <xsd:appinfo>
                                  <a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
@@ -880,6 +881,9 @@
                                 Assignment target to be matched. Might be dynamic (with a resolution time of "run"), just
                                 like the one in exclusion constraint. If a relation here is specified, it takes precedence
                                 over "relation" item in this constraint.
+
+                                If script expression is used in the filter, following variables are available:
+                                - `policyRule`: currently evaluated policy rule (type EvaluatedPolicyRule)
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>HasAssignmentPolicyConstraintType.targetRef</a:displayName>

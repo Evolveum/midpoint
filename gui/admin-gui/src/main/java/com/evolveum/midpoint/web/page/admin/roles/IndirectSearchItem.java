@@ -72,11 +72,11 @@ public class IndirectSearchItem extends SpecialSearchItem {
 //            filter = prismContext.queryFor(type).exists(AssignmentHolderType.F_ASSIGNMENT)
 //                    .block()
 //                    .item(AssignmentType.F_TARGET_REF)
-//                    .ref(MemberOperationsHelper.createReferenceValuesList(object, relations))
+//                    .ref(MemberOperationsHelperOld.createReferenceValuesList(object, relations))
 //                    .endBlock().buildFilter();
 //        } else {
 //            filter = prismContext.queryFor(type)
-//                    .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(object, relations))
+//                    .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelperOld.createReferenceValuesList(object, relations))
 //                    .buildFilter();
 //        }
 //        return filter;

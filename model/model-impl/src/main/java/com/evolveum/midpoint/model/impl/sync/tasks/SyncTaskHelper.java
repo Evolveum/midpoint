@@ -80,7 +80,7 @@ public class SyncTaskHelper {
         return new ResourceSearchSpecification(
                 resourceObjectClassSpecification,
                 query,
-                MiscSchemaUtil.optionsTypeToOptions(set.getSearchOptions(), prismContext));
+                GetOperationOptionsUtil.optionsBeanToOptions(set.getSearchOptions()));
     }
 
     @NotNull

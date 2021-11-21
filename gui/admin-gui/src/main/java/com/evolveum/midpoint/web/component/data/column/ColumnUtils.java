@@ -9,11 +9,13 @@ package com.evolveum.midpoint.web.component.data.column;
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
 
 import java.util.*;
+import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
@@ -62,6 +64,7 @@ import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.Nullable;
 
 public class ColumnUtils {
     private static final Trace LOGGER = TraceManager.getTrace(ColumnUtils.class);
@@ -302,15 +305,9 @@ public class ColumnUtils {
                             String componentId, IModel<SelectableBean<T>> rowModel) {
                         SelectableBean<TaskType> object = (SelectableBean<TaskType>) rowModel.getObject();
 
-                        PrismProperty<ShadowKindType> pKind;
+                        PrismProperty<ShadowKindType> pKind = null;
                         if (object.getValue() != null) {
                             pKind = findPropertyInResourceSet(object.getValue(), ResourceObjectSetType.F_KIND);
-                            if (pKind == null) {
-                                pKind = object.getValue().asPrismObject().findProperty(
-                                        ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
-                            }
-                        } else {
-                            pKind = null;
                         }
 
                         if (pKind != null) {
@@ -331,15 +328,9 @@ public class ColumnUtils {
                     String componentId, IModel<SelectableBean<T>> rowModel) {
                 SelectableBean<TaskType> object = (SelectableBean<TaskType>) rowModel.getObject();
 
-                PrismProperty<String> pIntent;
+                PrismProperty<String> pIntent = null;
                 if (object.getValue() != null) {
                     pIntent = findPropertyInResourceSet(object.getValue(), ResourceObjectSetType.F_INTENT);
-                    if (pIntent == null) {
-                        pIntent = object.getValue().asPrismObject().findProperty(
-                                ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
-                    }
-                } else {
-                    pIntent = null;
                 }
 
                 if (pIntent != null) {
@@ -358,15 +349,9 @@ public class ColumnUtils {
                     String componentId, IModel<SelectableBean<T>> rowModel) {
                 SelectableBean<TaskType> object = (SelectableBean<TaskType>) rowModel.getObject();
 
-                PrismProperty<QName> pObjectClass;
+                PrismProperty<QName> pObjectClass = null;
                 if (object.getValue() != null) {
                     pObjectClass = findPropertyInResourceSet(object.getValue(), ResourceObjectSetType.F_OBJECTCLASS);
-                    if (pObjectClass == null) {
-                        pObjectClass = object.getValue().asPrismObject().findProperty(
-                                ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS));
-                    }
-                } else {
-                    pObjectClass = null;
                 }
 
                 if (pObjectClass != null) {
@@ -391,33 +376,9 @@ public class ColumnUtils {
         if (!WebComponentUtil.isResourceRelatedTask(value)) {
             return null;
         }
-        PrismContainer resourceSet = value.asPrismObject().findContainer(
-                ItemPath.create(
-                        TaskType.F_ACTIVITY,
-                        ActivityDefinitionType.F_WORK,
-                        WorkDefinitionsType.F_RECONCILIATION,
-                        ReconciliationWorkDefinitionType.F_RESOURCE_OBJECTS
-                ));
-        if (resourceSet == null) {
-            resourceSet = value.asPrismObject().findContainer(
-                    ItemPath.create(
-                            TaskType.F_ACTIVITY,
-                            ActivityDefinitionType.F_WORK,
-                            WorkDefinitionsType.F_IMPORT,
-                            ImportWorkDefinitionType.F_RESOURCE_OBJECTS
-                    ));
-        }
-        if (resourceSet == null) {
-            resourceSet = value.asPrismObject().findContainer(
-                    ItemPath.create(
-                            TaskType.F_ACTIVITY,
-                            ActivityDefinitionType.F_WORK,
-                            WorkDefinitionsType.F_LIVE_SYNCHRONIZATION,
-                            LiveSyncWorkDefinitionType.F_RESOURCE_OBJECTS
-                    ));
-        }
-        if (resourceSet != null) {
-            return resourceSet.findProperty(pathToProperty);
+        @Nullable ResourceObjectSetType resourceSet = ResourceObjectSetUtil.fromTask(value);
+        if (Objects.isNull(resourceSet)) {
+            return resourceSet.asPrismContainerValue().findProperty(pathToProperty);
         }
         return null;
     }

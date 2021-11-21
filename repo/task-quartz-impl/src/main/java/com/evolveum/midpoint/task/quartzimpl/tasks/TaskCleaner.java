@@ -29,11 +29,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.List;
+import java.util.function.Predicate;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.SUCCESS;
 
@@ -48,7 +50,8 @@ public class TaskCleaner {
     @Autowired private TaskInstantiator taskInstantiator;
     @Autowired private TaskStateManager taskStateManager;
 
-    public void cleanupTasks(CleanupPolicyType policy, RunningTask executionTask, OperationResult result)
+    public void cleanupTasks(@NotNull CleanupPolicyType policy, @NotNull Predicate<TaskType> selector,
+            @NotNull RunningTask executionTask, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         if (policy.getMaxAge() == null) {
             return;
@@ -73,7 +76,7 @@ public class TaskCleaner {
         int deleted = 0;
         int problems = 0;
         int subtasksProblems = 0;
-        for (PrismObject<TaskType> rootTaskPrism : obsoleteTasks) {
+        root: for (PrismObject<TaskType> rootTaskPrism : obsoleteTasks) {
 
             if (!executionTask.canRun()) {
                 result.recordWarning("Interrupted");
@@ -84,12 +87,38 @@ public class TaskCleaner {
 
             IterativeOperationStartInfo iterativeOperationStartInfo = new IterativeOperationStartInfo(
                     new IterationItemInformation(rootTaskPrism));
-            iterativeOperationStartInfo.setProgressCollector(executionTask); // TODO
+            iterativeOperationStartInfo.setSimpleCaller(true);
             Operation op = executionTask.recordIterativeOperationStart(iterativeOperationStartInfo);
             try {
                 // get whole tree
                 TaskQuartzImpl rootTask = taskInstantiator.createTaskInstance(rootTaskPrism, result);
+                if (rootTask.isIndestructible()) {
+                    LOGGER.trace("Not deleting {} as it is indestructible", rootTaskPrism);
+                    op.skipped();
+                    continue;
+                }
+
+                if (!selector.test(rootTaskPrism.asObjectable())) {
+                    LOGGER.debug("Not deleting {} because it was rejected by the selector", rootTaskPrism);
+                    op.skipped();
+                    continue;
+                }
+
                 List<TaskQuartzImpl> taskTreeMembers = rootTask.listSubtasksDeeply(true, result);
+                for (TaskQuartzImpl child : taskTreeMembers) {
+                    if (child.isIndestructible()) {
+                        LOGGER.trace("Not deleting {} as it has an indestructible child: {}", rootTask, child);
+                        op.skipped();
+                        continue root;
+                    }
+                    if (!selector.test(child.getRawTaskObject().asObjectable())) {
+                        LOGGER.debug("Not deleting {} because the user has no authorization to delete one of the children: {}",
+                                rootTask, child);
+                        op.skipped();
+                        continue root;
+                    }
+                }
+
                 taskTreeMembers.add(rootTask);
 
                 LOGGER.trace("Removing task {} along with its {} children.", rootTask, taskTreeMembers.size() - 1);

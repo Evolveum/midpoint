@@ -335,7 +335,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         case100.setId(NEW_CASE_ID);
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(AccessCertificationCampaignType.class)
-                .item(F_CASE).add(caseNoId, case110).delete(case100)
+                .item(F_CASE).delete(case100).add(caseNoId, case110)
                 .item(F_CASE, 3, AccessCertificationCaseType.F_STAGE_NUMBER).replace(400)
                 .asItemDeltas();
 

@@ -15,7 +15,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -562,10 +561,6 @@ public class ProvisioningUtil {
         return caching.getCachingStategy();
     }
 
-    public static boolean shouldDoRepoSearch(GetOperationOptions rootOptions) {
-        return GetOperationOptions.isNoFetch(rootOptions) || GetOperationOptions.isMaxStaleness(rootOptions);
-    }
-
     public static boolean isResourceModification(ItemDelta modification) {
         QName firstPathName = modification.getPath().firstName();
         return isAttributeModification(firstPathName) || isNonAttributeResourceModification(firstPathName);
@@ -627,15 +622,7 @@ public class ProvisioningUtil {
         if (completionTimestamp == null) {
             return false;
         }
-        return isOverPeriod(now, period, completionTimestamp);
-    }
-
-    public static boolean isOverPeriod(XMLGregorianCalendar now, Duration period, XMLGregorianCalendar lastActivityTimestamp) {
-        if (period == null) {
-            return true;
-        }
-        XMLGregorianCalendar expirationTimestamp = XmlTypeConverter.addDuration(lastActivityTimestamp, period);
-        return XmlTypeConverter.compare(now, expirationTimestamp) == DatatypeConstants.GREATER;
+        return period == null || XmlTypeConverter.isAfterInterval(completionTimestamp, period, now);
     }
 
     public static Duration getRetryPeriod(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -708,7 +695,7 @@ public class ProvisioningUtil {
 
     public static boolean isFuturePointInTime(Collection<SelectorOptions<GetOperationOptions>> options) {
         PointInTimeType pit = GetOperationOptions.getPointInTimeType(SelectorOptions.findRootOptions(options));
-        return PointInTimeType.FUTURE.equals(pit);
+        return pit == PointInTimeType.FUTURE;
     }
 
     public static ResourceOperationDescription createResourceFailureDescription(

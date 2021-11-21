@@ -70,12 +70,15 @@ public interface WorkflowManager {
      *
      * This method removes parent case object with all its children cases.
      *
+     * Authorizations are taken care by using model API to fetch and delete the cases.
      *
      * @param closedCasesPolicy specifies which tasks are to be deleted, e.g. how old they have to be
      * @param task task, within which context the cleanup executes (used to test for interruptions)
+     * @throws CommonException When the root cases cannot be searched for. Exceptions during actual deletion or when
+     * searching for subcases are not re-thrown (to allow processing as much cases as possible).
      */
     void cleanupCases(CleanupPolicyType closedCasesPolicy, RunningTask task, OperationResult opResult)
-            throws SchemaException, ObjectNotFoundException;
+            throws CommonException;
 
     //endregion
 

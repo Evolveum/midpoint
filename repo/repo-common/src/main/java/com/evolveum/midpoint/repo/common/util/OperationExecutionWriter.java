@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -161,8 +161,8 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         List<ItemDelta<?, ?>> deltas = prismContext.deltaFor(request.objectType)
                 .item(ObjectType.F_OPERATION_EXECUTION)
-                .add(PrismContainerValue.toPcvList(recordsToAdd)) // assuming these are parent-less
                 .delete(PrismContainerValue.toPcvList(CloneUtil.cloneCollectionMembers(recordsToDelete)))
+                .add(PrismContainerValue.toPcvList(recordsToAdd)) // assuming these are parent-less
                 .asItemDeltas();
         LOGGER.trace("Operation execution delta:\n{}", DebugUtil.debugDumpLazily(deltas));
         repositoryService.modifyObject(request.objectType, request.oid, deltas, result);
@@ -370,7 +370,7 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
 
         /**
          * Existing execution records, used to generate delete deltas.
-         * They can be a little bit out-of-date (let us say less than a second), but not much.
+         * They can be a bit out-of-date (let us say less than a second), but not much.
          * So, therefore, if called from the clockwork, it is OK to use objectNew, assuming the
          * object is not that old. If the value is null, existing execution records will be fetched anew
          * (if cleanup is necessary).

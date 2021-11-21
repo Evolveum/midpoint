@@ -1292,7 +1292,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
                     .assertNoTrigger();
             assertShadow(String.format("e-%06d", i), targetResource)
                     .display()
-                    .assertLife();
+                    .assertLive();
                     //.assertLifecycleState(null); // For many account we have here "proposed" ... why?!
         }
     }

@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.scripting;
 
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
@@ -17,7 +16,6 @@ import com.evolveum.midpoint.model.impl.scripting.expressions.SelectEvaluator;
 import com.evolveum.midpoint.schema.util.ScriptingBeansUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -32,7 +30,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.Validate;
@@ -77,40 +77,28 @@ public class ScriptingExpressionEvaluator {
         evaluateExpressionInBackground(ScriptingBeansUtil.createExecuteScriptCommand(expression), task, parentResult);
     }
 
-    public void evaluateExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult) throws SchemaException {
+    public void evaluateExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult)
+            throws SchemaException {
         if (!task.isTransient()) {
             throw new IllegalStateException("Task must be transient");
         }
         if (task.getHandlerUri() != null) {
             throw new IllegalStateException("Task must not have a handler");
         }
-        OperationResult result = parentResult.createSubresult(DOT_CLASS + "evaluateExpressionInBackground");
-        task.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, executeScriptCommand);
-        task.setHandlerUri(ModelPublicConstants.SCRIPT_EXECUTION_TASK_HANDLER_URI);
-        task.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_SINGLE_BULK_ACTION_TASK.value());
-        taskManager.switchToBackground(task, result);
-        result.computeStatus();
-    }
 
-    /**
-     * Asynchronously executes any scripting expression.
-     *
-     * @param executeScriptCommand ExecuteScript to be executed.
-     * @param task Task in context of which the script should execute. The task should be "clean", i.e.
-     *             (1) transient, (2) without any handler. This method puts the task into background,
-     *             and assigns IterativeScriptExecutionTaskHandler to it, to execute the script.
-     */
-    public void evaluateIterativeExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult) throws SchemaException {
-        if (!task.isTransient()) {
-            throw new IllegalStateException("Task must be transient");
-        }
-        if (task.getHandlerUri() != null) {
-            throw new IllegalStateException("Task must not have a handler");
-        }
+        // @formatter:off
+        task.setRootActivityDefinition(
+                new ActivityDefinitionType(PrismContext.get())
+                        .beginWork()
+                            .beginNonIterativeScripting()
+                                .scriptExecutionRequest(executeScriptCommand)
+                            .<WorkDefinitionsType>end()
+                        .end());
+        // @formatter:on
+
+        task.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_SINGLE_BULK_ACTION_TASK.value());
+
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "evaluateExpressionInBackground");
-        task.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, executeScriptCommand);
-        task.setHandlerUri(ModelPublicConstants.ITERATIVE_SCRIPT_EXECUTION_TASK_HANDLER_URI);
-        task.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value());
         taskManager.switchToBackground(task, result);
         result.computeStatus();
     }

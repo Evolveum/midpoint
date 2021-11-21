@@ -155,7 +155,17 @@ public class ModelObjectResolver implements ObjectResolver {
         return objectType;
     }
 
-    private <T extends ObjectType> ObjectTypes.ObjectManager getObjectManager(Class<T> clazz,
+    /**
+     * Returns the component that is responsible for execution of get/search/count operation for given type of objects,
+     * under given options.
+     *
+     * Specifically, in raw mode we simply skip specialized components like provisioning or task manager, and we go
+     * directly to repository.
+     *
+     * Actually it is a bit questionable if this is really correct. But this is how it has been implemented for a long time
+     * (for the getObject op), so later the other operations were added.
+     */
+    private @NotNull <T extends ObjectType> ObjectTypes.ObjectManager getObjectManager(Class<T> clazz,
             Collection<SelectorOptions<GetOperationOptions>> options) {
         if (GetOperationOptions.isRaw(SelectorOptions.findRootOptions(options))) {
             return ObjectTypes.ObjectManager.REPOSITORY;
@@ -167,30 +177,48 @@ public class ModelObjectResolver implements ObjectResolver {
     }
 
     @Override
-    public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        if (ObjectTypes.isClassManagedByProvisioning(type)) {
-            provisioning.searchObjectsIterative(type, query, options, handler, task, parentResult);
-        } else {
-            cacheRepositoryService.searchObjectsIterative(type, query, handler, options, true, parentResult);        // TODO pull up into resolver interface
+    public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        switch (getObjectManager(type, options)) {
+            case PROVISIONING:
+                provisioning.searchObjectsIterative(type, query, options, handler, task, result);
+                break;
+            case TASK_MANAGER:
+                taskManager.searchObjectsIterative(type, query, options, handler, result);
+                break;
+            default:
+                cacheRepositoryService.searchObjectsIterative(type, query, handler, options, true, result);
         }
     }
 
     @Override
-    public <O extends ObjectType> SearchResultList<PrismObject<O>> searchObjects(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        if (ObjectTypes.isClassManagedByProvisioning(type)) {
-            return provisioning.searchObjects(type, query, options, task, parentResult);
-        } else {
-            return cacheRepositoryService.searchObjects(type, query, options, parentResult);
+    public <O extends ObjectType> SearchResultList<PrismObject<O>> searchObjects(Class<O> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        switch (getObjectManager(type, options)) {
+            case PROVISIONING:
+                return provisioning.searchObjects(type, query, options, task, result);
+            case TASK_MANAGER:
+                return taskManager.searchObjects(type, query, options, result);
+            default:
+                return cacheRepositoryService.searchObjects(type, query, options, result);
         }
     }
 
-    public <O extends ObjectType> Integer countObjects(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        if (ObjectTypes.isClassManagedByProvisioning(type)) {
-            return provisioning.countObjects(type, query, options, task, parentResult);
-        } else {
-            return cacheRepositoryService.countObjects(type, query, options, parentResult);
+    public <O extends ObjectType> Integer countObjects(Class<O> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        switch (getObjectManager(type, options)) {
+            case PROVISIONING:
+                return provisioning.countObjects(type, query, options, task, result);
+            case TASK_MANAGER:
+                return taskManager.countObjects(type, query, result);
+            default:
+                return cacheRepositoryService.countObjects(type, query, options, result);
         }
     }
 

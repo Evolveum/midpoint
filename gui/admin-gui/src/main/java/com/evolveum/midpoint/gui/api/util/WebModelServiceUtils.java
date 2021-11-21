@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.api.util;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 
 import java.util.*;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.page.error.PageError;
@@ -605,11 +606,8 @@ public class WebModelServiceUtils {
         }
 
         task.setOwner(owner);
-        if (channel == null) {
-            task.setChannel(SchemaConstants.CHANNEL_USER_URI);
-        } else {
-            task.setChannel(channel);
-        }
+        task.setChannel(
+                Objects.requireNonNullElse(channel, SchemaConstants.CHANNEL_USER_URI));
 
         return task;
     }

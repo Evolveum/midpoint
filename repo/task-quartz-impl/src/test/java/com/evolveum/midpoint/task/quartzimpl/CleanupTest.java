@@ -12,9 +12,12 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +34,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import static com.evolveum.midpoint.prism.PrismObject.cast;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author lazyman
  */
@@ -39,6 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 public class CleanupTest extends AbstractTaskManagerTest {
 
     private static final File FOLDER_BASIC = new File("./src/test/resources/basic");
+    private static final File TASKS_FOR_CLEANUP = new File(FOLDER_BASIC, "tasks-for-cleanup.xml");
 
     @Autowired private TaskManagerQuartzImpl taskManager;
     @Autowired private RepositoryService repositoryService;
@@ -47,34 +55,44 @@ public class CleanupTest extends AbstractTaskManagerTest {
     @Test
     public void testTasksCleanup() throws Exception {
 
-        // GIVEN
-        final File file = new File(FOLDER_BASIC, "tasks-for-cleanup.xml");
-        List<PrismObject<? extends Objectable>> elements = prismContext.parserFor(file).parseObjects();
+        given();
+        List<PrismObject<? extends Objectable>> elements = prismContext.parserFor(TASKS_FOR_CLEANUP).parseObjects();
 
         OperationResult result = new OperationResult("tasks cleanup");
         for (PrismObject<? extends Objectable> object : elements) {
-            String oid = repositoryService.addObject((PrismObject) object, null, result);
+            String oid = repositoryService.addObject(
+                    cast(object, ObjectType.class),
+                    null, result);
             AssertJUnit.assertTrue(StringUtils.isNotEmpty(oid));
         }
 
-        // WHEN
+        when();
         // because now we can't move system time (we're not using DI for it) we create policy
         // which should always point to 2013-05-07T12:00:00.000+02:00
         final long NOW = System.currentTimeMillis();
-        Calendar when = create_2013_05_07_12_00_00_Calendar();
-        CleanupPolicyType policy = createPolicy(when, NOW);
+        Calendar threshold = create_2013_05_07_12_00_00_Calendar();
+        CleanupPolicyType policy = createPolicy(threshold, NOW);
 
-        taskManager.cleanupTasks(policy, taskManager.createFakeRunningTask(taskManager.createTaskInstance()), result);
+        taskManager.cleanupTasks(policy, t -> true, taskManager.createFakeRunningTask(taskManager.createTaskInstance()), result);
 
-        // THEN
+        then();
         List<PrismObject<TaskType>> tasks = repositoryService.searchObjects(TaskType.class, null, null, result);
         AssertJUnit.assertNotNull(tasks);
         displayValue("tasks", tasks);
-        AssertJUnit.assertEquals(1, tasks.size());
+        AssertJUnit.assertEquals(2, tasks.size());
 
-        PrismObject<TaskType> task = tasks.get(0);
-        XMLGregorianCalendar timestamp = task.getPropertyRealValue(TaskType.F_COMPLETION_TIMESTAMP,
-                XMLGregorianCalendar.class);
+        var indestructible = tasks.stream()
+                .filter(t -> Boolean.TRUE.equals(t.asObjectable().isIndestructible()))
+                .collect(Collectors.toList());
+        assertThat(indestructible).as("indestructible tasks left").hasSize(1);
+
+        var nonIndestructible = tasks.stream()
+                .filter(t -> !Boolean.TRUE.equals(t.asObjectable().isIndestructible()))
+                .collect(Collectors.toList());
+        assertThat(nonIndestructible).as("non-indestructible tasks left").hasSize(1);
+
+        PrismObject<TaskType> task = nonIndestructible.get(0);
+        XMLGregorianCalendar timestamp = task.getPropertyRealValue(TaskType.F_COMPLETION_TIMESTAMP, XMLGregorianCalendar.class);
         Date finished = timestamp.toGregorianCalendar().getTime();
 
         Date mark = new Date(NOW);
@@ -97,18 +115,13 @@ public class CleanupTest extends AbstractTaskManagerTest {
         return calendar;
     }
 
+    private CleanupPolicyType createPolicy(Calendar threshold, long now) throws Exception {
+        return new CleanupPolicyType(PrismContext.get())
+                .maxAge(createDuration(threshold, now));
+    }
+
     private Duration createDuration(Calendar when, long now) throws Exception {
         long seconds = (now - when.getTimeInMillis()) / 1000;
         return DatatypeFactory.newInstance().newDuration("PT" + seconds + "S").negate();
     }
-
-    private CleanupPolicyType createPolicy(Calendar when, long now) throws Exception {
-        CleanupPolicyType policy = new CleanupPolicyType();
-
-        Duration duration = createDuration(when, now);
-        policy.setMaxAge(duration);
-
-        return policy;
-    }
-
 }

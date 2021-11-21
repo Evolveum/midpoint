@@ -9,10 +9,11 @@ package com.evolveum.midpoint.model.impl.sync.tasks.imp;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
@@ -24,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 public class ImportActivityHandler
         extends ModelActivityHandler<ImportWorkDefinition, ImportActivityHandler> {
 
-    private static final String LEGACY_HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/import/handler-3";
+    private static final String LEGACY_HANDLER_URI = ModelPublicConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/import/handler-3";
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_IMPORT_TASK.value();
 
     @PostConstruct

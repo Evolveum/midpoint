@@ -89,6 +89,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -117,7 +118,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
     private static final long serialVersionUID = 1L;
 
-    protected enum QueryScope {
+    public enum QueryScope { // temporarily public because of migration
         SELECTED, ALL, ALL_DIRECT
     }
 
@@ -694,7 +695,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            MemberOperationsHelper.assignMembers(getPageBase(), AbstractRoleMemberPanel.this.getModelObject(), target, getMemberPanelStorage().getRelationSearchItem(), null);
+                            MemberOperationsGuiHelper.assignMembers(getPageBase(), AbstractRoleMemberPanel.this.getModelObject(),
+                                    target, getMemberPanelStorage().getRelationSearchItem(), null);
                         }
                     };
                 }
@@ -817,7 +819,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
     protected void assignMembers(AjaxRequestTarget target, RelationSearchItemConfigurationType relationConfig,
             List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList, boolean isOrgTreePanelVisible) {
-        MemberOperationsHelper.assignMembers(getPageBase(), getModelObject(), target, relationConfig,
+        MemberOperationsGuiHelper.assignMembers(getPageBase(), getModelObject(), target, relationConfig,
                 objectTypes, archetypeRefList, isOrgTreePanelVisible);
     }
 
@@ -859,13 +861,12 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                     return null;
                 }
                 Task task = MemberOperationsHelper.createUnassignMembersTask(
-                        getPageBase(),
                         AbstractRoleMemberPanel.this.getModelObject(),
                         scope,
+                        type,
                         getActionQuery(scope, relations),
                         relations,
-                        type,
-                        target);
+                        target, getPageBase());
 
                 if (task == null) {
                     return null;
@@ -1054,7 +1055,11 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         if (checkRelationNotSelected(relations, "No relation was selected. Cannot perform delete members", target)) {
             return;
         }
-        MemberOperationsHelper.deleteMembersPerformed(getModelObject(), getPageBase(), scope, getActionQuery(scope, relations), target);
+        MemberOperationsHelper.createAndSubmitDeleteMembersTask(
+                getModelObject(),
+                scope,
+                getActionQuery(scope, relations),
+                target, getPageBase());
     }
 
     private boolean checkRelationNotSelected(Collection<QName> relations, String message, AjaxRequestTarget target) {
@@ -1071,19 +1076,30 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         if (checkRelationNotSelected(relations, "No relation was selected. Cannot perform unassign members", target)) {
             return;
         }
-        MemberOperationsHelper.unassignMembersPerformed(getPageBase(), getModelObject(), scope, getActionQuery(scope, relations), relations, type, target);
+        MemberOperationsHelper.createAndSubmitUnassignMembersTask(
+                getModelObject(),
+                scope,
+                type,
+                getActionQuery(scope, relations),
+                relations,
+                target, getPageBase());
         target.add(this);
     }
 
-    protected ObjectQuery getActionQuery(QueryScope scope, Collection<QName> relations) {
+    protected ObjectQuery getActionQuery(QueryScope scope, @NotNull Collection<QName> relations) {
         switch (scope) {
             case ALL:
                 return createAllMemberQuery(relations);
             case ALL_DIRECT:
-                return MemberOperationsHelper.createDirectMemberQuery(getModelObject(), getSearchType(), relations,
-                        getMemberPanelStorage().getTenant(), getMemberPanelStorage().getProject(), getPrismContext());
+                return MemberOperationsHelper.createDirectMemberQuery(
+                        getModelObject(),
+                        getSearchType(),
+                        relations,
+                        getMemberPanelStorage().getTenant(),
+                        getMemberPanelStorage().getProject());
             case SELECTED:
-                return MemberOperationsHelper.createSelectedObjectsQuery(getMemberTable().getSelectedRealObjects(), getPrismContext());
+                return MemberOperationsHelper.createSelectedObjectsQuery(
+                        getMemberTable().getSelectedRealObjects());
         }
 
         return null;
@@ -1102,7 +1118,9 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     protected QueryScope getQueryScope() {
-        if (CollectionUtils.isNotEmpty(MemberOperationsHelper.getFocusOidToRecompute(getMemberTable().getSelectedRealObjects()))) {
+        // TODO if all selected objects have OIDs we can eliminate getOids call
+        if (CollectionUtils.isNotEmpty(
+                ObjectTypeUtil.getOids(getMemberTable().getSelectedRealObjects()))) {
             return QueryScope.SELECTED;
         }
 
@@ -1131,8 +1149,11 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
             @Override
             protected PrismObject<TaskType> getTask(AjaxRequestTarget target) {
-                Task task = MemberOperationsHelper.createRecomputeMembersTask(getModelObject(), getPageBase(), getQueryScope(),
-                        getActionQuery(getQueryScope(), getRelationsForRecomputeTask()), target);
+                Task task = MemberOperationsHelper.createRecomputeMembersTask(
+                        getModelObject(),
+                        getQueryScope(),
+                        getActionQuery(getQueryScope(), getRelationsForRecomputeTask()),
+                        target, getPageBase());
                 if (task == null) {
                     return null;
                 }
@@ -1149,19 +1170,24 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
-                MemberOperationsHelper.recomputeMembersPerformed(getModelObject(), getPageBase(), getQueryScope(),
-                        getActionQuery(getQueryScope(), getRelationsForRecomputeTask()), target);
+                MemberOperationsHelper.createAndSubmitRecomputeMembersTask(
+                        getModelObject(),
+                        getQueryScope(),
+                        getActionQuery(getQueryScope(), getRelationsForRecomputeTask()),
+                        target, getPageBase());
             }
         };
         ((PageBase) getPage()).showMainPopup(dialog, target);
     }
 
-    protected List<QName> getRelationsForRecomputeTask() {
+    protected @NotNull List<QName> getRelationsForRecomputeTask() {
         return getMemberPanelStorage().getSupportedRelations();
     }
 
-    protected QName getSearchType(){
-        return ObjectTypes.getObjectType(getMemberPanelStorage().getSearch().getTypeClass()).getTypeQName();
+    protected @NotNull QName getSearchType() {
+        //noinspection unchecked
+        return ObjectTypes.getObjectType(getMemberPanelStorage().getSearch().getTypeClass())
+                .getTypeQName();
     }
 
     protected ObjectQuery createAllMemberQuery(Collection<QName> relations) {

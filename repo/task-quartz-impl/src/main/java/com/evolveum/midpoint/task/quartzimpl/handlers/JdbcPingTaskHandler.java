@@ -12,6 +12,8 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,9 +82,18 @@ public class JdbcPingTaskHandler implements TaskHandler {
 
     @Override
     public TaskRunResult run(@NotNull RunningTask task) {
+        OperationResult opResult = task.getResult().createSubresult(JdbcPingTaskHandler.class.getName() + ".run");
+        try {
+            return runInternal(task, opResult);
+        } catch (Throwable t) {
+            opResult.recordFatalError(t);
+            throw t;
+        } finally {
+            opResult.close();
+        }
+    }
 
-        OperationResult opResult = new OperationResult(JdbcPingTaskHandler.class.getName() + ".run");
-
+    private @NotNull TaskRunResult runInternal(@NotNull RunningTask task, OperationResult opResult) {
         int tests = get(task, SchemaConstants.JDBC_PING_TESTS_QNAME, 0);
         int interval = get(task, SchemaConstants.JDBC_PING_INTERVAL_QNAME, 10);
         String testQuery = get(task, SchemaConstants.JDBC_PING_TEST_QUERY_QNAME, "select 1");
@@ -173,10 +184,9 @@ public class JdbcPingTaskHandler implements TaskHandler {
             }
         }
 
-        opResult.computeStatusIfUnknown();
         TaskRunResult runResult = new TaskRunResult();
-        runResult.setOperationResult(opResult);
-        runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);     // would be overwritten when problem is encountered
+        runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
+        runResult.setOperationResultStatus(OperationResultStatus.SUCCESS);
         LOGGER.info("JdbcPingTaskHandler run finishing; progress = " + task.getLegacyProgress() + " in task " + task.getName());
         LOGGER.info("Connection statistics: {}", connectionStatistics);
         LOGGER.info("Query statistics: {}", queryStatistics);
@@ -194,7 +204,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
 
     @Override
     public Long heartbeat(Task task) {
-        return null;        // not to overwrite progress information!
+        return null; // not to overwrite progress information!
     }
 
     @Override

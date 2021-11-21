@@ -16,6 +16,7 @@ import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.List;
@@ -82,7 +83,7 @@ public class MemberPanelStorage implements PageStorage{
         return relationSearchItem.getDefaultValue();
     }
 
-    public List<QName> getSupportedRelations() {
+    public @NotNull List<QName> getSupportedRelations() {
         return relationSearchItem.getSupportedRelations();
     }
 

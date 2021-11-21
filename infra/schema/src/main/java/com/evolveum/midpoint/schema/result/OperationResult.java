@@ -575,28 +575,32 @@ public class OperationResult
         return null;
     }
 
-    public List<OperationResult> findSubresultsInSubTree(String operation) {
-        List<OperationResult> found = new ArrayList<>();
-        if (subresults == null) {
-            return found;
-        }
-        for (OperationResult subResult : getSubresults()) {
-            List<OperationResult> foundedSubresults = subResult.findSubresultsInSubTree(operation);
-            if (!foundedSubresults.isEmpty()) {
-                found.addAll(foundedSubresults);
-            }
-        }
-        return found;
+    /** Finds given operation in a subtree rooted by the current op. result. Includes this one! */
+    public @NotNull List<OperationResult> findSubresultsDeeply(@NotNull String operation) {
+        List<OperationResult> matching = new ArrayList<>();
+        collectMatchingSubresults(operation, matching);
+        return matching;
     }
 
+    private void collectMatchingSubresults(String operation, List<OperationResult> matching) {
+        if (operation.equals(this.operation)) {
+            matching.add(this);
+        }
+        if (subresults != null) {
+            subresults.forEach(
+                    subresult -> subresult.collectMatchingSubresults(operation, matching));
+        }
+    }
+
+    /** Finds given operation among subresults of the current op. result. */
     public List<OperationResult> findSubresults(String operation) {
         List<OperationResult> found = new ArrayList<>();
         if (subresults == null) {
             return found;
         }
-        for (OperationResult subResult : getSubresults()) {
-            if (operation.equals(subResult.getOperation())) {
-                found.add(subResult);
+        for (OperationResult subresult : subresults) {
+            if (operation.equals(subresult.getOperation())) {
+                found.add(subresult);
             }
         }
         return found;
@@ -631,7 +635,7 @@ public class OperationResult
      * @return true if the result is success.
      */
     public boolean isSuccess() {
-        return (status == OperationResultStatus.SUCCESS);
+        return status == OperationResultStatus.SUCCESS;
     }
 
     public boolean isWarning() {
@@ -652,7 +656,7 @@ public class OperationResult
     }
 
     public boolean isUnknown() {
-        return (status == OperationResultStatus.UNKNOWN);
+        return status == OperationResultStatus.UNKNOWN;
     }
 
     public boolean isInProgress() {
@@ -660,24 +664,24 @@ public class OperationResult
     }
 
     public boolean isError() {
-        return (status == OperationResultStatus.FATAL_ERROR) ||
-                (status == OperationResultStatus.PARTIAL_ERROR);
+        return status == OperationResultStatus.FATAL_ERROR ||
+                status == OperationResultStatus.PARTIAL_ERROR;
     }
 
     public boolean isFatalError() {
-        return (status == OperationResultStatus.FATAL_ERROR);
+        return status == OperationResultStatus.FATAL_ERROR;
     }
 
     public boolean isPartialError() {
-        return (status == OperationResultStatus.PARTIAL_ERROR);
+        return status == OperationResultStatus.PARTIAL_ERROR;
     }
 
     public boolean isHandledError() {
-        return (status == OperationResultStatus.HANDLED_ERROR);
+        return status == OperationResultStatus.HANDLED_ERROR;
     }
 
     public boolean isNotApplicable() {
-        return (status == OperationResultStatus.NOT_APPLICABLE);
+        return status == OperationResultStatus.NOT_APPLICABLE;
     }
 
     /**

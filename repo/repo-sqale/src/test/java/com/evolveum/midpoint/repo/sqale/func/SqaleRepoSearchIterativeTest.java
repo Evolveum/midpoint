@@ -12,7 +12,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -23,8 +25,10 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.SqlRecorder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
@@ -64,6 +68,11 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
     public void resetTestHandler() {
         testHandler.reset();
         repositoryConfiguration.setIterativeSearchByPagingBatchSize(ITERATION_PAGE_SIZE);
+    }
+
+    @AfterMethod
+    public void methodCleanup() {
+        queryRecorder.stopRecording();
     }
 
     @Test
@@ -125,8 +134,13 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         OperationResult operationResult = createOperationResult();
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         pm.clearGlobalPerformanceInformation();
+
         given("total result count not multiple of the page size");
-        repositoryConfiguration.setIterativeSearchByPagingBatchSize(47);
+        long totalCount = count(QObject.CLASS);
+        int iterativePageSize = 47;
+        repositoryConfiguration.setIterativeSearchByPagingBatchSize(iterativePageSize);
+        assertThat(totalCount % repositoryConfiguration.getIterativeSearchByPagingBatchSize()).isNotZero();
+        queryRecorder.clearBufferAndStartRecording();
 
         when("calling search iterative with null query");
         SearchResultMetadata metadata =
@@ -147,6 +161,64 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
 
         and("all objects of the specified type were processed");
         assertThat(testHandler.getCounter()).isEqualTo(count(QUser.class));
+
+        and("last iteration query has proper conditions");
+        List<SqlRecorder.QueryEntry> iterativeSelects = queryRecorder.getQueryBuffer().stream()
+                .filter(e -> e.sql.contains("order by u.oid asc"))
+                .collect(Collectors.toList());
+        assertThat(iterativeSelects).hasSize((int) totalCount / iterativePageSize + 1); // +1 for the last page
+        SqlRecorder.QueryEntry lastEntry = iterativeSelects.get(iterativeSelects.size() - 1);
+        // we want to be sure no accidental filter accumulation happens
+        assertThat(lastEntry.sql).contains("where u.oid > ?\norder by u.oid asc");
+    }
+
+    @Test
+    public void test112SearchIterativeWithLastPageNotFullWithAndFilter() throws Exception {
+        // Like test111 but detects error when conditions are accumulating in provided AND filter with each page.
+        OperationResult operationResult = createOperationResult();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+
+        given("total result count not multiple of the page size");
+        long totalCount = count(QUser.class);
+        int iterativePageSize = 47;
+        repositoryConfiguration.setIterativeSearchByPagingBatchSize(iterativePageSize);
+        assertThat(totalCount % repositoryConfiguration.getIterativeSearchByPagingBatchSize()).isNotZero();
+        queryRecorder.clearBufferAndStartRecording();
+
+        when("calling search iterative with query containing condition");
+        SearchResultMetadata metadata = searchObjectsIterative(
+                prismContext.queryFor(UserType.class)
+                        .not().item(UserType.F_NAME).isNull() // not null, matches all users
+                        .and()
+                        .item(UserType.F_GIVEN_NAME).isNull() // this is null in setup above
+                        .build(),
+                operationResult);
+        then("result metadata is not null and reports the handled objects");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(metadata).isNotNull();
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
+        assertThat(metadata.isPartialResults()).isFalse();
+        // page cookie is not null and it's OID in UUID format
+        assertThat(UUID.fromString(metadata.getPagingCookie())).isNotNull();
+
+        and("search operations were called");
+        assertOperationRecordedCount(
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
+        assertTypicalPageOperationCount(metadata);
+
+        and("all objects of the specified type were processed");
+        assertThat(testHandler.getCounter()).isEqualTo(count(QUser.class));
+
+        and("last iteration query has proper conditions");
+        List<SqlRecorder.QueryEntry> iterativeSelects = queryRecorder.getQueryBuffer().stream()
+                .filter(e -> e.sql.contains("order by u.oid asc"))
+                .collect(Collectors.toList());
+        assertThat(iterativeSelects).hasSize((int) totalCount / iterativePageSize + 1); // +1 for the last page
+        SqlRecorder.QueryEntry lastEntry = iterativeSelects.get(iterativeSelects.size() - 1);
+        // We want to be sure no accidental filter accumulation happens, see ObjectQueryUtil.filterAnd() vs createAnd().
+        assertThat(lastEntry.sql).contains("where not (u.nameNorm is null and u.nameOrig is null)"
+                + " and (u.givenNameNorm is null and u.givenNameOrig is null) and u.oid > ?\norder");
     }
 
     @Test

@@ -8,18 +8,16 @@
   -->
 
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
-    <user oid="00000000-0000-0000-0000-000000000002" xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+    <user oid="00000000-0000-0000-0000-000000000002">
         <c:name>administrator</c:name>
         <c:fullName>Admin Admin</c:fullName>
         <c:givenName>Admin</c:givenName>
         <c:familyName>Admin</c:familyName>
     </user>
 
-
+    <!-- older than threshold (will be deleted) -->
     <task oid="20b4c5cd-d561-4e49-9634-515da8e47306">
         <name>Synchronization: Embedded Test OpenDJ1</name>
         <description>
@@ -27,7 +25,7 @@
         </description>
         <taskIdentifier>1238546</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-        <executionStatus>closed</executionStatus>
+        <executionState>closed</executionState>
 
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
         <recurrence>recurring</recurrence>
@@ -38,25 +36,27 @@
         </schedule>
     </task>
 
+    <!-- older than threshold (will be deleted) -->
     <task oid="20b4c5cd-d561-4e49-9634-515da8e47307">
         <name>OpenDJ1 child 1</name>
         <taskIdentifier>1238546-1</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <parent>1238546</parent>
-        <executionStatus>closed</executionStatus>
+        <executionState>closed</executionState>
         <completionTimestamp>2013-05-07T10:38:21.350+02:00</completionTimestamp>
     </task>
 
+    <!-- older than threshold (will be deleted) -->
     <task oid="20b4c5cd-d561-4e49-9634-515da8e47308">
         <name>OpenDJ1 child 2</name>
         <taskIdentifier>1238546-2</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <parent>1238546</parent>
-        <executionStatus>closed</executionStatus>
+        <executionState>closed</executionState>
         <completionTimestamp>2013-05-07T10:38:21.350+02:00</completionTimestamp>
     </task>
 
-
+    <!-- older than threshold (will be deleted) -->
     <task oid="20b4c5cd-d561-4e49-9634-515da8e47309">
         <name>Synchronization: Embedded Test OpenDJ2</name>
         <description>
@@ -64,7 +64,7 @@
         </description>
         <taskIdentifier>1238547</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-        <executionStatus>closed</executionStatus>
+        <executionState>closed</executionState>
 
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
         <recurrence>recurring</recurrence>
@@ -75,6 +75,7 @@
         </schedule>
     </task>
 
+    <!-- newer than threshold (will NOT be deleted) -->
     <task oid="20b4c5cd-d561-4e49-9634-515da8e47310">
         <name>Synchronization: Embedded Test OpenDJ3</name>
         <description>
@@ -82,7 +83,7 @@
         </description>
         <taskIdentifier>1238548</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-        <executionStatus>closed</executionStatus>
+        <executionState>closed</executionState>
 
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
         <recurrence>recurring</recurrence>
@@ -91,6 +92,16 @@
         <schedule>
             <interval>5</interval>
         </schedule>
+    </task>
+
+    <!-- older than threshold but indestructible (will NOT be deleted) -->
+    <task oid="aad1255d-71d2-41f3-a25e-d0805b7dfd80">
+        <name>Indestructible</name>
+        <indestructible>true</indestructible>
+        <taskIdentifier>aad1255d-71d2-41f3-a25e-d0805b7dfd80</taskIdentifier>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+        <executionState>closed</executionState>
+        <completionTimestamp>2013-05-07T11:38:21.350+02:00</completionTimestamp>
     </task>
 
 </objects>

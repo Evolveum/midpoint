@@ -13,15 +13,14 @@ import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.ObjectReferenceColumn;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.session.PageStorage;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -78,8 +77,6 @@ import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lazyman
@@ -562,13 +559,14 @@ public class PageCreatedReports extends PageAdmin {
 
     private void deleteSelectedConfirmedPerformed(AjaxRequestTarget target, List<ReportDataType> objects) {
         OperationResult result = new OperationResult(OPERATION_DELETE);
+        Task task = getPageBase().createSimpleTask(OPERATION_DELETE);
 
         for (ReportDataType data : objects) {
             OperationResult subresult = result.createSubresult(OPERATION_DELETE);
             subresult.addParam("Report", WebComponentUtil.getName(data));
 
             try {
-                getReportManager().deleteReportData(data, subresult);
+                getReportManager().deleteReportData(data, task, subresult);
                 subresult.recordSuccess();
             } catch (Exception e) {
                 subresult.recordFatalError(

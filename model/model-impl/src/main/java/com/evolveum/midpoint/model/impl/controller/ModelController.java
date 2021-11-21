@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
@@ -14,6 +16,7 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCol
 import java.io.*;
 import java.util.Objects;
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.Validate;
@@ -38,7 +41,7 @@ import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
-import com.evolveum.midpoint.model.impl.sync.tasks.imp.ImportFromResourceTaskHandler;
+import com.evolveum.midpoint.model.impl.sync.tasks.imp.ImportFromResourceLauncher;
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
@@ -127,7 +130,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @Autowired private PrismContext prismContext;
     @Autowired private ProvisioningService provisioning;
     @Autowired private ModelObjectResolver objectResolver;
-    @Autowired private ImportFromResourceTaskHandler importFromResourceTaskHandler;
+    @Autowired private ImportFromResourceLauncher importFromResourceLauncher;
     @Autowired private ObjectImporter objectImporter;
     @Autowired private HookRegistry hookRegistry;
     @Autowired private TaskManager taskManager;
@@ -377,6 +380,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
             computePolyStrings(deltas);
 
+            LOGGER.debug("MODEL.executeChanges with options={}:\n{}", options, lazy(() -> getDeltasOnSeparateLines(deltas)));
             LOGGER.trace("MODEL.executeChanges(\n  deltas:\n{}\n  options:{}", DebugUtil.debugDumpLazily(deltas, 2), options);
 
             if (InternalsConfig.consistencyChecks) {
@@ -402,6 +406,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             result.computeStatusIfUnknown();
             exitModelMethod();
         }
+    }
+
+    private String getDeltasOnSeparateLines(Collection<? extends ObjectDelta<?>> deltas) {
+        return deltas.stream()
+                .map(delta -> " - " + delta)
+                .collect(Collectors.joining("\n"));
     }
 
     private Collection<ObjectDeltaOperation<? extends ObjectType>> executeChangesNonRaw(
@@ -472,7 +482,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         ExpressionType eventRecordingExpression = null;
 
         PrismObject<SystemConfigurationType> config = systemObjectCache.getSystemConfiguration(result);
-        if (config != null && config.asObjectable() != null && config.asObjectable().getAudit() != null
+        if (config != null && config.asObjectable().getAudit() != null
                 && config.asObjectable().getAudit().getEventRecording() != null) {
             SystemConfigurationAuditEventRecordingType eventRecording = config.asObjectable().getAudit().getEventRecording();
             eventRecordingExpression = eventRecording.getExpression();
@@ -1441,7 +1451,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
             result.recordStatus(OperationResultStatus.IN_PROGRESS, "Task running in background");
 
-            importFromResourceTaskHandler.launch(resource, objectClass, task, result);
+            importFromResourceLauncher.launch(resource, objectClass, task, result);
 
             // The launch should switch task to asynchronous. It is in/out, so no
             // other action is needed
@@ -1476,7 +1486,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         // TODO: add context to the result
 
         try {
-            boolean wasOk = importFromResourceTaskHandler.importSingleShadow(shadowOid, task, result);
+            boolean wasOk = importFromResourceLauncher.importSingleShadow(shadowOid, task, result);
 
             if (wasOk) {
                 result.recordSuccess();
@@ -2127,12 +2137,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     public void evaluateExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         checkScriptingAuthorization(task, parentResult);
         scriptingExpressionEvaluator.evaluateExpressionInBackground(executeScriptCommand, task, parentResult);
-    }
-
-    @Override
-    public void evaluateIterativeExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        checkScriptingAuthorization(task, parentResult);
-        scriptingExpressionEvaluator.evaluateIterativeExpressionInBackground(executeScriptCommand, task, parentResult);
     }
 
     @Override

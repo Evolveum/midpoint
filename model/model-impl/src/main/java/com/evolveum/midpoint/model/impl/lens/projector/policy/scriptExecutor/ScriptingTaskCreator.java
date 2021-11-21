@@ -141,7 +141,7 @@ abstract class ScriptingTaskCreator {
                 if (!(customizedTaskValue instanceof PrismObjectValue)) {
                     throw new IllegalStateException("Task customizer returned a value that is not a PrismObjectValue: " + customizedTaskValue);
                 }
-                Objectable customizedTaskBean = ((PrismObjectValue) customizedTaskValue).asObjectable();
+                Objectable customizedTaskBean = ((PrismObjectValue<?>) customizedTaskValue).asObjectable();
                 if (!(customizedTaskBean instanceof TaskType)) {
                     throw new IllegalStateException("Task customizer returned a value that is not a TaskType: " + customizedTaskBean);
                 }
@@ -150,18 +150,5 @@ abstract class ScriptingTaskCreator {
                 ModelExpressionThreadLocalHolder.popExpressionEnvironment();
             }
         }
-    }
-
-    /**
-     * Inserts script into task.
-     */
-    void setScriptInTask(TaskType taskBean, ExecuteScriptType executeScript)
-            throws SchemaException {
-        //noinspection unchecked
-        PrismPropertyDefinition<ExecuteScriptType> executeScriptDef = beans.prismContext.getSchemaRegistry()
-                .findPropertyDefinitionByElementName(SchemaConstants.SE_EXECUTE_SCRIPT);
-        PrismProperty<ExecuteScriptType> executeScriptProp = executeScriptDef.instantiate();
-        executeScriptProp.setRealValue(executeScript.clone());
-        taskBean.asPrismObject().addExtensionItem(executeScriptProp);
     }
 }

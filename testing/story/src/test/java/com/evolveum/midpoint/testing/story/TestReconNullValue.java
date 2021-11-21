@@ -300,7 +300,7 @@ public class TestReconNullValue extends AbstractStoryTest {
      * add givenName in resource account (not using midpoint)
      * do recompute
      * in resource account value for givenName should have been removed again
-     * See also https://wiki.evolveum.com/display/midPoint/Resource+Schema+Handling#ResourceSchemaHandling-AttributeTolerance
+     * See also https://docs.evolveum.com/midpoint/reference/resources/resource-configuration/schema-handling/#attribute-tolerance
      */
     @Test //MID-4567
     public void test160SetGivenNameAttributeAndReconcile() throws Exception {
@@ -350,7 +350,7 @@ public class TestReconNullValue extends AbstractStoryTest {
     }
 
     /**
-     * See also https://wiki.evolveum.com/display/midPoint/Resource+Schema+Handling#ResourceSchemaHandling-AttributeTolerance
+     * See also https://docs.evolveum.com/midpoint/reference/resources/resource-configuration/schema-handling/#attribute-tolerance
      */
     @Test //MID-4567
     public void test170ReplaceGivenNameEmpty() throws Exception {

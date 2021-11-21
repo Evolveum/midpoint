@@ -181,24 +181,7 @@ class TaskCycleExecutor {
             if (runResult.getProgress() != null) {
                 task.setLegacyProgress(runResult.getProgress());
             }
-            if (runResult.getOperationResult() != null) {
-                try {
-                    OperationResult taskResult = runResult.getOperationResult().clone();
-                    taskResult.cleanupResult();
-                    taskResult.summarize(true);
-                    task.setResult(taskResult);
-                } catch (Throwable ex) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Problem with task result cleanup/summarize - continuing with raw result", ex);
-                    task.setResult(runResult.getOperationResult());
-                }
-            } else {
-                // This updates the result in the task object. TODO improve
-                OperationResult taskResult = task.getResult();
-                if (runResult.getOperationResultStatus() != null) {
-                    taskResult.recordStatus(runResult.getOperationResultStatus(), taskResult.getMessage()); // TODO
-                }
-                task.setResult(taskResult);
-            }
+            updateTaskResult(runResult);
             task.setLastRunFinishTimestamp(System.currentTimeMillis());
             task.flushPendingModifications(result);
             task.refresh(result);
@@ -208,6 +191,21 @@ class TaskCycleExecutor {
         } catch (ObjectAlreadyExistsException | SchemaException | RuntimeException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot process cycle run finish for {}", ex, task);
         }
+    }
+
+    /** Updates task result (both live and in-prism versions) from runResult fields, recomputing it if necessary. */
+    private void updateTaskResult(TaskRunResult runResult) {
+        OperationResult taskResult = task.getResult();
+        if (taskResult.isUnknown() || taskResult.isInProgress()) {
+            taskResult.recomputeStatus();
+        }
+        if (runResult.getOperationResultStatus() != null) {
+            taskResult.setStatus(runResult.getOperationResultStatus());
+        }
+        if (runResult.getMessage() != null) {
+            taskResult.setMessage(runResult.getMessage());
+        }
+        task.setResult(taskResult); // This updates the result in the task prism object.
     }
 
     private void treatRunResultStatusForSingleTask(TaskRunResult runResult, OperationResult result)

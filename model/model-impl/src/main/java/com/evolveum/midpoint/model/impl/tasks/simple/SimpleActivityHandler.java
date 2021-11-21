@@ -10,6 +10,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 
@@ -56,6 +57,7 @@ public abstract class SimpleActivityHandler<
     @Autowired protected ProvisioningService provisioningService;
     @Autowired protected PrismContext prismContext;
     @Autowired protected ModelController modelController;
+    @Autowired protected ModelService modelService;
     @Autowired protected SynchronizationService synchronizationService;
     @Autowired protected SyncTaskHelper syncTaskHelper;
     @Autowired protected SecurityEnforcer securityEnforcer;

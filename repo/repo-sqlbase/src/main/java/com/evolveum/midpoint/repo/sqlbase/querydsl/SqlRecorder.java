@@ -136,7 +136,7 @@ public class SqlRecorder extends SqlLogger {
         public String toString() {
             return params == null || params.isEmpty()
                     ? sql
-                    : sql + '\n' + String.join(", ", params);
+                    : sql + "\nPARAMS: " + String.join(", ", params);
         }
     }
 }

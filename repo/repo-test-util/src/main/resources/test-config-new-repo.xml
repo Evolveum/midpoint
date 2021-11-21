@@ -79,6 +79,8 @@
             <ad2012UsersDn>CN=Users,DC=ad2012,DC=lab,DC=evolveum,DC=com</ad2012UsersDn>
             <ad2019BaseDn>DC=ad2019,DC=evolveum,DC=com</ad2019BaseDn>
             <ad2019UsersDn>CN=Users,DC=ad2019,DC=lab,DC=evolveum,DC=com</ad2019UsersDn>
+            <ad2016BaseDn>DC=ad2016,DC=evolveum,DC=com</ad2016BaseDn>
+            <ad2016UsersDn>CN=Users,DC=ad2016,DC=lab,DC=evolveum,DC=com</ad2016UsersDn>
         </constants>
     </midpoint>
 </configuration>

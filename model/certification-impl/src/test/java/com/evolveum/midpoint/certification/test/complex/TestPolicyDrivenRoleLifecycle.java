@@ -44,7 +44,7 @@ import static java.util.Collections.singletonList;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**
- * A complex policy-drive role lifecycle scenario (see https://wiki.evolveum.com/display/midPoint/Sample+scenario).
+ * A complex policy-drive role lifecycle scenario (see https://docs.evolveum.com/midpoint/devel/design/policy-constraints/sample-scenario/).
  */
 @ContextConfiguration(locations = {"classpath:ctx-certification-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

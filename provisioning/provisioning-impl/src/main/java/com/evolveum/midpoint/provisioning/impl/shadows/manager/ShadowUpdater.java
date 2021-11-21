@@ -28,7 +28,6 @@ import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.shadows.ConstraintsChecker;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
-import com.evolveum.midpoint.provisioning.impl.ShadowState;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.schema.*;
@@ -367,7 +366,7 @@ class ShadowUpdater {
     void addDeadShadowDeltas(
             PrismObject<ShadowType> repoShadow, List<ItemDelta<?, ?>> shadowModifications)
             throws SchemaException {
-        LOGGER.trace("Marking shadow {} as dead", repoShadow);
+        LOGGER.trace("Adding deltas that mark shadow {} as dead", repoShadow);
         if (ShadowUtil.isExists(repoShadow.asObjectable())) {
             shadowModifications.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_EXISTS, Boolean.FALSE));
         }
@@ -594,6 +593,7 @@ class ShadowUpdater {
         }
         eventDispatcher.notify(ShadowDeathEvent.dead(repoShadow.getOid()), task, result);
         ObjectDeltaUtil.applyTo(repoShadow, shadowChanges);
+        repoShadow.asObjectable().setShadowLifecycleState(ShadowLifecycleStateType.TOMBSTONE);
         return repoShadow;
     }
 
@@ -938,7 +938,7 @@ class ShadowUpdater {
 
     PrismObject<ShadowType> updateShadow(@NotNull ProvisioningContext ctx,
             @NotNull PrismObject<ShadowType> currentResourceObject, ObjectDelta<ShadowType> resourceObjectDelta,
-            @NotNull PrismObject<ShadowType> repoShadow, ShadowState shadowState, OperationResult result)
+            @NotNull PrismObject<ShadowType> repoShadow, ShadowLifecycleStateType shadowState, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
             ExpressionEvaluationException {
 
@@ -996,6 +996,7 @@ class ShadowUpdater {
                 repositoryService.getObject(ShadowType.class, repoShadow.getOid(), options, result);
 
         shadowCaretaker.applyAttributesDefinition(shadowCtx, retrievedRepoShadow);
+        shadowCaretaker.updateShadowState(shadowCtx, retrievedRepoShadow);
 
         LOGGER.trace("Full repo shadow:\n{}", retrievedRepoShadow.debugDumpLazily(1));
 

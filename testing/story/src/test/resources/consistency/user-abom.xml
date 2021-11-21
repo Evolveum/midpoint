@@ -6,11 +6,9 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <i:user oid="c0c010c0-d34d-b33f-f00d-111111016016"
-   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-   xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
     <c:name>abom</c:name>
     <i:fullName>Andrej Bomba</i:fullName>
     <i:givenName>Andrej</i:givenName>
@@ -29,7 +27,7 @@
     <i:credentials>
         <i:password>
             <i:value>
-                <i:clearValue>deadmentellnotales</i:clearValue>
+                <t:clearValue>deadmentellnotales</t:clearValue>
             </i:value>
         </i:password>
     </i:credentials>

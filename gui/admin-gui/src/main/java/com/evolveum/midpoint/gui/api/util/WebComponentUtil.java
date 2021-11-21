@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.api.util;
 
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
+import static com.evolveum.midpoint.model.api.ModelExecuteOptions.toModelExecutionOptionsBean;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -676,8 +677,8 @@ public final class WebComponentUtil {
         return prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(clazz).getTypeName();
     }
 
-    public static TaskType createSingleRecurrenceTask(String taskName, QName applicableType, ObjectQuery query,
-            ObjectDelta delta, ModelExecuteOptions options, String handlerUri, PageBase pageBase) throws SchemaException {
+    public static TaskType createIterativeChangeExecutionTask(String taskName, QName applicableType, ObjectQuery query,
+            @Nullable ObjectDelta<? extends ObjectType> delta, ModelExecuteOptions options, PageBase pageBase) throws SchemaException {
 
         TaskType task = new TaskType(pageBase.getPrismContext());
 
@@ -692,30 +693,30 @@ public final class WebComponentUtil {
         task.setExecutionState(TaskExecutionStateType.RUNNABLE);
         task.setSchedulingState(TaskSchedulingStateType.READY);
         task.setThreadStopAction(ThreadStopActionType.RESTART);
-        task.setHandlerUri(handlerUri);
+
         ScheduleType schedule = new ScheduleType();
         schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
         task.setSchedule(schedule);
 
         task.setName(WebComponentUtil.createPolyFromOrigString(taskName));
 
-        PrismObject<TaskType> prismTask = task.asPrismObject();
-        QueryType queryType = pageBase.getQueryConverter().createQueryType(query);
-        prismTask.findOrCreateProperty(SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_QUERY).addRealValue(queryType);
+        IterativeChangeExecutionWorkDefinitionType workDef =
+                new IterativeChangeExecutionWorkDefinitionType(PrismContext.get())
+                        .beginObjects()
+                            .type(applicableType)
+                            .query(pageBase.getQueryConverter().createQueryType(query))
+                        .<IterativeChangeExecutionWorkDefinitionType>end()
+                        .delta(DeltaConvertor.toObjectDeltaType(delta))
+                        .executionOptions(toModelExecutionOptionsBean(options));
 
-        if (applicableType != null) {
-            prismTask.findOrCreateProperty(SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_TYPE).setRealValue(applicableType);
-        }
+        // @formatter:off
+        task.setActivity(
+                new ActivityDefinitionType(PrismContext.get())
+                        .beginWork()
+                            .iterativeChangeExecution(workDef)
+                        .end());
+        // @formatter:on
 
-        if (delta != null) {
-            ObjectDeltaType deltaBean = DeltaConvertor.toObjectDeltaType(delta);
-            prismTask.findOrCreateProperty(SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_DELTA).setRealValue(deltaBean);
-        }
-
-        if (options != null) {
-            prismTask.findOrCreateContainer(SchemaConstants.PATH_MODEL_EXTENSION_EXECUTE_OPTIONS)
-                    .setRealValue(options.toModelExecutionOptionsType());
-        }
         return task;
     }
 
@@ -1475,10 +1476,12 @@ public final class WebComponentUtil {
         }
     }
 
+    @Contract("null -> null; !null -> !null")
     public static PolyStringType createPolyFromOrigString(String str) {
         return createPolyFromOrigString(str, null);
     }
 
+    @Contract("null, _ -> null; !null, _ -> !null")
     public static PolyStringType createPolyFromOrigString(String str, String key) {
         if (str == null) {
             return null;
@@ -3362,6 +3365,8 @@ public final class WebComponentUtil {
                  * Extension values are task-dependent. Therefore, in the future we will probably make
                  * this behaviour configurable. For the time being we assume that the task template will be
                  * of "iterative task handler" type and so it will expect mext:objectQuery extension property.
+                 *
+                 * FIXME
                  */
 
                 @NotNull
@@ -3436,6 +3441,18 @@ public final class WebComponentUtil {
                                 + "event.die();"
                                 + "$('[about=\"" + submitButtonAboutAttribute + "\"]').click();"
                                 + "}")));
+            }
+        };
+    }
+
+    public static Behavior preventSubmitOnEnterKeyDownBehavior() {
+        return new Behavior() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void bind(Component component) {
+                super.bind(component);
+                component.add(AttributeModifier.replace("onkeydown", Model.of("if(event.keyCode == 13) {event.preventDefault();}")));
             }
         };
     }
@@ -4148,6 +4165,7 @@ public final class WebComponentUtil {
 
     }
 
+    // FIXME this uses old-style token processing
     public static void deleteSyncTokenPerformed(AjaxRequestTarget target, ResourceType resourceType, PageBase pageBase) {
         String resourceOid = resourceType.getOid();
         String handlerUri = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3";
@@ -4314,7 +4332,8 @@ public final class WebComponentUtil {
         return true;
     }
 
-    public static void saveTask(PrismObject<TaskType> oldTask, OperationResult result, PageBase pageBase) {
+    // FIXME this uses old-style token processing
+    private static void saveTask(PrismObject<TaskType> oldTask, OperationResult result, PageBase pageBase) {
         Task task = pageBase.createSimpleTask(pageBase.getClass().getName() + "." + "saveSyncTask");
 
         PrismProperty<?> property = oldTask.findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN));

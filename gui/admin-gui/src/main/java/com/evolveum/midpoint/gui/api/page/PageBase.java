@@ -1055,7 +1055,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             @Override
             public boolean isVisible() {
                 return !isErrorPage() && isSideMenuVisible() &&
-                        (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SELF_REQUESTS_ASSIGNMENTS_URL, PageSelf.AUTH_SELF_ALL_URI));
+                        (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SELF_REQUESTS_ASSIGNMENTS_URL, PageSelf.AUTH_SELF_ALL_URI)
+                        && getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() > 0);
             }
         };
     }
@@ -1761,6 +1762,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public void reloadShoppingCartIcon(AjaxRequestTarget target) {
+        target.add(get(createComponentPath(ID_MAIN_HEADER, ID_NAVIGATION)));
         target.add(get(createComponentPath(ID_MAIN_HEADER, ID_NAVIGATION, ID_CART_BUTTON)));
     }
 

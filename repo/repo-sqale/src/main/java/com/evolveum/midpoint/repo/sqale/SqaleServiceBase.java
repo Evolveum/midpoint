@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale;
 import javax.annotation.PreDestroy;
 
 import org.jetbrains.annotations.NotNull;
+import org.postgresql.util.PSQLException;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -18,6 +19,7 @@ import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -79,17 +81,24 @@ public class SqaleServiceBase {
      * Returns {@link SystemException}, call with `throw` keyword.
      */
     protected SystemException handledGeneralException(
-            @NotNull Throwable ex, OperationResult operationResult) {
-        logger.error("General checked exception occurred.", ex);
-
-        // non-fatal errors will NOT be put into OperationResult, not to confuse the user
-        if (operationResult != null) {
-            operationResult.recordFatalError(ex);
-        }
-
+            @NotNull Throwable ex, @NotNull OperationResult operationResult) {
+        recordFatalError(operationResult, ex);
         return ex instanceof SystemException
                 ? (SystemException) ex
                 : new SystemException(ex.getMessage(), ex);
+    }
+
+    protected void recordFatalError(@NotNull OperationResult operationResult, @NotNull Throwable t) {
+        String exceptionMessage = t.toString();
+        if (t instanceof com.querydsl.core.QueryException) {
+            PSQLException psqlException = ExceptionUtil.findCause(t, PSQLException.class);
+            // PSQLException message is lost in QueryException and it may be handy
+            if (psqlException != null) {
+                exceptionMessage += "\n" + psqlException.getMessage();
+            }
+        }
+        logger.error("Unexpected exception: {}\n  OPERATION RESULT: {}", exceptionMessage, operationResult.debugDump());
+        operationResult.recordFatalError(t);
     }
     // endregion
 

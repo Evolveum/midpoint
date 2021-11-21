@@ -104,7 +104,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         } catch (RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -281,6 +281,9 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         Set<String> changedItemPaths = new HashSet<>();
         for (MAuditDelta delta : deltas) {
             try {
+                // TODO: this calls compat parser, but for just serialized deltas we could be strict too
+                //  See MID-7431, this currently just shows ERROR with ignore message and no stack trace.
+                //  We could either check parseResult.parsingContext.has/getWarnings, or use strict and catch (probably better).
                 RepositoryObjectParseResult<ObjectDeltaType> parseResult =
                         sqlRepoContext.parsePrismObject(delta.serializedDelta, ObjectDeltaType.class);
                 ObjectDeltaType deltaBean = parseResult.prismValue;
@@ -377,7 +380,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         } catch (RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -427,7 +430,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         } catch (RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -487,7 +490,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -530,7 +533,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -579,7 +582,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
-            operationResult.recordFatalError(t);
+            recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
@@ -641,10 +644,8 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
 
                 // filterAnd() is quite null safe, even for both nulls
                 ObjectFilter originalFilter = originalQuery != null ? originalQuery.getFilter() : null;
-                pagedQuery.setFilter(ObjectQueryUtil.filterAnd(
-                        originalFilter,
-                        iterativeSearchCondition(lastProcessedObject, providedOrdering),
-                        prismContext()));
+                pagedQuery.setFilter(ObjectQueryUtil.filterAndImmutable(
+                        originalFilter, iterativeSearchCondition(lastProcessedObject, providedOrdering)));
 
                 // we don't call public searchObject to avoid subresults and query simplification
                 logSearchInputParameters(AuditEventRecordType.class, pagedQuery, "Search audit iterative page");

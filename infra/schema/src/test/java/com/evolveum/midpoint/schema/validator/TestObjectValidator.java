@@ -32,6 +32,7 @@ public class TestObjectValidator extends AbstractSchemaTest {
 
     // Contains elements that are deprecated and planned for removal, but still valid.
     protected static final File ROLE_ONE_FILE = new File(TEST_DIR, "role-one.xml");
+    protected static final File ROLE_TWO_FILE = new File(TEST_DIR, "role-two.xml");
     protected static final String ROLE_ONE_OID = "0d70504c-d094-11e8-b0cc-675c492577e7";
 
     // Contains elements that are already removed
@@ -129,6 +130,28 @@ public class TestObjectValidator extends AbstractSchemaTest {
             // this is expected
         }
 
+    }
+
+    @Test
+    public void testValidateRoleTwoOid() throws Exception {
+
+        // GIVEN
+
+        ObjectValidator validator = createValidator();
+        validator.setWarnIncorrectOids(true);
+
+        PrismObject<RoleType> object = PrismTestUtil.getPrismContext().parseObject(ROLE_TWO_FILE);
+        System.out.println("Object before validation:");
+        System.out.println(object.debugDump(1));
+
+        // WHEN
+        ValidationResult validationResult = validator.validate(object);
+
+        // THEN
+        System.out.println("Validation result:");
+        System.out.println(validationResult.debugDump(1));
+
+        assertWarnings(validationResult, ItemPath.EMPTY_PATH);
     }
 
     // We have no planned removal annotations in 4.0. Nothing to test.

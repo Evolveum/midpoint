@@ -1,11 +1,12 @@
 /*
-
  * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.sync;
+
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,8 +37,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
 /**
  * Updates focus -> shadow links (linkRef, to be renamed to projectionRef)
@@ -107,7 +106,9 @@ public class ProjectionLinkUpdater implements ShadowDeathListener {
 
                 if (!referencesToAdd.isEmpty() || !referencesToDelete.isEmpty()) {
                     Collection<ItemDelta<?, ?>> modifications = prismContext.deltaFor(ownerType)
-                            .item(FocusType.F_LINK_REF).addRealValues(referencesToAdd).deleteRealValues(referencesToDelete)
+                            .item(FocusType.F_LINK_REF)
+                            .deleteRealValues(referencesToDelete)
+                            .addRealValues(referencesToAdd)
                             .asItemDeltas();
                     repositoryService.modifyObject(ownerType, owner.getOid(), modifications, result);
                 }

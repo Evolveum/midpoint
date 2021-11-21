@@ -52,6 +52,9 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
      * as the "old" state, as they are not updated iteratively but only once per clockwork run.
      *
      * This value used as an "old state" for focus mappings (in object template or assigned ones).
+     *
+     * INVARIANT: For LensProjectionContext the `shadowLifecycleState` must be present on this object
+     * (if the object is not null).
      */
     PrismObject<O> getObjectCurrent();
 

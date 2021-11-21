@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -58,11 +59,13 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @PanelType(name = "resourceDetails")
 @PanelInstance(identifier = "resourceDetails", applicableForType = ResourceType.class, applicableForOperation = OperationTypeType.MODIFY, defaultPanel = true,
@@ -441,25 +444,15 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
             throws SchemaException {
         List<TaskType> syncTasks = new ArrayList<>();
         for (PrismObject<TaskType> task : tasks) {
-            PrismProperty<ShadowKindType> taskKind = task
-                    .findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
             ShadowKindType taskKindValue = null;
-            if (taskKind != null) {
-                taskKindValue = taskKind.getRealValue();
-            }
-
-            PrismProperty<String> taskIntent = task
-                    .findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
             String taskIntentValue = null;
-            if (taskIntent != null) {
-                taskIntentValue = taskIntent.getRealValue();
-            }
-
-            PrismProperty<QName> taskObjectClass = task.findProperty(
-                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS));
             QName taskObjectClassValue = null;
-            if (taskObjectClass != null) {
-                taskObjectClassValue = taskObjectClass.getRealValue();
+
+            @Nullable ResourceObjectSetType resourceSet = ResourceObjectSetUtil.fromTask(task.asObjectable());
+            if (!java.util.Objects.isNull(resourceSet)) {
+                taskKindValue = resourceSet.getKind();
+                taskIntentValue = resourceSet.getIntent();
+                taskObjectClassValue = resourceSet.getObjectclass();
             }
 
             // TODO: unify with determineObjectClass in Utils (model-impl, which

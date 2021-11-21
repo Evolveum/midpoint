@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.roles;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsHelper;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -639,7 +640,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            MemberOperationsHelper.assignMembers(getPageBase(), AbstractRoleMemberPanel.this.getModelObject(), target, getMemberPanelStorage().getRelationSearchItem(), null);
+                            MemberOperationsHelperOld.assignMembers(getPageBase(), AbstractRoleMemberPanel.this.getModelObject(), target, getMemberPanelStorage().getRelationSearchItem(), null);
                         }
                     };
                 }
@@ -735,7 +736,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
     protected void assignMembers(AjaxRequestTarget target, RelationSearchItemConfigurationType relationConfig,
             List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList, boolean isOrgTreePanelVisible) {
-        MemberOperationsHelper.assignMembers(getPageBase(), getModelObject(), target, relationConfig,
+        MemberOperationsHelperOld.assignMembers(getPageBase(), getModelObject(), target, relationConfig,
                 objectTypes, archetypeRefList, isOrgTreePanelVisible);
     }
 
@@ -776,7 +777,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 if (checkRelationNotSelected(relations, "No relation was selected. Cannot perform unassign members", target)) {
                     return null;
                 }
-                Task task = MemberOperationsHelper.createUnassignMembersTask(
+                Task task = MemberOperationsHelperOld.createUnassignMembersTask(
                         getPageBase(),
                         AbstractRoleMemberPanel.this.getModelObject(),
                         scope,
@@ -972,7 +973,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         if (checkRelationNotSelected(relations, "No relation was selected. Cannot perform delete members", target)) {
             return;
         }
-        MemberOperationsHelper.deleteMembersPerformed(getModelObject(), getPageBase(), scope, getActionQuery(scope, relations), target);
+        MemberOperationsHelperOld.deleteMembersPerformed(getModelObject(), getPageBase(), scope, getActionQuery(scope, relations), target);
     }
 
     private boolean checkRelationNotSelected(Collection<QName> relations, String message, AjaxRequestTarget target) {
@@ -989,7 +990,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         if (checkRelationNotSelected(relations, "No relation was selected. Cannot perform unassign members", target)) {
             return;
         }
-        MemberOperationsHelper.unassignMembersPerformed(getPageBase(), getModelObject(), scope, getActionQuery(scope, relations), relations, type, target);
+        MemberOperationsHelperOld.unassignMembersPerformed(getPageBase(), getModelObject(), scope, getActionQuery(scope, relations), relations, type, target);
 //        TabbedPanel treeTablePanel = AbstractRoleMemberPanel.this.findParent(TabbedPanel.class);
 //        target.add(treeTablePanel);
 //        treeTablePanel.setSelectedTreeItem(null);
@@ -1002,10 +1003,10 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             case ALL:
                 return createAllMemberQuery(relations);
             case ALL_DIRECT:
-                return MemberOperationsHelper.createDirectMemberQuery(getModelObject(), getSearchType(), relations,
-                        getMemberPanelStorage().getTenant(), getMemberPanelStorage().getProject(), getPrismContext());
+                return MemberOperationsHelperOld.createDirectMemberQuery(getModelObject(), getSearchType(), relations,
+                        getMemberPanelStorage().getTenant(), getMemberPanelStorage().getProject());
             case SELECTED:
-                return MemberOperationsHelper.createSelectedObjectsQuery(getMemberTable().getSelectedRealObjects(), getPrismContext());
+                return MemberOperationsHelper.createSelectedObjectsQuery(getMemberTable().getSelectedRealObjects());
         }
 
         return null;
@@ -1024,7 +1025,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     protected QueryScope getQueryScope() {
-        if (CollectionUtils.isNotEmpty(MemberOperationsHelper.getFocusOidToRecompute(getMemberTable().getSelectedRealObjects()))) {
+        if (CollectionUtils.isNotEmpty(ObjectTypeUtil.getOids(getMemberTable().getSelectedRealObjects()))) {
             return QueryScope.SELECTED;
         }
 
@@ -1053,7 +1054,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             protected PrismObject<TaskType> getTask(AjaxRequestTarget target) {
-                Task task = MemberOperationsHelper.createRecomputeMembersTask(getModelObject(), getPageBase(), getQueryScope(),
+                Task task = MemberOperationsHelperOld.createRecomputeMembersTask(getModelObject(), getPageBase(), getQueryScope(),
                         getActionQuery(getQueryScope(), getRelationsForRecomputeTask()), target);
                 if (task == null) {
                     return null;
@@ -1071,7 +1072,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
-                MemberOperationsHelper.recomputeMembersPerformed(getModelObject(), getPageBase(), getQueryScope(),
+                MemberOperationsHelperOld.recomputeMembersPerformed(getModelObject(), getPageBase(), getQueryScope(),
                         getActionQuery(getQueryScope(), getRelationsForRecomputeTask()), target);
             }
         };

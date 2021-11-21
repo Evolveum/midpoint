@@ -68,8 +68,9 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
+import static com.evolveum.midpoint.model.api.ModelExecuteOptions.toModelExecutionOptionsBean;
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.RESOURCE_OBJECT_OPERATION;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
+import static com.evolveum.midpoint.schema.util.task.work.SpecificWorkDefinitionUtil.createNonIterativeChangeExecutionDef;
 import static com.evolveum.midpoint.web.component.progress.ProgressReportActivityDto.ResourceOperationResult;
 
 /**
@@ -443,7 +444,7 @@ public class ProgressPanel extends BasePanel {
     }
 
     public void executeChangesInBackground(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly,
-                               ModelExecuteOptions options, Task task, OperationResult result, AjaxRequestTarget target) {
+            ModelExecuteOptions options, Task task, OperationResult result, AjaxRequestTarget target) {
         PageBase page = getPageBase();
         ProgressReporter reporter = reporterModel.getProcessData();
         try {
@@ -455,24 +456,10 @@ public class ProgressPanel extends BasePanel {
                 task.setOwner(user.getFocus().asPrismObject());
             }
 
-            List<ObjectDeltaType> deltasBeans = new ArrayList<>();
-            for (ObjectDelta<?> delta : deltas) {
-                deltasBeans.add(DeltaConvertor.toObjectDeltaType((ObjectDelta<? extends com.evolveum.prism.xml.ns._public.types_3.ObjectType>) delta));
-            }
-            PrismPropertyDefinition<ObjectDeltaType> deltasDefinition = page.getPrismContext().getSchemaRegistry()
-                    .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTAS);
-            PrismProperty<ObjectDeltaType> deltasProperty = deltasDefinition.instantiate();
-            deltasProperty.setRealValues(deltasBeans.toArray(new ObjectDeltaType[0]));
-            task.addExtensionProperty(deltasProperty);
-            if (options != null) {
-                PrismContainerDefinition<ModelExecuteOptionsType> optionsDefinition = page.getPrismContext().getSchemaRegistry()
-                        .findContainerDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
-                PrismContainer<ModelExecuteOptionsType> optionsContainer = optionsDefinition.instantiate();
-                optionsContainer.setRealValue(options.toModelExecutionOptionsType());
-                task.setExtensionContainer(optionsContainer);
-            }
+            task.setRootActivityDefinition(
+                    createNonIterativeChangeExecutionDef(deltas, toModelExecutionOptionsBean(options)));
+
             task.setChannel(SchemaConstants.CHANNEL_USER_URI);
-            task.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
             task.setName("Execute changes");
             task.setInitiallyRunnable();
 

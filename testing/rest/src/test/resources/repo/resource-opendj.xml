@@ -577,7 +577,7 @@ always return at most one match, the confirmation rule is not needed. -->
             The setting here assumes that this resource is authoritative,
             therefore all accounts created on the resource should be
             reflected as new users in IDM.
-            See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
+            See https://docs.evolveum.com/midpoint/reference/synchronization/situations/
         -->
         <c:reaction>
             <c:situation>linked</c:situation>

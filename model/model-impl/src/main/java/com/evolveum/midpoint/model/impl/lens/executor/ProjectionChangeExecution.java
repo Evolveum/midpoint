@@ -86,7 +86,9 @@ public class ProjectionChangeExecution<O extends ObjectType> {
             return;
         }
 
-        shadowLivenessState = ShadowLivenessState.forShadow(projCtx.getObjectCurrent());
+        shadowLivenessState = ShadowLivenessState.forShadowWithState(projCtx.getObjectCurrent());
+        LOGGER.trace("Determined liveness state for shadow: {} (state: {}) as {}",
+                projCtx.getObjectCurrent(), projCtx.getCurrentShadowState(), shadowLivenessState);
 
         OperationResult result = parentResult
                 .subresult(OPERATION_EXECUTE_PROJECTION + "." + projCtx.getObjectTypeClass().getSimpleName())

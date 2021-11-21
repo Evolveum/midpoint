@@ -7,27 +7,22 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.component;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
-import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 public class FocusOperationalButtonsPanel<F extends FocusType> extends AssignmentHolderOperationalButtonsPanel<F> {
 
@@ -81,12 +76,27 @@ public class FocusOperationalButtonsPanel<F extends FocusType> extends Assignmen
     }
 
     private void createPreviewButton(RepeatingView repeatingView) {
-        AjaxIconButton preview = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_PREVIEW), Model.of("Preview changes")) {
+        AjaxIconButton preview = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_PREVIEW),
+                getPageBase().createStringResource("pageAdminFocus.button.previewChanges")) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 previewPerformed(ajaxRequestTarget);
             }
         };
+        preview.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_PREVIEW_CHANGES_URL)
+                        && !getModelObject().isReadOnly();
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return isSavePreviewButtonEnabled();
+            }
+        });
         preview.showTitleAsLabel(true);
         preview.add(AttributeAppender.append("class", "btn btn-info btn-sm"));
         repeatingView.add(preview);

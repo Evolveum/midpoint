@@ -30,6 +30,8 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Created by honchar
  */
@@ -127,9 +129,9 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
         return archetypeReferenceList;
     }
 
-    public QName getRelationValue() {
-        RelationDropDownChoicePanel relationPanel = getRelationDropDown();
-        return relationPanel.getRelationValue();
+    public @NotNull QName getRelationValue() {
+        return getRelationDropDown()
+                .getRelationValue();
     }
 
     private RelationDropDownChoicePanel getRelationDropDown() {

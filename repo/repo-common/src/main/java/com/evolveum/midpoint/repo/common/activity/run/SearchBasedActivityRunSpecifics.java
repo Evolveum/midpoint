@@ -69,7 +69,8 @@ interface SearchBasedActivityRunSpecifics<C extends Containerable>
 
     /**
      * Customizes search options present in the original search specification (usually derived from the task configuration).
-     * The activity can either add or modify some options, or replace the whole options by its own version.
+     * The activity can either add or modify some options in the provided object - if it's not null - or
+     * replace the whole object by its own version.
      */
     default Collection<SelectorOptions<GetOperationOptions>> customizeSearchOptions(
             Collection<SelectorOptions<GetOperationOptions>> configuredOptions, OperationResult result) throws CommonException {

@@ -18,6 +18,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.polystring.AlphanumericPolyStringNormalizer;
@@ -237,6 +238,7 @@ public class ObjectQueryUtil {
 
     /**
      * Merges the two provided arguments into one AND filter in the most efficient way.
+     * *Please note: If provided `origFilter` is {@link AndFilter} it will be modified!*
      * TODO consider moving to QueryFactory
      */
     public static ObjectFilter filterAnd(ObjectFilter origFilter, ObjectFilter additionalFilter,
@@ -273,7 +275,52 @@ public class ObjectQueryUtil {
     }
 
     /**
+     * Merges the two provided arguments into one AND filter in an immutable way.
+     * If provided `origFilter` is {@link AndFilter}, it will be cloned first, then modified.
+     * Although input objects are not changed, there is no guarantee that new object is always returned.
+     * For many simple and/or corner cases one of the parameters may be returned, so it may not
+     * be safe to mutate the returned value.
+     * TODO consider moving to QueryFactory
+     */
+    public static ObjectFilter filterAndImmutable(
+            @Nullable ObjectFilter origFilter, @Nullable ObjectFilter additionalFilter) {
+        if (origFilter == additionalFilter) {
+            // AND with itself
+            return origFilter;
+        }
+        if (origFilter == null) {
+            return additionalFilter;
+        }
+        if (additionalFilter == null) {
+            return origFilter;
+        }
+        if (origFilter instanceof NoneFilter) {
+            return origFilter;
+        }
+        if (additionalFilter instanceof NoneFilter) {
+            return additionalFilter;
+        }
+        if (origFilter instanceof AllFilter) {
+            return additionalFilter;
+        }
+        if (additionalFilter instanceof AllFilter) {
+            return origFilter;
+        }
+        // This branch could be skipped, but this is filter-optimizing and leaves multi-AND flat.
+        if (origFilter instanceof AndFilter) {
+            if (!((AndFilter) origFilter).contains(additionalFilter)) {
+                AndFilter clonedOrigFilter = ((AndFilter) origFilter).clone();
+                clonedOrigFilter.addCondition(additionalFilter);
+                return clonedOrigFilter;
+            }
+            return origFilter;
+        }
+        return PrismContext.get().queryFactory().createAnd(origFilter, additionalFilter);
+    }
+
+    /**
      * Merges the two provided arguments into one OR filter in the most efficient way.
+     * *Please note: If provided `origFilter` is {@link OrFilter} it will be modified!*
      * TODO consider moving to QueryFactory
      */
     public static ObjectFilter filterOr(ObjectFilter origFilter, ObjectFilter additionalFilter,
@@ -307,6 +354,49 @@ public class ObjectQueryUtil {
             return origFilter;
         }
         return prismContext.queryFactory().createOr(origFilter, additionalFilter);
+    }
+
+    /**
+     * Merges the two provided arguments into one OR filter in an immutable way.
+     * If provided `origFilter` is {@link OrFilter}, it will be cloned first, then modified.
+     * Although input objects are not changed, there is no guarantee that new object is always returned.
+     * For many simple and/or corner cases one of the parameters may be returned, so it may not
+     * be safe to mutate the returned value.
+     * TODO consider moving to QueryFactory
+     */
+    public static ObjectFilter filterOrImmutable(ObjectFilter origFilter, ObjectFilter additionalFilter) {
+        if (origFilter == additionalFilter) {
+            // OR with itself
+            return origFilter;
+        }
+        if (origFilter == null) {
+            return additionalFilter;
+        }
+        if (additionalFilter == null) {
+            return origFilter;
+        }
+        if (origFilter instanceof AllFilter) {
+            return origFilter;
+        }
+        if (additionalFilter instanceof AllFilter) {
+            return additionalFilter;
+        }
+        if (origFilter instanceof NoneFilter) {
+            return additionalFilter;
+        }
+        if (additionalFilter instanceof NoneFilter) {
+            return origFilter;
+        }
+        // This branch could be skipped, but this is filter-optimizing and leaves multi-OR flat.
+        if (origFilter instanceof OrFilter) {
+            if (!((OrFilter) origFilter).contains(additionalFilter)) {
+                OrFilter clonedOrigFilter = ((OrFilter) origFilter).clone();
+                clonedOrigFilter.addCondition(additionalFilter);
+                return clonedOrigFilter;
+            }
+            return origFilter;
+        }
+        return PrismContext.get().queryFactory().createOr(origFilter, additionalFilter);
     }
 
     public static boolean isAll(ObjectFilter filter) {

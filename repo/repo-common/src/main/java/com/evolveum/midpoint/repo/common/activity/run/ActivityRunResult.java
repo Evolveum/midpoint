@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.createStatusType;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.*;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,6 +25,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySimplifiedRealizationStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Result of an run of an activity.
@@ -37,12 +41,21 @@ public class ActivityRunResult implements ShortDumpable {
     /** Indicates what to do with the task - what kind of error or exception situation has been occurred. */
     private TaskRunResultStatus runResultStatus;
 
+    /** The original exception (if any). */
+    private Throwable throwable;
+
     public ActivityRunResult() {
     }
 
     public ActivityRunResult(OperationResultStatus operationResultStatus, TaskRunResultStatus runResultStatus) {
-        this.runResultStatus = runResultStatus;
+        this(operationResultStatus, runResultStatus, null);
+    }
+
+    public ActivityRunResult(OperationResultStatus operationResultStatus, TaskRunResultStatus runResultStatus,
+            Throwable throwable) {
         this.operationResultStatus = operationResultStatus;
+        this.runResultStatus = runResultStatus;
+        this.throwable = throwable;
     }
 
     /**
@@ -50,17 +63,22 @@ public class ActivityRunResult implements ShortDumpable {
      * at a place that expects {@link ActivityRunResult} to be returned.
      *
      * @param e Exception to be handled
-     * @param context Instance of activity run (or other object) in which the exception is converted
+     * @param opResult Operation result into which the exception should be recorded
+     * @param context Instance of activity run (or other similar object) in which the exception is converted.
+     * It is used just for logging purposes.
      */
-    static @NotNull ActivityRunResult handleException(@NotNull Exception e, Object context) {
+    static @NotNull ActivityRunResult handleException(@NotNull Exception e, @NotNull OperationResult opResult,
+            @Nullable Object context) {
         if (e instanceof ActivityRunException) {
             ActivityRunException aee = (ActivityRunException) e;
             if (aee.getOpResultStatus() != SUCCESS) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Exception in {}", e, context);
             }
+            opResult.recordStatus(aee.getOpResultStatus(), aee.getFullMessage(), aee.getCause());
             return aee.toActivityRunResult();
         } else {
             LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception in {}", e, context);
+            opResult.recordFatalError(e);
             return ActivityRunResult.exception(FATAL_ERROR, PERMANENT_ERROR, e);
         }
     }
@@ -70,7 +88,9 @@ public class ActivityRunResult implements ShortDumpable {
         runResult.setRunResultStatus(
                 MoreObjects.firstNonNull(runResultStatus, FINISHED));
         runResult.setOperationResultStatus(operationResultStatus);
-        // progress and operation result are intentionally kept null (meaning "do not update these in the task")
+        runResult.setThrowable(throwable);
+        runResult.setMessage(throwable != null ? throwable.getMessage() : null);
+        // progress is intentionally kept null (meaning "do not update it in the task")
         return runResult;
     }
 
@@ -90,7 +110,11 @@ public class ActivityRunResult implements ShortDumpable {
         this.operationResultStatus = operationResultStatus;
     }
 
-    public static ActivityRunResult standardResult(boolean canRun) {
+    public Throwable getThrowable() {
+        return throwable;
+    }
+
+    static ActivityRunResult standardResult(boolean canRun) {
         return canRun ? finished(SUCCESS) : interrupted();
     }
 
@@ -114,9 +138,9 @@ public class ActivityRunResult implements ShortDumpable {
         return new ActivityRunResult(OperationResultStatus.IN_PROGRESS, IS_WAITING);
     }
 
-    public static ActivityRunResult exception(OperationResultStatus opStatus, TaskRunResultStatus runStatus, Throwable t) {
-        // TODO what with t?
-        return new ActivityRunResult(opStatus, runStatus);
+    public static ActivityRunResult exception(OperationResultStatus opStatus, TaskRunResultStatus runStatus,
+            Throwable throwable) {
+        return new ActivityRunResult(opStatus, runStatus, throwable);
     }
 
     @Override
@@ -141,7 +165,7 @@ public class ActivityRunResult implements ShortDumpable {
         return runResultStatus == PERMANENT_ERROR;
     }
 
-    public boolean isTemporaryError() {
+    boolean isTemporaryError() {
         return runResultStatus == TEMPORARY_ERROR;
     }
 

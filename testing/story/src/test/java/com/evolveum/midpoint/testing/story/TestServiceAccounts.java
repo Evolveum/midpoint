@@ -115,7 +115,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
                 .links()
                 .singleLive()
                 .resolveTarget()
-                .assertLife()
+                .assertLive()
                 .assertKind(ShadowKindType.ACCOUNT)
                 .assertIntent(RESOURCE_DUMMY_INTENT_SERVICE)
                 .getOid();
@@ -160,7 +160,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
                 .links()
                 .singleLive()
                 .resolveTarget()
-                .assertLife()
+                .assertLive()
                 .assertKind(ShadowKindType.ACCOUNT)
                 .assertIntent(RESOURCE_DUMMY_INTENT_SERVICE)
                 .getOid();
@@ -204,7 +204,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
                 .links()
                 .singleLive()
                 .resolveTarget()
-                .assertLife()
+                .assertLive()
                 .assertKind(ShadowKindType.ACCOUNT)
                 .assertIntent(RESOURCE_DUMMY_INTENT_SERVICE)
                 .getOid();

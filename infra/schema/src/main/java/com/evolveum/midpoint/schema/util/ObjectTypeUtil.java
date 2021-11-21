@@ -1065,6 +1065,14 @@ public class ObjectTypeUtil {
         }
     }
 
+    public static boolean isIndestructible(@NotNull ObjectType object) {
+        return Boolean.TRUE.equals(object.isIndestructible());
+    }
+
+    public static boolean isIndestructible(@NotNull PrismObject<? extends ObjectType> object) {
+        return isIndestructible(object.asObjectable());
+    }
+
     @FunctionalInterface
     private interface ExtensionItemRemover {
         // Removes item (known from the context) from the extension
@@ -1184,6 +1192,12 @@ public class ObjectTypeUtil {
     public static List<String> getOids(List<? extends Objectable> objectables) {
         return objectables.stream()
                 .map(Objectable::getOid)
+                .collect(Collectors.toList());
+    }
+
+    public static List<String> getOidsFromPrismObjects(List<? extends PrismObject<?>> prismObjects) {
+        return prismObjects.stream()
+                .map(PrismObject::getOid)
                 .collect(Collectors.toList());
     }
 }

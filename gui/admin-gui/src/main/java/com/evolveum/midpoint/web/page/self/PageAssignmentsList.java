@@ -10,15 +10,17 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProces
 
 import java.util.*;
 
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 
 import com.evolveum.midpoint.web.application.Url;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
@@ -164,6 +166,15 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase {
                 return false;
             }
 
+            @Override
+            protected void reloadMainFormButtons(AjaxRequestTarget target) {
+                Component requestButton = PageAssignmentsList.this.get(createComponentPath(ID_FORM, ID_REQUEST_BUTTON));
+                if (requestButton != null) {
+                    refreshRequestButton(requestButton);
+                }
+                target.add(getFeedbackPanel());
+                target.add(requestButton);
+            }
         };
         mainForm.add(panel);
 
@@ -240,14 +251,11 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase {
         requestAssignments.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isEnabled() {
-                return (getSessionStorage().getRoleCatalog().isMultiUserRequest() ||
-                        onlyWarnings() || areConflictsResolved()) &&
-                        !conflictProblemExists &&
-                        getSessionStorage().getRoleCatalog().getAssignmentShoppingCart() != null &&
-                        getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() > 0;
+                return isRequestButtonEnabled();
             }
         });
         mainForm.add(requestAssignments);
+        refreshRequestButton(requestAssignments);
 
         AjaxSubmitButton resolveAssignments = new AjaxSubmitButton(ID_RESOLVE_CONFLICTS_BUTTON,
                 createStringResource("PageAssignmentsList.resolveConflicts")) {
@@ -272,6 +280,23 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase {
         });
         mainForm.add(resolveAssignments);
 
+    }
+
+    private void refreshRequestButton(Component requestButton) {
+        if (isRequestButtonEnabled()) {
+            requestButton.add(AttributeModifier.remove("disabled"));
+        } else {
+            warn(createStringResource("PageAssignmentsList.message.notContainsAssignments").getString());
+            requestButton.add(AttributeModifier.replace("disabled", ""));
+        }
+    }
+
+    private boolean isRequestButtonEnabled() {
+        return (getSessionStorage().getRoleCatalog().isMultiUserRequest() ||
+                onlyWarnings() || areConflictsResolved()) &&
+                !conflictProblemExists &&
+                getSessionStorage().getRoleCatalog().getAssignmentShoppingCart() != null &&
+                getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() > 0;
     }
 
     private void onSingleUserRequestPerformed(AjaxRequestTarget target) {
@@ -303,14 +328,15 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase {
             setResponsePage(PageAssignmentShoppingCart.class);
             return;
         }
-        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
-            result.setMessage(createStringResource("PageAssignmentsList.requestError").getString());
-            target.add(getFeedbackPanel());
-            target.add(PageAssignmentsList.this.get(ID_FORM));
-        } else {
+        if (WebComponentUtil.isSuccessOrHandledError(result)
+                || OperationResultStatus.IN_PROGRESS.equals(result.getStatus())) {
             clearStorage();
             result.setMessage(createStringResource("PageAssignmentsList.requestSuccess").getString());
             setResponsePage(PageAssignmentShoppingCart.class);
+        } else {
+            result.setMessage(createStringResource("PageAssignmentsList.requestError").getString());
+            target.add(getFeedbackPanel());
+            target.add(PageAssignmentsList.this.get(ID_FORM));
         }
         showResult(result);
     }
@@ -344,13 +370,12 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase {
         Task operationalTask = createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS);
         String executionTaskOid = null;
         try {
-            TaskType task = WebComponentUtil.createSingleRecurrenceTask(
+            TaskType task = WebComponentUtil.createIterativeChangeExecutionTask(
                     createStringResource(OPERATION_REQUEST_ASSIGNMENTS).getString(),
                     UserType.COMPLEX_TYPE,
                     getTaskQuery(),
                     prepareDelta(null, result),
                     createOptions(),
-                    ModelPublicConstants.EXECUTE_CHANGES_TASK_HANDLER_URI,
                     PageAssignmentsList.this);
             executionTaskOid = WebModelServiceUtils.runTask(task, operationalTask, result, PageAssignmentsList.this);
         } catch (SchemaException e) {
@@ -571,13 +596,15 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase {
         return true;
     }
 
-    private ObjectDelta prepareDelta(PrismObject<UserType> user, OperationResult result) {
-        ObjectDelta delta = null;
+    private ObjectDelta<UserType> prepareDelta(PrismObject<UserType> user, OperationResult result) {
+        ObjectDelta<UserType> delta = null;
         try {
+            //noinspection unchecked
             delta = getPrismContext().deltaFactory().object()
                     .createModificationAddContainer(UserType.class, user == null ? "fakeOid" : user.getOid(),
                             FocusType.F_ASSIGNMENT, getAddAssignmentContainerValues(assignmentsModel.getObject()));
             if (!getSessionStorage().getRoleCatalog().isMultiUserRequest()) {
+                //noinspection unchecked
                 delta.addModificationDeleteContainer(FocusType.F_ASSIGNMENT,
                         getDeleteAssignmentContainerValues(user.asObjectable()));
             }
@@ -586,7 +613,6 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase {
             result.recordFatalError(getString("PageAssignmentsList.message.prepareDelta.fatalError", OPERATION_REQUEST_ASSIGNMENTS), e);
         }
         return delta;
-
     }
 
     private ObjectQuery getTaskQuery() {

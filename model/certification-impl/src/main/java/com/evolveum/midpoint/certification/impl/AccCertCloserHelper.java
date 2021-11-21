@@ -303,6 +303,10 @@ public class AccCertCloserHelper {
         LOGGER.debug("Campaigns to be deleted: {}", campaigns.size());
         int deleted = 0;
         for (PrismObject<AccessCertificationCampaignType> campaign : campaigns) {
+            if (ObjectTypeUtil.isIndestructible(campaign)) {
+                LOGGER.trace("Campaign {} is indestructible, will not be deleted", campaign);
+                continue;
+            }
             OperationResult subresult = result.createMinorSubresult(OPERATION_DELETE_OBSOLETE_CAMPAIGN);
             try {
                 LOGGER.debug("Deleting campaign {}", campaign);
