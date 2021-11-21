@@ -36,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 @PanelType(name = "resourceConnectorConfiguration")
 @PanelInstance(identifier = "resourceConnectorConfiguration", applicableForType = ResourceType.class,
-        display = @PanelDisplay(label = "PageResource.tab.connector.configuration", order = 20))
+        display = @PanelDisplay(label = "PageResource.tab.connector.configuration", icon = "fa fa-plug", order = 20))
 public class ResourceConfigurationPanel extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceConfigurationPanel.class);

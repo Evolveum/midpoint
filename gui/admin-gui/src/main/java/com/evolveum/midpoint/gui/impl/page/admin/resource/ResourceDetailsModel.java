@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.gui.impl.page.admin.resource;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
@@ -89,17 +95,10 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
 
             WrapperContext ctx = new WrapperContext(task, result);
             ctx.setShowEmpty(ItemStatus.ADDED == configurationStatus);
-//            PrismContainerWrapper<ConnectorConfigurationType> configurationNew = getModelServiceLocator().createItemWrapper(connectorConfigurationType, configurationStatus, ctx);
-
-            configuration.removeAll(getPageBase());
-            configuration.add(connectorConfigurationType.getValue(), getPageBase());
+            configuration = getModelServiceLocator().createItemWrapper(connectorConfigurationType, configurationStatus, ctx);
         }
 
         return configuration;
-
-
-
-
     }
 
     public LoadableModel<PrismContainerWrapper<ConnectorConfigurationType>> getConfigurationModel() {

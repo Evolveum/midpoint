@@ -6,9 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -18,6 +19,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperC
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ResourceAttributePanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -32,6 +34,11 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -44,7 +51,7 @@ import java.util.List;
 
 @PanelType(name = "schemaHandling")
 @PanelInstance(identifier = "schemaHandling", applicableForType = ResourceType.class,
-        display = @PanelDisplay(label = "PageResource.tab.schemaHandling", order = 70))
+        display = @PanelDisplay(label = "PageResource.tab.schemaHandling", icon = GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM, order = 80))
 public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
 
     private static final String ID_TABLE = "table";
@@ -77,13 +84,13 @@ public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<Resourc
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
-                return null;
+                return UserProfileStorage.TableId.TABLE_SCHEMA_HANDLING;
             }
 
             @Override
             protected List<IColumn<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, String>> createDefaultColumns() {
                 List<IColumn<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, String>> columns = new ArrayList<>();
-                columns.add(new PrismPropertyWrapperColumn<>(getContainerModel(), ResourceObjectTypeDefinitionType.F_DISPLAY_NAME, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
+//                columns.add(new PrismPropertyWrapperColumn<>(getContainerModel(), ResourceObjectTypeDefinitionType.F_DISPLAY_NAME, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
                 columns.add(new PrismPropertyWrapperColumn<>(getContainerModel(), ResourceObjectTypeDefinitionType.F_KIND, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
                 columns.add(new PrismPropertyWrapperColumn<>(getContainerModel(), ResourceObjectTypeDefinitionType.F_INTENT, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
                 columns.add(new PrismPropertyWrapperColumn<>(getContainerModel(), ResourceObjectTypeDefinitionType.F_DEFAULT, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
@@ -100,6 +107,53 @@ public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<Resourc
 
                 });
                 return columns;
+            }
+
+            @Override
+            protected IColumn<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
+                return new PrismPropertyWrapperColumn<>(getContainerModel(), ResourceObjectTypeDefinitionType.F_DISPLAY_NAME, AbstractItemWrapperColumn.ColumnType.LINK, getPageBase()) {
+
+                    @Override
+                    protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model) {
+                        itemDetailsPerformed(target, model);
+                    }
+                };
+            }
+
+            @Override
+            public void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> rowModel, List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> listItems) {
+                AbstractPageObjectDetails parent = findParent(AbstractPageObjectDetails.class);
+
+                if (parent == null) {
+                    super.editItemPerformed(target, rowModel, listItems);
+                    return;
+                }
+
+                ContainerPanelConfigurationType detailsPanel = new ContainerPanelConfigurationType(getPrismContext());
+                detailsPanel.setPanelType("schemaHandlingDetails");
+
+                PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> objectTypeDef;
+                if (rowModel != null) {
+                   objectTypeDef = rowModel.getObject();
+                }  else {
+                    objectTypeDef = listItems.iterator().next();
+                }
+//                VirtualContainersSpecificationType virtualContainer = new VirtualContainersSpecificationType(getPrismContext());
+                detailsPanel.setPath(new ItemPathType(objectTypeDef.getPath()));
+
+                //                  detailsPanel.getContainer().add(virtualContainer);
+
+                detailsPanel.setIdentifier("schemaHandlingDetails");
+                DisplayType displayType = new DisplayType();
+                displayType.setLabel(new PolyStringType(objectTypeDef.getNewValue().asContainerable().getDisplayName()));
+                detailsPanel.setDisplay(displayType);
+
+                getPageBase().getSessionStorage().setObjectDetailsStorage("details" + parent.getType().getSimpleName(), detailsPanel);
+
+                ResourceSchemaHandlingPanel.this.getPanelConfiguration().getPanel().add(detailsPanel);
+                target.add(parent);
+                parent.replacePanel(detailsPanel, target);
+//                super.editItemPerformed(target, rowModel, listItems);
             }
         };
         form.add(objectTypesPanel);
@@ -123,11 +177,11 @@ public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<Resourc
             @Override
             protected @NotNull List<ITab> createTabs() {
                 List<ITab> tabs = new ArrayList<>();
-                tabs.add(new PanelTab(createStringResource("Attributes")) {
+                tabs.add(new PanelTab(createStringResource("ResourceSchemaHandlingPanel.tab.attributes")) {
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new ResourceAttributePanel(panelId, PrismContainerWrapperModel.fromContainerValueWrapper(getModel(), ResourceObjectTypeDefinitionType.F_ATTRIBUTE));
+                        return new ResourceAttributePanel(panelId, PrismContainerWrapperModel.fromContainerValueWrapper(getModel(), ResourceObjectTypeDefinitionType.F_ATTRIBUTE), getPanelConfiguration());
                     }
                 });
                 return tabs;
@@ -135,8 +189,41 @@ public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<Resourc
 
             @Override
             protected DisplayNamePanel<ResourceObjectTypeDefinitionType> createDisplayNamePanel(String displayNamePanelId) {
-                return new DisplayNamePanel<>(displayNamePanelId, new ItemRealValueModel<>(getModel()));
+                return new DisplayNamePanel<>(displayNamePanelId, new ItemRealValueModel<>(getModel())) {
+
+                    @Override
+                    protected IModel<String> createHeaderModel() {
+                        return new ReadOnlyModel<>(() -> loadHeaderModel(getModelObject()) );
+                    }
+
+                    @Override
+                    protected IModel<List<String>> getDescriptionLabelsModel() {
+                        return new ReadOnlyModel<>(() -> loadDescriptionModel(getModelObject()));
+                    }
+
+                };
             }
         };
+    }
+
+    private String loadHeaderModel(ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType) {
+        if (resourceObjectTypeDefinitionType.getDisplayName() != null) {
+            return resourceObjectTypeDefinitionType.getDisplayName();
+        }
+        return getString("SchemaHandlingType.objectType");
+    }
+
+    private List<String> loadDescriptionModel(ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType) {
+        List<String> description = new ArrayList<>();
+        if (resourceObjectTypeDefinitionType.getKind() != null) {
+            description.add(getString("ResourceSchemaHandlingPanel.description.kind", resourceObjectTypeDefinitionType.getKind()));
+        }
+        if (resourceObjectTypeDefinitionType.getIntent() != null) {
+            description.add(getString("ResourceSchemaHandlingPanel.description.intent", resourceObjectTypeDefinitionType.getIntent()));
+        }
+        if (resourceObjectTypeDefinitionType.getObjectClass() != null) {
+            description.add(getString("ResourceSchemaHandlingPanel.description.objectClass", resourceObjectTypeDefinitionType.getObjectClass().getLocalPart()));
+        }
+        return description;
     }
 }

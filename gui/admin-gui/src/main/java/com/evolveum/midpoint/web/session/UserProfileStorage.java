@@ -95,7 +95,8 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         SELF_DASHBOARD_CASES_PANEL,
         PAGE_CASE_WORKITEMS_TAB,
         PAGE_CASE_CHILD_CASES_TAB,
-        PAGE_CASE_EVENTS_TAB
+        PAGE_CASE_EVENTS_TAB,
+        TABLE_SCHEMA_HANDLING
     }
 
     private final Map<String, Integer> tables = new HashMap<>();

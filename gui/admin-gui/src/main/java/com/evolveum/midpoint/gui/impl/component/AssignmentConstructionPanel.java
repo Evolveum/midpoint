@@ -14,11 +14,7 @@ import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
 
@@ -27,8 +23,11 @@ public class AssignmentConstructionPanel extends BasePanel<PrismContainerWrapper
     private static final String ID_BASIC = "basic";
     private static final String ID_ATTRIBUTES = "attributes";
 
-    public AssignmentConstructionPanel(String id, IModel<PrismContainerWrapper<ConstructionType>> model) {
+    private ContainerPanelConfigurationType config;
+
+    public AssignmentConstructionPanel(String id, IModel<PrismContainerWrapper<ConstructionType>> model, ContainerPanelConfigurationType config) {
         super(id, model);
+        this.config = config;
     }
 
     @Override
@@ -68,9 +67,13 @@ public class AssignmentConstructionPanel extends BasePanel<PrismContainerWrapper
         };
         add(baseConstructionPanel);
 
-        ResourceAttributePanel attrsPanel = new ResourceAttributePanel(ID_ATTRIBUTES, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ConstructionType.F_ATTRIBUTE));
+        ResourceAttributePanel attrsPanel = new ResourceAttributePanel(ID_ATTRIBUTES, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ConstructionType.F_ATTRIBUTE), null);
         add(attrsPanel);
 
+    }
+
+    public ContainerPanelConfigurationType getConfig() {
+        return config;
     }
 
     private boolean isAttributePath(ItemPath itemPath) {

@@ -7,8 +7,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusDetails;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -45,7 +43,7 @@ public class PageRole extends PageFocusDetails<RoleType, FocusDetailsModels<Role
     }
 
     @Override
-    protected Class<RoleType> getType() {
+    public Class<RoleType> getType() {
         return RoleType.class;
     }
 

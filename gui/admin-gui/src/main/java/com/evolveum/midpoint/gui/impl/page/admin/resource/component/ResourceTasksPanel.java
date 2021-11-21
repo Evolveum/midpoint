@@ -47,7 +47,7 @@ import java.util.List;
 
 @PanelType(name = "resourceTasks")
 @PanelInstance(identifier = "resourceTasks", applicableForType = ResourceType.class, applicableForOperation = OperationTypeType.MODIFY,
-        display = @PanelDisplay(label = "PageResource.tab.content.tasks", order = 30))
+        display = @PanelDisplay(label = "PageResource.tab.content.tasks", icon = GuiStyleConstants.CLASS_OBJECT_TASK_ICON,order = 40))
 public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> implements Popupable {
     private static final long serialVersionUID = 1L;
 

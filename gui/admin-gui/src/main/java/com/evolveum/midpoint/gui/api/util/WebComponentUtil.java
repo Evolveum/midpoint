@@ -23,16 +23,6 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.AbstractAssignmentTypePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-
-import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
-
-import com.evolveum.midpoint.gui.impl.page.admin.resource.PageShadow;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.schema.util.task.*;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -92,11 +82,17 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
+import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.AbstractAssignmentTypePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.PageShadow;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.*;
@@ -122,6 +118,9 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
+import com.evolveum.midpoint.schema.util.task.TaskInformation;
+import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -1927,6 +1926,10 @@ public final class WebComponentUtil {
         } else if (QNameUtil.match(ObjectPolicyConfigurationType.COMPLEX_TYPE, objectType) || QNameUtil.match(GlobalPolicyRuleType.COMPLEX_TYPE, objectType)
                 || QNameUtil.match(FileAppenderConfigurationType.COMPLEX_TYPE, objectType) || QNameUtil.match(SyslogAppenderConfigurationType.COMPLEX_TYPE, objectType)) {
             return GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON_COLORED;
+        } else if (QNameUtil.match(ResourceObjectTypeDefinitionType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.CLASS_ICON_RESOURCE_SCHEMA_HANDLING_COLORED;
+        } else if (QNameUtil.match(ResourceAttributeDefinitionType.COMPLEX_TYPE, objectType)) {
+            return "fa fa-navicon";
         } else {
             return "";
         }
@@ -5195,16 +5198,14 @@ public final class WebComponentUtil {
             }
 
             List<VariableBindingDefinitionType> sources = mappingType.getSource();
-            String sourceString = "";
-            if (!sources.isEmpty()) {
-                sourceString += "From: ";
-            }
-            for (VariableBindingDefinitionType s : sources) {
-                if (s == null) {
-                    continue;
-                }
-                sourceString += s.getPath().toString() + ", ";
-            }
+            String sourceString = String.join(", ", sources.stream().map(s -> s != null && s.getPath() != null ? s.getPath().toString() : "").collect(Collectors.toList()));
+//            String sourceString = "";
+//            for (VariableBindingDefinitionType s : sources) {
+//                if (s == null) {
+//                    continue;
+//                }
+//                sourceString += s.getPath().toString() + ", ";
+//            }
             String strength = "";
             if (mappingType.getStrength() != null) {
                 strength = mappingType.getStrength().toString();
@@ -5213,14 +5214,14 @@ public final class WebComponentUtil {
             String target = "";
             VariableBindingDefinitionType targetv = mappingType.getTarget();
             if (targetv != null) {
-                target += "To: " + targetv.getPath().toString();
+                target += targetv.getPath().toString();
             }
 
             if (target.isBlank()) {
-                return sourceString + "(" + strength + ")";
+                return sourceString + (strength.isBlank() ? "" : "(" + strength + ")");
             }
 
-            return target + "(" + strength + ")";
+            return target + (strength.isBlank() ? "" : "(" + strength + ")");
         });
     }
 

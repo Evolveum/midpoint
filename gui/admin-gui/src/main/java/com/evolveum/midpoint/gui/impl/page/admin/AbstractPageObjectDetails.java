@@ -390,6 +390,8 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         form.addOrReplace(panel);
     }
 
+
+
     private DetailsNavigationPanel initNavigation() {
         return createNavigationPanel(getPanelConfigurations());
     }
@@ -399,16 +401,20 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         return new DetailsNavigationPanel<>(AbstractPageObjectDetails.ID_NAVIGATION, objectDetailsModels, panels) {
             @Override
             protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
-                MidpointForm form = getMainForm();
-                try {
-                    initMainPanel(config, form);
-                    target.add(form);
-                } catch (Throwable e) {
-                    error("Cannot instantiate panel, " + e.getMessage());
-                    target.add(getFeedbackPanel());
-                }
+                replacePanel(config, target);
             }
         };
+    }
+
+    public void replacePanel(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
+        MidpointForm form = getMainForm();
+        try {
+            initMainPanel(config, form);
+            target.add(form);
+        } catch (Throwable e) {
+            error("Cannot instantiate panel, " + e.getMessage());
+            target.add(getFeedbackPanel());
+        }
     }
 
     private PrismObject<O> loadPrismObject() {
@@ -477,7 +483,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         return new PropertyModel<>(objectDetailsModels.getObjectDetailsPageConfiguration(), GuiObjectDetailsPageType.F_PANEL.getLocalPart());
     }
 
-    protected abstract Class<O> getType();
+    public abstract Class<O> getType();
     protected abstract Panel createSummaryPanel(String id, LoadableModel<O> summaryModel);
 
     private MidpointForm getMainForm() {

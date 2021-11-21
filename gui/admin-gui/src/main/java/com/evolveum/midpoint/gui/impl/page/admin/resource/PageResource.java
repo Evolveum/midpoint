@@ -50,7 +50,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     @Override
-    protected Class<ResourceType> getType() {
+    public Class<ResourceType> getType() {
         return ResourceType.class;
     }
 

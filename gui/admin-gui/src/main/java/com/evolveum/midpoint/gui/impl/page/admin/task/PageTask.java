@@ -60,7 +60,7 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
     }
 
     @Override
-    protected Class<TaskType> getType() {
+    public Class<TaskType> getType() {
         return TaskType.class;
     }
 

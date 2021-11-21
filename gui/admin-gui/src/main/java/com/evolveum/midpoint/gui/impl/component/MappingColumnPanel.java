@@ -17,6 +17,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -28,7 +30,6 @@ import java.util.List;
 
 public class MappingColumnPanel extends BasePanel<PrismContainerWrapper<MappingType>> {
 
-    private static final String ID_MAPPING_ENABLED = "mappingEnabled";
     private static final String ID_MAPPING = "mapping";
     private static final String ID_MAPPINGS = "mappings";
 
@@ -48,13 +49,25 @@ public class MappingColumnPanel extends BasePanel<PrismContainerWrapper<MappingT
 
             @Override
             protected void populateItem(ListItem<PrismContainerValueWrapper<MappingType>> item) {
-                TriStateComboPanel dropDownChoicePanel = new TriStateComboPanel(ID_MAPPING_ENABLED, new PropertyModel<>(new ItemRealValueModel<>(item.getModel()), MappingType.F_ENABLED.getLocalPart()));
-                item.add(dropDownChoicePanel);
                 Label label = new Label(ID_MAPPING, WebComponentUtil.createMappingDescription(item.getModel()));
+                label.add(AttributeAppender.append("class", createEnabledDisabledStyles(item.getModelObject())));
                 item.add(label);
             }
         };
         add(mappings);
+    }
+
+    private String createEnabledDisabledStyles(PrismContainerValueWrapper<MappingType> mapping) {
+        if (mapping == null) {
+            return "";
+        }
+
+        MappingType mappingType = mapping.getRealValue();
+        if (mappingType == null) {
+            return "";
+        }
+
+        return BooleanUtils.isFalse(mappingType.isEnabled()) ? "mapping-disabled" : "";
     }
 
 

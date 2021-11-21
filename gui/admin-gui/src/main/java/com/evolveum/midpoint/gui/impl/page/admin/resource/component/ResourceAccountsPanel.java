@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
@@ -19,7 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 @PanelType(name = "resourceAccounts")
 @PanelInstance(identifier = "resourceAccounts", applicableForOperation = OperationTypeType.MODIFY, applicableForType = ResourceType.class,
-        display = @PanelDisplay(label = "PageResource.tab.content.account", order = 30))
+        display = @PanelDisplay(label = "PageResource.tab.content.account", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT, order = 50))
 public class ResourceAccountsPanel extends ResourceContentTabPanel {
 
 

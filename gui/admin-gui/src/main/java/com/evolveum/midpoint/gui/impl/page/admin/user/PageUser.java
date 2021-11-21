@@ -85,7 +85,7 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
     }
 
     @Override
-    protected Class<UserType> getType() {
+    public Class<UserType> getType() {
         return UserType.class;
     }
 
