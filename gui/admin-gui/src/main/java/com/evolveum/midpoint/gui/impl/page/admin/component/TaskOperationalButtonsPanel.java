@@ -82,7 +82,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
     private static final String ID_REFRESHING_BUTTONS = "refreshingButtons";
     private static final String ID_REFRESHING_BUTTONS_CONTAINER = "refreshingButtonsContainer";
 
-    private static final int REFRESH_INTERVAL = 2000;
+    private static final int REFRESH_INTERVAL = 4000;
     private Boolean refreshEnabled;
     private boolean runEnabled = false;
 
