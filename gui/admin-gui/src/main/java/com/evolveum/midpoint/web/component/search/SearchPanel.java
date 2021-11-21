@@ -43,7 +43,6 @@ import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -629,7 +628,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
             protected void populateItem(ListItem<SearchItem> item) {
                 WebMarkupContainer searchItem;
                 if (item.getModelObject() instanceof SpecialSearchItem) {
-                    searchItem = ((SpecialSearchItem) item.getModelObject()).createSpecialSearchPanel(ID_SPECIAL_ITEM, (Consumer<AjaxRequestTarget> & Serializable) target -> searchPerformed(target));
+                    searchItem = ((SpecialSearchItem) item.getModelObject()).createSpecialSearchPanel(ID_SPECIAL_ITEM);
                 } else {
                     IModel itemModel = item.getModel();
                     searchItem = new SearchPropertyPanel<T>(ID_SPECIAL_ITEM, (IModel<PropertySearchItem<T>>) itemModel) {

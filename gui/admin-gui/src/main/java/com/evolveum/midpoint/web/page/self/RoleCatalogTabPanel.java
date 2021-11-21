@@ -9,12 +9,10 @@ package com.evolveum.midpoint.web.page.self;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
@@ -175,19 +173,13 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
             }
 
             @Override
-            public SearchSpecialItemPanel createSpecialSearchPanel(String id, Consumer<AjaxRequestTarget> searchPerformedConsumer) {
+            public SearchSpecialItemPanel createSpecialSearchPanel(String id){
                 return new SearchSpecialItemPanel(id, new PropertyModel(getRoleCatalogStorage(), RoleCatalogStorage.F_ORG_SEARCH_SCOPE)) {
                     @Override
                     protected WebMarkupContainer initSearchItemField(String id) {
                         DropDownChoicePanel inputPanel = new DropDownChoicePanel(id, getModelValue(), Model.of(Arrays.asList(SearchBoxScopeType.values())), new EnumChoiceRenderer(), false);
                         inputPanel.getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
                         inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 88px; max-width: 400px !important;"));
-                        inputPanel.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
-                            @Override
-                            protected void onUpdate(AjaxRequestTarget target) {
-                                searchPerformedConsumer.accept(target);
-                            }
-                        });
                         inputPanel.setOutputMarkupId(true);
                         return inputPanel;
                     }

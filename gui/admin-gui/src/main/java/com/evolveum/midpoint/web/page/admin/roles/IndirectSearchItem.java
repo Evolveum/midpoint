@@ -8,16 +8,8 @@ package com.evolveum.midpoint.web.page.admin.roles;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchSpecialItemPanel;
@@ -27,8 +19,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
@@ -38,13 +28,10 @@ import org.apache.wicket.model.PropertyModel;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class IndirectSearchItem extends SpecialSearchItem {
 
-    private static final Trace LOGGER = TraceManager.getTrace(IndirectSearchItem.class);
-
-    private MemberPanelStorage memberStorage;
+    private final MemberPanelStorage memberStorage;
 
     public IndirectSearchItem(Search search, MemberPanelStorage memberStorage) {
         super(search);
@@ -54,32 +41,6 @@ public class IndirectSearchItem extends SpecialSearchItem {
     @Override
     public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
         throw new UnsupportedOperationException();
-//        AbstractRoleType object = getParentVariables(variables);
-//        if (object == null) {
-//            return null;
-//        }
-//        List relations = new ArrayList();
-//        if (QNameUtil.match(PrismConstants.Q_ANY, memberStorage.getRelation())) {
-//            relations.addAll(supportedRelations.getAvailableRelationList());
-//        } else {
-//            relations.add(memberStorage.getRelation());
-//        }
-//
-//        ObjectFilter filter;
-//        PrismContext prismContext = pageBase.getPrismContext();
-//        Class type = getSearch().getTypeClass();
-//        if(!Boolean.TRUE.equals(memberStorage.getIndirect())) {
-//            filter = prismContext.queryFor(type).exists(AssignmentHolderType.F_ASSIGNMENT)
-//                    .block()
-//                    .item(AssignmentType.F_TARGET_REF)
-//                    .ref(MemberOperationsHelperOld.createReferenceValuesList(object, relations))
-//                    .endBlock().buildFilter();
-//        } else {
-//            filter = prismContext.queryFor(type)
-//                    .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelperOld.createReferenceValuesList(object, relations))
-//                    .buildFilter();
-//        }
-//        return filter;
     }
 
 
@@ -88,7 +49,7 @@ public class IndirectSearchItem extends SpecialSearchItem {
     }
 
     @Override
-    public SearchSpecialItemPanel createSpecialSearchPanel(String id, Consumer<AjaxRequestTarget> searchPerformedConsumer) {
+    public SearchSpecialItemPanel createSpecialSearchPanel(String id) {
         SearchSpecialItemPanel panel = new SearchSpecialItemPanel(id, new PropertyModel(memberStorage, MemberPanelStorage.F_INDIRECT_ITEM + "." + IndirectSearchItemConfigurationType.F_INDIRECT.getLocalPart())) {
             @Override
             protected WebMarkupContainer initSearchItemField(String id) {
@@ -109,12 +70,6 @@ public class IndirectSearchItem extends SpecialSearchItem {
                 inputPanel.getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
                 inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 68"
                         + "px; max-width: 400px !important;"));
-                inputPanel.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
-                    @Override
-                    protected void onUpdate(AjaxRequestTarget target) {
-                        searchPerformedConsumer.accept(target);
-                    }
-                });
                 inputPanel.getBaseFormComponent().add(new EnableBehaviour(() -> memberStorage != null && !memberStorage.isSearchScope(SearchBoxScopeType.SUBTREE)));
                 inputPanel.setOutputMarkupId(true);
                 return inputPanel;
@@ -130,7 +85,7 @@ public class IndirectSearchItem extends SpecialSearchItem {
                 return Model.of(WebComponentUtil.getTranslatedPolyString(getIndirectConfig().getDisplay().getHelp()));
             }
         };
-        panel.add(new VisibleBehaviour(() -> isPanelVisible()));
+        panel.add(new VisibleBehaviour(this::isPanelVisible));
         return panel;
     }
 
