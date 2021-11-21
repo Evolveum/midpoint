@@ -78,8 +78,11 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
             LOGGER.debug("Association for {} is not supported", childContainer.getComplexTypeDefinition().getTypeClass());
             return super.createWrapperInternal(parent, childContainer, status, ctx);
         }
-
-        ShadowType shadow = (ShadowType) ctx.getObject().asObjectable();
+        PrismObject<?> object = ctx.getObject();
+        if (object == null) {
+            return super.createWrapperInternal(parent, childContainer, status, ctx);
+        }
+        ShadowType shadow = (ShadowType) object.asObjectable();
         PrismObject<ResourceType> resource = loadResource(shadow, ctx);
         if (resource == null) {
             return super.createWrapperInternal(parent, childContainer, status, ctx);
@@ -167,6 +170,9 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
 
     private boolean isNotShadow(WrapperContext ctx, OperationResult parentResult) {
         PrismObject<?> object = ctx.getObject();
+        if (object == null) {
+            return true;
+        }
         ObjectType objectType = (ObjectType) object.asObjectable();
         if (!(objectType instanceof ShadowType)) {
             parentResult.recordFatalError("Something very strange happened. Association container in the" + objectType.getClass().getSimpleName() + "?");

@@ -10,8 +10,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.MetadataContainerPanel;
+
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.stereotype.Component;
 
@@ -129,8 +133,24 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
     @Override
     protected PrismContainerWrapper<C> createWrapperInternal(PrismContainerValueWrapper<?> parent, PrismContainer<C> childContainer,
             ItemStatus status, WrapperContext ctx) {
-
+        status = recomputeStatus(childContainer, status, ctx);
         return new PrismContainerWrapperImpl<>(parent, childContainer, status);
+    }
+
+    private ItemStatus recomputeStatus(PrismContainer<C> containerWrapper, ItemStatus defaultStatus, WrapperContext ctx) {
+        if (isShadowCredentialsOrPassword(containerWrapper.getDefinition(), ctx)) {
+            return ItemStatus.NOT_CHANGED;
+        }
+        return defaultStatus;
+    }
+
+    private boolean isShadowCredentialsOrPassword(PrismContainerDefinition<C> childItemDef, WrapperContext ctx) {
+        PrismObject<?> object = ctx.getObject();
+        if (object == null || !ShadowType.class.equals(object.getCompileTimeClass())) {
+            return false;
+        }
+        QName typeName = childItemDef.getTypeName();
+        return QNameUtil.match(typeName, CredentialsType.COMPLEX_TYPE) || QNameUtil.match(typeName, PasswordType.COMPLEX_TYPE);
     }
 
     @Override
@@ -144,6 +164,9 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 
     @Override
     public PrismContainerValueWrapper<C> createContainerValueWrapper(PrismContainerWrapper<C> objectWrapper, PrismContainerValue<C> objectValue, ValueStatus status, WrapperContext context) {
+        if (isShadowCredentialsOrPassword(objectValue.getDefinition(), context)) {
+            status = ValueStatus.NOT_CHANGED;
+        }
         return new PrismContainerValueWrapperImpl<>(objectWrapper, objectValue, status);
     }
 
