@@ -42,6 +42,9 @@
                 </tracingTypeProfile>
             </profile>
         </tracing>
+        <prism>
+            <indexPropertyValues>true</indexPropertyValues>
+        </prism>
     </internals>
     <defaultObjectPolicyConfiguration>
         <type>UserType</type>

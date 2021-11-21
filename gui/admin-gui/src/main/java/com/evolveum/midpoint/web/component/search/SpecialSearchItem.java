@@ -7,9 +7,6 @@
 package com.evolveum.midpoint.web.component.search;
 
 import java.io.Serializable;
-import java.util.function.Consumer;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -38,6 +35,6 @@ public abstract class SpecialSearchItem extends SearchItem implements Serializab
 
     public abstract ObjectFilter createFilter(PageBase pageBase, VariablesMap variables);
 
-    public abstract SearchSpecialItemPanel createSpecialSearchPanel(String id, Consumer<AjaxRequestTarget> searchPerformedConsumer);
+    public abstract SearchSpecialItemPanel createSpecialSearchPanel(String id);
 
 }

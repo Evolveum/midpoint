@@ -10,16 +10,10 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -74,11 +68,6 @@ public class SearchPropertyPanel<T extends Serializable> extends AbstractSearchI
                         new PropertyModel<>(getModel(), "value.value"),
                         (PrismReferenceDefinition) item.getDefinition().getDef()){
                     @Override
-                    protected void referenceValueUpdated(ObjectReferenceType ort, AjaxRequestTarget target) {
-                        searchPerformed(target);
-                    }
-
-                    @Override
                     public Boolean isItemPanelEnabled() {
                         return item.isEnabled();
                     }
@@ -105,31 +94,15 @@ public class SearchPropertyPanel<T extends Serializable> extends AbstractSearchI
                 }
                 searchItemField = WebComponentUtil.createDropDownChoices(
                         ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), "value"), (IModel)choices, true, getPageBase());
-                ((InputPanel) searchItemField).getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
-                    @Override
-                    protected void onUpdate(AjaxRequestTarget target) {
-                        searchPerformed(target);
-                    }
-                });
                 break;
             case DATE:
                 searchItemField = new DateIntervalSearchPanel(ID_SEARCH_ITEM_FIELD,
                         new PropertyModel(getModel(), "fromDate"),
-                        new PropertyModel(getModel(), "toDate")){
-                    @Override
-                    public void searchPerformed(AjaxRequestTarget target) {
-                        SearchPropertyPanel.this.searchPerformed(target);
-                    }
-                };
+                        new PropertyModel(getModel(), "toDate"));
                 break;
             case ITEM_PATH:
                 searchItemField = new ItemPathSearchPanel(ID_SEARCH_ITEM_FIELD,
-                        new PropertyModel(getModel(), "value.value")){
-                    @Override
-                    public void searchPerformed(AjaxRequestTarget target) {
-                        SearchPropertyPanel.this.searchPerformed(target);
-                    }
-                };
+                        new PropertyModel(getModel(), "value.value"));
                 break;
             case TEXT:
                 PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(item.getDefinition().getDef(), getPageBase());

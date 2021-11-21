@@ -9,19 +9,10 @@ package com.evolveum.midpoint.web.page.admin.roles;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.search.ReferenceValueSearchPanel;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchSpecialItemPanel;
@@ -31,23 +22,18 @@ import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class TenantSearchItem extends SpecialSearchItem {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TenantSearchItem.class);
-
-    private MemberPanelStorage memberStorage;
+    private final MemberPanelStorage memberStorage;
 
     public TenantSearchItem(Search search, MemberPanelStorage memberStorage) {
         super(search);
@@ -64,7 +50,7 @@ public class TenantSearchItem extends SpecialSearchItem {
     }
 
     @Override
-    public SearchSpecialItemPanel createSpecialSearchPanel(String id, Consumer<AjaxRequestTarget> searchPerformedConsumer) {
+    public SearchSpecialItemPanel createSpecialSearchPanel(String id){
         IModel tenantModel = new PropertyModel(getMemberPanelStorage(), MemberPanelStorage.F_TENANT) {
             @Override
             public void setObject(Object object) {
@@ -80,11 +66,6 @@ public class TenantSearchItem extends SpecialSearchItem {
             @Override
             protected WebMarkupContainer initSearchItemField(String id) {
                 ReferenceValueSearchPanel searchItemField = new ReferenceValueSearchPanel(id, getModelValue(), tenantRefDef) {
-                    @Override
-                    protected void referenceValueUpdated(ObjectReferenceType ort, AjaxRequestTarget target) {
-                        searchPerformedConsumer.accept(target);
-                    }
-
                     @Override
                     public Boolean isItemPanelEnabled() {
                         return !getMemberPanelStorage().isIndirect();

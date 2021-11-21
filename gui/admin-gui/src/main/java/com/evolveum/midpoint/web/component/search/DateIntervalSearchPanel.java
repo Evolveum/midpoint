@@ -21,8 +21,8 @@ public class DateIntervalSearchPanel extends PopoverSearchPanel {
 
     private static final long serialVersionUID = 1L;
 
-    private IModel<XMLGregorianCalendar> fromDateModel;
-    private IModel<XMLGregorianCalendar> toDateModel;
+    private final IModel<XMLGregorianCalendar> fromDateModel;
+    private final IModel<XMLGregorianCalendar> toDateModel;
 
     public DateIntervalSearchPanel(String id, IModel<XMLGregorianCalendar> fromDateModel, IModel<XMLGregorianCalendar> toDateModel) {
         super(id);
@@ -39,7 +39,6 @@ public class DateIntervalSearchPanel extends PopoverSearchPanel {
             @Override
             protected void confirmPerformed(AjaxRequestTarget target) {
                 target.add(DateIntervalSearchPanel.this);
-                searchPerformed(target);
             }
 
             @Override
@@ -49,27 +48,20 @@ public class DateIntervalSearchPanel extends PopoverSearchPanel {
         };
     }
 
-    public void searchPerformed(AjaxRequestTarget target) {
-    }
-
     @Override
     public IModel<String> getTextValue() {
-        return new IModel<String>(){
-
-            @Override
-            public String getObject() {
-                StringBuilder sb = new StringBuilder();
-                if (fromDateModel != null && fromDateModel.getObject() != null) {
-                    sb.append(WebComponentUtil.getLocalizedDate(fromDateModel.getObject(), DateLabelComponent.SHORT_SHORT_STYLE));
-                }
-                if (sb.length() > 0 && toDateModel != null && toDateModel.getObject() != null) {
-                    sb.append("-");
-                }
-                if (toDateModel != null && toDateModel.getObject() != null) {
-                    sb.append(WebComponentUtil.getLocalizedDate(toDateModel.getObject(), DateLabelComponent.SHORT_SHORT_STYLE));
-                }
-                return sb.toString();
+        return () -> {
+            StringBuilder sb = new StringBuilder();
+            if (fromDateModel != null && fromDateModel.getObject() != null) {
+                sb.append(WebComponentUtil.getLocalizedDate(fromDateModel.getObject(), DateLabelComponent.SHORT_SHORT_STYLE));
             }
+            if (sb.length() > 0 && toDateModel != null && toDateModel.getObject() != null) {
+                sb.append("-");
+            }
+            if (toDateModel != null && toDateModel.getObject() != null) {
+                sb.append(WebComponentUtil.getLocalizedDate(toDateModel.getObject(), DateLabelComponent.SHORT_SHORT_STYLE));
+            }
+            return sb.toString();
         };
     }
 
