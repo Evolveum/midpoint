@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,15 +10,6 @@ import static org.springframework.http.ResponseEntity.status;
 
 import java.net.URI;
 import javax.servlet.http.HttpServletRequest;
-
-import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
-
-import com.evolveum.midpoint.model.common.SystemObjectCache;
-
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.security.api.SecurityUtil;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -34,12 +25,16 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
@@ -48,6 +43,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
  * Base REST controller class providing common (utility) methods and logger.
@@ -159,8 +155,7 @@ public class AbstractRestController {
             return createErrorResponseBuilder(HttpStatus.BAD_GATEWAY, result);
         }
 
-        if (t instanceof SchemaException
-                || t instanceof ExpressionEvaluationException
+        if (t instanceof ExpressionEvaluationException
                 || t instanceof IllegalArgumentException) {
             return createErrorResponseBuilder(HttpStatus.BAD_REQUEST, result);
         }
