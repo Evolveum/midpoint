@@ -17,6 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil.getTimeValidityConstraints;
 import static com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil.hasNotificationActions;
@@ -37,7 +38,7 @@ public class FocusValidityScanWorkDefinition extends AbstractWorkDefinition impl
             FocusValidityScanWorkDefinitionType typedDefinition = (FocusValidityScanWorkDefinitionType)
                     ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
             objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
-            queryStyle = typedDefinition.getQueryStyle();
+            queryStyle = Objects.requireNonNullElse(typedDefinition.getQueryStyle(), ValidityScanQueryStyleType.SINGLE_QUERY);
             validityConstraint = typedDefinition.getValidityConstraint();
         }
         // We allow user to use types above FocusType if he needs to check e.g. assignments validity
