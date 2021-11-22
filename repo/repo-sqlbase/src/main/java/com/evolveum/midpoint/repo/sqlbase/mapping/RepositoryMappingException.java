@@ -15,4 +15,8 @@ public class RepositoryMappingException extends RuntimeException {
     public RepositoryMappingException(Throwable cause) {
         super(cause);
     }
+
+    public RepositoryMappingException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
