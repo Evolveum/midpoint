@@ -82,19 +82,21 @@ public class ActivityHandlerRegistry {
      * Unregisters work definition factory and activity handler.
      */
     public void unregister(QName typeName, String legacyHandlerUri, Class<? extends WorkDefinition> definitionClass) {
-        workDefinitionFactory.unregisterSupplier(typeName, legacyHandlerUri);
-        unregisterHandler(definitionClass);
-        if (legacyHandlerUri != null) {
-            unregisterArchetypeOid(legacyHandlerUri);
-        }
+        // Temporarily disabled - as a workaround for MID-7328 and MID-7331
+//        workDefinitionFactory.unregisterSupplier(typeName, legacyHandlerUri);
+//        unregisterHandler(definitionClass);
+//        if (legacyHandlerUri != null) {
+//            unregisterArchetypeOid(legacyHandlerUri);
+//        }
     }
 
     /**
      * Unregisters the activity handler.
      */
     public void unregisterHandler(Class<? extends WorkDefinition> definitionClass) {
-        LOGGER.trace("Unregistering activity handler for {}", definitionClass);
-        handlersMap.remove(definitionClass);
+        // Temporarily disabled - as a workaround for MID-7328 and MID-7331
+//        LOGGER.trace("Unregistering activity handler for {}", definitionClass);
+//        handlersMap.remove(definitionClass);
     }
 
     private void unregisterArchetypeOid(String legacyHandlerUri) {
