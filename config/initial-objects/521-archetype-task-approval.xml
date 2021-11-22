@@ -34,19 +34,6 @@
             <mapping>
                 <strength>weak</strength>
                 <expression>
-                    <value>http://midpoint.evolveum.com/xml/ns/public/workflow/operation-execution/handler-3</value>
-                </expression>
-                <target>
-                    <c:path>handlerUri</c:path>
-                </target>
-            </mapping>
-        </focusMappings>
-    </inducement>
-    <inducement>
-        <focusMappings>
-            <mapping>
-                <strength>weak</strength>
-                <expression>
                     <value>Workflow</value>
                 </expression>
                 <target>

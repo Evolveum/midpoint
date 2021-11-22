@@ -22,11 +22,11 @@
                     <expression>
                         <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
                         <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                if (!campaignName) {
-                                return null;
+                                if (campaignRef != null) {
+                                campaignRef.getTargetName()
                                 }
-                                return campaignName.getName();
                             </code>
                         </script>
                     </expression>
@@ -186,7 +186,7 @@
             </paging>
         </view>
         <parameter>
-            <name>campaignName</name>
+            <name>campaignRef</name>
             <type>c:ObjectReferenceType</type>
             <targetType>c:AccessCertificationCampaignType</targetType>
             <display>

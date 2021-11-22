@@ -1,5 +1,5 @@
-MidPoint 4.4 Development Branch
--------------------------------
+MidPoint 4.4 Release Candidate 2
+--------------------------------
 
 General information:
 

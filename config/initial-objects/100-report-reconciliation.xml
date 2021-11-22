@@ -26,36 +26,14 @@
                         <q:path>resourceRef</q:path>
                         <expression>
                             <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <script>
-                                <objectVariableMode>prismReference</objectVariableMode>
-                                <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-                                    if (!resource) {
-                                        return null;
-                                    }
-
-                                    ObjectReferenceType ort = new ObjectReferenceType();
-                                    ort.setOid(resource.getOid());
-                                    ort.setRelation(resource.getRelation());
-                                    ort.setType(resource.getTargetType());
-                                    return ort;
-                                </code>
-                            </script>
+                            <path>$resourceRef</path>
                         </expression>
                     </q:ref>
                     <q:equal>
                         <q:path>synchronizationSituation</q:path>
                         <expression>
                             <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <script>
-                                <code>
-                                    if (!situation) {
-                                        return null;
-                                    }
-                                    return situation;
-                                </code>
-                            </script>
+                            <path>$situation</path>
                         </expression>
                     </q:equal>
                     <q:equal>
@@ -75,28 +53,14 @@
                         <q:path>kind</q:path>
                         <expression>
                             <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <script>
-                                <code>
-                                    if (!kind) {
-                                        return null;
-                                    }
-                                    return kind;
-                                </code>
-                            </script>
+                            <path>$kind</path>
                         </expression>
                     </q:equal>
                     <q:equal>
                         <q:path>intent</q:path>
                         <expression>
                             <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <script>
-                                <code>
-                                    if (!intent) {
-                                        return null;
-                                    }
-                                    return intent;
-                                </code>
-                            </script>
+                            <path>$intent</path>
                         </expression>
                     </q:equal>
                 </q:and>
@@ -151,7 +115,7 @@
             </display>
         </parameter>
         <parameter>
-            <name>resource</name>
+            <name>resourceRef</name>
             <type>c:ObjectReferenceType</type>
             <targetType>c:ResourceType</targetType>
             <display>

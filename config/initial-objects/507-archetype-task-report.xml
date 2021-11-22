@@ -9,6 +9,7 @@
            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            xmlns:rext="http://midpoint.evolveum.com/xml/ns/public/report/extension-3">
     <name>Report task</name>
+    <description>Super archetype for all report archetypes</description>
     <archetypePolicy>
         <display>
             <label>Report task</label>
@@ -42,7 +43,18 @@
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>
+                <panel>
+                    <identifier>activity</identifier>
+                    <panel>
+                        <identifier>work</identifier>
+                        <container>
+                            <identifier>work-report-export</identifier>
+                            <path>activity/work/reportExport</path>
+                        </container>
+                    </panel>
+                </panel>
                 <container>
+                    <identifier>report-options</identifier>
                     <display>
                         <label>ReportTask.reportOptions</label>
                     </display>
@@ -64,17 +76,4 @@
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
-    <inducement>
-        <focusMappings>
-            <mapping>
-                <strength>weak</strength>
-                <expression>
-                    <value>Report</value>
-                </expression>
-                <target>
-                    <c:path>category</c:path>
-                </target>
-            </mapping>
-        </focusMappings>
-    </inducement>
 </archetype>
