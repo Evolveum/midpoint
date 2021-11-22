@@ -2973,58 +2973,40 @@ public final class WebComponentUtil {
 
     }
 
-    public static boolean isActivationSupported(ShadowType shadowType) {
-        ObjectReferenceType resourceRef = shadowType.getResourceRef();
-        if (resourceRef == null) {
-            //TODO: what to return if we don't have resource available?
-            return true;
-        }
-        PrismObject<ResourceType> resource = resourceRef.asReferenceValue().getObject();
+    public static boolean isActivationSupported(ShadowType shadowType, IModel<ResourceType> resourceModel) {
+        ResourceType resource = resourceModel.getObject();
         if (resource == null) {
-            //TODO: what to return if we don't have resource available?
-            return true;
+            return true; //TODO should be true?
         }
 
-        ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource, shadowType.getKind(), shadowType.getIntent());
+        ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(), shadowType.getKind(), shadowType.getIntent());
 
-        return ResourceTypeUtil.isActivationCapabilityEnabled(resource.asObjectable(), resourceObjectTypeDefinitionType);
+        return ResourceTypeUtil.isActivationCapabilityEnabled(resource, resourceObjectTypeDefinitionType);
 
     }
 
-    public static boolean isPasswordSupported(ShadowType shadowType) {
-        ObjectReferenceType resourceRef = shadowType.getResourceRef();
-        if (resourceRef == null) {
-            //TODO: what to return if we don't have resource available?
-            return true;
-        }
-        PrismObject<ResourceType> resource = resourceRef.asReferenceValue().getObject();
+    public static boolean isPasswordSupported(ShadowType shadowType, IModel<ResourceType> resourceModel) {
+        ResourceType resource = resourceModel.getObject();
         if (resource == null) {
-            //TODO: what to return if we don't have resource available?
-            return true;
+            return true; //TODO should be true?
         }
 
-        ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource, shadowType.getKind(), shadowType.getIntent());
+        ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(), shadowType.getKind(), shadowType.getIntent());
 
-        return ResourceTypeUtil.isPasswordCapabilityEnabled(resource.asObjectable(), resourceObjectTypeDefinitionType);
+        return ResourceTypeUtil.isPasswordCapabilityEnabled(resource, resourceObjectTypeDefinitionType);
 
     }
 
-    public static boolean isAssociationSupported(ShadowType shadowType) {
-        ObjectReferenceType resourceRef = shadowType.getResourceRef();
-        if (resourceRef == null) {
-            //TODO: what to return if we don't have resource available?
-            return true;
-        }
-        PrismObject<ResourceType> resource = resourceRef.asReferenceValue().getObject();
+    public static boolean isAssociationSupported(ShadowType shadowType, IModel<ResourceType> resourceModel) {
+        ResourceType resource = resourceModel.getObject();
         if (resource == null) {
-            //TODO: what to return if we don't have resource available?
-            return true;
+            return true; //TODO should be true?
         }
 
         CompositeRefinedObjectClassDefinition ocd = null;
 
         try {
-            RefinedResourceSchema resourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
+            RefinedResourceSchema resourceSchema = RefinedResourceSchema.getRefinedSchema(resource.asPrismObject());
             ocd = resourceSchema.determineCompositeObjectClassDefinition(shadowType.asPrismObject());
         } catch (SchemaException e) {
             LOGGER.error("Cannot find refined definition for {} in {}", shadowType, resource);
