@@ -6,6 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.markup.html.panel.Panel;
@@ -39,6 +44,7 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
     private static final String ID_PASSWORD = "password";
 
     private ContainerPanelConfigurationType config;
+    private IModel<ResourceType> resourceModel;
 
     public ShadowPanel(String id, IModel<ShadowWrapper> model, ContainerPanelConfigurationType config) {
         super(id, model);
@@ -54,6 +60,31 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
         super.onInitialize();
         initLayout();
         setOutputMarkupId(true);
+
+        resourceModel = new LoadableModel<>(false) {
+
+            @Override
+            protected ResourceType load() {
+                ShadowWrapper shadowWrapper = getModelObject();
+                PrismReference resourceRef = shadowWrapper.getObject().findReference(ShadowType.F_RESOURCE_REF);
+                if (resourceRef == null) {
+                    return null;
+                }
+                PrismReferenceValue resourceRefVal = resourceRef.getValue();
+                if (resourceRefVal == null || resourceRefVal.getOid() == null) {
+                    return null;
+                }
+                if (resourceRefVal.getObject() != null) {
+                    return (ResourceType) resourceRefVal.getObject().asObjectable();
+                }
+
+                PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(resourceRefVal.asReferencable(), getPageBase());
+                if (resource == null) {
+                    return null;
+                }
+                return resource.asObjectable();
+            }
+        };
     }
 
     private void initLayout() {
@@ -78,36 +109,26 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
                 add(attributesPanel);
             }
 
-
-            long associationStart = System.currentTimeMillis();
             ItemPanelSettingsBuilder associationBuilder = new ItemPanelSettingsBuilder()
                     .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
             Panel associationsPanel = getPageBase().initItemPanel(ID_ASSOCIATIONS, ShadowAssociationType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ASSOCIATION),
                     associationBuilder.build());
             associationsPanel.add(new VisibleBehaviour(() -> checkAssociationsVisibility()));
             add(associationsPanel);
-            long associationEnd = System.currentTimeMillis();
-            LOGGER.trace("Association finished in {} ms", associationEnd - associationStart);
 
-            long activationStart = System.currentTimeMillis();
             ItemPanelSettingsBuilder activationBuilder = new ItemPanelSettingsBuilder()
                     .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
             Panel activationPanel = getPageBase().initItemPanel(ID_ACTIVATION, ActivationType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ACTIVATION),
                     activationBuilder.build());
             activationPanel.add(new VisibleBehaviour(() -> isActivationSupported()));
             add(activationPanel);
-            long activationEnd = System.currentTimeMillis();
-            LOGGER.trace("Activation finished in {} ms", activationEnd - activationStart);
 
-            long passwordStart = System.currentTimeMillis();
             ItemPanelSettingsBuilder passwordSettingsBuilder = new ItemPanelSettingsBuilder()
                     .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
             Panel passwordPanel = getPageBase().initItemPanel(ID_PASSWORD, PasswordType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ItemPath.create(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD)),
                     passwordSettingsBuilder.build());
             passwordPanel.add(new VisibleBehaviour(() -> isCredentialsSupported()));
             add(passwordPanel);
-            long passwordEnd = System.currentTimeMillis();
-            LOGGER.trace("Password finished in {} ms", passwordEnd - passwordStart);
         } catch (SchemaException e) {
             getSession().error("Cannot create panels for shadow, reason: " + e.getMessage());
             LOGGER.trace("Cannot create panels for shadow, reason: {}", e.getMessage(), e);
@@ -124,17 +145,18 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
     private boolean checkAssociationsVisibility() {
 
         ShadowType shadowType = getModelObject().getObjectOld().asObjectable();
-        return WebComponentUtil.isAssociationSupported(shadowType);
+
+        return WebComponentUtil.isAssociationSupported(shadowType, resourceModel);
 
     }
 
     private boolean isActivationSupported() {
         ShadowType shadowType = getModelObject().getObjectOld().asObjectable();
-        return WebComponentUtil.isActivationSupported(shadowType);
+        return WebComponentUtil.isActivationSupported(shadowType, resourceModel);
     }
 
     private boolean isCredentialsSupported() {
         ShadowType shadowType = getModelObject().getObjectOld().asObjectable();
-        return WebComponentUtil.isPasswordSupported(shadowType);
+        return WebComponentUtil.isPasswordSupported(shadowType, resourceModel);
     }
 }

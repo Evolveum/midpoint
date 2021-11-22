@@ -79,6 +79,9 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
             return super.createWrapperInternal(parent, childContainer, status, ctx);
         }
 
+        if (ctx.getObject() == null) {
+            return super.createWrapperInternal(parent, childContainer, status, ctx);
+        }
         ShadowType shadow = (ShadowType) ctx.getObject().asObjectable();
         PrismObject<ResourceType> resource = loadResource(shadow, ctx);
         if (resource == null) {
@@ -169,6 +172,9 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
 
     private boolean isNotShadow(WrapperContext ctx, OperationResult parentResult) {
         PrismObject<?> object = ctx.getObject();
+        if (object == null) {
+            return true;
+        }
         ObjectType objectType = (ObjectType) object.asObjectable();
         if (!(objectType instanceof ShadowType)) {
             parentResult.recordFatalError("Something very strange happened. Association container in the" + objectType.getClass().getSimpleName() + "?");

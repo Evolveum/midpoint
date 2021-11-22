@@ -562,25 +562,24 @@
                             <c:path>completionTimestamp</c:path>
                         </item>
                     </container>
+                    <container>
+                        <displayOrder>910</displayOrder>
+                        <visibility>hidden</visibility>
+                        <identifier>operation-attributes-progress</identifier>
+                        <display>
+                            <label>Operational attributes (progress)</label>
+                        </display>
+                        <item>
+                            <c:path>progress</c:path>
+                        </item>
+                        <item>
+                            <c:path>expectedTotal</c:path>
+                        </item>
+                        <item>
+                            <c:path>stalledSince</c:path>
+                        </item>
+                    </container>
                 </panel>
-                <container>
-                    <displayOrder>910</displayOrder>
-                    <visibility>hidden</visibility>
-                    <identifier>operation-attributes-progress</identifier>
-                    <display>
-                        <label>Operational attributes (progress)</label>
-                    </display>
-                    <item>
-                        <c:path>progress</c:path>
-                    </item>
-                    <item>
-                        <c:path>expectedTotal</c:path>
-                    </item>
-                    <item>
-                        <c:path>stalledSince</c:path>
-                    </item>
-                </container>
-
             </objectDetailsPage>
         </objectDetails>
         <configurableUserDashboard>
