@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.Abstract
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.protocol.http.mock.MockHttpServletRequest;
 import org.apache.wicket.util.tester.FormTester;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -74,20 +75,15 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
     public void test003testMembers() throws Exception {
         // GIVEN
         PrismObject<RoleType> role1 = createObject(RoleType.class, "Role0001");
-        PrismObject<RoleType> role2 = createObject(RoleType.class, "Role0002");
         String role1Oid = addObject(role1);
-        String role2Oid = addObject(role2);
         Task task = createTask("assign");
         // Assign Role0001 with orgRef P0001
         assignParametricRole(USER_JACK_OID, role1Oid, ORG_SAVE_ELAINE_OID, null, task, task.getResult());
         assignRole(USER_ADMINISTRATOR_OID, role1Oid);
-        // Assign Role0002 with orgRef P0001
-        assignParametricRole(USER_ADMINISTRATOR_OID, role2Oid, ORG_SAVE_ELAINE_OID, null, task, task.getResult());
 
         String panel = "detailsView:mainForm:mainPanel";
         String tableBox = panel + ":form:memberContainer:memberTable:items:itemsTable:box";
         String memberTable = tableBox + ":tableContainer:table";
-        String searchForm = tableBox + ":header:searchForm:search:form";
 
         // WHEN
         // Open Role0001 page
@@ -102,19 +98,6 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
         tester.assertLabel(memberTable + ":body:rows:1:cells:3:cell:link:label", USER_ADMINISTRATOR_USERNAME);
         tester.assertLabel(memberTable + ":body:rows:2:cells:3:cell:link:label", USER_JACK_USERNAME);
         tester.assertNotExists(memberTable + ":body:rows:3:cells:3:cell:link:label");
-
-        // WHEN
-        // Choose P0001 in 'Org/Project' filter selection
-        String orgProjectItem = searchForm + ":compositedSpecialItems:3:specialItem:searchItemContainer:searchItemField";
-        tester.clickLink(orgProjectItem + ":editButton");
-        ((TextField)tester.getComponentFromLastRenderedPage(orgProjectItem + ":popover:popoverPanel:popoverForm:oid")).getModel().setObject(ORG_SAVE_ELAINE_OID);
-        tester.clickLink(orgProjectItem + ":popover:popoverPanel:popoverForm:confirmButton");
-
-        // THEN
-        // It should show only one user who is assigned Role0001 with orgRef P0001
-        tester.debugComponentTrees(":rows:.*:cells:3:cell:link:label");
-        tester.assertLabel(memberTable + ":body:rows:3:cells:3:cell:link:label", USER_JACK_USERNAME);
-        tester.assertNotExists(memberTable + ":body:rows:4:cells:3:cell:link:label");
     }
 
     @Test //TODO old test remove after removing old gui pages
@@ -143,19 +126,14 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
     public void test006testMembersOld() throws Exception {
         // GIVEN
         PrismObject<RoleType> role1 = createObject(RoleType.class, "Role0001Old");
-        PrismObject<RoleType> role2 = createObject(RoleType.class, "Role0002Old");
         String role1Oid = addObject(role1);
-        String role2Oid = addObject(role2);
         Task task = createTask("assign");
         // Assign Role0001 with orgRef P0001
         assignParametricRole(USER_JACK_OID, role1Oid, ORG_SAVE_ELAINE_OID, null, task, task.getResult());
         assignRole(USER_ADMINISTRATOR_OID, role1Oid);
-        // Assign Role0002 with orgRef P0001
-        assignParametricRole(USER_ADMINISTRATOR_OID, role2Oid, ORG_SAVE_ELAINE_OID, null, task, task.getResult());
 
         String panel = "mainPanel:mainForm:tabPanel:panel";
         String memberTable = panel + ":form:memberContainer:memberTable:items:itemsTable:box:tableContainer:table";
-        String searchForm = "mainPanel:mainForm:tabPanel:panel:form:memberContainer:memberTable:items:itemsTable:box:header:searchForm:search:form";
 
         // WHEN
         // Open Role0001 page
@@ -170,18 +148,5 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
         tester.assertLabel(memberTable + ":body:rows:1:cells:3:cell:link:label", USER_ADMINISTRATOR_USERNAME);
         tester.assertLabel(memberTable + ":body:rows:2:cells:3:cell:link:label", USER_JACK_USERNAME);
         tester.assertNotExists(memberTable + ":body:rows:3:cells:3:cell:link:label");
-
-        // WHEN
-        // Choose P0001 in 'Org/Project' filter selection
-        String orgProjectItem = searchForm + ":compositedSpecialItems:3:specialItem:searchItemContainer:searchItemField";
-        tester.clickLink(orgProjectItem + ":editButton");
-        ((TextField)tester.getComponentFromLastRenderedPage(orgProjectItem + ":popover:popoverPanel:popoverForm:oid")).getModel().setObject(ORG_SAVE_ELAINE_OID);
-        tester.clickLink(orgProjectItem + ":popover:popoverPanel:popoverForm:confirmButton");
-
-        // THEN
-        // It should show only one user who is assigned Role0001 with orgRef P0001
-        tester.debugComponentTrees(":rows:.*:cells:3:cell:link:label");
-        tester.assertLabel(memberTable + ":body:rows:3:cells:3:cell:link:label", USER_JACK_USERNAME);
-        tester.assertNotExists(memberTable + ":body:rows:4:cells:3:cell:link:label");
     }
 }
