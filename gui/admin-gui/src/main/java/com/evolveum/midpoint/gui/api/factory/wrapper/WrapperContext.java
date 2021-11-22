@@ -181,7 +181,6 @@ public class WrapperContext {
         return metadataItemProcessingSpec.isFullProcessing(path);
     }
 
-    @NotNull
     public PrismObject<?> getObject() {
         return object;
     }
