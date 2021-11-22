@@ -33,6 +33,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import static com.evolveum.midpoint.repo.common.activity.run.ErrorHandlingStrategyExecutor.FollowUpAction.CONTINUE;
 import static com.evolveum.midpoint.repo.common.activity.run.ErrorHandlingStrategyExecutor.FollowUpAction.STOP;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityEventLoggingOptionType.NONE;
+
 import static org.apache.commons.lang3.BooleanUtils.isNotFalse;
 
 public final class LiveSyncActivityRun
@@ -65,6 +67,7 @@ public final class LiveSyncActivityRun
     public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
         return new ActivityReportingCharacteristics()
                 .determineOverallSizeDefault(ActivityOverallItemCountingOptionType.NEVER)
+                .bucketCompletionLoggingDefault(NONE) // To avoid log noise.
                 .actionsExecutedStatisticsSupported(true)
                 .synchronizationStatisticsSupported(true)
                 .progressCommitPointsSupported(true); // This is to be rethought.

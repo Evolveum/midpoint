@@ -59,8 +59,9 @@ public class ActivityBasedTaskHandler implements TaskHandler {
 
     @PreDestroy
     public void destroy() {
-        taskManager.unregisterHandler(HANDLER_URI);
-        taskManager.setDefaultHandlerUri(null);
+        // Temporarily disabled - as a workaround for MID-7328 and MID-7331
+//        taskManager.unregisterHandler(HANDLER_URI);
+//        taskManager.setDefaultHandlerUri(null);
     }
 
     public CommonTaskBeans getBeans() {

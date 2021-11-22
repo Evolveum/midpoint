@@ -1992,28 +1992,28 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="insertBefore" type="tns:ActivityBeforeType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Not implemented yet.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:experimental>true</a:experimental>
-                        <a:displayName>ActivitiesTailoringType.insertBefore</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="insertAfter" type="tns:ActivityAfterType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Not implemented yet.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:experimental>true</a:experimental>
-                        <a:displayName>ActivitiesTailoringType.insertAfter</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
+            <!--<xsd:element name="insertBefore" type="tns:ActivityBeforeType" minOccurs="0" maxOccurs="unbounded">-->
+            <!--    <xsd:annotation>-->
+            <!--        <xsd:documentation>-->
+            <!--            Not implemented yet.-->
+            <!--        </xsd:documentation>-->
+            <!--        <xsd:appinfo>-->
+            <!--            <a:experimental>true</a:experimental>-->
+            <!--            <a:displayName>ActivitiesTailoringType.insertBefore</a:displayName>-->
+            <!--        </xsd:appinfo>-->
+            <!--    </xsd:annotation>-->
+            <!--</xsd:element>-->
+            <!--<xsd:element name="insertAfter" type="tns:ActivityAfterType" minOccurs="0" maxOccurs="unbounded">-->
+            <!--    <xsd:annotation>-->
+            <!--        <xsd:documentation>-->
+            <!--            Not implemented yet.-->
+            <!--        </xsd:documentation>-->
+            <!--        <xsd:appinfo>-->
+            <!--            <a:experimental>true</a:experimental>-->
+            <!--            <a:displayName>ActivitiesTailoringType.insertAfter</a:displayName>-->
+            <!--        </xsd:appinfo>-->
+            <!--    </xsd:annotation>-->
+            <!--</xsd:element>-->
             <xsd:element name="change" type="tns:ActivityTailoringType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>

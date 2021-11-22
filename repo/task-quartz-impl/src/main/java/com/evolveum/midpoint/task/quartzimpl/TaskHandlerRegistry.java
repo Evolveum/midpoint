@@ -32,12 +32,6 @@ public class TaskHandlerRegistry {
     /** Task handlers mapped from their URIs. */
     private final Map<String, TaskHandler> handlers = new ConcurrentHashMap<>();
 
-    /**
-     * Primary handlers URIs.
-     * These will be taken into account when searching for handler matching a given task category.
-     */
-    private final Map<String, TaskHandler> primaryHandlersUris = new ConcurrentHashMap<>();
-
     /** All non-deprecated handlers URIs. */
     private final Map<String, TaskHandler> nonDeprecatedHandlersUris = new ConcurrentHashMap<>();
 
@@ -50,24 +44,12 @@ public class TaskHandlerRegistry {
         LOGGER.trace("Registering task handler for URI {}", uri);
         handlers.put(uri, handler);
         nonDeprecatedHandlersUris.put(uri, handler);
-        primaryHandlersUris.put(uri, handler);
     }
 
     void unregisterHandler(@NotNull String uri) {
+        LOGGER.trace("Unregistering task handler for {}", uri);
         handlers.remove(uri);
         nonDeprecatedHandlersUris.remove(uri);
-        primaryHandlersUris.remove(uri);
-    }
-
-    void registerAdditionalHandlerUri(@NotNull String uri, @NotNull TaskHandler handler) {
-        LOGGER.trace("Registering additional URI for a task handler: {}", uri);
-        nonDeprecatedHandlersUris.put(uri, handler);
-        handlers.put(uri, handler);
-    }
-
-    void registerDeprecatedHandlerUri(@NotNull String uri, @NotNull TaskHandler handler) {
-        LOGGER.trace("Registering additional (deprecated) URI for a task handler: {}", uri);
-        handlers.put(uri, handler);
     }
 
     public TaskHandler getHandler(String uri) {
@@ -92,10 +74,6 @@ public class TaskHandlerRegistry {
                 .filter(entry -> archetypeOid.equals(entry.getValue().getArchetypeOid(entry.getKey())))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toSet());
-    }
-
-    public String getDefaultHandlerUri() {
-        return defaultHandlerUri;
     }
 
     void setDefaultHandlerUri(String defaultHandlerUri) {
