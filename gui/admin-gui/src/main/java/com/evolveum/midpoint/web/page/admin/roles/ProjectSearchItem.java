@@ -6,14 +6,11 @@
  */
 package com.evolveum.midpoint.web.page.admin.roles;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -21,18 +18,10 @@ import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.search.ReferenceValueSearchPanel;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchSpecialItemPanel;
@@ -43,9 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class ProjectSearchItem extends SpecialSearchItem {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ProjectSearchItem.class);
-
-    private MemberPanelStorage memberStorage;
+    private final MemberPanelStorage memberStorage;
 
     public ProjectSearchItem(Search search, MemberPanelStorage memberStorage) {
         super(search);
@@ -55,34 +42,10 @@ public class ProjectSearchItem extends SpecialSearchItem {
     @Override
     public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
         throw new UnsupportedOperationException();
-//        AbstractRoleType object = getParentVariables(variables);
-//        if (object == null) {
-//            return null;
-//        }
-//        PrismContext prismContext = pageBase.getPrismContext();
-//        List relations = new ArrayList();
-//        if (QNameUtil.match(PrismConstants.Q_ANY, getSupportedRelations().getDefaultRelationAllowAny())) {
-//            relations.addAll(getSupportedRelations().getAvailableRelationList());
-//        } else {
-//            relations.add(getSupportedRelations().getDefaultRelationAllowAny());
-//        }
-//
-//        ObjectFilter filter;
-//        Class type = getSearch().getTypeClass();
-//        S_AtomicFilterExit q = prismContext.queryFor(type).exists(AssignmentHolderType.F_ASSIGNMENT)
-//                .block()
-//                .item(AssignmentType.F_TARGET_REF)
-//                .ref(MemberOperationsHelperOld.createReferenceValuesList(object, relations));
-//
-//        if (!getMemberPanelStorage().isProjectEmpty()) {
-//            q = q.and().item(AssignmentType.F_ORG_REF).ref(getMemberPanelStorage().getProject().getOid());
-//        }
-//        filter = q.endBlock().buildFilter();
-//        return filter;
     }
 
     @Override
-    public SearchSpecialItemPanel createSpecialSearchPanel(String id, Consumer<AjaxRequestTarget> searchPerformedConsumer) {
+    public SearchSpecialItemPanel createSpecialSearchPanel(String id) {
         IModel projectModel = new PropertyModel(getMemberPanelStorage(), MemberPanelStorage.F_PROJECT) {
             @Override
             public void setObject(Object object) {
@@ -98,11 +61,6 @@ public class ProjectSearchItem extends SpecialSearchItem {
             @Override
             protected WebMarkupContainer initSearchItemField(String id) {
                 ReferenceValueSearchPanel searchItemField = new ReferenceValueSearchPanel(id, getModelValue(), projectRefDef) {
-                    @Override
-                    protected void referenceValueUpdated(ObjectReferenceType ort, AjaxRequestTarget target) {
-                        searchPerformedConsumer.accept(target);
-                    }
-
                     @Override
                     public Boolean isItemPanelEnabled() {
                         return !(getMemberPanelStorage().isIndirect());

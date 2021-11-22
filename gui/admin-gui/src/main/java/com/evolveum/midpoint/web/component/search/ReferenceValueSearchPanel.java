@@ -37,41 +37,39 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
 
     @Override
     protected PopoverSearchPopupPanel createPopupPopoverPanel(String id) {
-        ReferenceValueSearchPopupPanel<?> value =
-                new ReferenceValueSearchPopupPanel(id, getModel()) {
+        return new ReferenceValueSearchPopupPanel(id, ReferenceValueSearchPanel.this.getModel()) {
 
-                    private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID1 = 1L;
 
-                    @Override
-                    protected List<QName> getAllowedRelations() {
-                        return ReferenceValueSearchPanel.this.getAllowedRelations();
-                    }
+            @Override
+            protected List<QName> getAllowedRelations() {
+                return ReferenceValueSearchPanel.this.getAllowedRelations();
+            }
 
-                    @Override
-                    protected List<QName> getSupportedTargetList() {
-                        if (referenceDef != null) {
-                            return WebComponentUtil.createSupportedTargetTypeList(referenceDef.getTargetTypeName());
-                        }
-                        return Collections.singletonList(ObjectType.COMPLEX_TYPE);
-                    }
+            @Override
+            protected List<QName> getSupportedTargetList() {
+                if (referenceDef != null) {
+                    return WebComponentUtil.createSupportedTargetTypeList(referenceDef.getTargetTypeName());
+                }
+                return Collections.singletonList(ObjectType.COMPLEX_TYPE);
+            }
 
-                    @Override
-                    protected void confirmPerformed(AjaxRequestTarget target) {
-                        target.add(ReferenceValueSearchPanel.this);
-                        referenceValueUpdated(ReferenceValueSearchPanel.this.getModelObject(), target);
-                    }
+            @Override
+            protected void confirmPerformed(AjaxRequestTarget target) {
+                target.add(ReferenceValueSearchPanel.this);
+                referenceValueUpdated(ReferenceValueSearchPanel.this.getModelObject(), target);
+            }
 
-                    @Override
-                    protected Boolean isItemPanelEnabled() {
-                        return ReferenceValueSearchPanel.this.isItemPanelEnabled();
-                    }
+            @Override
+            protected Boolean isItemPanelEnabled() {
+                return ReferenceValueSearchPanel.this.isItemPanelEnabled();
+            }
 
-                    @Override
-                    protected boolean isAllowedNotFoundObjectRef() {
-                        return ReferenceValueSearchPanel.this.isAllowedNotFoundObjectRef();
-                    }
-                };
-        return value;
+            @Override
+            protected boolean isAllowedNotFoundObjectRef() {
+                return ReferenceValueSearchPanel.this.isAllowedNotFoundObjectRef();
+            }
+        };
     }
 
     @Override

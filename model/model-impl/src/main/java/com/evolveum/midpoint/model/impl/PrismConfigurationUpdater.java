@@ -35,7 +35,7 @@ public class PrismConfigurationUpdater implements SystemConfigurationChangeListe
         PrismConfigurationType prismConfig = value.getInternals() != null ? value.getInternals().getPrism() : null;
         setJavaSerializationProxiesEnabled(value(Boolean.class,prismConfig, PrismConfigurationType.F_USE_SERIALIZATION_PROXIES,false));
         setPropertyIndexEnabled(value(Boolean.class,prismConfig, PrismConfigurationType.F_INDEX_PROPERTY_VALUES, false));
-        setPropertyIndexTreshold(value(Integer.class,prismConfig, PrismConfigurationType.F_PROPERTY_VALUES_INDEX_TRESHOLD, 50));
+        setPropertyIndexThreshold(value(Integer.class,prismConfig, PrismConfigurationType.F_PROPERTY_VALUES_INDEX_THRESHOLD, 50));
     }
 
     private <V> V value(Class<V> vclass, PrismConfigurationType object, QName name, V defaultValue) {

@@ -6,9 +6,6 @@
  */
 package com.evolveum.midpoint.web.component.search;
 
-import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -34,25 +31,17 @@ public class ItemPathSearchPanel extends PopoverSearchPanel<ItemPathType> {
             @Override
             protected void confirmPerformed(AjaxRequestTarget target) {
                 target.add(ItemPathSearchPanel.this);
-                searchPerformed(target);
             }
         };
     }
 
-    public void searchPerformed(AjaxRequestTarget target) {
-    }
-
     @Override
     public IModel<String> getTextValue() {
-        return new IModel<String>() {
-
-            @Override
-            public String getObject() {
-                if (getModelObject() == null) {
-                    return "";
-                }
-                return getModelObject().toString();
+        return () -> {
+            if (getModelObject() == null) {
+                return "";
             }
+            return getModelObject().toString();
         };
     }
 

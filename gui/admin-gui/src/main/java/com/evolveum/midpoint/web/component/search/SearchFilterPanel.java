@@ -8,10 +8,7 @@ package com.evolveum.midpoint.web.component.search;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.MutableItemDefinition;
 import com.evolveum.midpoint.prism.MutablePrismReferenceDefinition;
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.input.CheckPanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
@@ -19,9 +16,7 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ParameterType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchFilterParameterType;
@@ -66,7 +61,7 @@ public class SearchFilterPanel extends AbstractSearchItemPanel<FilterSearchItem>
             }
         });
         checkPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        checkPanel.add(new VisibleBehaviour(() -> canRemoveSearchItem()));
+        checkPanel.add(new VisibleBehaviour(this::canRemoveSearchItem));
 
         checkPanel.setOutputMarkupId(true);
         searchItemContainer.add(checkPanel);
@@ -93,13 +88,7 @@ public class SearchFilterPanel extends AbstractSearchItemPanel<FilterSearchItem>
                         def.setTargetTypeName(parameter.getTargetType());
                     }
                     inputPanel = new ReferenceValueSearchPanel(ID_SEARCH_ITEM_FIELD,
-                            new PropertyModel<>(getModel(), FilterSearchItem.F_INPUT_VALUE),
-                            def){
-                        @Override
-                        protected void referenceValueUpdated(ObjectReferenceType ort, AjaxRequestTarget target) {
-                            searchPerformed(target);
-                        }
-                    };
+                            new PropertyModel<>(getModel(), FilterSearchItem.F_INPUT_VALUE), def);
                     break;
                 case BOOLEAN:
                     choices = (IModel) createBooleanChoices();
@@ -112,31 +101,15 @@ public class SearchFilterPanel extends AbstractSearchItemPanel<FilterSearchItem>
                     if (choices != null) {
                         inputPanel = WebComponentUtil.createDropDownChoices(
                                 ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), FilterSearchItem.F_INPUT), (IModel)choices, true, getPageBase());
-                        ((InputPanel) inputPanel).getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
-                            @Override
-                            protected void onUpdate(AjaxRequestTarget target) {
-                                searchPerformed(target);
-                            }
-                        });
                         break;
                     }
                 case DATE:
                     inputPanel = new DateSearchPanel(ID_SEARCH_ITEM_FIELD,
-                            new PropertyModel(getModel(), FilterSearchItem.F_INPUT_VALUE)){
-                        @Override
-                        public void searchPerformed(AjaxRequestTarget target) {
-                            SearchFilterPanel.this.searchPerformed(target);
-                        }
-                    };
+                            new PropertyModel(getModel(), FilterSearchItem.F_INPUT_VALUE));
                     break;
                 case ITEM_PATH:
                     inputPanel = new ItemPathSearchPanel(ID_SEARCH_ITEM_FIELD,
-                            new PropertyModel(getModel(), FilterSearchItem.F_INPUT_VALUE)){
-                        @Override
-                        public void searchPerformed(AjaxRequestTarget target) {
-                            SearchFilterPanel.this.searchPerformed(target);
-                        }
-                    };
+                            new PropertyModel(getModel(), FilterSearchItem.F_INPUT_VALUE));
                     break;
                 case TEXT:
                     LookupTableType lookupTable = getModelObject().getLookupTable(getPageBase());

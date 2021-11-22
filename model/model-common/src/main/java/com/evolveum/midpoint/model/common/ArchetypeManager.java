@@ -153,6 +153,9 @@ public class ArchetypeManager implements Cache {
 
         if (delta != null) {
             ContainerDelta<AssignmentType> assignmentTypeContainerDelta = delta.findContainerDelta(AssignmentHolderType.F_ASSIGNMENT);
+            if (assignmentTypeContainerDelta == null) {
+                return false;
+            }
             Collection<AssignmentType> assignmentsToDelete = (Collection<AssignmentType>) assignmentTypeContainerDelta.getRealValuesToDelete();
             if (assignmentsToDelete == null) {
                 return false;
