@@ -83,7 +83,7 @@ if [ "${1}" = "init-native" ] ; then
         fi
 	if [ "${MP_DB_PW:-}" != "" ] ; then
 		if [ ! -e ${MP_DB_PW} ] ; then
-			base64 /dev/random | tr -d -c [:alnum:] | head -c 24 2>/dev/null > ${MP_DB_PW}
+			base64 /dev/urandom | tr -d -c [:alnum:] | head -c 24 2>/dev/null > ${MP_DB_PW}
 			echo "DB Password generated..."
 		else
 			echo "Destination file with DB Password already exists... Skipping" >&2
@@ -91,7 +91,7 @@ if [ "${1}" = "init-native" ] ; then
 	fi
 	if [ "${MP_PW:-}" != "" ] ; then
 		if [ ! -e ${MP_PW} ] ; then
-			base64 /dev/random | tr -d -c [:alnum:] | head -c 24 2>/dev/null > ${MP_PW}
+			base64 /dev/urandom | tr -d -c [:alnum:] | head -c 24 2>/dev/null > ${MP_PW}
 			echo "MP Password generated..."
 		else
 			echo "Destination file with the generated MP Password already exists... Skipping" >&2
