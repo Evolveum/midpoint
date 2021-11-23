@@ -50,13 +50,13 @@ This activity runs a `recomputation` action over a set of all users.
 image::activity-non-iterative-bulk-action.png[width=400,alt="Non-iterative bulk action"]
 
 This activity runs a `nonIterativeScripting` action (i.e. non-iterative bulk action).
-The bulk action does not expect any input items. It simply runs a provided Groovy script (in this case).
+The bulk action does not expect any input items. It simply runs provided Groovy script (in this case).
 
 ==== Example 3: Reconciliation - a (predefined) composite activity
 
 image::activity-reconciliation.png[width=900,alt="Reconciliation activity"]
 
-The reconciliation activity consists of a three sub-activities. They are partially dependent:
+The reconciliation activity consists of three sub-activities. They are partially dependent:
 the third one (remaining shadows reconciliation) depends on the second one (resource objects reconciliation).
 
 Each of the sub-activities has a different action, and a different item set.
@@ -64,6 +64,9 @@ Each of the sub-activities has a different action, and a different item set.
 ==== Example 4: User recomputation + custom bulk action - a (custom) composite activity
 
 image::activity-user-recomputation-with-custom-bulk-action.png[width=700,alt="User recomputation with bulk action"]
+
+The custom activity consists of two sub-activities. Both of them are defined by the user:
+a recomputation, followed by a custom bulk action.
 
 == Configuring the Activities
 
@@ -98,73 +101,44 @@ In a current implementation, the custom composite activity definition contains j
 | `composition` | Defines the composite activity as a set of its constituent sub-activities.
 |===
 
-NOTE: There is a `defaultWorkDefinition` item in the `composition` section, but it is not supported yet.
-It will be used to define a default work definition for the sub-activities. Neither we do not yet support
-inheriting the non-functional aspects (`executionMode`, `controlFlow`, `distribution`, `reporting`) from
-the composite to the sub-activities. Therefore, the sub-activities have to be fully defined, independently
-of each other.
+NOTE: Currently, we do not yet support inheriting the non-functional aspects (`executionMode`, `controlFlow`,
+`distribution`, `reporting`) from the composite to the sub-activities. Neither we do not support specifying
+common parts of the work definition for these. (Like object set specification, or some options.)
+Therefore, the sub-activities have to be fully defined, independently of each other. We plan to improve
+this in the future.
 
 == Activities and Tasks
 
-#TODO#
+As described above, _activities_ represent the work that should be done, while _tasks_ are actual
+vehicles that make sure that work is done.
+
+Definition of an activity deals typically with:
+
+* what action should be done, and on which objects,
+* how should errors be treated,
+* how should be the work distributed into threads and worker tasks,
+* how should be the work reported on,
+* and so on.
+
+Definition of a task deals typically with:
+
+* under what identity should the work be done,
+* should the execution be one-time or recurring - and if the latter, at what time intervals,
+* what should be done when the execution thread stops, e.g. by node going down,
+* what are limitations regarding the node(s) on which the execution should take place,
+* what are specific configurations of e.g. caching or operation result handling,
+* and so on.
+
+(The distinction is sometimes clearer and sometimes not.)
+
+Generally, a single task can contain a single or multiple activities, running in the form of
+an activity tree. And vice versa, a single activity can be distributed to multiple tasks,
+when coordinator-workers setup (multi-node processing) is chosen.
 
 == Migration from 4.3 and Before
 
-#TODO#
+Please see xref:migration/[this document].
 
-== GUI Support
+== New Features in 4.4
 
-#TODO#
-
-== New Features
-
-=== Cluster Auto-Scaling Capability
-
-Distributed - a.k.a. multi-node - activities can be scaled up or down by starting or stopping worker tasks.
-This scaling is appropriate when the distribution definition changes, e.g. number of worker tasks is increased
-or decreased. It should be done also when the cluster configuration changes, e.g. nodes are added or deleted.
-
-This up/down-scaling was present in midPoint since 3.8 (as an experimental feature) in the form of _workers
-reconciliation_ process. In 4.4 the following changes were done:
-
-1. The workers reconciliation process was improved and fixed:
- - It no longer closes superfluous workers - it suspends them instead, allowing resuming them when needed.
- - When suspending the workers, any unprocessed buckets are returned to the coordinator to process them
-immediately by other workers. The same is true when the task stops for any other reason.
-This eliminates lengthy "scavenging" process at the end of the processing.
- - When in scavenging phase, non-scavenger workers are not created. Only the scavengers are.
- - The whole reconciliation is now driven by node.operationalState (i.e. from repo) instead of
-node.executionState (determined dynamically). So in case of unstable clusters or transition situations
-the results should be more predictable.
-
-2. New auto-scaling activity was created. It periodically scans for tasks that are autoscaling-enabled
-and invokes workers reconciliation process on them, if the cluster state has changed in the meanwhile.
-(Note that we currently do not support auto-scaling triggered by changes in activity distribution
-definition. The user is responsible for reconciling the workers manually in that cases.)
-
-=== Cluster-wide Thresholds
-
-The xref:/midpoint/reference/tasks/thresholds/[threshold mechanism] before 4.4 was limited to a single node,
-and the related policy rules counters were transient, so they did not survive midPoint node restarts.
-There were other limitations as well.
-
-Starting with 4.4, counters for policy rules are stored persistently in the respective task objects,
-providing support for cluster-wide watching of policy rules thresholds, across task and node restarts.
-
-=== Task Statistics Improvements
-
-Flexible xref:reporting/execution-reports/[activity reports] were introduced:
-
-- buckets processed,
-- items processed,
-- ConnId operations executed,
-- internal operations executed.
-
-Also, bucket size analysis mode is now available. It allows determining size of buckets before
-real processing starts: either all buckets, or a (random or regular) sample of specified size.
-
-The following information is now collected per individual activities (not per tasks):
-
-- synchronization statistics,
-- actions executed,
-- work bucket management statistics.
+Please see xref:new-in-4.4/[this document].
