@@ -2244,15 +2244,16 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="defaultWorkDefinition" type="tns:WorkDefinitionsType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Describes the work that has to be done, e.g. recomputation, reconciliation, scripting expression
-                        execution, and so on. This contains also the necessary parameters, like resource reference,
-                        object class, object query, etc.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+            <!-- not implemented yet -->
+            <!--<xsd:element name="defaultWorkDefinition" type="tns:WorkDefinitionsType" minOccurs="0">-->
+            <!--    <xsd:annotation>-->
+            <!--        <xsd:documentation>-->
+            <!--            Describes the work that has to be done, e.g. recomputation, reconciliation, scripting expression-->
+            <!--            execution, and so on. This contains also the necessary parameters, like resource reference,-->
+            <!--            object class, object query, etc.-->
+            <!--        </xsd:documentation>-->
+            <!--    </xsd:annotation>-->
+            <!--</xsd:element>-->
             <xsd:element name="activity" type="tns:ActivityDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
