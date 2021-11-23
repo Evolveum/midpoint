@@ -913,7 +913,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                     SqaleQueryContext.from(type, sqlRepoContext),
                     query,
                     options);
-            // TODO see the commented code from old repo lower, problems for each object must be caught
             //noinspection unchecked
             return result.map(
                     o -> (PrismObject<T>) o.asPrismObject());
@@ -921,42 +920,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             registerOperationFinish(opHandle);
         }
     }
-
-    /*
-    TODO from ObjectRetriever, how to do this per-object Throwable catch + record result?
-     should we smuggle the OperationResult all the way to the mapping call?
-     This is important for GUI which can display result table with per result problems - and probably not only for GUI.
-    @NotNull
-    private <T extends ObjectType> List<PrismObject<T>> queryResultToPrismObjects(
-            List<T> objects, Class<T> type,
-            Collection<SelectorOptions<GetOperationOptions>> options,
-            OperationResult result) throws SchemaException {
-        List<PrismObject<T>> rv = new ArrayList<>();
-        if (objects == null) {
-            return rv;
-        }
-        for (T object : objects) {
-            String oid = object.getOid();
-            Holder<PrismObject<T>> partialValueHolder = new Holder<>();
-            PrismObject<T> prismObject;
-            try {
-                prismObject = createPrismObject(object, type, oid, options, partialValueHolder);
-            } catch (Throwable t) {
-                if (!partialValueHolder.isEmpty()) {
-                    prismObject = partialValueHolder.getValue();
-                } else {
-                    prismObject = prismContext.createObject(type);
-                    prismObject.setOid(oid);
-                    prismObject.asObjectable().setName(PolyStringType.fromOrig("Unreadable object"));
-                }
-                result.recordFatalError("Couldn't retrieve " + type + " " + oid + ": " + t.getMessage(), t);
-                prismObject.asObjectable().setFetchResult(result.createOperationResultType());
-            }
-            rv.add(prismObject);
-        }
-        return rv;
-    }
-    */
 
     @Override
     public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(

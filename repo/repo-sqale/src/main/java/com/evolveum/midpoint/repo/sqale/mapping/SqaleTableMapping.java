@@ -472,7 +472,9 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     protected <T> T parseSchemaObject(byte[] fullObject, String identifier, Class<T> clazz) throws SchemaException {
-        String serializedForm = new String(fullObject, StandardCharsets.UTF_8);
+        String serializedForm = fullObject != null
+                ? new String(fullObject, StandardCharsets.UTF_8)
+                : null;
         try {
             RepositoryObjectParseResult<T> result =
                     repositoryContext().parsePrismObject(serializedForm, clazz);
@@ -484,11 +486,13 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             }
             return schemaObject;
         } catch (SchemaException | RuntimeException | Error e) {
-            // This is a serious thing. We have corrupted XML in the repo. This may happen even
-            // during system init. We want really loud and detailed error here.
-            logger.error("Couldn't parse object {} {}: {}: {}\n{}",
+            // This is a serious thing. We have corrupted serialized form in the repo.
+            // This may happen even during system init. We want really loud and detailed error here.
+            // The stacktrace is not reported here, there is a rethrow, and the client code can do that if needed.
+            // The message is enough to fix the problem.
+            logger.error("Couldn't parse object {} {}: {}: {}\nSerialized form: '{}'",
                     clazz.getSimpleName(), identifier,
-                    e.getClass().getName(), e.getMessage(), serializedForm, e);
+                    e.getClass().getName(), e.getMessage(), serializedForm);
             throw e;
         }
     }

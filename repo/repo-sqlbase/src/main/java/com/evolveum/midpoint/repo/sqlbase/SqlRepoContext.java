@@ -152,12 +152,16 @@ public class SqlRepoContext {
 
     public <T> RepositoryObjectParseResult<T> parsePrismObject(
             String serializedForm, Class<T> schemaType) throws SchemaException {
-        PrismContext prismContext = schemaService.prismContext();
-        // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
-        ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
-        T value = createStringParser(serializedForm)
-                .context(parsingContext).parseRealValue(schemaType);
-        return new RepositoryObjectParseResult<>(parsingContext, value);
+        try {
+            PrismContext prismContext = schemaService.prismContext();
+            // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
+            ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
+            T value = createStringParser(serializedForm)
+                    .context(parsingContext).parseRealValue(schemaType);
+            return new RepositoryObjectParseResult<>(parsingContext, value);
+        } catch (RuntimeException e) {
+            throw new SchemaException("Unexpected exception while parsing serialized form: " + e, e);
+        }
     }
 
     @NotNull

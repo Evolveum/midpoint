@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.*;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -17,6 +18,7 @@ import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryObjectDiagnosticData;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -28,6 +30,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.mapping.RepositoryMappingException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -36,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Mapping between {@link QObject} and {@link ObjectType}.
@@ -155,6 +159,36 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             ret.asPrismContainer().setUserData(RepositoryService.KEY_DIAG_DATA, diagData);
         }
         return ret;
+    }
+
+    /**
+     * The same function as in overridden method, but softer exception handling.
+     * This targets cases like {@link RepositoryService#searchObjects} where single wrong object
+     * should not spoil the whole result list.
+     */
+    @Override
+    public S toSchemaObjectSafe(
+            Tuple tuple,
+            Q entityPath,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull JdbcSession jdbcSession,
+            boolean forceFull) {
+        try {
+            return toSchemaObject(tuple, entityPath, options, jdbcSession, forceFull);
+        } catch (SchemaException e) {
+            try {
+                PrismObject<S> errorObject = prismContext().createObject(schemaType());
+                //noinspection ConstantConditions - this must not be null, the column is not
+                String oid = tuple.get(entityPath.oid).toString();
+                errorObject.setOid(oid);
+                errorObject.asObjectable().setName(PolyStringType.fromOrig("Unreadable object"));
+                logger.warn("Unreadable object with OID {}, reason: {}\n"
+                        + "Surrogate object with error message as a name will be used.", oid, e.toString());
+                return errorObject.asObjectable();
+            } catch (SchemaException ex) {
+                throw new RepositoryMappingException("Schema exception [" + ex + "] while handling schema exception: " + e, e);
+            }
+        }
     }
 
     /**
