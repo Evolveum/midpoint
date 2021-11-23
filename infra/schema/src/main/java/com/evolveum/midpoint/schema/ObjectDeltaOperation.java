@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -27,12 +29,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author Radovan Semancik
- *
  */
 public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable, Serializable, Cloneable {
 
     private ObjectDelta<O> objectDelta;
-    private OperationResult executionResult;
+    @Nullable private OperationResult executionResult;
     private PolyString objectName;
     private String resourceOid;
     private PolyString resourceName;
@@ -46,7 +47,7 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
         this.objectDelta = objectDelta;
     }
 
-    public ObjectDeltaOperation(ObjectDelta<O> objectDelta, OperationResult executionResult) {
+    public ObjectDeltaOperation(ObjectDelta<O> objectDelta, @Nullable OperationResult executionResult) {
         super();
         this.objectDelta = objectDelta;
         this.executionResult = executionResult;
@@ -60,11 +61,11 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
         this.objectDelta = objectDelta;
     }
 
-    public OperationResult getExecutionResult() {
+    public @Nullable OperationResult getExecutionResult() {
         return executionResult;
     }
 
-    public void setExecutionResult(OperationResult executionResult) {
+    public void setExecutionResult(@Nullable OperationResult executionResult) {
         this.executionResult = executionResult;
     }
 
@@ -94,9 +95,12 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
 
     public boolean containsDelta(ObjectDelta<O> delta, ParameterizedEquivalenceStrategy equivalenceStrategy) {
         return objectDelta.equals(delta) ||
-                objectDelta.isModify() && delta.isModify() && objectDelta.containsAllModifications(delta.getModifications(), equivalenceStrategy);
+                objectDelta.isModify()
+                        && delta.isModify()
+                        && objectDelta.containsAllModifications(delta.getModifications(), equivalenceStrategy);
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public ObjectDeltaOperation<O> clone() {
         ObjectDeltaOperation<O> clone = new ObjectDeltaOperation<>();
         copyToClone(clone);
@@ -114,7 +118,7 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
     }
 
     public static void checkConsistence(Collection<? extends ObjectDeltaOperation<?>> deltas) {
-        for (ObjectDeltaOperation<?> delta: deltas) {
+        for (ObjectDeltaOperation<?> delta : deltas) {
             delta.checkConsistence();
         }
     }
@@ -128,7 +132,7 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
     public static Collection<ObjectDeltaOperation<? extends ObjectType>> cloneCollection(
             Collection<ObjectDeltaOperation<? extends ObjectType>> origCollection) {
         Collection<ObjectDeltaOperation<? extends ObjectType>> clonedCollection = new ArrayList<>(origCollection.size());
-        for (ObjectDeltaOperation<? extends ObjectType> origDeltaOp: origCollection) {
+        for (ObjectDeltaOperation<? extends ObjectType> origDeltaOp : origCollection) {
             ObjectDeltaOperation<? extends ObjectType> clonedDeltaOp = origDeltaOp.clone();
             clonedCollection.add(clonedDeltaOp);
         }
@@ -138,14 +142,15 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
     public static Collection<ObjectDeltaOperation<? extends ObjectType>> cloneDeltaCollection(
             Collection<ObjectDelta<? extends ObjectType>> origCollection) {
         Collection<ObjectDeltaOperation<? extends ObjectType>> clonedCollection = new ArrayList<>(origCollection.size());
-        for (ObjectDelta<? extends ObjectType> origDelta: origCollection) {
-            ObjectDeltaOperation<? extends ObjectType> clonedDeltaOp = new ObjectDeltaOperation(origDelta.clone());
+        for (ObjectDelta<? extends ObjectType> origDelta : origCollection) {
+            ObjectDeltaOperation<? extends ObjectType> clonedDeltaOp = new ObjectDeltaOperation<>(origDelta.clone());
             clonedCollection.add(clonedDeltaOp);
         }
         return clonedCollection;
     }
 
-    public static ObjectDeltaOperation<? extends ObjectType> findFocusDeltaInCollection(Collection<ObjectDeltaOperation<? extends ObjectType>> odos) {
+    public static ObjectDeltaOperation<? extends ObjectType> findFocusDeltaInCollection(
+            Collection<ObjectDeltaOperation<? extends ObjectType>> odos) {
         for (ObjectDeltaOperation<? extends ObjectType> odo : odos) {
             Class<? extends ObjectType> objectTypeClass = odo.getObjectDelta().getObjectTypeClass();
             if (!ShadowType.class.equals(objectTypeClass)) {
@@ -163,42 +168,48 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
         return odo.getObjectDelta().getOid();
     }
 
-    public static List<ObjectDeltaOperation<ShadowType>> findProjectionDeltasInCollection(Collection<ObjectDeltaOperation<? extends ObjectType>> odos) {
+    public static List<ObjectDeltaOperation<ShadowType>> findProjectionDeltasInCollection(
+            Collection<ObjectDeltaOperation<? extends ObjectType>> odos) {
         List<ObjectDeltaOperation<ShadowType>> projectionDeltas = new ArrayList<>();
         for (ObjectDeltaOperation<? extends ObjectType> odo : odos) {
             Class<? extends ObjectType> objectTypeClass = odo.getObjectDelta().getObjectTypeClass();
             if (ShadowType.class.equals(objectTypeClass)) {
+                //noinspection unchecked
                 projectionDeltas.add((ObjectDeltaOperation<ShadowType>) odo);
             }
         }
         return projectionDeltas;
     }
 
-    public static List<String> findProjectionDeltaOidsInCollection(Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges) {
+    public static List<String> findProjectionDeltaOidsInCollection(
+            Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges) {
         return findProjectionDeltasInCollection(executeChanges).stream()
                 .map(odo -> odo.getObjectDelta().getOid())
                 .distinct()
                 .collect(Collectors.toList());
     }
 
-    public static <O extends ObjectType> ObjectDeltaOperation<O> findAddDelta(Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges, PrismObject<O> object) {
+    public static <O extends ObjectType> ObjectDeltaOperation<O> findAddDelta(
+            Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges, PrismObject<O> object) {
         for (ObjectDeltaOperation<? extends ObjectType> odo : executedChanges) {
             Class<? extends ObjectType> objectTypeClass = odo.getObjectDelta().getObjectTypeClass();
+            //noinspection ConstantConditions
             if (odo.getObjectDelta().isAdd() && object.getCompileTimeClass().equals(objectTypeClass)) {
+                //noinspection unchecked
                 return (ObjectDeltaOperation<O>) odo;
             }
         }
         return null;
     }
 
-    public static <O extends ObjectType> String findAddDeltaOid(Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges, PrismObject<O> object) {
+    public static <O extends ObjectType> String findAddDeltaOid(
+            Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges, PrismObject<O> object) {
         ObjectDeltaOperation<O> odo = findAddDelta(executedChanges, object);
         if (odo == null) {
             return null;
         }
         return odo.getObjectDelta().getOid();
     }
-
 
     // Mostly for use in tests.
     public static String findProjectionDeltaOidInCollection(Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges) {
@@ -214,10 +225,18 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         ObjectDeltaOperation<?> that = (ObjectDeltaOperation<?>) o;
-        return Objects.equals(objectDelta, that.objectDelta) && Objects.equals(executionResult, that.executionResult) && Objects.equals(objectName, that.objectName) && Objects.equals(resourceOid, that.resourceOid) && Objects.equals(resourceName, that.resourceName);
+        return Objects.equals(objectDelta, that.objectDelta)
+                && Objects.equals(executionResult, that.executionResult)
+                && Objects.equals(objectName, that.objectName)
+                && Objects.equals(resourceOid, that.resourceOid)
+                && Objects.equals(resourceName, that.resourceName);
     }
 
     @Override
@@ -275,7 +294,7 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("[\n");
-        for (ObjectDeltaOperation<O> deltaOp: deltaOps) {
+        for (ObjectDeltaOperation<O> deltaOp : deltaOps) {
             deltaOp.debugDump(sb, indent + 1, false);
             sb.append("\n");
         }
@@ -288,7 +307,7 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
     }
 
     /**
-     * An approximate information if the delta was "really" executed i.e. if there's a real chance
+     * Approximate information if the delta was "really" executed i.e. if there's a real chance
      * that the delta was - at least partially - applied.
      *
      * Any solution based on operation result status will never be 100% accurate, e.g. because

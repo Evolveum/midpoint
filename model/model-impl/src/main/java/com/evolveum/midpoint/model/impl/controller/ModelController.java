@@ -6,12 +6,11 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
-import static com.evolveum.midpoint.util.DebugUtil.lazy;
-
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 import java.io.*;
 import java.util.Objects;
@@ -179,8 +178,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @NotNull
     @Override
     public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
-            Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult) throws ObjectNotFoundException,
-            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         Validate.notEmpty(oid, "Object oid must not be null or empty.");
         Validate.notNull(parentResult, "Operation result must not be null.");
         Validate.notNull(clazz, "Object class must not be null.");
@@ -221,7 +221,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             schemaTransformer.applySchemasAndSecurity(object, rootOptions, options, null, task, result);
             executeResolveOptions(object.asObjectable(), options, task, result);
 
-        } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
+        } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException
+                | ExpressionEvaluationException | RuntimeException | Error e) {
             OP_LOGGER.debug("MODEL OP error getObject({},{},{}): {}: {}", clazz.getSimpleName(), oid, rawOptions, e.getClass().getSimpleName(), e.getMessage());
             ModelImplUtils.recordFatalError(result, e);
             throw e;
@@ -335,18 +336,19 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(final Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
-            Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
-            SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            PolicyViolationException, SecurityViolationException {
+    public Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(
+            Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult parentResult)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         return executeChanges(deltas, options, task, null, parentResult);
     }
 
     @Override
-    public Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
-            Task task, Collection<ProgressListener> statusListeners, OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
-            SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            PolicyViolationException, SecurityViolationException {
+    public Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(
+            Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
+            Task task, Collection<ProgressListener> statusListeners, OperationResult parentResult)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 
         enterModelMethod();
 
@@ -531,7 +533,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         return auditRecord;
     }
 
-    private void executeChangeRaw(Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, ObjectDelta<? extends ObjectType> delta, ModelExecuteOptions options, Task task, OperationResult parentResult) throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    private void executeChangeRaw(Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas,
+            ObjectDelta<? extends ObjectType> delta, ModelExecuteOptions options, Task task, OperationResult parentResult)
+            throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, PolicyViolationException,
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         OperationResult result = parentResult.createSubresult(EXECUTE_CHANGE);
         PrismObject<? extends ObjectType> objectToDetermineDetailsForAudit = null;
         try {
@@ -549,7 +554,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         }
     }
 
-    private void applyDefinitionsIfNeeded(ObjectDelta<? extends ObjectType> delta, Task task, OperationResult result1) throws ExpressionEvaluationException {
+    private void applyDefinitionsIfNeeded(ObjectDelta<? extends ObjectType> delta, Task task, OperationResult result1)
+            throws ExpressionEvaluationException {
         // MID-2486
         if (delta.getObjectTypeClass() == ShadowType.class || delta.getObjectTypeClass() == ResourceType.class) {
             try {
@@ -562,7 +568,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         }
     }
 
-    private ObjectDeltaOperation<? extends ObjectType> prepareObjectDeltaOperation(ObjectDelta<? extends ObjectType> delta, PrismObject<? extends ObjectType> objectToDetermineDetailsForAudit, OperationResult result) {
+    private ObjectDeltaOperation<? extends ObjectType> prepareObjectDeltaOperation(ObjectDelta<? extends ObjectType> delta,
+            PrismObject<? extends ObjectType> objectToDetermineDetailsForAudit, OperationResult result) {
         ObjectDeltaOperation<? extends ObjectType> odoToAudit = new ObjectDeltaOperation<>(delta, result);
         if (objectToDetermineDetailsForAudit != null) {
             odoToAudit.setObjectName(objectToDetermineDetailsForAudit.getName());
@@ -575,7 +582,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         return odoToAudit;
     }
 
-    private PrismObject<? extends ObjectType> executeChangeRawInternal(ObjectDelta<? extends ObjectType> delta, ModelExecuteOptions options, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException {
+    private PrismObject<? extends ObjectType> executeChangeRawInternal(
+            ObjectDelta<? extends ObjectType> delta, ModelExecuteOptions options, Task task, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException,
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException {
         final boolean preAuthorized = ModelExecuteOptions.isPreAuthorized(options);
         PrismObject<? extends ObjectType> objectToDetermineDetailsForAudit;
         if (delta.isAdd()) {
@@ -590,7 +600,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         return objectToDetermineDetailsForAudit;
     }
 
-    private PrismObject<? extends ObjectType> executeAddDeltaRaw(ObjectDelta<? extends ObjectType> delta, boolean preAuthorized, ModelExecuteOptions options, Task task, OperationResult result1) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
+    private PrismObject<? extends ObjectType> executeAddDeltaRaw(ObjectDelta<? extends ObjectType> delta,
+            boolean preAuthorized, ModelExecuteOptions options, Task task, OperationResult result1)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
         RepoAddOptions repoOptions = new RepoAddOptions();
         if (ModelExecuteOptions.isNoCrypt(options)) {
             repoOptions.setAllowUnencryptedValues(true);
@@ -600,8 +613,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         }
         PrismObject<? extends ObjectType> objectToAdd = delta.getObjectToAdd();
         if (!preAuthorized) {
-            securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, AuthorizationParameters.Builder.buildObjectAdd(objectToAdd), null, task, result1);
-            securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(), null, AuthorizationParameters.Builder.buildObjectAdd(objectToAdd), null, task, result1);
+            securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(),
+                    null, AuthorizationParameters.Builder.buildObjectAdd(objectToAdd), null, task, result1);
+            securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(),
+                    null, AuthorizationParameters.Builder.buildObjectAdd(objectToAdd), null, task, result1);
         }
         String oid;
         try {
@@ -620,7 +635,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         return objectToAdd;
     }
 
-    private PrismObject<? extends ObjectType> executeDeleteDeltaRaw(ObjectDelta<? extends ObjectType> delta, boolean preAuthorized, Task task, OperationResult result1) throws PolicyViolationException, CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    private PrismObject<? extends ObjectType> executeDeleteDeltaRaw(
+            ObjectDelta<? extends ObjectType> delta, boolean preAuthorized, Task task, OperationResult result1)
+            throws PolicyViolationException, CommunicationException, ObjectNotFoundException, SchemaException,
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);  // MID-2218
         PrismObject objectToDetermineDetailsForAudit = null;
         try {
@@ -641,8 +659,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             }
             checkIndestructible(existingObject, task, result1);
             if (!preAuthorized) {
-                securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, AuthorizationParameters.Builder.buildObjectDelete(existingObject), null, task, result1);
-                securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, AuthorizationParameters.Builder.buildObjectDelete(existingObject), null, task, result1);
+                securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(),
+                        null, AuthorizationParameters.Builder.buildObjectDelete(existingObject), null, task, result1);
+                securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(),
+                        null, AuthorizationParameters.Builder.buildObjectDelete(existingObject), null, task, result1);
             }
             try {
                 if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
@@ -656,9 +676,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 } else {
                     cacheRepositoryService.deleteObject(delta.getObjectTypeClass(), delta.getOid(), result1);
                 }
-                task.recordObjectActionExecuted(objectToDetermineDetailsForAudit, delta.getObjectTypeClass(), delta.getOid(), ChangeType.DELETE, task.getChannel(), null);
+                task.recordObjectActionExecuted(objectToDetermineDetailsForAudit,
+                        delta.getObjectTypeClass(), delta.getOid(), ChangeType.DELETE, task.getChannel(), null);
             } catch (Throwable t) {
-                task.recordObjectActionExecuted(objectToDetermineDetailsForAudit, delta.getObjectTypeClass(), delta.getOid(), ChangeType.DELETE, task.getChannel(), t);
+                task.recordObjectActionExecuted(objectToDetermineDetailsForAudit,
+                        delta.getObjectTypeClass(), delta.getOid(), ChangeType.DELETE, task.getChannel(), t);
                 throw t;
             }
         } finally {
@@ -667,11 +689,15 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         return objectToDetermineDetailsForAudit;
     }
 
-    private PrismObject<? extends ObjectType> executeModifyDeltaRaw(ObjectDelta<? extends ObjectType> delta, boolean preAuthorized, ModelExecuteOptions options, Task task, OperationResult result1) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ConfigurationException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
-        QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);  // MID-2218
+    private PrismObject<? extends ObjectType> executeModifyDeltaRaw(ObjectDelta<? extends ObjectType> delta,
+            boolean preAuthorized, ModelExecuteOptions options, Task task, OperationResult result1)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ConfigurationException,
+            CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+        QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true); // MID-2218
         PrismObject<? extends ObjectType> objectToDetermineDetailsForAudit;
         try {
-            PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), createReadOnlyCollection(), result1);
+            PrismObject existingObject = cacheRepositoryService.getObject(
+                    delta.getObjectTypeClass(), delta.getOid(), createReadOnlyCollection(), result1);
             objectToDetermineDetailsForAudit = existingObject;
             if (!preAuthorized) {
                 AuthorizationParameters autzParams = AuthorizationParameters.Builder.buildObjectDelta(existingObject, delta);
@@ -693,25 +719,31 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         } finally {
             QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
         }
-        if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {    // treat filters that already exist in the object (case #2 above)
+        if (ModelExecuteOptions.isReevaluateSearchFilters(options)) { // treat filters that already exist in the object (case #2 above)
             reevaluateSearchFilters(delta.getObjectTypeClass(), delta.getOid(), task, result1);
         }
         return objectToDetermineDetailsForAudit;
     }
 
-    private <O extends ObjectType> void checkIndestructible(PrismObject<O> existingObject, Task task, OperationResult result) throws IndestructibilityViolationException {
+    private <O extends ObjectType> void checkIndestructible(PrismObject<O> existingObject, Task task, OperationResult result)
+            throws IndestructibilityViolationException {
         if (existingObject != null && Boolean.TRUE.equals(existingObject.asObjectable().isIndestructible())) {
-            IndestructibilityViolationException e = new IndestructibilityViolationException("Attempt to delete indestructible object " + existingObject);
+            IndestructibilityViolationException e =
+                    new IndestructibilityViolationException("Attempt to delete indestructible object " + existingObject);
             ModelImplUtils.recordFatalError(result, e);
             throw e;
         }
     }
 
-    private void authorizePartialExecution(LensContext<? extends ObjectType> context, ModelExecuteOptions options, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    private void authorizePartialExecution(LensContext<? extends ObjectType> context,
+            ModelExecuteOptions options, Task task, OperationResult result)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
         PartialProcessingOptionsType partialProcessing = ModelExecuteOptions.getPartialProcessing(options);
         if (partialProcessing != null) {
             PrismObject<? extends ObjectType> object = context.getFocusContext().getObjectAny();
-            securityEnforcer.authorize(ModelAuthorizationAction.PARTIAL_EXECUTION.getUrl(), null, AuthorizationParameters.Builder.buildObject(object), null, task, result);
+            securityEnforcer.authorize(ModelAuthorizationAction.PARTIAL_EXECUTION.getUrl(),
+                    null, AuthorizationParameters.Builder.buildObject(object), null, task, result);
         }
     }
 
@@ -731,7 +763,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         result.cleanupResult();
     }
 
-    private <T extends ObjectType> void reevaluateSearchFilters(Class<T> objectTypeClass, String oid, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+    private <T extends ObjectType> void reevaluateSearchFilters(
+            Class<T> objectTypeClass, String oid, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         OperationResult result = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "reevaluateSearchFilters");
         try {
             PrismObject<T> storedObject = cacheRepositoryService.getObject(objectTypeClass, oid, createReadOnlyCollection(), result);
@@ -756,7 +790,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public <F extends ObjectType> void recompute(Class<F> type, String oid, ModelExecuteOptions options, Task task, OperationResult parentResult) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <F extends ObjectType> void recompute(
+            Class<F> type, String oid, ModelExecuteOptions options, Task task, OperationResult parentResult)
+            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         OperationResult result = parentResult.createMinorSubresult(RECOMPUTE);
         result.addParam(OperationResult.PARAM_OID, oid);
@@ -793,8 +830,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         }
     }
 
-    private void applyDefinitions(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
-            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void applyDefinitions(
+            Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         for (ObjectDelta<? extends ObjectType> delta : deltas) {
             Class<? extends ObjectType> type = delta.getObjectTypeClass();
             if (delta.hasCompleteDefinition()) {
@@ -825,7 +863,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     @Override
     public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery origQuery,
-            Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
@@ -859,7 +899,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
         boolean exceptionInSearch = false;
 
-        enterModelMethod();     // outside try-catch because if this ends with an exception, cache is not entered yet
+        enterModelMethod(); // outside try-catch because if this ends with an exception, cache is not entered yet
         @NotNull SearchResultList<PrismObject<T>> list;
         try {
             logQuery(processedQuery);
@@ -881,7 +921,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                     default:
                         throw new AssertionError("Unexpected search provider: " + searchProvider);
                 }
-            } catch (CommunicationException | ConfigurationException | SchemaException | SecurityViolationException | RuntimeException | ObjectNotFoundException e) {
+            } catch (CommunicationException | ConfigurationException | SchemaException
+                    | SecurityViolationException | RuntimeException | ObjectNotFoundException e) {
                 exceptionInSearch = true;
                 throw e;
             } finally {
@@ -977,7 +1018,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @Override
     public <T extends Containerable> SearchResultList<T> searchContainers(
             Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> rawOptions,
-            Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
+            Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
 
         Validate.notNull(type, "Container value type must not be null.");
         Validate.notNull(parentResult, "Result type must not be null.");
@@ -1000,13 +1042,13 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             return new SearchResultList<>(new ArrayList<>());
         }
 
-        enterModelMethod();     // outside try-catch because if this ends with an exception, cache is not entered yet
+        enterModelMethod(); // outside try-catch because if this ends with an exception, cache is not entered yet
         SearchResultList<T> list;
         try {
             logQuery(query);
 
             try {
-                if (GetOperationOptions.isRaw(rootOptions)) {       // MID-2218
+                if (GetOperationOptions.isRaw(rootOptions)) { // MID-2218
                     QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
                 }
                 //noinspection SwitchStatementWithTooFewBranches
@@ -1054,9 +1096,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public <T extends Containerable> Integer countContainers(
-            Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> rawOptions,
-            Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
 
         Validate.notNull(type, "Container value type must not be null.");
         Validate.notNull(parentResult, "Result type must not be null.");
@@ -1075,7 +1118,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             return 0;
         }
 
-        enterModelMethod();     // outside try-catch because if this ends with an exception, cache is not entered yet
+        enterModelMethod(); // outside try-catch because if this ends with an exception, cache is not entered yet
         int count;
         try {
             logQuery(query);
@@ -1186,7 +1229,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 object = object.cloneIfImmutable();
                 if (hookRegistry != null) {
                     for (ReadHook hook : hookRegistry.getAllReadHooks()) {
-                        hook.invoke(object, options, task, result);     // TODO result or parentResult??? [med]
+                        hook.invoke(object, options, task, result); // TODO result or parentResult??? [med]
                     }
                 }
                 executeResolveOptions(object.asObjectable(), options, task, result);
@@ -1207,7 +1250,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
         SearchResultMetadata metadata;
         try {
-            enterModelMethodNoRepoCache();          // skip using cache to avoid potentially many objects there (MID-4615, MID-4959)
+            enterModelMethodNoRepoCache(); // skip using cache to avoid potentially many objects there (MID-4615, MID-4959)
             logQuery(processedQuery);
 
             try {
@@ -1226,7 +1269,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 }
                 result.computeStatusIfUnknown();
                 result.cleanupResult();
-            } catch (CommunicationException | ConfigurationException | ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
+            } catch (CommunicationException | ConfigurationException | ObjectNotFoundException | SchemaException
+                    | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
                 processSearchException(e, searchProvider, result);
                 throw e;
             } finally {
@@ -1262,7 +1306,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 break;
             default:
                 message = "Couldn't search objects";
-                break;    // should not occur
+                break; // should not occur
         }
         LoggingUtils.logUnexpectedException(LOGGER, message, e);
         result.recordFatalError(message, e);
@@ -1272,14 +1316,15 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @Override
     public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery origQuery,
             Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, CommunicationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException,
+            SecurityViolationException, CommunicationException, ExpressionEvaluationException {
 
         // see MID-6115
         ObjectQuery query = origQuery != null ? origQuery.clone() : null;
         OperationResult result = parentResult.createMinorSubresult(COUNT_OBJECTS);
         result.addParam(OperationResult.PARAM_QUERY, query);
 
-        enterModelMethod();     // outside try-catch because if this ends with an exception, cache is not entered yet
+        enterModelMethod(); // outside try-catch because if this ends with an exception, cache is not entered yet
         Integer count;
         try {
 
@@ -1309,7 +1354,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 default:
                     throw new AssertionError("Unexpected objectManager: " + objectManager);
             }
-        } catch (ConfigurationException | SecurityViolationException | SchemaException | ObjectNotFoundException | CommunicationException | ExpressionEvaluationException | RuntimeException | Error e) {
+        } catch (ConfigurationException | SecurityViolationException | SchemaException | ObjectNotFoundException
+                | CommunicationException | ExpressionEvaluationException | RuntimeException | Error e) {
             ModelImplUtils.recordFatalError(result, e);
             throw e;
         } finally {
@@ -1323,8 +1369,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public PrismObject<? extends FocusType> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
+    public PrismObject<? extends FocusType> searchShadowOwner(
+            String shadowOid, Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SecurityViolationException, SchemaException,
+            ConfigurationException, ExpressionEvaluationException, CommunicationException {
         Validate.notEmpty(shadowOid, "Account oid must not be null or empty.");
         Validate.notNull(parentResult, "Result type must not be null.");
 
@@ -1417,8 +1465,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     // Note: The result is in the task. No need to pass it explicitly
     @Override
-    public void importFromResource(String resourceOid, QName objectClass, Task task,
-            OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public void importFromResource(String resourceOid, QName objectClass, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
         Validate.notNull(objectClass, "Object class must not be null.");
         Validate.notNull(task, "Task must not be null.");
@@ -1462,7 +1511,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
             result.cleanupResult();
 
-        } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error ex) {
+        } catch (ObjectNotFoundException | CommunicationException | ConfigurationException
+                | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error ex) {
             ModelImplUtils.recordFatalError(result, ex);
             throw ex;
         } finally {
@@ -1497,7 +1547,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
             result.cleanupResult();
 
-        } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error ex) {
+        } catch (ObjectNotFoundException | CommunicationException | ConfigurationException
+                | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error ex) {
             ModelImplUtils.recordFatalError(result, ex);
             throw ex;
         } finally {
@@ -1538,7 +1589,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             // No need to compute status. The validator inside will do it.
             // result.computeStatus("Couldn't import object from input stream.");
         } catch (RuntimeException e) {
-            result.recordFatalError(e.getMessage(), e);     // shouldn't really occur
+            result.recordFatalError(e.getMessage(), e); // shouldn't really occur
         } finally {
             exitModelMethod();
         }
@@ -1558,7 +1609,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             // No need to compute status. The validator inside will do it.
             // result.computeStatus("Couldn't import object from input stream.");
         } catch (RuntimeException e) {
-            result.recordFatalError(e.getMessage(), e);     // shouldn't really occur
+            result.recordFatalError(e.getMessage(), e); // shouldn't really occur
         } finally {
             exitModelMethod();
         }
@@ -1575,7 +1626,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
      */
     @Override
     public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, Task task, OperationResult parentResult)
-            throws CommunicationException, SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
+            throws CommunicationException, SecurityViolationException, SchemaException,
+            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
         enterModelMethod();
         OperationResult result = parentResult.createSubresult(DISCOVER_CONNECTORS);
         Set<ConnectorType> discoverConnectors;
@@ -1757,8 +1809,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         }
     }
 
-    private Collection<SelectorOptions<GetOperationOptions>> preProcessOptionsSecurity(Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private Collection<SelectorOptions<GetOperationOptions>> preProcessOptionsSecurity(
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
         if (GetOperationOptions.isAttachDiagData(rootOptions) &&
                 !securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result)) {
@@ -1770,7 +1824,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         }
     }
 
-    private <O extends ObjectType> ObjectQuery preProcessQuerySecurity(Class<O> objectType, ObjectQuery origQuery, GetOperationOptions rootOptions, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private <O extends ObjectType> ObjectQuery preProcessQuerySecurity(
+            Class<O> objectType, ObjectQuery origQuery, GetOperationOptions rootOptions, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
         ObjectFilter origFilter = null;
         if (origQuery != null) {
             origFilter = origQuery.getFilter();
@@ -1784,18 +1841,21 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     // we expect that objectType is a direct parent of containerType
-    private <C extends Containerable, O extends ObjectType> ObjectQuery preProcessSubobjectQuerySecurity(Class<C> containerType, Class<O> objectType, ObjectQuery origQuery, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private <C extends Containerable, O extends ObjectType> ObjectQuery preProcessSubobjectQuerySecurity(
+            Class<C> containerType, Class<O> objectType, ObjectQuery origQuery, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
         // Search containers is an operation on one object. Therefore even if it works with a search filter, it requires GET authorizations
         ObjectFilter secParentFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, null, objectType, null, null, null, null, task, result);
         if (secParentFilter == null || secParentFilter instanceof AllFilter) {
-            return origQuery;                // no need to update the query
+            return origQuery; // no need to update the query
         }
         ObjectFilter secChildFilter;
         if (secParentFilter instanceof NoneFilter) {
             secChildFilter = FilterCreationUtil.createNone(prismContext);
         } else {
             ObjectFilter origChildFilter = origQuery != null ? origQuery.getFilter() : null;
-            ObjectFilter secChildFilterParentPart = prismContext.queryFactory().createExists(ItemName.fromQName(PrismConstants.T_PARENT),  // fixme
+            ObjectFilter secChildFilterParentPart = prismContext.queryFactory().createExists(ItemName.fromQName(PrismConstants.T_PARENT), // fixme
                     containerType, prismContext, secParentFilter);
             if (origChildFilter == null) {
                 secChildFilter = secChildFilterParentPart;
@@ -1820,51 +1880,127 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     //region Task-related operations
 
     @Override
-    public boolean suspendTasks(Collection<String> taskOids, long waitForStop, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskCollectionOperation(taskOids, ModelAuthorizationAction.SUSPEND_TASK, AuditEventType.SUSPEND_TASK, operationTask, parentResult);
-        boolean suspended = taskManager.suspendTasks(taskOids, waitForStop, parentResult);
-        postprocessTaskCollectionOperation(resolvedTasks, AuditEventType.SUSPEND_TASK, operationTask, parentResult);
+    public boolean suspendTasks(Collection<String> taskOids, long waitForStop, Task operationTask, OperationResult parentResult)
+            throws SecurityViolationException, ObjectNotFoundException, SchemaException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskCollectionOperation(
+                taskOids, ModelAuthorizationAction.SUSPEND_TASK, AuditEventType.SUSPEND_TASK, operationTask, parentResult);
+
+        OperationResult taskOperationResult = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "suspendTasks"); // details filled in taskManager
+        boolean suspended;
+        try {
+            suspended = taskManager.suspendTasks(taskOids, waitForStop, taskOperationResult);
+        } catch (Throwable t) {
+            taskOperationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            taskOperationResult.close();
+        }
+
+        postprocessTaskCollectionOperation(resolvedTasks,
+                AuditEventType.SUSPEND_TASK, operationTask, parentResult, taskOperationResult);
         return suspended;
     }
 
     @Override
-    public boolean suspendTask(String taskOid, long waitForStop, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskOperation(taskOid, ModelAuthorizationAction.SUSPEND_TASK, AuditEventType.SUSPEND_TASK, operationTask, parentResult);
-        boolean suspended = taskManager.suspendTask(taskOid, waitForStop, parentResult);
-        postprocessTaskCollectionOperation(resolvedTasks, AuditEventType.SUSPEND_TASK, operationTask, parentResult);
+    public boolean suspendTask(String taskOid, long waitForStop, Task operationTask, OperationResult parentResult)
+            throws SecurityViolationException, ObjectNotFoundException, SchemaException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskOperation(taskOid,
+                ModelAuthorizationAction.SUSPEND_TASK, AuditEventType.SUSPEND_TASK, operationTask, parentResult);
+
+        OperationResult taskOperationResult = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "suspendTasks"); // details filled in taskManager
+        boolean suspended;
+        try {
+            suspended = taskManager.suspendTask(taskOid, waitForStop, taskOperationResult);
+        } catch (Throwable t) {
+            taskOperationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            taskOperationResult.close();
+        }
+
+        postprocessTaskCollectionOperation(resolvedTasks,
+                AuditEventType.SUSPEND_TASK, operationTask, parentResult, taskOperationResult);
         return suspended;
     }
 
     @Override
-    public boolean suspendTaskTree(String taskOid, long waitForStop, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskOperation(taskOid, ModelAuthorizationAction.SUSPEND_TASK, AuditEventType.SUSPEND_TASK, operationTask, parentResult);
-        boolean suspended = taskManager.suspendTaskTree(taskOid, waitForStop, parentResult);
-        postprocessTaskCollectionOperation(resolvedTasks, AuditEventType.SUSPEND_TASK, operationTask, parentResult);
+    public boolean suspendTaskTree(String taskOid, long waitForStop, Task operationTask, OperationResult parentResult)
+            throws SecurityViolationException, ObjectNotFoundException, SchemaException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskOperation(taskOid,
+                ModelAuthorizationAction.SUSPEND_TASK, AuditEventType.SUSPEND_TASK, operationTask, parentResult);
+
+        OperationResult taskOperationResult = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "suspendTaskTree"); // details filled in taskManager
+        boolean suspended;
+        try {
+            suspended = taskManager.suspendTaskTree(taskOid, waitForStop, taskOperationResult);
+        } catch (Throwable t) {
+            taskOperationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            taskOperationResult.close();
+        }
+
+        postprocessTaskCollectionOperation(resolvedTasks,
+                AuditEventType.SUSPEND_TASK, operationTask, parentResult, taskOperationResult);
         return suspended;
     }
 
     @Override
-    public void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskCollectionOperation(taskOids, ModelAuthorizationAction.DELETE, AuditEventType.DELETE_OBJECT, operationTask, parentResult);
+    public void suspendAndDeleteTasks(Collection<String> taskOids,
+            long waitForStop, boolean alsoSubtasks, Task operationTask, OperationResult parentResult)
+            throws SecurityViolationException, ObjectNotFoundException, SchemaException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskCollectionOperation(taskOids,
+                ModelAuthorizationAction.DELETE, AuditEventType.DELETE_OBJECT, operationTask, parentResult);
         List<String> indestructibleTaskOids = getIndestructibleTaskOids(resolvedTasks, operationTask, parentResult);
         taskOids.removeAll(indestructibleTaskOids);
-        if (!taskOids.isEmpty()) {
-            taskManager.suspendAndDeleteTasks(taskOids, waitForStop, alsoSubtasks, parentResult);
+
+        OperationResult taskOperationResult = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "suspendAndDeleteTasks"); // details filled in taskManager
+        try {
+            if (!taskOids.isEmpty()) {
+                taskManager.suspendAndDeleteTasks(taskOids, waitForStop, alsoSubtasks, taskOperationResult);
+            }
+        } catch (Throwable t) {
+            taskOperationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            taskOperationResult.close();
         }
-        postprocessTaskCollectionOperation(resolvedTasks, AuditEventType.DELETE_OBJECT, operationTask, parentResult);
+
+        postprocessTaskCollectionOperation(resolvedTasks,
+                AuditEventType.DELETE_OBJECT, operationTask, parentResult, taskOperationResult);
     }
 
     @Override
-    public void suspendAndDeleteTask(String taskOid, long waitForStop, boolean alsoSubtasks, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskOperation(taskOid, ModelAuthorizationAction.DELETE, AuditEventType.DELETE_OBJECT, operationTask, parentResult);
+    public void suspendAndDeleteTask(String taskOid,
+            long waitForStop, boolean alsoSubtasks, Task operationTask, OperationResult parentResult)
+            throws SecurityViolationException, ObjectNotFoundException, SchemaException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskOperation(taskOid,
+                ModelAuthorizationAction.DELETE, AuditEventType.DELETE_OBJECT, operationTask, parentResult);
         List<String> indestructibleTaskOids = getIndestructibleTaskOids(resolvedTasks, operationTask, parentResult);
-        if (indestructibleTaskOids.isEmpty() || !indestructibleTaskOids.contains(taskOid)) {
-            taskManager.suspendAndDeleteTask(taskOid, waitForStop, alsoSubtasks, parentResult);
+
+        OperationResult taskOperationResult = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "suspendAndDeleteTask"); // details filled in taskManager
+        try {
+            if (indestructibleTaskOids.isEmpty() || !indestructibleTaskOids.contains(taskOid)) {
+                taskManager.suspendAndDeleteTask(taskOid, waitForStop, alsoSubtasks, taskOperationResult);
+            }
+        } catch (Throwable t) {
+            taskOperationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            taskOperationResult.close();
         }
-        postprocessTaskCollectionOperation(resolvedTasks, AuditEventType.DELETE_OBJECT, operationTask, parentResult);
+
+        postprocessTaskCollectionOperation(resolvedTasks,
+                AuditEventType.DELETE_OBJECT, operationTask, parentResult, taskOperationResult);
     }
 
-    private List<String> getIndestructibleTaskOids(List<PrismObject<TaskType>> allTasks, Task operationTask, OperationResult parentResult) {
+    private List<String> getIndestructibleTaskOids(
+            List<PrismObject<TaskType>> allTasks, Task operationTask, OperationResult parentResult) {
         List<String> indestructible = new ArrayList<>();
         for (PrismObject<TaskType> taskType : allTasks) {
             OperationResult result = parentResult.createMinorSubresult(CHECK_INDESTRUCTIBLE);
@@ -1879,42 +2015,115 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public void resumeTasks(Collection<String> taskOids, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskCollectionOperation(taskOids, ModelAuthorizationAction.RESUME_TASK, AuditEventType.RESUME_TASK, operationTask, parentResult);
-        taskManager.resumeTasks(taskOids, parentResult);
-        postprocessTaskCollectionOperation(resolvedTasks, AuditEventType.RESUME_TASK, operationTask, parentResult);
+    public void resumeTasks(Collection<String> taskOids, Task operationTask, OperationResult parentResult)
+            throws SecurityViolationException, ObjectNotFoundException, SchemaException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskCollectionOperation(taskOids,
+                ModelAuthorizationAction.RESUME_TASK, AuditEventType.RESUME_TASK, operationTask, parentResult);
+
+        OperationResult taskOperationResult = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "resumeTasks"); // details filled in taskManager
+        try {
+            taskManager.resumeTasks(taskOids, taskOperationResult);
+        } catch (Throwable t) {
+            taskOperationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            taskOperationResult.close();
+        }
+
+        postprocessTaskCollectionOperation(resolvedTasks,
+                AuditEventType.RESUME_TASK, operationTask, parentResult, taskOperationResult);
     }
 
     @Override
-    public void resumeTask(String taskOid, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskOperation(taskOid, ModelAuthorizationAction.RESUME_TASK, AuditEventType.RESUME_TASK, operationTask, parentResult);
-        taskManager.resumeTask(taskOid, parentResult);
-        postprocessTaskCollectionOperation(resolvedTasks, AuditEventType.RESUME_TASK, operationTask, parentResult);
+    public void resumeTask(String taskOid, Task operationTask, OperationResult parentResult)
+            throws SecurityViolationException, ObjectNotFoundException, SchemaException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskOperation(taskOid,
+                ModelAuthorizationAction.RESUME_TASK, AuditEventType.RESUME_TASK, operationTask, parentResult);
+
+        OperationResult taskOperationResult = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "resumeTasks"); // details filled in taskManager
+        try {
+            taskManager.resumeTask(taskOid, taskOperationResult);
+        } catch (Throwable t) {
+            taskOperationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            taskOperationResult.close();
+        }
+
+        postprocessTaskCollectionOperation(resolvedTasks,
+                AuditEventType.RESUME_TASK, operationTask, parentResult, taskOperationResult);
     }
 
     @Override
-    public void resumeTaskTree(String coordinatorOid, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskOperation(coordinatorOid, ModelAuthorizationAction.RESUME_TASK, AuditEventType.RESUME_TASK, operationTask, parentResult);
-        taskManager.resumeTaskTree(coordinatorOid, parentResult);
-        postprocessTaskCollectionOperation(resolvedTasks, AuditEventType.RESUME_TASK, operationTask, parentResult);
+    public void resumeTaskTree(String coordinatorOid, Task operationTask, OperationResult parentResult)
+            throws SecurityViolationException, ObjectNotFoundException, SchemaException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskOperation(coordinatorOid,
+                ModelAuthorizationAction.RESUME_TASK, AuditEventType.RESUME_TASK, operationTask, parentResult);
+
+        OperationResult taskOperationResult = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "resumeTaskTree"); // details filled in taskManager
+        try {
+            taskManager.resumeTaskTree(coordinatorOid, taskOperationResult);
+        } catch (Throwable t) {
+            taskOperationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            taskOperationResult.close();
+        }
+
+        postprocessTaskCollectionOperation(resolvedTasks,
+                AuditEventType.RESUME_TASK, operationTask, parentResult, taskOperationResult);
     }
 
     @Override
-    public void scheduleTasksNow(Collection<String> taskOids, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskCollectionOperation(taskOids, ModelAuthorizationAction.RUN_TASK_IMMEDIATELY, AuditEventType.RUN_TASK_IMMEDIATELY, operationTask, parentResult);
-        taskManager.scheduleTasksNow(taskOids, parentResult);
-        postprocessTaskCollectionOperation(resolvedTasks, AuditEventType.RUN_TASK_IMMEDIATELY, operationTask, parentResult);
+    public void scheduleTasksNow(Collection<String> taskOids, Task operationTask, OperationResult parentResult)
+            throws SecurityViolationException, ObjectNotFoundException, SchemaException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskCollectionOperation(taskOids,
+                ModelAuthorizationAction.RUN_TASK_IMMEDIATELY, AuditEventType.RUN_TASK_IMMEDIATELY, operationTask, parentResult);
+
+        OperationResult taskOperationResult = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "scheduleTasksNow"); // details filled in taskManager
+        try {
+            taskManager.scheduleTasksNow(taskOids, taskOperationResult);
+        } catch (Throwable t) {
+            taskOperationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            taskOperationResult.close();
+        }
+
+        postprocessTaskCollectionOperation(resolvedTasks,
+                AuditEventType.RUN_TASK_IMMEDIATELY, operationTask, parentResult, taskOperationResult);
     }
 
     @Override
-    public void scheduleTaskNow(String taskOid, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskOperation(taskOid, ModelAuthorizationAction.RUN_TASK_IMMEDIATELY, AuditEventType.RUN_TASK_IMMEDIATELY, operationTask, parentResult);
-        taskManager.scheduleTaskNow(taskOid, parentResult);
-        postprocessTaskCollectionOperation(resolvedTasks, AuditEventType.RUN_TASK_IMMEDIATELY, operationTask, parentResult);
+    public void scheduleTaskNow(String taskOid, Task operationTask, OperationResult parentResult)
+            throws SecurityViolationException, ObjectNotFoundException, SchemaException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        List<PrismObject<TaskType>> resolvedTasks = preprocessTaskOperation(taskOid,
+                ModelAuthorizationAction.RUN_TASK_IMMEDIATELY, AuditEventType.RUN_TASK_IMMEDIATELY, operationTask, parentResult);
+
+        OperationResult taskOperationResult = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "scheduleTasksNow"); // details filled in taskManager
+        try {
+            taskManager.scheduleTaskNow(taskOid, taskOperationResult);
+        } catch (Throwable t) {
+            taskOperationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            taskOperationResult.close();
+        }
+
+        postprocessTaskCollectionOperation(resolvedTasks,
+                AuditEventType.RUN_TASK_IMMEDIATELY, operationTask, parentResult, taskOperationResult);
     }
 
     @Override
-    public PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task operationTask, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, CommunicationException {
+    public PrismObject<TaskType> getTaskByIdentifier(String identifier,
+            Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task operationTask, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, CommunicationException {
         Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, operationTask, parentResult);
         PrismObject<TaskType> task = taskManager.getTaskTypeByIdentifier(identifier, options, parentResult);
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
@@ -1924,14 +2133,19 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public boolean deactivateServiceThreads(long timeToWait, Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public boolean deactivateServiceThreads(long timeToWait, Task operationTask, OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
         securityEnforcer.authorize(ModelAuthorizationAction.STOP_SERVICE_THREADS.getUrl(), null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
         return taskManager.deactivateServiceThreads(timeToWait, parentResult);
     }
 
     @Override
-    public void reactivateServiceThreads(Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        securityEnforcer.authorize(ModelAuthorizationAction.START_SERVICE_THREADS.getUrl(), null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
+    public void reactivateServiceThreads(Task operationTask, OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        securityEnforcer.authorize(ModelAuthorizationAction.START_SERVICE_THREADS.getUrl(),
+                null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
         taskManager.reactivateServiceThreads(parentResult);
     }
 
@@ -1941,72 +2155,98 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public void stopSchedulers(Collection<String> nodeIdentifiers, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public void stopSchedulers(Collection<String> nodeIdentifiers, Task operationTask, OperationResult parentResult)
+            throws SecurityViolationException, ObjectNotFoundException, SchemaException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
         authorizeNodeCollectionOperation(ModelAuthorizationAction.STOP_TASK_SCHEDULER, nodeIdentifiers, operationTask, parentResult);
         taskManager.stopSchedulers(nodeIdentifiers, parentResult);
     }
 
     @Override
-    public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public boolean stopSchedulersAndTasks(
+            Collection<String> nodeIdentifiers, long waitTime, Task operationTask, OperationResult parentResult)
+            throws SecurityViolationException, ObjectNotFoundException, SchemaException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
         authorizeNodeCollectionOperation(ModelAuthorizationAction.STOP_TASK_SCHEDULER, nodeIdentifiers, operationTask, parentResult);
         return taskManager.stopSchedulersAndTasks(nodeIdentifiers, waitTime, parentResult);
     }
 
     @Override
-    public void startSchedulers(Collection<String> nodeIdentifiers, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public void startSchedulers(Collection<String> nodeIdentifiers, Task operationTask, OperationResult parentResult)
+            throws SecurityViolationException, ObjectNotFoundException, SchemaException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
         authorizeNodeCollectionOperation(ModelAuthorizationAction.START_TASK_SCHEDULER, nodeIdentifiers, operationTask, parentResult);
         taskManager.startSchedulers(nodeIdentifiers, parentResult);
     }
 
     @Override
-    public void synchronizeTasks(Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        securityEnforcer.authorize(ModelAuthorizationAction.SYNCHRONIZE_TASKS.getUrl(), null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
+    public void synchronizeTasks(Task operationTask, OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        securityEnforcer.authorize(ModelAuthorizationAction.SYNCHRONIZE_TASKS.getUrl(),
+                null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
         taskManager.synchronizeTasks(parentResult);
     }
 
     @Override
     public void reconcileWorkers(String oid, Task opTask, OperationResult result)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            throws CommunicationException, ObjectNotFoundException, SchemaException,
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, opTask, result);
         activityManager.reconcileWorkers(oid, result);
     }
 
     @Override
-    public void deleteActivityStateAndWorkers(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime, Task operationTask,
-            OperationResult parentResult)
-            throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
-        securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
+    public void deleteActivityStateAndWorkers(String rootTaskOid,
+            boolean deleteWorkers, long subtasksWaitTime, Task operationTask, OperationResult parentResult)
+            throws SecurityViolationException, ObjectNotFoundException, SchemaException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL,
+                null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
         activityManager.deleteActivityStateAndWorkers(rootTaskOid, deleteWorkers, subtasksWaitTime, parentResult);
     }
 
-    private List<PrismObject<TaskType>> preprocessTaskOperation(String oid, ModelAuthorizationAction action, AuditEventType event, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    private List<PrismObject<TaskType>> preprocessTaskOperation(
+            String oid, ModelAuthorizationAction action, AuditEventType event, Task task, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException,
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         return preprocessTaskCollectionOperation(singletonList(oid), action, event, task, result);
     }
 
-    private List<PrismObject<TaskType>> preprocessTaskCollectionOperation(Collection<String> oids, ModelAuthorizationAction action, AuditEventType event, Task task, OperationResult parentResult) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    private List<PrismObject<TaskType>> preprocessTaskCollectionOperation(Collection<String> oids,
+            ModelAuthorizationAction action, AuditEventType eventType, Task task, OperationResult parentResult)
+            throws CommunicationException, ObjectNotFoundException, SchemaException,
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         List<PrismObject<TaskType>> tasks = createTaskList(oids, parentResult);
         authorizeResolvedTaskCollectionOperation(action, tasks, task, parentResult);
-        auditTaskCollectionOperation(tasks, event, AuditEventStage.REQUEST, task, parentResult);
+        auditTaskCollectionOperation(tasks, eventType, AuditEventStage.REQUEST, task, parentResult, null);
         return tasks;
     }
 
-    private void postprocessTaskCollectionOperation(Collection<PrismObject<TaskType>> resolvedTasks, AuditEventType event, Task task, OperationResult result) {
+    private void postprocessTaskCollectionOperation(Collection<PrismObject<TaskType>> resolvedTasks,
+            AuditEventType eventType, Task task, OperationResult result, OperationResult taskOperationResult) {
         result.computeStatusIfUnknown();
-        auditTaskCollectionOperation(resolvedTasks, event, AuditEventStage.EXECUTION, task, result);
+        auditTaskCollectionOperation(resolvedTasks, eventType, AuditEventStage.EXECUTION, task, result, taskOperationResult);
     }
 
-    private void authorizeResolvedTaskCollectionOperation(ModelAuthorizationAction action, Collection<PrismObject<TaskType>> existingTasks, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        if (securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, parentResult)) {
+    private void authorizeResolvedTaskCollectionOperation(ModelAuthorizationAction action,
+            Collection<PrismObject<TaskType>> existingTasks, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        if (securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL,
+                null, AuthorizationParameters.EMPTY, null, task, parentResult)) {
             return;
         }
         for (PrismObject<TaskType> existingObject : existingTasks) {
-            securityEnforcer.authorize(action.getUrl(), null, AuthorizationParameters.Builder.buildObject(existingObject), null, task, parentResult);
+            securityEnforcer.authorize(action.getUrl(), null,
+                    AuthorizationParameters.Builder.buildObject(existingObject), null, task, parentResult);
         }
     }
 
-    private void authorizeNodeCollectionOperation(ModelAuthorizationAction action, Collection<String> identifiers, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    private void authorizeNodeCollectionOperation(
+            ModelAuthorizationAction action, Collection<String> identifiers, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
         if (securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, parentResult)) {
             return;
         }
@@ -2038,14 +2278,16 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         return taskRefs;
     }
 
-    private void auditTaskCollectionOperation(Collection<PrismObject<TaskType>> existingTasks, AuditEventType eventType, AuditEventStage stage, Task task, OperationResult result) {
+    private void auditTaskCollectionOperation(Collection<PrismObject<TaskType>> existingTasks, AuditEventType eventType,
+            AuditEventStage stage, Task task, OperationResult result, @Nullable OperationResult taskOperationResult) {
         for (PrismObject<TaskType> existingTask : existingTasks) {
             PrismReferenceValue taskRef = ObjectTypeUtil.createObjectRef(existingTask, SchemaConstants.ORG_DEFAULT).asReferenceValue();
-            auditTaskOperation(taskRef, eventType, stage, task, result);
+            auditTaskOperation(taskRef, eventType, stage, task, result, taskOperationResult);
         }
     }
 
-    private void auditTaskOperation(PrismReferenceValue taskRef, AuditEventType event, AuditEventStage stage, Task operationTask, OperationResult parentResult) {
+    private void auditTaskOperation(PrismReferenceValue taskRef, AuditEventType event,
+            AuditEventStage stage, Task operationTask, OperationResult parentResult, @Nullable OperationResult taskOperationResult) {
         AuditEventRecord auditRecord = new AuditEventRecord(event, stage);
         String requestIdentifier = ModelImplUtils.generateRequestIdentifier();
         auditRecord.setRequestIdentifier(requestIdentifier);
@@ -2057,10 +2299,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             //TODO should we somehow indicate deltas which are executed in taskManager?
             delta = prismContext.deltaFactory().object().createEmptyModifyDelta(TaskType.class, taskRef.getOid());
         }
-        ObjectDeltaOperation<TaskType> odo = new ObjectDeltaOperation<>(delta, parentResult);
+        ObjectDeltaOperation<TaskType> odo = new ObjectDeltaOperation<>(delta, taskOperationResult);
         auditRecord.addDelta(odo);
-        if (AuditEventStage.EXECUTION == stage) {
-            auditRecord.setOutcome(parentResult.getStatus());
+        if (taskOperationResult != null) { // for EXECUTION stage
+            auditRecord.setOutcome(taskOperationResult.getStatus());
         }
         auditHelper.audit(auditRecord, null, operationTask, parentResult);
     }
@@ -2069,12 +2311,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     //region Workflow-related operations
     @Override
-    public void completeWorkItem(WorkItemId workItemId, @NotNull AbstractWorkItemOutputType output, ObjectDelta additionalDelta,
-            Task task, OperationResult parentResult)
-            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public void completeWorkItem(WorkItemId workItemId, @NotNull AbstractWorkItemOutputType output,
+            ObjectDelta additionalDelta, Task task, OperationResult parentResult)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
         AbstractWorkItemOutputType outputToUse;
         if (additionalDelta != null && ApprovalUtils.isApproved(output)) {
-            //noinspection unchecked
             ObjectDeltaType additionalDeltaBean = DeltaConvertor.toObjectDeltaType(additionalDelta);
             ObjectTreeDeltasType treeDeltas = new ObjectTreeDeltasType();
             treeDeltas.setFocusPrimaryDelta(additionalDeltaBean);
