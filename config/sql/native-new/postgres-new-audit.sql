@@ -196,34 +196,49 @@ ALTER TABLE ma_audit_ref_default ADD CONSTRAINT ma_audit_ref_default_fk
 
 -- region Schema versioning and upgrading
 /*
-See notes at the end of main repo schema.
-This is necessary only when audit is separate, but is safe to run any time.
+Procedure applying a DB schema/data change for audit tables.
+Use sequential change numbers to identify the changes.
+This protects re-execution of the same change on the same database instance.
+Use dollar-quoted string constant for a change, examples are lower, docs here:
+https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-DOLLAR-QUOTING
+The transaction is committed if the change is executed.
+The change number is NOT semantic and uses different key than original 'databaseSchemaVersion'.
+Semantic schema versioning is still possible, but now only for information purposes.
+
+Example of an DB upgrade script (stuff between $$ can be multiline, here compressed for brevity):
+CALL apply_audit_change(1, $$ create table x(a int); insert into x values (1); $$);
+CALL apply_audit_change(2, $$ alter table x add column b text; insert into x values (2, 'two'); $$);
+-- not a good idea in general, but "true" forces the execution; it never updates change # to lower
+CALL apply_audit_change(1, $$ insert into x values (3, 'three'); $$, true);
 */
-CREATE OR REPLACE PROCEDURE apply_change(changeNumber int, change TEXT, force boolean = false)
+CREATE OR REPLACE PROCEDURE apply_audit_change(changeNumber int, change TEXT, force boolean = false)
     LANGUAGE plpgsql
 AS $$
 DECLARE
     lastChange int;
 BEGIN
-    SELECT value INTO lastChange FROM m_global_metadata WHERE name = 'schemaChangeNumber';
+    SELECT value INTO lastChange FROM m_global_metadata WHERE name = 'schemaAuditChangeNumber';
 
     -- change is executed if the changeNumber is newer - or if forced
     IF lastChange IS NULL OR lastChange < changeNumber OR force THEN
         EXECUTE change;
-        RAISE NOTICE 'Change #% executed!', changeNumber;
+        RAISE NOTICE 'Audit change #% executed!', changeNumber;
 
         IF lastChange IS NULL THEN
-            INSERT INTO m_global_metadata (name, value) VALUES ('schemaChangeNumber', changeNumber);
+            INSERT INTO m_global_metadata (name, value) VALUES ('schemaAuditChangeNumber', changeNumber);
         ELSIF changeNumber > lastChange THEN
             -- even with force we never want to set lower change number, hence the IF above
-            UPDATE m_global_metadata SET value = changeNumber WHERE name = 'schemaChangeNumber';
+            UPDATE m_global_metadata SET value = changeNumber WHERE name = 'schemaAuditChangeNumber';
         END IF;
         COMMIT;
     ELSE
-        RAISE NOTICE 'Change #% skipped, last change #% is newer!', changeNumber, lastChange;
+        RAISE NOTICE 'Audit change #% skipped, last change #% is newer!', changeNumber, lastChange;
     END IF;
 END $$;
 -- endregion
+
+-- Initializing the last change number used in postgres-new-upgrade.sql.
+call apply_audit_change(0, $$ SELECT 1 $$, true);
 
 ---------------------------------------------------------------------------------
 -- The rest of the file can be omitted if partitioning is not required or desired

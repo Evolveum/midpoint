@@ -1798,7 +1798,8 @@ ALTER TABLE m_ext_item ADD CONSTRAINT m_ext_item_key
 
 -- region Schema versioning and upgrading
 /*
-Procedure applying a DB schema/data change. Use sequential change numbers to identify the changes.
+Procedure applying a DB schema/data change for main repository tables (audit has separate procedure).
+Use sequential change numbers to identify the changes.
 This protects re-execution of the same change on the same database instance.
 Use dollar-quoted string constant for a change, examples are lower, docs here:
 https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-DOLLAR-QUOTING
@@ -1811,7 +1812,7 @@ CALL apply_change(1, $$ create table x(a int); insert into x values (1); $$);
 CALL apply_change(2, $$ alter table x add column b text; insert into x values (2, 'two'); $$);
 -- not a good idea in general, but "true" forces the execution; it never updates change # to lower
 CALL apply_change(1, $$ insert into x values (3, 'three'); $$, true);
- */
+*/
 CREATE OR REPLACE PROCEDURE apply_change(changeNumber int, change TEXT, force boolean = false)
     LANGUAGE plpgsql
 AS $$
