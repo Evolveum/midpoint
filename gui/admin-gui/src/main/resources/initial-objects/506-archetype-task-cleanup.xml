@@ -44,15 +44,18 @@
                         </container>
                     </panel>
                 </panel>
-                <container>
-                    <identifier>cleanup-options</identifier>
-                    <display>
-                        <label>CleanupTask.cleanupOptions</label>
-                    </display>
-                    <item>
-                        <c:path>extension/mext:cleanupPolicies</c:path>
-                    </item>
-                </container>
+                <panel>
+                    <identifier>taskBasic</identifier>
+                    <container>
+                        <identifier>cleanup-options</identifier>
+                        <display>
+                            <label>CleanupTask.cleanupOptions</label>
+                        </display>
+                        <item>
+                            <c:path>extension/mext:cleanupPolicies</c:path>
+                        </item>
+                    </container>
+                </panel>
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
@@ -71,6 +74,29 @@
                 <target>
                     <c:path>category</c:path>
                 </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>weak</strength>
+                <source>
+                    <path>activity</path>
+                </source>
+                <expression>
+                    <value>http://midpoint.evolveum.com/xml/ns/public/model/cleanup/handler-3</value>
+                </expression>
+                <target>
+                    <c:path>handlerUri</c:path>
+                </target>
+                <condition>
+                    <script>
+                        <code>
+                            activity == null
+                        </code>
+                    </script>
+                </condition>
             </mapping>
         </focusMappings>
     </inducement>

@@ -164,6 +164,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
             if (iw instanceof PrismContainerWrapper) {
                 PrismContainerWrapper<?> cw = (PrismContainerWrapper<?>) iw;
                 cw.setIdentifier(virtualContainer.getIdentifier());
+                cw.setVirtual(true);
                 if (virtualContainer.isExpanded() != null) {
                     cw.getValues().forEach(vw -> vw.setExpanded(virtualContainer.isExpanded()));
                 }

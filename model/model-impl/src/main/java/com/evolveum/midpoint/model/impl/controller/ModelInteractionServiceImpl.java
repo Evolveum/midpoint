@@ -165,7 +165,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() + ".generateValue";
     private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() + ".validateValue";
-    private static final String OPERATION_DETERMINE_VIRTUAL_CONTAINERS = ModelInteractionService.class.getName() + ".determineVirtualContainers";
 
     @Override
     public <F extends ObjectType> ModelContext<F> previewChanges(

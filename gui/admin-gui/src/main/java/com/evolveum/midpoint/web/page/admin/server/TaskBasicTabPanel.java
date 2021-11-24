@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.*;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -85,6 +87,7 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
                 Task task = getPageBase().createSimpleTask(OPERATION_UPDATE_WRAPPER);
                 OperationResult result = task.getResult();
                 WrapperContext ctx = new WrapperContext(task, result);
+                ctx.setDetailsPageTypeConfiguration(getDetailsPanelsConfiguration(getTask().asPrismObject()));
                 try {
                     wrapperFactory.updateWrapper(TaskBasicTabPanel.this.getModelObject(), ctx);
 
@@ -134,6 +137,23 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
             throw new RestartResponseException(PageTasks.class);
         }
 
+    }
+
+    private GuiObjectDetailsPageType getDetailsPanelsConfiguration(PrismObject<TaskType> object) {
+        GuiObjectDetailsPageType defaultPageConfig = getPageBase().getCompiledGuiProfile().findObjectDetailsConfiguration(TaskType.COMPLEX_TYPE);
+
+        if (!AssignmentHolderType.class.isAssignableFrom(object.getCompileTimeClass())) {
+            return defaultPageConfig;
+        }
+
+        OperationResult result = new OperationResult("mergeArchetypeConfig");
+        try {
+            ArchetypePolicyType archetypePolicyType = getPageBase().getModelInteractionService().determineArchetypePolicy((PrismObject<? extends AssignmentHolderType>) object, result);
+            return getPageBase().getAdminGuiConfigurationMergeManager().mergeObjectDetailsPageConfiguration(defaultPageConfig, archetypePolicyType, result);
+        } catch (SchemaException | ConfigurationException e) {
+            LOGGER.error("Cannot merge details page configuration from archetype policy, {}", e.getMessage(), e);
+            return defaultPageConfig;
+        }
     }
 
     private ItemVisibility getBasicTabVisibility(ItemPath path) {

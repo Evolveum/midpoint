@@ -369,7 +369,15 @@
                 </collection>
             </objectCollectionView>
             <objectCollectionView>
-                <identifier>import-resource-tasks-view</identifier>
+                <identifier>non-iterative-bulk-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000508" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>iterative-bulk-tasks-view</identifier>
                 <refreshInterval>30</refreshInterval>
                 <type>TaskType</type>
                 <collection>

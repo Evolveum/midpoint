@@ -2504,7 +2504,7 @@ public final class WebComponentUtil {
         dispatchToObjectDetailsPage(obj, false, component);
     }
 
-    private static boolean isNewDesignEnabled() {
+    public static boolean isNewDesignEnabled() {
         MidPointApplication app = MidPointApplication.get();
         ModelInteractionService service = app.getModelInteractionService();
         Task task = app.createSimpleTask("get compiledGui profile");

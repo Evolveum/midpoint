@@ -150,9 +150,14 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
 
             collectExtensionItems(newItem, false, nonContainers);
 
-            if (!((PrismContainerWrapper) newItem).isVirtual()) {
-                containers.add((PrismContainerWrapper) newItem);
+            if (WebComponentUtil.isNewDesignEnabled()) {
+                if (!((PrismContainerWrapper) newItem).isVirtual()) {
+                    containers.add((PrismContainerWrapper) newItem);
+                }
+            } else {
+                containers.add((PrismContainerWrapper<? extends Containerable>) newItem);
             }
+
         } else {
             nonContainers.add(newItem);
         }
@@ -234,8 +239,14 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
 
             collectExtensionItems(container, true, containers);
 
-            if (container instanceof PrismContainerWrapper && !ObjectType.F_EXTENSION.equivalent(container.getItemName()) && !((PrismContainerWrapper) container).isVirtual()) {
-                containers.add((PrismContainerWrapper) container);
+            if (container instanceof PrismContainerWrapper && !ObjectType.F_EXTENSION.equivalent(container.getItemName())){
+                if (WebComponentUtil.isNewDesignEnabled()) {
+                    if (!((PrismContainerWrapper) container).isVirtual()) {
+                        containers.add((PrismContainerWrapper<? extends Containerable>) container);
+                    }
+                } else {
+                    containers.add((PrismContainerWrapper<? extends Containerable>) container);
+                }
             }
         }
         return containers;

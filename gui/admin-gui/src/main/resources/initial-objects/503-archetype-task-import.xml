@@ -64,39 +64,42 @@
                         </container>
                     </panel>
                 </panel>
-                <container>
-                    <identifier>objects-to-import</identifier>
-                    <display>
-                        <label>ImportTask.objectsToImport</label>
-                    </display>
-                    <item>
-                        <c:path>objectRef</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:objectclass</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:kind</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:intent</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:objectQuery</c:path>
-                    </item>
-                </container>
-                <container>
-                    <identifier>import-options</identifier>
-                    <display>
-                        <label>ImportTask.importOptions</label>
-                    </display>
-                    <item>
-                        <c:path>extension/mext:workerThreads</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:dryRun</c:path>
-                    </item>
-                </container>
+                <panel>
+                    <identifier>taskBasic</identifier>
+                    <container>
+                        <identifier>objects-to-import</identifier>
+                        <display>
+                            <label>ImportTask.objectsToImport</label>
+                        </display>
+                        <item>
+                            <c:path>objectRef</c:path>
+                        </item>
+                        <item>
+                            <c:path>extension/mext:objectclass</c:path>
+                        </item>
+                        <item>
+                            <c:path>extension/mext:kind</c:path>
+                        </item>
+                        <item>
+                            <c:path>extension/mext:intent</c:path>
+                        </item>
+                        <item>
+                            <c:path>extension/mext:objectQuery</c:path>
+                        </item>
+                    </container>
+                    <container>
+                        <identifier>import-options</identifier>
+                        <display>
+                            <label>ImportTask.importOptions</label>
+                        </display>
+                        <item>
+                            <c:path>extension/mext:workerThreads</c:path>
+                        </item>
+                        <item>
+                            <c:path>extension/mext:dryRun</c:path>
+                        </item>
+                    </container>
+                </panel>
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
@@ -115,6 +118,29 @@
                 <target>
                     <c:path>category</c:path>
                 </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>weak</strength>
+                <source>
+                    <path>activity</path>
+                </source>
+                <expression>
+                    <value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/import/handler-3</value>
+                </expression>
+                <target>
+                    <c:path>handlerUri</c:path>
+                </target>
+                <condition>
+                    <script>
+                        <code>
+                            activity == null
+                        </code>
+                    </script>
+                </condition>
             </mapping>
         </focusMappings>
     </inducement>

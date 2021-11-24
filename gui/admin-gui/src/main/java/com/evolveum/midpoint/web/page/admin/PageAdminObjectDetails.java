@@ -11,6 +11,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -768,6 +770,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         PrismObjectWrapperFactory<O> factory = getRegistry().getObjectWrapperFactory(object.getDefinition());
         WrapperContext context = new WrapperContext(task, result);
         context.setCreateIfEmpty(ItemStatus.ADDED == itemStatus);
+        context.setDetailsPageTypeConfiguration(getDetailsPanelsConfiguration(object));
         //we don't want to set to false.. refactor this method to take either enum (READONLY, AUTO, ...) or
         // Boolean instead of boolean isReadonly
         if (isReadonly) {
@@ -783,6 +786,23 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
             showResult(result, false);
             throw new RestartResponseException(getRestartResponsePage());
+        }
+    }
+
+    private GuiObjectDetailsPageType getDetailsPanelsConfiguration(PrismObject<O> object) {
+        GuiObjectDetailsPageType defaultPageConfig = getCompiledGuiProfile().findObjectDetailsConfiguration(object.getDefinition().getTypeName());
+
+        if (!AssignmentHolderType.class.isAssignableFrom(object.getCompileTimeClass())) {
+            return defaultPageConfig;
+        }
+
+        OperationResult result = new OperationResult("mergeArchetypeConfig");
+        try {
+            ArchetypePolicyType archetypePolicyType = getModelInteractionService().determineArchetypePolicy((PrismObject<? extends AssignmentHolderType>) object, result);
+            return getAdminGuiConfigurationMergeManager().mergeObjectDetailsPageConfiguration(defaultPageConfig, archetypePolicyType, result);
+        } catch (SchemaException | ConfigurationException e) {
+            LOGGER.error("Cannot merge details page configuration from archetype policy, {}", e.getMessage(), e);
+            return defaultPageConfig;
         }
     }
 
@@ -1219,5 +1239,5 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     protected void processAdditionalFocalObjectsForPreview(Map<PrismObject<O>, ModelContext<? extends ObjectType>> modelContextMap) {
     }
-    
+
 }
