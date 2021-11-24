@@ -83,17 +83,6 @@ join pg_catalog.pg_stat_activity blocking_activity on blocking_activity.pid = bl
 where not blocked_locks.granted
 ;
 
--- showing all extension values exploded to rows (including multi-val)
-select oid, key, coalesce(aval, sval) val from (
-    select oid, key,
-        case when jsonb_typeof(value) = 'array' then value end avals,
-        case when jsonb_typeof(value) <> 'array' then value end sval
-    from m_user, jsonb_each(ext) fields
-) x left join jsonb_array_elements(avals) aval on true
-where oid = '0cbe39c7-c7af-4cf3-a334-098400284a0a'
--- other conditions possible, but let's not run it on the whole table or order by ext values
-;
-
 -- list of client connections
 select pid, datname, usename, application_name, client_addr, backend_start, state
 from pg_stat_activity
@@ -181,6 +170,29 @@ WHERE source<>'default' AND source<>'override';
 
 -- Display all settings (equivalent to show all with more info)
 SELECT * FROM pg_settings;
+----
+
+MidPoint object related queries:
+
+[source,sql]
+----
+-- show OID and full object preview as string (works in plain psql too)
+select oid, objecttype, substring(convert_from(fullobject, 'UTF8'), 1, 100), pg_column_size(fullobject), length(fullobject)
+from m_object
+-- possible conditions here, e.g. oid = '...'
+limit 10
+;
+
+-- showing all extension values exploded to rows (including multi-val)
+select oid, key, coalesce(aval, sval) val from (
+    select oid, key,
+        case when jsonb_typeof(value) = 'array' then value end avals,
+        case when jsonb_typeof(value) <> 'array' then value end sval
+    from m_user, jsonb_each(ext) fields
+) x left join jsonb_array_elements(avals) aval on true
+where oid = '0cbe39c7-c7af-4cf3-a334-098400284a0a'
+-- other conditions possible, but let's not run it on the whole table or order by ext values
+;
 ----
 
 == Troubleshooting

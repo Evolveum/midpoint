@@ -338,7 +338,7 @@ To enable this logger, add the following `auditService` element inside `audit` e
 Audit service writing to database tables is closely related to the xref:/midpoint/reference/repository/[repository] implementation:
 
 * If the xref:/midpoint/reference/repository/native-postgresql/[Native PostgreSQL Repository] is used,
-see xref:/midpoint/reference/repository/native-postgresql/native-audit/[Native PostgreSQL Audit Trail]
+see xref:/midpoint/reference/repository/native-audit/[Native PostgreSQL Audit Trail]
 for more details, including how to configure it.
 
 * If the deprcated xref:/midpoint/reference/repository/generic/[Generic SQL Repository] is used,

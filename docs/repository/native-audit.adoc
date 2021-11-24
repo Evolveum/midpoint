@@ -44,9 +44,14 @@ The audit tables (see below) must be part of the repository database in that cas
 
 == Configuration options
 
-=== Basic connection options
+Many xref:../configuration/#configuration-options[repository options] can be used for
+the SQL audit trail - these are mentioned in the table below.
+Some of them are relevant only if separate data source with its own connection pool is used for the SQL audit.
+Few options do not depend on the database connection and can be tweaked separately - these are named in the second table below.
 
-The following table lists the basic configuration options for the `repository` element:
+All the options for the concrete audit trail implementation (or audit service) are placed directly under `auditService` element.
+
+=== Basic connection options
 
 [%autowidth]
 |===
@@ -54,7 +59,7 @@ The following table lists the basic configuration options for the `repository` e
 
 | `jdbcUrl`
 | URL for JDBC connection.
-This must be used (unless non-recommended `dataSource` is present) and can optionally conatain username and password.
+When this (or non-recommended `dataSource`) is present, separate connection pool will be initialized for the SQL audit.
 See https://jdbc.postgresql.org/documentation/head/connect.html[Connecting to the Database] from PostgreSQL JDBC Driver documentation for more.
 | `jdbc:postgresql://localhost:5432/midpoint`
 
@@ -62,7 +67,7 @@ See https://jdbc.postgresql.org/documentation/head/connect.html[Connecting to th
 | Username for JDBC connection.
 Can be empty, if username is not needed or provided in JDBC URL or otherwise.
 
-Example: `midpoint`
+Example: `midaudit`
 |
 
 | `jdbcPassword`
@@ -84,7 +89,7 @@ Example: `password`
 | Uses JNDI DataSource loading, when this option is defined in configuration.
 This is only relevant for WAR deployment which is not recommended anyway.
 `jdbcUrl`, `jdbcUsername`, `jdbcPassword`, and `driverClassName` is ignored and should not be used.
-Example: `<dataSource>java:comp/env/jdbc/midpoint</dataSource>`
+Example: `<dataSource>java:comp/env/jdbc/midaudit</dataSource>`
 
 *WARNING:
 This is obsolete functionality that is no longer supported or maintained.*
@@ -92,15 +97,7 @@ It is relevant only for WAR deployments on Tomcat and even there we recommend us
 |
 |===
 
-==== Using empty username and password
-
 It is possible to connect to the database without specifying password or username or both.
-Examples are:
-
-* Providing the username and password in JDBC URL.
-
-* Using PostgreSQL trust authentication - though this is definitely not recommended for serious deployments.
-
 Simply skip configuration elements *jdbcUsername* and *jdbcPassword*.
 If everything is configured as expected, connection will be successful, otherwise JDBC driver will throw an exception and midPoint will not start.
 
@@ -211,47 +208,84 @@ is too high compared to the time used for processing the page results.
 There are no options for compression as this is left to PostgreSQL.
 This also makes the inspection of the values in the columns easier.
 
-== Index tuning
+== Audit tables
 
-[NOTE]
-This section is not updated and cleaned-up for the new repository.
-It will probably be part of xref:../native-postgresql/db-maintenance/[DB maintenance] page later.
+// TODO
 
-Anything that is externalized into columns and related tables (like extensions, references, etc.) is effectively searchable using xref:../concepts/query/query-api/[].
-It is not possible to search for information stored only in the serialized form of the object.
-But _searchable_ and _efficiently searchable_ are two different things.
+== Partitioning
 
-For some tables (object types) and some columns no indexes are needed, but for others they typically are.
-MidPoint is provided with all essential indexes out of the box.
-Despite that it is possible to come up with real-life queries that will perform badly.
-While it is possible to cover nearly all needs by more and more indexes, it is not necessarily
-a good idea to have them all created by default.
-Indexes also take space and if not necessary only add cost to insert/update operation without really helping.
+// TODO
 
-For any non-trivial installation it is recommended to check the database performance logs/statistics regularly to identify sluggish queries.
-When identified check existing (predefined) indexes whether they should have covered the case and investigate why they didn't.
-If the existing index does not cover the case, don't be afraid to add the index according to your specific needs.
+== Examples
 
-Following notes and tips can be helpful:
+=== Basic SQL audit setup
 
-* Don't index each column separately if the critical query uses multiple where conditions,
-use https://use-the-index-luke.com/sql/where-clause/the-equals-operator/concatenated-keys[multi-column index] instead.
-Order of columns is important.
-* Searching using `like` (especially with `%` at the start of the value) or case-insensitive
-search often require specific indexes.
-Consult your database resources; some databases don't offer function-based index and indexing the column using lower/upper (depending on the used query) may not be possible.
-Some databases offer specialized indexes, e.g. PostgreSQL trigram indexes that can significantly boost performance.
-* In general, don't index columns with low-cardinality (e.g. boolean or integer representing enum
-with just a few distinct values) alone.
-Leave the column unindexed and let other indexes do the job first.
-Searching only by such a column is not recommended.
-It is however possible to use low-cardinality column in multi-column index, and it may be beneficial
-when it is the first column (of course, only selects using the column in `WHERE` use such an index).
-* It is possible to use `where` clause in an index when only specific values are selected often
-, e.g. value indicating active user.
-This is called https://use-the-index-luke.com/sql/where-clause/partial-and-filtered-indexes[partial index].
-This is typical for low variability columns (booleans, enums), using them in where part of the
-index is good, and it also makes the index size smaller.
+This setup uses the same setup and set of connections as the main repository.
+The audit tables (prefixed `ma_`) must be present in the same database as the main repository.
+
+.config.xml
+[source,xml]
+----
+<configuration>
+    <midpoint>
+        ...
+        <repository>
+            <type>sqale</type>
+            <database>postgresql</database>
+            <jdbcUrl>jdbc:postgresql://192.168.56.33:5432/midpoint</jdbcUrl>
+            <jdbcUsername>midpoint</jdbcUsername>
+            <jdbcPassword>password</jdbcPassword>
+        </repository>
+        <audit>
+            ...
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+        </audit>
+...
+----
+
+=== SQL audit using its own database
+
+Here we use different database for the audit by specifying `jdbcUrl` and other related options.
+Couple of notes to the example below:
+
+* You can use the same JDBC URL, username and password to use the same database, but with separate connection pool.
+This probably does not make much sense, adjusting connection pool in the `repository` is more flexible, but it is possible.
+* Example below uses the same database server, which is probably not ideal, if you decide for this scenario.
+Separate databases allow for some flexibility, but separate database servers are better.
+* Example below shows `maxPoolSize` and `fullObjectFormat` overrides.
+Normally these values are taken from the main `repository` section - and if not present there, from the defaults.
+** These defaults for the main repository may be unnecessarily generous for the audit connection pool,
+although the default settings do release unused physical connections.
+** `fullObjectFormat` is shown only for demonstration purposes, do not change it unless you have specific needs.
+
+.config.xml
+[source,xml]
+----
+<configuration>
+    <midpoint>
+        ...
+        <repository>
+            <type>sqale</type>
+            <database>postgresql</database>
+            <jdbcUrl>jdbc:postgresql://192.168.56.33:5432/midpoint</jdbcUrl>
+            <jdbcUsername>midpoint</jdbcUsername>
+            <jdbcPassword>password</jdbcPassword>
+        </repository>
+        <audit>
+            ...
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
+                <jdbcUrl>jdbc:postgresql://192.168.56.33:5432/midaudit?ApplicationName=audit</jdbcUrl>
+                <jdbcUsername>midaudit</jdbcUsername>
+                <jdbcPassword>password</jdbcPassword>
+                <maxPoolSize>4</maxPoolSize>
+                <fullObjectFormat>xml</fullObjectFormat>
+            </auditService>
+        </audit>
+...
+----
 
 == See Also
 
