@@ -140,7 +140,7 @@ It consists of the name and the value.
 Name of the parameter must be the same as it is defined for the function in the function library object.
 When you look on the example above showing the usage of the function evaluator and the example of the function library object, you can see that the parameter name _location_ coincide with the name of the parameter _location_ in the function _getLocality_. The value used for the parameter itself is xref:/midpoint/reference/expressions/expressions/[expression]. So you can use each expression evaluator here to get a value for the parameter.
 E.g. in the example above the path expression evaluator is used to get the value from user's locality attribute.
-So at the end you can interpret the example above like calling the function _getLocality_ from the function _library_ identified by _the oid=c0c010c0-d34d-b33f-f00d-999999999999 _and passing the value of user's locality attribute as a parameter to this function.
+So at the end you can interpret the example above like calling the function _getLocality_ from the function _library_ identified by the _oid=c0c010c0-d34d-b33f-f00d-999999999999_ and passing the value of user's locality attribute as a parameter to this function.
 
 
 === Invoking function from a script

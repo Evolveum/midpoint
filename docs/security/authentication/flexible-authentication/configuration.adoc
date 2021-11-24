@@ -72,7 +72,7 @@ No suffix specified.
 
 |===
 
-Channels for _rest _and_ actuator_ default don't create audit records about session creation or termination.
+Channels for _rest_ and _actuator_ default don't create audit records about session creation or termination.
 You can turn on it via variable in System Configuration _audit->eventRecording->recordSessionlessAccess_.
 
 
@@ -288,7 +288,7 @@ This module contains next attributes:
 | `pattern`
 | The filter expression used in the user search.
 This is an LDAP search filter (as defined in 'RFC 2254') with optional arguments.
-Example (uid={0})
+Example: `(uid=\{0})`
 | true
 | _String_
 
@@ -755,7 +755,7 @@ For example 'uid'.
 ===== AuthenticationModuleSaml2ProviderMetadataType
 
 _AuthenticationModuleSaml2ProviderMetadataType_ represents metadata of provider.
-You can choose from one definition for metadata: _metadataUrl_, _xml _and _pathToFile_.
+You can choose from one definition for metadata: _metadataUrl_, _xml_ and _pathToFile_.
 
 [%autowidth]
 |===

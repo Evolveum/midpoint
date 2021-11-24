@@ -182,10 +182,12 @@ Recomputation on membership change (covering situations #2-4 above, at least in 
 The `alwaysTrue` experimental policy constraint is designed to trigger any time it is evaluated (in the context of object, not an assignment).
 So this rule is really always triggered.
 
-And what it does? It takes all targets that match rule assignment (i.e. all tokens in this case) _and _whose membership status changed.
+And what it does?
+It takes all targets that match rule assignment (i.e. all tokens in this case) _and_ whose membership status changed.
 This should cover situations #2, #3, and #4.
 
-*(Temporary) workaround for situation #4:* However, because assignment evaluator skips evaluating assignments when object is deleted, the respective policy rule must be attached to the object in some other way.
+*(Temporary) workaround for situation #4:*
+However, because assignment evaluator skips evaluating assignments when object is deleted, the respective policy rule must be attached to the object in some other way.
 
 So this global policy rule has to be used:
 
