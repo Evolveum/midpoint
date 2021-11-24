@@ -36,11 +36,11 @@ For example, the `audit` section may look like this (the first `auditService` is
 </audit>
 ----
 
-Without further configuration, audit uses the same datasource as the main repository.
-The audit tables (see below) must be part of the repository database in that case.
+Without further configuration, audit uses the same datasource as the main repository (in the `repository` element).
+The audit tables (see link:#audit-tables[below]) must be part of the repository database in that case.
 
-
-// TODO reference main configuration, explain the interaction between them, clean the options below
+To enable separate database connection settings, use `jdbcUrl` in the `auditService` element.
+See the options in the following sections for more details.
 
 == Configuration options
 
@@ -52,6 +52,9 @@ Few options do not depend on the database connection and can be tweaked separate
 All the options for the concrete audit trail implementation (or audit service) are placed directly under `auditService` element.
 
 === Basic connection options
+
+You may skip this table, if you want to use the same database settings and the same connection pool
+for both main repository and the SQL audit - this is perfectly acceptable solution for most deployments.
 
 [%autowidth]
 |===
@@ -101,87 +104,20 @@ It is possible to connect to the database without specifying password or usernam
 Simply skip configuration elements *jdbcUsername* and *jdbcPassword*.
 If everything is configured as expected, connection will be successful, otherwise JDBC driver will throw an exception and midPoint will not start.
 
-=== Other connection pool options
+There are more connection pool settings, see xref:../configuration/#other-connection-pool-options[their description]
+in the repository configuration document.
+Again, these are only relevant if separate connection setup is used.
+You may try to lower `minPoolSize` and monitor the usage of the connections to adjust `maxPoolSize` later too.
 
-All these options are optional, but can be used to fine-tune the repository setup.
+[IMPORTANT]
+If the same database server is used for the repository and SQL audit, it is important to count the
+`maxPoolSize` for audit to the total possible count of used connections and avoid going over PostgreSQL
+`max_connections` setting.
 
-MidPoint uses https://github.com/brettwooldridge/HikariCP[HikariCP] as a connection pool (version 4.x).
-Detailed descriptions of connection pool related options can be found in
-https://github.com/brettwooldridge/HikariCP#gear-configuration-knobs-baby[Hikari configuration documentation].
-Names used below are the same as names used in HikariCP unless stated otherwise in the description.
+=== Other SQL audit configuration options
 
-All time values are in milliseconds (ms).
-
-[%autowidth]
-|===
-| Option | Description | Default
-
-| `minPoolSize`
-| Minimal # of connections in connection pool, if connection pool is not provided through dataSource.
-
-This option is called `minimumIdle` in HikariCP.
-It is always set by midPoint, so HikariCP default is never used.
-
-The value cannot be lower than 2 for midPoint, and - if set so, minimum value 2 will be used.
-| `8`
-
-| `maxPoolSize`
-| Maximum # of connections in connection pool, if connection pool is not provided through dataSource.
-Please, be aware that for the multi-node setup the total number of connections *must not* go above
-the `max_connections` in the Postgres configuration, so this is a good default only up to 2 nodes.
-See xref:../native-postgresql/postgresql-configuration/[PostgreSQL Configuration] for more tips.
-
-When midPoint needs another connection from the pool it will wait for it.
-The time is determined by the default value for HikariCP `connectionTimeout` option, which is 30s.
-Currently, this cannot be changed in midPoint config, but it is a reasonable time.
-But if the pool is oversized and HikariCP asks for the connection from the DB, and there is no free
-connection available, the request fails immediately.
-
-It is better to lower the pool size on the nodes to  that case.
-Don't raise the `max_connections` in PostgreSQL without https://www.enterprisedb.com/postgres-tutorials/why-you-should-use-connection-pooling-when-setting-maxconnections-postgres[testing it first]!
-It has far-reaching consequences and can actually hurt performance badly.
-
-This option is called `maximumPoolSize` in HikariCP.
-It is always set by midPoint, so HikariCP default is never used.
-
-This value cannot be lower than `minPoolSize` - if set so, effective `minPoolSize` value is used.
-| `40`
-
-| `maxLifetime`
-| Time after which the connection is retired from the pool.
-This should be lower than any connection time limit used by the DB or the network infrasctructure.
-
-The minimum allowed value is 30000ms (30 seconds).
-| none, HikariCP sets 1800000 (30 minutes) by default
-
-| `idleTimeout`
-| Time after which an idle connection may be retired if current number of connections is higher than `minPoolSize`.
-
-The minimum allowed value is 10000ms (10 seconds).
-| none, HikariCP sets 600000 (10 minutes) by default
-
-| `keepaliveTime`
-| Controls the frequency for keepalive check on idle connections.
-Keepalive ping contacts the DB backend, so it can prevent connection failures if some network infrastructure drops idle connections.
-
-The minimum allowed value is 30000ms (30 seconds), 0 disables this feature.
-| none, HikariCP sets 0 (disabled)
-
-| `leakDetectionThreshold`
-| If the connection is out of the pool (used by the application) for longer than the threshold, the message is logged
-to indicate possible connection leak, including the stacktrace where the connection was obtained.
-
-The minimum allowed value is 2000 (2 seconds), 0 disables this feature.
-| none, HikariCP sets 0 (disabled)
-
-| `initializationFailTimeout`
-| Hikari pool initialization failure timeout, in milliseconds.
-It is there to allow midPoint to wait until the repository is up and running and therefore to avoid failing prematurely.
-| `1`
-
-|===
-
-=== Other repository configuration options
+Default values of these options are taken from `repository` element, and only if not specified there,
+the value in the *Default* column is used.
 
 [%autowidth]
 |===
@@ -189,7 +125,7 @@ It is there to allow midPoint to wait until the repository is up and running and
 
 | `fullObjectFormat`
 | Property specifies format (language) used to store serialized object representation into
-`m_object.fullObject` and other columns storing serialized object or container representation.
+`ma_audit_delta` table (`delta` and `fullResult` columns).
 Supported values are `json` and `xml`.
 This is safe to change any time, objects are read properly regardless of the format they are stored in.
 | `json`
@@ -210,6 +146,9 @@ This also makes the inspection of the values in the columns easier.
 
 == Audit tables
 
+Audit logs are stored in the tables structured as described below.
+You can find current schema script for audit in link:https://github.com/Evolveum/midpoint/blob/master/config/sql/native-new/postgres-new-audit.sql[git],
+or in the distribution packages in the file `doc/config/sql/native-new/postgres-new-audit.sql`.
 // TODO
 
 == Partitioning

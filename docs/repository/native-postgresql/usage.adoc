@@ -17,7 +17,7 @@ See this xref:/midpoint/reference/repository/configuration/[Repository Configura
 * Main difference in `config.xml` is to use `<type>generic</type>` instead of
 `<repositoryServiceFactoryClass>` element (which does not work with new repo).
 Definitely don't try to use both `<repositoryServiceFactoryClass>` and `<type>` simultaneously!
-* For SQL audit replace old repository value in `auditServiceFactoryClass`
+* For xref:../../native-audit/[SQL audit] replace old repository value in `auditServiceFactoryClass`
 with `com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory`.
 Audit factory class for SQL auditing must match the used repository.
 
@@ -171,6 +171,5 @@ It always runs only the missing parts of the upgrade process.
 discusses old and new repository and our support strategy.
 * xref:/midpoint/reference/repository/native-postgresql/migration/[Migration to Native PostgreSQL Repository]
 * xref:/midpoint/reference/repository/configuration/[Repository Configuration]
-// TODO separate audit repository link
+* xref:/midpoint/reference/repository/native-audit/[Native PostgreSQL Audit Trail]
 * xref:/midpoint/reference/tasks/task-manager/configuration/[Task Manager Configuration]
-// TODO and migrate them here - db/postgres parts about perf tuning, or to maintenance or pg config?

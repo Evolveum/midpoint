@@ -326,6 +326,7 @@ com.evolveum.midpoint.audit.log
 This logger can be directed to a specific appender to a separate audit log file using the normal logging configuration mechanism.
 
 To enable this logger, add the following `auditService` element inside `audit` element:
+
 [source,xml]
 ----
 <auditService>
@@ -528,8 +529,6 @@ Next example about custom column you can see on link:https://github.com/Evolveum
 ====
 This feature is available only in midPoint 4.2 and later.
 ====
-
-From version 4.1 Midpoint support flexible authentication, so we can configure different authentication for different channels. You can find configuration on .
 
 From version 4.2 channels for _rest_ and _actuator_ do not create audit records about session creation or termination by default.
 You can turn it on via variable in System Configuration _audit->eventRecording->recordSessionlessAccess_.
