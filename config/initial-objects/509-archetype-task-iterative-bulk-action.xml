@@ -55,34 +55,49 @@
         <adminGuiConfiguration>
             <objectDetails>
                 <type>c:TaskType</type>
-                <container>
-                    <display>
-                        <label>IterativeBulkActionTask.objectsToProcess</label>
-                    </display>
-                    <item>
-                        <c:path>extension/mext:objectType</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:objectQuery</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:searchOptions</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:useRepositoryDirectly</c:path>
-                    </item>
-                </container>
-                <container>
-                    <display>
-                        <label>IterativeBulkActionTask.bulkAction</label>
-                    </display>
-                    <item>
-                        <c:path>extension/scext:executeScript</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:workerThreads</c:path>
-                    </item>
-                </container>
+                <panel>
+                    <identifier>activity</identifier>
+                    <panel>
+                        <identifier>work</identifier>
+                        <container>
+                            <identifier>work-iterative-scripting</identifier>
+                            <path>activity/work/iterativeScripting</path>
+                        </container>
+                    </panel>
+                </panel>
+                <panel>
+                    <identifier>taskBasic</identifier>
+                    <container>
+                        <identifier>objects-to-process</identifier>
+                        <display>
+                            <label>IterativeBulkActionTask.objectsToProcess</label>
+                        </display>
+                        <item>
+                            <c:path>extension/mext:objectType</c:path>
+                        </item>
+                        <item>
+                            <c:path>extension/mext:objectQuery</c:path>
+                        </item>
+                        <item>
+                            <c:path>extension/mext:searchOptions</c:path>
+                        </item>
+                        <item>
+                            <c:path>extension/mext:useRepositoryDirectly</c:path>
+                        </item>
+                    </container>
+                    <container>
+                        <identifier>bulk-action</identifier>
+                        <display>
+                            <label>IterativeBulkActionTask.bulkAction</label>
+                        </display>
+                        <item>
+                            <c:path>extension/scext:executeScript</c:path>
+                        </item>
+                        <item>
+                            <c:path>extension/mext:workerThreads</c:path>
+                        </item>
+                    </container>
+                </panel>
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
@@ -96,10 +111,10 @@
             <mapping>
                 <strength>weak</strength>
                 <expression>
-                    <value>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</value>
+                    <value>BulkActions</value>
                 </expression>
                 <target>
-                    <c:path>handlerUri</c:path>
+                    <c:path>category</c:path>
                 </target>
             </mapping>
         </focusMappings>
@@ -108,12 +123,22 @@
         <focusMappings>
             <mapping>
                 <strength>weak</strength>
+                <source>
+                    <path>activity</path>
+                </source>
                 <expression>
-                    <value>BulkActions</value>
+                    <value>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</value>
                 </expression>
                 <target>
-                    <c:path>category</c:path>
+                    <c:path>handlerUri</c:path>
                 </target>
+                <condition>
+                    <script>
+                        <code>
+                            activity == null
+                        </code>
+                    </script>
+                </condition>
             </mapping>
         </focusMappings>
     </inducement>

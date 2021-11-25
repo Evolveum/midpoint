@@ -5,9 +5,9 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <archetype oid="00000000-0000-0000-0000-000000000170"
-           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
     <name>Dashboard report</name>
     <archetypePolicy>
         <display>
@@ -27,14 +27,65 @@
             <path>objectCollection</path>
             <visibility>hidden</visibility>
         </itemConstraint>
-        <itemConstraint>
-            <path>jasper</path>
-            <visibility>hidden</visibility>
-        </itemConstraint>
+        <adminGuiConfiguration>
+            <objectDetails>
+                <type>ReportType</type>
+                <panel>
+                    <identifier>engine</identifier>
+                    <displayOrder>11</displayOrder>
+                    <display>
+                        <label>Engine</label>
+                        <cssClass>fa fa-microchip</cssClass>
+                        <icon>
+                            <cssClass>fa fa-microchip</cssClass>
+                        </icon>
+                    </display>
+                    <container>
+                        <identifier>engineContainer</identifier>
+                        <display>
+                            <label>Engine</label>
+                        </display>
+                        <item>
+                            <path>dashboard/dashboardRef</path>
+                        </item>
+                        <item>
+                            <path>dashboard/showOnlyWidgetsTable</path>
+                        </item>
+                        <item>
+                            <path>dashboard/storeExportedWidgetData</path>
+                        </item>
+                    </container>
+                    <panelType>formPanel</panelType>
+                    <path>c:dashboard</path>
+                    <type>c:DashboardReportEngineConfigurationType</type>
+                </panel>
+                <panel>
+                    <identifier>view</identifier>
+                    <display>
+                        <label>View</label>
+                        <cssClass>fa fa-eye</cssClass>
+                        <icon>
+                            <cssClass>fa fa-eye</cssClass>
+                        </icon>
+                    </display>
+                    <container>
+                        <identifier>dashboard</identifier>
+                        <display>
+                            <label>Dashboard</label>
+                        </display>
+                        <path>dashboard/view</path>
+                    </container>
+                    <panelType>formPanel</panelType>
+                    <path>c:dashboard/view</path>
+                    <type>c:GuiObjectListViewType</type>
+                </panel>
+            </objectDetails>
+        </adminGuiConfiguration>
     </archetypePolicy>
     <assignment>
         <assignmentRelation>
             <holderType>ReportType</holderType>
         </assignmentRelation>
     </assignment>
+    <superArchetypeRef oid="00000000-0000-0000-0000-000000000172" type="c:ArchetypeType"/>
 </archetype>
