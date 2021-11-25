@@ -1,0 +1,40 @@
+= Activity State Overview Maintenance
+:page-experimental: true
+
+Even if activities execute in multiple tasks, it is crucial to be able to get an overview of their
+state quickly. That's why midPoint stores selected basic information directly in the root task.
+There are some settings that govern this process.
+
+Usually there's no need to modify the default settings.
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning | Default
+
+| `progressUpdateInterval`
+| How often should be the progress in the activity tree state overview updated?
+The value is in milliseconds.
+
+The interval should be such that its value divided by the number of workers should yield
+a reasonable time (e.g. no less than a couple of seconds).
+| `9000` for regular tasks, `60000` for worker tasks
+
+| `progressUpdateMode`
+| For what activities is the progress updated?
+| `forNonLocalActivities`
+|===
+
+Progress update mode values:
+
+[%header]
+[%autowidth]
+|===
+| Value | Meaning
+| `always`
+| Progress is always updated, even for the activities residing in the root task.
+| `forNonLocalActivities`
+| Progress is updated only for activities that do not reside in the root task.
+| `never`
+| Progress is never updated.
+|===

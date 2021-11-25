@@ -11,9 +11,9 @@
 == Introduction
 
 New midPoint releases usually bring new features.
-New features usually require the extension of midPoint wiki:Data+Model[data model] to use them.
+New features usually require the extension of midPoint xref:/midpoint/reference/schema/[data model] to use them.
 The changes of data model usually require extension of the schema of the database that stores midPoint objects.
-This is the usual routine for most midPoint wiki:Upgradeability[upgrades].
+This is the usual routine for most midPoint xref:/midpoint/reference/upgrade/upgradeability/[upgrades].
 
 MidPoint distributions come with the database upgrade scripts.
 These scripts contain a set of SQL commands (usually `ALTER TABLE` commands) that extend the schema of existing database.
@@ -42,7 +42,6 @@ The script file name is constructed in a form:
 
 e.g. `postgresql-upgrade-3.9-4.0.sql` is an upgrade script for PostgreSQL database that upgrades midPoint 3.9 to midPoint 4.0.
 
-
 == Executing the script
 
 The scripts should be executed by the usual way the SQL script is executed for any particular database.
@@ -55,18 +54,17 @@ E.g. the upgrade script for PostgreSQL database is usually executed like this:
 psql -h localhost -U midpoint -W -d midpoint < postgresql-upgrade-3.9-4.0.sql
 ----
 
-
 [TIP]
 ====
 Strictly speaking, the _version_ term above refers to the _database schema version_, not the midPoint version.
 These are the same for the majority of cases.
-A notable exception is midPoint 4.1 that uses database schema version 4.0. So, in that particular case, upgrade scripts are named like `postgresql-upgrade-4.0-4.2.sql`. See wiki:Database+schema+versioning[Database schema versioning] for more information.
+A notable exception is midPoint 4.1 that uses database schema version 4.0. So, in that particular case, upgrade scripts are named like `postgresql-upgrade-4.0-4.2.sql`. See xref:/midpoint/reference/repository/database-schema-versioning/[Database schema versioning] for more information.
 ====
 
 == See Also
 
-* wiki:Upgradeability[Upgradeability]
+* xref:/midpoint/reference/upgrade/upgradeability/[Upgradeability]
 
-* wiki:Upgrade+HOWTO[Upgrade HOWTO]
+* xref:/midpoint/reference/upgrade/upgrade-guide/[Upgrade HOWTO]
 
-* wiki:Database+schema+versioning[Database schema versioning]
+* xref:/midpoint/reference/repository/database-schema-versioning/[Database schema versioning]

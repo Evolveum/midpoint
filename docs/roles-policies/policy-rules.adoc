@@ -16,20 +16,20 @@
 == Introduction
 
 Policy rules are very powerful mechanism that spans a very wide range of use cases.
-It can be used to define role wiki:Approval[approval], wiki:Role+Lifecycle[lifecycle], policies such as wiki:Segregation+of+Duties[segregation of duties], notifications and other governance and compliance rules.
+It can be used to define role xref:/midpoint/reference/cases/approval/[approval], xref:/midpoint/reference/roles-policies/role-lifecycle/[lifecycle], policies such as xref:/midpoint/reference/roles-policies/segregation-of-duties/[segregation of duties], notifications and other governance and compliance rules.
 
 Each policy rule has the following parts:
 
 * *Name* and *description* of the rule are used for configuration management and diagnostics.
 The rule name will be displayed in the log files when the rule is processed.
 
-* *wiki:Focus+and+Projections[Focal object]* that the rule applies to.
+* *xref:/midpoint/reference/schema/focus-and-projections/[Focal object]* that the rule applies to.
 This defines that object that is being changed.
 E.g. this is the user that receives a new assignment.
 Or it is the role that is being created.
 
 * *Target object* (optional).
-This is used when applying the rule to the wiki:Assignment[assignment]. The target object represents the target of the assignment, which is usually a role, org or a service.
+This is used when applying the rule to the xref:/midpoint/reference/roles-policies/assignment/[assignment]. The target object represents the target of the assignment, which is usually a role, org or a service.
 
 * *Condition* (optional) when the rule should be applied.
 If the condition is not specified it is assumed to be true.
@@ -41,16 +41,16 @@ E.g. the rule may be triggered when a role is assigned, when the role is changed
 The situation identifier is stored together with the affected object or assignment and it can be used for reporting.
 
 * *Policy actions* specify the actions that are to be taken when the rule is triggered.
-The actions may range from strong enforcement of the rule (i.e. prohibit the operation) through wiki:Approval[Approval] to a very mild actions such as notifications.
+The actions may range from strong enforcement of the rule (i.e. prohibit the operation) through xref:/midpoint/reference/cases/approval/[Approval] to a very mild actions such as notifications.
 
 Some of these parts may be implicit.
-E.g. if the rule is defined as a wiki:Roles,+Metaroles+and+Generic+Synchronization[high-order inducement in the metarole] then the focal object or target are implicit and does not need to be explicitly specified.
+E.g. if the rule is defined as a xref:/midpoint/reference/roles-policies/metaroles/gensync/[high-order inducement in the metarole] then the focal object or target are implicit and does not need to be explicitly specified.
 
 The policy rules are used to implement wide variety of mechanisms:
 
-* wiki:Approval[Assignment approvals]: policy rules may be used to change the default assignment approval schemes in a very flexible and scalable fashion.
+* xref:/midpoint/reference/cases/approval/[Assignment approvals]: policy rules may be used to change the default assignment approval schemes in a very flexible and scalable fashion.
 
-* wiki:Role+Lifecycle[Role lifecycle management]: policy rules may be used to enforce approvals of new roles before they are used in production.
+* xref:/midpoint/reference/roles-policies/role-lifecycle/[Role lifecycle management]: policy rules may be used to enforce approvals of new roles before they are used in production.
 They may be used to approve changed role definitions.
 And so on.
 
@@ -71,7 +71,7 @@ The policy situation may be used in reports to identify the objects that violate
 This section needs to be expanded.
 However, documentation work is similar to the development work in that it takes time and that it needs funding. +
 If you are midPoint link:https://evolveum.com/services/[subscriber], you can request that we complete this section and we will do that as soon as possible.
-Or you may use the option to wiki:Subscriptions+and+Sponsoring[sponsor] completion of midPoint documentation.
+Or you may use the option to xref:/support/subscription-sponsoring/[sponsor] completion of midPoint documentation.
 
 ====
 
@@ -95,7 +95,7 @@ Each of the policy rules is triggered individually, therefore implementing logic
 This section needs to be expanded.
 However, documentation work is similar to the development work in that it takes time and that it needs funding. +
 If you are midPoint link:https://evolveum.com/services/[subscriber], you can request that we complete this section and we will do that as soon as possible.
-Or you may use the option to wiki:Subscriptions+and+Sponsoring[sponsor] completion of midPoint documentation.
+Or you may use the option to xref:/support/subscription-sponsoring/[sponsor] completion of midPoint documentation.
 
 ====
 
@@ -108,7 +108,7 @@ Or you may use the option to wiki:Subscriptions+and+Sponsoring[sponsor] completi
 This section needs to be expanded.
 However, documentation work is similar to the development work in that it takes time and that it needs funding. +
 If you are midPoint link:https://evolveum.com/services/[subscriber], you can request that we complete this section and we will do that as soon as possible.
-Or you may use the option to wiki:Subscriptions+and+Sponsoring[sponsor] completion of midPoint documentation.
+Or you may use the option to xref:/support/subscription-sponsoring/[sponsor] completion of midPoint documentation.
 
 ====
 
@@ -122,7 +122,7 @@ However all the rules are evaluated in the same way regardless of the specific m
 
 === Global Policy Rules
 
-Policy rules can be defined in wiki:System+Configuration+Object[system configuration object]. In this case the rule is evaluated for every operation and it applies to all objects that are matched by the rule focus and target selectors.
+Policy rules can be defined in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object]. In this case the rule is evaluated for every operation and it applies to all objects that are matched by the rule focus and target selectors.
 This method of rule specification has a global scope and therefore the administrator can have high confidence that the rule is applied to all objects to which it should be applied.
 However it may have scalability impact if not used properly.
 Evaluation of the focus and target selectors is usually very fast, therefore a reasonable number of global rules with simple selectors should have only negligible impact on system performance.
@@ -203,7 +203,7 @@ The metarole-base approach is recommended instead.
 === Metarole-Based Rule Definition
 
 Policy rules can be defined in the assignments.
-Which means they can be taken to the meta-level using the usual midPoint mechanism of wiki:Roles,+Metaroles+and+Generic+Synchronization[metaroles]. If all the sensitive roles have the same meta-role assigned then the rule can be easily defined in the metarole as (high-order) inducement.
+Which means they can be taken to the meta-level using the usual midPoint mechanism of xref:/midpoint/reference/roles-policies/metaroles/gensync/[metaroles]. If all the sensitive roles have the same meta-role assigned then the rule can be easily defined in the metarole as (high-order) inducement.
 Like this:
 
 [source,xml]
@@ -228,14 +228,14 @@ The policy rule is placed in the inducement, *not* in the assignment here.
 Therefore the rule does not apply to this role itself.
 It will apply to all the roles that have this role assigned.
 This is simple and scalable way how to define policies that apply only to some role types, organizational hierarchies, services and so on.
-See the wiki:Roles,+Metaroles+and+Generic+Synchronization[Roles, Metaroles and Generic Synchronization] page for more details about the meta-role mechanism.
+See the xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization] page for more details about the meta-role mechanism.
 
 
 == Policy Rule Exceptions
 
 They say that there is always an exception to any rule.
 Whether that is the truth or not, there is often a need to make an exception from a policy rule.
-Common use case is an exception from wiki:Segregation+of+Duties[Segregation of Duties] policy: the policy states that certain roles cannot be combined.
+Common use case is an exception from xref:/midpoint/reference/roles-policies/segregation-of-duties/[Segregation of Duties] policy: the policy states that certain roles cannot be combined.
 But if the request goes through a special approval then it may be allowed.
 This may seem like a straightforward mechanism.
 But it is not.
@@ -255,15 +255,15 @@ In the future that information can be used e.g. to report approved rule exceptio
 
 This feature is available only in midPoint 3.6 and later.
 
-This feature was also available in midPoint 3.5. However even in midPoint 3.5 this feature was considered *EXPERIMENTAL* except when used for wiki:Role+Lifecycle[Role Lifecycle] and assignment-based wiki:Approval[approvals].
+This feature was also available in midPoint 3.5. However even in midPoint 3.5 this feature was considered *EXPERIMENTAL* except when used for xref:/midpoint/reference/roles-policies/role-lifecycle/[Role Lifecycle] and assignment-based xref:/midpoint/reference/cases/approval/[approvals].
 This mechanism was only partially implemented in midPoint 3.5.
 
 == See Also
 
-* wiki:Role+Lifecycle[Role Lifecycle]
+* xref:/midpoint/reference/roles-policies/role-lifecycle/[Role Lifecycle]
 
-* wiki:Approval[Approval]
+* xref:/midpoint/reference/cases/approval/[Approval]
 
-* wiki:Segregation+of+Duties[Segregation of Duties]
+* xref:/midpoint/reference/roles-policies/segregation-of-duties/[Segregation of Duties]
 
-* wiki:Radio+Button+Roles[Radio Button Roles]
+* xref:/midpoint/reference/roles-policies/rbac/radio-button-roles/[Radio Button Roles]

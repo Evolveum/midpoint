@@ -28,16 +28,16 @@ In such cases there are other steps.
 
 == Log Files
 
-MidPoint log files record activity of midPoint on wiki:Log+Levels[several levels]. The next step in troubleshooting should be to have a look at log files.
+MidPoint log files record activity of midPoint on xref:/midpoint/reference/diag/logging/log-levels/[several levels]. The next step in troubleshooting should be to have a look at log files.
 All the errors and warnings should be logged there by default.
 This should usually provide enough information to assist in troubleshooting serious misconfigurations or other severe problems.
-The wiki:Useful+Loggers[Useful Loggers] page provides some hints how to get the most useful information in the log files.
+The xref:/midpoint/reference/diag/logging/useful-loggers/[Useful Loggers] page provides some hints how to get the most useful information in the log files.
 
 The logfiles are usually placed in the `logs` directory of you application server or web container.
 
 The logging configuration can be managed in *Configuration > Logging* GUI page.
 The dialog allows to set many logging options.
-The meaning of individual levels is described in wiki:Log+Levels[Log Levels] page.
+The meaning of individual levels is described in xref:/midpoint/reference/diag/logging/log-levels/[Log Levels] page.
 But there is rule of the thumb for troubleshooting:
 
 * `FATAL`, `ERROR`, `WARNING` and `INFO` levels are designed to be enabled during normal system operation.
@@ -58,22 +58,22 @@ MidPoint team will appreciate if you let them know so they can improve it.
 == Clockwork and Projector Troubleshooting
 
 Most midPoint problems occur in mapping configuration, roles definition and similar policy-like statements.
-All of these are processed in wiki:Clockwork+and+Projector[Clockwork and Projector] components in midPoint.
+All of these are processed in xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[Clockwork and Projector] components in midPoint.
 These components are especially designed to provide detailed diagnostic output to assist in tracing down the configuration bugs.
 
-The most efficient troubleshooting method is to watch changes in wiki:Model+Context[Model Context]. This can be done by enabling the tracing in clockwork, projector, mapping and expression components (see below).
+The most efficient troubleshooting method is to watch changes in xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context]. This can be done by enabling the tracing in clockwork, projector, mapping and expression components (see below).
 The usual steps go like this:
 
 . Enable *clockwork summary tracing* (logger `com.evolveum.midpoint.model.lens.Clockwork`, level DEBUG).
-This will dump wiki:Model+Context[Model Context] during major state changes in clockwork.
+This will dump xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context] during major state changes in clockwork.
 Especially watch how primary or synchronization deltas transform to secondary deltas.
-Primary and synchronization deltas usually act as an input to the wiki:Clockwork+and+Projector[Clockwork and Projector]. Secondary deltas are the outputs.
-Look for any errors and warnings between the wiki:Model+Context[Model Context] dumps.
+Primary and synchronization deltas usually act as an input to the xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[Clockwork and Projector]. Secondary deltas are the outputs.
+Look for any errors and warnings between the xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context] dumps.
 
 . If the previous step does not help then enable *projector summary tracing* (logger `com.evolveum.midpoint.model.lens.projector.Projector`, levels DEBUG and TRACE).
-This will dump the wiki:Model+Context[Model Context] several times at strategic places during projector computation.
+This will dump the xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context] several times at strategic places during projector computation.
 You can use the trace to figure out where exactly is the problem.
-E.g. if you expect that some attribute will be mapped by the inbound mapping, then check the presence of appropriate delta in wiki:Model+Context[Model Context] dump after the run of InboundProcessor.
+E.g. if you expect that some attribute will be mapped by the inbound mapping, then check the presence of appropriate delta in xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context] dump after the run of InboundProcessor.
 This step will almost always provide enough information to track down the problem.
 
 . If the previous step does not help and you suspect a problem in one of the mappings then enable *mapping trace* (logger `com.evolveum.midpoint.model.common.mapping.Mapping`, logger TRACE).
@@ -98,7 +98,7 @@ It is easy to make a configuration mistake.
 Therefore if you experience a problem it is most likely a configuration problem and not a product bug.
 But no software is ever perfect and bugs happen.
 If you have gone through all the relevant steps above and you suspect that what you see is not misconfiguration, error caused by external source (e.g. resource being down) or other thing that you can correct then it is a time to follow with a bug report.
-Please see the wiki:Creating+a+Bug+Report[Creating a Bug Report] page which describes how to create a good bug report.
+Please see the xref:/midpoint/reference/diag/creating-a-bug-report/[Creating a Bug Report] page which describes how to create a good bug report.
 
 
 == Aggressive Approach
@@ -106,4 +106,4 @@ Please see the wiki:Creating+a+Bug+Report[Creating a Bug Report] page which desc
 There are some occasions when all these steps are not enough to diagnose the problem.
 Such (relative rare) occasions usually hits about a programming bug: wrong exception handling, wrong error reporting a wild variety (usually stupid) programming mistakes.
 This is a time for a brutal solution.
-Please see wiki:Aggressive+Log+Report[Aggressive Log Report] for more instructions.
+Please see xref:/midpoint/reference/diag/aggressive-log-report/[Aggressive Log Report] for more instructions.

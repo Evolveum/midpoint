@@ -10,7 +10,7 @@
 
 Some connectors have `string` values for configuration items that should be protected, e.g. passwords.
 While this is clear problem of the connector there is a way how to work around that in midPoint.
-The basic idea is to manually change the type of the configuration item in the wiki:Resource+and+Connector+Schema+Explanation[connector schema].
+The basic idea is to manually change the type of the configuration item in the xref:/midpoint/reference/resources/resource-schema/explanation/[connector schema].
 
 
 == Find the Connector

@@ -42,11 +42,11 @@ The original state is a clustered midpoint, node 1. The setup is as follows:
 
 |===
 
-We start the migration with a wiki:Stand-Alone+Deployment[new installation] and leave the original midpoint.home directory untouched:
+We start the migration with a xref:/midpoint/reference/deployment/stand-alone-deployment/[new installation] and leave the original midpoint.home directory untouched:
 
 * shutdown your existing midPoint (Tomcat) node 1
 
-* wiki:Stand-Alone+Deployment[install] midPoint to a new directory, e.g. "`/opt`" by uncompressing "`midpoint-3.7-dist.tar.gz`" there (the version must be the same as your previously used version!). The resulting directory will be `/opt/midpoint-3.7`
+* xref:/midpoint/reference/deployment/stand-alone-deployment/[install] midPoint to a new directory, e.g. "`/opt`" by uncompressing "`midpoint-3.7-dist.tar.gz`" there (the version must be the same as your previously used version!). The resulting directory will be `/opt/midpoint-3.7`
 
 * run the newly installed midPoint by executing "`/opt/midpoint-3.7/bin/start.sh`" script
 

@@ -41,7 +41,7 @@ Generic synchronization applies the same synchronization principles to all objec
 The powerful features that midPoint already has for user-account synchronization can be also applied to other synchronization schemes.
 The figure above shows the traditional way how accounts are linked to users.
 Therefore if a user is modified the modifications can be propagated to accounts.
-The same principle can also be used for other object types such as wiki:Organizational+Structure[Orgs] (midPoint organizational units) and groups.
+The same principle can also be used for other object types such as xref:/midpoint/reference/org/organizational-structure/[Orgs] (midPoint organizational units) and groups.
 Groups can be linked to an Org in midPoint.
 Therefore if the Org changes then the changes can be propagated to groups.
 This feature allows to re-use all the usual midPoint capabilities for unusual situations.
@@ -49,21 +49,21 @@ E.g. groups can be automatically created based on organizational structure.
 Such groups will correspond to departments, sections or projects.
 The groups can automatically be deleted when an Org is gone (e.g. a project is closed) limiting a "dead weight" in the corporate directory.
 The groups can also be synchronized with midPoint roles creating a access control structure consistent across the whole organization.
-And actually the extremely poweful wiki:Advanced+Hybrid+RBAC[RBAC] mechanism can also be reused for these unusual links creating a kind of meta-roles.
+And actually the extremely poweful xref:/midpoint/reference/roles-policies/rbac/[RBAC] mechanism can also be reused for these unusual links creating a kind of meta-roles.
 E.g. and Org itself can be assigned to a meta-role which defines in which systems the corresponding groups has to be created for this Org.
 This simple mechanism is introducing a completely new dimension to midPoint RBAC structures.
 
 
 == See Also
 
-* wiki:Entitlements[Entitlements]
+* xref:/midpoint/reference/resources/entitlements/[Entitlements]
 
-* wiki:Resource+Configuration[Resource Configuration]
+* xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]
 
-* wiki:Synchronization[Synchronization]
+* xref:/midpoint/reference/synchronization/introduction/[Synchronization]
 
-* wiki:Synchronization+Configuration[Synchronization Configuration]
+* xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration]
 
-* wiki:Assignment[Assignment]
+* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
 
-* wiki:Focus+and+Projections[Focus and Projections]
+* xref:/midpoint/reference/schema/focus-and-projections/[Focus and Projections]

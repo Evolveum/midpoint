@@ -11,7 +11,7 @@
 .Entitlements
 ====
 This HOWTO applies only to midPoint versions 2.2 and earlier.
-Version 3.0 will introduced the mechanism of wiki:Entitlements[Entitlements] which makes handling of groups much easier.
+Version 3.0 will introduced the mechanism of xref:/midpoint/reference/resources/entitlements/[Entitlements] which makes handling of groups much easier.
 ====
 
 Setup for LDAP Groups are quite difficult to figure out because they are slightly unlinke the groups in most other systems.

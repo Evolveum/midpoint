@@ -14,21 +14,19 @@
 == Introduction
 
 MidPoint usually executes all resource operations as soon as possible.
-But this may be quite troublesome for wiki:Manual+Resource+and+ITSM+Integration[manual resources] and slow resources where the operations are costly.
+But this may be quite troublesome for xref:/midpoint/reference/resources/manual/[manual resources] and slow resources where the operations are costly.
 Therefore there is a way to change that behavior by using provisioning propagation task.
 In such case midPoint will not execute operations immediately.
 Requested changes will get queued for (reasonably short) time.
 Then midPoint will execute all the changes at once in a single operation.
 
-See wiki:Provisioning+Propagation[Provisioning Propagation] page for full introduction to this topic.
-
+See xref:/midpoint/reference/resources/propagation/[Provisioning Propagation] page for full introduction to this topic.
 
 == Configuration
 
 Provisioning propagation configuration has two parts.
 Firstly the resource has to be configured to postpone (queue) the operations.
 Secondly there needs to be a propagation task that executes the operations.
-
 
 === Resource Configuration
 
@@ -48,19 +46,18 @@ Resource configuration is a simple matter of enabling operation grouping feature
 
 When the grouping interval is configured then midPoint will automatically enable operation queuing for that resource.
 The operations will not get executed immediately.
-All the operations will be queued in wiki:Shadow+Objects[shadow objects] in a form of pending deltas.
+All the operations will be queued in xref:/midpoint/reference/resources/shadow/[shadow objects] in a form of pending deltas.
 The example above specifies grouping interval of 10 minutes.
 Therefore the operation will be queued for a maximum period of 10 minutes.
 When that period is over then the operation will get executed.
 And the execution will include all the other pending changes queued in the shadow.
 
-
 === Propagation Task
 
 Second part of the configuration is the propagation task.
 This is recurring task that scans for pending operations to be executed.
-The task looks for any wiki:Shadow+Objects[shadow] with a pending operation that is older than the grouping interval specifies.
-If such shadow is found then all the pending changes (wiki:Deltas[deltas]) are executed.
+The task looks for any xref:/midpoint/reference/resources/shadow/[shadow] with a pending operation that is older than the grouping interval specifies.
+If such shadow is found then all the pending changes (xref:/midpoint/devel/prism/concepts/deltas/[deltas]) are executed.
 If there are several pending deltas then they are all merged together and executed in a single operation.
 
 The propagation task definition is very simple.
@@ -117,19 +114,18 @@ Therefore there is an experimental support for multi-resource propagation task:
 
 Please note the difference in task handler URI (`handler-3` versus `multi-handler-3`).
 
-
 == Limitations
 
-Current implementation of provisioning propagation was designed specifically to work with simple wiki:Manual+Resource+and+ITSM+Integration[manual resources]. Therefore there are some limitations:
+Current implementation of provisioning propagation was designed specifically to work with simple xref:/midpoint/reference/resources/manual/[manual resources]. Therefore there are some limitations:
 
 * Provisioning scripts are currently not supported.
 The propagation task will ignore all provisioning scripts.
 
-* Support for wiki:Entitlements[entitlement associations] is limited.
+* Support for xref:/midpoint/reference/resources/entitlements/[entitlement associations] is limited.
 Subject-to-object associations are very likely to work properly, although this was not explicitly tested.
 Object-to-subject associations are currently not supported.
 
-* wiki:Consistency+mechanism[Consistency mechanism] support for propagated resources is currently limited.
+* xref:/midpoint/reference/synchronization/consistency/[Consistency mechanism] support for propagated resources is currently limited.
 We do not guarantee that consistency mechanisms will work for all the circumstances.
 
 * Application of this mechanism to anything other than manual and semi-manual resources is questionable.
@@ -142,8 +138,8 @@ All the testing of this feature was done with manual resources only.
 
 == See Also
 
-* wiki:Provisioning+Propagation[Provisioning Propagation]
+* xref:/midpoint/reference/resources/propagation/[Provisioning Propagation]
 
-* wiki:Manual+Resource+and+ITSM+Integration[Manual Resource and ITSM Integration]
+* xref:/midpoint/reference/resources/manual/[Manual Resource and ITSM Integration]
 
-* wiki:Task[Task]
+* xref:/midpoint/architecture/concepts/task/[Task]

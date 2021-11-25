@@ -26,13 +26,12 @@ MidPoint is not a replacement for these tools.
 MidPoint will integrate with them and manage them.
 By leveraging existing tools and integrating it with midPoint it is possible to manage everything from one centralised place.
 
-
 == The Concept of the Service
 
 MidPoint service object is designed to represent logical or physical services or devices such as virtual machines, mobile devices, servers, printers, network devices, application containers ... and essentially almost anything else.
 
 Services in midPoint can be expressed using midPoints `ServiceType` objects.
-The usage and the structure for the ServiceType object is almost the same as wiki:Advanced+Hybrid+RBAC[midPoint roles] (wiki:RoleType[RoleType]). It means, you can define rules for provisioning, you can assign roles, wiki:Roles,+Metaroles+and+Generic+Synchronization[meta-roles, meta-meta-roles] to them etc.
+The usage and the structure for the ServiceType object is almost the same as xref:/midpoint/reference/roles-policies/rbac/[midPoint roles] (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[RoleType]). It means, you can define rules for provisioning, you can assign roles, xref:/midpoint/reference/roles-policies/metaroles/gensync/[meta-roles, meta-meta-roles] to them etc.
 The one difference is that using services in addition will provide also automatic creation of resource definition (in midPoint terminology it means the target systems, where the users are provisioned).
 It can be said that working with services is divided into two parts:
 
@@ -42,16 +41,16 @@ It can be said that working with services is divided into two parts:
 
 So, defining service means to create new object of type ServiceType.
 It is needed to fill required attributes and all other setting according to the service requirements.
-If the standard attributes defined in the schema for ServiceType are not satisfactory, wiki:Custom+Schema+Extension[extension schema] can be used.
+If the standard attributes defined in the schema for ServiceType are not satisfactory, xref:/midpoint/reference/schema/custom-schema-extension/[extension schema] can be used.
 The service provisioning is shown on the picture bellow.
 It consist of ServiceType, meta-role definition and the target system (resource) where the new service will be created.
 
 
 image::serviceDefinition.png[]
 
-Service objects in midPoint act as wiki:Focus+and+Projections[focal objects]. It is expected that wiki:Focus+and+Projections[projections] of the service objects will be objects that represent the services on the resource.
+Service objects in midPoint act as xref:/midpoint/reference/schema/focus-and-projections/[focal objects]. It is expected that xref:/midpoint/reference/schema/focus-and-projections/[projections] of the service objects will be objects that represent the services on the resource.
 In the above example the service foo.example.com is modeled as service object in midPoint.
-When all the provisioning is done then the midPoint service object will have a projection (wiki:Shadow+Objects[shadow]) in the OpenStack resource.
+When all the provisioning is done then the midPoint service object will have a projection (xref:/midpoint/reference/resources/shadow/[shadow]) in the OpenStack resource.
 This project will represent the virtual machine that was created in the open stack.
 Of course, as any other focal object service can have many projections.
 Therefore the virtual machine may have additional projections that may represent network connections, it may automatically provision the configuration to the network and system management software and so on.
@@ -60,14 +59,13 @@ MidPoint is designed to talk to many different system to completely set up accou
 Now the same approach is used for services.
 MidPoint will make sure all the necessary management, OSS/BSS, monitoring and accounting systems are properly set up when a new service is created.
 
-
 == Defining Resource for Service
 
 It is planned to support automatic creation of resource definition for service.
 But for now, this step needs to be provided manually.
 E.g. if the new service defined and provisioned was some unix virtual machine (VM), you will probably want to manage also users for this new VM.
 It can be achieved by configuring UNIX Connector.
-There exists a lot of connector which can be used with midPoint (wiki:Identity+Connectors[listed here]). After the resource is created for the service, provisioning for users and their access right for the service can start.
+There exists a lot of connector which can be used with midPoint (xref:/connectors/connectors/[listed here]). After the resource is created for the service, provisioning for users and their access right for the service can start.
 
 image::userServiceAssignment.png[]
 
@@ -87,13 +85,12 @@ For example, let the
 
 * services to represent different things like mobile devices, printers, applications which the users can use.
 
-The brief comparison which object type to use in which situation can be also find wiki:Roles,+Services+and+Orgs[here].
-
+The brief comparison which object type to use in which situation can be also find xref:/midpoint/reference/roles-policies/roles-services-and-orgs/[here].
 
 == See also
 
-* wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
+* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
 
-* wiki:Organizational+Structure[Organizational Structure]
+* xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]
 
-* wiki:Roles,+Services+and+Orgs[Roles, Services and Orgs]
+* xref:/midpoint/reference/roles-policies/roles-services-and-orgs/[Roles, Services and Orgs]

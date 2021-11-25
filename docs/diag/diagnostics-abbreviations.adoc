@@ -69,4 +69,4 @@ Used to distinguish between shadows belonging to the same user, e.g. different a
 
 == See Also
 
-* wiki:Prism+Objects[Prism Objects]
+* xref:/midpoint/devel/prism/[Prism Objects]

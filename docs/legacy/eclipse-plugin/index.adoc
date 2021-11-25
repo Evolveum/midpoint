@@ -9,14 +9,13 @@
 :page-obsolete: true
 :page-replaced-by: /midpoint/tools/studio/
 
-
 [WARNING]
 .ABANDONED
 ====
-MidPoint plugin for Eclipse for *abandoned*  in favor of link:/midpoint/studio/[MidPoint Studio], which is based on open source link:https://www.jetbrains.com/opensource/idea/[IntelliJ platform].
+MidPoint plugin for Eclipse for *abandoned*  in favor of xref:/midpoint/tools/studio/[MidPoint Studio], which is based on open source link:https://www.jetbrains.com/opensource/idea/[IntelliJ platform].
 
 Although the Eclipse plugin was an efficient tool used broadly by the community, maintaining the plugin in Eclipse environment proved to be a challenge.
-Most of the midPoint developers migrated to link:https://www.jetbrains.com/opensource/idea/[IntelliJ platform], and the popularity of the platform was also indicated by our wiki:MidPoint+2019+Survey+Results[survey]. Therefore we have decided to abandon the old and de facto derelict Eclipse plugin.
+Most of the midPoint developers migrated to link:https://www.jetbrains.com/opensource/idea/[IntelliJ platform], and the popularity of the platform was also indicated by our xref:/community/surveys/midpoint-2019-survey/[survey]. Therefore we have decided to abandon the old and de facto derelict Eclipse plugin.
 There no plans to maintain the Eclipse plugin any further.
 You can go ahead and use it if it works for you, but there will be no further improvements, bug fixes or even security fixes.
 
@@ -28,10 +27,9 @@ Here is a first prototype of such a tool: the _midPoint Eclipse plugin_.
 
 == Installation
 
-Installation is done directly into Eclipse using the following update site: *link:https://download.evolveum.com/downloads/midpoint-eclipse-plugin/[https://download.evolveum.com/downloads/midpoint-eclipse-plugin/]*. For more information, please see the wiki:Eclipse+plugin+installation+HOWTO[installation HOWTO].
+Installation is done directly into Eclipse using the following update site: *link:https://download.evolveum.com/downloads/midpoint-eclipse-plugin/[https://download.evolveum.com/downloads/midpoint-eclipse-plugin/]*. For more information, please see the xref:/midpoint/reference/legacy/eclipse-plugin/install/install/[installation HOWTO].
 
 You can also have a look at simple release notes.
-
 
 == Configuration
 
@@ -145,9 +143,6 @@ image::image2016-9-19-23-8-59.png[]
 
 image::image2016-9-19-23-9-32.png[]
 
-
-
-
 == First steps
 
 This Eclipse plugin can be used in many ways, in various contexts.
@@ -208,7 +203,6 @@ image::image2016-9-19-23-35-54.png[]
 
 Other options (Download, Generate and Execute) will be covered later.
 
-
 === Downloading objects
 
 Now imagine you want to systematically work with objects in your Eclipse workspace: you would like to edit them and upload to server as necessary.
@@ -245,7 +239,6 @@ image::image2016-9-19-23-44-41.png[]
 
 The structure is determined by "Downloaded file name pattern" option (_objects/$T/$n.xml_ by default).
 It is advised to start with this setting.
-
 
 === Modifying and creating objects
 
@@ -287,7 +280,6 @@ After creating an object you can upload it by selecting *midPoint -> Upload/exec
 
 Objects are uploaded and bulk actions are executed.
 
-
 === Executing actions
 
 Action execution deserves a few more words.
@@ -316,7 +308,6 @@ To try it, please create the following file (_queries/query.xml_):
 Before invoking the action, please make sure the midPoint server log file is set up:
 
  +
-
 
 image::image2016-9-7-16-58-9.png[]
 
@@ -354,9 +345,6 @@ This is meant e.g. to facilitate mappings testing and bugfixing - to minimize nu
 
 image::image2016-9-7-17-2-58.png[]
 
-
-
-
 === Comparing files
 
 It is possible to compare local (Eclipse) and remote (midPoint) versions of one or more files by selecting them and choosing *Compute differences* command.
@@ -387,7 +375,6 @@ image::image2016-9-20-10-2-48.png[]
 
 It is possible to configure items that should be excluded from comparison.
 By default, all operational items are excluded, but you can specify any others.
-
 
 === Server-specific properties
 
@@ -461,7 +448,6 @@ Besides $(property-name) you can use the following:
 
 Current restriction is that the text between parentheses - i.e. (...) - cannot contain whitespaces.
 
-
 == Other functions and tips
 
 . *Reload objects from server*: Takes object(s) and replaces them with the current state from the server.
@@ -486,7 +472,8 @@ This will be fixed in the future.
 
 . *Server log management*: It is possible to show server log in Console view or in editor pane.
 By opening it in console it allows for continuous updating of the view.
-By opening in editor pane it is possible to employ plugin customized wiki:Log+Viewer[log viewer]. You can also dynamically change logging levels for model, provisioning, repository and web modules.
+By opening in editor pane it is possible to employ plugin customized xref:/midpoint/reference/diag/logging/log-viewer/[log viewer].
+You can also dynamically change logging levels for model, provisioning, repository and web modules.
 
 . XML Catalog content assist - see bellow
 
@@ -498,7 +485,7 @@ Although not 100% error-free, it is a big help.
 
 It is done by these steps:
 
-.  Go to *Window -> Preferences -> XML -> XML Catalog*.
+. Go to *Window -> Preferences -> XML -> XML Catalog*.
 
 . Click on "User Specified Entries" in XML Catalog window
 
@@ -533,7 +520,6 @@ Creating new GUI bulk action script sample:
 	</action>
 </search>
 ----
-
 
 == Conclusion
 

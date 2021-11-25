@@ -13,7 +13,7 @@
 == Introduction
 
 Object template is an object that holds a set of rules how a specific object type (e.g. user) should be constructed.
-It usually contains wiki:Mappings+and+Expressions[mappings] that either compute user properties or assign accounts and roles to the user (usually with a condition).
+It usually contains xref:/midpoint/reference/expressions/introduction/[mappings] that either compute user properties or assign accounts and roles to the user (usually with a condition).
 
 User template can be used for a variety of very interesting identity management configuration.
 For example:
@@ -78,7 +78,7 @@ The user template object definition could look like this one:
 
 == Global User Template
 
-A user template may be applied globally by including the following snippet in wiki:System+Configuration+Object[system configuration]*just after the "logging" element*:
+A user template may be applied globally by including the following snippet in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration]*just after the "logging" element*:
 
 [source,xml]
 ----
@@ -119,19 +119,19 @@ The power of midPoint is to have simple principles (such as object template) tha
 
 There is also another reason for *not* including account in object templates.
 The object template may be used even if the account is not available, e.g. when user is changed from the GUI.
-MidPoint is using wiki:Relativity[relative changes] therefore it is not always required to read all the accounts to process a change.
+MidPoint is using xref:/midpoint/reference/concepts/relativity/[relative changes] therefore it is not always required to read all the accounts to process a change.
 And in fact the account may not even be available (e.g. because resource is temporarily down).
 Therefore it would be a very inconvenient and inefficient if account attributes are used in object templates.
 
 Therefore if a property from an account (or other object) is needed in an object template there are several ways how to do it:
 
-* Use wiki:Inbound+Mapping[inbound mappings] instead.
+* Use xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings] instead.
 Inbound mappings can compute the value and place it directly in the user property.
 Inbound mappings can see both the account and the user.
 And midPoint can make sure that these mappings are executed at the right moment and are not executed when not needed.
 E.g. the mappings will be executed only when midPoint detects a change on the resource.
 
-* Use combination of wiki:Inbound+Mapping[inbound mappings], extended user properties and object template.
+* Use combination of xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings], extended user properties and object template.
 Use object template to the computation.
 Use inbound mappings to copy data from account to the user extended properties (`extension` part of user object).
 Then use the extended properties as input in the user template.
@@ -142,6 +142,6 @@ Inbound mappings will make sure that these data are as fresh as possible.
 
 == See Also
 
-* wiki:Mappings+and+Expressions[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
-* wiki:Synchronization+Examples[Synchronization Examples]
+* xref:/midpoint/reference/synchronization/examples/[Synchronization Examples]

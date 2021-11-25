@@ -21,7 +21,7 @@ The alphabet setting should also be configurable by using a convenient user inte
 == Implementation
 
 The basic idea is to store the transform table in an extension schema of appropriate midPoint object.
-In this case the appropriate object is an wiki:OrgType[organizational unit] that represents the spelling alphabet.
+In this case the appropriate object is an xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[organizational unit] that represents the spelling alphabet.
 The alphabet is activated by assigning user to this organizational unit.
 
 
@@ -32,7 +32,7 @@ The spelling alphabet transforms are stored in the object extensions, like this:
 .Org extension example
 [source,xml]
 ----
- <org>
+<org>
     <name>International</name>
     <extension>
         <e:transformDescription>International spelling alphabet</e:transformDescription>
@@ -53,7 +53,7 @@ The spelling alphabet transforms are stored in the object extensions, like this:
 </org>
 ----
 
-As long as appropriate wiki:Custom+Schema+Extension[extension schema] is created and deployed to a midPoint instance, midPoint will automatically understand the data format.
+As long as appropriate xref:/midpoint/reference/schema/custom-schema-extension/[extension schema] is created and deployed to a midPoint instance, midPoint will automatically understand the data format.
 
 
 === User Interface
@@ -67,7 +67,7 @@ Therefore we have created a completely custom user interface form to manage the 
 The custom form is implemented in Java and it is using link:https://wicket.apache.org/[Apache Wicket] components to interact with the user.
 Code of the custom form is located in `com.example.midpoint.gui.forms.ConfigurationTableTabPanel` class.
 This class implements Wicket _panel_ - one of the basic user interface components in Wicket framework.
-MidPoint is configured to use this class as a custom form in the wiki:Admin+GUI+Configuration[admin GUI configuration] section of the operator role:
+MidPoint is configured to use this class as a custom form in the xref:/midpoint/reference/admin-gui/admin-gui-config/[admin GUI configuration] section of the operator role:
 
 [source,xml]
 ----
@@ -90,7 +90,7 @@ MidPoint is configured to use this class as a custom form in the wiki:Admin+GUI+
 ----
 
 When a user with this operator role logs in, midPoint will process this extra user interface configuration.
-The configuration instructs midPoint to extend the usual user interface of wiki:OrgType[OrgType] objects with a new tab.
+The configuration instructs midPoint to extend the usual user interface of xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[OrgType] objects with a new tab.
 The tab will be labeled "Transform" and the tab is implemented using the `ConfigurationTableTabPanel` class.
 The tab will render a convenient user interface to configure the transform tables:
 
@@ -101,7 +101,7 @@ image::custom-transform-crop.png[]
 The `ConfigurationTableTabPanel` class is quite small (approx 200 lines of code).
 Most of the work is done by existing midPoint user interface.
 MidPoint will parse the data structure (including the extension part), midPoint will apply the schema, midPoint will process authorizations and so on.
-MidPoint will also take care of computing and applying the changes (wiki:Deltas[deltas]) when the _save_ button is pressed.
+MidPoint will also take care of computing and applying the changes (xref:/midpoint/devel/prism/concepts/deltas/[deltas]) when the _save_ button is pressed.
 Therefore all that is needed in the `ConfigurationTableTabPanel` class is to create appropriate presentation of the data.
 This is an extremely powerful approach and it is seamlessly integrated with midPoint GUI.
 However, as this code has to use midPoint data structures to take advantages of existing midPoint functionality, the code may looks quite complex.
@@ -121,7 +121,7 @@ We will do all the smart things in custom code.
 
 === Mapping
 
-Actual transformation of the data is implemented in a wiki:Roles,+Metaroles+and+Generic+Synchronization[metarole]. All organizational units that contain specific transform tables are assigned to this metaroles.
+Actual transformation of the data is implemented in a xref:/midpoint/reference/roles-policies/metaroles/gensync/[metarole]. All organizational units that contain specific transform tables are assigned to this metaroles.
 The transformation algorithm is the same for all the organizational units, just the transformation table is different.
 Therefore it makes sense to implement and configure the algorithm in just a single place.
 And a metarole is a perfect place to do that.
@@ -175,13 +175,13 @@ The mapping is a focus mapping that transforms one focal property (`fullName` of
 ----
 
 As the data are placed in object extension, midPoint does not have compile-time classes (such as UserType or AssignmentType) for such data available.
-Therefore the mapping itself is using operations on wiki:Prism+Objects[prism objects] to get access to the data.
+Therefore the mapping itself is using operations on xref:/midpoint/devel/prism/[prism objects] to get access to the data.
 This is slightly less convenient than using the compile-time classes, but it does the job.
 
 The transform table configuration is taken from the `immediateRole` role variable.
 In a metarole context, this is the role (or organizational unit) to which the metarole applies.
 Which, in our case, is the organizational unit that holds the transformation table.
-Once we got the table in a form of a wiki:Prism+Objects[prism conatiner] (as `transformContainer` variable) all that is needed is to combine operations on prism objects with ordinary Groovy string operations to produce transformed output value.
+Once we got the table in a form of a xref:/midpoint/devel/prism/[prism conatiner] (as `transformContainer` variable) all that is needed is to combine operations on prism objects with ordinary Groovy string operations to produce transformed output value.
 
 [TIP]
 ====
@@ -194,7 +194,7 @@ We leave the task of finishing the same to the reader.
 
 == Sample Files
 
-Files used to implement this sample can be used in wiki:Customization+With+Overlay+Project[example overlay project]:
+Files used to implement this sample can be used in xref:/midpoint/reference/deployment/maven-overlay-project/[example overlay project]:
 
 link:https://github.com/Evolveum/midpoint-overlay-example[https://github.com/Evolveum/midpoint-overlay-example]
 
@@ -206,7 +206,7 @@ Most important files:
 
 * link:https://github.com/Evolveum/midpoint-overlay-example/blob/master/src/main/resources/initial-objects/921-role-meta-transform-org.xml[921-role-meta-transform-org.xml]: metarole which contains the transform algorithm (mapping)
 
-* link:https://github.com/Evolveum/midpoint-overlay-example/blob/master/src/main/resources/initial-objects/900-role-superoperator.xml[900-role-superoperator.xml]: operator role which contains custom form definition (using wiki:Admin+GUI+Configuration[admin GUI configuration])
+* link:https://github.com/Evolveum/midpoint-overlay-example/blob/master/src/main/resources/initial-objects/900-role-superoperator.xml[900-role-superoperator.xml]: operator role which contains custom form definition (using xref:/midpoint/reference/admin-gui/admin-gui-config/[admin GUI configuration])
 
 * link:https://github.com/Evolveum/midpoint-overlay-example/blob/master/src/main/java/com/example/midpoint/gui/forms/ConfigurationTableTabPanel.java[ConfigurationTableTabPanel.java]: Java source code of the custom form (using Apache Wicket components)
 
@@ -259,4 +259,4 @@ Platform subscription is needed to support this functionality.
 
 == See Also
 
-* wiki:Customization+With+Overlay+Project[Customization With Overlay Project]
+* xref:/midpoint/reference/deployment/maven-overlay-project/[Customization With Overlay Project]

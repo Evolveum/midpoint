@@ -15,13 +15,13 @@ MidPoint supports localization on many levels:
 * User interface strings are translated to individual languages by using localization catalogs (property files).
 Those translations are maintained by using link:https://www.transifex.com/evolveum/midpoint/dashboard/[transifex.com].
 
-* Localized data may be entered dynamically into midPoint by leveraging wiki:PolyString[PolyString] mechanism.
-However, please note that this method wiki:PolyString+Improvements[needs some Improvements].
+* Localized data may be entered dynamically into midPoint by leveraging xref:/midpoint/reference/concepts/polystring/[PolyString] mechanism.
+However, please note that this method xref:/midpoint/features/planned/polystring/[needs some Improvements].
 
 * Expressions can indicate error conditions by using localizable messages.
 There is also a special expression in the user interface that can take care of some localization properties of error handling.
 
-For translation rules, there is wiki:Translations[Translations] page.
+For translation rules, there is xref:/midpoint/devel/translations/[Translations] page.
 
 
 == Community Effort
@@ -48,7 +48,7 @@ Most of that can be translated only by people that know the IDM field.
 Therefore even professional translators often struggle with translating midPoint to a new language.
 However, midPoint engineers and users naturally understand the terminology and they make perfect translators.
 On the other hand, Evolveum core team is best utilized in developing the midPoint code.
-And there is still wiki:Planned+Features[so much to do].
+And there is still xref:/midpoint/features/planned/[so much to do].
 
 [TIP]
 .Thank you!
@@ -91,7 +91,7 @@ There are some mechanisms in midPoint that make localization of error messages p
 However, those mechanisms are still very limited.
 We would like to extend this functionality, but it needs to be done in a very sensitive way as overdoing this can ruin maintainability of midPoint code.
 And it makes no sense to have perfectly localized system if that system cannot be evolved and fixed efficiently.
-However, if you have any ideas or suggestions in this matter please wiki:Participation[contact us]. However, any non-trivial effort in this direction will require wiki:Subscriptions+and+Sponsoring[some funding].
+However, if you have any ideas or suggestions in this matter please xref:/community/[contact us]. However, any non-trivial effort in this direction will require xref:/support/subscription-sponsoring/[some funding].
 
 
 == Plans and Limitations
@@ -100,7 +100,7 @@ Generally speaking, midPoint is a system that reasonably localizable.
 However, there is always a room for improvement.
 We would like to improve:
 
-* wiki:PolyString+Improvements[PolyString support for multiple languages]
+* xref:/midpoint/features/planned/polystring/[PolyString support for multiple languages]
 
 * Proper use of preferred language, locale and time zone setting in the user profile, including an user-friendly way how to set those values.
 
@@ -109,13 +109,13 @@ We would like to improve:
 Current state of midPoint localization is that it can work well in a single-language non-English environment, as it is already proven by many such deployments.
 However, even in that environment there may be cases when English messages appear (e.g. error messages), even though such situations should be very rare.
 Use of midPoint in a multi-language and multi-timezone environment is possible, but there are more problems to be expected.
-MidPoint does not fully support such deployment and it is expected that a wiki:Subscriptions+and+Sponsoring[subscription] may be needed to fix all the issues in such cases.
+MidPoint does not fully support such deployment and it is expected that a xref:/support/subscription-sponsoring/[subscription] may be needed to fix all the issues in such cases.
 
 
 == See Also
 
 * link:https://www.transifex.com/evolveum/midpoint/dashboard/[midPoint page at Transifex]
 
-* wiki:PolyString[PolyString]
+* xref:/midpoint/reference/concepts/polystring/[PolyString]
 
-* wiki:Participation[Participation]
+* xref:/community/[Participation]

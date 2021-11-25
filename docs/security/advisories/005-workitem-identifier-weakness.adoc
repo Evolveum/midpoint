@@ -34,7 +34,7 @@ Approver role is needed to exploit this vulnerability.
 
 == Mitigation
 
-MidPoint users are advised to upgrade their deployments to the latest builds from the wiki:Using+Support+Branch[support branches].
+MidPoint users are advised to upgrade their deployments to the latest builds from the xref:/midpoint/install/using-support-branch/[support branches].
 
 As this is a medium severity issue, it is not forcing official maintenance releases of midPoint.
 However, the fix is provided in all the support branches.

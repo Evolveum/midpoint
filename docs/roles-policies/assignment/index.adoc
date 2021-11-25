@@ -77,7 +77,7 @@ The situation depicted in the diagram could be expressed in XML as:
 
 == Simple Account Assignment
 
-We expect that most midPoint deployments will use wiki:Advanced+Hybrid+RBAC[roles] to manage user accounts, entitlements and privileges.
+We expect that most midPoint deployments will use xref:/midpoint/reference/roles-policies/rbac/[roles] to manage user accounts, entitlements and privileges.
 However we understand that there is always a need to make an "exception" or a special case.
 Therefore it is possible to assign account to a user directly.
 
@@ -119,24 +119,24 @@ Assignment, all by itself, is a great and powerful mechanism.
 But it can get even better.
 One of the main purposes of the `assignment` structure is to contain parameters, e.g. parameters that are not related to the user or a role, but parameters that are related to the association of a user to a role.
 The usual assignment parameters are start and end dates of the assignment.
-This can be used in case an role is assigned to a user only for a specified amount of time, when a new employee record is created before he really joins the company, etc.
+This can be used in case a role is assigned to a user only for a specified amount of time, when a new employee record is created before he really joins the company, etc.
 The assignment can also be temporarily disabled.
-This kind of assignment parameters, called wiki:Activation[activation], is pre-defined in midPoint.
+This kind of assignment parameters, called xref:/midpoint/reference/concepts/activation/[activation], is pre-defined in midPoint.
 Therefore the IDM system will take care of processing that by itself, without any substantial customization.
 
 Assignment parameters can be arbitrarily extended by using the `extension` element.
 Such extension may contain any custom data and such data can be used in the expressions in assigned object.
 Such assignment extensions can then be used as a parameters in the roles.
 Therefore a role assignment can specify details such as a department for which the role applies, the branch office, access zone in the building and so on.
-This _parametric_ RBAC structure is a good mechanism to fight the wiki:Role+Explosion[role explosion] problem.
-See wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC] for more details.
-The wiki:Assignment+Configuration[Assignment Configuration] page provides examples of such parametric assignments.
+This _parametric_ RBAC structure is a good mechanism to fight the xref:/iam/role-explosion/[role explosion] problem.
+See xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC] for more details.
+The xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] page provides examples of such parametric assignments.
 
 
 == See Also
 
-* wiki:Assignment+Configuration[Assignment Configuration] page in Docuementation section
+* xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] page in Docuementation section
 
-* wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
+* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
 
-* wiki:Assigning+vs+Linking[Assigning vs Linking]
+* xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[Assigning vs Linking]

@@ -43,8 +43,10 @@ Each role can have a condition when it should be assigned:
 </role>
 ----
 
-The role above will be automatically assigned to any user that has property `organizationalUnit` set to `support`. Please note that explicit `stringify()` invocation is needed in this case as the `organizationalUnit` property is of wiki:PolyString[PolyString] type.
-As all midPoint mapping even this mapping is wiki:Relativity[relativistic]. If user becomes an intern (the `employeeType` property is changed) then the role is automatically assigned.
+The role above will be automatically assigned to any user that has property `organizationalUnit` set to `support`.
+Please note that explicit `stringify()` invocation is needed in this case as the `organizationalUnit` property is of xref:/midpoint/reference/concepts/polystring/[PolyString] type.
+As all midPoint mapping even this mapping is xref:/midpoint/reference/concepts/relativity/[relativistic].
+If user becomes an intern (the `employeeType` property is changed) then the role is automatically assigned.
 When the user stops being an intern the role is unassigned.
 Obviously, it also works with multivalued properties and so on.
 Simply speaking, this is a well-mannered midPoint mapping.
@@ -71,7 +73,6 @@ Using example bellow, autoassignment will be applied only for the user with arch
 </autoassign>
 ----
 
-
 == Relation and Other Parameters
 
 The simple example above shows just a very simple mapping.
@@ -92,10 +93,9 @@ But it can be there.
 The expression can modify the default assignment.
 For example it can specify assignment parameters, activation and so on.
 
-In fact the mapping is evaluated in exactly the same way as wiki:Object+Template[object template] mappings.
+In fact the mapping is evaluated in exactly the same way as xref:/midpoint/reference/expressions/object-template/[object template] mappings.
 Therefore it has all the powers of an object template mapping.
 Just the mapping source is populated with prepared assignment and the target is pre-set to `assignment` container so the mapping is easier to use within roles.
-
 
 == Global Configuration and Limitations
 
@@ -142,8 +142,7 @@ It is usually perfectly acceptable to have tens of autoassign roles.
 But thousands of autoassign roles are usually not a good idea.
 And the performance is usually not the worst issue there.
 Maintenance of thousands of autoassignment rules is very likely to be the real burden.
-In that case it may be better to consider a more systemic approach by using wiki:Object+Template[object template].
-
+In that case it may be better to consider a more systemic approach by using xref:/midpoint/reference/expressions/object-template/[object template].
 
 == Future Development
 
@@ -158,11 +157,10 @@ Proposed future development is to allow alternative way to specify autoassignmen
 {% include missing-incomplete.html %}
 ++++
 
-
 == See Also
 
-* wiki:Role+Autoassignment[Role Autoassignment]
+* xref:/midpoint/reference/roles-policies/role-autoassignment/[Role Autoassignment]
 
-* wiki:Object+Template[Object Template]
+* xref:/midpoint/reference/expressions/object-template/[Object Template]
 
-* wiki:Expression[Expression]
+* xref:/midpoint/reference/expressions/expressions/[Expression]

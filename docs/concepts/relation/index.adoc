@@ -9,8 +9,8 @@
 :page-since-improved: [ "3.5", "3.9" ]
 :page-liquid:
 
-Relation is a mechanism that specifies meaning or purpose of wiki:Object+References[object references].
-The relation is frequently used to specify the relation of object references of wiki:Assignment[assignment/inducement targets] and in the wiki:Organizational+Structure[organizational structure] management.
+Relation is a mechanism that specifies meaning or purpose of xref:/midpoint/reference/schema/object-references/[object references].
+The relation is frequently used to specify the relation of object references of xref:/midpoint/reference/roles-policies/assignment/[assignment/inducement targets] and in the xref:/midpoint/reference/org/organizational-structure/[organizational structure] management.
 For example a relation specifies whether a user is an ordinary member of the organizational unit or whether he is a manager of that unit.
 
 
@@ -95,13 +95,13 @@ But it can be used in search filters for searches that look for references of al
 Since midPoint 3.9 new relations can be configured.
 Those new relations should behave in the same way as pre-configured relations.
 
-Please see wiki:Relation+Configuration[Relation Configuration] page for more details.
+Please see xref:/midpoint/reference/concepts/relation/relation-configuration/[Relation Configuration] page for more details.
 
 
 == See Also
 
-* wiki:Assignment[Assignment]
+* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
 
-* wiki:Deputy[Deputy]
+* xref:/midpoint/reference/misc/deputy/[Deputy]
 
-* wiki:Relation+Configuration[Relation Configuration]
+* xref:/midpoint/reference/concepts/relation/relation-configuration/[Relation Configuration]

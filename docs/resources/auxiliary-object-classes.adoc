@@ -11,7 +11,7 @@
 :page-upkeep-status: yellow
 
 
-Type of every wiki:Shadow+Objects[resource objects] that midPoint deals is defined by its wiki:Kind,+Intent+and+ObjectClass[object class]. The object class defines the basic structure of the object: whether it is account, group or organizational unit.
+Type of every xref:/midpoint/reference/resources/shadow/[resource objects] that midPoint deals is defined by its xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[object class]. The object class defines the basic structure of the object: whether it is account, group or organizational unit.
 But some resources also have additional object classes that can extend the objects with additional attributes.
 We refer to these additional object classes as _auxiliary object classes_.
 
@@ -22,7 +22,7 @@ And then there may any number of auxiliary object classes.
 Auxiliary object classes can usually be added to or removed from an object at will.
 
 The normal behaviour is that the objects have zero auxiliary object classes and vast majority of resources do not support auxiliary object classes at all.
-But there are some resources where auxiliary object classes are really useful, e.g. wiki:LDAP+Connector[LDAP Connector] and wiki:Active+Directory+Connector+(LDAP)[Active Directory Connector (LDAP)] resources.
+But there are some resources where auxiliary object classes are really useful, e.g. xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector] and xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector/[Active Directory Connector (LDAP)] resources.
 
 There are two ways how to use auxiliary object classes in midPoint: static and dynamic (role-based).
 
@@ -30,7 +30,7 @@ There are two ways how to use auxiliary object classes in midPoint: static and d
 == Static Use of Auxiliary Object Classes
 
 There are cases when auxiliary object class needs to always be present for a specific object type to work property.
-In that case simply add `auxiliaryObjectClass` configuration property to the usual object definition in wiki:Resource+Configuration[resource configuration].
+In that case simply add `auxiliaryObjectClass` configuration property to the usual object definition in xref:/midpoint/reference/resources/resource-configuration/[resource configuration].
 
 For example, there is a standard LDAP schema  defined in RFC 2302 that is used to represent UNIX (NIS) accounts in LDAP servers.
 This schema defines the `posixAccount` auxiliary object class which can be added to ordinary account object classes.
@@ -70,10 +70,10 @@ There may be some companies where all users in fact have UNIX accounts.
 But a more realistic case is that some people have UNIX accounts and some people have not.
 Therefore we need a dynamic way how to assign auxiliary object classes to objects.
 
-The mechanism that usually decides whether a user should have UNIX account or not is wiki:Advanced+Hybrid+RBAC[RBAC]. If the user has a role that gives a UNIX account then the account should have `posixAccount` auxiliary object class.
+The mechanism that usually decides whether a user should have UNIX account or not is xref:/midpoint/reference/roles-policies/rbac/[RBAC]. If the user has a role that gives a UNIX account then the account should have `posixAccount` auxiliary object class.
 If the user does not have such a role there should be just the structural object class.
 MidPoint supports this configuration.
-In this case the wiki:Resource+Configuration[resource configuration] contains only the structural object class:
+In this case the xref:/midpoint/reference/resources/resource-configuration/[resource configuration] contains only the structural object class:
 
 [source,xml]
 ----
@@ -116,7 +116,7 @@ And the role also contains mappings for the attributes that are specific to the 
 
 When the Unix User role is assigned to a user, midPoint takes care that the `posixAccount` auxiliary object classes is added to the existing account and that all the necessary attributes are added as well.
 And (even more importantly) also the other way around: when the Unix role is unassigned midPoint will remove the `posixAccount` auxiliary object class and also all the attribute values.
-It is very important to remove the attribute values together with the auxiliary object class, otherwise the operation will end with an schema violation error.
+It is very important to remove the attribute values together with the auxiliary object class, otherwise the operation will end with a schema violation error.
 But midPoint takes care to work with auxiliary object classes properly.
 
 [TIP]
@@ -124,7 +124,7 @@ But midPoint takes care to work with auxiliary object classes properly.
 ====
 There are even more things to make really good configuration to manage LDAP server with the NIS (RFC2307) schema.
 Auxiliary object classes are just one part of the story.
-See the wiki:Unix+Story+Test[Unix Story Test] for a complete configuration example.
+See the xref:/reference/samples/story-tests/unix/[Unix Story Test] for a complete configuration example.
 ====
 
 
@@ -179,4 +179,4 @@ To preserve them, it is possible to use the tolerant flag set to true within the
 
 == See Also
 
-* wiki:Unix+Story+Test[Unix Story Test]
+* xref:/reference/samples/story-tests/unix/[Unix Story Test]

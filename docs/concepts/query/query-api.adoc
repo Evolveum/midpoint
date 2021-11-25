@@ -8,70 +8,121 @@
 :page-display-order: 500
 :page-toc: top
 
+[NOTE]
+This document is up-to-date for midPoint 4.4 LTS version.
+
 == Objects, Queries and Filters
 
-midPoint works with tree-shaped data structures, just like hierarchical databases do.
-These structures are called *prism objects*.
-They are stored in various places, namely:
+=== Prism and Resource objects
 
-[%autowidth]
-|===
-| Place | Objects | Responsible module
+MidPoint works with data structures called xref:/midpoint/devel/prism/data-structures/[Prism objects].
+These are used for midPoint internal data, but they can also represent remote objects stored on the xref:/midpoint/reference/resources/[Resources], e.g. accounts and groups.
+Prism objects are stored in the xref:/midpoint/reference/repository/[Repository] to preserve long-term midPoint state.
+Collections of Prism objects are worked with frequently too.
+Often we need to extract only objects matching some specfic criteria, either from a runtime collection or from the repository.
+For that we use filters and the Query API described in this document.
 
-| midPoint repository
-| almost all midPoint objects
-| repository
+Each Prism object is conceptually a tree.
+Tree nodes are called prism items: containers, references and properties.
+Each item has one or more values: container values, reference values or property values.
+See xref:/midpoint/devel/prism/data-structures/[Prism Data Structures] for more.
+Some items are strictly single-valued, others may contain multiple values.
 
-| remote resources
-| resource objects (accounts, groups, ...)
-| provisioning + connectors
+The resource objects are represented as xref:/midpoint/reference/resources/shadow/[Shadow objects] inside midPoint.
+Remote attributes of interests are stored in a single-valued container called `attributes`.
+You can either query Shadow objects, which is a query against the repository, or you can query remote resource objects.
+But resources generally don't understand midPoint Query language, and the query must be translated.
+For instance, when a xref:/midpoint/reference/resources/connid/[ConnId Connector] is used, the Query is translated for the ConnId framework.
+Limitations are mentioned in this document later.
 
-| embedded workflow engine
-| work items, process instances
-| workflow
-
-|===
-
-Each of these objects is conceptually a tree.
-Tree nodes are called prism items: containers, references and properties, while each item has one or more values: container values, reference values or property values.
-(See the page on wiki:Prism+Data+Structures[Prism Data Structures]). Some items are strictly single-valued, others may contain more values.
-The resource objects are currently a bit simplified: they consist of one single-valued container having a set of non-structured properties and their values - called attributes.
-
-In the following we will discuss primarily queries targeted at repository objects.
-These notes apply to resource and workflow objects appropriately.
+=== Query
 
 [NOTE]
 Query language is defined in Prism project in link:https://github.com/Evolveum/prism/blob/master/infra/prism-impl/src/main/resources/xml/ns/public/query-3.xsd[query-3 schema].
 
+==== Object and Container value query
+
 A query can be:
 
-. an *object query*, i.e. the one that is targeted at one or more object classes.
-Examples of queries are e.g.
+* An *object query*, targeted at one or more object classes, for example:
 
-.. "give me all users with a given name",
+** "give me all users with a given name",
+** "give me all the objects with a given name",
+** "give me all focal objects with a given assignment", etc.
 
-.. "give me all the objects with a given name",
-
-.. "give me all focal objects with a given assignment" etc.
-
-. a *container value query*. Such queries are targeted at container values.
-These are being introduced in the context of special objects, like certification campaigns and lookup tables, or even in cases when no parent object exists, like work items.
+* A *container value query*, often called just "container query".
++
+Such queries are targeted at container values.
+These are being introduced in the context of special objects, like certification campaigns and lookup tables, or even in cases when no parent object exists, like audit events.
 Examples of queries:
 
-.. "give me all certification cases related to this reviewer, irrespective to in which campaign they are contained",
+** "give me all certification cases related to this reviewer, irrespective to in which campaign they are contained",
+** "give me all rows for this particular lookup table that start with this prefix",
+** "give me all work items allocated to particular user".
 
-.. "give me all rows for this particular lookup table that start with this prefix",
+Container value queries were introduced for the following reasons:
 
-.. "give me all work items allocated to particular user".
+* Querying the objects would still return all the container values, even non-matching.
+Container value query only returns the values we need, with their parent objects as necessary.
+Simply put, object query filters _based on_ container values, but does not filter the container values.
+With the object query we would still need to filter the container values in memory somehow.
 
-Container value queries cannot be implemented using object queries, as it is not reasonable to fetch whole objects (campaigns, lookup tables) because they can be simply too large to be efficiently processed.
-And, in some cases, "owning" objects simply do not exist.
+* While not the same as the previous point, but often related - performance.
+Sometimes we need a dozen of container values from a few objects, while these objects have
+many thousands of such container values in total.
+We don't want these values, we don't want to load them from the repository and process them to filter them out.
 
-Each query consists of a *filter* and a *paging instruction*. The former says which records (objects, container values) are to be retrieved.
-The latter says how they are to be sorted and which ones have to be selected (e.g. those with numbers 100-199).
-Both of these components (filter, paging instruction) are optional.
+* Also, some containers are standalone and have no parent objects ("owner").
+This is the case of xref:/midpoint/reference/security/audit/[audit records].
 
-A filter is either a primitive or complex one.
+==== Query anatomy
+
+Each query consists of two parts:
+
+* *Filter* specifying which records (objects, container values) are to be retrieved using various conditions.
+Filter can be primitive or complex, we will talk about various filter types in the following sections.
+* *Paging instruction* saying how to sort the results and what range, or page, should be obtained, e.g. those with numbers 100-199.
+
+Both parts are optional and the query can actually be empty.
+
+Few more pieces of information are needed for successful query execution.
+These are typically delivered together with the query, but are not part of it:
+
+* Type of the object or container value we want to query.
+* Additional options fine-tuning the search and retrieval process.
+Options can specify what optional pieces to fetch and also wheter `DISTINCT` should be applied to the results.
+
+This additional information is either implied or can be provided close to the query as needed.
+
+== Query playground
+
+To experiment with the query language, there is hardly a better place than the actual running midPoint.
+Log in the GUI as administrator and chose *Query playground* in the main menu on the left, all the way down, just above *About*.
+
+You have to:
+
+* Select the *Object type*,
+* check *Distinct* if needed (first try without it),
+* and finally write the query into the text area.
+
+Alternatively use an existing example from the selection box below.
+
+You can either execute the query or just simulate it.
+In both cases you will see the translated SQL query (or HQL for the old Generic repository) and the parameter values.
+
+[IMPORTANT]
+====
+The *distinct* option is often essential to get the right count of objects when searching in the Generic repository.
+This is caused by `LEFT JOIN` used even when traversing to multi-value containers.
+E.g., filter on `assignment/targetRef` causes each object with multiple assignments to be returned multiple times.
+Using Exists filter (see later) does not fix this in the Generic repository either, as it also uses `LEFT JOIN` internally.
+
+The new Native repository does not suffer by these problems as it always uses SQL `EXISTS` when traversing
+to multi-value containers and also for Exists filter.
+Native repository actually *ignores distinct* if there is no `JOIN` in the final query, as the returned raws must be distinct.
+Native repository uses `LEFT JOIN` only to traverse across single-valued containers and references and their targets,
+so even then the distinct option is useless and, when honoured, can potetinally hurt SQL performance.
+====
 
 == Primitive filters
 
@@ -115,16 +166,34 @@ Generally, they are characterized by:
 
 [%autowidth]
 |===
-| Filter | Applicable left-side items for repo queries | Applicable left-side items for resource queries | Applicable right-side constant values | Applicable right-side path-pointed values | Description | Comments
+| Filter | Applicable left-side items for repo queries | Applicable left-side items for resource queries | Applicable right-side constant values | Applicable right-side path-pointed values | Description
 
 | Equal filter
 | property
 | property
-| single-valued (see note 2), nullable
-| single, nullable (see note 1)
-| For non-null filter value: Accepts if one of property values is the same as filter value.For null filter value: Accepts if property has no values.
-This option is not available for resource objects, due to ConnId limitations.
-|
+| null, single-value, limited multi-value support (see description)
+| limited support for repository: single-valued property
+a| For null filter value: Accepts if property has no values, e.g. `IS NULL` for SQL repository.
+
+For single filter value: Accepts if one of the left-hand property values is the same as filter value.
+
+* If left-hand item is a single-value property, it is simple _equals_ semantics.
+
+* If left-hand item is a multi-value property, it is _any equal_ semantics.
+
+For multiple filter values: Accepts if one of the left-hand property values is the same as any of the filter values.
+
+* If left-hand item is a single-value property, this is equivalent to SQL `IN` operation.
+
+* If left-hand item is a multi-value property, it means _any in_ semantics when repository and in-memory query engine is used.
+*For the resource query, the filter accepts if the attribute contains _all_ the filter values.*
+
+[IMPORTANT]
+Combinations with multiple filter values have *limited support* with the new Native repository.
+There is no official support for this when using the old Generic repository.
+
+Resource and in-memory queries do not support items on the right side of an operator.
+Only constant values may be present there.
 
 | Greater, Less filter
 | property
@@ -132,8 +201,9 @@ This option is not available for resource objects, due to ConnId limitations.
 | single, non-null
 | singleton
 | Accepts if one of property values is greater/greater-or-equal/less/less-or-equal in comparison to the filter value.
-For null-valued singleton items always returns false (TODO verify that).
-|
+For null-valued singleton items always returns false.
+
+Repository supports only single-valued properties on the left-hand side.
 
 | Substring filter
 | property
@@ -141,22 +211,24 @@ For null-valued singleton items always returns false (TODO verify that).
 | single, non-null
 | -
 | Accepts if the filter value is a substring of one of the property values (optionally specifying if the property value should start or end with the filter value).
-|
+
+Repository supports only single-valued properties on the left-hand side.
 
 | Ref filter
 | reference
 | -
 | single or multivalued (since 3.6), nullable
 | -
-| For non-null filter values: Accepts if one of the reference values match the filter value (or one of filter values, if there are more than one). For null filter values: Accepts if reference is empty.
-a| "Matches" means that:
+a| For null filter values: Accepts if the reference is empty.
+
+For non-null filter values: Accepts if one of the reference values match the filter value (or one of filter values, if there are more than one), which means:
 
 . OID matches,
 
+. Referenced type matches, here `null` means "any type".
+
 . Relation matches, `null` (or omitted) is equivalent to `org:default`.
 To match any relations, use `PrismConstants.Q_ANY`.
-
-. Referenced type matches, here `null` means "any type".
 
 | Org filter
 | (applicable to object as a whole)
@@ -166,59 +238,46 @@ To match any relations, use `PrismConstants.Q_ANY`.
 | Accepts if the object is direct child or any descendant (this is configurable) of the referenced org.
 Alternatively, passes if the object is the root of the tree.
 As of 3.7.1 it can check the relation as well (see a note below).
-| Although technically not a Value filter, this filter can be seen as a special case of Ref filter
-using parentOrgRef as the item to be tested, and with some advanced options (`scope`, `isRoot`).
+
+Although technically not a Value filter, this filter can be seen as a special case of Ref filter
+using *parentOrgRef* as the item to be tested, and with some advanced options (`scope`, `isRoot`).
+
+The Org filter relation is supported only for the `directChildOf` and `childOf` queries.
+It is silently ignored for `parentOf` queries.
+It is interpreted as a relation of the last (lowest) reference in the path, i.e. if we are looking
+for a user that is a child of org O1 with the relation of manager, we are looking for a user that
+is a manager of an org O2, which is either O1 itself or is any of its descendants.
+
+See the dedicated section about Org filter at the end of this document and examples there.
 
 | InOid filter
 | (applicable to object/container value as a whole)
 | -
 | multivalued, non-null
 | -
-| Accepts if object OID (or ID for container values) is among filter values.
-| Similar; see note 4.
+a| Accepts if object OID (or ID for container values) is among filter values.
+
+[NOTE]
+Question is if we should treat querying by ID/OID in the same way as querying by property, i.e. via Equal filter.
+ID/OID would be treated as a special kind of property.
+This would eliminate the need for InOid filter, but it might require deeper changes (e.g. there is no itemDefinition for ID/OID, etc).
+So, at least for midPoint 3.4, querying by ID/OID is done via InOid filter, not Equal filter.
 
 |===
 
-Notes:
-
-. Resource and workflow filters do not support items on the right side of an operator.
-Only constant values may be present there.
-
-. We should probably introduce special kind of Equal filter (named e.g. In filter) to implement the following comparisons:
-
-.. Equal filter: multivalued left-hand side (LHS) vs.
-single-valued right-hand-side (RHS)
-// TODO sqale: this works, if any left value matches ("exists" semantics)
-
-.. In filter: multivalued LHS vs.
-multivalued RHS ("non-empty set intersection" semantics)
-// TODO sqale: this works in sqale, not old repo, just like in memory it has "any" semantics (which is "non-empty set intersection")
-
-. Interestingly enough, there *is* an InFilter available now.
-It is implemented only when searching in the provisioning module.
-This filter is mapped to ICF EqualsFilter that provides set equality test.
-(So the filter name does not match its function.) It should probably be removed.
-
-. Question is if we should treat querying by ID/OID in the same way as querying by property, i.e. via Equal filter (and, maybe, Greater filter and the like), where ID/OID would be treated as special kind of property.
-This would eliminate the need for InOid filter; but it might require deeper changes (e.g. there is no itemDefinition for ID/OID, etc).
-So, at least for midPoint 3.4, querying by ID/OID is done via InOid filter, not Equal filter.
-
-. Ref filter and Org filter can specify a relation to be looked for.
+[IMPORTANT]
+====
+.Relation interpretation in Reference vs Org filter
+Ref filter and Org filter can specify a relation to be looked for.
 It is specified as a relation on the reference value passed to the filter.
 However, for historical reasons, the null relation value is treated differently:
 
-.. For Ref filter, null relation means default relation.
+* For Ref filter, null relation means default relation.
 If you need to check for any relation, you have to provide a value of q:any there.
 
-.. For Org filter, null relation means any relation.
-Of course, q:any can be used as well (and is recommended for clarity).
-
-. The Org filter relation is supported only for the `directChildOf` and `childOf` queries.
-It is silently ignored for "parentOf" queries.
-It is interpreted as a relation of the last (lowest) reference in the path, i.e. if we are looking
-for a user that is a child of org O1 with the relation of manager, we are looking for a user that
-is a manager of an org O2, which is either O1 itself or is any of its descendants.
-See also dedicated section about Org filter at the end of this document and examples there.
+* For Org filter, null relation means any relation.
+Of course, q:any can be used as well, and is recommended for clarity.
+====
 
 == Complex filters
 
@@ -240,7 +299,6 @@ They are:
 | Exists (item I, filter F)
 | Accepts iff there exists a value v of item I so that F(v) passes.
 This is useful e.g. to find an assignment with a given tenantRef and orgRef.
-
 
 |===
 
@@ -345,11 +403,11 @@ While `EXISTS` works as expected now with complex combination of conditions for 
 multi-value container (like assignment in the example above), it does not properly work when
 preceded with `NOT`, see https://jira.evolveum.com/browse/MID-7203[MID-7203].
 
-`EXISTS` for "old repo" was implemented using `LEFT JOIN` which works fine for positive conditions,
+`EXISTS` for the old Generic repo was implemented using `LEFT JOIN` which works fine for positive conditions,
 but does not work with `NOT` as usual in SQL.
 `NOT EXISTS` is interpreted as "any of the entries does not match the condition inside".
 
-Good news is that with the new (Sqale) repository coming with midPoint 4.4, `EXISTS` is translated
+Good news is that with the new Native repository coming with midPoint 4.4, `EXISTS` is translated
 to SQL `EXISTS` and `NOT EXISTS` works as expected.
 ====
 
@@ -365,22 +423,14 @@ There are actually four "query engines" that interpret filters and queries:
 | Interprets queries issued against repository objects.
 | almost all, except the ones described below
 
-
 | provisioning (connectors)
 | Interprets queries issued against resource objects, i.e. objects that reside on particular resources (AD, LDAP, CSV, ...).
 | ShadowType (some parts of them)
-
-
-| workflow engine
-| Interprets queries issued against work items, because they are kept in Activiti repository.
-| WorkItemType
-
 
 | in-memory evaluator
 | Interprets queries/filters issued against objects already loaded into memory.
 Typically used for authorization evaluation.
 | all
-
 
 |===
 
@@ -394,86 +444,69 @@ The state is current as of midPoint 3.7.1.
 
 [%autowidth]
 |===
-| Filter | Repository | Provisioning (connectors) | Workflow | In-memory
+| Filter | Repository | Provisioning (connectors) | In-memory
 
 | Equal
 | ok
 | Right-side items are not supported.
-The `null` right side constant is not supported (bug:MID-1460[]).
 | Right-side items are not supported.
-Only `externalId` item can be queried.
-| Right-side items are not supported.
-
 
 | Greater, Less
 | ok
 | N/A
 | N/A
-| N/A
-
 
 | Substring
 | ok
-| Only `contains` mode is supported; `startsWith` and `endsWith` ones are not.
-| N/A
 | ok
-
+| ok
 
 | Ref
 | ok
 | N/A
-| Only `assigneeRef` and `candidateRef` items can be queried.
-| ok; Additionally, there are two parameters driving the behavior of filters with null oid and targetType: `oidNullAsAny` and `targetTypeNullAsAny`. These are not honored by other interpreters yet.
-
+| ok
 
 | Org
 | ok
 | N/A
 | N/A
-| N/A
-
 
 | InOid
 | ok
 | N/A
-| N/A
 | ok
-
 
 | And, Or, Not
 | ok
 | ok
-| Only `And` connective (i.e. conjunction) is supported.
 | ok
-
 
 | Type
 | ok
 | N/A
-| N/A
 | supported but not much tested
-
 
 | Exists
 | ok
 | N/A
-| N/A
 | ok
-
 
 |===
 
+Additionally, there are two parameters driving the behavior of Reference filters with null oid and targetType: `oidNullAsAny` and `targetTypeNullAsAny`.
+These are currently honored by memory and Native repository interpreters, not by Generic repository and connectors.
+These parameters are considered *experimental* and should be avoided as their meaning and/or existence is still debated.
+
 General constraint for provisioning queries: It is not possible to mix both on-resource and repository items in one query, e.g. to query for both `c:attributes/ri:something` and `c:intent`.
 
-For authoritative information, see link:https://github.com/Evolveum/midpoint/blob/master/provisioning/ucf-impl-connid/src/main/java/com/evolveum/midpoint/provisioning/ucf/impl/connid/query/FilterInterpreter.java[FilterInterpreter] and related classes (provisioning); and link:https://github.com/Evolveum/midpoint/blob/master/model/workflow-impl/src/main/java/com/evolveum/midpoint/wf/impl/activiti/dao/WorkItemProvider.java[WorkItemProvider] class (workflows).
+For authoritative information about provisioning filter interpretation, see link:https://github.com/Evolveum/midpoint/blob/master/provisioning/ucf-impl-connid/src/main/java/com/evolveum/midpoint/provisioning/ucf/impl/connid/query/FilterInterpreter.java[FilterInterpreter] and related classes.
 
-== Creating filters
+== Filter examples
 
 Filters can be created using Java API (traditional or fluent one) or via XML.
 
 The following samples are taken from link:https://github.com/Evolveum/midpoint/blob/master/infra/schema/src/test/java/com/evolveum/midpoint/schema/TestQueryConvertor.java[TestQueryConvertor] class.
 XML versions are in the files named `test*.xml` in link:https://github.com/Evolveum/midpoint/tree/master/infra/schema/src/test/resources/queryconvertor[this directory].
-
 
 === Primitive filters
 
@@ -720,12 +753,11 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
         <value xsi:type="t:ObjectReferenceType" oid="oid3" type="c:ResourceType" relation="test"/>
     </ref>
 </or>
-
 ----
 
 In Java:
 
-[source]
+[source,java]
 ----
 PrismReferenceValue reference3 = new PrismReferenceValue("oid3", ResourceType.COMPLEX_TYPE);
 reference3.setRelation(new QName("test"));
@@ -752,7 +784,7 @@ It is suggested to avoid querying for target object type, if possible.
 
 XML can be written also in alternative ways:
 
-[source]
+[source,xml]
 ----
 <or>
     <ref>
@@ -1052,73 +1084,14 @@ This example returns all objects with a name starting with "C".
 
 This example returns all objects with extension attribute "EndDate" (type of XMLGregorianCalendar), which is set since 31 Decenber last year to 01 January of this year.
 
-=== Paging
-
-Limiting the number of returned entries, offset, etc., can be configured using paging.
-Following table shows paging options:
-
-[%autowidth]
-|===
-| Option | Possible values | Default value | Description
-
-| `orderBy`
-| property path (e.g. `name`)
-| arbitrary search
-| Property by which the results should be sorted.
-Only one property supported for now
-
-| `ascending`
-| ascending/descending
-| ascending
-| Direction of ordering (ascending or descending).
-Only valid if `orderBy` is specified.
-
-| `offset`
-| any Integer
-| 0
-| The index of the first returned entry, starting with zero.
-If 0 specified, resulting list will start with first entry.
-If 1 specified, resulting list will start with second entry.
-
-| `maxSize`
-| any Integer
-| 2147483647
-| The maximum number of entries returned.
-The operation may return specified number of entries or less.
-
-| `groupBy`
-| property path (e.g. "name)
-| no grouping
-| Property by which the results should be grouped.
-Just one property for now.
-
-|===
-
-Following is the example for using paging in the query.
-
-.Paging example
-[source,xml]
-----
-<q:query xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-    <q:filter>
-        <q:equal>
-            <q:path>activation/administrativeStatus</q:path>
-            <q:value>enabled</q:value>
-        </q:equal>
-    </q:filter>
-    <q:paging>
-        <q:orderBy>name</q:orderBy>
-        <offset>0</offset>
-        <maxSize>10</maxSize>
-    </q:paging>
-</q:query>
-----
-
-Using example above will return first 10 records ordered by `name` where `administrativeStatus` is set to `enabled`.
-
 === Special symbols in item paths (`..`, `@`, `#`)
 
-TODO
+[NOTE]
+This section is not up-to-date with midPoint 4.4 LTS version.
+The use of `@` to traverse to reference target ("dereference") is safe and well-supported.
+Using `..` and `#` is *experimental*, was introduced for internal reasons and the support is limited.
+
+// TODO, start with @
 
 An example: *Find all active certification cases for a given reviewer.*
 
@@ -1145,7 +1118,7 @@ An active certification case is one that is part of a campaign that is in a revi
 
 The `..` symbol denotes "owning campaign".
 
-[source]
+[source,java]
 ----
 ObjectFilter filter = prismContext.queryFor(AccessCertificationCaseType.class)
         .item(F_CURRENT_REVIEWER_REF).ref(reviewerRef)
@@ -1195,6 +1168,69 @@ ObjectQuery query = prismContext.queryFor(UserType.class)
         ShadowType.F_RESOURCE_REF, PrismConstants.T_OBJECT_REFERENCE, F_NAME)
     .containsPoly("CSV").matchingNorm().build();
 ----
+
+== Paging
+
+Limiting the number of returned entries, offset, etc., can be configured using paging.
+Following table shows paging options:
+
+[%autowidth]
+|===
+| Option | Possible values | Default value | Description
+
+| `orderBy`
+| property path (e.g. `name`)
+| arbitrary search
+| Property by which the results should be sorted.
+Only one property supported for now
+
+| `ascending`
+| ascending/descending
+| ascending
+| Direction of ordering (ascending or descending).
+Only valid if `orderBy` is specified.
+
+| `offset`
+| any Integer
+| 0
+| The index of the first returned entry, starting with zero.
+If 0 specified, resulting list will start with first entry.
+If 1 specified, resulting list will start with second entry.
+
+| `maxSize`
+| any Integer
+| 2147483647
+| The maximum number of entries returned.
+The operation may return specified number of entries or less.
+
+| `groupBy`
+|
+|
+| Deprecated, will be removed in 4.5.
+
+|===
+
+Following is the example for using paging in the query.
+
+.Paging example
+[source,xml]
+----
+<q:query xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <q:filter>
+        <q:equal>
+            <q:path>activation/administrativeStatus</q:path>
+            <q:value>enabled</q:value>
+        </q:equal>
+    </q:filter>
+    <q:paging>
+        <q:orderBy>name</q:orderBy>
+        <offset>0</offset>
+        <maxSize>10</maxSize>
+    </q:paging>
+</q:query>
+----
+
+Using example above will return first 10 records ordered by `name` where `administrativeStatus` is set to `enabled`.
 
 == Org filter
 
@@ -1304,28 +1340,30 @@ the *ORG 1* (parameter of the `isChildOf` filter), but this does not matter as t
 ownes (the one pointing to *Org 1-1-1*) has different relation.
 ====
 
+// TODO mention extensions, xref:/midpoint/reference/schema/custom-schema-extension/
+
 == WIP: New repository changes
+
+// TODO merge into the text above
 
 [WARNING]
 ====
 You can safely skip this section. You _should_ skip this section!
 
 This section is work in progress additions to this document that provides clarification
-and documents improvements related to the new repository (Sqale repo) coming in version 4.4.
+and documents improvements related to the new Native repository coming in version 4.4.
 While not incorporated into the body of the document above, consider anything as work in progress
 on the implementation level as well.
 ====
 
-* `EQ` vs multi-value LHS and RHS documentation
-** This works for single-value paths, polystrings (albeit strict matching using two serparate
-``IN``s is not totally correct) - see
+* `EQ` for multi-value Polystrings with multiple values usint strict matching is not totally correct,
+because two separate ``IN``s are used - see
 https://github.com/Evolveum/midpoint/blob/65cd02e1091bfa2285fd63e1e4a039a6c6dfb550/repo/repo-sqale/src/test/java/com/evolveum/midpoint/repo/sqale/func/SqaleRepoSearchTest.java#L431[this test].
-** TODO: refs?
-** This works multi-vs-multi for cases like `subtype` or `policySituations`, see
-https://github.com/Evolveum/midpoint/blob/65cd02e1091bfa2285fd63e1e4a039a6c6dfb550/repo/repo-sqale/src/test/java/com/evolveum/midpoint/repo/sqale/func/SqaleRepoSearchTest.java#L448[tests from here]
-** This works for multi-value attribute (LHS) with single value in the filter as usual, that is
-if any of the attribute values are equal.
-** Only `EQ` can be used with multi-value attribute (LHS), any other type of filter fails.
+
+* `EQ` multi-vs-multi works for cases like `subtype` or `policySituations`, see
+https://github.com/Evolveum/midpoint/blob/65cd02e1091bfa2285fd63e1e4a039a6c6dfb550/repo/repo-sqale/src/test/java/com/evolveum/midpoint/repo/sqale/func/SqaleRepoSearchTest.java#L448[tests from here].
+
+* Only `EQ` can be used with multi-value attribute (LHS), any other type of filter fails.
 However, single-value attribute in multi-value container for LHS works with other operations too
 with implicit `EXISTS` semantics.
 In other words - if the condition for the single-value attribute is met in _any_ of the containers,

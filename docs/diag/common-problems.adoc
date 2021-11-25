@@ -34,7 +34,7 @@ This pages also describes a usual cause of the problems.
 * `java.security.InvalidAlgorithmParameterException: the trustAnchors parameter must be non-empty`
 
 ** This strange message usually indicates a missing keystore or a missing trusted root CA certificate in the keystore.
-See wiki:Keystore+Configuration[Keystore Configuration].
+See xref:/midpoint/reference/security/crypto/keystore-configuration/[Keystore Configuration].
 
 
 

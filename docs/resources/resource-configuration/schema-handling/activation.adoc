@@ -11,7 +11,7 @@
 
 == Introduction
 
-Activation part of resource object type definition is located in wiki:Resource+Schema+Handling[Resource Schema Handling] part of resource definition.
+Activation part of resource object type definition is located in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] part of resource definition.
 The activation part defines how the resource object is _activated_, i.e. whether it should or should not exist, whether it should be enabled, disabled or archived, etc.
 This part can be used to fine-tune activation and de-activation policies.
 E.g. it can be used to specify whether account should be deleted or disabled when it is unassigned from the user.
@@ -26,7 +26,7 @@ If activation mapping returns `true` then the resource object will exist (will b
 If it returns `false` the resource object will not exist (will not be created or will be deleted).
 
 The existence mapping usually uses the concept of legality.
-The legality is determined by evaluating wiki:Assignment[assignments] and the assignment enforcement mode.
+The legality is determined by evaluating xref:/midpoint/reference/roles-policies/assignment/[assignments] and the assignment enforcement mode.
 The result of such evaluation is provided as `input` to the existence mapping.
 Therefore simple `asIs` expression is all that is usually needed:
 
@@ -63,7 +63,7 @@ E.g. in RELATIVE mode, a resource object may be legal even if it is not assigned
 | `input`
 | boolean
 | *legality*: set to `true` if the object is legal (based on assignment evaluation and enforcement mode).
-See wiki:Assignment[Assignment]
+See xref:/midpoint/reference/roles-policies/assignment/[Assignment]
 
 
 | `assigned`
@@ -185,7 +185,7 @@ Although the existence mapping may technically have `inbound` part as well such 
 
 == Administrative Status Mapping
 
-Administrative status mapping maps wiki:Activation[activation administrative status] from the focal object (user) to the administrative status of resource object.
+Administrative status mapping maps xref:/midpoint/reference/concepts/activation/[activation administrative status] from the focal object (user) to the administrative status of resource object.
 
 .administrativeStatus mapping
 [source,xml]
@@ -218,7 +218,7 @@ In the later case this effectively simulates the validity time constraints using
 | `legal`
 | boolean
 | *legality*: set to `true` if the object is legal (based on assignment evaluation).
-See wiki:Assignment[Assignment]
+See xref:/midpoint/reference/roles-policies/assignment/[Assignment]
 
 
 | `assigned`
@@ -335,7 +335,7 @@ It may be changed to a fixed `true` value if the account should stay there even 
 
 == Mapping Time Constraints
 
-The wiki:Mapping[Mapping] can optionally have a time constraints.
+The xref:/midpoint/reference/expressions/mappings/[Mapping] can optionally have a time constraints.
 The time constraints means that the mapping will only be evaluated if certain time constraints are satisfied.
 E.g. a mapping that is only evaluated 30 days after the account is disabled.
 
@@ -402,7 +402,7 @@ E.g. the following mapping will pre-provision a disabled account 5 days before u
 
 [source,xml]
 ----
-  <resource>
+<resource>
 	<schemaHandling>
 		<objectType>
 			...
@@ -485,8 +485,8 @@ E.g. the following mapping will pre-provision a disabled account 5 days before u
 
 == See Also
 
-* wiki:Activation[Activation]
+* xref:/midpoint/reference/concepts/activation/[Activation]
 
-* wiki:Assignment+Configuration[Assignment Configuration]
+* xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration]
 
-* wiki:Resource+Schema+Handling[Resource Schema Handling]
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]

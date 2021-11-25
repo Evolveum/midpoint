@@ -11,13 +11,13 @@
 
 == Introduction
 
-Inbound mapping is a xref:/midpoint/reference/expressions/mappings/[mapping] that transforms data from a wiki:Focus+and+Projections[projection] (e.g. an account) on the resource side to a wiki:Focus+and+Projections[focal object] (e.g. a user) on the midPoint side.
+Inbound mapping is a xref:/midpoint/reference/expressions/mappings/[mapping] that transforms data from a xref:/midpoint/reference/schema/focus-and-projections/[projection] (e.g. an account) on the resource side to a xref:/midpoint/reference/schema/focus-and-projections/[focal object] (e.g. a user) on the midPoint side.
 Therefore it maps data in the direction which points _into_ midPoint.
 Hence _inbound_ mapping.
 Inbound mappings are usually used to copy and transform data from authoritative sources to midPoint.
 E.g. inbound mappings are often used to populate new user object with data from HR system.
 
-Please see the wiki:Synchronization[Synchronization] page for a generic description of the synchronization process and the specific place where inbound mappings are used.
+Please see the xref:/midpoint/reference/synchronization/introduction/[Synchronization] page for a generic description of the synchronization process and the specific place where inbound mappings are used.
 
 
 == Input
@@ -274,9 +274,9 @@ See xref:/midpoint/reference/expressions/mappings/[] page for a detailed discuss
 The concept of range is not needed that often in other mappings.
 But it makes a lot of issues in inbound mappings.
 The reason for that is that inbound mappings are somehow different.
-They are not completely wiki:Relativity[relativistic].
+They are not completely xref:/midpoint/reference/concepts/relativity/[relativistic].
 
-Typical midPoint mapping is working with a wiki:Deltas[deltas]. The mapping knows what was changed and the mapping takes a full advantage of that.
+Typical midPoint mapping is working with a xref:/midpoint/devel/prism/concepts/deltas/[deltas]. The mapping knows what was changed and the mapping takes a full advantage of that.
 Therefore it will normally not change the things that should not be changed.
 Therefore the definition of mapping range is not that important in such case.
 However, in inbound mappings we do not usually have a delta.
@@ -289,14 +289,14 @@ This is exactly what range definition does.
 
 For the future, there is an easier and perhaps more intuitive method.
 But that requires remembering the origin (provenance) of each value that midPoint maintains.
-Fortunately, such feature is planned: wiki:Data+Provenance[Data Provenance]. If you are interested in this please consider wiki:Subscriptions+and+Sponsoring[purchasing platform subscription].
+Fortunately, such feature is planned: xref:/midpoint/features/planned/data-provenance/[Data Provenance]. If you are interested in this please consider xref:/support/subscription-sponsoring/[purchasing platform subscription].
 ====
 
 
 == See Also
 
-* wiki:Mapping[Mapping]
+* xref:/midpoint/reference/expressions/mappings/[Mapping]
 
-* wiki:Outbound+Mapping[Outbound Mapping]
+* xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound Mapping]
 
-* wiki:Synchronization[Synchronization]
+* xref:/midpoint/reference/synchronization/introduction/[Synchronization]

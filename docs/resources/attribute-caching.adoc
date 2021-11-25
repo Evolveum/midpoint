@@ -23,7 +23,7 @@ Therefore midPoint has an ability to cache the values of resource objects.
 == Enabling Caching
 
 The caching is turned off by default.
-It can be turned on in wiki:Resource+Configuration[Resource Configuration]:
+It can be turned on in xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]:
 
 [source,xml]
 ----
@@ -42,14 +42,14 @@ There is no read-ahead.
 The writes are always going to the resource (synchronously): read-through, write-through.
 There is no cache eviction (but old information is overwritten if newer information is available).
 
-If caching is turned on then midPoint will start to cache the data in wiki:Shadow+Objects[Shadow Objects]. The caches are build gradually as midPoint reads the objects.
+If caching is turned on then midPoint will start to cache the data in xref:/midpoint/reference/resources/shadow/[Shadow Objects]. The caches are build gradually as midPoint reads the objects.
 If you need to populate the caches with information you have to make an operation that is searching all the objects.
 E.g. reconciliation or similar operation should do the trick.
 
 
 == Impact on Operations
 
-The cached data are accessible by using the ususal wiki:IDM+Model+Interface[IDM Model Interface]. There are two operation options that provide access to the cached data:
+The cached data are accessible by using the ususal xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface]. There are two operation options that provide access to the cached data:
 
 * *`noFetch` option*: This option returns the data from midPoint repository.
 Therefore if there are data cached in the repository then the `noFetch` option returns them.
@@ -79,7 +79,7 @@ However if the search discovers any object that does not have cached data then i
 
 == Caching Metadata in Shadows
 
-wiki:Shadow+Objects[Shadow Objects] contain `cachingMetadata` property.
+xref:/midpoint/reference/resources/shadow/[Shadow Objects] contain `cachingMetadata` property.
 This property can be used to determine whether the returned shadow represents fresh or cached data:
 
 * If no `cachingMetadata` property is present in the shadow then the data are fresh.
@@ -103,4 +103,4 @@ Therefore use this feature with care.
 
 == See Also
 
-* wiki:Resource+Configuration[Resource Configuration]
+* xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]

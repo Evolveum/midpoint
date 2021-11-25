@@ -40,33 +40,33 @@ image::synchronization-mapping.png[]
 
 Mappings are intelligent.
 Mappings are not only aware of the source values, but they also know how the source values are changed and can efficiently reflect that change to the target values.
-Therefore maintaining the wiki:Relativity[relative change model] through the entire midPoint system.
+Therefore maintaining the xref:/midpoint/reference/concepts/relativity/[relative change model] through the entire midPoint system.
 The mapping also knows what are its sources and targets and therefore also compensates for correct data type conversions.
 Mapping is the best tool to customize midPoint behavior.
-It is used e.g. in wiki:Outbound+Mapping[outbound mappings], wiki:Inbound+Mapping[inbound mappings], wiki:Assignment[assignments], wiki:Advanced+Hybrid+RBAC[roles] and so on.
+It is used e.g. in xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings], xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings], xref:/midpoint/reference/roles-policies/assignment/[assignments], xref:/midpoint/reference/roles-policies/rbac/[roles] and so on.
 
-See wiki:Mapping[Mapping] page for more details.
+See xref:/midpoint/reference/expressions/mappings/[Mapping] page for more details.
 
 
 == Expression
 
 Expression is the part of midPoint that contains logic.
-It is usually part of a mapping, form wiki:Correlation+and+Confirmation+Expressions[correlation and confirmation expressions] and so on.
+It is usually part of a mapping, form xref:/midpoint/reference/synchronization/correlation-and-confirmation-expressions/[correlation and confirmation expressions] and so on.
 The expression can be simple data pointers, invocation of Java classes or there may be complex script code to determine the result.
 Expressions are very flexible, with many options to choose from including the use of literal values, paths to data objects, scripting languages and more.
 
 Support for scripting expressions currently includes Groovy, ECMAScript (JavaScript) and XPath2.
 More scripting languages may be be introduced in the future.
 
-See wiki:Expression[Expression] page for more details.
+See xref:/midpoint/reference/expressions/expressions/[Expression] page for more details.
 
 
 == See Also
 
-* wiki:Using+Mappings+and+Expressions[Using Mappings and Expressions]
+* xref:/midpoint/reference/expressions/using-mappings-and-expressions/[Using Mappings and Expressions]
 
-* wiki:Mapping[Mapping]
+* xref:/midpoint/reference/expressions/mappings/[Mapping]
 
-* wiki:Expression[Expression]
+* xref:/midpoint/reference/expressions/expressions/[Expression]
 
-* wiki:Mapping+Evaluation+Examples[Mapping Evaluation Examples]
+* xref:/midpoint/reference/expressions/mappings/mapping-evaluation-examples/[Mapping Evaluation Examples]

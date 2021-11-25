@@ -9,18 +9,18 @@
 
 == Introduction
 
-MidPoint is very flexible system, especially when it comes to wiki:Approval[approval] and other wiki:Policy+Rules[policies]. But the flexibility comes at a cost.
+MidPoint is very flexible system, especially when it comes to xref:/midpoint/reference/cases/approval/[approval] and other xref:/midpoint/reference/roles-policies/policy-rules/[policies]. But the flexibility comes at a cost.
 Policy definition can be quite complex.
 Some of this complexity is inherent and cannot really be avoided.
 But once the policies are created then it should be quite easy to apply them to individual objects such as users and roles.
 Fortunately, the mechanism of metaroles can be used exactly for this purpose.
 
 The basic idea is to express the policies in a form of metaroles. For example the policy that drives role assignment through an approval will be expressed in "approval by manager" metarole.
-This metarole will contain all the wiki:Policy+Rules[policy rules] necessary to express the approval policy.
+This metarole will contain all the xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] necessary to express the approval policy.
 Those policy rules may be quite complex, but they are all conveniently packed into the metarole.
 All that remains is to assign the metarole to an object to which it should apply - which is usually a role.
 So, we end up with a role with an assignment to a another role.
-And that is what we call wiki:Roles,+Metaroles+and+Generic+Synchronization[metarole]. The situation looks like this:
+And that is what we call xref:/midpoint/reference/roles-policies/metaroles/gensync/[metarole]. The situation looks like this:
 
 image::assignments-rbac-policy-metarole.png[]
 
@@ -30,7 +30,7 @@ It was perhaps just created.
 And now we want to apply the usual approval policy to this role.
 The usual approval policy is specified in the "Approval by manager metarole".
 This metarole specifies all the necessary policy rules.
-But those rules are specified inside wiki:Assignment+vs+Inducement[inducement]. Therefore the policy rules do not apply to the role which contains them, i.e. the rules do not apply to the "Approval by manager metarole".
+But those rules are specified inside xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[inducement]. Therefore the policy rules do not apply to the role which contains them, i.e. the rules do not apply to the "Approval by manager metarole".
 Those policy rules will apply to any object that has the metarole assigned.
 In this case it is the `Supervisor` role.
 The `Supervisor` role will be affected by the policy rules.
@@ -43,8 +43,8 @@ The `Supervisor` role will be affected by the policy rules.
 
 Following metarole contains "manager" approval policy.
 When this metaroles is applied to ordinary role then the approval policy is applied to that ordinary role.
-When that ordinary role is assigned to a user, the request is driven through an wiki:Approval[approval process]. In this case the approval will be requested from user's manager.
-The getManagersOidsExceptUser(...) function from wiki:MidPoint+Script+Library[MidPoint Script Library] is used to get the manager.
+When that ordinary role is assigned to a user, the request is driven through an xref:/midpoint/reference/cases/approval/[approval process]. In this case the approval will be requested from user's manager.
+The getManagersOidsExceptUser(...) function from xref:/midpoint/reference/expressions/expressions/script/functions/midpoint/[MidPoint Script Library] is used to get the manager.
 
 .Approval by manager
 [source,xml]
@@ -90,7 +90,7 @@ The getManagersOidsExceptUser(...) function from wiki:MidPoint+Script+Library[Mi
 
 Following metarole contains "approver" approval policy.
 When this metaroles is applied to ordinary role then the approval policy is applied to that ordinary role.
-When that ordinary role is assigned to a user, the request is driven through an wiki:Approval[approval process]. In this case the approval will be requested from the person that is designated as role approver.
+When that ordinary role is assigned to a user, the request is driven through an xref:/midpoint/reference/cases/approval/[approval process]. In this case the approval will be requested from the person that is designated as role approver.
 
 .Approval by approver
 [source,xml]
@@ -128,13 +128,13 @@ When that ordinary role is assigned to a user, the request is driven through an 
 ----
 
 The policy rule above will drive the role through an approval of a role approver.
-Role approver is determined by examining all the users that have this role assigned with a special-purpose approver wiki:Relation[relation]. Please see the wiki:Approval[description of the approval mechanism] for more details.
+Role approver is determined by examining all the users that have this role assigned with a special-purpose approver xref:/midpoint/reference/concepts/relation/[relation]. Please see the xref:/midpoint/reference/cases/approval/[description of the approval mechanism] for more details.
 
 
 == See Also
 
-* wiki:User-Friendly+Policy+Selection[User-Friendly Policy Selection]
+* xref:/midpoint/reference/roles-policies/applicable-policies/[User-Friendly Policy Selection]
 
-* wiki:Applicable+Policy+Configuration[Applicable Policy Configuration]
+* xref:/midpoint/reference/roles-policies/applicable-policies/configuration/[Applicable Policy Configuration]
 
-* wiki:Roles,+Metaroles+and+Generic+Synchronization[Roles, Metaroles and Generic Synchronization]
+* xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]

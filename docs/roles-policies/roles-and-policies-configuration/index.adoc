@@ -15,7 +15,7 @@ midPoint is using a (very) extended version of Role-Based Access Control (RBAC) 
 RBAC is originally defined as mostly static structure of users and roles.
 The original RBAC defines that user assigned to the role gets all the rights implied by the role.
 If two users have the same role, they have the same rights.
-However, this leads to the problem of wiki:Role+Explosion[Role Explosion]. We hope to solve that problem by enhancing RBAC model with logic.
+However, this leads to the problem of xref:/iam/role-explosion/[Role Explosion]. We hope to solve that problem by enhancing RBAC model with logic.
 We add ability to specify expressions in role definitions that determine how and when the role is used.
 Therefore the role can adapt to the attributes of user that has the role or even the role assignment itself can be parametrized.
 This allows to construct RBAC structures that are using fewer roles and that are much more manageable.
@@ -31,7 +31,7 @@ Basic role structure is illustrated in a following diagram.
 image::rbac-1.png[]
 
 The diagram illustrates the basic mechanism of roles.
-Users are assigned to the roles using a mechanism called wiki:Assignment[assignment] (see below).
+Users are assigned to the roles using a mechanism called xref:/midpoint/reference/roles-policies/assignment/[assignment] (see below).
 Roles define access rights on a specific set of resources.
 The figure illustrates a situation that can be described as:
 
@@ -80,7 +80,6 @@ The (simplified) role definitions in XML is as follows:
 
 ----
 
-
 == Implied Accounts
 
 If the `captain` and `pirate` roles get assigned to Jack, the result should be that Jack has three accounts: Maritime Information System account, Rum Supply Management account and Shipwreck Cove account.
@@ -116,9 +115,9 @@ The mugs of all captains should come with owner's name on it, so no scurvy seado
 
 ****
 
-wiki:Mappings+and+Expressions[Mappings and expressions] are used to define dynamic implied account attributes.
-wiki:Item+Path[Simple paths] are perhaps the most easy to use and most useful in common situations.
-There are also wiki:Script+Expression[scripting expressions] for more complex cases.
+xref:/midpoint/reference/expressions/introduction/[Mappings and expressions] are used to define dynamic implied account attributes.
+xref:/midpoint/reference/concepts/item-path/[Simple paths] are perhaps the most easy to use and most useful in common situations.
+There are also xref:/midpoint/reference/expressions/expressions/script/[scripting expressions] for more complex cases.
 The default expression language is Groovy, chosen for its similarity to Java.
 However, the expression model is extensible, there are several supported languages and even more expression languages may be added in the future.
 
@@ -158,10 +157,10 @@ The role is implying account on `Rum Supply System` resource.
 It is also implying that the attribute `mugSize` of such account should be set to value `BIG` and the attribute `mugName` should be set to the value of user property `givenName`. The figure above illustrate how the attribute values "flow" through the definitions.
 
 The figure above is somehow simplified.
-In fact the role definitions are using wiki:Mapping[mappings] to determine attribute values.
-It is the same mechanism that is used in wiki:Assignment[assignments] and wiki:Resource+Schema+Handling[resource schema handling section] therefore the same features and limitations apply here.
+In fact the role definitions are using xref:/midpoint/reference/expressions/mappings/[mappings] to determine attribute values.
+It is the same mechanism that is used in xref:/midpoint/reference/roles-policies/assignment/[assignments] and xref:/midpoint/reference/resources/resource-configuration/schema-handling/[resource schema handling section] therefore the same features and limitations apply here.
 Following diagram provides more detailed illustration of use of mappings in the roles.
-Each mapping has three parts: source, value constructor and target (see wiki:Mapping[Mapping]). However some of these parts can be determined by the context in which the mapping is used.
+Each mapping has three parts: source, value constructor and target (see xref:/midpoint/reference/expressions/mappings/[Mapping]). However some of these parts can be determined by the context in which the mapping is used.
 Therefore not all parts of the mapping needs to be present when constructing the roles.
 This is illustrated in the following diagram where the implicit parts of the mappings are marked by dashed outlines.
 The first mapping in the following diagram determines target the value of account `mugSize` attribute.
@@ -175,12 +174,11 @@ Mapping target is also determined implicitly by the context.
 
 image::rbac-5.png[]
 
-Please see the wiki:Mappings+and+Expressions[Mappings and Expressions] page for explanation of basic principles of mapping mechanism.
+Please see the xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions] page for explanation of basic principles of mapping mechanism.
 
 Implied account attributes usually do not need to define the entire set of account attributes.
 There may be other roles that may assign different attributes to the same account, more values to the same attributes of the account and even conflicting values.
-The account may also have existing attributes that are managed by "native" tools (outside IDM) or there may be exceptions from the RBAC policy specified for that account using attribute specification in wiki:Assignment[assignments].
-
+The account may also have existing attributes that are managed by "native" tools (outside IDM) or there may be exceptions from the RBAC policy specified for that account using attribute specification in xref:/midpoint/reference/roles-policies/assignment/[assignments].
 
 === Implied Account Entitlements
 
@@ -218,10 +216,9 @@ The XML role definition is as follows:
 
 ----
 
-
 == Assignments
 
-Main article: wiki:Assignment[Assignment], wiki:Assignment+Configuration[Assignment Configuration]
+Main article: xref:/midpoint/reference/roles-policies/assignment/[Assignment], xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration]
 
 Assignment is a generic concept of associating user with the things that he should have or belong to.
 Assignment may associate user with a role, organizational unit or any other kind of object.
@@ -246,12 +243,11 @@ Roles are associated to to users using assignment as illustrated by the followin
 Although most assignments are as simple as the one above the assignments may be much more complex if needed.
 Assignments may be conditional, limited to a specific time period or provide parameters for the roles.
 
-See wiki:Assignment[Assignment] and wiki:Assignment+Configuration[Assignment Configuration] pages for more details about assignments.
-
+See xref:/midpoint/reference/roles-policies/assignment/[Assignment] and xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] pages for more details about assignments.
 
 == Inducements
 
-Main article: wiki:Assignment+vs+Inducement[Assignment vs Inducement]
+Main article: xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement]
 
 Simply speaking inducements are indirect assignments.
 Unlike assignments inducements do *not* apply to the object in which they are specified.
@@ -267,8 +263,7 @@ Unless you are creating a very complex setup there is a simple rule of the thumb
 
 * Roles have _inducements_
 
-See wiki:Assignment+vs+Inducement[Assignment vs Inducement] for more details.
-
+See xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement] for more details.
 
 == Role Hierarchy
 
@@ -279,16 +274,13 @@ An example of a role hierarchy is provided in the following diagram.
 
 image::rbac-6.png[]
 
-
 == Roles and Organizational Structure
 
-See wiki:Roles,+Services+and+Orgs[Roles, Services and Orgs]
-
+See xref:/midpoint/reference/roles-policies/roles-services-and-orgs/[Roles, Services and Orgs]
 
 == Meta-Roles
 
-See wiki:Roles,+Metaroles+and+Generic+Synchronization[Roles, Metaroles and Generic Synchronization]
-
+See xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]
 
 == Idempotent Roles
 
@@ -312,7 +304,7 @@ This is a very important feature that allows efficient evaluation of big role hi
 
 Marking role as idempotent is likely to result in huge performance improvements in systems with large role hierarchies.
 But there are also risks of incorrect evaluation of the roles.
-If an role is idempotent then is is also assumed that any roles included in this role are also idempotent.
+If a role is idempotent then it is also assumed that any roles included in this role are also idempotent.
 Therefore please take care when constructing role hierarchies.
 This property has a default value that indicates no idempotence.
 
@@ -350,21 +342,20 @@ Typical example is a "basic" roles that is assigned to almost any user and that 
 Note: it is perfectly OK for some dynamic roles to be marked as idempotent - even if the role contains complex expressions and conditions.
 If those conditions depend only on the environment or properties of the focus then their outcome does not depend on their position in assignment/inducement hierarchy and these roles can be made idempotent.
 
-
 == See Also
 
-* wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
+* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
 
-* wiki:Assignment[Assignment]
+* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
 
-* wiki:Assignment+Configuration[Assignment Configuration]
+* xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration]
 
-* wiki:Assignment+vs+Inducement[Assignment vs Inducement]
+* xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement]
 
-* wiki:Roles,+Services+and+Orgs[Roles, Services and Orgs]
+* xref:/midpoint/reference/roles-policies/roles-services-and-orgs/[Roles, Services and Orgs]
 
-* wiki:RBAC+Best+Practice[RBAC Best Practice]
+* xref:/midpoint/reference/roles-policies/rbac/best-practice/[RBAC Best Practice]
 
-* wiki:Roles,+Metaroles+and+Generic+Synchronization[Roles, Metaroles and Generic Synchronization]
+* xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]
 
-* wiki:Mappings+and+Expressions[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]

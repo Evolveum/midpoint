@@ -11,7 +11,7 @@
 
 == Motivation
 
-In a wiki:Linked+objects[linked objects] scenario one has to reference objects linked to current focus (link sources and/or link targets):
+In a xref:/midpoint/reference/synchronization/linked-objects/[linked objects] scenario one has to reference objects linked to current focus (link sources and/or link targets):
 
 . First, when he or she needs linked objects to provide data to mappings evaluated; using methods like `midpoint.findLinkedSource(s)` and `midpoint.findLinkedTarget(s)`.
 
@@ -42,7 +42,7 @@ But instead of writing policy rules independently of the link type specification
 
 In midPoint 4.2-M1 (milestone 1) we have implemented a proof of concept code for named object links.
 
-For a set of self-explaining examples, please see wiki:Linked+objects+scenario+2:+Devices+owned+by+users[Linked objects scenario 2: Devices owned by users] and wiki:Linked+objects+scenario+3:+Projects[Linked objects scenario 3: Projects].
+For a set of self-explaining examples, please see xref:/midpoint/reference/synchronization/linked-objects/scenario-2-devices-owned-by-users/[Linked objects scenario 2: Devices owned by users] and xref:/midpoint/reference/synchronization/linked-objects/scenario-3-projects/[Linked objects scenario 3: Projects].
 
 In midPoint 4.0 and 4.1 there are data structures related to GUI actions, namely `assignmentRelation` items in assignments and `assignmentHolderRelationApproach` in archetype policy.
 These should be integrated somehow with the link type definitions.

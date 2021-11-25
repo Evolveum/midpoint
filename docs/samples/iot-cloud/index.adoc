@@ -48,7 +48,7 @@ image::schema-0.png[]
 
 == Scenario Details
 
-For detailed description of key distribution please see wiki:Key+Distribution+Description[this page].
+For detailed description of key distribution please see xref:/midpoint/reference/samples/iot-cloud/key-distribution-description/[this page].
 
 
 == MidPoint Object Structure
@@ -98,7 +98,7 @@ They are assigned automatically by setting employeeType for individual users.
 
 |===
 
-Their attributes are described wiki:MidPoint+Object+Attributes[on a separate page].
+Their attributes are described xref:/midpoint/reference/samples/iot-cloud/midpoint-object-attributes/[on a separate page].
 
 
 == Source Code

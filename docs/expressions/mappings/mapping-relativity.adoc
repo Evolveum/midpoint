@@ -11,7 +11,7 @@
 
 == Relativity
 
-MidPoint mappings are designed to work correctly with the wiki:Relativity[relative change model] that is a fundamental principle of midPoint operation.
+MidPoint mappings are designed to work correctly with the xref:/midpoint/reference/concepts/relativity/[relative change model] that is a fundamental principle of midPoint operation.
 Simply speaking the mapping does not just maps the source values to the target values.
 It also maps the corresponding deltas.
 
@@ -20,7 +20,6 @@ TODO: better explanation:
 * Picture how a delta is translated through mapping
 
 * correct support for multi-value properties
-
 
 == Scripting Expressions in Mappings
 
@@ -44,7 +43,7 @@ MidPoint mappings fully support this mechanism also for multi-value properties.
 === Script Expression Sources
 
 For the scripting expression to work correctly the mapping must be able to identify what was changed and which part of the change is important for the script.
-E.g. it is not sufficient to know that user properties `fullName`, `familyName` and `employeeType` changed (as represented in wiki:Deltas[object delta]). The mapping must know that only the `fullName` property is important for the script.
+E.g. it is not sufficient to know that user properties `fullName`, `familyName` and `employeeType` changed (as represented in xref:/midpoint/devel/prism/concepts/deltas/[object delta]). The mapping must know that only the `fullName` property is important for the script.
 Otherwise the mapping would need to combine all the changes from all the applicable deltas and execute the script for all the applicable combinations.
 The number of possible combinations can be significantly large if multiple multi-value properties change.
 As the script in this case only cares about the value of `fullName` attribute then most of such executions will be pointless anyway and the results would be discarded.
@@ -64,7 +63,6 @@ TODO: better explanation:
 * Picture how a delta is translated through SCRIPTING mapping
 
 * relative and absolute mode
-
 
 === Expression null Values
 
@@ -103,7 +101,7 @@ This means that the script will be executed with non-null values only if there i
 If there are several mapping sources then the script still may be executed with `null` inputs, e.g. in case that one source is `null` while the others are non-null.
 In such a case this setting will make the script execution more efficient (skipping some executions) however proper checking for null values is still needed.
 
-There is also a convenient wiki:Script+Expression+Functions[script function]`basic.isEmpty()` that can provide null-safe check for empty value:
+There is also a convenient xref:/midpoint/reference/expressions/expressions/script/functions/[script function]`basic.isEmpty()` that can provide null-safe check for empty value:
 
 .Null-safe check for empty value
 [source,xml]
@@ -117,7 +115,6 @@ There is also a convenient wiki:Script+Expression+Functions[script function]`bas
     </condition>
 </mapping>
 ----
-
 
 == Mapping Condition
 
@@ -198,7 +195,7 @@ For example:
 </item>
 ----
 
-This wiki:Object+Template[object template] mapping will set the organization property of a user to `ACME, Inc.` in case that the cost center code starts with letter A. Mapping expression is completely static literal value.
+This xref:/midpoint/reference/expressions/object-template/[object template] mapping will set the organization property of a user to `ACME, Inc.` in case that the cost center code starts with letter A. Mapping expression is completely static literal value.
 Yet the mapping is behaving in the usual relativistic way because there is an condition.
 When the condition becomes `true` then `ACME, Inc.` is added.
 When the condition becomes `false` then `ACME, Inc.` is removed.
@@ -217,20 +214,18 @@ There are other settings such as mapping _range_. A condition that is `false` wi
 Whereas mapping expression can only control the value that the mapping produces.
 But it cannot control other processing of that value that takes place in the mapping.
 
-
 == Limitations
 
-While midPoint is built with wiki:Relativity[Relativity] in mind, this relativity is not complete.
+While midPoint is built with xref:/midpoint/reference/concepts/relativity/[Relativity] in mind, this relativity is not complete.
 MidPoint evolution, and especially financial and scheduling constraints, forced us to make compromises during midPoint development.
 This does not affect correctness of midPoint computation, but it may affect performance.
 The deployments that rely on a lightweight processing of large number of small changes may be affected.
-Please see wiki:Complete+Relativity[Complete Relativity] page for more details.
-
+Please see xref:/midpoint/features/planned/complete-relativity/[Complete Relativity] page for more details.
 
 == See Also
 
-* wiki:Relativity[Relativity]
+* xref:/midpoint/reference/concepts/relativity/[Relativity]
 
-* wiki:Mappings+and+Expressions[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
-* wiki:Complete+Relativity[Complete Relativity]
+* xref:/midpoint/features/planned/complete-relativity/[Complete Relativity]

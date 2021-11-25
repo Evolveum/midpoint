@@ -6,5 +6,10 @@
 :page-wiki-metadata-modify-user: virgo
 :page-wiki-metadata-modify-date: 2020-03-24T15:58:04.805+01:00
 :page-upkeep-status: orange
+:page-display-order: 30
 
-Schema scripts are under *config/sql* in the Midpoint repository - that is link:https://github.com/Evolveum/midpoint/tree/master/config/sql[here].
+Schema scripts are contained in the distribution archive under `doc/config/sql`.
+The directory contains `README.txt` file explaining what to do depending on the used repository type.
+
+Current sources for the schema scripts are under `config/sql` in the Midpoint repository.
+This can be also found link:https://github.com/Evolveum/midpoint/tree/master/config/sql[here].

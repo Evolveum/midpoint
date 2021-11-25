@@ -13,10 +13,10 @@
 MidPoint is often deployed in several environments: development environment, testing environment, production environment.
 These environments have almost the same configuration.
 The difference is often just host names and port numbers.
-However, these configuration properties may be spread across many places: resource configuration, wiki:Outbound+Mapping[outbound mappings], wiki:Object+Template[object templates] and so on.
+However, these configuration properties may be spread across many places: resource configuration, xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings], xref:/midpoint/reference/expressions/object-template/[object templates] and so on.
 It might be quite hard to maintain all these properties up to date, especially when moving configuration updates from development environment to testing and from testing to production.
 
-Therefore midPoint 3.6 has a new mechanism for that: _constants_. The constants can be defined in a single place in the system and then easily used in midPoint wiki:Expression[expressions]. The constant definition can be bound to a specific environment and defined locally.
+Therefore midPoint 3.6 has a new mechanism for that: _constants_. The constants can be defined in a single place in the system and then easily used in midPoint xref:/midpoint/reference/expressions/expressions/[expressions]. The constant definition can be bound to a specific environment and defined locally.
 Then the midPoint configuration object do not contain any environment-specific data and the configuration can be easily transferred from environment to environment.
 
 
@@ -27,6 +27,6 @@ See xref:configuration.adoc[] for more details.
 
 == See Also
 
-* wiki:Expression[Expression]
+* xref:/midpoint/reference/expressions/expressions/[Expression]
 
 * xref:configuration.adoc[]

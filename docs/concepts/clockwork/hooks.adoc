@@ -9,14 +9,14 @@
 
 Hooks are midPoint mechanism for injecting a code to or intercepting of normal midPoint flows.
 E.g. a hook can be used to inset custom notification after an operation is complete, modify the operation request before it is even processed, redirect processing to a workflow or trouble-ticket system or do any other kind of advanced customization magic.
-Hooks are invoked by wiki:Clockwork+and+Projector[Clockwork] component at appropriate stages of midPoint computation.
+Hooks are invoked by xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[Clockwork] component at appropriate stages of midPoint computation.
 
 Hooks are typically pieces of Java code that has to be compiled and assembled into midPoint.
-However there is also a lightweight way to wiki:Scripting+Hooks[create a hook using a scripting code].
+However there is also a lightweight way to xref:/midpoint/reference/concepts/clockwork/scripting-hooks/[create a hook using a scripting code].
 
 
 == See Also
 
-* wiki:Scripting+Hooks[Scripting Hooks]
+* xref:/midpoint/reference/concepts/clockwork/scripting-hooks/[Scripting Hooks]
 
-* wiki:Clockwork+and+Projector[Clockwork and Projector]
+* xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[Clockwork and Projector]

@@ -38,7 +38,7 @@ But the most important reason is data storage.
 All the values are stored in the repository therefore they can be used to look for the object.
 Search that ignores the difference in diacritics or search by transliterated value can be used even if the repository itself does not support that feature explicitly.
 
-MidPoint data processing layer (wiki:Prism+Objects[Prism]) is designed with syntactic shortcuts in mind.
+MidPoint data processing layer (xref:/midpoint/devel/prism/[Prism]) is designed with syntactic shortcuts in mind.
 And there is a nice syntactic shortcut for PolyString as well.
 In all data supported data formats simple PolyStrings can be specified as strings:
 
@@ -57,17 +57,17 @@ The system will make sure that such PolyString is properly processed and normali
 There are several pre-built normalizers for PolyString that can be used in midPoint deployment.
 And there is an (experimental) option to create a completely custom normalizer.
 
-See wiki:PolyString+Normalization+Configuration[PolyString Normalization Configuration] page for more details.
+See xref:/midpoint/reference/schema/polystring-normalization/[PolyString Normalization Configuration] page for more details.
 
 == Future
 
-See wiki:PolyString+Improvements[PolyString Improvements] page to learn about planned improvements to polystrings.
+See xref:/midpoint/features/planned/polystring/[PolyString Improvements] page to learn about planned improvements to polystrings.
 
 
 == See Also
 
-* wiki:Using+Prism+Objects[Using Prism Objects]
+* xref:/midpoint/devel/prism/concepts/[Using Prism Objects]
 
-* wiki:PolyString+Normalization+Configuration[PolyString Normalization Configuration]
+* xref:/midpoint/reference/schema/polystring-normalization/[PolyString Normalization Configuration]
 
-* wiki:PolyString+Improvements[PolyString Improvements]
+* xref:/midpoint/features/planned/polystring/[PolyString Improvements]

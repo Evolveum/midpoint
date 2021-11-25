@@ -33,7 +33,6 @@ In version 3.3, access certification feature is present at the level of a *techn
 Also, not all features mentioned here are implemented in 3.3.
 ====
 
-
 == Certification campaign
 
 Certification campaigns are created using templates that are called *certification campaign definitions*, or certification definitions for short.
@@ -109,11 +108,9 @@ In the above example, first notification is sent 48 hours before deadline, and t
 . *reviewerSpecification* - how the reviewers will be selected? In this simplistic case, everything will be reviewed by the administrator.
 More on reviewer specification below.
 
-
 == Very quick tutorial
 
-It is advisable to go through a wiki:Access+Certification+-+a+very+quick+tutorial[very quick tutorial] at this point in order to see how certification works.
-
+It is advisable to go through a xref:/midpoint/reference/roles-policies/certification/tutorial/[very quick tutorial] at this point in order to see how certification works.
 
 == Campaign definition options
 
@@ -189,11 +186,9 @@ An example of more advanced scope definition:
 
 This selects user-role assignments for users that belong under GovernorOffice and for roles with riskLevel = "critical".
 
-
 === Stage definitions
 
-This is described in wiki:Configuring+certification+campaign+stages[a separate document].
-
+This is described in xref:/midpoint/reference/roles-policies/certification/stages/[a separate document].
 
 === Automated scheduling of campaigns
 
@@ -235,7 +230,6 @@ All certification-related tasks are shown.
 
 image::scheduling.jpg[]
 
-
 === Configuring choice buttons
 
 Unneeded choice buttons might be hidden at the level of the system configuration.
@@ -263,20 +257,17 @@ image::button-configuration.jpg[]
 As for statistics, we currently list all 6 of responses.
 (Might be changed in the future.)
 
-
 == Reporting
 
 There are four types of reports available: certification definitions, campaigns, campaign cases and campaign decisions.
-They are described on wiki:Access+Certification+Reports[Access Certification Reports] page.
-
+They are described on xref:/midpoint/reference/roles-policies/certification/reports/[Access Certification Reports] page.
 
 == Notifications
 
 Certification module provides notifications for certification campaign owner as well as for individual reviewers.
-More information can be found on wiki:Access+Certification+Notifications[Access Certification Notifications] page.
-
+More information can be found on xref:/midpoint/reference/roles-policies/certification/notifications/[Access Certification Notifications] page.
 
 == Security
 
 Individual operations are authorized in a specific way.
-For detailed information, please see wiki:Access+Certification+Security[Access Certification Security] page.
+For detailed information, please see xref:/midpoint/reference/roles-policies/certification/authorization/[Access Certification Security] page.

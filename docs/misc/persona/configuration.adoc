@@ -12,13 +12,13 @@
 
 == Introduction
 
-Please see wiki:Personas[Personas] page for an introduction.
+Please see xref:/midpoint/reference/misc/persona/[Personas] page for an introduction.
 
 
 == Persona Construction
 
 Personas are managed by using persona constructions.
-Persona construction is a mechanism that is very similar to ordinary wiki:Assignment+Configuration[ordinary construction] used to manage resource objects.
+Persona construction is a mechanism that is very similar to ordinary xref:/midpoint/reference/roles-policies/assignment/configuration/[ordinary construction] used to manage resource objects.
 The persona constructions can be placed in assignments/inducements in a way which is almost identical to ordinary constructions.
 However, the persona constructions control the way how personas are created.
 
@@ -40,12 +40,12 @@ Persona construction looks like this:
 Meaning of individual setting is as follows:
 
 * `targetType`: Type of the persona object.
-Usually wiki:UserType[UserType].
+Usually xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[UserType].
 
 * `targetSubtype`: Subtype of the persona.
 In case of UserType personas this setting specifies the value of `employeeType` property of the resulting persona.
 
-* `objectMappingRef`: Reference to the wiki:Object+Template[object template] which will be used to map data from the focus (source user) to the persona (see below).
+* `objectMappingRef`: Reference to the xref:/midpoint/reference/expressions/object-template/[object template] which will be used to map data from the focus (source user) to the persona (see below).
 
 Type and subtype together form unique key persona key.
 I.e. construction with the same type/subtype combinations are evaluated as if they specify the same persona.
@@ -56,13 +56,13 @@ This value is used to distinguish persona types.
 [NOTE]
 .Subtype
 ====
-_Subtype_ was replaced by wiki:Archetypes[Archetypes] in midPoint 4.0. However, full support for archetyped personas was not implemented yet.
+_Subtype_ was replaced by xref:/midpoint/reference/schema/archetypes/[Archetypes] in midPoint 4.0. However, full support for archetyped personas was not implemented yet.
 ====
 
 
 == Object Mapping - Object Templates
 
-The mapping between the source user (focus) and persona is implemented by a use of wiki:Object+Template[object template]. The usual use of object template is such that the same object is both the source and the target of object template mapping.
+The mapping between the source user (focus) and persona is implemented by a use of xref:/midpoint/reference/expressions/object-template/[object template]. The usual use of object template is such that the same object is both the source and the target of object template mapping.
 However, it is all different when working with personas.
 In such case the focus object (source user) is the source of the object template mappings and the persona is the target.
 Therefore the object template can be used to map data from the source user to personas.
@@ -268,7 +268,7 @@ It is also a good idea to constraint these authorizations even further by only a
 
 == Miscellaneous
 
-Since midPoint 3.7 wiki:Password+Policy[password policy] can be used to enforce different passwords on linked personas.
+Since midPoint 3.7 xref:/midpoint/reference/security/credentials/password-policy/[password policy] can be used to enforce different passwords on linked personas.
 
 
 == Limitations
@@ -303,11 +303,11 @@ Other combinations may work under some circumstances, but they are not tested an
 ====
 This is an incomplete feature of midPoint and/or of other related components.
 We are perfectly capable to implement, fix and finish the feature, just the funding for the work is needed.
-Please consider the possibility for wiki:Subscriptions+and+Sponsoring[sponsoring] development of this feature.
+Please consider the possibility for xref:/support/subscription-sponsoring/[sponsoring] development of this feature.
 If you are midPoint platform subscriber and this feature is withing the goals of your deployment you may be able to use your subscription to endorse implementation of this feature.
 ====
 
 
 == See Also
 
-* wiki:Personas[Personas]
+* xref:/midpoint/reference/misc/persona/[Personas]

@@ -116,7 +116,7 @@ midpoint.submitTaskFromTemplate('79dacdf7-2bc9-4eef-9c63-08d53d2392c3', [
 ])
 ----
 
-See also wiki:Variables+in+bulk+actions[Variables in bulk actions] for more information on using bulk actions with variables.
+See also xref:/midpoint/reference/misc/bulk/variables/[Variables in bulk actions] for more information on using bulk actions with variables.
 
 
 == Task Cleanup
@@ -131,6 +131,6 @@ This property can be set explicitly to force task cleanup after a specific inter
 
 == See Also
 
-* wiki:Variables+in+bulk+actions[Variables in bulk actions]
+* xref:/midpoint/reference/misc/bulk/variables/[Variables in bulk actions]
 
-* wiki:Task+Manager[Task Manager]
+* xref:/midpoint/reference/tasks/task-manager/[Task Manager]

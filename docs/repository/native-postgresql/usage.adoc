@@ -1,5 +1,6 @@
 = Using Native PostgreSQL Repository
 :page-toc: top
+:page-display-order: 1
 :page-nav-title: Usage
 :page-since: "4.4"
 
@@ -7,19 +8,18 @@
 
 What is similar and what is different when configuring midPoint for the new repository?
 
-* New repository supports *only PostgreSQL database*, preferably version 13 or 14, 12 is possible too.
-The database cannot be embedded and must be prepared
-link:/midpoint/reference/repository/db/postgresq[as documented here] (the procedure is fully
-described later in this document, no need to click).
-* Different schema SQL files are used, so stop before the *Run database script* step.
-* Basic repository configuration documented link:/midpoint/reference/repository/configuration[here]
-is working as before.
-* New repo doesn't use Hibernate, so any Hibernate related configuration is ignored.
+* New repository supports *only PostgreSQL database* of version 13 and later.
+* The database must be installed and prepared as described below.
+The setup for Postgres is fairly similar to the old repo, just different schema files are used.
+* Most of the repository configuration in `config.xml` works as before.
+New repo doesn't use Hibernate, so any Hibernate related configuration is ignored.
+See this xref:/midpoint/reference/repository/configuration/[Repository Configuration] document for details.
 * Main difference in `config.xml` is to use `<type>generic</type>` instead of
 `<repositoryServiceFactoryClass>` element (which does not work with new repo).
 Definitely don't try to use both `<repositoryServiceFactoryClass>` and `<type>` simultaneously!
-* For audit replace old repository value in `auditServiceFactoryClass`
-with `com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory`.
+* For xref:../../native-audit/[SQL audit] replace old repository value in `auditServiceFactoryClass`
+with `com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory`.
+Audit factory class for SQL auditing must match the used repository.
 
 == Database setup
 
@@ -65,8 +65,6 @@ Be aware that default Postgres server sizing is rather small.
 
 === Database preparation
 
-This roughly copies the link:/midpoint/reference/repository/db/postgresq[docs for old repository].
-
 First command is to be executed in `bash` on the server with Postgres, the rest is executed inside `psql`:
 
 ----
@@ -87,7 +85,7 @@ the fastest way to replace any previous schema (obviously, not recommended for p
 It can be applied on top of the main repository schema or separately to another database.
 If both schemas are to be applied, first apply main repository schema followed by audit schema.
 
-See link:/midpoint/reference/security/audit/configuration/[Audit configuration] for details how
+See xref:/midpoint/reference/security/audit/configuration/[Audit configuration] for details how
 to set it up in a database separate from the main repository.
 Be aware that with new repository *both databases have to be PostgreSQL databases.*
 It is possible to use different versions for each database as long as they are supported (12 or higher).
@@ -119,7 +117,7 @@ psql -h localhost midpoint midpoint -c "create extension pg_stat_statements"
 Quartz scheduler in midPoint can be configured to use a database with `taskManager/jdbcJobStore`
 option in `config.xml` set to `true`.
 This is also the default if `clustered` is set to `true`.
-See link:/midpoint/reference/tasks/task-manager/configuration/[Task Manager Configuration]
+See xref:/midpoint/reference/tasks/task-manager/configuration/[Task Manager Configuration]
 for further details.
 
 In that case Quartz requires that its tables are ready in the database.
@@ -149,6 +147,16 @@ Native repository comes with native SQL audit, so we need to change the audit fa
 `...SqlAuditServiceFactory` to `com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory`.
 
 With this `config.xml` you can start midPoint as usual.
+Consult xref:/midpoint/reference/repository/configuration/[Repository Configuration] article for more details.
+
+[TIP]
+====
+The setup for the new repo is also available in the `config.xml` automatically generated
+when the midPoint starts for the first time - it's just commented out.
+Stop the midPoint, remove the created H2 database files, adjust the config file and start the midPoint again.
+
+Of course, you still need the installed and prepared PostgreSQL database!
+====
 
 == Versioning and upgrading
 
@@ -159,11 +167,9 @@ It always runs only the missing parts of the upgrade process.
 
 == See also
 
-* link:/midpoint/reference/repository/repository-database-support/[Repository Database Support]
-descusses old and new repository and our support strategy.
-* TODO: Migration guide
-* link:/midpoint/reference/repository/db/postgresq[PostgreSQL - old repo], see parts about
-separate audit and Performance tuning.
-// TODO and migrate them here
-* link:/midpoint/reference/repository/configuration[Repository Configuration]
-* link:/midpoint/reference/tasks/task-manager/configuration/[Task Manager Configuration]
+* xref:/midpoint/reference/repository/repository-database-support/[Repository Database Support]
+discusses old and new repository and our support strategy.
+* xref:/midpoint/reference/repository/native-postgresql/migration/[Migration to Native PostgreSQL Repository]
+* xref:/midpoint/reference/repository/configuration/[Repository Configuration]
+* xref:/midpoint/reference/repository/native-audit/[Native PostgreSQL Audit Trail]
+* xref:/midpoint/reference/tasks/task-manager/configuration/[Task Manager Configuration]

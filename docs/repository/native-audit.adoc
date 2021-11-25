@@ -1,0 +1,236 @@
+= Native PostgreSQL Audit Trail
+:page-nav-title: SQL Audit
+:page-display-order: 15
+:page-since: "4.4"
+:page-toc: top
+
+[IMPORTANT]
+This page documents the audit trail based on the new Native PostgreSQL Repository introduced in midPoint 4.4.
+For the old Generic SQL audit trail see xref:../generic/generic-audit/[this page].
+
+== Configuration overview
+
+SQL auditing is configured in `config.xml` inside
+xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory],
+also known as `midpoint.home`.
+
+See xref:/midpoint/reference/security/audit/[Auditing] for more general information about auditing
+and some other configuration options, not specific for the SQL trail implementation.
+These options, often realized via *SystemConfiguration* object customizations, are not covered in this document.
+
+SQL audit trail for the Native Repository is enabled in `audit` configuration element by
+adding `auditService` element containing `auditServiceFactoryClass` element with the value
+`com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory`.
+
+For example, the `audit` section may look like this (the first `auditService` is not related to the repository):
+
+[source,xml]
+----
+<audit>
+    <auditService>
+        <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+    </auditService>
+    <auditService>
+        <auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
+    <auditService>
+</audit>
+----
+
+Without further configuration, audit uses the same datasource as the main repository (in the `repository` element).
+The audit tables (see link:#audit-tables[below]) must be part of the repository database in that case.
+
+To enable separate database connection settings, use `jdbcUrl` in the `auditService` element.
+See the options in the following sections for more details.
+
+== Configuration options
+
+Many xref:../configuration/#configuration-options[repository options] can be used for
+the SQL audit trail - these are mentioned in the table below.
+Some of them are relevant only if separate data source with its own connection pool is used for the SQL audit.
+Few options do not depend on the database connection and can be tweaked separately - these are named in the second table below.
+
+All the options for the concrete audit trail implementation (or audit service) are placed directly under `auditService` element.
+
+=== Basic connection options
+
+You may skip this table, if you want to use the same database settings and the same connection pool
+for both main repository and the SQL audit - this is perfectly acceptable solution for most deployments.
+
+[%autowidth]
+|===
+| Option | Description | Default
+
+| `jdbcUrl`
+| URL for JDBC connection.
+When this (or non-recommended `dataSource`) is present, separate connection pool will be initialized for the SQL audit.
+See https://jdbc.postgresql.org/documentation/head/connect.html[Connecting to the Database] from PostgreSQL JDBC Driver documentation for more.
+| `jdbc:postgresql://localhost:5432/midpoint`
+
+| `jdbcUsername`
+| Username for JDBC connection.
+Can be empty, if username is not needed or provided in JDBC URL or otherwise.
+
+Example: `midaudit`
+|
+
+| `jdbcPassword`
+| Password for JDBC connection.
+Can be empty, if password is not needed or provided in JDBC URL or otherwise.
+
+Example: `password`
+|
+
+| `database`
+| Ignored by the Native repository and cannot be changed - do not use it.
+| `postgresql`
+
+| `driverClassName`
+| Ignored by the Native repository and cannot be changed - do not use it.
+| `org.postgresql.Driver`
+
+| `dataSource`
+| Uses JNDI DataSource loading, when this option is defined in configuration.
+This is only relevant for WAR deployment which is not recommended anyway.
+`jdbcUrl`, `jdbcUsername`, `jdbcPassword`, and `driverClassName` is ignored and should not be used.
+Example: `<dataSource>java:comp/env/jdbc/midaudit</dataSource>`
+
+*WARNING:
+This is obsolete functionality that is no longer supported or maintained.*
+It is relevant only for WAR deployments on Tomcat and even there we recommend using explicit configuration using options above.
+|
+|===
+
+It is possible to connect to the database without specifying password or username or both.
+Simply skip configuration elements *jdbcUsername* and *jdbcPassword*.
+If everything is configured as expected, connection will be successful, otherwise JDBC driver will throw an exception and midPoint will not start.
+
+There are more connection pool settings, see xref:../configuration/#other-connection-pool-options[their description]
+in the repository configuration document.
+Again, these are only relevant if separate connection setup is used.
+You may try to lower `minPoolSize` and monitor the usage of the connections to adjust `maxPoolSize` later too.
+
+[IMPORTANT]
+If the same database server is used for the repository and SQL audit, it is important to count the
+`maxPoolSize` for audit to the total possible count of used connections and avoid going over PostgreSQL
+`max_connections` setting.
+
+=== Other SQL audit configuration options
+
+Default values of these options are taken from `repository` element, and only if not specified there,
+the value in the *Default* column is used.
+
+[%autowidth]
+|===
+| Option | Description | Default
+
+| `fullObjectFormat`
+| Property specifies format (language) used to store serialized object representation into
+`ma_audit_delta` table (`delta` and `fullResult` columns).
+Supported values are `json` and `xml`.
+This is safe to change any time, objects are read properly regardless of the format they are stored in.
+| `json`
+
+| `iterativeSearchByPagingBatchSize`
+| The size of the "page" for iterative search, that is the maximum number of results returned by a single iteration.
+This is a rather internal setting and the default value is reasonable balance between query overhead and
+time to process the results.
+
+It can be raised if the iterative search overhead (executing the select)
+is too high compared to the time used for processing the page results.
+| `100`
+
+|===
+
+There are no options for compression as this is left to PostgreSQL.
+This also makes the inspection of the values in the columns easier.
+
+== Audit tables
+
+Audit logs are stored in the tables structured as described below.
+You can find current schema script for audit in link:https://github.com/Evolveum/midpoint/blob/master/config/sql/native-new/postgres-new-audit.sql[git],
+or in the distribution packages in the file `doc/config/sql/native-new/postgres-new-audit.sql`.
+// TODO
+
+== Partitioning
+
+// TODO
+
+== Examples
+
+=== Basic SQL audit setup
+
+This setup uses the same setup and set of connections as the main repository.
+The audit tables (prefixed `ma_`) must be present in the same database as the main repository.
+
+.config.xml
+[source,xml]
+----
+<configuration>
+    <midpoint>
+        ...
+        <repository>
+            <type>sqale</type>
+            <database>postgresql</database>
+            <jdbcUrl>jdbc:postgresql://192.168.56.33:5432/midpoint</jdbcUrl>
+            <jdbcUsername>midpoint</jdbcUsername>
+            <jdbcPassword>password</jdbcPassword>
+        </repository>
+        <audit>
+            ...
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+        </audit>
+...
+----
+
+=== SQL audit using its own database
+
+Here we use different database for the audit by specifying `jdbcUrl` and other related options.
+Couple of notes to the example below:
+
+* You can use the same JDBC URL, username and password to use the same database, but with separate connection pool.
+This probably does not make much sense, adjusting connection pool in the `repository` is more flexible, but it is possible.
+* Example below uses the same database server, which is probably not ideal, if you decide for this scenario.
+Separate databases allow for some flexibility, but separate database servers are better.
+* Example below shows `maxPoolSize` and `fullObjectFormat` overrides.
+Normally these values are taken from the main `repository` section - and if not present there, from the defaults.
+** These defaults for the main repository may be unnecessarily generous for the audit connection pool,
+although the default settings do release unused physical connections.
+** `fullObjectFormat` is shown only for demonstration purposes, do not change it unless you have specific needs.
+
+.config.xml
+[source,xml]
+----
+<configuration>
+    <midpoint>
+        ...
+        <repository>
+            <type>sqale</type>
+            <database>postgresql</database>
+            <jdbcUrl>jdbc:postgresql://192.168.56.33:5432/midpoint</jdbcUrl>
+            <jdbcUsername>midpoint</jdbcUsername>
+            <jdbcPassword>password</jdbcPassword>
+        </repository>
+        <audit>
+            ...
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
+                <jdbcUrl>jdbc:postgresql://192.168.56.33:5432/midaudit?ApplicationName=audit</jdbcUrl>
+                <jdbcUsername>midaudit</jdbcUsername>
+                <jdbcPassword>password</jdbcPassword>
+                <maxPoolSize>4</maxPoolSize>
+                <fullObjectFormat>xml</fullObjectFormat>
+            </auditService>
+        </audit>
+...
+----
+
+== See Also
+
+* xref:../native-postgresql/[Native PostgreSQL Repository]
+* xref:../generic/[Old Generic Repository]
+* xref:/midpoint/reference/deployment/clustering-ha/[Clustering / high availability setup]
+* xref:/midpoint/reference/repository/native-postgresql/migration/[Migration to Native PostgreSQL Repository]
+// TODO separate audit repository link
+* xref:/midpoint/reference/tasks/task-manager/configuration/[Task Manager Configuration]

@@ -52,7 +52,7 @@ Following is the example for setting thresholds for reconciliation task.
 </role>
 ----
 
-Policy rule above specifies that midPoint should monitor creation of new users (specified by wiki:Policy+Constraints[policyConstraints]) and when the limit is reached (count=4), task execution is suspended (policyAction=suspendTask).
+Policy rule above specifies that midPoint should monitor creation of new users (specified by xref:/midpoint/devel/design/policy-constraints/[policyConstraints]) and when the limit is reached (count=4), task execution is suspended (policyAction=suspendTask).
 After defining such role with policy rules, midPoint has to know that such role should be taken into account.
 Therefore, it is needed to assign this role to the task as in the example bellow.
 
@@ -104,8 +104,8 @@ The configuration might as well contain only one partition, only with an executi
 
 == See Also
 
-* wiki:Policy+Rules[Policy Rules]
+* xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
 
-* wiki:Task[Task]
+* xref:/midpoint/architecture/concepts/task/[Task]
 
-* wiki:Task+partitioning[Task partitioning]
+* xref:/midpoint/devel/design/multi-node-partitioned-and-stateful-tasks/task-partitioning/[Task partitioning]

@@ -13,13 +13,13 @@ This page describers midPoint Java client library.
 The client library is designed to access midPoint functionality in a location-independent manner.
 E.g. this library can be used to access midPoint functionality from a third-party application, command-line tool, simple web form and so on.
 
-The client library is modeled in a way that reflects the structure of midPoint wiki:REST+API[REST API]. But the idea is that this library is location-independent and transport-independent.
+The client library is modeled in a way that reflects the structure of midPoint xref:/midpoint/reference/interfaces/rest/[REST API]. But the idea is that this library is location-independent and transport-independent.
 Therefore it can be theoretically implemented as a REST client, SOAP client or even as a thin wrapper library using local Java calls.
 
 [NOTE]
 .Partially implemented
 ====
-This feature is partially implemented. But there are some parts that are not completed. We are perfectly capable to implement, fix and finish the feature, just the funding for the work is needed. Please consider the possibility for wiki:Subscriptions+and+Sponsoring[supporting] development of this feature by means of midPoint Platform subscription. If you already are midPoint Platform subscriber and this feature is within the goals of your deployment you may be able to use your subscription to endorse implementation of this feature.
+This feature is partially implemented. But there are some parts that are not completed. We are perfectly capable to implement, fix and finish the feature, just the funding for the work is needed. Please consider the possibility for xref:/support/subscription-sponsoring/[supporting] development of this feature by means of midPoint Platform subscription. If you already are midPoint Platform subscriber and this feature is within the goals of your deployment you may be able to use your subscription to endorse implementation of this feature.
 ====
 
 == Design
@@ -29,14 +29,14 @@ The applications should only access the library interface, allowing several impl
 This may be very useful during evolution of the client library for several reasons.
 Firstly the underlying technology will evolve.
 Initial implementation is a simple one based on JAXB.
-But later on when wiki:Prism+Objects[prism] is fully separated from midPoint we will switch the implementation to prism-based one.
+But later on when xref:/midpoint/devel/prism/[prism] is fully separated from midPoint we will switch the implementation to prism-based one.
 Secondly, there may be several implementations of the API at the same time.
-E.g. an implementation that will access the REST service using HTTP and an implementation that will go directly to the Java local wiki:IDM+Model+Interface[IDM Model Interface]. Therefore the same application code can be deployed remotely and also co-located with midPoint in the same web application.
+E.g. an implementation that will access the REST service using HTTP and an implementation that will go directly to the Java local xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface]. Therefore the same application code can be deployed remotely and also co-located with midPoint in the same web application.
 
 
 image::client-architecture.png[]
 
-Structure and overall approach of the client library quite closely follows the structure of web resources in midPoint wiki:REST+API[REST API].
+Structure and overall approach of the client library quite closely follows the structure of web resources in midPoint xref:/midpoint/reference/interfaces/rest/[REST API].
 
 
 == Client Library Usage Examples
@@ -116,7 +116,7 @@ But only the "verb" methods will indicate network errors and "business" errors s
 ==== Exceptions and Operation Results
 
 All the "verb" methods (get, post, delete) should return a "clean" return value if the invocation was successful (e.g. UserType, List<UserType>, etc.) If the invocation fails then an exception is thrown.
-The exception should contain wiki:OperationResult[OperationResult] structure inside them.
+The exception should contain xref:/midpoint/architecture/concepts/operation-result/[OperationResult] structure inside them.
 
 TODO: explain fetchResult for lists
 
@@ -254,7 +254,7 @@ The client was released shortly after midPoint 4.1 release.
 
 === Phase 2
 
-When wiki:Prism+Objects[prism library] gets separated from midPoint we can switch this REST client library implementation to use Prism instead of JAXB.
+When xref:/midpoint/devel/prism/[prism library] gets separated from midPoint we can switch this REST client library implementation to use Prism instead of JAXB.
 This will provide much better handling of schema definitions, object extensions, support for JSON/YAML and so on.
 
 
@@ -264,7 +264,7 @@ This will provide much better handling of schema definitions, object extensions,
 Implementation of phase 2 and 3 is roughly planned for the future.
 
 However, there is currently no specific plan when it will be implemented because there is no funding for this development yet.
-In case that you are interested in wiki:Subscriptions+and+Sponsoring[supporting] development of this feature, please consider activating link:https://evolveum.com/services/professional-support/[midPoint Platform subscription].
+In case that you are interested in xref:/support/subscription-sponsoring/[supporting] development of this feature, please consider activating link:https://evolveum.com/services/professional-support/[midPoint Platform subscription].
 ====
 
 
@@ -276,4 +276,4 @@ Stabilization, final release, full compatibility.
 
 == See Also
 
-* wiki:REST+API[REST API]
+* xref:/midpoint/reference/interfaces/rest/[REST API]

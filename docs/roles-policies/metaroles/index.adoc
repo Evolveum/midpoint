@@ -10,7 +10,7 @@
 :page-keywords: [ 'metarole', 'meta-role', 'metaroles', 'meta-roles', 'meta' ]
 :page-upkeep-status: yellow
 
-MidPoint wiki:Advanced+Hybrid+RBAC[roles] are usually applied to users.
+MidPoint xref:/midpoint/reference/roles-policies/rbac/[roles] are usually applied to users.
 But midPoint roles are universal.
 The roles can be applied to almost any midPoint object.
 Roles can be applied to users, organizations, services and even to roles themselves.
@@ -72,8 +72,8 @@ Thats what metarole can do.
 
 == See Also
 
-* wiki:Roles,+Metaroles+and+Generic+Synchronization[Roles, Metaroles and Generic Synchronization]
+* xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]
 
-* wiki:Using+Metaroles+for+Policy+Configuration[Using Metaroles for Policy Configuration]
+* xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration]
 
-* wiki:Archetypes[Archetypes]
+* xref:/midpoint/reference/schema/archetypes/[Archetypes]

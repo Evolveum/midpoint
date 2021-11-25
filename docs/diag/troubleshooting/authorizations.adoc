@@ -11,9 +11,9 @@
 :page-toc: top
 :page-upkeep-status: green
 
-MidPoint wiki:Authorization[authorizations] provide a very powerful mechanism for a fine-grained access control.
+MidPoint xref:/midpoint/reference/security/authorization/[authorizations] provide a very powerful mechanism for a fine-grained access control.
 This mechanism is quite simple in principle.
-But the configuration can get very complex especially if a sophisticated wiki:Advanced+Hybrid+RBAC[RBAC] structure is in place.
+But the configuration can get very complex especially if a sophisticated xref:/midpoint/reference/roles-policies/rbac/[RBAC] structure is in place.
 Setting the authorization up is not entirely easy task.
 It is often quite difficult to tell why the user is not authorized for a specific action or why the user can access more than he is supposed to.
 Therefore this page describes basic mechanisms how to troubleshoot authorizations.
@@ -91,7 +91,7 @@ You will see processing of every operation, every authorization, evaluation of e
 Yes, this is no easy task.
 Troubleshooting is a hard work.
 And this is the best way that we have figured out to troubleshoot the authorizations.
-If you have any better idea we are wiki:Participation[more than open to suggestions].
+If you have any better idea we are xref:/community/[more than open to suggestions].
 
 
 == Get Operations
@@ -262,4 +262,4 @@ The default end user role is a good example for this:
 
 * xref:/midpoint/reference/security/authorization/[]
 
-* wiki:Authorization+Configuration[Authorization Configuration]
+* xref:/midpoint/reference/security/authorization/configuration/[Authorization Configuration]

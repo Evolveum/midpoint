@@ -40,7 +40,7 @@ That's the reason for unified entitlement support in midPoint.
 MidPoint can manage all groups in a uniform way regardless of the grouping mechanism that the resource is using.
 All that is needed is a handful of configuration lines.
 And the nightmare is over.
-Especially when entitlements are combined with the power of wiki:Assignment[assignments] and wiki:Generic+Synchronization[generic synchronization].
+Especially when entitlements are combined with the power of xref:/midpoint/reference/roles-policies/assignment/[assignments] and xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization].
 
 To be completely honest, even though midPoint support for entitlements is quite powerful it is still at its beginning.
 The entitlements are supported in midPoint core engine but the GUI support is currently very limited.
@@ -53,7 +53,7 @@ However even this basic support is enough to avoid deployment nightmares.
 It is important to remember that entitlement is a *resource object*. Entitlement resides on the resource.
 It is *not* an object that is maintained by midPoint.
 Entitlements only reflect the reality on the resource.
-Similarly to all other resource-side object the entitlement is represented in midPoint only as a wiki:Shadow+Objects[shadow].
+Similarly to all other resource-side object the entitlement is represented in midPoint only as a xref:/midpoint/reference/resources/shadow/[shadow].
 
 image::schemas-entitlement-1.png[]
 
@@ -62,7 +62,7 @@ image::schemas-entitlement-1.png[]
 
 The primary purpose of an entitlement is to be associated with accounts (*not* users!). E.g. an account can be added as a member of a group.
 This is realized in midPoint by associating a "group entitlement" with user's account.
-MidPoint wiki:Provisioning+Subsystem[provisioning component] modifies the resource in appropriate way to add account to a group.
+MidPoint xref:/midpoint/architecture/archive/subsystems/provisioning/[provisioning component] modifies the resource in appropriate way to add account to a group.
 Similarly to other shadow-related operations midPoint then forgets about it.
 The information remains only on the resource.
 When such association happens the situation looks like this:
@@ -72,7 +72,7 @@ image::schemas-entitlement-2.png[]
 Similarly to accounts midPoint always reads fresh data from the resource when dealing with entitlements.
 Therefore midPoint does not need to remember the association.
 It can read it directly from the resource anytime.
-And that's exactly what midPoint does when an account wiki:Shadow+Objects[shadow] is retrieved:
+And that's exactly what midPoint does when an account xref:/midpoint/reference/resources/shadow/[shadow] is retrieved:
 
 image::schemas-entitlement-3.png[]
 
@@ -89,7 +89,7 @@ Regardless what kind of grouping and association mechanism is used midPoint pres
 
 == Association Definition
 
-Association of account and entitlement is defined in the wiki:Resource+Schema+Handling[Resource Schema Handling] section of wiki:Resource+Configuration[Resource Configuration]. Both object-to-subject and subject-to-object association directions are supported
+Association of account and entitlement is defined in the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] section of xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]. Both object-to-subject and subject-to-object association directions are supported
 
 Association is a relation between two parties: subject and object.
 Subject is the party that receives the entitlement (usually an account).
@@ -305,8 +305,8 @@ MidPoint will transparently process correct object retrieval and modification re
 Entitlements are resource objects.
 Therefore the component that closely communicates with the resource should be able to identify entitlements.
 This component is the connector.
-However current wiki:Identity+Connectors[Identity Connector Framework] does not support this functionality.
-Therefore the entitlements and associations needs to be manually defined in wiki:Resource+Schema+Handling[Resource Schema Handling]. However we are cooperating on evolution of the connector framework and introduction of connector entitlement support is quite high on our wishlist.
+However current xref:/connectors/connectors/[Identity Connector Framework] does not support this functionality.
+Therefore the entitlements and associations needs to be manually defined in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]. However we are cooperating on evolution of the connector framework and introduction of connector entitlement support is quite high on our wishlist.
 
 ====
 
@@ -324,8 +324,8 @@ But there is an important hard limitation: all the object types referenced from 
 === Association Behavior in MidPoint
 
 MidPoint works with associations in almost the same way how it works with resource object attributes.
-The associations are not stored in midPoint (wiki:Shadow+Objects[Shadow Objects]). The associations are retrieved fresh from the resource.
-This applies to all parts of midPoint and particularly to wiki:Synchronization[synchronization] and the user interface.
+The associations are not stored in midPoint (xref:/midpoint/reference/resources/shadow/[Shadow Objects]). The associations are retrieved fresh from the resource.
+This applies to all parts of midPoint and particularly to xref:/midpoint/reference/synchronization/introduction/[synchronization] and the user interface.
 E.g. the user interface will retrieve the associations only when the resource object (account) on the projection tab is expanded.
 Exactly at the same time when attributes are retrieved.
 
@@ -352,15 +352,15 @@ The association mechanisms makes this very easy.
 
 == Assigning Entitlements
 
-Entitlements can be easily assigned to accounts by using the wiki:Assignment[assignment] mechanism.
+Entitlements can be easily assigned to accounts by using the xref:/midpoint/reference/roles-policies/assignment/[assignment] mechanism.
 This allows the construction of roles that automatically associate user's accounts with appropriate groups.
-See wiki:Assignment+Configuration[Assignment Configuration] page for more details.
+See xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] page for more details.
 
 
 == Entitlement Membership Removal
 
 Most midPoint operations are delta-based.
-E.g. if user interface is used to add or remove an assignment a wiki:Deltas[delta] is created and sent as a parameter of the operation.
+E.g. if user interface is used to add or remove an assignment a xref:/midpoint/devel/prism/concepts/deltas/[delta] is created and sent as a parameter of the operation.
 In this case we know what has changed.
 Therefore we can easily add remove entitlement membership.
 We can do this even if the entitlement is set to be _tolerant_. We can do this because we know that the last assignment that "induced" that group was just removed.
@@ -430,10 +430,10 @@ Therefore we prefer the conservative approach and we rather maintain status quo.
 
 == See Also
 
-* wiki:Shadow+Objects[Shadow Objects]
+* xref:/midpoint/reference/resources/shadow/[Shadow Objects]
 
-* wiki:Generic+Synchronization[Generic Synchronization]
+* xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]
 
-* wiki:Assignment[Assignment]
+* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
 
-* wiki:Resource+Schema+Handling[Resource Schema Handling]
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]

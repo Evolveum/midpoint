@@ -136,21 +136,21 @@ The comparison ignores XML formatting (whitespaces between elements).
  +
 
 | yes
-| Strict wiki:PolyString[PolyString] matching.
+| Strict xref:/midpoint/reference/concepts/polystring/[PolyString] matching.
 Both the original part and the normalized parts are compared.
 
 
 | `polyStringOrig`
 | PolyString
 | yes
-| Non-strict wiki:PolyString[PolyString] matching.
+| Non-strict xref:/midpoint/reference/concepts/polystring/[PolyString] matching.
 Only the original part is compared.
 
 
 | `polyStringNorm`
 | PolyString
 | yes
-| Non-strict wiki:PolyString[PolyString] matching.
+| Non-strict xref:/midpoint/reference/concepts/polystring/[PolyString] matching.
 Only the normalized part is compared.
 
 

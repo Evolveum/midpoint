@@ -14,7 +14,7 @@
 *Status:* Public +
 *Stability:* [.green]#STABLE#, only backward-compatible changes expected +
 *Platform:* RESTful interface +
-*Dependencies:* link:/midpoint/reference/schema/[Data Model], Common schema, Query schema +
+*Dependencies:* xref:/midpoint/reference/schema/[Data Model], Common schema, Query schema +
 *Responsible person:* Katarina Bolemant
 
 == Description
@@ -101,7 +101,7 @@ We consider this to be a very good idea and this approach is adopted by midPoint
 
 However, object retrieval in midPoint can have side effects.
 Maybe midPoint will find out that an account that HTTP GET is trying to retrieve does not exists.
-In that case midPoint wiki:Consistency+mechanism[consistency mechanism] may be triggered and it can modify the state of the midPoint objects.
+In that case midPoint xref:/midpoint/reference/synchronization/consistency/[consistency mechanism] may be triggered and it can modify the state of the midPoint objects.
 Therefore there may be indirect changes in the objects even if GET is used.
 However, those changes are not direct consequence of the GET operation.
 Those are consequence of changed environment, and they are only discovered when GET operation is in progress.
@@ -145,7 +145,7 @@ Modeling those as state changes would pollute both the server and the client cod
 Therefore we have decided not to follow strict REST guidelines here and to model those operations as RPC.
 
 ** *Global RPC operations:* Operations that do not deal with any specific object, operations that deal with broad selection of objects or simply operations that cannot be classified to any of the above categories.
-Typical example is an execution of a wiki:Bulk+actions+(midPoint+scripting+language)[bulk action].
+Typical example is an execution of a xref:/midpoint/reference/misc/bulk/[bulk action].
 
 
 
@@ -154,7 +154,7 @@ Typical example is an execution of a wiki:Bulk+actions+(midPoint+scripting+langu
 
 According to REST architectural style the web resources should be created by PUT operation.
 However, this assumes that the client knows the URI and therefore it is not very practical.
-E.g. URI of most midPoint objects contains wiki:Object+ID[Object ID], which may or may not be provided by the client.
+E.g. URI of most midPoint objects contains xref:/midpoint/devel/prism/concepts/object-identifier/[Object ID], which may or may not be provided by the client.
 In case that the OID is server-generated the PUT operation is out of question.
 But even if the OID is client-generated this would expect that the client knows how to construct an URI, which is not very RESTful.
 Therefore the PUT operation is not very practical.
@@ -202,9 +202,9 @@ There are two custom codes:
 * 250 for partial error which means that during processing some error occurred but some changes was executed.
 
 
-* 240 for handled error which means that there was originally error, but midPoint was able to fix this using its wiki:Consistency+mechanism[consistency mechanism.]
+* 240 for handled error which means that there was originally error, but midPoint was able to fix this using its xref:/midpoint/reference/synchronization/consistency/[consistency mechanism.]
 
-In this two cases, midPoint returns the wiki:OperationResult[OperationResult] where there details of executed operations can be found.
+In this two cases, midPoint returns the xref:/midpoint/architecture/concepts/operation-result/[OperationResult] where there details of executed operations can be found.
 
 
 | 3xx
@@ -227,13 +227,13 @@ In this case midPoint API redirects the client to a task object that can be used
 | Client errors.
 The client has sent request that cannot be processed.
 This indicates usual situation that are well handled by the midPoint code.
-Maybe the client request to create conflicting object, delete non-existent object, modification that violates the schema an so on.The wiki:OperationResult[OperationResult] structure is usually provided in the response to provide more details about the situation.
+Maybe the client request to create conflicting object, delete non-existent object, modification that violates the schema and so on.The xref:/midpoint/architecture/concepts/operation-result/[OperationResult] structure is usually provided in the response to provide more details about the situation.
 
 
 | 5xx
 | Server errors.
 Situations that the server cannot handle and where the cause is unknown.
-This usually means bugs in the code, insufficient resources such as RAM or disk space, unforeseen failures in the infrastructure and so on.The wiki:OperationResult[OperationResult] structure might or might not be provided in this case.
+This usually means bugs in the code, insufficient resources such as RAM or disk space, unforeseen failures in the infrastructure and so on.The xref:/midpoint/architecture/concepts/operation-result/[OperationResult] structure might or might not be provided in this case.
 Some errors are so severe that the structured error information might not be available.
 
 
@@ -253,7 +253,7 @@ Retrieving that resource should result in success (2xx).
 There are also some operations that are executed asynchronously.
 In that case midPoint returns HTTP response as soon as the operation is initiated.
 The status in the response will indicate redirection (3xx).
-The redirection target is a wiki:Task[task] that can be used to track operation progress.
+The redirection target is a xref:/midpoint/architecture/concepts/task/[task] that can be used to track operation progress.
 
 
 === Authentication
@@ -440,7 +440,7 @@ To specify option, use query parameters, e.g. http://localhots:8080/midpoint/api
 | /{type}
 | link:https://evolveum.com/downloads/midpoint/latest/schema-4.2-SNAPSHOT-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
 | Object to create in the XML form
-| 201 Created, Location set to point to the newly created object240 Handled error, wiki:OperationResult[OperationResult] is returned in the body250 Partial error, wiki:OperationResult[OperationResult] is returned in the body
+| 201 Created, Location set to point to the newly created object240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
 
 
 | Create or update object
@@ -448,7 +448,7 @@ To specify option, use query parameters, e.g. http://localhots:8080/midpoint/api
 | /{type}/{oid}
 | link:https://evolveum.com/downloads/midpoint/latest/schema-4.2-SNAPSHOT-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
 | Object to create in the XML form
-| 201 Created, Location set to point to the newly created object240 Handled error, wiki:OperationResult[OperationResult] is returned in the body250 Partial error, wiki:OperationResult[OperationResult] is returned in the body
+| 201 Created, Location set to point to the newly created object240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
 
 
 | Get object
@@ -464,7 +464,7 @@ To specify option, use query parameters, e.g. http://localhots:8080/midpoint/api
 | /{type}/{oid}
 | link:https://evolveum.com/downloads/midpoint/latest/schema-4.2-SNAPSHOT-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
 | Modifications in XML format
-| 204 No Content240 Handled error, wiki:OperationResult[OperationResult] is returned in the body250 Partial error, wiki:OperationResult[OperationResult] is returned in the body
+| 204 No Content240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
 
 
 | Delete object
@@ -472,7 +472,7 @@ To specify option, use query parameters, e.g. http://localhots:8080/midpoint/api
 | /{type}/{oid}
 | link:https://evolveum.com/downloads/midpoint/latest/schema-4.2-SNAPSHOT-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
 | -
-| 204 No Content240 Handled error, wiki:OperationResult[OperationResult] is returned in the body250 Partial error, wiki:OperationResult[OperationResult] is returned in the body
+| 204 No Content240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
 
 
 | Test (configured) Resource
@@ -511,7 +511,7 @@ To specify option, use query parameters, e.g. http://localhots:8080/midpoint/api
 | POST
 | /{type}/search
 | link:https://github.com/Evolveum/midpoint/blob/731e408905650d81ecab410f1f1c4f07a0d8795c/infra/schema/src/main/java/com/evolveum/midpoint/schema/GetOperationOptions.java[GetOperationOptionsType]
-| wiki:Query+API[Query] in XML format
+| xref:/midpoint/reference/concepts/query/query-api/[Query] in XML format
 | 200 OK, list of found objects in the body
 
 
@@ -552,7 +552,7 @@ To specify option, use query parameters, e.g. http://localhots:8080/midpoint/api
 | /{type}/{oid}/generate
 | No
 | Policy for items describing how to generate the value (PolicyItemsDefinitionType)
-| 200 OK240 Handled error, wiki:OperationResult[OperationResult] is returned in the body250 Partial error, wiki:OperationResult[OperationResult] is returned in the body
+| 200 OK240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
 
 
 | Generate value
@@ -560,7 +560,7 @@ To specify option, use query parameters, e.g. http://localhots:8080/midpoint/api
 | /rpc/generate
 | No
 | PolicyItemsDefinitionType
-| 200 OK240 Handled error, wiki:OperationResult[OperationResult] is returned in the body250 Partial error, wiki:OperationResult[OperationResult] is returned in the body
+| 200 OK240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
 
 
 | Validate value for concrete object
@@ -568,7 +568,7 @@ To specify option, use query parameters, e.g. http://localhots:8080/midpoint/api
 | /{type}/{oid}/validate
 | No
 | PolicyItemsDefinitionType
-| 200 OK240 Handled error, wiki:OperationResult[OperationResult] is returned in the body250 Partial error, wiki:OperationResult[OperationResult] is returned in the body
+| 200 OK240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
 
 
 | Validate value
@@ -576,7 +576,7 @@ To specify option, use query parameters, e.g. http://localhots:8080/midpoint/api
 | /rpc/validate
 | No
 | PolicyItemsDefinitionType
-| 200 OK240 Handled error, wiki:OperationResult[OperationResult] is returned in the body250 Partial error, wiki:OperationResult[OperationResult] is returned in the body
+| 200 OK240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
 
 
 | Get user's value policy
@@ -620,7 +620,7 @@ To specify option, use query parameters, e.g. http://localhots:8080/midpoint/api
 | /rpc/executeScript
 | No
 | ExecuteScriptType
-| 200 OK, ExecuteScriptResponseType returned in the body201 Created, Location set to point to the newly created Task object. Only applicable is asynchronous=true parameter is used.240 Handled error, wiki:OperationResult[OperationResult] is returned in the body250 Partial error, wiki:OperationResult[OperationResult] is returned in the body
+| 200 OK, ExecuteScriptResponseType returned in the body201 Created, Location set to point to the newly created Task object. Only applicable is asynchronous=true parameter is used.240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
 
 
 |===
@@ -643,7 +643,7 @@ The source files used here for the samples can be found at our git link:https://
 
 [source,bash]
 ----
-curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST http://localhost:8080/midpoint/ws/rest/resources -d @pathToMidpointGit\samples\rest\opendj-resource-sync.xml -v
+curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST http://localhost:8080/midpoint/ws/rest/resources -d @pathToMidpointGit\samples\rest\opendj-resource-sync.xml -v
 ----
 
 
@@ -666,7 +666,7 @@ curl --user administrator:5ecr3t -X GET http://localhost:8080/midpoint/ws/rest/r
 .Get Object in JSON format
 [source,bash]
 ----
-curl --user administrator:5ecr3t -H "Accept: application/json"  -X GET https://demo.evolveum.com:443/midpoint/ws/rest/resources/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2
+curl --user administrator:5ecr3t -H "Accept: application/json" -X GET https://demo.evolveum.com:443/midpoint/ws/rest/resources/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2
 ----
 
 
@@ -769,10 +769,10 @@ Swagger definition is planned in the future.
 
 == See Also
 
-* wiki:Interfaces[Interfaces]
+* xref:/midpoint/reference/interfaces/[Interfaces]
 
 * What is link:https://evolveum.com/midpoint/[midPoint Open Source Identity & Access Management]
 
 * link:https://evolveum.com/[Evolveum] - Team of IAM professionals who developed midPoint
 
-* wiki:Query+API[Query API]
+* xref:/midpoint/reference/concepts/query/query-api/[Query API]

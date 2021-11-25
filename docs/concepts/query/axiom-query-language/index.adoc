@@ -11,7 +11,7 @@ It is a universal language used to search for objects in the repository, filter 
 It is used in all the places where we need to look for an object.
 
 The language closely flows midPoint data model.
-Names of the properties, attributes and all the data items are directly taken from midPoint wiki:Data+Model[data model].
+Names of the properties, attributes and all the data items are directly taken from midPoint xref:/midpoint/reference/schema/[data model].
 
 This description is an attempt to provide introduction to the Axiom Query Language for the users.
 Some details are omitted, and there are some simplifications for clarity.

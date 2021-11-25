@@ -22,7 +22,7 @@ The composition of the three parts is illustrated in the following diagram.
 image::synchronization-user-phases.png[]
 
 
-The most significant part of each phase is application of wiki:Mapping[mappings]. The input and output of applied mappings is different for each phase.
+The most significant part of each phase is application of xref:/midpoint/reference/expressions/mappings/[mappings]. The input and output of applied mappings is different for each phase.
 Following table provides the summary.
 
 [%autowidth,cols="h,1,1"]

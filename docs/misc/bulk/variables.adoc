@@ -199,4 +199,4 @@ For value-based the type is derived from the literal value xsi:type (if present)
 
 Available since v3.7devel-714-ga4ad63b (October 20th, 2017).
 
-See also wiki:Task+template+HOWTO[Task template HOWTO] to see how these feature can be used to execute parameterized bulk actions in ad-hoc tasks, created from a task template.
+See also xref:/midpoint/reference/tasks/task-template/[Task template HOWTO] to see how these feature can be used to execute parameterized bulk actions in ad-hoc tasks, created from a task template.

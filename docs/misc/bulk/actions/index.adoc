@@ -105,7 +105,7 @@ But the backward compatibility is fully ensured: the old way of specifying actio
 | Removes assignment(s) from object(s).
 
 
-| wiki:recompute[recompute]
+| xref:/midpoint/reference/misc/bulk/actions/recompute/[recompute]
 | Recomputes object(s) (or schedules the recomputation to the future).
 
 

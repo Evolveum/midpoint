@@ -11,14 +11,13 @@
 [WARNING]
 .ABANDONED
 ====
-MidPoint plugin for Eclipse for *abandoned*  in favor of link:/midpoint/studio/[MidPoint Studio], which is based on open source link:https://www.jetbrains.com/opensource/idea/[IntelliJ platform].
+MidPoint plugin for Eclipse for *abandoned*  in favor of xref:/midpoint/tools/studio/[MidPoint Studio], which is based on open source link:https://www.jetbrains.com/opensource/idea/[IntelliJ platform].
 
 Although the Eclipse plugin was an efficient tool used broadly by the community, maintaining the plugin in Eclipse environment proved to be a challenge.
-Most of the midPoint developers migrated to link:https://www.jetbrains.com/opensource/idea/[IntelliJ platform], and the popularity of the platform was also indicated by our wiki:MidPoint+2019+Survey+Results[survey]. Therefore we have decided to abandon the old and de facto derelict Eclipse plugin.
+Most of the midPoint developers migrated to link:https://www.jetbrains.com/opensource/idea/[IntelliJ platform], and the popularity of the platform was also indicated by our xref:/community/surveys/midpoint-2019-survey/[survey]. Therefore we have decided to abandon the old and de facto derelict Eclipse plugin.
 There no plans to maintain the Eclipse plugin any further.
 You can go ahead and use it if it works for you, but there will be no further improvements, bug fixes or even security fixes.
 ====
-
 
 . First of all, install the Eclipse.
 During development of this plugin we were working with link:http://www.eclipse.org/downloads/packages/eclipse-ide-java-and-dsl-developers/neonr[Eclipse for Java and DSL Developers] (having great plans for sophisticated editors for midPoint objects) but a link:http://www.eclipse.org/downloads/packages/eclipse-ide-java-developers/neonr[standard one] should be OK as well.
@@ -39,8 +38,7 @@ image::image2016-9-3-0-1-6.png[]
 image::plugin-chyba.jpg[]
 
 It is related to SSL/TLS and server certificates.
-If you see the exception above, please use the guide to *wiki:Solving+Certificate+Problems[Solving Certificate Problems]*. +
-
+If you see the exception above, please use the guide to xref:/midpoint/reference/legacy/eclipse-plugin/certificate-problems/[Solving Certificate Problems].
 
 . Now select "MidPoint Development Tools" from the list of available software.
 Then click *Next...*
@@ -77,7 +75,7 @@ cd midpoint-ide-plugins\com.evolveum.midpoint.eclipse.parent
 mvn clean install
 ----
 
-The result is then in the file _com.evolveum.midpoint.eclipse.update/target/com.evolveum.midpoint.eclipse.update-x.x.x-SNAPSHOT.zip_. This is the file to be used as archive when adding new software sites (see wiki:Solving+Certificate+Problems[here]).
+The result is then in the file _com.evolveum.midpoint.eclipse.update/target/com.evolveum.midpoint.eclipse.update-x.x.x-SNAPSHOT.zip_. This is the file to be used as archive when adding new software sites (see xref:/midpoint/reference/legacy/eclipse-plugin/certificate-problems/[here]).
 
 
 === Eclipse Groovy plugin instalation

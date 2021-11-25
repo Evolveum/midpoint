@@ -63,7 +63,7 @@ link:https://github.com/Evolveum/midpoint-custom-service/blob/master/README.adoc
 
 == Overlay development
 
-Development document is now part of the link:https://github.com/Evolveum/midpoint-overlay-example[basic overlay example] - see link:https://github.com/Evolveum/midpoint-overlay-example/blob/master/doc/overlay-development.adoc[midPoint overlay development]. It describes how to build and run the project (including IDE), how to develop against fresh snapshots, how the wiki:MidPoint+Home+Directory[MidPoint Home Directory] customizations and initial-objects customizations work.
+Development document is now part of the link:https://github.com/Evolveum/midpoint-overlay-example[basic overlay example] - see link:https://github.com/Evolveum/midpoint-overlay-example/blob/master/doc/overlay-development.adoc[midPoint overlay development]. It describes how to build and run the project (including IDE), how to develop against fresh snapshots, how the xref:/midpoint/reference/deployment/midpoint-home-directory/[MidPoint Home Directory] customizations and initial-objects customizations work.
 
 The document also includes link:https://github.com/Evolveum/midpoint-overlay-example/blob/master/doc/overlay-development.adoc#overlay-upgrade-notes[overlay upgrade notes] (starting with upgrade to midPoint 4.1).
 
@@ -75,6 +75,6 @@ The document also includes link:https://github.com/Evolveum/midpoint-overlay-exa
 
 == See Also
 
-* wiki:GUI+Development+Guide[GUI Development Guide]
+* xref:/midpoint/devel/gui/gui-development-guide/[GUI Development Guide]
 
-* wiki:Look+&+Feel+Customization+HOWTO[Look & Feel Customization HOWTO]
+* xref:/midpoint/reference/admin-gui/look-feel-customization/[Look & Feel Customization HOWTO]

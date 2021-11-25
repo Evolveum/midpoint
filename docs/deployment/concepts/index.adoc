@@ -37,7 +37,6 @@ Green is used to denote the integrated systems (resources), custom component, et
 But the devil is in the detail and there are many alternative configurations that can be used for midPoint deployment.
 Following sections will provide detailed information about deployment alternatives.
 
-
 == Repository
 
 MidPoint needs a database to store its own data.
@@ -47,8 +46,8 @@ Therefore an external SQL database is usually needed for most midPoint deploymen
 
 Most of midPoint configuration is stored in the database.
 However for obvious reasons the database configuration needs to be outside the database.
-It is stored in the `config.xml` file in wiki:MidPoint+Home+Directory[midPoint home directory]. The wiki:Repository+Configuration[Repository Configuration] page describes the configuration of database access.
-
+It is stored in the `config.xml` file in xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory].
+The xref:/midpoint/reference/repository/configuration/[Repository Configuration] page describes the configuration of database access.
 
 == Connectors
 
@@ -64,7 +63,7 @@ Such connectors may be used inside midPoint by deploying them directly to midPoi
 This is the usual case.
 Some of the frequently-used connectors are also bundled directly with midPoint to ease the deployment process.
 MidPoint has the ability to use several versions of the same connector at once which is useful for slowly testing and rolling out new connector versions.
-See wiki:Connector+Upgrade[Connector Upgrade] page for more details.
+See xref:/midpoint/reference/upgrade/connectors/[Connector Upgrade] page for more details.
 
 
 === Remote Connector Server
@@ -76,59 +75,57 @@ Whatever the reason might be there is an option to run connectors over the netwo
 The component that allows that is _Remote Connector Server_. There are two implementations of Remote Connector Server.
 One is using Java platform, the second uses .NET Framework.
 
-See link:http://wiki.evolveum.com/display/midPoint/Connector+Server[Connector Server] page for more details.
+See xref:/connectors/connid/1.x/connector-server/[Connector Server] page for more details.
 
 
 ==== Java Remote Connector Server
 
 Java Remote Connector Server is using the same kind of connectors as midPoint is using itself.
-The Java Remote Connector Server is used in situations where a connector needs a local access to some resource.
+The Java Remote Connector Server is used in situations where a connector needs local access to some resource.
 Otherwise is not able to work with it.
-It is usually used for connectors that require local access to files such as link:http://wiki.evolveum.com/display/midPoint/CSVFile+Connector[CSVFile Connector]. This approach avoids the need to copy the file using FTP or a similar mechanism which is difficult to do in a proper way and it is quite error-prone (e.g. problems with partially downloaded files, error handling, atomicity, etc.) Java Remote Connector Server is also used in situations that require firewall traversal or securing insecure communication protocol.
+It is usually used for connectors that require local access to files such as xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV Connector].
+This approach avoids the need to copy the file using FTP or a similar mechanism which is difficult to do in a proper way and it is quite error-prone, e.g. problems with partially downloaded files, error handling, atomicity, etc.
+Java Remote Connector Server is also used in situations that require firewall traversal or securing insecure communication protocol.
 
 image::Connector-Server-Deployment.png[]
 
-See wiki:Java+Connector+Server[Java Connector Server] page for more details and for installation instructions.
+See xref:/connectors/connid/1.x/connector-server/java/[Java Connector Server] page for more details and for installation instructions.
 
 ==== .NET Remote Connector Server
 
-.NET Remote Connector Server is a wiki:Connector+Server[Connector Server] that runs on Windows machines using the .NET framework.
+.NET Remote Connector Server is a xref:/connectors/connid/1.x/connector-server/[Connector Server] that runs on Windows machines using the .NET framework.
 Perhaps the only practical purpose of this connector server is to provide environment for Windows-specific connectors.
-Connectors such as wiki:Legacy+Active+Directory+Connector+(.NET)[Legacy Active Directory Connector (.NET)] require proprietary libraries that are only available on Microsoft platforms (.NET) and cannot be used from Java.
+Connectors such as xref:/connectors/connectors/Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector/[Legacy Active Directory Connector (.NET)] require proprietary libraries that are only available on Microsoft platforms (.NET) and cannot be used from Java.
 Therefore midPoint cannot use such libraries in a local connector (or remote Java connector for that matter) and a .NET-based remote connector server is required.
 
 image::Remote-Connector-Server-Deployment.png[]
 
 
 
-See wiki:.NET+Connector+Server[.NET Connector Server] page for more details and for installation instructions.
+See xref:/connectors/connid/1.x/connector-server/dotnet/[.NET Connector Server] page for more details and for installation instructions.
 
 == Reverse Proxy
 
 TODO
 
-
 == High Availability
 
 TODO
-
 
 == Keystore
 
 TODO
 
-See also link:http://wiki.evolveum.com/display/midPoint/Encryption+and+Keys#Keystore[here].
-
+See also xref:/midpoint/reference/security/crypto/#keystore[here].
 
 == Recommendations
 
 TODO: use existing database +
- TODO: do not deploy midPoint with other complex applications in the same container +
- TODO: works well in virtual environment +
- TODO: use Sun Java JDK/JRE +
- TODO: Tomcat is a recommended container (lightweight, opensource, well tested).
+TODO: do not deploy midPoint with other complex applications in the same container +
+TODO: works well in virtual environment +
+TODO: use Sun Java JDK/JRE +
+TODO: Tomcat is a recommended container (lightweight, opensource, well tested).
 Use apache as reverse proxy for flexibility.
-
 
 == See Also
 

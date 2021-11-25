@@ -32,4 +32,4 @@
 
 == See Also
 
-* wiki:Object+Collections+and+Views[Object Collections and Views]
+* xref:/midpoint/reference/admin-gui/collections-views/[Object Collections and Views]

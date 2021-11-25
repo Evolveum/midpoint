@@ -194,7 +194,7 @@ For example, the following are definitions equivalent to %outline startup and %o
 
 [source]
 ----
-%outline custom containing 'Product information : http://wiki.evolveum.com/display/midPoint' 10 '=========> System startup at ${date} <========='
+%outline custom containing 'Product information : https://docs.evolveum.com/midpoint/' 10 '=========> System startup at ${date} <========='
 %outline custom matching '.*TestUtil\\): =====\\[ (\\w+\\.\\w+) \\]======================================.*' 20 'TEST: ${group:1}'
 ----
 
@@ -591,7 +591,7 @@ java com.evolveum.logviewer.utils.truncater.Truncater idm.log
 == Installation
 
 The log viewer is now part of Eclipse plugin.
-For installation instructions, please see wiki:Eclipse+plugin+installation+HOWTO[Eclipse plugin installation HOWTO].
+For installation instructions, please see xref:/midpoint/reference/legacy/eclipse-plugin/install/install/[Eclipse plugin installation HOWTO].
 
 Note: when working with any non-trivial log files, increase the heap for Eclipse to at least 2 GB.
 The larger files, the bigger heap is required.

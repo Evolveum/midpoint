@@ -15,19 +15,19 @@
 This is a limited midPoint feature.
 This feature currently supports only some specific use-cases.
 We are perfectly capable to finish the feature, just the funding for the work is needed.
-Please consider the possibility for wiki:Subscriptions+and+Sponsoring[supporting] development of this feature by using midPoint Platform subscription.
+Please consider the possibility for xref:/support/subscription-sponsoring/[supporting] development of this feature by using midPoint Platform subscription.
 If you are midPoint Platform subscriber and this feature is within the goals of your deployment you may be able to use your subscription to endorse implementation of this feature.
 ====
 
 
 == Introduction
 
-See wiki:Expression+Profiles[Expression Profiles] page for a generic introduction to expression profile concepts.
+See xref:/midpoint/reference/expressions/expressions/profiles/[Expression Profiles] page for a generic introduction to expression profile concepts.
 
 
 == Expression Profile Specification
 
-Expression profiles are defined in wiki:System+Configuration+Object[system configuration]:
+Expression profiles are defined in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration]:
 
 [source,xml]
 ----
@@ -107,10 +107,10 @@ Therefore it is expected that this will be reusable.
 
 == Expression Profile Usage
 
-The primary usage pattern for expression profiles is in conjunction with wiki:Archetypes[archetypes]. The idea is that archetype policy will identify expression profiles that should be applied to all the expression in archetyped objects.
+The primary usage pattern for expression profiles is in conjunction with xref:/midpoint/reference/schema/archetypes/[archetypes]. The idea is that archetype policy will identify expression profiles that should be applied to all the expression in archetyped objects.
 However, this use is planned for the future and it is not yet supported in midPoint 4.0.
 
-Alternatively, expression profiles may be configured in defaultObjectPolicyConfiguration in wiki:System+Configuration+Object[system configuration]:
+Alternatively, expression profiles may be configured in defaultObjectPolicyConfiguration in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration]:
 
 [source,xml]
 ----
@@ -148,12 +148,13 @@ Yet another dangerous thing is a dynamic invocation based on Java Reflection fra
 This may even be tightly integrated into some scripting languages.
 Therefore be very careful and analyse the situation properly.
 Do not rely on default configuration that comes with midPoint.
-This configuration is wiki:Security+Guide[not meant to be completely secure]. The setup may vary in various environments, some scripts need to be less poweful, some must be more poweful, some environments are more tolerant to risk and would prefer more flexibility while other environments will heavily constrain flexibility to eliminate the risk.
+This configuration is xref:/midpoint/reference/security/security-guide/[not meant to be completely secure].
+The setup may vary in various environments, some scripts need to be less poweful, some must be more poweful, some environments are more tolerant to risk and would prefer more flexibility while other environments will heavily constrain flexibility to eliminate the risk.
 One size does not fit all.
 
 Currently, Groovy is the only language that can be constrained by a permission profile.
 And even in the case of Groovy, this constraining is quite shallow.
-There is no wiki:Expression+Profiles:+Full+Implementation[sandboxing] yet.
+There is no xref:/midpoint/features/planned/expression-profiles/[sandboxing] yet.
 Groovy scripts are constrained only on compilation level.
 I.e. the compiler of Groovy scripts will allow or deny a use of specific class or a method.
 For this method to work, the compiler needs to know types of all the variables and parameters used by the script.
@@ -169,7 +170,7 @@ But somewhere in the system there may be a method which can be tricked to execut
 If such method is used, the compiler does not know that invoking that method may bring the system down.
 This can only be achieved by a run-time _sandboxing_ of the script execution.
 While Java platform supports this concept, it is not implemented into midPoint script evaluator yet.
-Please see wiki:Expression+Profiles:+Full+Implementation[Expression Profiles: Full Implementation] for the details.
+Please see xref:/midpoint/features/planned/expression-profiles/[Expression Profiles: Full Implementation] for the details.
 
 
 == Limitations
@@ -194,13 +195,13 @@ I.e. we do not claim that expression profiles are completely secure.
 If you are using expression profiles you are doing that completely on your own risk.
 Proper security testing is more than recommended in such case.
 
-See wiki:Expression+Profiles:+Full+Implementation[Expression Profiles: Full Implementation] for the details about our plans for the future of expression profiles.
+See xref:/midpoint/features/planned/expression-profiles/[Expression Profiles: Full Implementation] for the details about our plans for the future of expression profiles.
 
 
 == See Also
 
-* wiki:Expression+Profiles[Expression Profiles]
+* xref:/midpoint/reference/expressions/expressions/profiles/[Expression Profiles]
 
-* wiki:Security+Guide[Security Guide]
+* xref:/midpoint/reference/security/security-guide/[Security Guide]
 
-* wiki:Expression+Profiles:+Full+Implementation[Expression Profiles: Full Implementation]
+* xref:/midpoint/features/planned/expression-profiles/[Expression Profiles: Full Implementation]

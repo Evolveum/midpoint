@@ -149,7 +149,7 @@ The `"object = linkTarget"` specification (new in 4.2) means "take all targets o
 This is (almost) what we need.
 The only drawback is that without further specification we would be going to recompute _all_ objects linked to the user, including e.g. its own archetype, other roles, orgs, and so on.
 
-To prevent this, we include `matchesRuleAssignment` = `true` clause, described on wiki:Linked+objects[Linked objects] page.
+To prevent this, we include `matchesRuleAssignment` = `true` clause, described on xref:/midpoint/reference/synchronization/linked-objects/[Linked objects] page.
 It should be understood like this: This policy rule came to the focus via some assignment (unless it's a global policy rule, which is not the case here).
 It is the assignment of the token in question, because the token object itself has an archetype `hw-token` that induces this rule.
 So the `matchesRuleAssignment` simply tells midPoint to recompute that one token.
@@ -182,10 +182,12 @@ Recomputation on membership change (covering situations #2-4 above, at least in 
 The `alwaysTrue` experimental policy constraint is designed to trigger any time it is evaluated (in the context of object, not an assignment).
 So this rule is really always triggered.
 
-And what it does? It takes all targets that match rule assignment (i.e. all tokens in this case) _and _whose membership status changed.
+And what it does?
+It takes all targets that match rule assignment (i.e. all tokens in this case) _and_ whose membership status changed.
 This should cover situations #2, #3, and #4.
 
-*(Temporary) workaround for situation #4:* However, because assignment evaluator skips evaluating assignments when object is deleted, the respective policy rule must be attached to the object in some other way.
+*(Temporary) workaround for situation #4:*
+However, because assignment evaluator skips evaluating assignments when object is deleted, the respective policy rule must be attached to the object in some other way.
 
 So this global policy rule has to be used:
 

@@ -11,7 +11,7 @@
 
 == Synchronization
 
-One of the primary function of midPoint is to wiki:Synchronization[synchronize] data between objects residing on resources over the network.
+One of the primary function of midPoint is to xref:/midpoint/reference/synchronization/introduction/[synchronize] data between objects residing on resources over the network.
 MidPoint approach is to avoid the complexity of synchronization everything with everything.
 As the name of midPoint suggests there is always something in the middle.
 E.g. midPoint never synchronizes an account directly to another account.
@@ -38,25 +38,25 @@ image::focus-projection-1.png[]
 
 The real situation is slightly more complex.
 As _projections_ are resource objects it is inconvenient to work with them directly.
-Therefore they are represented by wiki:Shadow+Objects[shadows] which is the usual way how midpoint represents all resource objects.
+Therefore they are represented by xref:/midpoint/reference/resources/shadow/[shadows] which is the usual way how midpoint represents all resource objects.
 Shadows can be conveniently linked to focal objects as it is illustrated in the following diagram:
 
 image::focus-projection-2.png[]
 
 
 
-The projection shadows are then synchronized with the focus by using midPoint wiki:Synchronization[synchronization] mechanisms, mostly wiki:Inbound+Mapping[inbound mappings] and wiki:Outbound+Mapping[outbound mappings]:
+The projection shadows are then synchronized with the focus by using midPoint xref:/midpoint/reference/synchronization/introduction/[synchronization] mechanisms, mostly xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings] and xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings]:
 
 image::focus-projection-3.png[]
 
 
 
-wiki:UserType[User] is the most common type of focal object.
+xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[User] is the most common type of focal object.
 But it is not the only one.
-Since the wiki:Generic+Synchronization[generic synchronization] mechanism was introduced in midPoint version 3.0 there is a wider selection of focal objects to choose from.
-E.g. an wiki:OrgType[Org] can be a focal object.
+Since the xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization] mechanism was introduced in midPoint version 3.0 there is a wider selection of focal objects to choose from.
+E.g. an xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] can be a focal object.
 The projections can also be of various types.
-E.g. it makes sense to synchronize wiki:OrgType[Orgs] to resource organizational units and groups (Note: a group is considered to be an resource wiki:Entitlements[entitlement]).
+E.g. it makes sense to synchronize xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Orgs] to resource organizational units and groups (Note: a group is considered to be an resource xref:/midpoint/reference/resources/entitlements/[entitlement]).
 
 image::focus-projection-4.png[]
 
@@ -67,28 +67,28 @@ image::focus-projection-4.png[]
 
 Following object types may act as a focus:
 
-* wiki:UserType[User]
+* xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[User]
 
-* wiki:RoleType[Role]
+* xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[Role]
 
-* wiki:OrgType[Organization]
+* xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Organization]
 
-* wiki:Services[Service]
+* xref:/midpoint/reference/misc/services/[Service]
 
-The common thing that all focal objects have are wiki:Assignment[assignments] and the ability to be owners of wiki:Shadow+Objects[shadow objects] (they have an ability to wiki:Assigning+vs+Linking[link]).
+The common thing that all focal objects have are xref:/midpoint/reference/roles-policies/assignment/[assignments] and the ability to be owners of xref:/midpoint/reference/resources/shadow/[shadow objects] (they have an ability to xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[link]).
 
 
 === Projections
 
-Projections are simply resource objects represented by wiki:Shadow+Objects[shadow objects]. The shadows contain information about wiki:Kind,+Intent+and+ObjectClass[kind and intent] that are used in synchronization algorithm to sort out projections of the same focal object.
+Projections are simply resource objects represented by xref:/midpoint/reference/resources/shadow/[shadow objects]. The shadows contain information about xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[kind and intent] that are used in synchronization algorithm to sort out projections of the same focal object.
 
 
 == See Also
 
-* wiki:Synchronization[Synchronization]
+* xref:/midpoint/reference/synchronization/introduction/[Synchronization]
 
-* wiki:Generic+Synchronization[Generic Synchronization]
+* xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]
 
-* wiki:Clockwork+and+Projector[Clockwork and Projector]
+* xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[Clockwork and Projector]
 
-* wiki:Model+Context[Model Context]
+* xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context]

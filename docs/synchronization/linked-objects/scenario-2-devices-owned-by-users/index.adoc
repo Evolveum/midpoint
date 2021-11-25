@@ -11,7 +11,9 @@
 
 [WARNING]
 ====
-This scenario uses unfinished/experimental _wiki:Named+object+links[named object links]_ feature - it is very powerful but even more experimental than linked objects feature as a whole! So beware, everything described here can change any time.
+This scenario uses unfinished/experimental xref:/midpoint/reference/synchronization/linked-objects/named-object-links/[named object links] feature.
+It is very powerful but even more experimental than linked objects feature as a whole!
+So beware, everything described here can change any time.
 ====
 
 == Overview
@@ -27,9 +29,6 @@ Let us have a set of devices that have the following characteristics:
 We want to make sure characteristics 2 and 3 hold also when ownership of the device changes and/or when relevant properties (owner `name` and `fullName` and device `name`) change.
 
 image::image2020-6-2_11-18-44.png[]
-
-
-
 
 == An implementation overview
 
@@ -49,9 +48,7 @@ For _triggering the recomputation _of linked objects we currently have only one 
 (A direct alternative is using scripting hooks but it's a lot more work.
 Also some global recomputation of changed objects could be devised but would be quite awkward as well.)
 
-
 == Data transfer implementation using mappings
-
 
 === Setting user organization property
 
@@ -140,7 +137,6 @@ What is important here is that if you used this mapping not in assignments but i
 
 (But because we use it in assigned focus mapping, it is evaluated in the correct place.)
 
-
 === Setting device description property
 
 The `device` archetype looks like this:
@@ -191,7 +187,6 @@ One could add also archetype reference to `gummi-user` but it's not strictly nec
 
 `midpoint.findLinkedSource('user')` then finds the linked user (if any).
 And the mapping returns the value for the `description` property accordingly.
-
 
 == Triggering the recomputation
 
@@ -331,7 +326,6 @@ So this global policy rule has to be used:
 
 
 ----
-
 
 === Recomputing user when device changes
 

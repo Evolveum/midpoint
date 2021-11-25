@@ -17,18 +17,16 @@ SSO integration in midPoint 4.0 and earlier is unofficial functionality and it i
 Therefore this is not part of official midPoint documentation and it is not updated.
 
 MidPoint 4.1 introduced official support for (some) SSO functionality in midPoint.
-See wiki:Flexible+Authentication[Flexible Authentication].
+See xref:/midpoint/reference/security/authentication/flexible-authentication/[Flexible Authentication].
 ====
-
 
 [WARNING]
 .Unofficial functionality
 ====
 This functionality requires modification of midPoint build, or even modification of midPoint source code.
-Therefore it is not officially supported - unless the support is explicitly negotiated in wiki:Subscriptions+and+Sponsoring[subscription]. +
-The real solution to this problem would be wiki:Flexible+Authentication[Flexible Authentication]. MidPoint wiki:Subscriptions+and+Sponsoring[platform subscription] could be used to fund improvements in midPoint authentication mechanisms.
+Therefore it is not officially supported - unless the support is explicitly negotiated in xref:/support/subscription-sponsoring/[subscription]. +
+The real solution to this problem would be xref:/midpoint/reference/security/authentication/flexible-authentication/[Flexible Authentication]. MidPoint xref:/support/subscription-sponsoring/[platform subscription] could be used to fund improvements in midPoint authentication mechanisms.
 ====
-
 
 == Introduction
 
@@ -44,7 +42,6 @@ You can support this feature by purchasing link:https://evolveum.com/services/pr
 Or even if you purchase a midPoint subscription you can use your influence to prioritize the development of SSO integration.
 
 ====
-
 
 == Setup
 
@@ -88,7 +85,6 @@ You may also want to adjust logout URL to point to the SSO single-logout page:
 
 Then rebuild and re-deploy midpoint.
 
-
 == Limitations and Notes
 
 Even though this method works reasonably well there are some limitations:
@@ -108,9 +104,6 @@ However do not forget to specify SSO enforcement exceptions (e.g. non-enforcemen
 
 .. /rest/\* for REST service
 
-
 == See Also
 
-* wiki:MidPoint+as+CAS+Client+(Apache+CAS+Agent+Method)[MidPoint as CAS Client (Apache CAS Agent Method)]
-
-* midPoint Development Snapshot
+* xref:/midpoint/reference/legacy/sso/midpoint-as-cas-client-apache-cas-agent-method-/[MidPoint as CAS Client (Apache CAS Agent Method)]

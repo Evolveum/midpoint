@@ -1,0 +1,30 @@
+= Execution Mode
+
+Here we describe the options for `executionMode` setting of xref:../[activities].
+
+[%header]
+[%autowidth]
+|===
+| Mode | Meaning | Supported by
+| `full` | Full execution mode. Changes are computed and also executed. | All activities.
+| `preview` | A preview (simulation) of changes: Changes are computed, but nothing is executed.
+Used for example to check the thresholds before the full (real) execution.
+In the future midPoint may also store the computed changes for later analysis. | See note below.
+| `dryRun` | Nothing is executed. Just metadata are handled. E.g. during reconciliation
+only situations in shadows are set. | See note below.
+| `none` | Items are fetched from repository or resource, but no specific processing
+is executed. This is very similar to dryRun, but - technically speaking -
+items are discarded right after being fetched from the source. Provisioning
+pre-processing of shadows may or may not be done, depending on the implementation.
+This mode is used just to test the object retrieval process. | Multi-threading capable activities.
+| `bucketAnalysis` | In this mode no items are really fetched. Only the size of individual buckets
+is measured (if supported by the item provider, e.g. the resource). | Multi-node capable activities.
+|===
+
+[NOTE]
+====
+The `preview` and `dryRun` execution modes are supported by the following activities:
+
+* synchronization ones: import, live synchronization, reconciliation,
+* recomputation activity.
+====

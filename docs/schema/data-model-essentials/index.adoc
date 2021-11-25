@@ -12,16 +12,15 @@
 
 MidPoint repository contains data about users, roles, resources, workflows, password policies and other midPoint state and configuration.
 MidPoint repository is midPoints own database, it is not directly shared with other systems.
-However, the entire point of midPoint is to (indirectly) wiki:Synchronization[synchronize] the data in the midPoint database to other systems.
+However, the entire point of midPoint is to (indirectly) xref:/midpoint/reference/synchronization/introduction/[synchronize] the data in the midPoint database to other systems.
 The way how the synchronization is done, how mappings and policies and applied and what is synchronized and what is not is determined by the relations of individual objects in the midPoint repository.
 This page describes how the repository is structured and explains the meaning of the most important repository concepts.
 
 [TIP]
 ====
 The description of a data model presented here is simplified.
-For the full description of the model please see wiki:Data+Model[Data Model] page and the documentation inside the schema files (XSD).
+For the full description of the model please see xref:/midpoint/reference/schema/[Data Model] page and the documentation inside the schema files (XSD).
 ====
-
 
 == Objects
 
@@ -34,7 +33,7 @@ image::schemas2-datamodel-user.png[]
 
 
 
-Each object is uniquely identified by wiki:Object+ID[object identifier (OID)]. The object identifier is _immutable_ which means that it cannot change.
+Each object is uniquely identified by xref:/midpoint/devel/prism/concepts/object-identifier/[object identifier (OID)]. The object identifier is _immutable_ which means that it cannot change.
 Never ever.
 This rule gives each object a unique identity that is not lost even if the object is renamed or moved (and renames are quite frequent in practice).
 The OIDs are assigned to an object when the object is created in the midPoint repository.
@@ -45,7 +44,7 @@ They are hidden inside the system and even a system administrator does not need 
 
 Objects have _properties_ that contain values.
 Each property has its name.
-The name is in fact wiki:Terminology[QName] but as most of the midPoint schema is in the same namespace it can be considered to be a simple string for the usual case.
+The name is in fact xref:/glossary/[QName] but as most of the midPoint schema is in the same namespace it can be considered to be a simple string for the usual case.
 The object in the diagram above has properties `name`, `fullName`, `givenName` (and others).
 Properties have values that are typically primitive data types such as strings and numbers.
 Also slightly complex data types such as timestamps (date+time), QName and URLs are considered to be primitive data types and can be used as property values.
@@ -129,11 +128,10 @@ In the figure bellow there is another example of _UserType_ object that contains
 ====
 Although the repository is object-oriented it may be implemented using various database technologies, including non-object-oriented data stores.
 In fact the most common way to store midPoint data is to use a relational database.
-It is the midPoint wiki:Repository+Subsystem[repository subsystem] that implements the necessary object-relational mapping (ORM).
+It is the midPoint xref:/midpoint/architecture/archive/subsystems/repo/[repository subsystem] that implements the necessary object-relational mapping (ORM).
 This allows the data to be stored efficiently in a form of relational database tables while presenting the data to the midPoint logic in a form of objects.
 
 ====
-
 
 == Object Types
 
@@ -144,16 +142,16 @@ All basic types of objects are defined in file common-2a.xsd that can be downloa
 | Object Type | XML Schema Name | Purpose
 
 | User
-| wiki:UserType[UserType]
+| xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[UserType]
 | Represents a physical user of the system.
 
 
 | Shadow
 | ShadowType
 | Local copy of any object on the provisioning resource that is related to provisioning.
- +
- It may be account, group, role (on the target system), privilege, security label,  +
- organizational unit or anything else that is worth managing in identity management.
++
+It may be account, group, role (on the target system), privilege, security label,  +
+organizational unit or anything else that is worth managing in identity management.
 
 [NOTE]
 .Attention
@@ -162,9 +160,8 @@ In 2.1.x versions there was used AccountShadowType to represent user account in 
 Now Shadow (2.2 version) contains property `kind` that can be set to value _account_
 ====
 
-
 | Resource
-| wiki:ResourceType[ResourceType]
+| xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType]
 | Represents a system or component external to midPoint, a system which we manage.
 
 
@@ -176,7 +173,7 @@ Connector in midPoint is any method of connection to the resource.
 
 | Role
 | RoleType
-| A role that implements wiki:Advanced+Hybrid+RBAC[Role-Based Access Control (RBAC)] mechanisms.
+| A role that implements xref:/midpoint/reference/roles-policies/rbac/[Role-Based Access Control (RBAC)] mechanisms.
 
 
 | User Template
@@ -209,7 +206,6 @@ The documentation usually uses the form without the suffix e.g. "User" and "Role
 These terms are interchangeable for most practical purposes.
 
 ====
-
 
 == User and Accounts
 
@@ -256,7 +252,6 @@ E.g. one resource requires user full name to be stored in a single string attrib
 Other resource requires to keep first name and last name in separate attributes that cannot hold national characters.
 It is a responsibility of midPoint to handle this variability and integrate the accounts.
 
-
 == Account Shadow
 
 Similarly to other account attributes the form of account identifiers is also very variable.
@@ -265,7 +260,7 @@ However identifiers are essential for midPoint functionality as they are used to
 Accounts are stored in the resource and are *not* in the midPoint repository.
 Therefore it is very difficult to maintain a link between user (which is a midPoint object) and an account (which is not).
 
-MidPoint resolves this difficulty by using wiki:Shadow+Objects[shadow objects] or "shadows" for short.
+MidPoint resolves this difficulty by using xref:/midpoint/reference/resources/shadow/[shadow objects] or "shadows" for short.
 Shadows are ordinary objects in midPoint repository that mirror some of the account characteristics.
 The most important piece of information stored in the shadow is an identifier (or identifiers) of an account that it mirrors.
 
@@ -304,10 +299,9 @@ Most of the attributes, activation data and credential data are fetched from the
 This approach provides semi-unified view of all accounts.
 All the account on all the resources are presented in the same form and the presented data are fresh.
 
-
 == Resource
 
-Resource definition (also known as wiki:ResourceType[ResourceType]) is an object in midPoint repository that describes an resource.
+Resource definition (also known as xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType]) is an object in midPoint repository that describes an resource.
 It describes quite a lot of aspects of the resource therefore it is quite a complex object.
 It usually contains:
 
@@ -327,18 +321,17 @@ image::schemas-datamodel-resource.png[]
 
 
 Resource definition is perhaps the most important object from a point of view of midPoint administration and configuration.
-Significant part of midPoint functionality is controlled by wiki:Resource+Configuration[configuration of the resource definition].
-
+Significant part of midPoint functionality is controlled by xref:/midpoint/reference/resources/resource-configuration/[configuration of the resource definition].
 
 == Connector
 
-Main article: link:http://wiki.evolveum.com/display/midPoint/Identity+Connectors[Identity Connectors]
+Main article: xref:/connectors/connectors/[Identity Connectors]
 
 xref:/connectors/[Connector] is a piece of code that is used to access the resource (target or source system).
 It is kind of a "driver" that talk to the resource using its native protocol and translates that to the data structures that are understood by midPoint.
 The connector is a piece of code in a form of Java JAR file that needs to be deployed together with midPoint.
 However there is also a corresponding object in midPoint repository that describes the connector.
-This object is known as wiki:ConnectorType[ConnectorType]. It is used in similar way as shadow objects are used.
+This object is known as xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]. It is used in similar way as shadow objects are used.
 It identifies the connector and indirectly assigns an OID to it.
 This is necessary especially for remote connectors.
 
@@ -348,27 +341,24 @@ image::schemas-datamodel-connector.png[]
 
 TODO: Remote connector, connector upgrade
 
-
 == Role
 
-Main article: link:http://wiki.evolveum.com/display/midPoint/midPoint+RBAC[midPoint RBAC]
+Main article: xref:/midpoint/reference/roles-policies/rbac/[midPoint RBAC]
 
 TODO
 
-For more details see wiki:RoleType[RoleType].
-
+For more details see xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[RoleType].
 
 == More Documentation
 
-The wiki:Data+Model[Data Model] page provides in-depth description of the data model design principles and purpose (although it may be slightly outdated).
+The xref:/midpoint/reference/schema/[Data Model] page provides in-depth description of the data model design principles and purpose (although it may be slightly outdated).
 
-The wiki:SchemaDoc[SchemaDoc] page contains links to data model documentation that is automatically generated from schema files.
-
+The xref:/midpoint/reference/schema/schemadoc/[SchemaDoc] page contains links to data model documentation that is automatically generated from schema files.
 
 == See Also
 
-* wiki:Data+Model[Data Model]
+* xref:/midpoint/reference/schema/[Data Model]
 
-* wiki:Shadow+Objects[Shadow Objects]
+* xref:/midpoint/reference/resources/shadow/[Shadow Objects]
 
-* wiki:SchemaDoc[SchemaDoc]
+* xref:/midpoint/reference/schema/schemadoc/[SchemaDoc]

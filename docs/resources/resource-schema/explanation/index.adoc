@@ -47,7 +47,7 @@ image::schemas-def.png[]
 == Namespaces
 
 The <attributes> part of the resource object shadow must be in the resource schema namespace also called _resource instance namespace_ as namespace URI is specified for each resource instance.
-It usually has prefix `ri`. The namespace URL may be explicitly specified in wiki:ResourceType[resource definition]. If it is not then a default value will be used:
+It usually has prefix `ri`. The namespace URL may be explicitly specified in xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[resource definition]. If it is not then a default value will be used:
 
 [source]
 ----

@@ -10,7 +10,7 @@
 
 Although we have quite nice error message dialog in midPoint, there are some occasions when this is not enough to diagnose the problem.
 Such (relative rare) occasions usually hits about a programming bug: wrong exception handling, wrong error reporting a wild variety (usually stupid) programming mistakes.
-If the wiki:Usual+Troubleshooting+Steps[usual troubleshooting steps] do not work, there is a time for a brutal solution.
+If the xref:/midpoint/reference/diag/troubleshooting/usual-troubleshooting-steps/[usual troubleshooting steps] do not work, there is a time for a brutal solution.
 
 The best way is to show midPoint team how to replicate the problem.
 But some problems cannot be replicated.
@@ -48,18 +48,19 @@ Don't forget to click *Save*. MidPoint will produce considerable amount of log r
 
 If you know in which component is the problem located you can experiment with this setting.
 But if all else fails the All/TRACE will do.
-The explanation of logging levels can be found on wiki:Log+Levels[Log Levels] page.
+The explanation of logging levels can be found on xref:/midpoint/reference/diag/logging/log-levels/[Log Levels] page.
 
 
 == Operation Trace
 
 MidPoint can trace the execution of any operation using a trace mechanism.
-When enabled it records entry and exit of operations between midPoint wiki:Subsystems[subsystems]. This is usually intended for developers but it may come handy when troubleshooting really devious problems.
+When enabled it records entry and exit of operations between midPoint xref:/midpoint/architecture/archive/subsystems/[subsystems].
+This is usually intended for developers but it may come handy when troubleshooting really devious problems.
 It can give other log records a _perspective_ by showing where exactly the error happened and what has midPoint tries to do before that.
 
 Trace can also be used to locate performance problems.
 The trace messages contain indications of how long the operation took.
-Therefore it can be used to roughly locate a bottleneck if some of the operations are slow.
+Therefore it can be used to roughly locate a bottleneck if some operations are slow.
 
 The trace can be configured in *Configuration  Logging* GUI page by setting the *Log subsystem entry/exit* option.
 
@@ -138,7 +139,7 @@ Send the gathered logfiles to the midPoint team with all the other relevant deta
 
 * If there is a form or other input tell us how it was filled in (e.g. an XML snippet used to import, etc.)
 
-* What kind of resource definition was used (we prefer if you replicate the problem with one of our link:https://svn.evolveum.com/midpoint/trunk/samples/[samples], see wiki:Creating+a+Bug+Report[Creating a Bug Report].
+* What kind of resource definition was used (we prefer if you replicate the problem with one of our link:https://svn.evolveum.com/midpoint/trunk/samples/[samples], see xref:/midpoint/reference/diag/creating-a-bug-report/[Creating a Bug Report].
 
 * Any other special settings that you feel can influence the outcome (custom schema, strange things in expressions, etc.)
 

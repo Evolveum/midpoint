@@ -15,7 +15,7 @@ The short answer is that _assignment_ represents what _should be_ and _link_ rep
 == Assignment
 
 Assignment represents what _should be_. Assignment specifies that a user should have an account.
-If an account is assigned to the user the wiki:Assignment[assignment] structure is added to the user object.
+If an account is assigned to the user the xref:/midpoint/reference/roles-policies/assignment/[assignment] structure is added to the user object.
 The structure remains there no matter how the state of the resource changes.
 The assignment can be described as a legal right of the user to have an account.
 
@@ -45,7 +45,7 @@ But that may not be an immediate action.
 E.g. if the target resource is down then the account may be created later when the resource goes up.
 However, the operation to add the assignment to the user will finish almost immediately regardless of whether the account was or was not created.
 
-Note that the mechanism of wiki:Assignment[assignments] is actually the same concept that is used to model wiki:Advanced+Hybrid+RBAC[roles]. Simply speaking roles can be seen as indirect assignments.
+Note that the mechanism of xref:/midpoint/reference/roles-policies/assignment/[assignments] is actually the same concept that is used to model xref:/midpoint/reference/roles-policies/rbac/[roles]. Simply speaking roles can be seen as indirect assignments.
 
 
 == Link
@@ -96,16 +96,16 @@ Similarly if there is a linked account that is not assigned midPoint will try to
 Even though assignments and links should be in accord there are situations that this is not desired.
 E.g. if an IDM solution is just deployed no accounts are assigned to users.
 There is usually a migration phase that is focusing just on mapping the reality without enforcing any policies.
-For that reason there is an wiki:Projection+Policy[option in the system configuration] to weaken enforcement of assignment-link consistency.
+For that reason there is an xref:/midpoint/reference/synchronization/projection-policy/[option in the system configuration] to weaken enforcement of assignment-link consistency.
 If such a case assigned accounts will still be created however accounts that are not assigned will *not* be removed.
 
 
 == See Also
 
-* wiki:Assignment[Assignment]
+* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
 
-* wiki:Assignment+Configuration[Assignment Configuration]
+* xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration]
 
-* wiki:Projection+Policy[Projection Policy]
+* xref:/midpoint/reference/synchronization/projection-policy/[Projection Policy]
 
-* wiki:Assignment+vs+Inducement[Assignment vs Inducement]
+* xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement]

@@ -12,13 +12,13 @@
 Iteration is mechanism how to determine a unique value by several attempts.
 E.g. it can be used to determine a unique username by trying values such as `foobar`, `foobar2`, `foobar3`, ...
 
-Iteration mechanism can be easily enabled and customized in wiki:Object+Template[Object Template] and wiki:Outbound+Mapping[Outbound Mapping].
+Iteration mechanism can be easily enabled and customized in xref:/midpoint/reference/expressions/object-template/[Object Template] and xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound Mapping].
 
 
 == See Also
 
-* wiki:Unique+midPoint+User+Name[Unique midPoint User Name]
+* xref:/midpoint/reference/concepts/iteration/unique-midpoint-user-name/[Unique midPoint User Name]
 
-* wiki:Unique+Account+Username+HOWTO[Unique Account Username HOWTO]
+* xref:/midpoint/reference/concepts/iteration/unique-account-username/[Unique Account Username HOWTO]
 
-* wiki:Unique+property+value+HOWTO[Unique property value HOWTO]
+* xref:/midpoint/reference/concepts/iteration/unique-property-value/[Unique property value HOWTO]

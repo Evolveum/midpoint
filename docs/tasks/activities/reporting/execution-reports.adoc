@@ -1,0 +1,377 @@
+= Execution Reports
+:page-experimental: true
+:toc:
+
+An activity can provide a couple of reports about its execution. Their typical use is to
+improve the activity performance or gather other information about the activity execution.
+
+There are four kinds of reports, corresponding to the following configuration items:
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning
+| `buckets`
+| Configuration of a report on individual buckets.
+| `items`
+| Configuration of a report on individual items.
+| `connIdOperations`
+| Configuration of a report on ConnId operations invoked.
+| `internalOperations`
+| Configuration of a report on internal midPoint operations invoked.
+|===
+
+== Report on Buckets
+
+After a bucket is processed (or analyzed), midPoint can write a record into bucket-level report.
+
+=== An Example
+
+[%header,format=csv]
+[%autowidth]
+|===
+#,content,content-from,content-to,size,itemsSuccessfullyProcessed,itemsFailed,itemsSkipped,startTimestamp,startTimestamp-millis,endTimestamp,endTimestamp-millis,duration
+1,[5-230004),5,230004,2935,2927,8,0,2021-10-08T11:00:19.015Z,1633690819015,2021-10-08T11:02:38.528Z,1633690958528,139513
+6,[1150000-1379999),1150000,1379999,2297,2291,6,0,2021-10-08T11:02:38.734Z,1633690958734,2021-10-08T11:04:35.088Z,1633691075088,116354
+10,[2069996-2299995),2069996,2299995,2061,2055,6,0,2021-10-08T11:04:35.239Z,1633691075239,2021-10-08T11:06:17.209Z,1633691177209,101970
+14,[2989992-3219991),2989992,3219991,3747,3734,13,0,2021-10-08T11:06:17.307Z,1633691177307,2021-10-08T11:09:25.689Z,1633691365689,188382
+18,[3909988-4139987),3909988,4139987,1462,1460,2,0,2021-10-08T11:09:25.791Z,1633691365791,2021-10-08T11:10:40.895Z,1633691440895,75104
+20,[4369986-4599985),4369986,4599985,1920,1919,1,0,2021-10-08T11:10:41.018Z,1633691441018,2021-10-08T11:12:15.892Z,1633691535892,94874
+23,[5059983-5289982),5059983,5289982,2426,2419,7,0,2021-10-08T11:12:15.987Z,1633691535987,2021-10-08T11:14:13.690Z,1633691653690,117703
+35,[7819971-8049970),7819971,8049970,505,499,6,0,2021-10-08T11:14:13.805Z,1633691653805,2021-10-08T11:14:38.003Z,1633691678003,24198
+38,[8509968-8739967),8509968,8739967,1468,1461,7,0,2021-10-08T11:14:38.093Z,1633691678093,2021-10-08T11:15:51.241Z,1633691751241,73148
+47,[10579959-10809958),10579959,10809958,17,15,2,0,2021-10-08T11:15:51.406Z,1633691751406,2021-10-08T11:15:52.899Z,1633691752899,1493
+|===
+
+=== Meaning of individual columns
+
+[%header]
+[%autowidth]
+|===
+| Column | Meaning | Note
+| `sequentialNumber` | Sequential number of the bucket. | Marked as `#` in the table above.
+| `content` | Symbolic description of the bucket content. | Not all buckets can be represented in this way.
+| `content-from` | Lower boundary of the bucket. | Not applicable to all buckets.
+| `content-to` | Upper boundary of the bucket. | Not applicable to all buckets.
+| `size` | Size of the bucket. | Not always determinable.
+| `itemsSuccessfullyProcessed` | Items from the bucket that were successfully processed. |
+| `itemsFailed` | Items that failed to be processed. |
+| `itemsSkipped` | Items that were skipped from processing. |
+| `startTimestamp` | When the processing of the bucket started. (Excludes the bucket acquisition.) | ISO 8601
+| `startTimestamp-millis` | When the processing of the bucket started. (Excludes the bucket acquisition.) | Milliseconds
+| `endTimestamp` | When the processing of the bucket finished. (Excludes the bucket completion marking.) | ISO 8601
+| `endTimestamp-millis` | When the processing of the bucket finished. (Excludes the bucket completion marking.) | Milliseconds
+| `duration` | The bucket processing duration. | Milliseconds
+|===
+
+== Configuration (Common to All Reports)
+
+The following structure is common to all reports: buckets, items, ConnId operations, and internal operations.
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning
+| `enabled` | If false, the report is (temporarily) disabled.
+| `recordFilter` | If specified, only records matching this filter will be put into the report.
+| `recordFilteringExpression` | If specified, only records for which this expression returns `true` are put into the report.
+(The expression expects `record` variable of the type listed below.)
+|===
+
+The `recordFilter` and `recordFilteringExpression` is used to reduce the number of rows in a report. As their input they expect
+the candidate record (row) that is to be written into the report. It is of the following type:
+
+[%header]
+[%autowidth]
+|===
+| Report type | Record type
+| Buckets | `BucketProcessingRecordType`
+| Items | `ItemProcessingRecordType`
+| ConnId operations | `ConnIdOperationRecordType`
+| Internal operations | `InternalOperationRecordType`
+|===
+
+A special use of buckets report is when xref:../bucket-analysis/[bucket analysis] is done.
+
+== Report on Items
+
+After an item is processed (or skipped), midPoint can write a record into item-level report.
+
+=== An Example
+
+[%header,format=csv]
+[%autowidth]
+|===
+#,name,displayName,type,oid,bucket#,outcome,outcome-qualifier,startTimestamp,startTimestamp-millis,endTimestamp,endTimestamp-millis,duration,errorMessage
+0,ht,ht (ACCOUNT - default - AccountObjectClass),{http://midpoint.evolveum.com/xml/ns/public/common/common-3}ShadowType,e010c326-071a-4666-b791-4be5e8480527,1,SUCCESS,,2021-10-19T11:50:18.744+02:00,1634637018744,2021-10-19T11:50:18.832+02:00,1634637018832,88.09,
+1,guybrush,guybrush (ACCOUNT - default - AccountObjectClass),{http://midpoint.evolveum.com/xml/ns/public/common/common-3}ShadowType,22226666-2200-6666-6666-444400004444,1,SUCCESS,,2021-10-19T11:50:18.917+02:00,1634637018917,2021-10-19T11:50:19.028+02:00,1634637019028,110.6,
+2,daviejones,daviejones (ACCOUNT - default - AccountObjectClass),{http://midpoint.evolveum.com/xml/ns/public/common/common-3}ShadowType,bb6a968d-3a0c-4753-9b58-6c932b1a5245,1,SKIP,,2021-10-19T11:50:19.050+02:00,1634637019050,2021-10-19T11:50:19.051+02:00,1634637019051,0.29,
+3,calypso,calypso (ACCOUNT - default - AccountObjectClass),{http://midpoint.evolveum.com/xml/ns/public/common/common-3}ShadowType,a4793302-0624-42bd-9527-98a39ede2621,1,SKIP,,2021-10-19T11:50:19.055+02:00,1634637019055,2021-10-19T11:50:19.056+02:00,1634637019056,0.28,
+4,elaine,elaine (ACCOUNT - default - AccountObjectClass),{http://midpoint.evolveum.com/xml/ns/public/common/common-3}ShadowType,c0c010c0-d34d-b33f-f00d-22220004000e,1,SUCCESS,,2021-10-19T11:50:19.061+02:00,1634637019061,2021-10-19T11:50:19.191+02:00,1634637019191,129.55,
+5,rapp,rapp (ACCOUNT - default - AccountObjectClass),{http://midpoint.evolveum.com/xml/ns/public/common/common-3}ShadowType,c70312bb-a6fd-48d7-b2ed-303007a2e190,1,SUCCESS,,2021-10-19T11:50:19.206+02:00,1634637019206,2021-10-19T11:50:19.331+02:00,1634637019331,125.03,
+6,stan,stan (ACCOUNT - default - AccountObjectClass),{http://midpoint.evolveum.com/xml/ns/public/common/common-3}ShadowType,22220000-2200-0000-0000-444400004455,1,SUCCESS,,2021-10-19T11:50:19.348+02:00,1634637019348,2021-10-19T11:50:19.404+02:00,1634637019404,55.81,
+|===
+
+=== Meaning of Individual Columns
+
+[%header]
+[%autowidth]
+|===
+| Column | Meaning | Note
+| `sequentialNumber` | Item sequential number. | Marked as `#` in the sample above.
+| `name` | Item name (e.g. object name). |
+| `displayName` | Item display name (e.g. object display name). | If applicable.
+| `type` | Item type (e.g. object type). | If applicable.
+| `oid` | Item ID (e.g. object OID) | If applicable.
+| `bucketSequentialNumber` | Bucket sequential number. | Marked as `bucket#` in the sample above.
+| `outcome` | Outcome of the processing. | `SUCCESS`, `FAILURE`, or `SKIP`
+| `outcome-qualifier` | Outcome qualifier. | Always empty for now.
+| `startTimestamp` | When the item processing started. | ISO 8601
+| `startTimestamp-millis` | When the item processing started. | Milliseconds
+| `endTimestamp` | When the item processing finished. | ISO 8601
+| `endTimestamp-millis` | When the item processing finished. | Milliseconds
+| `duration` | How long did the processing take? | Milliseconds; may be fractional.
+| `errorMessage` | Error message, if any. |
+|===
+
+== Report on ConnId Operations
+
+It is possible to report on individual ConnId operations executed. This is because they could be
+the source of unexpected delays in processing.
+
+=== An Example
+
+[%header,format=csv]
+[%autowidth]
+|===
+#,itemName,itemOid,bucket#,identifier,resourceRef,resourceRef-name,objectClass,operation,status,message,size,startTimestamp,startTimestamp-millis,endTimestamp,endTimestamp-millis,duration
+1,guybrush,22226666-2200-6666-6666-444400004444,1,1634637018962-0-1,10000000-0000-0000-0000-000000000004,Dummy Resource,{http://midpoint.evolveum.com/xml/ns/public/resource/instance-3}AccountObjectClass,ICF_GET,,,,2021-10-19T11:50:18.962+02:00,1634637018962,2021-10-19T11:50:18.962+02:00,1634637018962,0.0
+1,guybrush,22226666-2200-6666-6666-444400004444,1,1634637018965-0-1,10000000-0000-0000-0000-000000000004,Dummy Resource,{http://midpoint.evolveum.com/xml/ns/public/resource/instance-3}AccountObjectClass,ICF_UPDATE,,,,2021-10-19T11:50:18.965+02:00,1634637018965,2021-10-19T11:50:18.965+02:00,1634637018965,0.0
+1,guybrush,22226666-2200-6666-6666-444400004444,1,1634637019003-0-1,10000000-0000-0000-0000-000000000004,Dummy Resource,{http://midpoint.evolveum.com/xml/ns/public/resource/instance-3}AccountObjectClass,ICF_GET,,,,2021-10-19T11:50:19.003+02:00,1634637019003,2021-10-19T11:50:19.004+02:00,1634637019004,1.0
+4,elaine,c0c010c0-d34d-b33f-f00d-22220004000e,1,1634637019094-0-1,10000000-0000-0000-0000-000000000104,Dummy Resource Red,{http://midpoint.evolveum.com/xml/ns/public/resource/instance-3}AccountObjectClass,ICF_GET,,,,2021-10-19T11:50:19.094+02:00,1634637019094,2021-10-19T11:50:19.095+02:00,1634637019095,1.0
+4,elaine,c0c010c0-d34d-b33f-f00d-22220004000e,1,1634637019099-0-1,10000000-0000-0000-0000-000000000204,Dummy Resource Blue,{http://midpoint.evolveum.com/xml/ns/public/resource/instance-3}AccountObjectClass,ICF_GET,,,,2021-10-19T11:50:19.099+02:00,1634637019099,2021-10-19T11:50:19.099+02:00,1634637019099,0.0
+,,,1,1634637018739-0-1,10000000-0000-0000-0000-000000000004,Dummy Resource,{http://midpoint.evolveum.com/xml/ns/public/resource/instance-3}AccountObjectClass,ICF_SEARCH,,,,2021-10-19T11:50:18.739+02:00,1634637018739,2021-10-19T11:50:19.414+02:00,1634637019414,0.0
+|===
+
+=== Meaning of Individual Columns
+
+[%header]
+[%autowidth]
+|===
+| Column | Meaning | Note
+| `sequentialNumber` | Item sequential number. | Marked as `#` in the table above. May be missing if the operation was executed outside item process.
+| `itemName` | Item name (e.g. object name). | Empty if outside item processing.
+| `itemOid` | Item ID (e.g. object OID) | If applicable.
+| `bucketSequentialNumber` | Bucket sequential number. | Marked as `bucket#` in the sample above.
+| `identifier` | ConnId operation identifier. | May be correlated with an entry in midPoint log.
+| `resourceRef` | OID of the resource. |
+| `resourceRef-name` | Name of the resource. |
+| `objectClass` | Object class name. | If applicable.
+| `operation` | Operation type. |
+| `status` | Operation status. | TODO check why it's empty
+| `message` | Status message, if any. |
+| `size` | "Size" of the operation. E.g. for search operations here is the number of objects returned. | TODO check why it's empty
+| `startTimestamp` | When the operation started. | ISO 8601
+| `startTimestamp-millis` | When the operation started. | Milliseconds
+| `endTimestamp` | When the operation finished. | ISO 8601
+| `endTimestamp-millis` | When the operation finished. | Milliseconds
+| `duration` | How long did the operation take? For search and sync operations this does not cover time spent in client handler. | Milliseconds; may be fractional.
+|===
+
+=== How to Configure
+
+Besides the standard report configuration items, there is one more:
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning | Default
+| `beforeItemCondition` (multi) | Conditions that must be fulfilled (any of them) before
+ConnId reporting for the current item is enabled. | Do the report.
+|===
+
+== Report on Internal MidPoint Operations
+
+When there's a need to diagnose tricky performance issues, we can resort to the ultimate weapon:
+analysing the duration of internal midPoint operations.
+
+=== An Example
+
+[%header,format=csv]
+[%autowidth]
+|===
+#,itemName,itemOid,bucket#,operation,qualifiers,operationKind,status,importance,asynchronousOperationReference,start,start-millis,end,end-millis,microseconds,cpuMicroseconds,invocationId,params,context,returns,token,messageCode,message,parent
+0,ht,e010c326-071a-4666-b791-4be5e8480527,1,com.evolveum.midpoint.repo.cache.RepositoryCache.searchObjects,FocusType,,SUCCESS,NORMAL,,2021-10-19T11:50:18.772+02:00,1634637018772,2021-10-19T11:50:18.774+02:00,1634637018774,1939,,11751,"query=[Q{REF: linkRef, PRV(oid=e010c326-071a-4666-b791-4be5e8480527, targetType=null, relation={http://prism.evolveum.com/xml/ns/public/query-3}any), null paging}]; type=[http://midpoint.evolveum.com/xml/ns/public/common/common-3#FocusType]",,objectsFound=[1],1000000000000001488,,,1000000000000001487
+0,ht,e010c326-071a-4666-b791-4be5e8480527,1,com.evolveum.midpoint.repo.api.RepositoryService.searchObjects,FocusType,,SUCCESS,NORMAL,,2021-10-19T11:50:18.772+02:00,1634637018772,2021-10-19T11:50:18.774+02:00,1634637018774,1704,,11752,"query=[Q{REF: linkRef, PRV(oid=e010c326-071a-4666-b791-4be5e8480527, targetType=null, relation={http://prism.evolveum.com/xml/ns/public/query-3}any), null paging}]; type=[com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType]",,,1000000000000001489,,,1000000000000001488
+0,ht,e010c326-071a-4666-b791-4be5e8480527,1,com.evolveum.midpoint.repo.cache.RepositoryCache.modifyObject,ShadowType,,SUCCESS,NORMAL,,2021-10-19T11:50:18.774+02:00,1634637018774,2021-10-19T11:50:18.779+02:00,1634637018779,5267,,11753,oid=[e010c326-071a-4666-b791-4be5e8480527]; type=[http://midpoint.evolveum.com/xml/ns/public/common/common-3#ShadowType],,,1000000000000001490,,,1000000000000001484
+0,ht,e010c326-071a-4666-b791-4be5e8480527,1,com.evolveum.midpoint.repo.api.RepositoryService.modifyObject,ShadowType,,SUCCESS,NORMAL,,2021-10-19T11:50:18.774+02:00,1634637018774,2021-10-19T11:50:18.779+02:00,1634637018779,5045,,11754,"oid=[e010c326-071a-4666-b791-4be5e8480527]; type=[com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType]; modifications=[PropertyDeltaImpl( / {.../common/common-3}synchronizationSituationDescription, ADD), PropertyDeltaImpl( / {.../common/common-3}synchronizationTimestamp, REPLACE), PropertyDeltaImpl( / {.../common/common-3}fullSynchronizationTimestamp, REPLACE), PropertyDeltaImpl( / {.../common/common-3}synchronizationSituation, REPLACE)]",,,1000000000000001491,,,1000000000000001490
+0,ht,e010c326-071a-4666-b791-4be5e8480527,1,com.evolveum.midpoint.repo.cache.RepositoryCache.invalidateCacheEntries,,,SUCCESS,MINOR,,2021-10-19T11:50:18.779+02:00,1634637018779,2021-10-19T11:50:18.779+02:00,1634637018779,95,,11755,additionalInfo=[ModifyObjectResult]; oid=[e010c326-071a-4666-b791-4be5e8480527]; type=[http://midpoint.evolveum.com/xml/ns/public/common/common-3#ShadowType],,,1000000000000001492,,,1000000000000001490
+0,ht,e010c326-071a-4666-b791-4be5e8480527,1,com.evolveum.midpoint.model.impl.lens.projector.Projector.focusActivation,INITIAL.e0p0,,SUCCESS,NORMAL,,2021-10-19T11:50:18.790+02:00,1634637018790,2021-10-19T11:50:18.790+02:00,1634637018790,26,,11782,,,,1000000000000001497,,,1000000000000001496
+0,ht,e010c326-071a-4666-b791-4be5e8480527,1,com.evolveum.midpoint.model.impl.lens.projector.Projector.focusActivation,INITIAL.e0p0,,SUCCESS,NORMAL,,2021-10-19T11:50:18.790+02:00,1634637018790,2021-10-19T11:50:18.790+02:00,1634637018790,6,,11784,,,,1000000000000001498,,,1000000000000001496
+0,ht,e010c326-071a-4666-b791-4be5e8480527,1,com.evolveum.midpoint.model.impl.lens.projector.Projector.focusActivation,INITIAL.e0p0,,SUCCESS,NORMAL,,2021-10-19T11:50:18.791+02:00,1634637018791,2021-10-19T11:50:18.791+02:00,1634637018791,7,,11796,,,,1000000000000001500,,,1000000000000001496
+0,ht,e010c326-071a-4666-b791-4be5e8480527,1,com.evolveum.midpoint.model.impl.lens.projector.Projector.focusCredentials,INITIAL.e0p0,,SUCCESS,NORMAL,,2021-10-19T11:50:18.791+02:00,1634637018791,2021-10-19T11:50:18.791+02:00,1634637018791,11,,11797,,,,1000000000000001501,,,1000000000000001496
+0,ht,e010c326-071a-4666-b791-4be5e8480527,1,com.evolveum.midpoint.repo.cache.RepositoryCache.getVersion,ResourceType,,SUCCESS,NORMAL,,2021-10-19T11:50:18.810+02:00,1634637018810,2021-10-19T11:50:18.810+02:00,1634637018810,11,,11905,oid=[10000000-0000-0000-0000-000000000004]; type=[http://midpoint.evolveum.com/xml/ns/public/common/common-3#ResourceType],,version=[1],1000000000000001508,,,1000000000000001507
+0,ht,e010c326-071a-4666-b791-4be5e8480527,1,com.evolveum.midpoint.repo.cache.RepositoryCache.getVersion,ResourceType,,SUCCESS,NORMAL,,2021-10-19T11:50:18.820+02:00,1634637018820,2021-10-19T11:50:18.820+02:00,1634637018820,9,,11921,oid=[10000000-0000-0000-0000-000000000004]; type=[http://midpoint.evolveum.com/xml/ns/public/common/common-3#ResourceType],,version=[1],1000000000000001511,,,1000000000000001510
+0,ht,e010c326-071a-4666-b791-4be5e8480527,1,com.evolveum.midpoint.repo.api.RepositoryService.hasConflict,,,SUCCESS,MINOR,,2021-10-19T11:50:18.831+02:00,1634637018831,2021-10-19T11:50:18.832+02:00,1634637018832,767,,11975,watcherClass=[com.evolveum.midpoint.repo.sqlbase.ConflictWatcherImpl]; oid=[7bef09cb-8ee4-4746-8694-0d71eba86489],,hasConflict=[false],1000000000000001518,,,1000000000000001493
+0,ht,e010c326-071a-4666-b791-4be5e8480527,1,com.evolveum.midpoint.repo.api.RepositoryService.getVersion,ObjectType,,SUCCESS,NORMAL,,2021-10-19T11:50:18.831+02:00,1634637018831,2021-10-19T11:50:18.832+02:00,1634637018832,744,,11976,oid=[7bef09cb-8ee4-4746-8694-0d71eba86489]; type=[com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType],,,1000000000000001519,,,1000000000000001518
+4,elaine,c0c010c0-d34d-b33f-f00d-22220004000e,1,com.evolveum.midpoint.repo.cache.RepositoryCache.searchObjects,FocusType,,SUCCESS,NORMAL,,2021-10-19T11:50:19.063+02:00,1634637019063,2021-10-19T11:50:19.065+02:00,1634637019065,2277,,12414,"query=[Q{REF: linkRef, PRV(oid=c0c010c0-d34d-b33f-f00d-22220004000e, targetType=null, relation={http://prism.evolveum.com/xml/ns/public/query-3}any), null paging}]; type=[http://midpoint.evolveum.com/xml/ns/public/common/common-3#FocusType]",,objectsFound=[1],1000000000000001617,,,1000000000000001616
+4,elaine,c0c010c0-d34d-b33f-f00d-22220004000e,1,com.evolveum.midpoint.repo.api.RepositoryService.searchObjects,FocusType,,SUCCESS,NORMAL,,2021-10-19T11:50:19.063+02:00,1634637019063,2021-10-19T11:50:19.065+02:00,1634637019065,1936,,12415,"query=[Q{REF: linkRef, PRV(oid=c0c010c0-d34d-b33f-f00d-22220004000e, targetType=null, relation={http://prism.evolveum.com/xml/ns/public/query-3}any), null paging}]; type=[com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType]",,,1000000000000001618,,,1000000000000001617
+4,elaine,c0c010c0-d34d-b33f-f00d-22220004000e,1,com.evolveum.midpoint.repo.cache.RepositoryCache.modifyObject,ShadowType,,SUCCESS,NORMAL,,2021-10-19T11:50:19.066+02:00,1634637019066,2021-10-19T11:50:19.070+02:00,1634637019070,4180,,12417,oid=[c0c010c0-d34d-b33f-f00d-22220004000e]; type=[http://midpoint.evolveum.com/xml/ns/public/common/common-3#ShadowType],,,1000000000000001619,,,1000000000000001613
+4,elaine,c0c010c0-d34d-b33f-f00d-22220004000e,1,com.evolveum.midpoint.repo.api.RepositoryService.modifyObject,ShadowType,,SUCCESS,NORMAL,,2021-10-19T11:50:19.066+02:00,1634637019066,2021-10-19T11:50:19.070+02:00,1634637019070,4001,,12418,"oid=[c0c010c0-d34d-b33f-f00d-22220004000e]; type=[com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType]; modifications=[PropertyDeltaImpl( / {.../common/common-3}synchronizationSituationDescription, ADD), PropertyDeltaImpl( / {.../common/common-3}synchronizationTimestamp, REPLACE), PropertyDeltaImpl( / {.../common/common-3}fullSynchronizationTimestamp, REPLACE), PropertyDeltaImpl( / {.../common/common-3}synchronizationSituation, REPLACE)]",,,1000000000000001620,,,1000000000000001619
+|===
+
+=== Meaning of Individual Columns
+
+[%header]
+[%autowidth]
+|===
+| Column | Meaning | Note
+| `sequentialNumber` | Item sequential number. | Marked as `#` in the table above. May be missing if the operation was executed outside item process.
+| `itemName` | Item name (e.g. object name). | Empty if outside item processing.
+| `itemOid` | Item ID (e.g. object OID) | If applicable.
+| `bucketSequentialNumber` | Bucket sequential number. | Marked as `bucket#` in the sample above.
+
+| `operation`
+| Name of the operation.
+|
+
+| `qualifiers`
+| Qualifiers joined into a single field. (Will be replaced with something smarter in the future.)
+|
+
+| `operationKind`
+| Kind of operation (e.g. clockwork execution, mapping evaluation, repository access). To be used
+for easy navigation, result filtering, and so on.
+| Looks like currently not filled in. #FIXME#
+
+| `status`
+| Resulting status of the operation.
+|
+
+| `importance`
+| Importance of the operation result.
+| `major`, `normal`, `minor`
+
+| `asynchronousOperationReference`
+| Identifier (reference) of asynchronous operation.
+| Normally empty.
+
+| `start` | When the operation started. | ISO 8601
+| `start-millis` | When the operation started. | Milliseconds
+| `end` | When the operation finished. | ISO 8601
+| `end-millis` | When the operation finished. | Milliseconds
+| `microseconds` | How long the operation took (if known). | Microseconds
+| `cpuMicroseconds` | How much CPU time the operation took (if known). | Microseconds.
+| `invocationId` | ID of the operation invocation (if known). |
+| `params` | Parameters of the operation. | May not be captured properly.
+| `context` | Context of the operation. | May not be captured properly.
+| `returns` | Return value(s) of the operation. | May not be captured properly.
+| `token` | Operation result token. |
+| `messageCode` | The message code. | Often missing.
+| `message` | Error or warning message. |
+| `parent` | Token of the parent operation result. |
+|===
+
+=== How to Configure
+
+Besides the standard report configuration items, there are the following ones:
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning | Default
+
+| `fastFilter` (multi)
+| "Fast filter" that can reject a raw operation result, even before
+transforming into report record. The record is accepted if any of the filters accepts. (See below.)
+| Pass.
+
+| `beforeItemCondition` (multi) | Conditions that must be fulfilled (any of them) before
+ConnId reporting for the current item is enabled. | Do the report.
+
+| `afterItemCondition` (multi) | Conditions that must be fulfilled (any of them) for the result
+of this reporting for the particular item be written to the file. | Write the result.
+|===
+
+A combination of `beforeItemCondition` and `afterItemCondition` can be used e.g. to selectively write traces
+for items that took too long or ended with a failure. (Just like for regular xref:../tracing[tracing].)
+
+==== Fast filtering
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning | Default
+
+| `operationInclude` (multi)
+| If specified, only operations matching the listed ones are reported.
+An asterisk can be used as a wildcard. If the string is in the form of `~/.../`,
+the content is interpreted as a regular expression.
+| Include all operations.
+
+| `operationExclude` (multi)
+| If specified, operations matching the listed ones are _not_ reported.
+An asterisk can be used as a wildcard. If the string is in the form of `~/.../`,
+the content is interpreted as a regular expression.
+| Exclude no operations.
+
+| `individualQualifier` (multi)
+| Values to be matched for individual qualifiers. (Very experimental.)
+| Include all qualifiers.
+
+| `concatenatedQualifiers` (multi)
+| Values to be matched for concatenated qualifiers. (Very experimental.)
+| Include all qualifiers.
+|===
+
+==== An example
+
+[source,xml]
+----
+<!-- This will produce report on specified midPoint internal operation (taken from OperationResult tree) -->
+<internalOperations>
+
+    <!-- To spare CPU cycles, we can filter on operation names and qualifiers. -->
+    <fastFilter>
+        <operationInclude>com.evolveum.midpoint.repo.*</operationInclude>
+        <operationExclude>com.evolveum.midpoint.repo.common.*</operationExclude>
+    </fastFilter>
+    <fastFilter>
+        <operationInclude>~/.*focus(Activation|Credentials).*/</operationInclude>
+        <individualQualifier>INITIAL.*</individualQualifier>
+    </fastFilter>
+
+    <!-- We can select whole items (objects) that should be processable like this. -->
+    <!-- This is evaluated before the item processing. In this case we are not interested in records
+         related to guybrush account. -->
+    <beforeItemCondition>
+        <expression>
+            <script>
+                <code>
+                    item.name.orig != 'guybrush'
+                </code>
+            </script>
+        </expression>
+    </beforeItemCondition>
+
+    <!-- This is evaluated after the processing. We may be interested e.g. in processing of items
+         that took too long or ended with a failure. -->
+    <afterItemCondition>
+        <expression>
+            <script>
+                <code>
+                    operation.iterationItemInformation?.objectName != 'daviejones'
+                </code>
+            </script>
+        </expression>
+    </afterItemCondition>
+</internalOperations>
+----
+
+== Where to Find the Reports
+
+The reports are stored always on the local node. (So e.g. if the activity is running on four nodes, there will be four reports of given kind for that activity.)
+
+They are stored in the same repository as the other reports: `export` in midPoint home. They are downloadable among all the other report outputs.
+
+#TODO Shouldn't we create a special archetype for them, like there's one for traces?#

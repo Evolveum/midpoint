@@ -85,6 +85,12 @@ For this newly created user, lifecycle state is set to the draft.
 Until user doesn't confirm his/her registration it cannot do anything, it is disabled and no roles are assigned.
 After confirmation, specified default roles are assigned to the user.
 
+[WARNING]
+.Deprecated From MidPoint 4.1 and will be removed in 4.5
+====
+Configuration attribute '_securityPolicy/authentication/mailAuthentication_' is deprecated. Please use _xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]_ for configuration of authentication sequence for self registration and set name of authentication sequence to _additionalAuthenticationName_.
+====
+
 
 == Self Post-Registration (or Invite) For Existing Users in MidPoint
 
@@ -143,10 +149,43 @@ After user successfully confirms the registration, default roles are assigned to
    </authentication>
 ----
 
-Authentication part contains configuration for the method used for registration confirmation.
-Example above uses mail authentication which means that the user receives the mail with the confirmation link.
-After clicking on the link in the mail midPoint tries to confirm the user, confirmation rules are configured using attribute mailNonce.
+[WARNING]
+.Deprecated From MidPoint 4.1 and will be removed in 4.5
+====
+Configuration attribute '_securityPolicy/authentication/mailAuthentication_' is deprecated. Please use _xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]_.
+====
 
+[source, xml]
+----
+<authentication>
+    <modules>
+    ...
+        <mailNonce>
+            <name>MailNonce</name>
+            <description> Authentication based on mail message with a nonce. Used for user registration.</description>
+            <credentialName>mailNonce</credentialName>
+        </mailNonce>
+     </modules>
+     ...
+     <sequence>
+        <name>selfRegistrationAuth</name>
+        <description>Just a nonce mail to validate e-mail address.</description>
+        <channel>
+            <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#selfRegistration</channelId>
+            <urlSuffix>selfReg</urlSuffix>
+        </channel>
+        <module>
+            <name>MailNonce</name>
+            <order>10</order>
+            <necessity>sufficient</necessity>
+        </module>
+     </sequence>
+</authentication>
+----
+
+Authentication part contains configuration for the method used for registration confirmation.
+Examples above uses mail authentication which means that the user receives the mail with the confirmation link.
+After clicking on the link in the mail midPoint tries to confirm the user.
 
 === Credentials Part
 
@@ -170,7 +209,7 @@ Max age is the time how long is the nonce valid and valuePolicyRef is reference 
 == Self-Registration And Custom Form
 
 It is (probably) more than welcome to support definition of custom form when talking about self-registration process.
-With introducing wiki:Custom+forms[custom forms] in midPoint they can be also used with the self-registration.
+With introducing xref:/midpoint/reference/admin-gui/custom-forms/[custom forms] in midPoint they can be also used with the self-registration.
 All what is needed is to reference to the concrete form in the self-registration configuration as in the example below
 
 .Self registration with custom form
@@ -324,7 +363,7 @@ Configuration looks as follows:
 The important setting for the notifier is attribute <confirmationMethod>.
 According to the value for the confirmation method, confirmation link/pin is generated to verify user.
 Other parts of configuration are same as for other notifiers.
-Details for notification configuration are described wiki:Configuring+notifications[here].
+Details for notification configuration are described xref:/midpoint/reference/misc/notifications/configuration/[here].
 
 
 == How it works
@@ -362,6 +401,6 @@ image::confirmation-success.png[]
 
 == See also
 
-* wiki:Custom+forms[Custom Forms]
+* xref:/midpoint/reference/admin-gui/custom-forms/[Custom Forms]
 
-* wiki:Password+Policy[Password Policy]
+* xref:/midpoint/reference/security/credentials/password-policy/[Password Policy]

@@ -10,21 +10,21 @@
 
 == Introduction
 
-MidPoint allows to use multiple accounts on a particular resource, provided that they have unique wiki:Kind,+Intent+and+ObjectClass[kind and intent] combination.
+MidPoint allows to use multiple accounts on a particular resource, provided that they have unique xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[kind and intent] combination.
 However, there are cases that this is not quite enough.
 There is often a case that a particular resource can have more than one resource with that kind/intent combination.
 An example can be an HR system that keeps a single record for every employment contract for a particular user.
 Therefore there may be multiple contracts during employee lifecycle, some of them valid, other already expired.
-We cannot use _intent_ to distinguish between them because all the intents have to be strictly defined in wiki:Resource+Schema+Handling[resource schema handling]. But in this case we do not know how many contracts the user can have, therefore there is no good way to define the intents.
+We cannot use _intent_ to distinguish between them because all the intents have to be strictly defined in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[resource schema handling]. But in this case we do not know how many contracts the user can have, therefore there is no good way to define the intents.
 
-MidPoint 4.0 introduced a new concept of wiki:Kind,+Intent+and+ObjectClass[tag] to distinguish such accounts.
+MidPoint 4.0 introduced a new concept of xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[tag] to distinguish such accounts.
 There may be as many accounts as needed as long as they have unique (resource, kind, intent, tag) combination (also known as _discriminator_). Unlike intent, tags are dynamically generated and they do not have to be defined beforehand.
 
 
 == Resource Configuration
 
 The use of "multiaccounts" feature is disabled by default.
-The ability to use allow multiple accounts and use tags needs to be explicitly enabled in wiki:Resource+Schema+Handling[resource schema handling] by using `multiplicity` element:
+The ability to use allow multiple accounts and use tags needs to be explicitly enabled in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[resource schema handling] by using `multiplicity` element:
 
 [source,xml]
 ----
@@ -44,18 +44,18 @@ The ability to use allow multiple accounts and use tags needs to be explicitly e
 ----
 
 This setting allows multiple resource objects to exists (and be linked to a focus) for that particular object type.
-Each of the objects needs to be distinguished by a wiki:Kind,+Intent+and+ObjectClass[unique tag value].
+Each of the objects needs to be distinguished by a xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[unique tag value].
 
 
 == Generating Tag Values
 
-Value of wiki:Kind,+Intent+and+ObjectClass["tag"] is used to distinguish resource objects that have the same kind/intent combination.
-Similarly to kind and intent, the tag is stored in wiki:Shadow+Objects[shadow object]. Tags are generated only for those shadows where tag is needed.
+Value of xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/["tag"] is used to distinguish resource objects that have the same kind/intent combination.
+Similarly to kind and intent, the tag is stored in xref:/midpoint/reference/resources/shadow/[shadow object]. Tags are generated only for those shadows where tag is needed.
 Which means that tags are generated only when the "multiaccounts" configuration is enabled and only for those object types where it is needed.
 The tag values are generated at the same time as kind and intent.
 Which means that the tag is generated in synchronization code for the inbound direction.
 
-The default tag value is OID of the wiki:Shadow+Objects[shadow]. This is a convenient value to use, as it is permanent and globally unique.
+The default tag value is OID of the xref:/midpoint/reference/resources/shadow/[shadow]. This is a convenient value to use, as it is permanent and globally unique.
 Therefore it should work well even if account ownership is changed.
 
 
@@ -101,7 +101,7 @@ Fortunately, there is an easy way how to generate tag values by using an express
 </resource>
 ----
 
-The expression will get the wiki:Shadow+Objects[shadow] filled with all the attribute values set in variable `projection`. Responsibility of the expression is to return a tag value.
+The expression will get the xref:/midpoint/reference/resources/shadow/[shadow] filled with all the attribute values set in variable `projection`. Responsibility of the expression is to return a tag value.
 The expression is invoked only when tag value is not know.
 Once the tag is set, it is considered to be fixed.
 Therefore choose the expression algorithm wisely.
@@ -122,7 +122,7 @@ It is always better to find some kind of identifier in the account data to be us
 
 MidPoint lacks convenient support for tags as ordinary numbers.
 This is somehow done by purpose, to avoid the temptation.
-However, we might be willing to implement it given sufficient wiki:Subscriptions+and+Sponsoring[funding].
+However, we might be willing to implement it given sufficient xref:/support/subscription-sponsoring/[funding].
 
 ====
 
@@ -133,7 +133,7 @@ Since midPoint 4.0, inbound mappings work across all the accounts.
 They merge the output values together.
 This works also with all the "tagged" accounts.
 E.g. the common case is that each of the accounts will produce one assignment representing employment contract.
-This is usually implemented in an wiki:Inbound+Mapping[inbound mapping]. Therefore there is just one inbound mapping that produces one assignment.
+This is usually implemented in an xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mapping]. Therefore there is just one inbound mapping that produces one assignment.
 But there may be several "tagged" accounts for which this mapping is applied.
 All such assignments from all the accounts are merged together and set to the user.
 
@@ -146,7 +146,7 @@ But other assignments are managed manually.
 It is important to distinguish those assignments and properly set range of inbound mappings.
 Otherwise inbound mappings may overwrite assignments that are assigned manually or managed by other means.
 
-See wiki:Inbound+Mapping[Inbound Mapping] and wiki:Mapping[Mapping] pages for the details.
+See xref:/midpoint/reference/expressions/mappings/inbound-mapping/[Inbound Mapping] and xref:/midpoint/reference/expressions/mappings/[Mapping] pages for the details.
 
 
 === Primary Accounts
@@ -324,11 +324,11 @@ Once set, the tag is considered to be fixed.
 It is not updated when resource object is renamed.
 It is not updated when owner is changed.
 
-All those limitations can be removed with appropriate wiki:Subscriptions+and+Sponsoring[platform subscription].
+All those limitations can be removed with appropriate xref:/support/subscription-sponsoring/[platform subscription].
 
 
 == See Also
 
-* wiki:Kind,+Intent+and+ObjectClass[Kind, Intent and ObjectClass]
+* xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[Kind, Intent and ObjectClass]
 
-* wiki:Inbound+Mapping[Inbound Mapping]
+* xref:/midpoint/reference/expressions/mappings/inbound-mapping/[Inbound Mapping]

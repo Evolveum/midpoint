@@ -9,7 +9,7 @@
 :page-upkeep-status: orange
 :page-toc: top
 
-For general information see the main wiki:Auditing[Auditing] page.
+For general information see the main xref:/midpoint/reference/security/audit/[Auditing] page.
 
 == Configuration examples
 
@@ -48,7 +48,7 @@ If *auditService* for *SqlAuditServiceFactory* does not contain any other config
 ++++
 
 
-Configuration element *auditService* for *SqlAuditServiceFactory* can contain any element from *repository* configuration - see wiki:Repository+Configuration[Repository Configuration] for more.
+Configuration element *auditService* for *SqlAuditServiceFactory* can contain any element from *repository* configuration - see xref:/midpoint/reference/repository/generic/configuration/[Repository Configuration] for more.
 
 * One of *jdbcUrl* or *dataSource* must be used - otherwise any repository configuration in *auditService* is ignored and only main *repository* configuration is used.
 
@@ -63,7 +63,7 @@ Use only production-like settings.
 It is however possible to use other database for audit while main repository is set to embedded H2, mostly for development/testing purposes.
 
 * Separate database must be prepared in a similar way to the main database with tables, indexes and foreing keys containing "audit" created.
-For PostgreSQL example, see wiki:PostgreSQL[PostgreSQL] page, section *Separate audit database*.
+For PostgreSQL example, see xref:/midpoint/reference/repository/generic/postgresql/[PostgreSQL] page, section *Separate audit database*.
 
 Example configuration with default H2 for main repository and PostgreSQL on localhost for audit:
 
@@ -91,7 +91,7 @@ Example configuration with default H2 for main repository and PostgreSQL on loca
 
 == See Also
 
-* Main page about wiki:Auditing[Auditing].
+* Main page about xref:/midpoint/reference/security/audit/[Auditing].
 
 * bug:MID-4745[]
 

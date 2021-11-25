@@ -84,12 +84,12 @@ Manual action is needed.
 
 The "Active" column specifies whether the object is active (enabled) in that particular lifecycle state.
 The effective activation status will always be non-active (disabled or archived) in the states that are marked as not active in the above table.
-In these states the object will not be active even if the activation administrative status is explicitly set to `enabled`. See wiki:Activation[Activation] page for more details.
+In these states the object will not be active even if the activation administrative status is explicitly set to `enabled`. See xref:/midpoint/reference/concepts/activation/[Activation] page for more details.
 
 
 == Assignment Lifecycle
 
-The same lifecycle property is also present in wiki:Assignment[assignment] and inducement.
+The same lifecycle property is also present in xref:/midpoint/reference/roles-policies/assignment/[assignment] and inducement.
 The meaning of the lifecycle states is equivalent to object lifecycle:
 
 [%autowidth]
@@ -149,6 +149,6 @@ I.e. midPoint is not storing proposed assignments for requested assignments yet.
 
 == See Also
 
-* wiki:Activation[Activation]
+* xref:/midpoint/reference/concepts/activation/[Activation]
 
-* wiki:Role+Lifecycle[Role Lifecycle]
+* xref:/midpoint/reference/roles-policies/role-lifecycle/[Role Lifecycle]

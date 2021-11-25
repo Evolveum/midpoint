@@ -16,30 +16,30 @@ TODO: picture
 == Projector
 
 Projector is responsible for computing the changes.
-It is triggered by user changes in GUI, received by service or detected by wiki:Synchronization[synchronization]. Projector recomputes all the wiki:Synchronization+Policies[synchronization policies], applies all wiki:Mappings+and+Expressions[mappings and expressions], processes wiki:Advanced+Hybrid+RBAC[RBAC] role assignments and so on.
+It is triggered by user changes in GUI, received by service or detected by xref:/midpoint/reference/synchronization/introduction/[synchronization]. Projector recomputes all the xref:/midpoint/reference/synchronization/policies/[synchronization policies], applies all xref:/midpoint/reference/expressions/introduction/[mappings and expressions], processes xref:/midpoint/reference/roles-policies/rbac/[RBAC] role assignments and so on.
 However, projector is just computing the values.
 It is not yet executing them.
-The result of projector computations are stored in wiki:Model+Context[model context].
+The result of projector computations are stored in xref:/midpoint/reference/concepts/clockwork/model-context/[model context].
 
-Projector distinguished objects into two categories: wiki:Focus+and+Projections[Focus and Projections]
+Projector distinguished objects into two categories: xref:/midpoint/reference/schema/focus-and-projections/[Focus and Projections]
 
-* *Focus* which is typically wiki:UserType[user]. Focus is the object which is central to the recomputation.
+* *Focus* which is typically xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[user]. Focus is the object which is central to the recomputation.
 The object that links to all the projections.
 
-* *Projection* which is typically an account (represented by wiki:Shadow+Objects[shadow]).
+* *Projection* which is typically an account (represented by xref:/midpoint/reference/resources/shadow/[shadow]).
 
-Projector reflects data from the focus to projections (using wiki:Outbound+Mapping[outbound mappings]) and also from the projections to the focus (using wiki:Inbound+Mapping[inbound mappings]). This happens as many times as necessary to get a complete computation result.
+Projector reflects data from the focus to projections (using xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings]) and also from the projections to the focus (using xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings]). This happens as many times as necessary to get a complete computation result.
 
 
 == Clockwork
 
 Clockwork is a controller.
 Clockwork invokes projector to recompute everything that needs to be recomputed.
-Clockwork invokes wiki:Hooks[hooks] to further process the request (e.g. to route it through a wiki:Workflows+(midPoint+3.x)[workflow]). This happens several times.
+Clockwork invokes xref:/midpoint/reference/concepts/clockwork/hooks/[hooks] to further process the request (e.g. to route it through a xref:/midpoint/reference/cases/workflow-3/[workflow]). This happens several times.
 Clockwork then proceeds to execute the changes.
-This may also happen several times if wiki:Provisioning+Dependencies[dependencies] are used.
+This may also happen several times if xref:/midpoint/reference/resources/provisioning-dependencies/[dependencies] are used.
 Clockwork handles execution errors.
-And at the end of execution it once again invokes hooks (e.g. to handle wiki:Notifications[notifications]).
+And at the end of execution it once again invokes hooks (e.g. to handle xref:/midpoint/reference/misc/notifications/[notifications]).
 
 
 == Clockwork States
@@ -48,13 +48,13 @@ The clockwork process goes through several stages:
 
 * *INITIAL* state.
 Nothing has been done yet.
-The wiki:Model+Context[model context] is filled with a request.
+The xref:/midpoint/reference/concepts/clockwork/model-context/[model context] is filled with a request.
 But no recomputation has yet taken place.
 The hooks can use this state to inspect or change the request even before any serious action takes place.
 
 * *PRIMARY* state.
 Request is recomputed.
-The wiki:Model+Context[Model Context] was recomputed and contains the preview of changes.
+The xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context] was recomputed and contains the preview of changes.
 The hooks can use this state to change the original request.
 Nothing has been executed yet.
 This is often used to influence assignments by routing the request through approval workflow.
@@ -62,15 +62,15 @@ E.g. the workflow can remove unapproved role assignments from the request.
 
 * *SECONDARY* state.
 Request is recomputed once again.
-The wiki:Model+Context[model context] is recomputed to reflect the changes from the primary state.
+The xref:/midpoint/reference/concepts/clockwork/model-context/[model context] is recomputed to reflect the changes from the primary state.
 The changes are executed after this state is completed.
 The hooks can use this state to inspect the values of projections.
 E.g. it is sometimes used to let system administrators approve the actual changes of account attributes before they are executed.
-The hooks can be invoked several times as this state may be processed several times when wiki:Provisioning+Dependencies[provisioning dependencies] are used.
+The hooks can be invoked several times as this state may be processed several times when xref:/midpoint/reference/resources/provisioning-dependencies/[provisioning dependencies] are used.
 
 * *FINAL* state.
 All the changes are executed.
-The wiki:Model+Context[model context] reflects the state after the execution.
+The xref:/midpoint/reference/concepts/clockwork/model-context/[model context] reflects the state after the execution.
 This state can be used by the hooks to inspect the results.
 E.g. this is often used to send out the notifications about the completed operations.
 
@@ -82,10 +82,10 @@ TODO: more details
 
 == See Also
 
-* wiki:Model+Context[Model Context]
+* xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context]
 
-* wiki:Focus+and+Projections[Focus and Projections]
+* xref:/midpoint/reference/schema/focus-and-projections/[Focus and Projections]
 
-* wiki:Hooks[Hooks]
+* xref:/midpoint/reference/concepts/clockwork/hooks/[Hooks]
 
-* wiki:Projector+and+clockwork+internals[Projector and clockwork internals] (only some sketches there - yet)
+* xref:/midpoint/devel/design/projector-and-clockwork-internals/[Projector and clockwork internals] (only some sketches there - yet)

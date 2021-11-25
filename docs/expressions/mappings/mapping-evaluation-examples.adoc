@@ -9,7 +9,7 @@
 
 == Resource and Role Attribute Mappings
 
-Resource attribute can be set by several means: manually specified in midPoint user interface, produced by a mapping in a role or in wiki:Resource+Schema+Handling[resource schema handling]. MidPoint is designed to automatically merge all the values produced by mappings.
+Resource attribute can be set by several means: manually specified in midPoint user interface, produced by a mapping in a role or in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[resource schema handling]. MidPoint is designed to automatically merge all the values produced by mappings.
 This approach is quite clear when applied to multi-valued attributes, where all the results of all mappings are combined together.
 But it is a different story for single-valued attributes.
 Only one value can be a result and it is not that obvious how several mappings are combined to produce the value.
@@ -218,6 +218,6 @@ See xref:/community/[community section of this site] to see how the community ca
 
 == See Also
 
-* wiki:Mapping[Mapping]
+* xref:/midpoint/reference/expressions/mappings/[Mapping]
 
-* wiki:Resource+Schema+Handling[Resource Schema Handling]
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]

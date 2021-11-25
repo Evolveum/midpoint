@@ -11,22 +11,21 @@
 :page-toc: top
 
 
-For an introduction to the role catalog concept please see wiki:Role+Catalog[Role Catalog] page.
+For an introduction to the role catalog concept please see xref:/midpoint/reference/admin-gui/role-catalog/[Role Catalog] page.
 
 
 == Role Catalog Implementation
 
-Simply speaking, role catalog is just an wiki:Organizational+Structure[organizational structure] structure.
+Simply speaking, role catalog is just an xref:/midpoint/reference/org/organizational-structure/[organizational structure] structure.
 However, instead of divisions and sections the role catalog is composed of _categories_. And instead of member users there are _roles_. But apart from that the role catalog is just ordinary organizational structure.
-The categories are ordinary wiki:OrgType[org objects]. The roles are assigned to the categories in exactly the same way as users are assigned to organizational structure.
+The categories are ordinary xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[org objects]. The roles are assigned to the categories in exactly the same way as users are assigned to organizational structure.
 Remember: MidPoint can have any number of organizational structures and the role catalog is just one of them.
 There may even be several role catalogs at the same time as any midPoint object can be assigned to any number of orgs.
 However, the current limitation is that only one role catalog will be presented to end users.
 
-
 == Role Catalog Root
 
-The root of this role catalog needs to be configured in the wiki:System+Configuration+Object[system configuration object] like this:
+The root of this role catalog needs to be configured in the xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object] like this:
 
 [source,xml]
 ----
@@ -39,15 +38,14 @@ The root of this role catalog needs to be configured in the wiki:System+Configur
 </systemConfiguration>
 ----
 
-The roleCatalogRef reference above points to the wiki:OrgType[org] which is the root of the role catalog.
-
+The roleCatalogRef reference above points to the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[org] which is the root of the role catalog.
 
 == See Also
 
-* wiki:Role+Catalog[Role Catalog]
+* xref:/midpoint/reference/admin-gui/role-catalog/[Role Catalog]
 
-* wiki:Role+Request+and+Shopping+Cart+Configuration[Role Request and Shopping Cart Configuration]
+* xref:/midpoint/reference/admin-gui/role-request/configuration/[Role Request and Shopping Cart Configuration]
 
-* wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
+* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
 
-* wiki:Organizational+Structure[Organizational Structure]
+* xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]

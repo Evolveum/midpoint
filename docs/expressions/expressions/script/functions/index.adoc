@@ -61,7 +61,7 @@ Such functions are used mostly for diagnostics and troubleshooting.
 |===
 
 All functions in this library log an entry into the system logs.
-Ordinary midPoint wiki:Logging[logging] system is used.
+Ordinary midPoint xref:/midpoint/reference/diag/logging/[logging] system is used.
 The log entries are recorded using `com.evolveum.midpoint.expression` logger.
 The functions have arguments using the link:http://www.slf4j.org/[SLF4J] style: The first argument is a format string.
 Each occurrence of `{}` in the format string is replaced with the argument that follows the format string.
@@ -84,12 +84,12 @@ Functions:
 
 * trace
 
-Please see wiki:Log+Levels[Log Levels] page for description of the usual meaning and usage of individual log levels in midPoint.
+Please see xref:/midpoint/reference/diag/logging/log-levels/[Log Levels] page for description of the usual meaning and usage of individual log levels in midPoint.
 
 
 == MidPoint Library
 
-Main article: wiki:MidPoint+Script+Library[MidPoint Script Library]
+Main article: xref:/midpoint/reference/expressions/expressions/script/functions/midpoint/[MidPoint Script Library]
 
 MidPoint function library provides access to midPoint internals.
 It provides complex functions that contain IDM-specific and midPoint-specific logic.

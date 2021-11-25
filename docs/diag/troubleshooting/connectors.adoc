@@ -16,14 +16,14 @@
 
 This page describes the way how to diagnose connector-related problems.
 
-MidPoint is using the wiki:ConnId[ConnId] connector framework.
+MidPoint is using the xref:/midpoint/reference/resources/connid/[ConnId] connector framework.
 Every connector is running in this framework.
 It means that midPoint calls the ConnId framework and the framework calls the connector.
 Therefore when it comes to troubleshooting connector problems there are several places where a problem can occur and also several places where you can get diagnostic data:
 
 . *MidPoint*: the midpoint may invoke wrong operation at the first place.
 This may be caused by a misconfiguration or a bug.
-See wiki:Troubleshooting+Mappings[Troubleshooting Mappings] page for a guide how to diagnose these problems.
+See xref:/midpoint/reference/diag/troubleshooting/mappings/[Troubleshooting Mappings] page for a guide how to diagnose these problems.
 
 . *ConnId*: the framework may misinterpret the operation.
 The framework also simulates some operations and it may post-process the results.
@@ -230,7 +230,7 @@ You may also need to enable logging of the libraries that come with the connecto
 You can examine these if you look in the `lib` directory inside the connector JAR file.
 
 Some connectors have really good logging, such as the LDAP connector (and its subclasses).
-The LDAP connector will log all the LDAP operations if you set the `com.evolveum.polygon.connector.ldap.OperationLog` logger to `DEBUG` level (also see wiki:LDAP+Connector+Troubleshooting[LDAP Connector Troubleshooting]):
+The LDAP connector will log all the LDAP operations if you set the `com.evolveum.polygon.connector.ldap.OperationLog` logger to `DEBUG` level (also see xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/troubleshooting/[LDAP Connector Troubleshooting]):
 
 [source]
 ----
@@ -261,9 +261,9 @@ But one way or another this is the best chance to learn what the connector is do
 If that fails you have to resort to packet sniffer and similar tools.
 
 Each connector has its own logger names.
-The most reliable way to find out what it is is to look at the connector documentation or connector source code.
+The most reliable way to find out what it is to look at the connector documentation or connector source code.
 But as rule of thumb the connectors usually use logger names matching their Java package.
-This is supposed to be the same as the package prefix used in the `connectorType` property (see wiki:ConnectorType[ConnectorType]), e.g. `com.evolveum.polygon.connector.ldap`.
+This is supposed to be the same as the package prefix used in the `connectorType` property (see xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]), e.g. `com.evolveum.polygon.connector.ldap`.
 
 
 == I Suspect a Connector Bug
@@ -271,7 +271,7 @@ This is supposed to be the same as the package prefix used in the `connectorType
 So, you think you have found a connector bug.
 That may happen.
 No practical software is completely bug-free and the connectors are no exception.
-But before going to wiki:Creating+a+Bug+Report[report a bug] please spend some time diagnosing the issue.
+But before going to xref:/midpoint/reference/diag/creating-a-bug-report/[report a bug] please spend some time diagnosing the issue.
 Firstly, what looks like a connector bug may in fact be a misconfiguration.
 Secondly, if your bug report states justs "the connector is broken" then such a bug is very unlikely to ever get fixed.
 We need more data about the issue to fix it.
@@ -309,7 +309,7 @@ Enable full connector logging.
 And maybe logging of the underlying libraries.
 Try to figure out what is going on.
 
-. If everything fails then you can wiki:Creating+a+Bug+Report[report the issue]. However at this point it is almost sure that the issue will be very tricky.
+. If everything fails then you can xref:/midpoint/reference/diag/creating-a-bug-report/[report the issue]. However at this point it is almost sure that the issue will be very tricky.
 It is unlikely that the midPoint team will have time to address that issue unless you have an active xref:/support/subscription-sponsoring/[subscription].
 
 == Connector Exception Stack Trace
@@ -330,7 +330,7 @@ com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil: DEBUG
 
 == Extra Tips
 
-* Enable wiki:Auditing[Auditing] to a log file, including the auditing details.
+* Enable xref:/midpoint/reference/security/audit/[Auditing] to a log file, including the auditing details.
 This will log all the deltas that are requested to execute from the user interface and other interfaces.
 Sometimes the problem is in the request delta.
 The audit is the easiest way to check that.
@@ -338,8 +338,8 @@ The audit is the easiest way to check that.
 
 == See Also
 
-* wiki:Troubleshooting+Mappings[Troubleshooting Mappings]
+* xref:/midpoint/reference/diag/troubleshooting/mappings/[Troubleshooting Mappings]
 
-* wiki:Usual+Troubleshooting+Steps[Usual Troubleshooting Steps]
+* xref:/midpoint/reference/diag/troubleshooting/usual-troubleshooting-steps/[Usual Troubleshooting Steps]
 
-* wiki:Bugfixing+and+Support[Bugfixing and Support]
+* xref:/midpoint/devel/bugfixing/[Bugfixing and Support]

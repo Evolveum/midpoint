@@ -13,7 +13,7 @@
 == Overview
 
 Function libraries are dedicated midPoint objects that contain set of reusable functions.
-The functions can be used in other wiki:Mappings+and+Expressions[mappings and expressions] in midPoint.
+The functions can be used in other xref:/midpoint/reference/expressions/introduction/[mappings and expressions] in midPoint.
 Function libraries can be used to group frequently-used parts of the code, therefore simplifying midPoint configuration and maintenance.
 
 == Configuration
@@ -25,8 +25,8 @@ Please see xref:configuration.adoc[] page for configuration details.
 
 * xref:configuration.adoc[]
 
-* wiki:Basic+Data+Model[Basic Data Model]
+* xref:/midpoint/reference/schema/data-model-essentials/[Basic Data Model]
 
-* wiki:Mappings+and+Expressions[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
-* wiki:Expression[Expression]
+* xref:/midpoint/reference/expressions/expressions/[Expression]

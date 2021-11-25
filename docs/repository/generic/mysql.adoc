@@ -157,7 +157,7 @@ But make sure you have also set the correct innodb_file_format as well (please s
 
 === Packet for query is too large
 
-When we're using new wiki:LDAP+Connector[LDAP Connector], usually generated resource schema in XML representation is bigger then default max_allowed_packet size in MySQL. To increase this value, see documentation for your MySQL version. In some cases this error is indicated as consequence for "No schema for resource" exception.
+When we're using new xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector], usually generated resource schema in XML representation is bigger then default max_allowed_packet size in MySQL. To increase this value, see documentation for your MySQL version. In some cases this error is indicated as consequence for "No schema for resource" exception.
 
 .Sample my.cnf configuration file
 [source,bash]

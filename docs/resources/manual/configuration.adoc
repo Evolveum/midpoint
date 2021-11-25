@@ -13,12 +13,12 @@
 
 == Introduction
 
-See wiki:Manual+Resource+and+ITSM+Integration[Manual Resource and ITSM Integration] for an introduction to the topic.
+See xref:/midpoint/reference/resources/manual/[Manual Resource and ITSM Integration] for an introduction to the topic.
 
 == Pure Manual Resources
 
 Pure manual resources are configured as (almost) ordinary single-connector resources.
-Internal manual connector implementation or an wiki:ITSM+Plugin[ITSM Plugin] should be used in place of an ordinary identity connector.
+Internal manual connector implementation or an xref:/midpoint/reference/resources/manual/itsm-plugin/[ITSM Plugin] should be used in place of an ordinary identity connector.
 Following example shows the use of internal manual connector implementation:
 
 [source,xml]
@@ -59,11 +59,10 @@ Apart from that almost all other midPoint features can be used in an almost norm
 E.g. there may be quite ordinary schemaHandling section.
 Outbound mappings in this section will influence the values that will appear in tickets (cases) that the system administrators receive.
 
-
 == Semi-Manual Resources
 
 Semi-manual resources are built on the combination of a manual connector and an ordinary connector.
-It is using the wiki:Multi-Connector+Resource[multi-connector resource] mechanism.
+It is using the xref:/midpoint/reference/resources/multi-connector-resource/[multi-connector resource] mechanism.
 The primary connector is the manual connector.
 The ordinary connector is configured as an additional connector.
 However, all the capabilities are disables - except for _read_ and _schema_ capabilities.
@@ -145,11 +144,10 @@ There is no need to specify static schema in this case.
 The CSV connector can be used to automatically generate the schema from the CSV file header.
 Also please note how the simulated activation capability is configured in the CSV connector capabilities.
 
-
 == Grace Period
 
 The basic principle of the manual and semi-manual connector operation is that midPoint remembers the deltas of operations in progress.
-The deltas are kept in the wiki:Shadow+Objects[shadow objects]. When the operation is finished (case/ticket is closed) then the operation is applied to the cached values and the delta is not needed any more.
+The deltas are kept in the xref:/midpoint/reference/resources/shadow/[shadow objects]. When the operation is finished (case/ticket is closed) then the operation is applied to the cached values and the delta is not needed any more.
 Therefore such deltas are deleted by default.
 However there are two cases when such deltas may be needed:
 
@@ -175,12 +173,10 @@ Therefore the reconciliation part of the projector will not compute any reconcil
 But when the grace period expires, provisioning component stops to pretend that they were applied.
 And if the changes are not already in the CSV then the reconciliation detects that, new modifications are executed and new case is created.
 
-
 == ITSM Plugin
 
 Both manual and semi-manual resources are often used with ITSM integration plugins.
-See wiki:ITSM+Plugin[ITSM Plugin] page for more details.
-
+See xref:/midpoint/reference/resources/manual/itsm-plugin/[ITSM Plugin] page for more details.
 
 == Refresh Task
 
@@ -202,14 +198,11 @@ Shadow refresh task will do that:
 </task>
 ----
 
-
-
-
 == Pending Deltas and Cached Data
 
 The general principle is that all midPoint connectors must be able to read the data.
 But in the (pure) manual case there is no way to read the data from the resource.
-Therefore in that case midPoint relies on wiki:Attribute+Caching[attribute caching]. Which means that the pending delta corresponding to the closed ticket is applied to the data cached in the shadow.
+Therefore in that case midPoint relies on xref:/midpoint/reference/resources/attribute-caching/[attribute caching]. Which means that the pending delta corresponding to the closed ticket is applied to the data cached in the shadow.
 That is how the resource attributes are supposed to look after the ticket is closed.
 And as the ticket was closed we assume that the operation was executed successfully.
 
@@ -226,11 +219,10 @@ But if the values do not appear in the CSV file then the reconciliation process 
 The result is that reconciliation will try to fix the problem.
 Which means a new ticket will be created.
 
-
 == See Also
 
-* wiki:Manual+Resource+and+ITSM+Integration[Manual Resource and ITSM Integration]
+* xref:/midpoint/reference/resources/manual/[Manual Resource and ITSM Integration]
 
-* wiki:Multi-Connector+Resource[Multi-Connector Resource]
+* xref:/midpoint/reference/resources/multi-connector-resource/[Multi-Connector Resource]
 
-* wiki:ITSM+Plugin[ITSM Plugin]
+* xref:/midpoint/reference/resources/manual/itsm-plugin/[ITSM Plugin]

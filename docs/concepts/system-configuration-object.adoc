@@ -9,7 +9,7 @@
 
 System Configuration object is a midPoint object that represents global system configuration applicable for the system itself, logging, profiling, all the resources, tasks, processes and all other aspects of the system.
 There is usually just one system configuration object.
-It has fixed wiki:Object+ID[OID]`00000000-0000-0000-0000-000000000001`.
+It has fixed xref:/midpoint/devel/prism/concepts/object-identifier/[OID]`00000000-0000-0000-0000-000000000001`.
 
 
 == Example

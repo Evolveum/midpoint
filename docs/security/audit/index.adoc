@@ -27,156 +27,150 @@ It should be eventually possible to reconstruct a partial historical state of th
 |
 | The exact moment in time that the audit record was generated
 
-
 | Event Identifier
 | `eid`
 | Unique identification of an audit event.
-It is a link:/midpoint/architecture/concepts/lightweight-identifier/[Lightweight Identifier].
-
+It is a xref:/midpoint/architecture/concepts/lightweight-identifier/[Lightweight Identifier].
 
 | Event Type
 | `et`
 | Type of audit event.
 It describes what kind of operation was executed (adding an object, modification, user login, ...)
 
-
 | Event Stage
 | `es`
 | Stage of event processing: request of execution.
 See below.
-
 
 | Session Identifier
 | `sid`
 | Identifier of the interactive session in which the event have taken place.
 For security reason this is different than the content of the session cookie.
 
-
 | Task Identifier
 | `tid`
 | Unique identification of a task that this event is a part.
-It is a link:/midpoint/architecture/concepts/lightweight-identifier/[Lightweight Identifier].
-
+It is a xref:/midpoint/architecture/concepts/lightweight-identifier/[Lightweight Identifier].
 
 | Task OID
 | `toid`
-| link:/midpoint/devel/prism/concepts/object-identifier/[OID] of a task that this event is part of (if the task is persistent).
+| xref:/midpoint/devel/prism/concepts/object-identifier/[OID] of a task that this event is part of (if the task is persistent).
 Since 4.3 the OID of the task tree root is used, if applicable.
-
 
 | Host Identifier
 | `hid`
 | Identifier of a host that generated the audit record.
 This is the host name corresponding to a network interface that accepted the HTTP request.
 
-
 | Node Identifier
 | `nid`
 | Identifier of a node in a midPoint cluster that generated the audit record.
 
-
 | Remote Host Address
 | `raddr`
 | Network address of a remote host that originated the request causing this event.
-
 
 | Initiator
 | `I`
 | User that initiated ("caused") the event.
 It may the user that started the operation from a GUI or web service interface, the user that is owner of the task that recorded the event, etc.
 
-
 | Target
 | `T`
 | Object that is a primary target of an operation (if applicable).
 In case that operation targets more than one object, the "primary" or the most important is recorded (e.g. the user object)
 
-
 | Target Owner
 | `TO`
 | Owner of the object that is a target of this operation (if applicable).
-E.g. a owner of a task that is being stopped, owner of an account that is being modified, etc.
-
+E.g. an owner of a task that is being stopped, owner of an account that is being modified, etc.
 
 | Deltas
 | `D`
 | The changes that are being made to the targets.
 Deltas contain detailed information about the operation.
 
-
 | Channel
 | `ch`
-| The link:/midpoint/reference/concepts/channel/[channel] that was the source of the operation that this record describes
-
+| The xref:/midpoint/reference/concepts/channel/[channel] that was the source of the operation that this record describes
 
 | Outcome
 | `o`
 | Result of the operation: success, failure, partial failure, etc.
-
 
 |===
 
 === Event Types
 
 Event type defines the kind of operation that was executed.
-Currently defined event types are defined in the table below.
+Currently, defined event types are shown in the table below.
+
+[NOTE]
+Column *Event DB ID* is relevant only for the older xref:/midpoint/reference/repository/generic/[Generic Repository].
+The new xref:/midpoint/reference/repository/native-postgrsql/[Native PostgreSQL Repository] uses custom types displaying the name in the first column.
 
 [%autowidth]
 |===
 | Event Type | Event DB ID | Description
 
+| `GET_OBJECT`
+| 0
+| Unused
+
 | `ADD_OBJECT`
 | 1
-| Creating a new object (e.g adding a user, account, resource, ...)
-
+| Creating a new object (e.g. adding a user, account, resource, ...)
 
 | `MODIFY_OBJECT`
 | 2
 | Modification of an existing object
 
-
 | `DELETE_OBJECT`
 | 3
 | Removing an object
 
-
 | `EXECUTE_CHANGES_RAW`
 | 4
 | Executing changes directly in the repository, e.g. changes made via debug pages.
-
 
 | `SYNCHRONIZATION`
 | 5
 | Synchronizing a change notification.
 This type should only be present in `REQUEST` stage, the `EXECUTION` stage of the event will provide a more specific event type.
 
-
 | `CREATE_SESSION`
 | 6
 | Creating a new session, e.g. user login.
-
 
 | `TERMINATE_SESSION`
 | 7
 | End of a session, e.g. user logout.
 
-
 | `WORK_ITEM`
 | 8
 | Creation or completion of a work item (e.g. a request to approve particular assignment).
-See link:/midpoint/architecture/archive/subsystems/model/workflow-3/workflow-auditing/[Workflow Auditing].
-
+See xref:/midpoint/architecture/archive/subsystems/model/workflow-3/workflow-auditing/[Workflow Auditing].
 
 | `WORKFLOW_PROCESS_INSTANCE`
 | 9
 | Creation or completion of a workflow process instance (may include 0, 1 or many work items).
-See link:/midpoint/architecture/archive/subsystems/model/workflow-3/workflow-auditing/[Workflow Auditing].
-
+See xref:/midpoint/architecture/archive/subsystems/model/workflow-3/workflow-auditing/[Workflow Auditing].
 
 | `RECONCILIATION`
 | 10
 | Initiation or completion of reconciliation
 
+| `SUSPEND_TASK`
+| 11
+| Suspending a task
+
+| `RESUME_TASK`
+| 12
+| Resuming a task
+
+| `RUN_TASK_IMMEDIATELY`
+| 13
+| Running a task immediately (now)
 
 |===
 
@@ -185,9 +179,13 @@ Other event types may be added in the future (including custom event types).
 === Event Stages
 
 Operations in midPoint may be subject to quite complex processing before they get executed.
-This may include processing link:/midpoint/reference/roles-policies/rbac/[RBAC], expressions, workflows or other "plugin" hooks.
+This may include processing xref:/midpoint/reference/roles-policies/rbac/[RBAC], expressions, workflows or other "plugin" hooks.
 Therefore, the details of the operation may considerably differ at the beginning of the operation and at the end.
 Event stages are defined to denote this difference and to record events at various stages through the operation lifecycle.
+
+[NOTE]
+Column *Event DB ID* is relevant only for the older xref:/midpoint/reference/repository/generic/[Generic Repository].
+The new xref:/midpoint/reference/repository/native-postgrsql/[Native PostgreSQL Repository] uses custom types displaying the name in the first column.
 
 [%autowidth]
 |===
@@ -198,12 +196,10 @@ Event stages are defined to denote this difference and to record events at vario
 | The operation is requested.
 The record shows operation details (e.g. deltas) in the form as originally intended by the user or client.
 
-
 | `EXECUTION`
 | 1
 | The operation after execution.
 The record shows operation details (e.g. deltas) in the form as it was executed.
-
 
 |===
 
@@ -211,7 +207,7 @@ Other stages may be added in the future (e.g. stage for approvals or workflow st
 
 There is usually one request and one execution record for each operation.
 E.g. the request record contains the delta that assigns role to a user.
-The execution record will also contain that delta but it may contain additional deltas, e.g. deltas for adding new accounts implied by the role.
+The execution record will also contain that delta, but it may contain additional deltas, e.g. deltas for adding new accounts implied by the role.
 In some cases there may be several execution records for a single request record.
 This happens if the execution happens in several waves.
 E.g. a role is assigned to a user.
@@ -226,15 +222,18 @@ This situation may also happen even if there are no approvals, e.g. in case of r
 The result of the executed operation.
 All the possible values are described in the following table.
 
+[NOTE]
+Column *Event DB ID* is relevant only for the older xref:/midpoint/reference/repository/generic/[Generic Repository].
+The new xref:/midpoint/reference/repository/native-postgrsql/[Native PostgreSQL Repository] uses custom types displaying the name in the first column.
+
 [%autowidth]
 |===
-| Event Outcome | Outcome DB ID | Decritption
+| Event Outcome | Outcome DB ID | Description
 
 | `SUCCESS`
 | 0
 | Used when operation and sub operations finish successfully.
 The operation is completed and the result is final.
-
 
 | `WARNING`
 | 1
@@ -242,19 +241,16 @@ The operation is completed and the result is final.
 For example operation code recovered from some error and after that operation finished successfully.
 The operation is completed and the result is final.
 
-
 | `PARTIAL_ERROR`
 | 2
 | Used when operation contains at least one operation witch status `SUCCESS`/`WARNING`
 and at least one operation with status `FATAL_ERROR`.
 The operation is completed and the result is final.
 
-
 | `FATAL_ERROR`
 | 3
 | Used when operation didn't finish correctly.
 The operation is completed and the result is final.
-
 
 | `NOT_APPLICABLE`
 | 4
@@ -264,7 +260,6 @@ This is different from `UNKNOWN`, as in this case we really know that its result
 In `UNKNOWN` case we know nothing.
 The operation is completed and the result is final.
 
-
 | `IN_PROGRESS`
 | 5
 | The operation is being executed.
@@ -272,12 +267,10 @@ This is set for operations that are executed asynchronously or take a significan
 Short synchronous operations do not need to set this status, they may go well with the default `UNKNOWN` status.
 The operation is in progress and the final result is not yet known.
 
-
 | `UNKNOWN`
 | 6
 | No information about operation is present.
 Presence of this status usually means programming bug, e.g. someone forgot to set or compute appropriate operation result.
-
 
 | `HANDLED_ERROR`
 | 7
@@ -286,12 +279,11 @@ It is equivalent to success for all practical cases except for displaying the re
 But using success status for this situation might be misleading.
 The operation is completed and the result is final.
 
-
 |===
 
 === Initiator and Attorney
 
-MidPoint 3.7 introduced a concept of link:/midpoint/features/planned/power-of-attorney/[attorney].
+MidPoint 3.7 introduced a concept of xref:/midpoint/features/planned/power-of-attorney/[attorney].
 Therefore, there is possibility that one user acts on behalf of another user.
 Both users are recorded in the audit logs.
 The meaning is as follows:
@@ -311,8 +303,13 @@ It cannot be a company or any other virtual entity.
 == Audit Trails
 
 The auditing subsystem in midPoint is designed to be pluggable.
-There are currently two auditing implementations: auditing to log files and to database table.
+There are currently two auditing implementations:
 
+* auditing to log files;
+* auditing to database tables.
+
+To enable the audit implementation, `auditService` section must be added to the `audit` element of the xref:/midpoint/reference/deployment/midpoint-home-directory/#configuration-file[config.xml].
+Inside the added `auditService` element, the implementation is chosen by the value of the `auditServiceFactory` element.
 
 === Logfile Auditing
 
@@ -324,93 +321,29 @@ It is using a dedicated logger name:
 [source]
 ----
 com.evolveum.midpoint.audit.log
-
 ----
 
 This logger can be directed to a specific appender to a separate audit log file using the normal logging configuration mechanism.
 
+To enable this logger, add the following `auditService` element inside `audit` element:
+
+[source,xml]
+----
+<auditService>
+    <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+</auditService>
+----
+
 === Database Table Auditing
 
-// TODO mention new repository audit
+Audit service writing to database tables is closely related to the xref:/midpoint/reference/repository/[repository] implementation:
 
-When using database table auditing, audit logs are stored in five tables whose structure is described in code block below (part of DB script for H2 database).
-You can find table structures for different DB vendors in out link:https://github.com/Evolveum/midpoint/tree/master/config/sql/midpoint/3.1[git], or in distribution packages in folder `config/sql/midpoint/<version>`.
+* If the xref:/midpoint/reference/repository/native-postgresql/[Native PostgreSQL Repository] is used,
+see xref:/midpoint/reference/repository/native-audit/[Native PostgreSQL Audit Trail]
+for more details, including how to configure it.
 
-* `id` column in `m_audit_event` table is now generated by default (auto increment).
-
-* Columns `delta` and `fullResult` in `m_audit_delta` table are optionally compressed using GZIP.
-
-.Audit tables in H2 database
-[source,sql]
-----
-CREATE TABLE m_audit_delta (
-  checksum          VARCHAR(32) NOT NULL,
-  record_id         BIGINT      NOT NULL,
-  delta             BLOB,
-  deltaOid          VARCHAR(36),
-  deltaType         INTEGER,
-  fullResult        BLOB,
-  objectName_norm   VARCHAR(255),
-  objectName_orig   VARCHAR(255),
-  resourceName_norm VARCHAR(255),
-  resourceName_orig VARCHAR(255),
-  resourceOid       VARCHAR(36),
-  status            INTEGER,
-  PRIMARY KEY (record_id, checksum)
-);
-CREATE TABLE m_audit_event (
-  id                BIGINT GENERATED BY DEFAULT AS IDENTITY,
-  attorneyName      VARCHAR(255),
-  attorneyOid       VARCHAR(36),
-  channel           VARCHAR(255),
-  eventIdentifier   VARCHAR(255),
-  eventStage        INTEGER,
-  eventType         INTEGER,
-  hostIdentifier    VARCHAR(255),
-  initiatorName     VARCHAR(255),
-  initiatorOid      VARCHAR(36),
-  initiatorType     INTEGER,
-  message           VARCHAR(1024),
-  nodeIdentifier    VARCHAR(255),
-  outcome           INTEGER,
-  parameter         VARCHAR(255),
-  remoteHostAddress VARCHAR(255),
-  result            VARCHAR(255),
-  sessionIdentifier VARCHAR(255),
-  targetName        VARCHAR(255),
-  targetOid         VARCHAR(36),
-  targetOwnerName   VARCHAR(255),
-  targetOwnerOid    VARCHAR(36),
-  targetOwnerType   INTEGER,
-  targetType        INTEGER,
-  taskIdentifier    VARCHAR(255),
-  taskOID           VARCHAR(255),
-  timestampValue    TIMESTAMP,
-  PRIMARY KEY (id)
-);
-CREATE TABLE m_audit_item (
-  changedItemPath VARCHAR(255) NOT NULL,
-  record_id       BIGINT       NOT NULL,
-  PRIMARY KEY (record_id, changedItemPath)
-);
-CREATE TABLE m_audit_prop_value (
-  id        BIGINT GENERATED BY DEFAULT AS IDENTITY,
-  name      VARCHAR(255),
-  record_id BIGINT,
-  value     VARCHAR(1024),
-  PRIMARY KEY (id)
-);
-CREATE TABLE m_audit_ref_value (
-  id              BIGINT GENERATED BY DEFAULT AS IDENTITY,
-  name            VARCHAR(255),
-  oid             VARCHAR(36),
-  record_id       BIGINT,
-  targetName_norm VARCHAR(255),
-  targetName_orig VARCHAR(255),
-  type            VARCHAR(255),
-  PRIMARY KEY (id)
-);
-----
+* If the deprcated xref:/midpoint/reference/repository/generic/[Generic SQL Repository] is used,
+see xref:/midpoint/reference/repository/generic/generic-audit/[Generic SQL Audit Trail].
 
 == XDAS
 
@@ -452,14 +385,14 @@ If the header contains more values (separated by commas), the first i.e. leftmos
 [WARNING]
 .EXPERIMENTAL
 ====
-This feature is *link:/midpoint/versioning/experimental/[experimental]*.
+This feature is *xref:/midpoint/versioning/experimental/[experimental]*.
 It means that it is not intended for production use.
 The feature is not finished.
 It is not stable.
 The implementation may contain bugs, the configuration may change at any moment without any warning and it may not work at all.
 Use at your own risk.
 This feature is not covered by midPoint support.
-In case that you are interested in link:/support/subscription-sponsoring/[supporting] development of this feature, please consider purchasing link:https://evolveum.com/services/professional-support/[midPoint Platform subscription].
+In case that you are interested in xref:/support/subscription-sponsoring/[supporting] development of this feature, please consider purchasing link:https://evolveum.com/services/professional-support/[midPoint Platform subscription].
 ====
 
 [TIP]
@@ -500,14 +433,14 @@ CREATE TABLE m_audit_resource (
 [WARNING]
 .EXPERIMENTAL
 ====
-This feature is *link:/midpoint/versioning/experimental/[experimental]*.
+This feature is *xref:/midpoint/versioning/experimental/[experimental]*.
 It means that it is not intended for production use.
 The feature is not finished.
 It is not stable.
 The implementation may contain bugs, the configuration may change at any moment without any warning and it may not work at all.
 Use at your own risk.
 This feature is not covered by midPoint support.
-In case that you are interested in link:/support/subscription-sponsoring/[supporting] development of this feature, please consider purchasing link:https://evolveum.com/services/professional-support/[midPoint Platform subscription].
+In case that you are interested in xref:/support/subscription-sponsoring/[supporting] development of this feature, please consider purchasing link:https://evolveum.com/services/professional-support/[midPoint Platform subscription].
 ====
 
 [TIP]
@@ -584,8 +517,8 @@ After adding of this configuration is needed restart of midpoint.
 </systemConfiguration>
 ----
 
-We can use script in expression for obtaining some special information.
-In script we can use variable '_target_' , which represent target object of audit record and '_auditRecord_' type _AuditEventRecord_, which represent audit record itself.
+We can use a script in expression for obtaining some special information.
+In the script we can use variable `target`, which represent target object of audit record, and `auditRecord`, which represent audit record itself (type `AuditEventRecord`).
 
 Next example about custom column you can see on link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/audit[https://github.com/Evolveum/midpoint-samples/tree/master/samples/audit].
 
@@ -597,9 +530,8 @@ Next example about custom column you can see on link:https://github.com/Evolveum
 This feature is available only in midPoint 4.2 and later.
 ====
 
-From version 4.1 Midpoint support flexible authentication, so we can configure different authentication for different channels. You can find configuration on .
-
-From version 4.2 channels for _rest _and_ actuator_ default don't create audit records about session creation or termination. You can turn on it via variable in System Configuration _audit->eventRecording->recordSessionlessAccess_.
+From version 4.2 channels for _rest_ and _actuator_ do not create audit records about session creation or termination by default.
+You can turn it on via variable in System Configuration _audit->eventRecording->recordSessionlessAccess_.
 
 == Separate repository configuration for audit
 
@@ -609,6 +541,6 @@ From version 4.2 channels for _rest _and_ actuator_ default don't create audit r
 This feature is available only in midPoint 4.2 and later.
 ====
 
-By default audit uses the same data source like the main repository.
+By default, audit uses the same data source like the main repository.
 From version 4.2 it is possible to set up audit in different database.
-For more and examples see: link:/midpoint/reference/security/audit/configuration/[Audit configuration]
+For more and examples see: xref:/midpoint/reference/security/audit/configuration/[Audit configuration]

@@ -15,7 +15,7 @@ This includes properties that describe whether the user is enabled, disabled, ar
 ====
 The _activation_ is a concept that usually applies to users and accounts.
 But in midPoint the term has much wider applications.
-Also roles, organizational units and even individual wiki:Assignment[assignments] can have individual activation properties.
+Also roles, organizational units and even individual xref:/midpoint/reference/roles-policies/assignment/[assignments] can have individual activation properties.
 E.g. a role may be valid until the end of year (when next role review is scheduled).
 Or the user may get a role just for two weeks while his colleague is on vacation.
 There are many possibilities how to use this concept to create a very dynamic configuration.
@@ -43,7 +43,7 @@ In fact the most common setting for this property is to leave it unset and let o
 If this property is not present then the other constraints in the activation type should be considered (namely _validity_ properties, see below).
 
 If the administrative status is not present and there are no other constraints in the activation type or if there is no activation type at all then the object is assumed to be "enabled", i.e. that the described concept is active.
-Unless the activation is constrained by the wiki:Object+Lifecycle[object lifecycle] (see below).
+Unless the activation is constrained by the xref:/midpoint/reference/concepts/object-lifecycle/[object lifecycle] (see below).
 
 [%autowidth]
 |===
@@ -111,7 +111,7 @@ Therefore if administrative status is set to any non-empty value then the validi
 {% include since.html since="3.5" %}
 ++++
 
-Activation is also influenced by wiki:Object+Lifecycle[object lifecycle]. The object behaves normally in `active` and `deprecated` lifecycle states.
+Activation is also influenced by xref:/midpoint/reference/concepts/object-lifecycle/[object lifecycle]. The object behaves normally in `active` and `deprecated` lifecycle states.
 In these states the object activation is determined by the administrative status and validity.
 Object is considered to be non-active in any other lifecycle states (`draft`, `proposed`, `archived`, `failed` and any other custom state).
 If the object is in any of these states then the setting of the administrative status and validity does not matter at all.
@@ -247,6 +247,6 @@ Use validity dates for that purpose.
 
 == See Also
 
-* wiki:Resource+Schema+Handling:+Activation[Resource Schema Handling: Activation]
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[Resource Schema Handling: Activation]
 
-* wiki:Object+Lifecycle[Object Lifecycle]
+* xref:/midpoint/reference/concepts/object-lifecycle/[Object Lifecycle]

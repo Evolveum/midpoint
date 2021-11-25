@@ -1,18 +1,23 @@
-= SQL Repository Implementation
-:page-wiki-name: SQL Repository Implementation
+= Generic SQL Repository Implementation
+:page-wiki-name: Generic SQL Repository Implementation
+:page-nav-title: Implementation
+:page-display-order: 20
 :page-wiki-id: 4424005
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2012-06-18T10:16:38.030+02:00
 :page-wiki-metadata-modify-user: virgo
 :page-wiki-metadata-modify-date: 2020-10-30T16:45:12.599+01:00
 :page-upkeep-status: green
+:page-toc: top
+
+[NOTE]
+This page discusses deprecated repository implementation that was replaced with xref:/midpoint/reference/repository/native-postgresql/[Native PostgreSQL reposit].
 
 SQL repository implements both repository and audit API.
 It facilitates Hibernate 5 as persistence framework, and for connection pooling link:https://brettwooldridge.github.io/HikariCP/[HikariCP] (previously c3p0).
 
 Audit records are stored synchronously and implementation currently shares connection pool with main repository.
 There are few planned improvements for audit, see link:https://jira.evolveum.com/browse/MID-4745[MID-4745].
-
 
 == Configuration
 
@@ -32,7 +37,7 @@ It will use embedded H2 database which will be placed in `midpoint.home` folder.
 </configuration>
 ----
 
-For more complex configurations using different DB vendors see wiki:Repository+Configuration[Repository Configuration].
+For more complex configurations using different DB vendors see xref:/midpoint/reference/repository/generic/configuration/[Repository Configuration].
 
 == DB tables, structures
 
@@ -44,11 +49,8 @@ The following picture shows DB schema for version 4.2 (ER diagram extracted with
 
 image::midpoint-db-4.2.png[]
 
-
-
 Objects from main schema are designated with yellow title background, audit is green and Quartz tables (scheduler, or jobs store) are purple.
 Both Quartz and audit can be placed in different databases using different JDBC configurations.
-
 
 === General
 
@@ -73,7 +75,7 @@ xsd:any container can be found in:
 Schema for extension containers is static for first and third case.
 ShadowType attributes use dynamic schema which depends on defined resources.
 Extension container can contain elements of different types.
-SQL repository supports `String, Long, Date, Clob, ObjectReferenceType, PolyStringType`.
+SQL repository supports `String`, `Long`, `Date`, `Clob`, `ObjectReferenceType` and `PolyStringType`.
 All elements are aggregated to these types (tables).
 
 * Long, Integer, Short -> *Long*
@@ -98,13 +100,13 @@ Audit tables uses `IDENTITY` columns (autoincrement).
 == Transactions, locking failover
 
 SQL repository uses simple transactions which last during single operation (e.g. add/modify/delete/search).
-When transaction fails because of locking (table lock timeout, record timeout), SQL repository tries to repeat operation for number link:https://fisheye.evolveum.com/browse/~br=trunk/MidPoint/trunk/repo/repo-sql-impl/src/main/java/com/evolveum/midpoint/repo/sql/SqlBaseService.java[SqlBaseService]*LOCKING_MAX_ATTEMPTS* times.
+When transaction fails because of locking (table lock timeout, record timeout), SQL repository tries to repeat operation for number https://github.com/Evolveum/midpoint/blob/b83a83a91a19cc6cc1579e806557a1305d18c560/repo/repo-sql-impl/src/main/java/com/evolveum/midpoint/repo/sql/SqlRepositoryServiceImpl.java#L81[SqlRepositoryServiceImpl#RESTART_LIMIT] times.
 As this implementation supports databases from multiple vendors, transaction and locking configuration is different for each vendor.
 Default configurations are defined in `SqlRepositoryConfiguration`.
 
 == Querying
 
-See the relevant section in link:/midpoint/reference/concepts/query/query-api#differences-in-filter-interpretation[Query API]
+See the relevant section in xref:/midpoint/reference/concepts/query/query-api#differences-in-filter-interpretation[Query API]
 documentation for details about what is or is not supported from our Query API in the repository.
 
 Query processing is implemented in `QueryInterpreter` which uses `QueryDefinitionRegistry`

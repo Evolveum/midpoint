@@ -48,14 +48,14 @@ The default value for this property is `false`, therefore the roles must be expl
 
 == Workflows and Certification
 
-wiki:Workflows+(midPoint+3.x)[Workflows (midPoint 3.x)] and wiki:Access+Certification[access certification] fully support the concept of deputy.
+xref:/midpoint/reference/cases/workflow-3/[Workflows (midPoint 3.x)] and xref:/midpoint/reference/roles-policies/certification/[access certification] fully support the concept of deputy.
 The deputies will have access to the workitems that are assigned to their delegators.
 The deputies can make decisions on these workitems and the decision will advance the workflow (or be recorded in access certification case) as if the delegator made the decision.
 
 [NOTE]
 ====
 The approval schemes and workflow will work well with delegations only if the approvers are defined using the assignment mechanism (available in midPoint 3.5 and later).
-See wiki:Approval[Approval] page for more details.
+See xref:/midpoint/reference/cases/approval/[Approval] page for more details.
 ====
 
 Besides providing authorizations to make decisions, deputies will receive mail notifications intended for the delegator reminding him or her that a decision is to be made.
@@ -69,7 +69,7 @@ So, if an approval work item is assigned to a user X, it is not displayed that X
 
 == Implementation Notes
 
-Deputy delegation are in fact wiki:Assignment[assignments]. that have special `deputy`wiki:Relation[relation] in their target reference.
+Deputy delegation are in fact xref:/midpoint/reference/roles-policies/assignment/[assignments]. that have special `deputy`xref:/midpoint/reference/concepts/relation/[relation] in their target reference.
 Unlike most other assignments the target of deputy relation is not a role or org.
 The target of deputy relation is a user.
 This makes perfect sense as the delegation is a relation between two users: the delegator and the deputy.
@@ -89,7 +89,7 @@ E.g. the meaning of _object_ and _target_ in the authorizations may seem to be r
 But as the delegation assignment itself is "reversed" the authorizations make perfect sense.
 
 The delegation assignment is somehow special.
-Normal assignment between objects that are already assigned would cause similar effect that is used by wiki:Roles,+Metaroles+and+Generic+Synchronization[metaroles]. But the delegation (deputy) assignment does not do this.
+Normal assignment between objects that are already assigned would cause similar effect that is used by xref:/midpoint/reference/roles-policies/metaroles/gensync/[metaroles]. But the delegation (deputy) assignment does not do this.
 This assignment is not counted when the high-order inducements are evaluated.
 In other words: Even though the delegated privileges are assigned to the delegator, they are processed in almost the same way as role inducements when the deputy is evaluated.
 The deputy assignment is not counted into the "order" for metarole processing.
@@ -97,7 +97,7 @@ If we would count it, then what is normally order=2 would become order=3. That w
 
 There is one more thing that needs to be considered when using deputy delegations.
 The deputy and the delegator are two users that are still considered to be a very independent entities in midPoint.
-When one user is changed the other one is unlikely to be directly affected because only one wiki:Focus+and+Projections[focal object] is processed in every midPoint operation.
+When one user is changed the other one is unlikely to be directly affected because only one xref:/midpoint/reference/schema/focus-and-projections/[focal object] is processed in every midPoint operation.
 Therefore if the assignments of the delegator are changed, the deputy is not directly affected by that operation.
 The changes are applied to the deputy only when the deputy user is recomputed.
 The fact that the delegation assignment is part of the deputy user is an advantage here.
@@ -113,7 +113,7 @@ The delegations might be subject to compliance rules and re-certification in the
 And so on.
 
 If there is a need to distinguish between the privileges of a delegator and those of a deputy then it is possible to be defined using order constraints.
-See wiki:Roles,+Metaroles+and+Generic+Synchronization[Roles, Metaroles and Generic Synchronization] page for details.
+See xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization] page for details.
 
 
 == Security and Authorizations
@@ -166,8 +166,8 @@ Yet.
 
 == See Also
 
-* wiki:Assignment[Assignment]
+* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
 
-* wiki:Relation[Relation]
+* xref:/midpoint/reference/concepts/relation/[Relation]
 
-* wiki:Roles,+Metaroles+and+Generic+Synchronization[Roles, Metaroles and Generic Synchronization]
+* xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]

@@ -6,6 +6,7 @@
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2017-07-06T19:32:39.446+02:00
 :page-upkeep-status: orange
+:page-display-order: 98
 
 MidPoint performance can be sometimes lower than expected from quite unusual reason: objects in repository could grow too large.
 This can be the case e.g. because of big operation results (stored e.g. in tasks or shadows), because of model operation contexts stored in approval tasks, or because of evaluated triggers stored as part of assignments.
@@ -30,7 +31,7 @@ So, if you want to see how large are objects in your repository, import the foll
     <executionStatus>runnable</executionStatus>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/object-integrity-check/handler-3</handlerUri>
     <recurrence>single</recurrence>
-</task> 
+</task>
 ----
 
 You can restrict the objects to be included in the scope by using `objectQuery` extension item.

@@ -137,7 +137,7 @@ will be created in midPoint
 
 Also, provisioning to OpenLDAP will do the following:
 
-* organizationalUnit ou=ultra1,ou=customers,dc=example,dc=com will be created to replicate midPoint organizational structure (wiki:Generic+Synchronization[Generic Synchronization])
+* organizationalUnit ou=ultra1,ou=customers,dc=example,dc=com will be created to replicate midPoint organizational structure (xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization])
 
 * account uid=ultraone-admin,ou=ultra1,ou=customers,dc=example,dc=com will be created
 
@@ -386,7 +386,7 @@ They will be able to create any number of users and administrators using GUI.
 . The record is either picked up using LiveSync task (if configured), or can be manually imported using single account import in Resources / CRM Simulation / Content and clicking on the wheel icon for selected user and choosing Import.
 Synchronization policy will be consulted and because the situation is unmatched, reaction addFocus causes creation of new user ultraone-admin in midPoint.
 
-. The account data are copied to the new user by wiki:Inbound+Mapping[inbound mappings] on CRM resource.
+. The account data are copied to the new user by xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings] on CRM resource.
 Note that `customerName` attribute from CRM account is copied to user's `organizationalUnit` property and `customerDisplayName` attribute from CRM account is copied to user's `organization` property.
 `employeeType` property will be set to "customer-admin" value.
 
@@ -394,11 +394,11 @@ Note that `customerName` attribute from CRM account is copied to user's `organiz
 
 .. The first mapping computes user's full name (this information is not stored in CRM)
 
-.. The "Org mapping - organization member" is trying to look up an wiki:OrgType[Org] into which the user should belong.
-It is using a wiki:Object+Query[query] inside wiki:Expression[assignmentTargetSearch expression] to do so.
+.. The "Org mapping - organization member" is trying to look up an xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] into which the user should belong.
+It is using a xref:/midpoint/reference/concepts/query/[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
 The expression inside the query is using the `organizationalUnit` value, e.g. in this case it would be "ultra1".
 
-.. The query finds no matching wiki:OrgType[Org.] The expression is set to `createOnDemand` therefore it will try to create the Org.
+.. The query finds no matching xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org.] The expression is set to `createOnDemand` therefore it will try to create the Org.
 A new empty Org object is created in memory.
 Then the `populateItem` expressions are used to fill in this object.
 Please note how the `organizationalUnit` value is copied from the user to the `name` and `organization` value is copied from the user to the `displayName` of the new Org object..
@@ -412,15 +412,15 @@ This organization already exists, so no more recursive organizational structure 
 
 ... The Org object template has another mapping.
 This mapping assigns a meta-role (`metarole-org.xml`) to each created orgstruct.
-This meta-role contains `inducements` which specifies that a new `ou` and three groups should be created as a wiki:Focus+and+Projections[projections] for each Org. +
+This meta-role contains `inducements` which specifies that a new `ou` and three groups should be created as a xref:/midpoint/reference/schema/focus-and-projections/[projections] for each Org. +
 
 
 .... The projections are computed for an LDAP resource.
 The projections have a form of LDAP organizationalUnit and groupOfNames objects.
-This is defined in the wiki:Resource+Schema+Handling[schema handling] part of LDAP resource definition.
-Each inducement specifies an wiki:Kind,+Intent+and+ObjectClass[(kind, intent)] tuple which is used to locate a matching definition in the schemaHandling.
+This is defined in the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[schema handling] part of LDAP resource definition.
+Each inducement specifies an xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[(kind, intent)] tuple which is used to locate a matching definition in the schemaHandling.
 
-.... The wiki:Outbound+Mapping[outbound mappings] are used to compute a correct DN for the new "ou" object in LDAP and all three "groupOfNames".
+.... The xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings] are used to compute a correct DN for the new "ou" object in LDAP and all three "groupOfNames".
 
 .... LDAP organizationalUnit object is created.
 
@@ -443,21 +443,21 @@ We have processed first two mappings and we are going to process the rest of the
 .. The "Org mapping - organization manager" will assign the same Org as above, but this time with relationship flag "manager" and only if midPoint user has "customer-admin" value in the `employeeType` attribute.
 
 .. The "Basic Customer Admin role assignment" mapping in user template is processed.
-This just assigns the "Customer Admin Role" role `(role-customer-basic-admin.xml`) . This is a simple wiki:Advanced+Hybrid+RBAC[RBAC] role that assigns an LDAP account to the user.
+This just assigns the "Customer Admin Role" role `(role-customer-basic-admin.xml`) . This is a simple xref:/midpoint/reference/roles-policies/rbac/[RBAC] role that assigns an LDAP account to the user.
 The role is assigned to midPoint users with `employeeType` attribute value "customer-admin".
 
 .. The "Delegated Administration role assignment" mapping in user template is processed.
-This just assigns the "Delegated Administration Role" role `(role-customer-authz-admin.xml`) . This role assigns midPoint wiki:Authorization[authorizations] only (no provisioning).
+This just assigns the "Delegated Administration Role" role `(role-customer-authz-admin.xml`) . This role assigns midPoint xref:/midpoint/reference/security/authorization/[authorizations] only (no provisioning).
 The role is assigned to midPoint users with `employeeType` attribute value "customer-admin".
 
 .. The "Basic Customer User role assignment" mapping in user template is processed.
-This just assigns the "Customer User Role" role `(role-customer-basic-user.xml`) . This is a simple wiki:Advanced+Hybrid+RBAC[RBAC] role that assigns an LDAP account to the user.
+This just assigns the "Customer User Role" role `(role-customer-basic-user.xml`) . This is a simple xref:/midpoint/reference/roles-policies/rbac/[RBAC] role that assigns an LDAP account to the user.
 The role is assigned to midPoint users with `employeeType` attribute values "customer-user" or "customer-admin".
 
 .. User template processing finishes.
 The user now has a full name and several assignments:
 
-... Assignement to the "ultra1" wiki:OrgType[Org.]
+... Assignement to the "ultra1" xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org.]
 
 ... Assignement of the "Customer User Role" role.
 
@@ -475,10 +475,10 @@ The user now has a full name and several assignments:
 
 .. User ultraone-admin is placed in the "ultra1" Org.
 
-.. The "Customer User Role" assigns an LDAP account to the user and using wiki:Entitlements[entitlement association] adds user to "ultra1-users" group.
+.. The "Customer User Role" assigns an LDAP account to the user and using xref:/midpoint/reference/resources/entitlements/[entitlement association] adds user to "ultra1-users" group.
 The group name is derived from user's `organizationalUnit` attribute value.
 No other attributes are specified in the role.
-The wiki:Outbound+Mapping[outbound mappings] from the OpenLDAP resource definition are used to fill in account attribute values.
+The xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings] from the OpenLDAP resource definition are used to fill in account attribute values.
 Similarly, "Customer Admin Role" assigns user to "ultra1-admins" group. +
 
 
@@ -533,29 +533,29 @@ If no address is entered, the administrator who is creating the new user is expe
 
 .. The first mapping computes user's full name
 
-.. The "Org mapping - organization member" is trying to look up an wiki:OrgType[Org] into which the user should belong.
-It is using a wiki:Object+Query[query] inside wiki:Expression[assignmentTargetSearch expression] to do so.
+.. The "Org mapping - organization member" is trying to look up an xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] into which the user should belong.
+It is using a xref:/midpoint/reference/concepts/query/[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
 The expression inside the query is using the `organizationalUnit` value, e.g. in this case it would be "ultra1" and it was created before.
 The `organizationalUnit` attribute was set automatically by assigning the organization ("Add member").
 
 .. The "Org mapping - organization manager" will assign the same Org as above, but this time with relationship flag "manager" and only if midPoint user has "customer-admin" value in the `employeeType` attribute.
 
 .. The "Basic Customer Admin role assignment" mapping in user template is processed.
-This just assigns the "Customer Admin Role" role `(role-customer-basic-admin.xml`) . This is a simple wiki:Advanced+Hybrid+RBAC[RBAC] role that assigns an LDAP account to the user.
+This just assigns the "Customer Admin Role" role `(role-customer-basic-admin.xml`) . This is a simple xref:/midpoint/reference/roles-policies/rbac/[RBAC] role that assigns an LDAP account to the user.
 The role is assigned to midPoint users with `employeeType` attribute value "customer-admin".
 
 .. The "Delegated Administration role assignment" mapping in user template is processed.
-This just assigns the "Delegated Administration Role" role `(role-customer-authz-admin.xml`) . This role assigns midPoint wiki:Authorization[authorizations] only (no provisioning).
+This just assigns the "Delegated Administration Role" role `(role-customer-authz-admin.xml`) . This role assigns midPoint xref:/midpoint/reference/security/authorization/[authorizations] only (no provisioning).
 The role is assigned to midPoint users with `employeeType` attribute value "customer-admin".
 
 .. The "Basic Customer User role assignment" mapping in user template is processed.
-This just assigns the "Customer User Role" role `(role-customer-basic-user.xml`) . This is a simple wiki:Advanced+Hybrid+RBAC[RBAC] role that assigns an LDAP account to the user.
+This just assigns the "Customer User Role" role `(role-customer-basic-user.xml`) . This is a simple xref:/midpoint/reference/roles-policies/rbac/[RBAC] role that assigns an LDAP account to the user.
 The role is assigned to midPoint users with `employeeType` attribute values "customer-user" or "customer-admin".
 
 .. User template processing finishes.
 The user now has a full name and several assignments:
 
-... Assignement to the "ultra1" wiki:OrgType[Org.] (because of "Add member" action in GUI)
+... Assignement to the "ultra1" xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org.] (because of "Add member" action in GUI)
 
 ... Assignement of the "Customer User Role" role.
 
@@ -573,10 +573,10 @@ The user now has a full name and several assignments:
 
 .. New administrator is placed in the "ultra1" Org.
 
-.. The "Customer User Role" assigns an LDAP account to the user and using wiki:Entitlements[entitlement association] adds user to "ultra1-users" group.
+.. The "Customer User Role" assigns an LDAP account to the user and using xref:/midpoint/reference/resources/entitlements/[entitlement association] adds user to "ultra1-users" group.
 The group name is derived from user's `organizationalUnit` attribute value.
 No other attributes are specified in the role.
-The wiki:Outbound+Mapping[outbound mappings] from the OpenLDAP resource definition are used to fill in account attribute values.
+The xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings] from the OpenLDAP resource definition are used to fill in account attribute values.
 Similarly, "Customer Admin Role" assigns user to "ultra1-admins" group. +
 
 
@@ -633,8 +633,8 @@ If no address is entered, the administrator who is creating the new user is expe
 
 .. The first mapping computes user's full name
 
-.. The "Org mapping - organization member" is trying to look up an wiki:OrgType[Org] into which the user should belong.
-It is using a wiki:Object+Query[query] inside wiki:Expression[assignmentTargetSearch expression] to do so.
+.. The "Org mapping - organization member" is trying to look up an xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] into which the user should belong.
+It is using a xref:/midpoint/reference/concepts/query/[query] inside xref:/midpoint/reference/expressions/expressions/[assignmentTargetSearch expression] to do so.
 The expression inside the query is using the `organizationalUnit` value, e.g. in this case it would be "ultra1" and it was created before.
 The `organizationalUnit` attribute was set automatically by assigning the organization ("Add member").
 
@@ -645,13 +645,13 @@ The `organizationalUnit` attribute was set automatically by assigning the organi
 .. The "Delegated Administration role assignment" mapping will not be applied, as the user has "customer-user" (and not "customer-admin") `employeeType` attribute.
 
 .. The "Basic Customer User role assignment" mapping in user template is processed.
-This just assigns the "Customer User Role" role `(role-customer-basic-user.xml`) . This is a simple wiki:Advanced+Hybrid+RBAC[RBAC] role that assigns an LDAP account to the user.
+This just assigns the "Customer User Role" role `(role-customer-basic-user.xml`) . This is a simple xref:/midpoint/reference/roles-policies/rbac/[RBAC] role that assigns an LDAP account to the user.
 The role is assigned to midPoint users with `employeeType` attribute values "customer-user" or "customer-admin".
 
 .. User template processing finishes.
 The user now has a full name and two assignments:
 
-... Assignement to the "ultra1" wiki:OrgType[Org.] (because of "Add member" action in GUI)
+... Assignement to the "ultra1" xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org.] (because of "Add member" action in GUI)
 
 ... Assignement of the "Customer User Role" role.
 
@@ -665,10 +665,10 @@ The user now has a full name and two assignments:
 
 .. New user is placed in the "ultra1" Org.
 
-.. The "Customer User Role" assigns an LDAP account to the user and using wiki:Entitlements[entitlement association] adds user to "ultra1-users" group.
+.. The "Customer User Role" assigns an LDAP account to the user and using xref:/midpoint/reference/resources/entitlements/[entitlement association] adds user to "ultra1-users" group.
 The group name is derived from user's `organizationalUnit` attribute value.
 No other attributes are specified in the role.
-The wiki:Outbound+Mapping[outbound mappings] from the OpenLDAP resource definition are used to fill in account attribute values. +
+The xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings] from the OpenLDAP resource definition are used to fill in account attribute values. +
 
 
 ... The outbound mappings are used especially to construct the DN of the account.
@@ -795,4 +795,4 @@ The scenario has currently some limitations:
 
 == See Also
 
-* wiki:Configuration+Samples[Configuration Samples]
+* xref:/midpoint/reference/samples/[Configuration Samples]

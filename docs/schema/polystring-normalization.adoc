@@ -11,7 +11,7 @@
 
 == Introduction
 
-wiki:PolyString[PolyString] is a flexible data structure that has several purposes.
+xref:/midpoint/reference/concepts/polystring/[PolyString] is a flexible data structure that has several purposes.
 One of the purposes is to allow comfortable text search in international environment.
 The basic idea is that is the user is searching for user `naiveboy123` then the users `naveBOY123` and `NaiveBoy123` are found.
 The other effect is that if someone already registered `naiveboy123` username then other user cannot register `naveBOY123`, `NaiveBoy123` and `NAIVEboy123` usernames.
@@ -107,7 +107,7 @@ Due to NFKD decomposition the composed national characters will be converted to 
 
 == Normalizer Configuration
 
-Normalizers can be configured in wiki:System+Configuration+Object[system configuration object]:
+Normalizers can be configured in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object]:
 
 [source]
 ----
@@ -135,6 +135,6 @@ Therefore for the change to take a full effect all the data need to be updated (
 
 == See Also
 
-* wiki:PolyString[PolyString]
+* xref:/midpoint/reference/concepts/polystring/[PolyString]
 
-* wiki:System+Configuration+Object[System Configuration Object]
+* xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration Object]

@@ -23,18 +23,13 @@ In this example we are using:
 
 * mod_auth_openidc 2.2.x
 
-
-
 [TIP]
 .Contribution
 ====
 First version of the Howto document contributed by Dario Tongue
 ====
 
-
 == The setup
-
-
 
 Firstly please make sure that you have Apache Tomcat and midPoint installed and working properly. Also install Apache with rewrite, proxy and proxy_http modules and configure them to work with Apache Tomcat and midPoint. There steps can be found in this previous how to.
 
@@ -45,10 +40,9 @@ For more details follow the link:https://gluu.org/docs/ce/latest/integration/ope
 The claim user_name of our OpenID Connect Provider (Gluu in our case) matches midPoint user "name".
 This also means that one of the scopes of your client mod_auth_openidc defined on your OpenID Connect Provider contains the claim user_name.
 
-
 == Apache configuration
 
-* +
+*  +
 *
 
 [source]
@@ -75,10 +69,7 @@ ProxyRequests           Off
 ProxyPreserveHost       On
 ProxyPass               /midpoint       http://localhost:8080/midpoint
 ProxyPassReverse        /midpoint       http://localhost:8080/midpoint
- 
 ----
-
-
 
 After applying the configuration restart apache:
 
@@ -86,7 +77,6 @@ After applying the configuration restart apache:
 ----
 sudo service apache2 restart
 ----
-
 
 == Midpoint configuration
 
@@ -101,8 +91,6 @@ Uncomment the following so that reads:
 ref="requestHeaderAuthenticationFilter" />
 ----
 
-
-
 Edit the following value "principalRequestHeader" in the bean "requestHeaderAuthenticationFilter" so that it reads:
 
 [source]
@@ -112,8 +100,6 @@ Edit the following value "principalRequestHeader" in the bean "requestHeaderAuth
 <beans:property name="principalRequestHeader" value="USERINFO_user_name"/>
 ...
 ----
-
-
 
 Edit the following value "defaultTargetUrl" in the bean "logoutHandler" so that it reads :
 
@@ -126,8 +112,6 @@ Edit the following value "defaultTargetUrl" in the bean "logoutHandler" so that 
 </beans:bean>
 ----
 
-
-
 Restart tomcat:
 
 [source]
@@ -135,9 +119,8 @@ Restart tomcat:
 sudo service tomcat8 restart
 ----
 
-
 == External links
 
-* wiki:MidPoint+and+SSO+HOWTO[MidPoint and SSO HOWTO]
+* xref:/midpoint/reference/legacy/sso/[MidPoint and SSO HOWTO]
 
 * link:https://gluu.org/docs/ce/latest/integration/openidc-rp/[mod_auth_openidc RP Integration]

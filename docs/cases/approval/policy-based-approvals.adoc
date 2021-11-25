@@ -9,7 +9,7 @@
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
-MidPoint is identity management and governance system, therefore it is quite natural that it implements an wiki:Approval[approval] mechanism.
+MidPoint is identity management and governance system, therefore it is quite natural that it implements an xref:/midpoint/reference/cases/approval/[approval] mechanism.
 
 However, the mechanism that midPoint employs to drive the approvals is quite unique.
 Almost all other IDM systems used workflow engine to drive the approvals.
@@ -19,7 +19,7 @@ It was difficult to set up and and maintain.
 Therefore midPoint slowly drifted away from the use of workflow engine until the workflow engine was completely replaced in midPoint 4.0.
 
 Current mechanism to drive approvals is based on policies rather than processes.
-There are wiki:Policy+Rules[policy rules] that specify individual aspects of an approvals.
+There are xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] that specify individual aspects of an approvals.
 For example the rules may look like:
 
 * Some roles are assigned automatically based on organizational structure membership.
@@ -31,7 +31,7 @@ Assignment of those roles is not approved.
 
 * Assignment of sensitive roles must be approved by security office.
 
-* Assignment of controlling roles must comply with wiki:Segregation+of+Duties[segregation of duties] (SoD) policy.
+* Assignment of controlling roles must comply with xref:/midpoint/reference/roles-policies/segregation-of-duties/[segregation of duties] (SoD) policy.
 Exceptions are not possible.
 
 * Some business roles are subject to a different SoD policy.
@@ -75,7 +75,7 @@ In fact, workflow engines in other IDM systems are often (ab)used to implement f
 And this is often the only way how to implement something in closed-source systems.
 But midPoint is different.
 The midPoint way is to implement the feature in midPoint core  and then reuse it many times.
-We even have a special wiki:Subscriptions+and+Sponsoring["platform subscription"] model to support this approach from a business side.
+We even have a special xref:/support/subscription-sponsoring/["platform subscription"] model to support this approach from a business side.
 In addition to that midPoint already has plenty of better mechanisms for customization: mappings, expressions, hooks and so on.
 The result is, that no midPoint subscriber had no need to abuse the workflow engine.
 
@@ -130,4 +130,4 @@ Removing that engine was a right step to take.
 
 == See Also
 
-* wiki:Policy+Rules[Policy Rules]
+* xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]

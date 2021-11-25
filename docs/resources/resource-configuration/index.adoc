@@ -9,11 +9,11 @@
 :page-toc: top
 
 Resource definition is perhaps the most important part of link:https://evolveum.com/midpoint[midPoint] configuration.
-It configures connection to wiki:Terminology[resource], resource object classes and attributes (wiki:Resource+Schema[resource schema]), mapping of these attributes to the midPoint user model, resource capabilities, password policies, etc.
+It configures connection to xref:/glossary/[resource], resource object classes and attributes (xref:/midpoint/reference/resources/resource-schema/[resource schema]), mapping of these attributes to the midPoint user model, resource capabilities, password policies, etc.
 
 Resource definition is an ordinary object in midPoint repository.
-Therefore it has its wiki:Object+ID[OID] and a name that has to be unique across all defined resources.
-The type of the object is wiki:ResourceType[ResourceType] and the internal structure is quite complex.
+Therefore it has its xref:/midpoint/devel/prism/concepts/object-identifier/[OID] and a name that has to be unique across all defined resources.
+The type of the object is xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType] and the internal structure is quite complex.
 Resource definition consists of several parts:
 
 [%autowidth,cols="h,1,1"]
@@ -32,17 +32,17 @@ The connector is used to connect to the resource.
 
 
 | Schema
-| XSD definition of wiki:Resource+Schema[resource schema] for the resource instance.
+| XSD definition of xref:/midpoint/reference/resources/resource-schema/[resource schema] for the resource instance.
 It defines data types for accounts, groups, roles, entitlements, organizational units or any other objects related to identity management that the resource supports.
 Schema describes *what resource can do*. I.e. it describe connector and resource configuration capabilities when it comes to object classes and attributes.
-| wiki:Resource+Schema[Resource Schema]
+| xref:/midpoint/reference/resources/resource-schema/[Resource Schema]
 
 
 | Schema Handling
 | Specification of handling the objects defined in resource schema.
 E.g. read-only or read-write attributes, account object classes, expressions to determine values, etc.
 Schema describes *what resource should do*. I.e. it describes the decision of a midPoint administrator with respect to handling object classes and attribute values.
-| wiki:Resource+Schema+Handling[Resource Schema Handling]
+| xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]
 
 
 | Capabilities
@@ -54,7 +54,7 @@ E.g. support for real-time synchronization, passwords, activation, etc.
 
 | Scripts
 | Collection of scripts to be executed for various provisioning operations.
-| wiki:Provisioning+Scripts[Provisioning Scripts]
+| xref:/midpoint/reference/resources/provisioning-scripts/[Provisioning Scripts]
 
 
 | Projection
@@ -78,7 +78,7 @@ This may include configuration of high-level operation retries and similar techn
 | Synchronization
 | Defines a synchronization properties (configuration) for a resource.
 This applies to all flavors of synchronization (live sync, reconciliation, import, ...)
-| wiki:Synchronization+Configuration[Synchronization Configuration]
+| xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration]
 
 
 | Business
@@ -88,16 +88,13 @@ This applies to all flavors of synchronization (live sync, reconciliation, impor
 
 |===
 
-
 == Resource Definition Sections
-
-
 
 === Connector Reference
 
-Resource has a reference to a wiki:ConnectorType[connector object]. This reference means that the connector will be used for all operations on the resource.
-This just a normal wiki:Object+References[object reference] once the resource definition is imported and running.
-However it is usually a wiki:Object+References[smart reference] when resource definition is imported into midPoint.
+Resource has a reference to a xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[connector object]. This reference means that the connector will be used for all operations on the resource.
+This just a normal xref:/midpoint/reference/schema/object-references/[object reference] once the resource definition is imported and running.
+However it is usually a xref:/midpoint/reference/schema/object-references/[smart reference] when resource definition is imported into midPoint.
 Using filters in smart references make it easy to define connector by type or version instead of OID.
 
 .Smart Connector Reference Example
@@ -122,8 +119,7 @@ Click on the connector you want to use and copy the "connectorType" value.
 
 ====
 
-See wiki:ConnectorType[ConnectorType] for more details regarding connectors, see wiki:Object+References[Object References] for more details regarding references.
-
+See xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType] for more details regarding connectors, see xref:/midpoint/reference/schema/object-references/[Object References] for more details regarding references.
 
 === Resource Configuration
 
@@ -132,7 +128,7 @@ For the connector to work properly it needs configuration.
 Such configuration specifies name of host where the resource resides, TCP/IP port number, technical account that should be used to connect to it, password for that account, database table name, directory root, filenames, etc.
 
 Configuration properties are different for each connector type.
-The names and types of the properties are defined by the wiki:Resource+and+Connector+Schema+Explanation[connector schema] that is stored in wiki:ConnectorType[connector object].
+The names and types of the properties are defined by the xref:/midpoint/reference/resources/resource-schema/explanation/[connector schema] that is stored in xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[connector object].
 
 It may not be easy to create correct resource configuration by hand.
 Probably the best way is to start from samples.
@@ -158,14 +154,13 @@ Probably the best way is to start from samples.
 
 ----
 
-See wiki:Resource+and+Connector+Schema+Explanation[Resource and Connector Schema Explanation] for a detailed description how the dynamic schemas work together.
-
+See xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation] for a detailed description how the dynamic schemas work together.
 
 === Resource Schema
 
-Main article: wiki:Resource+Schema[Resource Schema]
+Main article: xref:/midpoint/reference/resources/resource-schema/[Resource Schema]
 
-The `schema` element contains the XSD-formatted definition of wiki:Resource+Schema[resource schema]. It defines data types for accounts, groups, roles, entitlements, organizational units or any other objects related to identity management that the resource supports.
+The `schema` element contains the XSD-formatted definition of xref:/midpoint/reference/resources/resource-schema/[resource schema]. It defines data types for accounts, groups, roles, entitlements, organizational units or any other objects related to identity management that the resource supports.
 
 Resource schema is dynamic.
 It is only available at run-time and can be different for every resource instance, even for resource instances of the same type.
@@ -228,17 +223,16 @@ There are used for internal midPoint optimizations.
 
 ----
 
-Please note that while you can see most of the original LDAP attributes there (`cn`, `sn`, `givenName`, ...) some of the attributes are not really from LDAP (`icfs:name`, `icfs:uid`). These attributes are built-in wiki:OpenICF[OpenICF] attributes.
+Please note that while you can see most of the original LDAP attributes there (`cn`, `sn`, `givenName`, ...) some of the attributes are not really from LDAP (`icfs:name`, `icfs:uid`). These attributes are built-in xref:/connectors/connid/1.x/openicf/[OpenICF] attributes.
 While we always prefer to use native attribute names it is not practical in this case as ICF hides the attributes from midPoint.
-Similarly for the `inetOrgPerson` objectclass versus ICF `ACCOUNT`{}objectclass (see wiki:ICF+Issues[ICF Issues] for more details).
+Similarly for the `inetOrgPerson` objectclass versus ICF `ACCOUNT`{}objectclass (see xref:/connectors/connid/1.x/icf-issues/[ICF Issues] for more details).
 
-See wiki:Resource+Schema[Resource Schema] for more details.
-See wiki:Resource+and+Connector+Schema+Explanation[Resource and Connector Schema Explanation] for a detailed description how the dynamic schemas work together.
-
+See xref:/midpoint/reference/resources/resource-schema/[Resource Schema] for more details.
+See xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation] for a detailed description how the dynamic schemas work together.
 
 === Schema Handling
 
-Main article: wiki:Resource+Schema+Handling[Resource Schema Handling]
+Main article: xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]
 
 Specification of handling the objects defined in resource schema.
 E.g. read-only or read-write attributes, account object classes, expressions to determine values, etc.
@@ -262,12 +256,12 @@ By default, no access limitation is enforced (create, update, read).
 There is a separate outbound/inbound configuration for each resource attribute supported by the resource schema.
 
 The *outbound* configuration specifies how to transform the attribute value from midPoint on the fly before it is sent to resource attribute.
-The modification value can use other attribute values, constants or anything that can be achieved by an wiki:Expression[expression]. For example you may wish to set the resource's "fullname" attribute to the uppercase value of midPoint's "fullName" attribute.
+The modification value can use other attribute values, constants or anything that can be achieved by an xref:/midpoint/reference/expressions/expressions/[expression]. For example you may wish to set the resource's "fullname" attribute to the uppercase value of midPoint's "fullName" attribute.
 The outbound is what you use for *provisioning*.
 
 The *inbound* configuration specifies where (to which midPoint attribute) to store the resource attribute value and optionally, how to transform it.
 For example, you may wish to store the resource's "full_name_attr" attribute value to midPoint's "fullName" attribute without modification.
-The inbound is what you use for *synchronization*. Please note that there are multiple wiki:Synchronization[Synchronization Flavors] and this configuration applies to all of them.
+The inbound is what you use for *synchronization*. Please note that there are multiple xref:/midpoint/reference/synchronization/introduction/[Synchronization Flavors] and this configuration applies to all of them.
 
 There is an optional <strength> argument to specify if an existing attribute value should be replaced:
 
@@ -332,7 +326,7 @@ The configuration for "description" resource attribute is configured as follows:
 
 ----
 
-See wiki:Resource+Schema+Handling[Resource Schema Handling] for more detailed explanation.
+See xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] for more detailed explanation.
 
 
 ==== _NAME_ and _UID_ Special Attributes
@@ -412,7 +406,6 @@ The following is an example of "icfs:name" attribute configuration from OpenDJ a
 
 ----
 
-
 ==== Credentials Handling
 
 Credentials (password and password-related information) handling is a special part of Schema Handling and allows you to define how user's credentials will be synchronized.
@@ -452,7 +445,6 @@ The configurable password policy implementation used for generated password is i
 
 ====
 
-
 ==== Activation Handling
 
 The activation/deactivation (account enabled/disabled) handling is a special part of Schema Handling and allows you to define how user's state will be synchronized.
@@ -484,10 +476,9 @@ The "target" parameter is omitted, because it will be the midPoint user state at
 
 ----
 
-
 === Capabilities
 
-Main article: wiki:Resource+Capabilities[Resource Capabilities]
+Main article: xref:/midpoint/reference/resources/resource-configuration/capabilities/[Resource Capabilities]
 
 Capabilities are definitions of a specific things that a resource can do.
 There is plethora of various resource types and cofiguration.
@@ -557,19 +548,17 @@ You have to have imported OpenDJ advanced sync sample (Configuration->Import obj
 
 ----
 
-
 === Scripts
 
 Some resources has ability to execute scripts.
 MidPoint binds execution of scripts to specific operations.
 Therefore a script can be automatically executed before of after the account is created, modified or deleted.
 
-See wiki:Provisioning+Scripts[Provisioning Scripts] page for more details.
-
+See xref:/midpoint/reference/resources/provisioning-scripts/[Provisioning Scripts] page for more details.
 
 === Consistency
 
-See wiki:Resource+Consistency+Configuration[Resource Consistency Configuration] for more details.
+See xref:/midpoint/reference/resources/resource-configuration/consistency/[Resource Consistency Configuration] for more details.
 
 This section contains configuration of consistency mechanisms.
 This may include configuration of high-level operation retries and similar technical configuration.
@@ -578,7 +567,7 @@ This section contains:
 * `*avoidDuplicateValues*`: When set to true, midPoint will try to avoid adding attribute values that are already there and remove values that are not there.
 Some resources do not tolerate such operations and they respond with errors.
 However midPoint cannot rely on transactions.
-MidPoint's wiki:Relativity[lock-free relativistic model] provides the necessary consistency, occasional redundant additions or deletions may happen.
+MidPoint's xref:/midpoint/reference/concepts/relativity/[lock-free relativistic model] provides the necessary consistency, occasional redundant additions or deletions may happen.
 If this option is turned on then midPoint will read the data from resource right before the operation and filter our any redundant changes.
 This requires additional operation and it increases the risk of inconsistencies.
 However it is the only practical option for some resources.
@@ -594,18 +583,17 @@ In that case midpoint will normalize any attribute names with regard to the reso
 By default network errors are not considered critical, other errors are critical.
 *EXPERIMENTAL*: use with care.
 
-
 === Synchronization
 
-The `synchronization` section defines setting of wiki:Synchronization[synchronization] mechanisms.
+The `synchronization` section defines setting of xref:/midpoint/reference/synchronization/introduction/[synchronization] mechanisms.
 That is a common setting for live sync, reconciliation, import, discovery, etc.
 It contains two important subsections:
 
 * *Correlation* and *confirmation* expressions are used for locating an owner of an account.
 E.g. if an unknown account was found then there are expressions evaluated to find a user that is owner of this account.
-The result of the expressions, the operation and the existence of the owner determines a wiki:Synchronization+Situations[situation].TODO: differences between correlation/confirmation.
+The result of the expressions, the operation and the existence of the owner determines a xref:/midpoint/reference/synchronization/situations/[situation].TODO: differences between correlation/confirmation.
 
-* *Reactions* define how midPoint will behave in a specific wiki:Synchronization+Situations[synchronization situation]. The reaction may specify that a new account has to be linked to a user (e.g. if the owner was found) or disabled (if it was not).
+* *Reactions* define how midPoint will behave in a specific xref:/midpoint/reference/synchronization/situations/[synchronization situation]. The reaction may specify that a new account has to be linked to a user (e.g. if the owner was found) or disabled (if it was not).
 Default reaction is to do nothing.
 
 The following is an example of synchronization configuration from OpenDJ advanced sync sample:
@@ -617,7 +605,7 @@ The following is an example of synchronization configuration from OpenDJ advance
 * for situation unlinked (the correlation expression found exactly one owner in midPoint but he/she has no reference to this account) the response action is about to set link between the account and the owner
 
 * for situation unmatched (the correlation expression found no owner in midPoint) the response action is about to create a new midPoint user.
-The midPoint user attributes will be set using the inbound expressions for resource attributes and a specified wiki:Object+Template[] object.
+The midPoint user attributes will be set using the inbound expressions for resource attributes and a specified xref:/midpoint/reference/expressions/object-template/[] object.
 In addition, the resource account will be linked to the midPoint user.
 
 * for situation linked (the correlation expression found one owner in midPoint that has reference to this account) the response action is about to set attributes in midPoint shadow to values on resource.
@@ -660,7 +648,7 @@ In addition, the resource account will be linked to the midPoint user.
                      The setting here assumes that this resource is authoritative,
                      therefore all accounts created on the resource should be
                      reflected as new users in IDM.
-                     See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
+                     See https://docs.evolveum.com/midpoint/reference/synchronization/situations/
                  -->
 
                 <reaction>
@@ -696,12 +684,12 @@ In addition, the resource account will be linked to the midPoint user.
 
 ----
 
-See wiki:Synchronization[Synchronization] page for an overview of the synchronization mechanism and wiki:Synchronization+Examples[Synchronization Examples] for a detailed description of synchronization.
+See xref:/midpoint/reference/synchronization/introduction/[Synchronization] page for an overview of the synchronization mechanism and xref:/midpoint/reference/synchronization/examples/[Synchronization Examples] for a detailed description of synchronization.
 
 
 ==== Account Synchronization Settings
 
-Main article: wiki:Projection+Policy[Projection Policy]
+Main article: xref:/midpoint/reference/synchronization/projection-policy/[Projection Policy]
 
 It has been mentioned elsewhere that the assignment relates to state that should be while the link relates to state that is.
 Account synchronization settings are about dealing situations when an user has an assignment but a corresponding account does not exist and when an account on a resource was created but a correspondent user does not exist.
@@ -714,7 +702,6 @@ To change these properties for individual resource the account synchronization s
     <assignmentPolicyEnforcement>full</assignmentPolicyEnforcement>
 </c:AccountSynchronizationSettings>
 ----
-
 
 ==== User Template
 
@@ -773,7 +760,7 @@ This can be utilized to have a last resort value for the "fullName" attribute if
                 created. It only defines resource and account type. The rest of the
                 account parameters are specified by outbound expressions in the
                 account type in the resource definition, as usual.
-                See http://wiki.evolveum.com/display/midPoint/Synchronization
+                See https://docs.evolveum.com/midpoint/reference/synchronization/introduction/
             </description>
             <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
             <intent>default</intent>
@@ -784,26 +771,23 @@ This can be utilized to have a last resort value for the "fullName" attribute if
 
 ----
 
-
 == Samples
 
 The best repository of fresh samples is the link:https://github.com/Evolveum/midpoint/tree/master/samples[samples directory in current development trunk]. There is a lot of examples for various resource types.
 Some samples define just the basic minimum others demonstrate how to configure advanced features.
 The samples have in-line comments to make it easier to understand them.
 
-
 == See Also
 
-* wiki:ResourceType[ResourceType]
+* xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType]
 
-* wiki:Resource+Schema[Resource Schema]
+* xref:/midpoint/reference/resources/resource-schema/[Resource Schema]
 
-* wiki:Mappings+and+Expressions[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
-* wiki:Resource+and+Connector+Schema+Explanation[Resource and Connector Schema Explanation]
+* xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation]
 
-* wiki:Resource+Schema+Handling[Resource Schema Handling]
-
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]
 
 == External links
 

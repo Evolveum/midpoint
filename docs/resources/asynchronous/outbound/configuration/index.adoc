@@ -12,7 +12,7 @@
 
 == Introduction
 
-See wiki:Asynchronous+(Messaging)+Outbound+Resources[Asynchronous (Messaging) Outbound Resources] for an introduction to the topic.
+See xref:/midpoint/reference/resources/asynchronous/outbound/[Asynchronous (Messaging) Outbound Resources] for an introduction to the topic.
 
 The following text will be a combination of a documentation with a simple tutorial on how to configure an asynchronous resource.
 

@@ -14,7 +14,7 @@
 == Introduction
 
 Expression is a part of midPoint configuration that contains logic.
-It is used in wiki:Mapping[mappings], wiki:Correlation+and+Confirmation+Expressions[Correlation and Confirmation Expressions] and may be used in other parts later on.
+It is used in xref:/midpoint/reference/expressions/mappings/[mappings], xref:/midpoint/reference/synchronization/correlation-and-confirmation-expressions/[Correlation and Confirmation Expressions] and may be used in other parts later on.
 Expressions are very flexible.
 They need to be flexible as expressions are the primary tool of customizing midPoint behavior.
 Expressions allow simple and efficient constructions that just pass or generate a value but they also allow invocation of complex scripts.
@@ -35,12 +35,11 @@ The expressions are executed by invoking a specific _expression evaluator_. The 
 There evaluators range from the very simples ("as is" evaluators) to flexible scripting language engines.
 Individual evaluators are described below.
 
-Each expression take a set of wiki:Expression+Variables[variables] as input.
+Each expression take a set of xref:/midpoint/reference/expressions/variables/[variables] as input.
 Each variable has a name and values.
 The values may also be "dynamic", not only specifying what the value is but also how it is being changed (delta).
 The expression than recomputes the variables to the output value, which may also be "dynamic".
-MidPoint expressions are designed and built especially to support the model of wiki:Relativity[relative changes].
-
+MidPoint expressions are designed and built especially to support the model of xref:/midpoint/reference/concepts/relativity/[relative changes].
 
 == Expression Evaluators
 
@@ -103,7 +102,6 @@ Following example shows definition of two literal values for structured property
 
 ----
 
-
 === As Is
 
 "As Is" expression is used if no value transformation is needed and there is a clear definition of what an _input_ value is.
@@ -135,8 +133,7 @@ The As Is value is functionally almost identical to passing the value of `input`
 
 ----
 
-The As Is expression evaluator is the default evaluator that will be used if no expression is specified at all (e.g. in wiki:Mapping[mappings]).
-
+The As Is expression evaluator is the default evaluator that will be used if no expression is specified at all (e.g. in xref:/midpoint/reference/expressions/mappings/[mappings]).
 
 === Path
 
@@ -156,16 +153,15 @@ Following constructor is referencing the `name` property in the object stored in
 The path expression may seem equivalent to the XPath script expression (see below).
 However there are several important differences.
 The XPath expression constructor is much slower as it needs to invoke XPath language interpreter.
-The path constructor is following the path through wiki:Prism+Objects[prism objects] directly which is much faster.
+The path constructor is following the path through xref:/midpoint/devel/prism/[prism objects] directly which is much faster.
 This also allows the path constructor to follow the modification mode (delta) of the source property which is very useful in some situations.
 Therefore as a rule of the thumb the path constructor should always be preferred if it is possible to use it.
-
 
 === Script
 
 Script constructor is the most flexible of all the constructors as it allows to invoke an expression written in an expression or scripting language.
 There are several script languages to choose from.
-The script expressions are described in more details in a wiki:Script+Expression[Script Expression] page.
+The script expressions are described in more details in a xref:/midpoint/reference/expressions/expressions/script/[Script Expression] page.
 This page only provides few examples.
 
 .Expression constructor using Groovy script
@@ -181,7 +177,6 @@ This page only provides few examples.
 
 ----
 
-
 .Expression constructor using XPath script
 [source,xml]
 ----
@@ -196,7 +191,6 @@ This page only provides few examples.
 
 ----
 
-
 .Expression constructor using ECMAScript (JavaScript) script
 [source,xml]
 ----
@@ -210,13 +204,12 @@ This page only provides few examples.
 
 ----
 
-See wiki:Script+Expression[Script Expression] page for more details.
-
+See xref:/midpoint/reference/expressions/expressions/script/[Script Expression] page for more details.
 
 === Generate
 
 The _generate_ constructor is used to generate a random value.
-The value is generated according to the wiki:Password+Policy[value policy]. If there is a value policy already associated with a target property then it is sufficient to specify just plain `<generate/>` element.
+The value is generated according to the xref:/midpoint/reference/security/credentials/password-policy/[value policy]. If there is a value policy already associated with a target property then it is sufficient to specify just plain `<generate/>` element.
 The applicable policy will be automatically determined and used.
 This usually applies to password policies.
 If no implicit policy is applicable to the target property or if a different policy is desired the policy may be overridden using `valuePolicyRef` element as illustrated below.
@@ -236,7 +229,7 @@ If no value policy is defined and the expression cannot determine the policy aut
 [TIP]
 .Password policies and generate expression
 ====
- When a generate expression without any parameters (`<generate/>`) is used to generate a password it will choose password policy automatically.
+When a generate expression without any parameters (`<generate/>`) is used to generate a password it will choose password policy automatically.
 When such an expression is used in a mapping it will choose password policy appropriate for the* mapping target*. This makes perfect sense, as the generated value must be a valid value for the target property.
 Which means that is the generate expression is used in the outbound mapping, it will use resource password policy.
 But if it is used in the inbound mapping, it will use user password policy.
@@ -247,15 +240,14 @@ In case that you would like to change this behavior please specify the password 
 
 ====
 
-
 === Assignment Target Search
 
-Mappings and expressions are often used to create wiki:Assignment[assignments]. Therefore there is a special-purpose expression evaluator that simplifies the way how assignments are created.
-The evaluator is using a wiki:Object+Query[query] to search for an target object in midPoint repository.
-When such object is found the evaluator creates an wiki:Assignment[assignment] for that target.
-This expression is especially useful in wiki:Object+Template[object templates.]
+Mappings and expressions are often used to create xref:/midpoint/reference/roles-policies/assignment/[assignments]. Therefore there is a special-purpose expression evaluator that simplifies the way how assignments are created.
+The evaluator is using a xref:/midpoint/reference/concepts/query/[query] to search for an target object in midPoint repository.
+When such object is found the evaluator creates an xref:/midpoint/reference/roles-policies/assignment/[assignment] for that target.
+This expression is especially useful in xref:/midpoint/reference/expressions/object-template/[object templates.]
 
-Following configuration snippet provides an example of assignment evaluator that looks for an wiki:OrgType[OrgType] target:
+Following configuration snippet provides an example of assignment evaluator that looks for an xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[OrgType] target:
 
 .Assignment expression
 [source,xml]
@@ -275,10 +267,10 @@ Following configuration snippet provides an example of assignment evaluator that
 </expression>
 ----
 
-This assignment target search expression will look for objects of type wiki:OrgType[OrgType] in midPoint repository.
+This assignment target search expression will look for objects of type xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[OrgType] in midPoint repository.
 It will look up the objects by `name` property.
 The name of the object should be the same as the value of `organizationalUnit` variable.
-If such an object is found than an appropriate wiki:Assignment[assignment] structure is created, the wiki:Object+ID[OID] of the org object is placed inside it.
+If such an object is found than an appropriate xref:/midpoint/reference/roles-policies/assignment/[assignment] structure is created, the xref:/midpoint/devel/prism/concepts/object-identifier/[OID] of the org object is placed inside it.
 
 [TIP]
 .Search expression evaluators and includeNullInputs
@@ -290,7 +282,6 @@ This is usually needed in case that the evaluators should provide "default" valu
 Simply speaking: if the expression is not producing a value that you would expect to be produced, turning on `includeNullInputs` will make midPoint slightly slower, but it may solve your problem.
 
 ====
-
 
 ==== Relation parameter
 
@@ -318,7 +309,6 @@ If you wish to assign the organization with relation value (such as "manager") t
 ----
 
 After such assignment, GUI will indicate that user with this assignment is a manager of the organization.
-
 
 ==== Activation parameters
 
@@ -366,12 +356,10 @@ When the example above is user, each role assigned with it has administrativeSta
 This mechanism provide possibility to create assignment of roles, orgs, services with specific activation settings according to some focus attributes.
 The same mechanism can be used for defining role parameters and other attributes.
 
-
-
 ==== Create on Demand
 
 The evaluator also has additional functionality that allows to create assignment targets on demand.
-This is a very useful functionality e.g. in case of opportunistic organizational structure synchronization when organizational unit names are only present as account attribute values and midPoint has to create appropriate wiki:OrgType[orgs] when it sees a new value.
+This is a very useful functionality e.g. in case of opportunistic organizational structure synchronization when organizational unit names are only present as account attribute values and midPoint has to create appropriate xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[orgs] when it sees a new value.
 Following configuration sample extends the previous example with an create-on-demand functionality:
 
 .Assignment expression with create-on-demand configuration
@@ -403,15 +391,15 @@ Following configuration sample extends the previous example with an create-on-de
 </expression>
 ----
 
-New wiki:OrgType[OrgType] object will be created if no matching object is found by the query.
+New xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[OrgType] object will be created if no matching object is found by the query.
 The new object will be populated by the values specified by inner expressions (in `populateItem` elements).
 
 [TIP]
 .Expressions inside expressions
 ====
- Please note that the assignment expressions are part of the expression and it also usually contains inner expressions.
+Please note that the assignment expressions are part of the expression and it also usually contains inner expressions.
 So we have expressions inside expressions.
-This may look confusing at the first moment but in fact it goes very well in line with wiki:Approach[midPoint approach] of reusability.
+This may look confusing at the first moment but in fact it goes very well in line with xref:/midpoint/introduction/approach/[midPoint approach] of reusability.
 We do not want to reinvent the same mechanism, we rather try to reuse what we already have.
 And this also creates a very powerful and flexible customization tool.
 
@@ -470,31 +458,26 @@ functionality:
 </expression>
 ----
 
-This sample creates a new wiki:OrgType[org] on demand and such org will be assigned to the user.
+This sample creates a new xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[org] on demand and such org will be assigned to the user.
 However the new org itself will have an assignment.
 In this case it is an assignment to some kind of "TOP" organizational unit.
-This is usually what is required as we do not want to create new top-level organizational units every time (see wiki:Organizational+Structure[Organizational Structure] for more details).
-
+This is usually what is required as we do not want to create new top-level organizational units every time (see xref:/midpoint/reference/org/organizational-structure/[Organizational Structure] for more details).
 
 === Association Target Search
 
 TODO
 
-
 === Association From Link
 
 TODO
-
 
 === Assignment From Association
 
 TODO
 
-
 === Sequential Value
 
-See wiki:Using+Sequences[Using Sequences].
-
+See xref:/midpoint/reference/expressions/sequences/configuration/[Using Sequences].
 
 === Const
 
@@ -502,19 +485,18 @@ See wiki:Using+Sequences[Using Sequences].
 {% include since.html since="3.6" %}
 ++++
 
-Expression evaluator used to produce value of a wiki:Constant[constant].
+Expression evaluator used to produce value of a xref:/midpoint/reference/misc/bulk/constant/[constant].
 
-See wiki:Configuration+and+Use+of+Constants[Configuration and Use of Constants] for more details.
-
+See xref:/midpoint/reference/expressions/constants/configuration/[Configuration and Use of Constants] for more details.
 
 == Expression Variables
 
-See: wiki:Expression+Variables[Expression Variables]
+See: xref:/midpoint/reference/expressions/variables/[Expression Variables]
 
 
 === Extra Variables
 
-Expression may define extra variables in addition to those wiki:Expression+Variables[provided by midPoint]:
+Expression may define extra variables in addition to those xref:/midpoint/reference/expressions/variables/[provided by midPoint]:
 
 [source,xml]
 ----
@@ -527,7 +509,6 @@ Expression may define extra variables in addition to those wiki:Expression+Varia
 </expression>
 
 ----
-
 
 == Root Node
 
@@ -562,9 +543,7 @@ Therefore the following two expressions are equivalent (assuming that user is se
 
 ----
 
-
 == Security
-
 
 === Run As
 
@@ -591,7 +570,6 @@ The expression above will be executed with authorizations of the user identified
 The variable `actor` that is present in most expressions still refers to the identity of the user that initiated the operations.
 This variable is not affected by the `runAs` configuration.
 
-
 === Security of Script Expressions
 
 Script expressions are a code that runs inside midPoint servers.
@@ -606,9 +584,8 @@ The sandbox is not enforced from complexity and performance reasons, but it may 
 For the time being, please be very careful who can define expressions in midPoint.
 Do not allow any untrusted user to modify the expressions.
 
-See wiki:Script+Expression+Sandboxing[Script Expression Sandboxing] for more details.
-
+See xref:/midpoint/features/planned/script-expression-sandboxing/[Script Expression Sandboxing] for more details.
 
 == See Also
 
-* wiki:Expression+Variables[Expression Variables]
+* xref:/midpoint/reference/expressions/variables/[Expression Variables]

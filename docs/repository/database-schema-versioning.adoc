@@ -6,11 +6,12 @@
 :page-wiki-metadata-modify-user: virgo
 :page-wiki-metadata-modify-date: 2021-02-26T14:38:25.234+01:00
 :page-upkeep-status: green
+:page-display-order: 99
 
 [TIP]
 ====
 The following information applies to the "Generic" (old) SQL repository implementation.
-New Native repository uses different upgrade mechanism
+New Native repository uses different upgrade described xref:../native-postgresql/usage/[here].
 ====
 
 _Database schema version_ is an indication of a version of the database schema, i.e. the structure of database tables, indices, constraints, and so on.
@@ -20,7 +21,9 @@ There are some exceptions, though:
 
 . The database schema can stay unchanged on midPoint minor version change.
 For example, when going from 4.0 to 4.1 there were no DB schema changes.
-In this case, the database schema version 4.1 does not exist, and midPoint 4.1 works with the schema version 4.0. (If there will be some changes in midPoint database schema in 4.2, then midPoint 4.2 will work with database schema 4.2. If there will be none, midPoint 4.2 will work with the schema version 4.0.)
+In this case, the database schema version 4.1 does not exist, and midPoint 4.1 works with the schema version 4.0.
+(If there are some changes in midPoint database schema in 4.2, then midPoint 4.2 will work with database schema 4.2.
+If there are none, midPoint 4.2 will work with the schema version 4.0.)
 
 . The database schema can change with midPoint maintenance release.
 Although this is quite unusual, it can occur.
@@ -75,7 +78,6 @@ Recent database schema versions are summarized in the following table:
 | 4.0
 | Content change (see note below)
 
-
 | 4.2
 | 4.2
 |
@@ -88,10 +90,12 @@ Recent database schema versions are summarized in the following table:
 
 Note: Sometimes - very exceptionally - there are changes in the way how data are stored without schema as such being changed.
 This is the case of 4.0  4.1 upgrade, where incomplete flag was added for some items.
-Please see a discussion for this in wiki:Release+4.1[4.1 release notes] and link:https://github.com/Evolveum/midpoint/commit/a4672da3ce410a20d5196c6675970d5689ddb25c[this commit].
+Please see a discussion for this in xref:/release/4.1/[4.1 release notes] and link:https://github.com/Evolveum/midpoint/commit/a4672da3ce410a20d5196c6675970d5689ddb25c[this commit].
 
 
 == Procedure of introducing new database schema version
+
+This is a developer's note you may safely ignore as a user/administrator.
 
 When the first DB change appears after previous database schema (example, new column added for midPoint *4.3*) the following steps are required:
 
@@ -106,4 +110,4 @@ Leave the line updating *m_global_metadata* key *databaseSchemaVersion*, prefera
 
 * Update *SchemaActionComputer.REQUIRED_DATABASE_SCHEMA_VERSION* and *AUTOMATICALLY_UPGRADEABLE* map.
 
-Enjoy! ☺
+Enjoy!

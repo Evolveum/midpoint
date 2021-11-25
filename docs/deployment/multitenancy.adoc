@@ -12,7 +12,7 @@
 :page-upkeep-status: yellow
 
 
-MidPoint supports _partial multi-tenancy_. In fact, midPoint multi-tenancy is mostly just an extension of wiki:Organizational+Structure[organizational structure] features.
+MidPoint supports _partial multi-tenancy_. In fact, midPoint multi-tenancy is mostly just an extension of xref:/midpoint/reference/org/organizational-structure/[organizational structure] features.
 
 [TIP]
 .Partial multi-tenancy
@@ -36,7 +36,7 @@ MidPoint has features that can be used to support _partial tenant isolation_.
 
 == Tenant Organization
 
-Tenant is defines as an wiki:OrgType[org object] that has `tenant` flag set to true:
+Tenant is defines as an xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[org object] that has `tenant` flag set to true:
 
 [source,xml]
 ----
@@ -139,7 +139,7 @@ From the technical point of view such authorization apply only if `tenantRef` of
 This authorization works only if both subject and object are multi-tenant.
 I.e. it will not work if subject does not have tenant (no `tenantRef`) or in case that the object does not have tenant.
 Ordinary (non-tenant) authorizations should be used for those cases.
-See wiki:Authorization+Configuration[Authorization Configuration] page for more details.
+See xref:/midpoint/reference/security/authorization/configuration/[Authorization Configuration] page for more details.
 
 
 == Limitations and Future Improvements
@@ -160,7 +160,7 @@ Support for the concept of assignment for resources and tasks may be one of poss
 * Objects created by a tenant user could be automatically part of that tenant.
 E.g. tasks started by user or new resources created by that user might be automatically assigned to the same tenant.
 This is not implemented yet.
-This is partially related to planned wiki:Archetypes[Archetypes] feature.
+This is partially related to planned xref:/midpoint/reference/schema/archetypes/[Archetypes] feature.
 
 * The concept of multi-tenancy has almost no support in midPoint user interface.
 Ideally, the tenant administrators should be constrained to their tenants, global administrators should be able to switch between tenant and global views and so on.
@@ -168,13 +168,13 @@ However, current user interface support for tenancy is the same as support for o
 This is sufficient for many multi-tenant deployments.
 But there is definitely a room for improvement.
 
-In case that you are interested in any of those improvements you can use wiki:Subscriptions+and+Sponsoring[midPoint subscription] to place those improvements on wiki:Roadmap[midPoint roadmap].
+In case that you are interested in any of those improvements you can use xref:/support/subscription-sponsoring/[midPoint subscription] to place those improvements on xref:/midpoint/roadmap/[midPoint roadmap].
 
 
 == See Also
 
-* wiki:Organizational+Structure[Organizational Structure]
+* xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]
 
-* wiki:Authorization[Authorization]
+* xref:/midpoint/reference/security/authorization/[Authorization]
 
-* wiki:Authorization+Configuration[Authorization Configuration]
+* xref:/midpoint/reference/security/authorization/configuration/[Authorization Configuration]

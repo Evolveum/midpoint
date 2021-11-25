@@ -13,7 +13,7 @@
 ====
 MidPoint contains a set of "story tests".
 Such tests implement almost complete midPoint deployment scenarios with all the configuration, resources and policies.
-These tests have a configuration that is almost real-world but the individual resources and data are simplified so we are able to automatically execute them as wiki:Integration+Tests[integration tests.] This helps to make sure that midPoint works in situations that are very close to reality.
+These tests have a configuration that is almost real-world but the individual resources and data are simplified so we are able to automatically execute them as xref:/midpoint/devel/testing/integration/[integration tests.] This helps to make sure that midPoint works in situations that are very close to reality.
 
 As the story tests contain almost complete sophisticated scenarios they are not only interesting to developers but also to system engineers.
 The configuration used in story tests can be used as an inspiration for midPoint configuration in similar real-world scenarios.
@@ -115,6 +115,6 @@ It is assumed that this is both general-purpose directory system and also a dire
 
 == See Also
 
-* wiki:Configuration+Samples[Configuration Sample]
+* xref:/midpoint/reference/samples/[Configuration Sample]
 
-* wiki:Sequences[Sequences]
+* xref:/midpoint/reference/expressions/sequences/[Sequences]

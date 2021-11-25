@@ -87,4 +87,4 @@ Which also means that the unofficial way to use Spring Security modules with mid
 
 * link:configuration/[Flexible Authentication Configuration]
 
-* link:/midpoint/features/planned/flexible-authentication/[Flexible Authentication Improvements]
+* xref:/midpoint/features/planned/flexible-authentication/[Flexible Authentication Improvements]

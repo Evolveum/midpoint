@@ -27,17 +27,17 @@ There can be two or more nodes in such a cluster.
 
 Technologies used:
 
-. For task load balancing, the link:http://www.quartz-scheduler.org[Quartz scheduler] is used (see wiki:Task+Manager[architectural description]).
+. For task load balancing, the link:http://www.quartz-scheduler.org[Quartz scheduler] is used (see xref:/midpoint/reference/tasks/task-manager/[architectural description]).
 
 . For load balancing for interactive users, standard link:http://tomcat.apache.org/tomcat-8.0-doc/balancer-howto.html[tomcat solution] is recommended.
 
 . For fail over without load balancing for interactive users network-level setup with Virtual IP may be used.
 
-For practical information on forming a cluster, see the wiki:Clustering+/+high+availability+setup[administration guide].
+For practical information on forming a cluster, see the xref:/midpoint/reference/deployment/clustering-ha/[administration guide].
 
 
 == See Also
 
-* wiki:Clustering+/+high+availability+setup[Clustering / high availability setup]
+* xref:/midpoint/reference/deployment/clustering-ha/[Clustering / high availability setup]
 
-* wiki:System+Requirements[System Requirements]
+* xref:/midpoint/install/system-requirements/[System Requirements]

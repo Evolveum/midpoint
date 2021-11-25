@@ -1,6 +1,7 @@
 = Migration to Native PostgreSQL Repository
 :page-since: "4.4"
 :page-keywords: [ 'PostgreSQL', 'repository', 'database' ]
+:page-display-order: 90
 
 == Overview
 

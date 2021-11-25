@@ -55,7 +55,7 @@ E.g. Groovy has a nice safe navigation operator (`?.`) that comes really handy h
 focus?.getActivation()?.getAdministrativeStatus()
 ----
 
-However there is a special language that is used to reference items inside prism objects: wiki:Item+Path[item path]. This language is designed to process the paths in a very efficient way and it is used at many places in midPoint.
+However there is a special language that is used to reference items inside prism objects: xref:/midpoint/reference/concepts/item-path/[item path]. This language is designed to process the paths in a very efficient way and it is used at many places in midPoint.
 The item path has a natural way how to reference the items inside a variable:
 
 .Item path
@@ -68,7 +68,7 @@ $focus/activation/administrativeStatus
 == Variable vs Source
 
 Every programmer knows what an variable is.
-But variables are usually too simple to handle the wiki:Relativity[relative change model] used in midPoint.
+But variables are usually too simple to handle the xref:/midpoint/reference/concepts/relativity/[relative change model] used in midPoint.
 In midPoint we do not just need to know that user property `organization` has a values `foo` and `bar`. What we need to know is that before the operation there was a value of `foo`. Even more important is to know the currently processed operation is adding the value of `bar`. Why we need that? There are two reasons:
 
 Firstly, the variables may be multi-value and in that case we want to  transform each value individually.
@@ -96,7 +96,7 @@ But it comes from a very different expression and we will need to merge the resu
 But in the meantime we need to process each expression individually.
 And then there is the `adhoc-fight-club` group which is not managed by midPoint at all (remember the first rule of the Fight Club?). Therefore if we just compile the list of groups in midPoint and then overwrite the entire list with a set of new values, the `adhoc-fight-club` value would disappear.
 I guess this wouldn't go well with the Fight Club members.
-Therefore midPoint needs to know which individual values were changed and how they were transformed so it can compile the final wiki:Deltas[delta] which can be merged with other deltas produced by other expressions and that will not destroy the existing state of the target system.
+Therefore midPoint needs to know which individual values were changed and how they were transformed so it can compile the final xref:/midpoint/devel/prism/concepts/deltas/[delta] which can be merged with other deltas produced by other expressions and that will not destroy the existing state of the target system.
 
 Therefore midPoint has a concept of _source_, which is like a very smart change-sensitive variable.
 The source will be usually presented as a simple single-value variable in the expressions.
@@ -108,7 +108,7 @@ MidPoint will keep track which values are added and which are removed so the exp
 The expression will simply transform each value.
 MidPoint will do all the other complex stuff.
 
-The concept of source is specific to the concept of wiki:Mapping[mapping]. Mapping is the magic stuff that takes care of the complexity associated with the relative changes.
+The concept of source is specific to the concept of xref:/midpoint/reference/expressions/mappings/[mapping]. Mapping is the magic stuff that takes care of the complexity associated with the relative changes.
 Therefore sources can be used everywhere where the expression is inside a mapping (inbound, outbound, object template, ...). It cannot be used outside of the mapping (e.g. in correlation expression).
 In that case there is no relativistic change which means that the source is not needed at all and normal variables will do just fine.
 
@@ -180,14 +180,14 @@ In other expressions that have a single source this variable has the same value 
 | subclasses of `FocusType`
 | inbound, outbound, object template, assignments
 | `user`
-| Represents wiki:Focus+and+Projections[focal object] which is usually a user.
+| Represents xref:/midpoint/reference/schema/focus-and-projections/[focal object] which is usually a user.
 
 
 | `projection`
 | `ShadowType`
 | inbound, outbound, assigments (construction)
 | `account, shadow`
-| Represents wiki:Focus+and+Projections[projection] in a form of wiki:Shadow+Objects[shadow]. This is usually the account.
+| Represents xref:/midpoint/reference/schema/focus-and-projections/[projection] in a form of xref:/midpoint/reference/resources/shadow/[shadow]. This is usually the account.
 
 
 | `resource`
@@ -201,7 +201,7 @@ In other expressions that have a single source this variable has the same value 
 | `string`
 | in every mapping
 |
-| Contains values `add`, `modify` or `delete` that describe the character of the wiki:Deltas[object delta].
+| Contains values `add`, `modify` or `delete` that describe the character of the xref:/midpoint/devel/prism/concepts/deltas/[object delta].
 
 
 | `actor`
@@ -217,21 +217,21 @@ It may be currently logged-in user (for synchronous operations) or owner of the 
 | everywhere
 |
 | Contains system configuration object.
-The wiki:Custom+Schema+Extension[extension] of system configuration may be used to contains system-wide configuration and constants.
+The xref:/midpoint/reference/schema/custom-schema-extension/[extension] of system configuration may be used to contains system-wide configuration and constants.
 
 
 | `iteration`
 | `integer`
 | object template, outbound
 |
-| Numeric value describing the current wiki:Iteration[iteration]. It starts with 0 and increments on every iteration.
+| Numeric value describing the current xref:/midpoint/reference/concepts/iteration/[iteration]. It starts with 0 and increments on every iteration.
 
 
 | `iterationToken`
 | `string`
 | object template, outbound
 |
-| String value describing the current wiki:Iteration[iteration]. It is usually suffix that is appended to the username or a similar "extension" of the value.
+| String value describing the current xref:/midpoint/reference/concepts/iteration/[iteration]. It is usually suffix that is appended to the username or a similar "extension" of the value.
 It should have different value for every iteration.
 The actual value is determined by the iteration settings.
 
@@ -241,8 +241,8 @@ The actual value is determined by the iteration settings.
 | activation mappings
 |
 | Set to true if the processed projection is legal, i.e. when it should exist.
-The projection is usually legal if there is an wiki:Assignment[assignment] for it.
-But the projection may also be legal without an assignment, e.g. if wiki:Projection+Policy[assignment policy enforcement] is set to NONE.
+The projection is usually legal if there is an xref:/midpoint/reference/roles-policies/assignment/[assignment] for it.
+But the projection may also be legal without an assignment, e.g. if xref:/midpoint/reference/synchronization/projection-policy/[assignment policy enforcement] is set to NONE.
 
 
 | `assigned`
@@ -275,7 +275,7 @@ This is especially important for add and delete operations.
 | RefinedObjectClassDefinition
 | outbound
 |
-| Contains a definition of the association target (wiki:Entitlements[entitlement]). Used in expressions that need to do advanced logic on associations and entitlements.
+| Contains a definition of the association target (xref:/midpoint/reference/resources/entitlements/[entitlement]). Used in expressions that need to do advanced logic on associations and entitlements.
 
 
 | `entitlement`
@@ -290,31 +290,31 @@ Used in the inbound script expression when there is a need to manage group membe
 
 In addition to these variables there are other special purpose variables.
 These are documented on a separate pages that document the mechanism.
-E.g. the variables specific to assignment processing are described in the wiki:Assignment+Configuration[Assignment Configuration] page.
+E.g. the variables specific to assignment processing are described in the xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] page.
 
 
 == Alternative Variable Names and Missing Variables
 
-Although midPoint has wiki:Architecture+and+Design[solid architectural background] it is not a software where every little detail was defined by a big design upfront.
+Although midPoint has xref:/midpoint/architecture/[solid architectural background] it is not a software where every little detail was defined by a big design upfront.
 MidPoint is continuously evolving.
 And also the expression and mapping code is evolving.
 
 Some variable names have alternatives.
 E.g. the `focus` variable can be often referred to as `user`. This is legacy of the humble beginnings of midPoint when midPoint can only process users and accounts.
-This is a long time ago and midPoint is now very wiki:Generic+Synchronization[generic]. Therefore also the variable names refer to generic concepts.
+This is a long time ago and midPoint is now very xref:/midpoint/reference/synchronization/generic-synchronization/[generic]. Therefore also the variable names refer to generic concepts.
 *Alternative variable names are not considered DEPRECATED*. Please, if you can try to avoid the use of the alternative names.
 They will work quite OK for some time.
 But sooner or later they are going to disappear.
 
 Due to midPoint history all the variables that are supposed to be universally available to all expressions may not be actually available in some cases.
 If you expect an variable to be available and it is not then you have probably found a bug.
-Please wiki:Creating+a+Bug+Report[report the bug]. We will fix that.
+Please xref:/midpoint/reference/diag/creating-a-bug-report/[report the bug]. We will fix that.
 
 
 == See Also
 
-* wiki:Expression[Expression]
+* xref:/midpoint/reference/expressions/expressions/[Expression]
 
-* wiki:Mapping[Mapping]
+* xref:/midpoint/reference/expressions/mappings/[Mapping]
 
-* wiki:Troubleshooting+Mappings[Troubleshooting Mappings]
+* xref:/midpoint/reference/diag/troubleshooting/mappings/[Troubleshooting Mappings]

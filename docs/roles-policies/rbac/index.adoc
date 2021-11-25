@@ -17,7 +17,7 @@ link:https://evolveum.com/midpoint[midPoint] is using a (very) extended version 
 RBAC is originally defined as mostly static structure of users and roles.
 The original RBAC defines that user assigned to the role gets all the rights implied by the role.
 If two users have the same role, they have the same rights.
-However, this leads to the problem of wiki:Role+Explosion[Role Explosion]. We hope to solve that problem by enhancing RBAC model with logic.
+However, this leads to the problem of xref:/iam/role-explosion/[Role Explosion]. We hope to solve that problem by enhancing RBAC model with logic.
 We add ability to specify expressions in role definitions that determine how and when the role is used.
 Therefore the role can adapt to the attributes of user that has the role or even the role assignment itself can be parametrized.
 This allows to construct RBAC structures that are using fewer roles and that are much more manageable.
@@ -38,7 +38,7 @@ image::rbac-1.png[]
 
 The usual use of roles is to imply accounts on the resources and therefore ease the user and account administration by employing RBAC approach.
 However, this is usually not enough to implement efficient and maintainable identity management solution.
-The simple approach leads to wiki:Role+Explosion[role explosion]. The roles needs to contain parts of logic to make them efficient.
+The simple approach leads to xref:/iam/role-explosion/[role explosion]. The roles needs to contain parts of logic to make them efficient.
 
 
 === Implied Account Attributes
@@ -46,12 +46,12 @@ The simple approach leads to wiki:Role+Explosion[role explosion]. The roles need
 MidPoint role can also specific attributes for the account, e.g. a specific text in the account description field.
 Attribute values implied by the roles may be fixed (static), but that is usually not sufficient to avoid a role explosion problem.
 More frequently the implied attributes are derived from other values, e.g. fields of the User object.
-wiki:Mappings+and+Expressions[Mappings and expressions] are used to define dynamic implied account attributes.
+xref:/midpoint/reference/expressions/introduction/[Mappings and expressions] are used to define dynamic implied account attributes.
 The expression model is extensible, there are several supported scripting languages and even more expression languages may be added in the future.
 
 Implied account attributes usually do not need to define the entire set of account attributes.
 There may be other roles that may assign different attributes to the same account, more values to the same attributes of the account and even conflicting values.
-The account may also have existing attributes that are managed by "native" tools (outside IDM) or there may be exceptions from the RBAC policy specified for that account using attribute specification in wiki:Assignment[assignments].
+The account may also have existing attributes that are managed by "native" tools (outside IDM) or there may be exceptions from the RBAC policy specified for that account using attribute specification in xref:/midpoint/reference/roles-policies/assignment/[assignments].
 
 
 === Implied Account Entitlements
@@ -75,7 +75,7 @@ MidPoint aims at substantial improvement in this field.
 
 Roles can naturally contain other roles therefore creating a role hierarchy.
 Role hierarchies can be quite complex both in their structure and embedded logic.
-As midPoint uses the wiki:Relativity[relative change model] it is quite easy to merge values from many roles and therefore it allows creation of very complex RBAC structures.
+As midPoint uses the xref:/midpoint/reference/concepts/relativity/[relative change model] it is quite easy to merge values from many roles and therefore it allows creation of very complex RBAC structures.
 Important parts of the hierarchy are exposed to the expressions in individual roles therefore the role hierarchies can be combined with parametric roles (see below) to support very complex and flexible RBAC-like models.
 
 image::rbac-6.png[]
@@ -88,7 +88,7 @@ And that's all the flexibility.
 However this is not enough to efficiently model complex real-world scenarios.
 For example the role of `Assistant` can have some generic parts that are common to each assistant but there may be few parts that are specific for each sub-group of users or even for each individual user.
 For example identification of a building or department for which the assistant works, date of role activation and deactivation, the financial limit that an assistant is authorized to handle, etc.
-In traditional systems this leads to a necessity of creating roles such as `AssistantNewYork`, `AssistantLondon` and `AssistantBratislava`. This alone is quite difficult to manage because there is also need to `ClerkNewYork`, `ClerkLondon` and `ClerkBratislava` and the same for office manager, purchasing manager, ... And when it comes to roles such as `PurchasingManagerAssistant2013NewYork5000` it is quite sure that the solution got a severe wiki:Role+Explosion[role explosion] problem.
+In traditional systems this leads to a necessity of creating roles such as `AssistantNewYork`, `AssistantLondon` and `AssistantBratislava`. This alone is quite difficult to manage because there is also need to `ClerkNewYork`, `ClerkLondon` and `ClerkBratislava` and the same for office manager, purchasing manager, ... And when it comes to roles such as `PurchasingManagerAssistant2013NewYork5000` it is quite sure that the solution got a severe xref:/iam/role-explosion/[role explosion] problem.
 
 Parametric roles provide a solution for some of the role explosion situations.
 Parametric roles allow to specify certain role parameters at _assignment time_. That means that one `Assistant` role is usually enough.
@@ -107,7 +107,7 @@ Parametric roles are inherently flexible and customizable thing.
 Therefore the user interface cannot be hardcoded to support them.
 User interface needs to adapt to parameters, that can be different for each and every role.
 Support for this method is feasible, but it is just not implemented yet because nobody had funded such development.
-In case that you are interested in funding user interface support for parametric roles please consider wiki:Subscriptions+and+Sponsoring[purchasing a subscription].
+In case that you are interested in funding user interface support for parametric roles please consider xref:/support/subscription-sponsoring/[purchasing a subscription].
 ====
 
 
@@ -119,18 +119,18 @@ This feature is available in midPoint version 3.0 and later.
 ====
 
 Things may get really complicated when IDM solution is meant to synchronize much more than just users and accounts.
-And midPoint is designed to be very wiki:Generic+Synchronization[generic about what it synchronizes]. E.g. an IDM solution may want to create groups on resource as an representation of midPoint roles.
+And midPoint is designed to be very xref:/midpoint/reference/synchronization/generic-synchronization/[generic about what it synchronizes]. E.g. an IDM solution may want to create groups on resource as an representation of midPoint roles.
 But how does midPoint know on which resources the groups should be created? And how they should look like? This is both easy and complex but there is a very elegant solution.
-MidPoint already has a mechanism for this: RBAC. And by following wiki:Approach[midPoint approach] we try to apply existing mechanisms as much as possible and practical.
+MidPoint already has a mechanism for this: RBAC. And by following xref:/midpoint/introduction/approach/[midPoint approach] we try to apply existing mechanisms as much as possible and practical.
 Therefore we have applied the mechanism or roles to the roles themselves.
 Thus creating a concept of meta-roles (and meta-meta-roles and meta-meta-meta-roles, ...) This may sound crazy but it in fact a very elegant and powerful mechanism.
-See wiki:Roles+and+Policies+Configuration[Roles and Policies Configuration] and wiki:Generic+Synchronization[Generic Synchronization] for more details.
+See xref:/midpoint/reference/roles-policies/roles-and-policies-configuration/[Roles and Policies Configuration] and xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization] for more details.
 
 
 == See Also
 
-* wiki:Roles+and+Policies+Configuration[Roles and Policies Configuration] section in wiki:Documentation[Documentation]
+* xref:/midpoint/reference/roles-policies/roles-and-policies-configuration/[Roles and Policies Configuration] section in xref:/midpoint/[Documentation]
 
-* wiki:Assignment[Assignment]
+* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
 
-* wiki:Mappings+and+Expressions[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]

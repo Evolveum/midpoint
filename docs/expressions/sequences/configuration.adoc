@@ -86,10 +86,10 @@ The sequences are always increasing, therefore mathematic expression in the scri
 == Value Stickiness and Reclamation
 
 Sequence values are retrieved just once for each operation.
-The values are kept in wiki:Model+Context[Model Context] and re-used every time the expression is re-evaluated during that operation.
+The values are kept in xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context] and re-used every time the expression is re-evaluated during that operation.
 This is a mechanism to avoid taking multiple values from the sequence.
 However, the assigned value is not explicitly remember across operations.
-Therefore is is strongly recommended to use sequences in _weak_ mappings.
+Therefore it is strongly recommended to use sequences in _weak_ mappings.
 
 The operation that retrieved a sequence value may fail before it can persistently store the object.
 In such a case midPoint will take care of returning the value back to the sequence for reclamation.
@@ -112,14 +112,14 @@ The use of sequence expressions in outbound, inbound or any other place is not s
 
 == Example: UNIX systems
 
-See wiki:Unix+Story+Test[Unix Story Test] for a complete example that is using sequences.
+See xref:/reference/samples/story-tests/unix/[Unix Story Test] for a complete example that is using sequences.
 The test is using sequences to assign Unix UID and GID numbers.
 
 
 == See Also
 
-* wiki:Sequences[Sequences]
+* xref:/midpoint/reference/expressions/sequences/[Sequences]
 
-* wiki:Mappings+and+Expressions[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
-* wiki:Unix+Story+Test[Unix Story Test]
+* xref:/reference/samples/story-tests/unix/[Unix Story Test]

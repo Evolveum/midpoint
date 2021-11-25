@@ -15,7 +15,7 @@ This information is applicable for midPoint 3.6. It describes migration from mid
 == Synopsis
 
 Up until version 3.6 midPoint included a legacy CSVFile connector.
-The legacy wiki:CSVFile+Connector+(legacy)[CSVFile Connector] was replaced by* *new wiki:CSV+Connector[CSV Connector] in midPoint 3.6. The new CSV connector is a rewrite from scratch.
+The legacy xref:/connectors/connectors/com.evolveum.polygon.csvfile.CSVFileConnector/[CSVFile Connector] was replaced by* *new xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV Connector] in midPoint 3.6. The new CSV connector is a rewrite from scratch.
 The old CSVFile connector was written even before midPoint project started and it was not designed for real deployment use.
 We have maintained and improved the connector during the years.
 But it was not maintainable any more.
@@ -182,12 +182,12 @@ By default the same folder as where csv file resides.
 |===
 
 Configuration samples for CSV resources were updated to the new CSV connector.
-The wiki:Configuration+Samples[Configuration Samples] are located at the usual places.
+The xref:/midpoint/reference/samples/[Configuration Samples] are located at the usual places.
 
 
 === Shadows
 
-The wiki:Shadow+Objects[shadows] in the old connector looked like this:
+The xref:/midpoint/reference/resources/shadow/[shadows] in the old connector looked like this:
 
 .Shadow: Legacy CSVFile connector
 [source]
@@ -199,7 +199,7 @@ The wiki:Shadow+Objects[shadows] in the old connector looked like this:
     <icfs:name>007</icfs:name>
     <icfs:uid>007</icfs:uid>
     <ri:username>foo</ri:username>
-    <ri:fullname>Foo Bar</ri:fullname>
+    <ri:fullname>Foo Bar</ri:fullname>
     ...
   </attributes>
 </shadow>
@@ -280,10 +280,10 @@ Therefore please plan the migration to the new connector accordingly.
 
 == See Also
 
-* wiki:CSV+Connector[CSV Connector]
+* xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV Connector]
 
-* wiki:CSVFile+Connector+(legacy)[CSVFile Connector (legacy)]
+* xref:/connectors/connectors/com.evolveum.polygon.csvfile.CSVFileConnector/[CSVFile Connector (legacy)]
 
-* wiki:ICF+Issues[ICF Issues]
+* xref:/connectors/connid/1.x/icf-issues/[ICF Issues]
 
-* wiki:Release+3.6[Release 3.6]
+* xref:/midpoint/release/3.6/[Release 3.6]

@@ -34,7 +34,7 @@ Just download the archive and extract it into `$MIDPOINT_HOME/lib` directory.
 |===
 | midPoint version | Nashorn convenience package
 
-| 4.4 | link:../nashorn-downloads/nashorn-mp44.zip[nashorn-mp44.zip]
+| 4.4 | xref:../nashorn-downloads/nashorn-mp44.zip[nashorn-mp44.zip]
 |===
 
 If the download for a newer midPoint version is missing just try the last available download.

@@ -22,31 +22,35 @@ Therefore midPoint provides a much better mechanism for object type extensibilit
 The problem with generic types is that they are just too generic.
 As the type should be able to handle any object type has to be extremely simple.
 Therefore it is not possible to provide almost any built-in functionality to support generic types.
-How should they be displayed in the user interface? Should users be able to assign them? What should be the effect it user assigns them? What rules should be applied to govern generic objects? What about authorizations, auditing, lifecycle, governance, ...
+How should they be displayed in the user interface? Should users be able to assign them?
+What should be the effect it user assigns them? What rules should be applied to govern generic objects?
+What about authorizations, auditing, lifecycle, governance, ...
 
 There is a better solution in midPoint.
-MidPoint has several built-in object types such as wiki:Advanced+Hybrid+RBAC[roles], wiki:Organizational+Structure[orgs], and wiki:Services[services]. Those data types are built to be extensible and in fact, they are quite generic.
+MidPoint has several built-in object types such as xref:/midpoint/reference/roles-policies/rbac/[roles], xref:/midpoint/reference/org/organizational-structure/[orgs], and xref:/midpoint/reference/misc/services/[services].
+Those data types are built to be extensible and in fact, they are quite generic.
 The role does not mean just "role in strict RBAC sense".
 In midPoint, the concept of "role" is much broader.
-MidPoint roles can easily be used to model RBAC roles, but also job categories, job titles/positions, qualifications, competency certifications, achievements - and even wiki:Consent+Management+(GDPR)[data protection consents]. Orgs and services can be used in a similar way:
+MidPoint roles can easily be used to model RBAC roles, but also job categories, job titles/positions, qualifications, competency certifications, achievements - and even xref:/midpoint/features/planned/consent-management/[data protection consents].
+Orgs and services can be used in a similar way:
 
 [%autowidth]
 |===
 | Object Type | Can be used to model
 
 | Role
-| wiki:Advanced+Hybrid+RBAC[RBAC roles] +
-wiki:Authorization+Roles[Authorization roles] +
-job category, job titles/position, qualification, competency certification, achievementwiki:Consent+Management+(GDPR)[consent]metarole
+| xref:/midpoint/reference/roles-policies/rbac/[RBAC roles] +
+xref:/midpoint/reference/security/authorization/roles/[Authorization roles] +
+job category, job titles/position, qualification, competency certification, achievement xref:/midpoint/features/planned/consent-management/[consent]metarole
 
 
 | Org
-| wiki:Organizational+Structure[Functional organization structure] (company, division, section) +
+| xref:/midpoint/reference/org/organizational-structure/[Functional organization structure] (company, division, section) +
 project, workgroup, team, ad-hoc group, task force, job responsibility group +
 Tenant (in multi-tenant configurations) +
 Location (office, campus, city, country) +
-wiki:User-Friendly+Policy+Selection[Policy category] +
-wiki:Role+Catalog[Role catalog category]
+xref:/midpoint/reference/roles-policies/applicable-policies/[Policy category] +
+xref:/midpoint/reference/admin-gui/role-catalog/[Role catalog category]
 
 
 | Service
@@ -56,19 +60,21 @@ Mobile device, printer, "thing" (IoT)
 
 |===
 
-Roles, orgs, and services are what we call _abstract roles_. Which means that all of them behave like roles to some extent.
+Roles, orgs, and services are what we call _abstract roles_.
+Which means that all of them behave like roles to some extent.
 E.g. all of them can be assigned to users, all of them can be subject to policy rules, membership, authorizations and governance policies are evaluated for all of them in a consistent fashion and so on.
 Therefore there are many benefits:
 
 * Job categories, titles, qualifications and similar objects can directly include entitlements.
 Therefore if a user is assigned to a job, such user automatically gets all the entitlements needed for that job.
 
-* wiki:Role+Autoassignment[Autoassignment] works as expected.
+* xref:/midpoint/reference/roles-policies/role-autoassignment/[Autoassignment] works as expected.
 As do authorizations.
-wiki:Approval[Approval] processes can be applied seamlessly.
+xref:/midpoint/reference/cases/approval/[Approval] processes can be applied seamlessly.
 All midPoint concepts applicable to roles can be applied.
 
-* There is also a big benefit from wiki:Management+of+Lawful+Bases+for+Data+Processing+(GDPR)[data protection perspective]. As the entitlements are placed directly into job categories and qualifications it is easy to find the reason or "basis" why the user has such an entitlement.
+* There is also a big benefit from xref:/midpoint/features/planned/lawful-bases-for-data-processing/[data protection perspective].
+As the entitlements are placed directly into job categories and qualifications it is easy to find the reason or "basis" why the user has such an entitlement.
 E.g. midPoint knows that user's personal data are provisioned to system X because the user has a job position Y that needs such an account.
 
 * Membership is managed in the same way as for roles.
@@ -87,7 +93,7 @@ This can easily be modeled in midPoint.
 There may be policies that apply to the whole campus or country.
 If they properly configured then they can apply to whole hierarchy or subhierarchy.
 
-And of course, all the object types can be wiki:Generic+Synchronization[synchronized with resource objects].
+And of course, all the object types can be xref:/midpoint/reference/synchronization/generic-synchronization/[synchronized with resource objects].
 
 MidPoint approach to extensibility is not to start from dumb "generic objects".
 MidPoint starts from much smarter object types: roles, orgs, and services.
@@ -101,11 +107,11 @@ This has enormous advantages from the software engineering point of view.
 To cut the long story short it allows us to develop midPoint faster and to efficiently maintain it in a long run.
 However, this also means that object types are set during midPoint design and they cannot be easily changed at run-time.
 Once an object is a role, its type is set to `RoleType` and this cannot be changed.
-But the definition of RoleType can be extended, even at run-time, by using wiki:Custom+Schema+Extension[custom schema extension mechanism].
+But the definition of RoleType can be extended, even at run-time, by using xref:/midpoint/reference/schema/custom-schema-extension/[custom schema extension mechanism].
 
 There is yet another drawback: RBAC roles, authorization roles, job titles - they all have the same object type.
-They are all `RoleType`. How to tell them apart? There is also a mechanism for that: wiki:Archetypes[Archetypes]. Archetypes can be used to distinguish objects of the same type, customize its presentation and behavior.
-Archetypes are also wiki:Using+Metaroles+for+Policy+Configuration[metaroles]. Metaroles are roles that are applied to other (abstract) roles.
+They are all `RoleType`. How to tell them apart? There is also a mechanism for that: xref:/midpoint/reference/schema/archetypes/[Archetypes]. Archetypes can be used to distinguish objects of the same type, customize its presentation and behavior.
+Archetypes are also xref:/midpoint/reference/roles-policies/metaroles/policy/[metaroles]. Metaroles are roles that are applied to other (abstract) roles.
 Therefore archetypes can be used to assign common behavior for roles, orgs and services.
 And that is especially desirable when defining a new type of an object.
 It is quite a common case that all projects will have the same lifecycle: approval of new project creation, establishing project manager, decommissioning of a project and so on.
@@ -116,8 +122,8 @@ Therefore it is defined just once and applied everywhere it is needed.
 == All Objects Are Extensible
 
 All midPoint objects are extensible.
-Users, roles, orgs, services, resources, tasks - and even wiki:System+Configuration+Object[system configuration object]. System configuration object extension is in fact a very useful mechanism.
-Most wiki:Mappings+and+Expressions[expressions] have `configuration` variable available during expression evaluation.
+Users, roles, orgs, services, resources, tasks - and even xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object]. System configuration object extension is in fact a very useful mechanism.
+Most xref:/midpoint/reference/expressions/introduction/[expressions] have `configuration` variable available during expression evaluation.
 Therefore all the data placed into system configuration extension are available to expressions.
 This is a very elegant way how to set system-wide parameters (constants).
 
@@ -138,7 +144,7 @@ However, for the very rare cases when those concepts do not fit there is a `Gene
 </genericObject>
 ----
 
-You will need to define wiki:Custom+Schema+Extension[Custom Schema Extension] for `GenericObjectType` to make it work properly.
+You will need to define xref:/midpoint/reference/schema/custom-schema-extension/[Custom Schema Extension] for `GenericObjectType` to make it work properly.
 In this case, the customer schema extension will define property `foo` in namespace `http://example.com/my`.
 
 However, as far as we know this type was actually never used in practice.
@@ -151,14 +157,14 @@ Simply speaking, midPoint does not really need the concept of special generic ob
 
 == See Also
 
-* wiki:Archetypes[Archetypes]
+* xref:/midpoint/reference/schema/archetypes/[Archetypes]
 
-* wiki:Object+Collections+and+Views[Object Collections and Views]
+* xref:/midpoint/reference/admin-gui/collections-views/[Object Collections and Views]
 
-* wiki:Using+Metaroles+for+Policy+Configuration[Using Metaroles for Policy Configuration]
+* xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration]
 
-* wiki:Roles,+Metaroles+and+Generic+Synchronization[Roles, Metaroles and Generic Synchronization]
+* xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]
 
-* wiki:Generic+Synchronization[Generic Synchronization]
+* xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]
 
-* wiki:Subtype[Subtype]
+* xref:/midpoint/reference/schema/subtype/[Subtype]

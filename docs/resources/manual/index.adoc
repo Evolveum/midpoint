@@ -12,7 +12,7 @@
 
 == Manual Resource
 
-Manual resources, also known as off-line resources, are those resources that are not connected to midPoint by using wiki:Identity+Connectors[identity connector]. MidPoint cannot change such resources automatically.
+Manual resources, also known as off-line resources, are those resources that are not connected to midPoint by using xref:/connectors/connectors/[identity connector]. MidPoint cannot change such resources automatically.
 Provisioning to these resources rely on a manual work, typically executed by a system administrator.
 It works like this:
 
@@ -27,11 +27,11 @@ The ticket is closed.
 
 . MidPoint detects that the ticket was closed and updates its data about the account.
 
-The basic principle of manual connectors is the storage of operation wiki:Deltas[deltas] in midPoint repository while the manual operation is in progress.
+The basic principle of manual connectors is the storage of operation xref:/midpoint/devel/prism/concepts/deltas/[deltas] in midPoint repository while the manual operation is in progress.
 MidPoint also remembers the state of the operation and the reference to a case/ticket that is used to track operation progress.
 This reference is used to update operation status.
 
-MidPoint usually keeps cached version of the account in midPoint wiki:Repository+Subsystem[repository]. In fact the same mechanism that is used for wiki:Attribute+Caching[attribute caching] is used here.
+MidPoint usually keeps cached version of the account in midPoint xref:/midpoint/architecture/archive/subsystems/repo/[repository]. In fact the same mechanism that is used for xref:/midpoint/reference/resources/attribute-caching/[attribute caching] is used here.
 MidPoint keeps the cached data mostly for presentation purposes - we would like to show how we think that the account looks like.
 
 Pure manual resources are disconnected from the target system.
@@ -50,19 +50,19 @@ In this case two connectors are combined for the same resource:
 These operations are executed manually by system administrator.
 
 * Ordinary (on-line) connector is used for reading the data.
-This is typically wiki:CSV+Connector[CSV connector] that contains the data exported from the target system.
+This is typically xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV connector] that contains the data exported from the target system.
 This is usually scheduled export script.
 
 Provisioning operations on a semi-manual resources are executed in exactly the same way as in pure-manual resources.
 The difference is in the feedback.
 MidPoint is combining the manual operation data with the on-line data from the resource.
-The operation wiki:Deltas[deltas] are merged with the last known state of the account on the resource.
+The operation xref:/midpoint/devel/prism/concepts/deltas/[deltas] are merged with the last known state of the account on the resource.
 This means that midPoint has much more reliable information about the state of the account on the target system.
 Therefore midPoint can detect whether accounts has been illegally changed on the target system, whether the system administrator executed the operation correctly and so on.
 MidPoint can also automatically create new tickets for system administrators to fix inconsistencies between the policy and real state of the account in the target system.
 
-In theory any kind of ordinary wiki:Identity+Connectors[identity connector] can be combined with the manual connector to create a semi-manual resource.
-This is allowed by midPoint's unique wiki:Multi-Connector+Resource[multi-connector feature].
+In theory any kind of ordinary xref:/connectors/connectors/[identity connector] can be combined with the manual connector to create a semi-manual resource.
+This is allowed by midPoint's unique xref:/midpoint/reference/resources/multi-connector-resource/[multi-connector feature].
 
 
 == Internal Provisioning Cases
@@ -134,7 +134,7 @@ The core (back-end) functionality is mostly in place (except for _cases_), there
 The goal was to enable functionality with custom ITSM integration plugin.
 However, that requires custom development.
 In practice this means that as of midPoint 3.6 these features are likely to work well only if Evolveum professional services are involved.
-If you are interesting in helping to finish those resources please consider a wiki:Subscriptions+and+Sponsoring[subscription]. These features could be fully productized in midPoint 3.7 given sufficient funding.
+If you are interesting in helping to finish those resources please consider a xref:/support/subscription-sponsoring/[subscription]. These features could be fully productized in midPoint 3.7 given sufficient funding.
 
 
 == Provisioning Propagation
@@ -151,12 +151,12 @@ In such case midPoint will not execute operations immediately.
 Requested changes will get queued for (reasonably short) time.
 Then midPoint will execute all the changes at once in a single operation.
 
-See wiki:Provisioning+Propagation[Provisioning Propagation] page for more details.
+See xref:/midpoint/reference/resources/propagation/[Provisioning Propagation] page for more details.
 
 
 == Configuration
 
-See wiki:Manual+Resource+Configuration[Manual Resource Configuration] page for configuration details.
+See xref:/midpoint/reference/resources/manual/configuration/[Manual Resource Configuration] page for configuration details.
 
 
 == Sample
@@ -166,6 +166,6 @@ Contributed ITSM sample plugin can be found in our link:https://github.com/Evolv
 
 == See Also
 
-* wiki:Manual+Resource+Configuration[Manual Resource Configuration]
+* xref:/midpoint/reference/resources/manual/configuration/[Manual Resource Configuration]
 
-* wiki:Multi-Connector+Resource[Multi-Connector Resource]
+* xref:/midpoint/reference/resources/multi-connector-resource/[Multi-Connector Resource]

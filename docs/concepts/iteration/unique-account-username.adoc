@@ -21,10 +21,10 @@ E.g. the following sequence may be tried:
 * `jack2` - no existing account, use this for the new account
 
 MidPoint has a built-in functionality to support this method.
-The feature is called _iteration_ and it can be enabled for any resource in wiki:Resource+Schema+Handling[Resource Schema Handling]. Two steps are required to configure this feature:
+The feature is called _iteration_ and it can be enabled for any resource in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]. Two steps are required to configure this feature:
 
 * Enable the iteration by setting the maximum number of iteration attempts.
-This is done by setting the `iteration` property in the wiki:Resource+Schema+Handling[Resource Schema Handling].
+This is done by setting the `iteration` property in the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling].
 
 * Use one of the iteration variables (`iteration` or `iterationToken`) in appropriate outbound mappings.
 
@@ -229,7 +229,7 @@ Example:
 
 [source,xml]
 ----
-                <postIterationCondition>
+                <postIterationCondition>
                     <variable>
                         <name>quote</name>
                         <path>$shadow/attributes/ri:quote</path>

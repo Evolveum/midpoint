@@ -1,0 +1,71 @@
+= Distribution
+
+Here we describe the definition of distribution for xref:../[activities].
+
+[NOTE]
+====
+Not all of these options are supported for all activities!
+Worker threads are supported only by activities marked as multi-thread-capable.
+Buckets, worker tasks, and auto-scaling are supported only by activities marked as multi-node-capable.
+The list of activities with these attributes is xref:../work/[here].
+====
+
+The following configuration options are available:
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning | Default
+
+| `buckets`
+| Division of the item set into separately processable units, so-called _buckets_.
+This is to allow their processing by multiple tasks concurrently. (These are called _worker tasks_.)
+Supported by activities marked as multi-node-capable.
+| All items in a single bucket.
+
+| `workers`
+| Definition of how worker tasks should be created.
+Supported by activities marked as multi-node-capable.
+| All items are processed by a single task.
+
+| `workerThreads`
+| After obtaining items to be processed, each (worker) task can distribute them to multiple
+worker threads for processing. This property defines their number.
+Supported by activities marked as multi-threading-capable.
+| All items are processing by a single thread.
+
+| `subtask`
+| If present, the activity is executed in a specially-created subtask, devoted to their
+execution. This is not normally needed, except for these reasons: (1) Visibility: there are
+task-specific counters (e.g. related to environmental performance or internal midPoint performance)
+that can be useful to be viewed separately for a given activity. (2) Concurrent execution:
+if multiple activities are needed to run concurrently, they should be placed into distinct tasks.
+| No subtask for the activity.
+
+| `subtasks`
+| Applicable to composite activities only. If present, all the sub-activities will be executed
+in separate subtasks.
+| No subtasks for the sub-activities.
+
+| `autoscaling`
+| Whether should this activity work distribution be auto-scaled.
+| No auto-scaling.
+|===
+
+== Buckets
+
+NOTE: Here will be a description of bucketing.
+For the time being, please refer to xref:/midpoint/devel/design/multi-node-partitioned-and-stateful-tasks/[an older description].
+
+== Auto-scaling
+
+Currently the auto-scaling configuration is very simple:
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning | Default
+| `enabled`
+| Is autoscaling enabled for this activity?
+| `true` if the autoscaling configuration exists, `false` otherwise. (Note that this may change in the future.)
+|===

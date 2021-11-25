@@ -1,0 +1,42 @@
+= Reporting
+
+Here we describe the definition of reporting for xref:../[activities].
+
+[NOTE]
+====
+Not all of these options are supported for all activities!
+Usually, activities that do not support multi-threading (like cleanup)
+also do not support these options.
+====
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning | Default
+
+| link:logging[`logging`]
+| Controls logging aspects of an activity execution.
+| See the description.
+
+| link:tracing[`tracing`]
+| Specifies when and how should be the activity execution traced.
+| No tracing.
+
+| link:profiling[`profiling`]
+| Specifies when and how should be the activity execution dynamically profiled.
+This functionality is deprecated. The tracing should be used instead.
+| No profiling.
+
+| link:execution-reports[`executionReports`]
+| Configures specific activity execution reports: on buckets, items, and so on.
+| No reports.
+
+| link:item-counting[`itemCounting`]
+| How should the activity deal with item counting, i.e. determining "expected progress"
+for a bucket or overall.
+| TODO
+
+| link:state-overview[`stateOverview`]
+| Parameters related to the maintenance of activity tree state overview.
+| TODO
+|===

@@ -34,7 +34,7 @@ image::synchronization-modification.png[]
 
 The change to the first account is detected by the live synchronization or reconciliation logic of midPoint.
 The method of change detection does not really matter.
-As the change is detected, the provisioning component makes sure the corresponding wiki:MidPoint+Common+Schema[AccountShadow] object is updated in midPoint repository (see wiki:Common+Data+Model[Common Data Model]). Account Shadow usually contains only identifiers and therefore it should be already up-to-date in this case.
+As the change is detected, the provisioning component makes sure the corresponding xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/[AccountShadow] object is updated in midPoint repository (see xref:/midpoint/reference/schema/common-data-model/[Common Data Model]). Account Shadow usually contains only identifiers and therefore it should be already up-to-date in this case.
 
 The following XML snippet contains the Account Shadow object as it was stored in the midPoint repository before the change was detected.
 You can see that there are only identifiers, no data.
@@ -54,8 +54,8 @@ You can see that there are only identifiers, no data.
 
 ----
 
-The synchronization logic in the wiki:Provisioning+Subsystem[provisioning subsystem] will issue a change notification that is picked up by the wiki:IDM+Model+Subsystem[IDM model]. IDM model will try to figure out what's going on (so called _wiki:Synchronization+Situations[situation]_, it is described in the second example below).
-In this case it simply means that the IDM model will check if the account has an _owner_, that means whether it is already wiki:Assigning+vs+Linking[linked to a user]. This example assumes that it has an owner, so locating appropriate user object is straightforward.
+The synchronization logic in the xref:/midpoint/architecture/archive/subsystems/provisioning/[provisioning subsystem] will issue a change notification that is picked up by the xref:/midpoint/architecture/archive/subsystems/model/[IDM model]. IDM model will try to figure out what's going on (so called _xref:/midpoint/reference/synchronization/situations/[situation]_, it is described in the second example below).
+In this case it simply means that the IDM model will check if the account has an _owner_, that means whether it is already xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[linked to a user]. This example assumes that it has an owner, so locating appropriate user object is straightforward.
 
 Following XML snippet shows a user object.
 It can be seen that there is appropriate `linkRef` (in 2.1.x versions `accountRef` is used instead) that points to the account shadow object provided above.
@@ -79,7 +79,7 @@ Please also note the full name of the user is `Jack Sparrow`.
 The IDM model logic needs to map changes in an account to the changes to a user.
 The `schemaHandling` part of the resource definition is used for that.
 The schema handling contains supplementary definition how to handle each of the account attributes.
-That definition may also contain wiki:Inbound+Mapping[inbound mapping] that define how to handle change of the attribute and propagate it within midPoint.
+That definition may also contain xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mapping] that define how to handle change of the attribute and propagate it within midPoint.
 
 The following XML snippet describes the `schemaHandling` part of the Resource where the change originated.
 It describes a default account type for the resource.
@@ -89,7 +89,7 @@ MidPoint can influence that only slightly.
 The way midPoint handles the attributes is described in the `schemaHandling` part.
 Some of the attributes are described here in more details, including `inbound` and `outbound` mappings.
 
-Please note the `schemaHandling` definition of attribute `ri:cn`. It defines an wiki:Inbound+Mapping[inbound mapping] telling midPoint to copy the value of this attribute to the `fullName` property of User object.
+Please note the `schemaHandling` definition of attribute `ri:cn`. It defines an xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mapping] telling midPoint to copy the value of this attribute to the `fullName` property of User object.
 
 .Schema Handling
 [source,xml]
@@ -176,7 +176,7 @@ So model transforms the modification of account attribute `cn` to the modificati
 After applying the change to the user midPoint behaves exactly as if the user was modified from any other source.
 This means midPoint will try to apply (provision) user changes to all user's accounts.
 Therefore midPoint takes user's other account (which is an AD account in this case), fetch definition of AD resource and looks into the `schemaHandling` section.
-But this time it looks for wiki:Outbound+Mapping[outbound expressions]. The resource definition for the AD resource looks like this:
+But this time it looks for xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound expressions]. The resource definition for the AD resource looks like this:
 
 .Schema Handling
 [source,xml]
@@ -233,7 +233,7 @@ But this time it looks for wiki:Outbound+Mapping[outbound expressions]. The reso
 
 ----
 
-The model looks through all the wiki:Outbound+Mapping[outbound expressions], looking where the change of the `fullName` can be applied.
+The model looks through all the xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound expressions], looking where the change of the `fullName` can be applied.
 In that way it figures out the `cn` attribute of the AD resource account should be set to a copy of the `fullName` property of the user.
 Therefore model invokes provisioning service to change the account attribute.
 
@@ -249,7 +249,7 @@ image::synchronization-creation.png[]
 
 
 The synchronization logic of midPoint detects that a new account is created in the first Resource.
-Because the account is new there is no Account Shadow object in midPoint repository and therefore the provisioning component will create new wiki:MidPoint+Common+Schema[AccountShadow] object before doing anything else.
+Because the account is new there is no Account Shadow object in midPoint repository and therefore the provisioning component will create new xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/[AccountShadow] object before doing anything else.
 
 The following XML snippet contains the Account Shadow object that is created in the IDM repository right after the change is detected.
 
@@ -268,12 +268,12 @@ The following XML snippet contains the Account Shadow object that is created in 
 
 ----
 
-The synchronization logic in the wiki:Provisioning+Subsystem[provisioning subsystem] then issues a change notification that is picked up by the wiki:IDM+Model+Subsystem[IDM model]. The responsibility of the model subsystem is to react to this change notification.
+The synchronization logic in the xref:/midpoint/architecture/archive/subsystems/provisioning/[provisioning subsystem] then issues a change notification that is picked up by the xref:/midpoint/architecture/archive/subsystems/model/[IDM model]. The responsibility of the model subsystem is to react to this change notification.
 Model does this in two steps.
-Firstly it determines what's the state of the midPoint repository as compared to the new information fetched from the resource, determining a _wiki:Synchronization+Situations[situation]_. Secondly, it consults the synchronization policy to find out how to react to the situation.
+Firstly it determines what's the state of the midPoint repository as compared to the new information fetched from the resource, determining a _xref:/midpoint/reference/synchronization/situations/[situation]_. Secondly, it consults the synchronization policy to find out how to react to the situation.
 
 The situation is determined by comparing the change that happened on the Resource (new account, change of existing account, deleted account) and the state of the midPoint repository (account owners).
-It does this by using a part of the synchronization policy known as wiki:Correlation+and+Confirmation+Expressions[Correlation and Confirmation Expressions]. MidPoint tries to use these expressions to find a potential owner for the new account.
+It does this by using a part of the synchronization policy known as xref:/midpoint/reference/synchronization/correlation-and-confirmation-expressions/[Correlation and Confirmation Expressions]. MidPoint tries to use these expressions to find a potential owner for the new account.
 
 In this case the new account was created, therefore it does not have an owner.
 The model will execute _correlation expression_, passing the created account as an parameter.
@@ -333,7 +333,7 @@ The system is configured to create a new user object in IDM repository if this s
 Model subsystem creates new empty user object in memory.
 Then it applies the attributes from the account to the new user object.
 The model does that in a way this is almost the same as application of modifications in the previous example.
-The wiki:Inbound+Mapping[inbound expressions] from `schemaHandling` are used for that.
+The xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound expressions] from `schemaHandling` are used for that.
 
 .Schema Handling
 [source,xml]
@@ -421,7 +421,7 @@ The wiki:Inbound+Mapping[inbound expressions] from `schemaHandling` are used for
 This pre-populates the user entry.
 However, this may not populate all the properties of user entry.
 Therefore additional mechanisms are needed to make the new user look as required.
-The mechanism is called wiki:User+Synchronizer[User Synchronizer] and it is actually the same mechanism that is invoked for any other change, e.g. when a user is created from the GUI.
+The mechanism is called xref:/midpoint/architecture/archive/subsystems/model/user-synchronizer/[User Synchronizer] and it is actually the same mechanism that is invoked for any other change, e.g. when a user is created from the GUI.
 
 First step in processing of a new user is application of User Template.
 User template is a set of expressions that can be used to automatically construct a new user object and to keep it consistent through its lifetime.
@@ -469,12 +469,12 @@ An example is provided below.
 
 ----
 
-The user template specifies that the `fullName` has to be constructed by executing an wiki:Groovy+Expressions[Groovy script expression] that will concatenate the `givenName` and `familyName` properties.
+The user template specifies that the `fullName` has to be constructed by executing an xref:/midpoint/reference/expressions/expressions/script/groovy/[Groovy script expression] that will concatenate the `givenName` and `familyName` properties.
 That mapping is marked as `weak` therefore it will be executed only if the `fullName` does not have a value.
 Therefore this mapping will not be applied in our case, as the `fullName` attribute will be populated from the account using an `inbound` mapping in `schemaHandling`.
 
 More important aspect of the user template example above is the construction of an account assignment.
-The template specifies that the user should have an wiki:Assignment[assignment]. The assignment assigns an account to the user.
+The template specifies that the user should have an xref:/midpoint/reference/roles-policies/assignment/[assignment]. The assignment assigns an account to the user.
 Therefore an account on the resource identified by OID `c0c010c0-d34d-b33f-f00d-333111111112` is assigned to the user and will be provisioned to he user.
 The `outbound` mapping of the `schemaHandling` part of the Resource definition will be used to set parameters for this account.
 
@@ -486,7 +486,7 @@ This situation is similar to the one described in the previous example.
 
 == RBAC
 
-wiki:Advanced+Hybrid+RBAC[Role-based access control] gets processed in the _outbound_ phase.
+xref:/midpoint/reference/roles-policies/rbac/[Role-based access control] gets processed in the _outbound_ phase.
 The mappings in roles are processed similarly to the outbound mappings and at almost the same time.
 Similar principles that apply to outbound mappings apply to roles as well.
 
@@ -503,23 +503,23 @@ There are four basic synchronization flavors:
 
 * *Discovery*: Opportunistic reaction to a change discovered during an unrelated operation.
 
-See wiki:Synchronization+Flavors[Synchronization Flavors] page for more details.
+See xref:/midpoint/reference/synchronization/flavors/[Synchronization Flavors] page for more details.
 
 
 == See Also
 
-* wiki:Synchronization[Synchronization]
+* xref:/midpoint/reference/synchronization/introduction/[Synchronization]
 
-* wiki:Synchronization+Situations[Synchronization Situations]
+* xref:/midpoint/reference/synchronization/situations/[Synchronization Situations]
 
-* wiki:Synchronization+Flavors[Synchronization Flavors]
+* xref:/midpoint/reference/synchronization/flavors/[Synchronization Flavors]
 
-* wiki:Data+Model[Data Model]
+* xref:/midpoint/reference/schema/[Data Model]
 
 * link:https://svn.evolveum.com/midpoint/trunk/infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd[Common XSD Schema] has a lot of in-line documentation.
 
-* wiki:Mappings+and+Expressions[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
-* wiki:XML+Object+Query[XML Object Query]
+* xref:/midpoint/reference/concepts/query/xml-query-language/[XML Object Query]
 
-* wiki:User+Synchronizer[User Synchronizer]
+* xref:/midpoint/architecture/archive/subsystems/model/user-synchronizer/[User Synchronizer]

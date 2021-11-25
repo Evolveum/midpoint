@@ -33,7 +33,7 @@ Please see connector documentation for a list of supported script languages for 
 [TIP]
 .Provisioning scripts and midPoint script expressions
 ====
-Provisioning scripts are a different kind of animal than midPoint wiki:Script+Expression[script expressions]. Provisioning scripts are usually executed in the target system and they are mostly outside midPoint control.
+Provisioning scripts are a different kind of animal than midPoint xref:/midpoint/reference/expressions/expressions/script/[script expressions]. Provisioning scripts are usually executed in the target system and they are mostly outside midPoint control.
 Therefore also the provisioning script languages are only those languages that are supported by target system.
 ====
 
@@ -56,14 +56,14 @@ MidPoint can provide arguments to the scripts.
 This is almost always needed for the script to do something useful.
 For example a script must know the identifier of a created account to create home directory for that account.
 
-Argument specification may contain midPoint wiki:Script+Expression[script expressions] that determine argument values.
+Argument specification may contain midPoint xref:/midpoint/reference/expressions/expressions/script/[script expressions] that determine argument values.
 There is one important thing to keep in mind: provisioning scripts are usually executed on the resource, but the midPoint expressions that determine argument values are executed in midPoint.
 These expressions are the essential glue that can pass midPoint values to the provisioning scripts.
 
 As provisioning script languages are connector-specific, also argument passing and formatting is connector specific.
 There may even be several ways how to pass arguments to the script (e.g. as command-line parameters or script variables).
 See the connector documentation for details.
-For example, for wiki:Active+Directory+Connector+(LDAP)[Active Directory Connector (LDAP)] read also wiki:Powershell+Support+in+AD/LDAP+Connector[Powershell Support in AD/LDAP Connector] for information how the arguments can be passed.
+For example, for xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector/[Active Directory Connector (LDAP)] read also xref:/connectors/resources/active-directory/powershell/[Powershell Support in AD/LDAP Connector] for information how the arguments can be passed.
 
 
 === Criticality
@@ -157,8 +157,8 @@ Of course, complex scripting expressions may be used as well:
 Vast majority of provisioning scripts are coupled with provisioning operations.
 E.g. the scripts are executed before or after modification of an account.
 However, there are cases when a script has to be executed in an ad-hoc manner.
-For example there may be need to execute a provisioning script from wiki:Expression[expression] because the script is used to determine a value used by the expression.
-For that purpose there is executeAdHocProvisioningScript function in wiki:MidPoint+Script+Library[MidPoint Script Library]:
+For example there may be need to execute a provisioning script from xref:/midpoint/reference/expressions/expressions/[expression] because the script is used to determine a value used by the expression.
+For that purpose there is executeAdHocProvisioningScript function in xref:/midpoint/reference/expressions/expressions/script/functions/midpoint/[MidPoint Script Library]:
 
 [source,xml]
 ----
@@ -184,10 +184,10 @@ Note: both resource and resource OID can be used as the first parameter to the e
 [TIP]
 .Object kind and script variables
 ====
-MidPoint 3.0 (and later) is designed with wiki:Generic+Synchronization[generic synchronization] in mind.
-Therefore the provisioning scripts are executed not just for accounts but also for other wiki:Kind,+Intent+and+ObjectClass[kinds of objects]. And there are two major consequences of this:
+MidPoint 3.0 (and later) is designed with xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization] in mind.
+Therefore the provisioning scripts are executed not just for accounts but also for other xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[kinds of objects]. And there are two major consequences of this:
 
-* Please keep in mind that unless the script is limited to a particular wiki:Kind,+Intent+and+ObjectClass[kind] of objects then it will be executed for all object kinds that midPoint provisions.
+* Please keep in mind that unless the script is limited to a particular xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[kind] of objects then it will be executed for all object kinds that midPoint provisions.
 This may have unexpected side-effects therefore it is recommended to constraint the scripts to a particular object kind in midPoint 3.0 and later:
 
 [source,xml]
@@ -214,4 +214,4 @@ If a more generic script is required then a generic variable `$focus` can be use
 
 == See Also
 
-* wiki:Resource+Configuration[Resource Configuration]
+* xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]

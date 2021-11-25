@@ -34,16 +34,16 @@ The persona user is active, the physical user is passive.
 
 The personal links are not just simple links between user objects (`UserType`). These links may be couples with xref:/midpoint/reference/expressions/mappings/[mappings]. E.g. the mappings may be used to propagate the changes from the physical user to the personas.
 The physical user identity may be linked to the HR system or a similar system that is an authoritative source for user legal name.
-MidPoint can use ordinary wiki:Inbound+Mapping[inbound mappings] to get the data from the HR system to the physical user object.
+MidPoint can use ordinary xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings] to get the data from the HR system to the physical user object.
 The persona link mappings can then be used to propagate these changes to all the linked persona users.
-And then again ordinary wiki:Outbound+Mapping[outbound mappings] can be used to propagate the changes to all affected resources.
+And then again ordinary xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings] can be used to propagate the changes to all affected resources.
 This is a typical scenario how family name (surname) changes are propagated in a persona-enabled configuration.
 
 == Persona Links vs Intents
 
 The use of persona links is not the only way how to implement facets of user identity.
 MidPoint has an alternative mechanism for years.
-It is called "wiki:Kind,+Intent+and+ObjectClass[intent]". The intent can be used to maintain several accounts for one user.
+It is called "xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[intent]". The intent can be used to maintain several accounts for one user.
 It is very useful and practical mechanism and it is frequently used in midPoint deployments.
 E.g. the use of intent allows to assign employee accounts and administrative accounts to the same user.
 However, what intent does not allow is to group all administrative accounts on all the resources.
@@ -59,14 +59,14 @@ And only use persona links if the limitation of intents are too prohibitive for 
 
 == Configuration
 
-Please see wiki:Persona+Configuration[Persona Configuration] page for configuration details.
+Please see xref:/midpoint/reference/misc/persona/configuration/[Persona Configuration] page for configuration details.
 
 == See Also
 
-* wiki:Basic+Data+Model[Basic Data Model]
+* xref:/midpoint/reference/schema/data-model-essentials/[Basic Data Model]
 
-* wiki:Mappings+and+Expressions[Mappings and Expressions]
+* xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
-* wiki:Kind,+Intent+and+ObjectClass[Kind, Intent and ObjectClass]
+* xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[Kind, Intent and ObjectClass]
 
-* wiki:Persona+Configuration[Persona Configuration]
+* xref:/midpoint/reference/misc/persona/configuration/[Persona Configuration]

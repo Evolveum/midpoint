@@ -7,7 +7,7 @@
 :page-wiki-metadata-modify-date: 2019-04-03T09:16:31.153+02:00
 :page-upkeep-status: yellow
 
-The wiki:Data+Model[data model] consists of numerous objects that represents common identity management concepts such as user or account.
+The xref:/midpoint/reference/schema/[data model] consists of numerous objects that represents common identity management concepts such as user or account.
 There is a need to _link_ these objects to denote relationship between objects.
 For example, an account may belong to a user, therefore account object has to be linked to a user object.
 Object references are implementing this kind of linking.
@@ -16,7 +16,7 @@ The basic mechanism of object references is described on this page.
 
 == Object References
 
-The objects are linked by using wiki:Object+ID[Object Identifier (OID)] as a linking reference.
+The objects are linked by using xref:/midpoint/devel/prism/concepts/object-identifier/[Object Identifier (OID)] as a linking reference.
 OID is system-wide unique, immutable and has a good chance to also be globally-unique.
 That makes it almost ideal linking identifier.
 
@@ -32,10 +32,10 @@ As OID cannot change, the link will stay valid even if the account is renamed.
 If the account is deleted and another account with the same name appears, it will have (most likely) a different OID.
 Therefore the old link will not be valid any more.
 This is expected, as the account may belong to a different user.
-In this specific case it is a job of a wiki:Synchronization+Examples[synchronization process] to renew the link as needed.
+In this specific case it is a job of a xref:/midpoint/reference/synchronization/examples/[synchronization process] to renew the link as needed.
 
 The specific case show above means that the account _belongs_ to user `jack`, but the links may have various meanings.
-The meaning depends on the property (XML tag) that contains the link and it is described in the wiki:Data+Model[data model]. Following example illustrate various meanings of links and also how the link can be "cascaded".
+The meaning depends on the property (XML tag) that contains the link and it is described in the xref:/midpoint/reference/schema/[data model]. Following example illustrate various meanings of links and also how the link can be "cascaded".
 
 image::object-references-ref-cascade.png[]
 
@@ -102,7 +102,7 @@ But it may be difficult to handle for humans, as humans incline more to readable
 Therefore there is a way how to make system administrator's job easier and make the external import files more readable and maintainable.
 
 An object that is being imported to midPoint can use an alternative way how to specify a reference.
-It may specify a wiki:XML+Object+Query[search filter] instead of OID.
+It may specify a xref:/midpoint/reference/concepts/query/xml-query-language/[search filter] instead of OID.
 The search filter will be executed during import.
 If it matches an existing object, the OID of that object will be placed into the reference instead of the search filter.
 This creates a permanent link based on OID.
@@ -134,18 +134,18 @@ We are *not* enforcing low-level referential integrity in general.
 This would not be practical now.
 An account may disappear at any time, e.g. when a local system administrator deletes it from the resource.
 We cannot influence that situation, therefore it makes no sense to refuse to store this new situation in the repository.
-We rather chose to allow for some inconsistency - and create processes that should resolve the situation (see wiki:Synchronization+Examples[synchronization]).
+We rather chose to allow for some inconsistency - and create processes that should resolve the situation (see xref:/midpoint/reference/synchronization/examples/[synchronization]).
 
 
 == See Also
 
-* wiki:Data+Model[Data Model]
+* xref:/midpoint/reference/schema/[Data Model]
 
-* wiki:Object+ID[Object ID]
+* xref:/midpoint/devel/prism/concepts/object-identifier/[Object ID]
 
-* wiki:Synchronization+Examples[Synchronization Examples]
+* xref:/midpoint/reference/synchronization/examples/[Synchronization Examples]
 
-* wiki:Relaxed+Referential+Integrity[Relaxed Referential Integrity]
+* xref:/midpoint/architecture/concepts/relaxed-referential-integrity/[Relaxed Referential Integrity]
 
 
 == External links

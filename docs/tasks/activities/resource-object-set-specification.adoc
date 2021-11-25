@@ -1,0 +1,40 @@
+= Resource Object Set Specification
+
+Here we describe how sets of resource objects are specified in xref:../[activities].
+(Represented by `ResourceObjectSetType` type.)
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning | Default
+| `resourceRef` | Resource against which we want to execute the activity. | No default (value must be specified).
+| `kind` | Kind of objects to be processed. | TODO
+| `intent` | Intent of objects of given kind to be processed. | TODO
+| `objectclass` | Class of objects to be processed. | TODO
+| `query` | Object query used to refine/replace the default query stemming from the above parameters. | None.
+| `queryApplication` | How should be resource object set query applied to the basic query stemming from
+`resourceRef` / `objectclass` / `kind` / `intent` specification. | Depends on activity. E.g. `replace` for import from resource.
+| `searchOptions` | Search options to use. | No options.
+| `failedObjectsSelector` | Used for activities intended to re-process objects that failed to be processed by a "regular" activity
+that was run before. See xref:../object-set-specification/#_failed_objects_selector[here]. | No failed objects selection. (Processing all objects.)
+|===
+
+TODO describe the effect of various combinations, e.g.
+
+* no kind, intent, objectclass specified
+* only kind present
+* kind+intent present
+* only OC present
+* kind+intent+OC present
+
+== Query Application Mode
+
+[%header]
+[%autowidth]
+|===
+| Value | Meaning
+| `append` | Specified query is "appended" to the default query that results from
+the resourceRef/kind/intent/objectclass tuple.
+| `replace` | Specified query replaces the default query that results from
+the resourceRef/kind/intent/objectclass tuple.
+|===

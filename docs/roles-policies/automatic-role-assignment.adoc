@@ -9,14 +9,14 @@
 
 Assignment of orgs and roles is one the fundamental midPoint functionalities.
 Common requirement is automatic assignment of some roles based on expressions and conditions.
-The wiki:Object+Template[object template] is the right place to implement such automatic assignment.
+The xref:/midpoint/reference/expressions/object-template/[object template] is the right place to implement such automatic assignment.
 
 // TODO: mention role autoassignment
 
 == Unconditional Assignment
 
 Easiest case is an assign of a specific role to all the users.
-This is easy to implement using an object template wiki:Mapping[mapping] with a static (literal) value:
+This is easy to implement using an object template xref:/midpoint/reference/expressions/mappings/[mapping] with a static (literal) value:
 
 [source,xml]
 ----
@@ -74,7 +74,7 @@ Simply combine the static mapping with appropriate condition:
 
 MidPoint will take care that the condition is evaluated an appropriate action is taken.
 When the condition becomes `true` then the role is assigned.
-When the condition becomes `false` the role is unassgined (remebmer, midPoint is wiki:Relativity[relativistic] and that also applies to conditions).
+When the condition becomes `false` the role is unassgined (remebmer, midPoint is xref:/midpoint/reference/concepts/relativity/[relativistic] and that also applies to conditions).
 
 
 == Dynamic Assignment
@@ -82,7 +82,7 @@ When the condition becomes `false` the role is unassgined (remebmer, midPoint is
 The third option is fully dynamic assignment of roles, orgs and services.
 It is often infeasible to define a condition for every role.
 One big expression that decides role assignment is usually a better approach.
-MidPoint has special `assignmentTargetSearch`wiki:Expression[expression evaluator] designed especially for this purpose.
+MidPoint has special `assignmentTargetSearch`xref:/midpoint/reference/expressions/expressions/[expression evaluator] designed especially for this purpose.
 This evaluator can be used to dynamically look up assignment targets:
 
 [source,xml]
@@ -137,12 +137,12 @@ MidPoint will take care that all of them are evaluated and that the results are 
 == Advanced Techniques
 
 There are more tricks that can be used for role assignment.
-E.g. the target (role or org) can be dynamically created on demand (see wiki:OrgSync+Story+Test[OrgSync Story Test]). Mapping domain and range can be used for more complex cases.
+E.g. the target (role or org) can be dynamically created on demand (see xref:/midpoint/reference/samples/story-tests/orgsync/[OrgSync Story Test]). Mapping domain and range can be used for more complex cases.
 And so on.
 
 
 == See Also
 
-* wiki:Assignment[Assignment]
+* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
 
-* wiki:Object+Template[Object Template]
+* xref:/midpoint/reference/expressions/object-template/[Object Template]

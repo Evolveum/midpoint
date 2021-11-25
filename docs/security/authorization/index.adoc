@@ -26,7 +26,7 @@ These roles are then assigned to a users.
 This allows very scalable and maintainable authorization set-up.
 
 The following diagram illustrates an example of practical use of authorization statement in midPoint.
-It combines authorization, xref:/midpoint/reference/roles-policies/rbac/[RBAC] and wiki:Organizational+Structure[organizational structure] feature to create a delegated administration set-up.
+It combines authorization, xref:/midpoint/reference/roles-policies/rbac/[RBAC] and xref:/midpoint/reference/org/organizational-structure/[organizational structure] feature to create a delegated administration set-up.
 There is `CC Operator` role for call center operators.
 This role contains an authorization statement which allows modification of password (action=modify, item=credentials/password).
 This statement applies only to operations for which the object of the operation is a member `Example Inc.` organization.
@@ -34,16 +34,16 @@ This set-up gives the call center operators to change password of any user in `E
 
 image::configuration/security-role-org.png[]
 
-Authorization concept is an integral part of wiki:Architecture+and+Design[midPoint architecture]. Authorization are enforced at several layers of midPoint component structure to assure complete authorization coverage.
+Authorization concept is an integral part of xref:/midpoint/architecture/[midPoint architecture]. Authorization are enforced at several layers of midPoint component structure to assure complete authorization coverage.
 This can also be utilized to create a very complex authorization schemes, e.g. enterprise delegated authorization, partial multi-tenancy, segregation of organizational units, compartmentization, etc.
 
-The wiki:Authorization+Configuration[Authorization Configuration] pages provides a detailed description of the configuration of midPoint authorization statements.
+The xref:/midpoint/reference/security/authorization/configuration/[Authorization Configuration] pages provides a detailed description of the configuration of midPoint authorization statements.
 
 
 == See Also
 
-* wiki:Authorization+Configuration[Authorization Configuration]
+* xref:/midpoint/reference/security/authorization/configuration/[Authorization Configuration]
 
 * xref:/midpoint/reference/roles-policies/rbac/[]
 
-* wiki:Organizational+Structure[Organizational Structure]
+* xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]

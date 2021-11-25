@@ -18,9 +18,8 @@ The model uses authorization statements that can be attached to roles.
 The authorization model can control which parts of GUI can a user access, what operations are allowed, on which objects they are allowed and for which attributes.
 The authorization is enforced on several levels allowing for an unprecedented flexibility while still keeping a clean and secure access control model.
 
-The authorization model is seamlessly integrated with the wiki:Advanced+Hybrid+RBAC[RBAC mechanism]. Therefore it is easy to use even a complex authorization schemas in an IDM solution.
+The authorization model is seamlessly integrated with the xref:/midpoint/reference/roles-policies/rbac/[RBAC mechanism]. Therefore it is easy to use even a complex authorization schemas in an IDM solution.
 As the authorization statements are integrated with RBAC roles then they can be hierarchical (nested), they can be subject to an approval process and so on.
-
 
 == Authorization Model
 
@@ -32,7 +31,7 @@ The meaning of individual elements in the triple is as follows:
 Simply speaking it is the user that starts an action by accessing a GUI page, clicking on a button and so on.
 Subject is usually currently logged-in user.
 But it may also by the owner of a non-interactive task, client identity for a service and so on.
-Subject is always a wiki:UserType[midPoint User object] (identified by OID).
+Subject is always a xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[midPoint User object] (identified by OID).
 
 * *Action* is the activity or operation that is initiated by subject.
 It can be access to a GUI page, operation to modify an object, access to a service, etc.
@@ -53,13 +52,13 @@ image::security-subject-action-object.png[]
 
 The basic idea of the subject-action-object approach is to create authorization statements that will either allow or deny operations for subject-action-object combinations.
 However it would be quite difficult to maintain large set of authorization statements if they are maintained on just one place.
-Therefore we have decided to integrate midPoint authorization model with the wiki:Advanced+Hybrid+RBAC[RBAC mechanism]. Authorization statements are placed inside RBAC roles.
+Therefore we have decided to integrate midPoint authorization model with the xref:/midpoint/reference/roles-policies/rbac/[RBAC mechanism]. Authorization statements are placed inside RBAC roles.
 These roles are then assigned to users.
 A user that has a role with an authorization statement is automatically considered to a *subject* of the statements.
 This allows very scalable and maintainable authorization set-up.
 
 The following diagram illustrates an example of practical use of authorization statement in midPoint.
-It combines authorization, wiki:Advanced+Hybrid+RBAC[RBAC] and wiki:Organizational+Structure[organizational structure] feature to create a delegated administration set-up.
+It combines authorization, xref:/midpoint/reference/roles-policies/rbac/[RBAC] and xref:/midpoint/reference/org/organizational-structure/[organizational structure] feature to create a delegated administration set-up.
 There is `CC Operator` role for call center operators.
 This role contains an authorization statement which allows modification of password (action=modify, item=credentials/password).
 This statement applies only to operations for which the object of the operation is a member `Example Inc.` organization.
@@ -85,7 +84,6 @@ The actual XML definition of the `CC Operator` role looks like this:
 </role>
 ----
 
-
 == Default Deny and Other Rules
 
 MidPoint implements *default deny* policy.
@@ -101,7 +99,6 @@ Therefore use it with caution.
 
 If a statement does not specify any decision then `allow` decision is assumed.
 
-
 == Authorization Enforcement
 
 MidPoint enforces authorizations on several layers (or phases).
@@ -109,7 +106,7 @@ Each operation needs to pass all the authorization phases in order to be success
 In a normal case the operation need to pass authorization on three layers:
 
 * *GUI* or *Service* authorization.
-A user needs to have appropriate wiki:GUI+Authorizations[GUI authorization] to access the relevant GUI page.
+A user needs to have appropriate xref:/midpoint/reference/security/authorization/admin-gui/[GUI authorization] to access the relevant GUI page.
 Without this authorization the operation cannot be started.
 This similarly applies to service access such as SOAP or REST service.
 An appropriate authorization to access that particular service is needed otherwise the operation will be refused as unauthorized before it even starts.
@@ -118,14 +115,14 @@ They grant access to a particular service or part of user interface.
 These authorizations usually do not have object specification and cannot be constrained to specific items.
 Specification of action URI is usually all that can be applied at this layer.
 
-* *Request* authorization is evaluated for each operation of wiki:IDM+Model+Interface[IDM Model Interface] before the operation starts.
+* *Request* authorization is evaluated for each operation of xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface] before the operation starts.
 This authorization checks if the user that initiates the operation has the right to request the operation in the first place.
 This is a fine-grained authorization.
 Object and item specifications can be present.
-This authorization is evaluated *before* the object is wiki:Clockwork+and+Projector[recomputed by the IDM model] (i.e. before all the mappings and policies are applied).
+This authorization is evaluated *before* the object is xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[recomputed by the IDM model] (i.e. before all the mappings and policies are applied).
 Properties that are result of the computation are *not* yet present in the object.
 
-* *Execution* authorization is evaluated for each operation of wiki:IDM+Model+Interface[IDM Model Interface]*after* the object is wiki:Clockwork+and+Projector[recomputed by the IDM model] and right before the operation is executed.
+* *Execution* authorization is evaluated for each operation of xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface]*after* the object is xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[recomputed by the IDM model] and right before the operation is executed.
 This authorization checks if the user that initiates the operation has the right to execute the operation with all the direct and indirect effects that it might have.
 This is a fine-grained authorization.
 Object and item specifications can be present.
@@ -194,7 +191,6 @@ This is possible because the "core" authorizations work on the same actions and 
 However GUI and service authorizations use different actions and they usually do not use object specification at all.
 Therefore GUI and service authorization needs to be defined explicitly.
 
-
 == GUI and Service Authorizations
 
 GUI and Service authorizations are usually very simple.
@@ -210,24 +206,23 @@ E.g.
     </authorization>
 ----
 
-See the wiki:GUI+Authorizations[GUI Authorizations] page for a full list of supported GUI actions.
-See the wiki:Service+Authorizations[Service Authorizations] page for similar list of service authorizations.
-
+See the xref:/midpoint/reference/security/authorization/admin-gui/[GUI Authorizations] page for a full list of supported GUI actions.
+See the xref:/midpoint/reference/security/authorization/service/[Service Authorizations] page for similar list of service authorizations.
 
 == "Core" Authorizations
 
-MidPoint wiki:Architecture+and+Design[architecture] is designed with the wiki:IDM+Model+Subsystem[IDM Model component] in the centre.
+MidPoint xref:/midpoint/architecture/[architecture] is designed with the xref:/midpoint/architecture/archive/subsystems/model/[IDM Model component] in the centre.
 This was designed with a purpose in mind.
 The IDM Model component is a brain of midPoint.
-It does all the policy processing, evaluates mappings, recomputes objects, wiki:Clockwork+and+Projector[projects values between objects] and does all the other things of identity management logic.
+It does all the policy processing, evaluates mappings, recomputes objects, xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[projects values between objects] and does all the other things of identity management logic.
 Placing all of this in the centre means that we can make reasonably sure that every object will be recomputed and policed as necessary.
 It is also an ideal place for security enforcement and auditing.
 And this is exactly what happens here.
 
 Each operation is authorized when it goes through the IDM Model component.
-This applies to all normal operations which includes operations initiated from GUI and all the remote services (SOAP, REST) as all of these components are using the wiki:IDM+Model+Interface[IDM Model Interface]. As this interface is used almost universally in midPoint the action URIs used for authorization are also based on the operation names of the wiki:IDM+Model+Interface[IDM Model Interface] - with some minor adjustments to make them practical.
+This applies to all normal operations which includes operations initiated from GUI and all the remote services (SOAP, REST) as all of these components are using the xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface]. As this interface is used almost universally in midPoint the action URIs used for authorization are also based on the operation names of the xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface] - with some minor adjustments to make them practical.
 
-See the wiki:IDM+Model+Authorizations[IDM Model Authorizations] page for list of action URLs for the "core" authorizations.
+See the xref:/midpoint/reference/security/authorization/model/[IDM Model Authorizations] page for list of action URLs for the "core" authorizations.
 
 
 === Authorization phases
@@ -239,12 +234,12 @@ Each operation is actually authorized twice when it goes through the IDM Model c
 * *execution phase* - when operation leaves the IDM Model component
 
 The important aspect to understand authorization is to understand what happens between these two authorizations.
-The wiki:Clockwork+and+Projector[Clockwork and Projector] page explains the details.
+The xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[Clockwork and Projector] page explains the details.
 But simply speaking the object values are recomputed, mappings are evaluated and policies applied.
 Let's explain that using an example.
 Let's assume we have a user which has one LDAP account.
 User properties `givenName` and `familyName` are mapped to LDAP attributes `givenName` and `sn` respectively.
-This mapping is implemented by simple wiki:Outbound+Mapping[outbound mappings]. If the `familyName` of a user is changed in GUI then this change is also mapped to the LDAP `sn` attribute and this is changed as well.
+This mapping is implemented by simple xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings]. If the `familyName` of a user is changed in GUI then this change is also mapped to the LDAP `sn` attribute and this is changed as well.
 But how about authorizations? We want to give user the ability to change the family name in the use object.
 This happens from time to time, e.g. when people get married.
 But we do not want to give the user direct access to LDAP accounts.
@@ -315,8 +310,7 @@ Secondly this authorization is using an `owner` clause to define object.
 This is necessary because this authorization applies to different object than previous authorizations.
 Previous authorizations applied to a user as an object.
 But this authorization applies to a shadow.
-It is important to realize that change of one object can result in a change of a different object, e.g. as wiki:Focus+and+Projections[data are mapped between focus and projections]. And authorizations needs to be set up accordingly.
-
+It is important to realize that change of one object can result in a change of a different object, e.g. as xref:/midpoint/reference/schema/focus-and-projections/[data are mapped between focus and projections]. And authorizations needs to be set up accordingly.
 
 === actionsObject Authorization Actions
 
@@ -335,7 +329,7 @@ Since midPoint 3.9 this is a short-cut for get and search authorizations (see be
 
 | Get
 | `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get`
-| Getting objects by wiki:Object+ID[OID]. This authorizations applies to read operations where one specific object is retrieved. +
+| Getting objects by xref:/midpoint/devel/prism/concepts/object-identifier/[OID]. This authorizations applies to read operations where one specific object is retrieved. +
 Note: This authorization also applies to search results.
 While the search authorization governs what can be searched for and how the search filter can be specified, individual results of the search are _reduced_ by using get authorization.
 E.g. the properties of the object for which there is no get authorization are removed.
@@ -394,14 +388,13 @@ For example both `partialExecution` and `modify` authorization are needed to exe
 
 |===
 
-
 === Read, Get and Search
 
 Up until midPoint 3.9 there was only one _read_ authorization that governed all the read operations.
 Since midPoint 3.9 there are two related, but distinct operations: _get_ and _search_.
 
 _Get_ authorization governs operations when a single specific object is retrieved.
-This is usually the `getObject()` operation that retrieves objects by their wiki:Object+ID[object identifier (OID)]. This is perhaps the most frequently used operation in midPoint.
+This is usually the `getObject()` operation that retrieves objects by their xref:/midpoint/devel/prism/concepts/object-identifier/[object identifier (OID)]. This is perhaps the most frequently used operation in midPoint.
 It is used almost everywhere: when accounts, roles and organizational units of a specific user are retrieved, when midPoint gets information about approvers, owners, resources referenced from tasks and so on.
 This usually happens when midPoint follows _object references_ (e.g. links).
 
@@ -434,14 +427,13 @@ There is a chance of system abuse in case that the users get quite a broad _get_
 The _get_ authorization is a very simple mechanism: if OID is known, then the object is returned.
 The authorization does not care where the OID came from.
 The usual case is that the OID came from a valid object reference.
-But if the user learns the OID from some other channel, the user may trick the system or even abuse wiki:Interfaces[midPoint interfaces] to gain access to an object that he should not be accessing.
+But if the user learns the OID from some other channel, the user may trick the system or even abuse xref:/midpoint/reference/interfaces/[midPoint interfaces] to gain access to an object that he should not be accessing.
 Therefore *it is essential not to make get authorization too broad.* Only use this approach in case when the get authorization returns reasonable and relatively harmless set of properties (e.g. only the name of the object).
 
 ====
 
 The _read_ authorization is still supported for compatibility and convenience reasons.
 It can be understood as a shortcut for specifying both _get_ and _search_ authorizations.
-
 
 == Superuser Authorization
 
@@ -463,7 +455,6 @@ It is just an regular user which has the above role.
 This gives super-user abilities to this user.
 However it can be freely modified and replaced with a better least-privilege administrative model.
 
-
 == Object Specification
 
 Object of the authorization can be selected in a variety of ways:
@@ -484,7 +475,6 @@ In the following case it only applies to shadows:
   </authorization>
 ----
 
-
 === Object Selection by Query Filter
 
 Authorization applies only to objects that match specified query.
@@ -504,7 +494,6 @@ In the following case it only applies to objects that have property `locality` s
     </object>
   </authorization>
 ----
-
 
 === Object Selection by Archetype
 
@@ -527,14 +516,13 @@ I.e. match of a single archetypes from the list will make the authorization appl
 [TIP]
 ====
 The <archetypeRef> mechanism is available in midPoint 4.0 and later.
-See also wiki:Archetypes[Archetypes].
+See also xref:/midpoint/reference/schema/archetypes/[Archetypes].
 
 ====
 
-
 === Object Selection by Organization Structure Membership
 
-Authorization applies only to objects that are members of a specific wiki:OrgType[Org]. In the following case it only applies to member of Org identified by OID `1f82e908-0072-11e4-9532-001e8c717e5b`.
+Authorization applies only to objects that are members of a specific xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org]. In the following case it only applies to member of Org identified by OID `1f82e908-0072-11e4-9532-001e8c717e5b`.
 
 [source,xml]
 ----
@@ -547,7 +535,6 @@ Authorization applies only to objects that are members of a specific wiki:OrgTyp
 ----
 
 This is good for delegated administration to fixed organizational subtrees.
-
 
 === Object Selection by Organization Structure Relation
 
@@ -576,7 +563,6 @@ But please note that this authorization may degrade performance if the subject h
 The `<orgRelation>` mechanism is available in midPoint 3.4 and later.
 ====
 
-
 === Self Object Selection
 
 Authorization applies only to objects that represent the user which initiates the operation.
@@ -591,7 +577,6 @@ I.e. if the object is also a subject of the operation.
     </object>
   </authorization>
 ----
-
 
 === Object Selection by Owner
 
@@ -609,7 +594,7 @@ Authorization applies only to objects that have an owner which is specified by i
   </authorization>
 ----
 
-The object owner is its wiki:Focus+and+Projections[focal object]. E.g. typical owner of account shadows is a user to whom the accounts are linked.
+The object owner is its xref:/midpoint/reference/schema/focus-and-projections/[focal object]. E.g. typical owner of account shadows is a user to whom the accounts are linked.
 
 E.g. the following example only applies to objects that have owner who is a full-time employee:
 
@@ -629,7 +614,6 @@ E.g. the following example only applies to objects that have owner who is a full
     </object>
   </authorization>
 ----
-
 
 === Object Selection by Tenant
 
@@ -660,7 +644,6 @@ This authorization works only if both subject and object are multi-tenant.
 I.e. it will not work if subject does not have tenant (no `tenantRef`) or in case that the object does not have tenant.
 Ordinary (non-tenant) authorizations should be used for those cases.
 
-
 === Object Selection Combinations
 
 The object selection criteria can be combined in almost any meaningful way.
@@ -686,7 +669,6 @@ E.g. the following authorization only applies to user objects that have locality
     </object>
   </authorization>
 ----
-
 
 === Zone of Control
 
@@ -732,7 +714,7 @@ In such cases it was really easy to get the authorization statements wrong and g
 Therefore the behavior was changed in midPoint 3.9 and such operations are no longer allowed (but see also below).
 In midPoint 3.9 the zone of control is maintained.
 MidPoint will not allow any operation where modification of an object would result in that object getting out of authorization zone of control.
-This has important implications especially for wiki:Multitenancy[multitenant deployments].
+This has important implications especially for xref:/midpoint/reference/deployment/multitenancy/[multitenant deployments].
 
 Even though the behavior of midPoint 3.9 zone of control is now more intuitive and much more secure, there may be cases when we need to allow operations that are going outside of zone of control.
 In that case there is a new `zoneOfControl` configuration clause for authorizations.
@@ -748,7 +730,6 @@ Authorizations that need to break zone of control boundaries or authorizations t
         ...
     </authorization>
 ----
-
 
 == Target
 
@@ -807,7 +788,7 @@ Therefore there is a solution.
 
 There are two authorizations that are designed for the purpose of controlling the assignment and unassignment on a fine level.
 These authorizations are designed to be target-aware.
-The target is the object which is assigned or unassigned (role, org, service or wiki:Deputy[deputy user]). This can be used to precisely control which objects may be assigned or unassigned.
+The target is the object which is assigned or unassigned (role, org, service or xref:/midpoint/reference/misc/deputy/[deputy user]). This can be used to precisely control which objects may be assigned or unassigned.
 
 However, assgin/unassign authorizations make sense only in the request phase.
 The primary goal of these authorizations is to limit the _targets_ of assignment.
@@ -815,7 +796,6 @@ And that is processed only in the request phase.
 All that execution phase can see is just a modification of the `assignment` container.
 Therefore for the assign/unassign authorizations to work correctly, you have to allow _assign_ in the request phase and _modification_ of `assignment` container in the execution phase.
 The default end user role is a good example for this.
-
 
 === Inducement Authorizations
 
@@ -842,7 +822,7 @@ There is an authorization clause `orderConstraints` that controls whether author
 
 This authorization applies both to assignments and inducements.
 The differentiator between assignment and inducement is so called _order_. Order of zero means assignment.
-Order of one or more means inducement (see wiki:Roles,+Metaroles+and+Generic+Synchronization[Roles, Metaroles and Generic Synchronization] page for more details).
+Order of one or more means inducement (see xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization] page for more details).
 The `orderConstraints` clause can be used to set min/max for order therefore limiting authorization to assignment, inducements or both.
 
 The default behavior of assignment/inducement authorizations is to apply only to assignments.
@@ -850,14 +830,13 @@ Therefore if no `orderConstraints` clause is present, then the authorization all
 This behavior is slightly different than other authorization clauses, where no clause means no limitation.
 But this this behavior was chosen for compatibility reasons.
 
-
 == Expressions
 
 ++++
 {% include since.html since="3.7" %}
 ++++
 
-wiki:Expression[Expressions] can be used in authorization search filters:
+xref:/midpoint/reference/expressions/expressions/[Expressions] can be used in authorization search filters:
 
 [source,xml]
 ----
@@ -899,10 +878,9 @@ Expressions that use the `path` evaluator (as the one above) are usually very fa
 Even simple script expressions usually do not create any major issue.
 However, try to avoid placing complex or slow expressions into authorizations.
 Those are almost certain to have a severe negative impact on system performance.
-If you need complex computation, it is perhaps better to compute the value in wiki:Object+Template[object template] and place it into property of the object (e.g. user extension property).
+If you need complex computation, it is perhaps better to compute the value in xref:/midpoint/reference/expressions/object-template/[object template] and place it into property of the object (e.g. user extension property).
 Then use only the result of the computation stored in that property in authorization expressions.
 ====
-
 
 == Item Authorizations
 
@@ -994,14 +972,13 @@ This exception only allows midPoint logic to modify those properties without exp
 [TIP]
 .Motivation
 ====
- Strictly speaking, there would be no need for these exceptions.
+Strictly speaking, there would be no need for these exceptions.
 The modification can be allowed by regular authorizations.
 However, that would mean, that every practical authorization must contain those items.
 That is error-prone, it is a maintenance burden and it is even an obstacle for evolveability.
 E.g. if similar properties are added in future midPoint versions (which is likely) then all existing authorizations much be updated.
 The cost of slightly increased perceived security is not justified by those operational issues.
 ====
-
 
 == Authorizations and Performance
 
@@ -1022,7 +999,6 @@ This is the most efficient option.
 However if there is a large number of applicable authorizations and they are complex the resulting "masking" filter can be very complex.
 This may place additional load on the database.
 
-
 == Best Practice
 
 * If possible always specify <type> in the authorizations.
@@ -1036,17 +1012,16 @@ I.e. avoid placing all the authorization in a single role.
 This would mean that almost all of them have to evaluated for almost every operation.
 If you distribute the authorization to several roles and distribute the roles to users then a lower number of authorizations needs to be evaluated in average.
 
-
 == Troubleshooting
 
-Main article: wiki:Troubleshooting+Authorizations[Troubleshooting Authorizations]
+Main article: xref:/midpoint/reference/diag/troubleshooting/authorizations/[Troubleshooting Authorizations]
 
 Authorizations can be tricky.
 Especially if there is a large number of them and they are complex.
 And security best practice effectively prohibits to provide any useful error messages to the user in case that the access is denied.
 Therefore troubleshooting of authorization issues can be quite a demanding task - as any security engineer undoubtedly knows.
 However we have tried to make this task easier by implementing an authorization trace.
-In this mode midPoint will trace processing of all authorization statements and record that in the wiki:Logging[logfiles]. The trace can be enabled by setting the following log levels:
+In this mode midPoint will trace processing of all authorization statements and record that in the xref:/midpoint/reference/diag/logging/[logfiles]. The trace can be enabled by setting the following log levels:
 
 [%autowidth]
 |===
@@ -1068,11 +1043,9 @@ Please note that enabling the authorization trace has a *severe impact on system
 This trace is not designed to be continually enabled.
 It is just a troubleshooting tool that is supposed to be used mostly in devel/testing environments to set up a proper security policy.
 
-See wiki:Troubleshooting+Authorizations[Troubleshooting Authorizations] for more details.
-
+See xref:/midpoint/reference/diag/troubleshooting/authorizations/[Troubleshooting Authorizations] for more details.
 
 == Examples
-
 
 === Self-Service Password Change
 
@@ -1182,11 +1155,10 @@ Therefore the complete configuration for self-service password change looks like
     </authorization>
 ----
 
-
 [TIP]
 .Implementation note
 ====
- The ...#modify and ...#changeCredentials authorizations are evaluated in almost the same way by the model.
+The ...#modify and ...#changeCredentials authorizations are evaluated in almost the same way by the model.
 The both allow the modification of the properties specified in the `item` declaration.
 The primary difference is in the way how GUI presents and enforces the authorizations.
 The ...#modify authorization is used in the _edit schema_ (refined schema).
@@ -1197,20 +1169,19 @@ Therefore even if it is present then the password field in the user form will st
 Therefore the only way how the user can change the password is to use credentials self-service page.
 And this page will require old user password (if it is set up to do it).
 
-The bottom line is that the specifics of password change interactions are implemented and enforced in the wiki:GUI+Subsystem[GUI]. wiki:IDM+Model+Subsystem[The Model] is only concerned whether the password change is allowed or denied, but it does not care about the actual process.
+The bottom line is that the specifics of password change interactions are implemented and enforced in the xref:/midpoint/architecture/archive/subsystems/gui/[GUI]. xref:/midpoint/architecture/archive/subsystems/model/[The Model] is only concerned whether the password change is allowed or denied, but it does not care about the actual process.
 ====
-
 
 == See Also
 
-* wiki:Troubleshooting+Authorizations[Troubleshooting Authorizations]
+* xref:/midpoint/reference/diag/troubleshooting/authorizations/[Troubleshooting Authorizations]
 
-* wiki:GUI+Authorizations[GUI Authorizations]
+* xref:/midpoint/reference/security/authorization/admin-gui/[GUI Authorizations]
 
-* wiki:Service+Authorizations[Service Authorizations]
+* xref:/midpoint/reference/security/authorization/service/[Service Authorizations]
 
-* wiki:IDM+Model+Authorizations[IDM Model Authorizations]
+* xref:/midpoint/reference/security/authorization/model/[IDM Model Authorizations]
 
-* wiki:Advanced+Hybrid+RBAC[Advanced Hybrid RBAC]
+* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
 
-* wiki:Organizational+Structure[Organizational Structure]
+* xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]

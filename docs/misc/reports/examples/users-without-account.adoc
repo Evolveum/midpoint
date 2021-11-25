@@ -8,7 +8,7 @@
 :page-wiki-metadata-modify-date: 2020-08-20T08:16:17.750+02:00
 :page-upkeep-status: yellow
 
-Please see wiki:Report+Configuration#ReportConfiguration-Newreport[Report configuration] for basic information about configuration variables.
+Please see xref:/midpoint/reference/misc/reports/configuration/#new-report[Report configuration] for basic information about configuration variables.
 
 
 == Usecase

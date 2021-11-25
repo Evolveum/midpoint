@@ -11,7 +11,7 @@
 
 
 Kind, intent and ObjectClass are three terms that are very frequently used in midPoint.
-These terms define a type of resource object (or wiki:Shadow+Objects[shadow]). The _kind_ and _intent_ are midPoint terms.
+These terms define a type of resource object (or xref:/midpoint/reference/resources/shadow/[shadow]). The _kind_ and _intent_ are midPoint terms.
 They define how midPoint is _using_ the object, how midPoint understands its role in the system.
 The _objectClass_ is a native type by which the resource recognizes the object.
 
@@ -27,9 +27,9 @@ I.e. each useful resource object has a *kind* and an *intent*. Kind defines what
 MidPoint supports several *kinds* of resource objects:
 
 * *Account* resource objects represent identity of a person, either physical such as computer user or virtual such as _administrator_, _root_, _daemon_ or similar special-purpose identities.
-Accounts can be_wiki:Assigning+vs+Linking[linked]_ to the wiki:UserType[User] objects.
+Accounts can be_xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[linked]_ to the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[User] objects.
 
-* wiki:Entitlements[Entitlement] resource objects represent groupings or privileges of an *account*. Entitlement resource objects represent groups, resource-specific roles, access permissions or even organizational unit membership.
+* xref:/midpoint/reference/resources/entitlements/[Entitlement] resource objects represent groupings or privileges of an *account*. Entitlement resource objects represent groups, resource-specific roles, access permissions or even organizational unit membership.
 Entitlements are *associated* to an *account*.
 
 * other kinds of resource objects may be introduced later (e.g. organizational unit)
@@ -58,7 +58,7 @@ There is only a single standard intent defined: `default`. As the name suggests 
 ++++
 
 _Tag_ is a differentiator for resource object (e.g. accounts) that have the same value of kind and intent.
-Tag is used in situations when wiki:Multiaccounts+HOWTO[multiple equivalent accounts] are enabled.
+Tag is used in situations when xref:/midpoint/reference/resources/multiaccounts/[multiple equivalent accounts] are enabled.
 Tag is the value that discriminates between such accounts.
 
 Tag is optional.
@@ -67,7 +67,7 @@ Accounts that are not used in the "multi" mode do not have any value for tag.
 
 === Shadow Objects
 
-Kind, intent and tag are stored in wiki:Shadow+Objects[shadow objects]. Those are midPoint internal concepts.
+Kind, intent and tag are stored in xref:/midpoint/reference/resources/shadow/[shadow objects]. Those are midPoint internal concepts.
 They are *not* passed to the connector.
 They are translated to the _object class_ which is then passed to the connector.
 
@@ -75,7 +75,7 @@ They are translated to the _object class_ which is then passed to the connector.
 === Resource Object Discriminator
 
 Tuple (resource, kind, intent, tag) is called _resource object discriminator_ or _resource shadow discriminator_. While this term is almost never seen in midPoint user interface, it can be seen in log files and it is quite an important concept to understand.
-The purpose of this discriminator is to distinguish wiki:Focus+and+Projections[projections]. Each projection linked to a particular focus must have unique value of the discriminator.
+The purpose of this discriminator is to distinguish xref:/midpoint/reference/schema/focus-and-projections/[projections]. Each projection linked to a particular focus must have unique value of the discriminator.
 MidPoint will generally avoid duplicating the projections.
 For example, in case that two _constructions_ use the same combination of (resource, kind, intent, tag) then midPoint assumes that they are referring to the same resource object and such definitions are merged.
 
@@ -86,9 +86,9 @@ However, in case that midPoint data are corrupted and there is such a duplicatio
 
 == Object Class
 
-wiki:Resource+Schema[Object Class] is a type of the object how the _resource_ understands it.
+xref:/midpoint/reference/resources/resource-schema/[Object Class] is a type of the object how the _resource_ understands it.
 It is therefore a "technical" type of the resource object.
-Object classes are defined by the wiki:Resource+Schema[Resource Schema] and are presented to midPoint by the connector.
+Object classes are defined by the xref:/midpoint/reference/resources/resource-schema/[Resource Schema] and are presented to midPoint by the connector.
 MidPoint has a very little control over object classes.
 The object classes define a _reality_, what types of objects the resource _can_ handle.
 Object classes can reflect the real object class defined by the resource such as `inetOrgPerson` LDAP object class.
@@ -111,10 +111,10 @@ While midPoint does not know how to handle objects of object class `inetOrgPerso
 Default account objects are presented as (kind=account, intent=default) in midPoint.
 
 Therefore midPoint maps object classes to (kind, intent) tuples.
-The mapping on the outbound side is defined in wiki:Resource+Schema+Handling[Resource Schema Handling]. This maps (kind, intent) to object class.
+The mapping on the outbound side is defined in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]. This maps (kind, intent) to object class.
 In this case midPoint has a lot of information about the intended use and type of the object in this case and the information is quite reliable.
 This configuration can be very declarative and straightforward.
-The mapping on the inbound side is defined in wiki:Synchronization+Configuration[Synchronization Configuration]. This maps object class to (kind, intent) tuple.This mapping is not a very reliable and straightforward because all the midPoint really knows about the object is its object class and attributes.
+The mapping on the inbound side is defined in xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration]. This maps object class to (kind, intent) tuple.This mapping is not a very reliable and straightforward because all the midPoint really knows about the object is its object class and attributes.
 Therefore this configuration needs to be much more flexible and allow some kind of "guesswork" to correctly sort out the object.
 
 
@@ -191,10 +191,10 @@ Therefore midPoint allows the two grouping mechanisms to coexist (and may keep t
 
 == See Also
 
-* wiki:Resource+Schema+Handling[Resource Schema Handling]
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]
 
-* wiki:Synchronization+Configuration[Synchronization Configuration]
+* xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration]
 
-* wiki:Resource+Schema[Resource Schema]
+* xref:/midpoint/reference/resources/resource-schema/[Resource Schema]
 
-* wiki:Entitlements[Entitlements]
+* xref:/midpoint/reference/resources/entitlements/[Entitlements]

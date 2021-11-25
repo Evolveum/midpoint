@@ -13,7 +13,7 @@ As of midPoint 3.4.x, configuration of workflows is done at various places:
 
 . "Static configuration", e.g. Activiti database URL, is stored in midPoint config file (config.xml).
 
-. Other parts of configuration are stored in wiki:System+Configuration+Object[System Configuration] repository object.
+. Other parts of configuration are stored in xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration] repository object.
 
 . Finally, some information about required approvals is attached to individual objects (e.g. roles being assigned).
 
@@ -72,7 +72,6 @@ To disable workflow altogether, specify the following in config.xml:
 </workflow>
 ----
 
-
 == System configuration object
 
 The configuration object primarily lists change processors that are to be used and their configuration.
@@ -89,7 +88,7 @@ So, by listing change aspects in the configuration, you specify what kinds of ch
 It allows calling arbitrary BPMN process in any phase of model operation execution.
 Please note that this change processor is still quite experimental.
 
-More information on change processors and aspects is in the wiki:Workflow+Management[architectural description of workflow module].
+More information on change processors and aspects is in the xref:/midpoint/architecture/archive/subsystems/model/workflow-3/[architectural description of workflow module].
 
 The configuration looks like this:
 
@@ -99,7 +98,7 @@ The configuration looks like this:
     <modelHookEnabled>true</modelHookEnabled>		<!-- this is the default -->
     <processCheckInterval>10</processCheckInterval> <!-- this is the default -->
     <allowCompleteOthersItems>true</allowCompleteOthersItems> <!-- this is the default -->
-    <primaryChangeProcessor>
+    <primaryChangeProcessor>
       <enabled>true</enabled>						<!-- this is the default -->
       <addUserAbstractRoleAssignmentAspect>
         <enabled>true</enabled>						<!-- this is the default -->
@@ -142,12 +141,17 @@ Default is "true" (i.e. enabled).
 
 
 | _aspect name_
-| Configuration related to this particular aspect - available for standard aspects (listed in the table below).For example, such aspects can be enabled (by simply providing any configuration related to them) or disabled (by explicitly setting their enabled property to false).
+| Configuration related to this particular aspect - available for standard aspects (listed in the table below).
+For example, such aspects can be enabled (by simply providing any configuration related to them) or disabled (by explicitly setting their enabled property to false).
 Note that some aspects are enabled by default - they work even if not mentioned in the configuration.Some aspects can derive approval information (e.g. approverRef, approverExpression, approvalSchema, automaticallyApproved) from objects that they deal with.
 For example, add/modify role/resource assignment aspects pull these information from the respective Role, Org, or Resource object.
 However, other aspects (like addUserAspect) have no such data available.
-These require that this information is provided within the aspect configuration.Note that you can specify approverRef, approverExpression, approvalSchema, or automaticallyApproved attributes even for the aspects that take this information from role, org or resource.
-In this case, the information provided within the aspect configuration override the information contained in role/org/resource.*Beware, currently it is not possible to provide _<aspectName>_ configuration with no parameters.* This is due a to a problem in prism parsing.
+These require that this information is provided within the aspect configuration.
+Note that you can specify approverRef, approverExpression, approvalSchema, or automaticallyApproved attributes even for the aspects that take this information from role, org or resource.
+In this case, the information provided within the aspect configuration override the information contained in role/org/resource.
+
+*Beware, currently it is not possible to provide _<aspectName>_ configuration with no parameters.*
+This is due a to a problem in prism parsing.
 Use at least the following content: <enabled>true</enabled>.
 
 
@@ -157,7 +161,6 @@ Use at least the following content: <enabled>true</enabled>.
 
 
 |===
-
 
 ====  Aspects
 
@@ -255,8 +258,7 @@ Concluding notes (important):
 
 . Some primary change processor aspects can interfere - e.g. when creating a user with a sensitive role assigned, both "addUserAspect" and "addUserAbstractRoleAssignmentAspect" come into play. Currently, the result is quite unpredictable. For example, a user add approval might be invoked, whereas assignment approval might be not. So, take care that each situation is covered by only one aspect. This restriction is planned to be lifted in future midPoint versions.
 
-
 == Individual objects
 
 Fine-grained configuration of approvals is done at the level of individual objects, e.g. roles.
-For more information, see wiki:Approvals+examples+(legacy)[these examples].
+For more information, see xref:/midpoint/reference/cases/workflow-3/legacy-approvals-examples/[these examples].
