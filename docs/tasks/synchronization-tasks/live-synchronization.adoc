@@ -9,7 +9,8 @@ on midPoint objects (and propagated to other resources, if needed).
 
 The heart of the configuration is the specification of what xref:../../resource-object-set-specification/[resource objects]
 we want to synchronize. The `resourceRef` is obligatory, all the other properties are optional. However, usually
-the object class is specified as well - either directly, or indirectly via the kind-intent pair.
+the object class is specified as well - either directly, or indirectly via the kind-intent pair. The `query` property
+of the object set specification is not applicable for Live synchronization tasks.
 
 === An example
 
@@ -46,12 +47,14 @@ event stream starting after the last processed event.
 
 Not all resources are capable of providing unique tokens to individual change events. Some of them can e.g. provide common
 token value to all changes returned from given `sync()` call. This limits the ability to continue at exactly the position
-(in the change event stream) where the processing stopped because of an error or a task suspension. The ability or inability
-of a resource to provide precise token values is driven by the `preciseTokenValue` property of the `liveSync` capability.
-(See xref:/midpoint/reference/resources/resource-configuration/capabilities/[]). Currently, e.g. LDAP connector does not
-generally support this (only in special cases). DB Table or SQL Scripting connectors may. That way or another, it is the
-responsibility of the connector user (that configures the resource) to know the behavior of the connector, and to
-correctly specify this capability in the resource definition.
+(in the change event stream) where the processing stopped in case of an error or a task suspension. The ability or inability
+of a resource to provide precise token values is described by the `preciseTokenValue` property of the `liveSync` capability.
+(See xref:/midpoint/reference/resources/resource-configuration/capabilities/[]).
+
+Currently, e.g. LDAP connector does not generally support precise token values (it does so only in specific cases).
+DB Table or SQL Scripting connectors may be able to do that. That way or another, it is the responsibility of the connector
+user (i.e. the engineer that configures the resource) to know the behavior of the connector, and to correctly specify this
+capability in the resource definition.
 
 === Token Handling in Dry Run Mode
 
