@@ -65,6 +65,8 @@ public class ShadowIntegrityCheckWorkDefinition extends AbstractWorkDefinition i
             ShadowIntegrityCheckWorkDefinitionType typedDefinition = (ShadowIntegrityCheckWorkDefinitionType)
                     ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
             shadows = ObjectSetUtil.fromConfiguration(typedDefinition.getShadows());
+            aspectsToDiagnose.addAll(typedDefinition.getDiagnose());
+            aspectsToFix.addAll(typedDefinition.getFix());
             duplicateShadowsResolverNullable = typedDefinition.getDuplicateShadowsResolver();
             checkDuplicatesOnPrimaryIdentifiersOnlyNullable = typedDefinition.isCheckDuplicatesOnPrimaryIdentifiersOnly();
         }
