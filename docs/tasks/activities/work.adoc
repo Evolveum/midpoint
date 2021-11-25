@@ -20,7 +20,7 @@ As of midPoint 4.4, the following items are supported (MT means "Supports multi-
 | What options to use.
 | `reconcile`
 
-| `import`
+| xref:/midpoint/reference/tasks/synchronization-tasks/import-and-reconciliation/[`import`]
 | Imports specified resource objects.
 | Simple
 | Y
@@ -29,7 +29,7 @@ As of midPoint 4.4, the following items are supported (MT means "Supports multi-
 | What xref:../resource-object-set-specification/[resource objects] to import.
 | This is obligatory parameter.
 
-| `reconciliation`
+| xref:/midpoint/reference/tasks/synchronization-tasks/import-and-reconciliation/[`reconciliation`]
 | Reconciles specified resource objects.
 | Predefined composite
 | Y
@@ -47,7 +47,7 @@ As of midPoint 4.4, the following items are supported (MT means "Supports multi-
 | What xref:../resource-object-set-specification/[resource objects] to receive updates for. (Not all configuration items are supported - TODO.)
 | This is obligatory parameter.
 
-.3+| `liveSynchronization`
+.3+| xref:../synchronization-tasks/live-synchronization/[`liveSynchronization`]
 .3+| Processes live synchronization events for give resource objects.
 .3+| Simple
 .3+| Y

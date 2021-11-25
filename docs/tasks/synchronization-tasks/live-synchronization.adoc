@@ -1,4 +1,5 @@
 = Live Synchronization
+:toc:
 
 The live synchronization task (or activity) processes a stream of so-called _change events_ coming from a resource.
 These events represent changes related to _resource objects_: their creation, modification, or deletion.
