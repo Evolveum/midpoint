@@ -27,12 +27,12 @@ I.e. each useful resource object has a *kind* and an *intent*. Kind defines what
 MidPoint supports several *kinds* of resource objects:
 
 * *Account* resource objects represent identity of a person, either physical such as computer user or virtual such as _administrator_, _root_, _daemon_ or similar special-purpose identities.
-Accounts can be_xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[linked]_ to the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[User] objects.
+Accounts can be _xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[linked]_ to the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[User] objects.
 
 * xref:/midpoint/reference/resources/entitlements/[Entitlement] resource objects represent groupings or privileges of an *account*. Entitlement resource objects represent groups, resource-specific roles, access permissions or even organizational unit membership.
 Entitlements are *associated* to an *account*.
 
-* other kinds of resource objects may be introduced later (e.g. organizational unit)
+* Other kinds of resource objects may be introduced later (e.g. organizational unit).
 
 Kind of a resource object is mostly fixed and it is quite difficult to change.
 However the kind is usually determined by the fixed type of the object (object class) and does not need to be changed.
@@ -42,7 +42,7 @@ The list of resource object kinds is not extensible as their meaning is used in 
 === Intent
 
 *Intent* of a resource object describes its intended usage.
-E.g. users may was to have one _default_ account for normal work, they might have another quite different _admin_ account for system administration and yet another _testing_ account.
+E.g. users may want to have one _default_ account for normal work, they might have another quite different _admin_ account for system administration and yet another _testing_ account.
 The "default", "admin" and "testing" are account intents.
 Other IDM systems use the term _account types_ for this, but _intent_ is more generic term and may apply to other resource objects kinds not just accounts (e.g. to entitlements).
 
@@ -94,7 +94,7 @@ The object classes define a _reality_, what types of objects the resource _can_ 
 Object classes can reflect the real object class defined by the resource such as `inetOrgPerson` LDAP object class.
 Or the object classes can be "virtual" and introduced by the connector such as ConnId `pass:[__ACCOUNT__]` object class (which is presented in midPoint as `ri:AccountObjectClass`).
 
-_Object class_ is an term used by midPoint connectors.
+_Object class_ is a term used by midPoint connectors.
 Therefore object class definition is passed to the connector.
 
 
