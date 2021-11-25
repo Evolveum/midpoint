@@ -22,6 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import javax.xml.namespace.QName;
+import java.util.Objects;
 
 /**
  * @author skublik
@@ -124,5 +125,22 @@ public class AssignmentValueWrapperImpl extends PrismContainerValueWrapperImpl<A
         } else {
             return 3;
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof AssignmentValueWrapperImpl)) {
+            return false;
+        }
+        if (!(getOldValue().equivalent(((AssignmentValueWrapperImpl) o).getOldValue()))) {
+            return false;
+        }
+
+        return direct == ((AssignmentValueWrapperImpl) o).isDirectAssignment();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getOldValue());
     }
 }
