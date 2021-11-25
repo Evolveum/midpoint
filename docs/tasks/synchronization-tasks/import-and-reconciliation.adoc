@@ -1,0 +1,8 @@
+= Import and Reconciliation
+
+#TODO#
+
+[TIP]
+====
+Import of default accounts can be initiated from the midPoint GUI by clicking the "Import Accounts" button on resource details page.
+====
