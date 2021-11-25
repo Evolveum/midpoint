@@ -13,12 +13,15 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -245,7 +248,7 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
     private ReadOnlyModel<InfoBoxType> createSourceTargetInfoBoxModel() {
         return new ReadOnlyModel<>(() -> {
 
-            ResourceType resource = getObjectDetailsModels().getObjectType();
+            PrismObjectWrapper<ResourceType> resource = getObjectDetailsModels().getObjectWrapper();
             String backgroundColor = "bg-aqua";
             SourceTarget sourceTarget = determineIfSourceOrTarget(resource);
 
@@ -493,6 +496,9 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
     // TODO: ####### start of move to ResourceTypeUtil ###########
 
     private boolean isOutboundDefined(ResourceAttributeDefinitionType attr) {
+        if (attr.asPrismContainerValue().isEmpty()) {
+            return false;
+        }
         return attr.getOutbound() != null
                 && (attr.getOutbound().getSource() != null || attr.getOutbound().getExpression() != null);
     }
@@ -503,16 +509,17 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
                 || attr.getInbound().get(0).getExpression() != null);
     }
 
-    private boolean isSynchronizationDefined(ResourceType resource) {
-        if (resource.getSynchronization() == null) {
+    private boolean isSynchronizationDefined(PrismObjectWrapper<ResourceType> resource) {
+        ResourceType resourceType = resource.getObjectOld().asObjectable();
+        if (resourceType.getSynchronization() == null) {
             return false;
         }
 
-        if (resource.getSynchronization().getObjectSynchronization().isEmpty()) {
+        if (resourceType.getSynchronization().getObjectSynchronization().isEmpty()) {
             return false;
         }
 
-        for (ObjectSynchronizationType syncType : resource.getSynchronization().getObjectSynchronization()) {
+        for (ObjectSynchronizationType syncType : resourceType.getSynchronization().getObjectSynchronization()) {
             if (syncType.isEnabled() != null && !syncType.isEnabled()) {
                 continue;
             }
@@ -527,50 +534,70 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
         return false;
     }
 
-    private SourceTarget determineIfSourceOrTarget(ResourceType resource) {
+    private SourceTarget determineIfSourceOrTarget(PrismObjectWrapper<ResourceType> resource) {
+        PrismContainerWrapper<SchemaHandlingType> schemaHandling;
+        try {
+             schemaHandling = resource.findContainer(ResourceType.F_SCHEMA_HANDLING);
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, e.getMessage(), e);
+            schemaHandling = null;
+        }
 
-        if (resource.getSchemaHandling() != null
-                && CollectionUtils.isNotEmpty(resource.getSchemaHandling().getObjectType())) {
+        if (schemaHandling == null || schemaHandling.isEmpty()) {
+            return SourceTarget.NOT_DEFINED;
+        }
 
-            boolean hasOutbound = false;
-            boolean hasInbound = false;
+        SchemaHandlingType schemaHandlingType = null;
+        try {
+            PrismContainerValue schemaHandlingPVal = schemaHandling.getValue().getOldValue();
+            if (schemaHandlingPVal != null) {
+                schemaHandlingType = schemaHandlingPVal.getRealValue();
+            }
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, e.getMessage(), e);
+            schemaHandlingType = null;
+        }
 
-            for (ResourceObjectTypeDefinitionType resourceObjectTypeDefinition : resource.getSchemaHandling()
-                    .getObjectType()) {
-                if (CollectionUtils.isEmpty(resourceObjectTypeDefinition.getAttribute())) {
-                    continue;
-                }
+        if (CollectionUtils.isEmpty(schemaHandlingType.getObjectType())) {
+            return SourceTarget.NOT_DEFINED;
+        }
+
+        boolean hasOutbound = false;
+        boolean hasInbound = false;
+
+        for (ResourceObjectTypeDefinitionType resourceObjectTypeDefinition : schemaHandlingType.getObjectType()) {
+            if (CollectionUtils.isEmpty(resourceObjectTypeDefinition.getAttribute())) {
+                continue;
+            }
+
+            if (hasInbound && hasOutbound) {
+                return SourceTarget.SOURCE_TARGET;
+            }
+
+            for (ResourceAttributeDefinitionType attr : resourceObjectTypeDefinition.getAttribute()) {
 
                 if (hasInbound && hasOutbound) {
                     return SourceTarget.SOURCE_TARGET;
                 }
 
-                for (ResourceAttributeDefinitionType attr : resourceObjectTypeDefinition.getAttribute()) {
-
-                    if (hasInbound && hasOutbound) {
-                        return SourceTarget.SOURCE_TARGET;
-                    }
-
-                    if (!hasOutbound) {
-                        hasOutbound = isOutboundDefined(attr);
-                    }
-
-                    if (!hasInbound) {
-                        hasInbound = isInboundDefined(attr);
-                    }
+                if (!hasOutbound) {
+                    hasOutbound = isOutboundDefined(attr);
                 }
 
-                // TODO: what about situation that we have only
+                if (!hasInbound) {
+                    hasInbound = isInboundDefined(attr);
+                }
             }
 
-            if (hasOutbound) {
-                return SourceTarget.TARGET;
-            }
+            // TODO: what about situation that we have only
+        }
 
-            if (hasInbound) {
-                return SourceTarget.SOURCE;
-            }
+        if (hasOutbound) {
+            return SourceTarget.TARGET;
+        }
 
+        if (hasInbound) {
+            return SourceTarget.SOURCE;
         }
 
         return SourceTarget.NOT_DEFINED;

@@ -97,7 +97,8 @@ public class SqaleServiceBase {
                 exceptionMessage += "\n" + psqlException.getMessage();
             }
         }
-        logger.error("Unexpected exception: {}\n  OPERATION RESULT: {}", exceptionMessage, operationResult.debugDump());
+        logger.debug("Unexpected exception (will be rethrown and handled higher): {}\n"
+                + "  OPERATION RESULT: {}", exceptionMessage, operationResult.debugDump());
         operationResult.recordFatalError(t);
     }
     // endregion

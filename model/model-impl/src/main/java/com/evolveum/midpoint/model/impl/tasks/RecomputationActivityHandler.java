@@ -54,7 +54,7 @@ public class RecomputationActivityHandler
     private static final Trace LOGGER = TraceManager.getTrace(RecomputationActivityHandler.class);
 
     private static final QName DEFAULT_OBJECT_TYPE_FOR_LEGACY_SPEC = UserType.COMPLEX_TYPE;  // This is pre-4.4 behavior
-    private static final QName DEFAULT_OBJECT_TYPE_FOR_NEW_SPEC = AssignmentHolderType.COMPLEX_TYPE; // This is more reasonable
+    private static final QName DEFAULT_OBJECT_TYPE_FOR_NEW_SPEC = FocusType.COMPLEX_TYPE; // This is more reasonable
 
     @Override
     protected @NotNull QName getWorkDefinitionTypeName() {

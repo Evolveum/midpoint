@@ -85,7 +85,7 @@
                     <path>activity</path>
                 </source>
                 <expression>
-                    <value>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</value>
+                    <value>http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-3</value>
                 </expression>
                 <target>
                     <c:path>handlerUri</c:path>

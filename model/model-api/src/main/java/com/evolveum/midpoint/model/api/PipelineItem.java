@@ -71,7 +71,7 @@ public class PipelineItem implements DebugDumpable, Serializable {
         StringBuilder sb = new StringBuilder();
         DebugUtil.debugDumpWithLabelLn(sb, "value", value, indent+1);
         DebugUtil.debugDumpWithLabel(sb, "result", result, indent+1);
-        DebugUtil.debugDumpWithLabel(sb, "variables", result, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "variables", (DebugDumpable) variables, indent+1);
         return sb.toString();
     }
 
