@@ -1,8 +1,279 @@
 = Import and Reconciliation
 
+The _import_ task takes a set of resource objects and "pushes" them into midPoint.footnote:[At the technical level it pretends
+that the objects have just been created on the resource.] The _reconciliation_ task is, though, more complex, and tries to
+reconcile the state on a resource with the state in midPoint. This includes execution of pending (outbound) operations,
+reading and processing the current state of specified resource objects, and processing objects that no longer appear to
+be on the resource.
+
+== Basic Configuration
+
+The core of the configuration of both import and reconciliation activity is the specification of what
+xref:../../resource-object-set-specification/[resource objects] we want to process. We need to know
+_both_ `resourceRef` and the object class. The latter can be specified either explicitly by the
+object class name, or implicitly by kind-intent pair, or using both, as described
+xref:../../resource-object-set-specification/[here].
+
+== Some Examples
+
+.Importing all objects of inetOrgPerson class from given resource
+[source,xml]
+----
+<task>
+    <name>Import: Example Resource</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
+                    <objectclass>ri:inetOrgPerson</objectclass>
+                </resourceObjects>
+            </import>
+        </work>
+    </activity>
+</task>
+----
+
+Here the object class is specified by its name (`inetOrgPerson`).
+
+.Reconciling all accounts with the "default" intent
+[source,xml]
+----
+<task>
+    <name>Import: Example Resource</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+    </activity>
+</task>
+----
+
+Here the object class is defined indirectly, by specifying `kind` = `account` and `intent` = `default`.
+This maps to a specific object class by looking into the resource definition. The activity is reconciliation,
+not the import.
+
+.Importing first 10 accounts from the resource
+[source,xml]
+----
+<task>
+    <name>Import: Example Resource</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                    <query>
+                        <q:paging>
+                            <q:maxSize>10</q:maxSize>
+                        </q:paging>
+                    </query>
+                    <queryApplication>append</queryApplication>
+                </resourceObjects>
+            </import>
+        </work>
+    </activity>
+</task>
+----
+
+Here we can see using a custom query. Because `queryApplication` is set to `append`, midPoint takes a query derived
+from specified `resourceRef`, `kind`, and `intent`, and _appends_ the given query (containing only `paging` element here)
+to it. The resulting query is then used to provide resource objects that are to be imported.
+
+.Importing accounts starting with "b" from the resource
+[source,xml]
+----
+<task>
+    <name>Import: Example Resource</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe"/>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                    <query>
+                        <q:filter>
+                            <q:substring>
+                                <q:path>attributes/ident</q:path>
+                                <q:value>b</q:value>
+                                <q:anchorStart>true</q:anchorStart>
+                            </q:substring>
+                        </q:filter>
+                    </query>
+                    <queryApplication>append</queryApplication>
+                </resourceObjects>
+            </import>
+        </work>
+    </activity>
+</task>
+----
+
+Here we see - again - a combination of implicit query (given by `resourceRef` and `objectclass`) with a custom filter,
+specifying that only objects with `ident` starting with `b` should be imported.
+
+== Reconciliation Internals
+
+While the import is quite a simple activity, reconciliation consists of three distinct sub-activities:
+
+[%header]
+[%autowidth]
+|===
+| Identifier | Description
+| `operationCompletion` | The eligible pending operations for the given resource are executed.
+| `resourceObjects` | Specified set of resource objects is "imported" to midPoint.
+| `remainingShadows` | Shadows that were not synchronized in the previous activity are checked.
+|===
+
+Now let us describe each of these activities in detail.
+
+=== Operation Completion
+
+Here midPoint scans for shadows on the resource that have any pending operations and tries to finish them.
+
+NOTE: Anything except `resourceRef` is ignored here. Neither of object class, kind, intent, or custom query is taken
+into account. This behavior may change in the future. The search options are not guaranteed to be respected.
+(Currently, the query is executed against the repository.)
+
+Technically, the operation invoked on the shadows found is `provisioning.refreshShadow` with the option of `forceRetry`.
+This means that postponed (pending) operations are executed even if their retry time was not reached yet.
+
+=== Resource Objects Processing
+
+Here midPoint issues a search operation against the resource, taking into account specified `objectclass`, `kind`, `intent`,
+and `query`. All returned resource objects are processed - in a way very similar to the Import activity.
+The differences are:
+
+* `#reconciliation` channel value is used instead of the `#import` one;
+* we do not pretend that objects have just been created on the resource.footnote:[The real effects of this difference are not
+defined yet. In fact, during import all the accounts seem to be "just created" (regardless of reality), and during reconciliation
+all the accounts seem to be "already existing" (again, regardless of reality). So what really matters - in both kinds of tasks -
+is if the corresponding focal objects exist in the repository or not. This will probably change in the future.]
+
+=== Remaining Shadows Processing
+
+The previous activity has processed all _existing_ resource objects. But how would midPoint know about objects that existed
+before, but have been deleted on the resource?
+
+This is dealt with in this activity. A special query is issued against all _shadows_ (i.e. against the repository), looking
+for shadows fulfilling the following conditions:
+
+1. `resourceRef` and `objectclass` match the values derived from the `resourceObjects` part of the work definition,
+2. the shadow's last synchronization timestamp (usually `fullSynchronizationTimestamp`) is either null or is older than
+the moment when resource objects processing activity has started.
+
+NOTE: Specified search options are ignored here. Also, the custom query is currently ignored.
+
+The returned shadows are then checked if they still do exist on the resource. If a shadow is found to be missing,
+a discovery process (opportunistic synchronization process) takes care of invoking appropriate synchronization
+reaction, e.g. disabling, unlinking, or even deleting the focus object.
+
+== Advanced Configuration
+
+=== Search Options
+
+It is possible to specify _options_ to be used when searching for resource objects - for both import and reconciliation.
+These options can specify e.g. that "no fetch" mode has to be used, or that specific (extra) attributes should be retrieved.
+However, there is little practical use of this feature today. In particular, "no fetch" mode has virtually no use here.
+
+=== Query Application Mode
+
+In theory, it is possible to replace the whole query generated by `resourceRef`, `kind`, `intent`, and `objectclass`
+by custom query. This is driven by setting `queryApplicationMode` to `replace`. However, the more practical is to stick
+with the default query, and limit ourselves to just adding clauses to it by using `queryApplicationMode` of `append`.
+
+For import, the custom query interpretation is straightforward. However, for reconciliation, we should keep queries used
+in the second and the third activity consistent. Therefore, it is advised to avoid using custom query specification
+in reconciliation tasks.
+
+=== Preview Mode and Thresholds
+
 #TODO#
 
-[TIP]
-====
-Import of default accounts can be initiated from the midPoint GUI by clicking the "Import Accounts" button on resource details page.
-====
+=== Selecting Only Specific Sub-Activities
+
+It is possible to run the reconciliation e.g. without the `operationCompletion` activity, or vice versa, with _only_ that
+one activity. To achieve that, we can use so-called _activity tailoring_. Some examples:
+
+.Reconciliation without operation completion
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>Reconciliation without operation completion</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe"/>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+        <tailoring>
+            <change>
+                <reference>operationCompletion</reference>
+                <controlFlow>
+                    <processingOption>skip</processingOption>
+                </controlFlow>
+            </change>
+        </tailoring>
+    </activity>
+</task>
+----
+
+.Reconciliation with operation completion only
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>Reconciliation with operation completion only</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe"/>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+        <tailoring>
+            <change>
+                <reference>resourceObjects</reference>
+                <reference>remainingShadows</reference>
+                <controlFlow>
+                    <processingOption>skip</processingOption>
+                </controlFlow>
+            </change>
+        </tailoring>
+    </activity>
+</task>
+----
+
+=== Parallel Processing
+
+#TODO#
+
+//[TIP]
+//====
+//Import of default accounts can be initiated from the midPoint GUI by clicking the "Import Accounts" button on resource details page.
+//====
