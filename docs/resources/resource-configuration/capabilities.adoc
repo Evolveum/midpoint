@@ -118,3 +118,7 @@ If this information is not present, midPoint restarts live synchronization (in c
 
 Some resources are known to provide precise token values, others are known of not doing so (e.g. for performance reasons).
 Others - e.g. those served by ScriptedSQL connector - depend on particular configuration of the connector.
+It is the responsibility of the connector user (that configures the resource) to know the behavior of the connector, and to
+correctly specify this capability in the resource definition.
+
+See also xref:/midpoint/reference/tasks/synchronization-tasks/live-synchronization.adoc[].

@@ -42,7 +42,16 @@ Before describing the details, we need to understand what a _change token_ is.
 
 Each change has a token that identifies its position in the stream of events. The token of the last processed event is then
 stored in the live synchronization task. It is used when the task is run, in order to obtain a continuation of the change
-event stream starting at the last processed event.
+event stream starting after the last processed event.
+
+Not all resources are capable of providing unique tokens to individual change events. Some of them can e.g. provide common
+token value to all changes returned from given `sync()` call. This limits the ability to continue at exactly the position
+(in the change event stream) where the processing stopped because of an error or a task suspension. The ability or inability
+of a resource to provide precise token values is driven by the `preciseTokenValue` property of the `liveSync` capability.
+(See xref:/midpoint/reference/resources/resource-configuration/capabilities/[]). Currently, e.g. LDAP connector does not
+generally support this (only in special cases). DB Table or SQL Scripting connectors may. That way or another, it is the
+responsibility of the connector user (that configures the resource) to know the behavior of the connector, and to
+correctly specify this capability in the resource definition.
 
 === Token Handling in Dry Run Mode
 
@@ -66,5 +75,10 @@ The unprocessed changes are left for the next task run. (This may change in the 
 
 *USE WITH CARE.* This feature assumes that the connector provides LiveSync capability
 with `preciseTokenValue` = `true`, i.e. that it assigns sync tokens to individual changes
-"incrementally", so it can resume live sync operation on each individual change. This
-can be the case of SQL connectors, but e.g. not for CSV or LDAP ones.
+"incrementally", so it can resume live sync operation on each individual change.
+
+== Error Handling
+
+The default behavior of Live synchronization activity is to _stop_ when an error is encountered.
+This is to ensure that no information is lost in such cases. This behavior can be changed via
+custom xref:/midpoint/reference/tasks/task-error-handling/[error handling specification].
