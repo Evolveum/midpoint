@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-                     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                     xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-                     xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
-                     xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+
     <name>SystemConfiguration</name>
     <indestructible>true</indestructible>
     <!--         <globalAccountSynchronizationSettings> -->
@@ -23,8 +22,7 @@
             <package>ro.isdc.wro.extensions.processor.css.Less4jProcessor</package>
         </classLogger>
         <classLogger>
-            <!-- disabled because INFO log during of creating
-            new authentication filter chain -->
+            <!-- disabled because INFO log during of creating new authentication filter chain -->
             <level>OFF</level>
             <package>org.springframework.security.web.DefaultSecurityFilterChain</package>
         </classLogger>
@@ -78,7 +76,7 @@
         </classLogger>
 
         <appender xsi:type="c:FileAppenderConfigurationType" name="MIDPOINT_LOG"
-                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <pattern>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
             <fileName>${midpoint.home}/log/midpoint.log</fileName>
             <filePattern>${midpoint.home}/log/midpoint-%d{yyyy-MM-dd}.%i.log</filePattern>
@@ -88,7 +86,7 @@
         </appender>
         <!-- Appender for profiling purposes -->
         <appender xsi:type="c:FileAppenderConfigurationType" name="MIDPOINT_PROFILE_LOG"
-                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <pattern>%date %level: %msg%n</pattern>
             <fileName>${midpoint.home}/log/midpoint-profile.log</fileName>
             <filePattern>${midpoint.home}/log/midpoint-profile-%d{yyyy-MM-dd}.%i.log</filePattern>
@@ -350,14 +348,28 @@
             </objectCollectionView>
             <objectCollectionView>
                 <identifier>report-tasks-view</identifier>
+                <display>
+                    <label>Report task</label>
+                    <pluralLabel>
+                        <orig>Report tasks</orig>
+                        <norm>report tasks</norm>
+                        <translation>
+                            <key>ReportTasks.title</key>
+                        </translation>
+                    </pluralLabel>
+                    <icon>
+                        <cssClass>fa fa-pie-chart</cssClass>
+                        <color>green</color>
+                    </icon>
+                </display>
                 <refreshInterval>30</refreshInterval>
                 <type>TaskType</type>
                 <collection>
-                    <collectionRef oid="00000000-0000-0000-0000-000000000507" relation="org:default" type="c:ArchetypeType"/>
+                    <collectionRef oid="00000000-0000-0000-0002-000000000007" relation="org:default" type="c:ObjectCollectionType"/>
                 </collection>
             </objectCollectionView>
             <objectCollectionView>
-                <identifier>single-bulk-action-tasks-view</identifier>
+                <identifier>non-iterative-bulk-tasks-view</identifier>
                 <refreshInterval>30</refreshInterval>
                 <type>TaskType</type>
                 <collection>
@@ -365,11 +377,42 @@
                 </collection>
             </objectCollectionView>
             <objectCollectionView>
-                <identifier>iterative-bulk-action-tasks-view</identifier>
+                <identifier>iterative-bulk-tasks-view</identifier>
                 <refreshInterval>30</refreshInterval>
                 <type>TaskType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000509" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>report-import-task-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <applicableForOperation>add</applicableForOperation>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000510" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>export-report-tasks-view</identifier>
+                <applicableForOperation>add</applicableForOperation>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000511" relation="org:default" type="c:ArchetypeType">
+                        <!-- Report export task -->
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>export-report-distributed-tasks-view</identifier>
+                <applicableForOperation>add</applicableForOperation>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000512" relation="org:default" type="c:ArchetypeType">
+                        <!-- Distributed report export task -->
+                    </collectionRef>
                 </collection>
             </objectCollectionView>
             <objectCollectionView>
@@ -422,113 +465,129 @@
         <objectDetails>
             <objectDetailsPage>
                 <type>c:TaskType</type>
-                <container>
-                    <displayOrder>150</displayOrder>
+                <panel>
+                    <identifier>advanced-options-panel</identifier>
                     <display>
                         <label>Advanced options</label>
                     </display>
-                    <item>
-                        <c:path>cleanupAfterCompletion</c:path>
-                    </item>
-                    <item>
-                        <c:path>threadStopAction</c:path>
-                    </item>
-                    <item>
-                        <c:path>binding</c:path>
-                    </item>
-                    <item>
-                        <c:path>dependent</c:path>
-                    </item>
-                </container>
-                <container>
-                    <displayOrder>900</displayOrder>
+                    <panelType>formPanel</panelType>
+                    <container>
+                        <identifier>advanced-options</identifier>
+                        <displayOrder>150</displayOrder>
+                        <display>
+                            <label>Advanced options</label>
+                        </display>
+                        <item>
+                            <c:path>cleanupAfterCompletion</c:path>
+                        </item>
+                        <item>
+                            <c:path>threadStopAction</c:path>
+                        </item>
+                        <item>
+                            <c:path>binding</c:path>
+                        </item>
+                        <item>
+                            <c:path>dependent</c:path>
+                        </item>
+                    </container>
+                </panel>
+                <panel>
+                    <identifier>operational-attributes-panel</identifier>
                     <display>
-                        <label>Operational attributes (state)</label>
+                        <label>Operational attributes</label>
                     </display>
-                    <item>
-                        <c:path>executionState</c:path>
-                    </item>
-                    <item>
-                        <c:path>schedulingState</c:path>
-                    </item>
-                    <item>
-                        <c:path>node</c:path>
-                    </item>
-                    <item>
-                        <c:path>nodeAsObserved</c:path>
-                    </item>
-                    <item>
-                        <c:path>resultStatus</c:path>
-                    </item>
-                    <item>
-                        <c:path>result</c:path>
-                    </item>
-                    <item>
-                        <c:path>nextRunStartTimestamp</c:path>
-                    </item>
-                    <item>
-                        <c:path>nextRetryTimestamp</c:path>
-                    </item>
-                    <item>
-                        <c:path>unpauseAction</c:path>
-                    </item>
-                    <item>
-                        <c:path>taskIdentifier</c:path>
-                    </item>
-                    <item>
-                        <c:path>parent</c:path>
-                    </item>
-                    <item>
-                        <c:path>waitingReason</c:path>
-                    </item>
-                    <item>
-                        <c:path>stateBeforeSuspend</c:path>
-                    </item>
-                    <item>
-                        <path>schedulingStateBeforeSuspend</path>
-                    </item>
-                    <item>
-                        <c:path>category</c:path>
-                    </item>
-                    <item>
-                        <c:path>otherHandlersUriStack</c:path>
-                    </item>
-                    <item>
-                        <c:path>channel</c:path>
-                    </item>
-                    <item>
-                        <c:path>subtaskRef</c:path>
-                    </item>
-                    <item>
-                        <c:path>dependentTaskRef</c:path>
-                    </item>
-                    <item>
-                        <c:path>lastRunStartTimestamp</c:path>
-                    </item>
-                    <item>
-                        <c:path>lastRunFinishTimestamp</c:path>
-                    </item>
-                    <item>
-                        <c:path>completionTimestamp</c:path>
-                    </item>
-                </container>
-                <container>
-                    <displayOrder>910</displayOrder>
-                    <visibility>hidden</visibility>
-                    <display>
-                        <label>Operational attributes (progress)</label>
-                    </display>
-                    <item>
-                        <c:path>progress</c:path>
-                    </item>
-                    <item>
-                        <c:path>expectedTotal</c:path>
-                    </item>
-                    <item>
-                        <c:path>stalledSince</c:path>
-                    </item>
-                </container>
-
+                    <panelType>formPanel</panelType>
+                    <container>
+                        <identifier>operational-attributes</identifier>
+                        <displayOrder>900</displayOrder>
+                        <display>
+                            <label>Operational attributes (state)</label>
+                        </display>
+                        <item>
+                            <c:path>executionState</c:path>
+                        </item>
+                        <item>
+                            <c:path>schedulingState</c:path>
+                        </item>
+                        <item>
+                            <c:path>node</c:path>
+                        </item>
+                        <item>
+                            <c:path>nodeAsObserved</c:path>
+                        </item>
+                        <item>
+                            <c:path>resultStatus</c:path>
+                        </item>
+                        <item>
+                            <c:path>result</c:path>
+                        </item>
+                        <item>
+                            <c:path>nextRunStartTimestamp</c:path>
+                        </item>
+                        <item>
+                            <c:path>nextRetryTimestamp</c:path>
+                        </item>
+                        <item>
+                            <c:path>unpauseAction</c:path>
+                        </item>
+                        <item>
+                            <c:path>taskIdentifier</c:path>
+                        </item>
+                        <item>
+                            <c:path>parent</c:path>
+                        </item>
+                        <item>
+                            <c:path>waitingReason</c:path>
+                        </item>
+                        <item>
+                            <c:path>stateBeforeSuspend</c:path>
+                        </item>
+                        <item>
+                            <path>schedulingStateBeforeSuspend</path>
+                        </item>
+                        <item>
+                            <c:path>category</c:path>
+                        </item>
+                        <item>
+                            <c:path>otherHandlersUriStack</c:path>
+                        </item>
+                        <item>
+                            <c:path>channel</c:path>
+                        </item>
+                        <item>
+                            <c:path>subtaskRef</c:path>
+                        </item>
+                        <item>
+                            <c:path>dependentTaskRef</c:path>
+                        </item>
+                        <item>
+                            <c:path>lastRunStartTimestamp</c:path>
+                        </item>
+                        <item>
+                            <c:path>lastRunFinishTimestamp</c:path>
+                        </item>
+                        <item>
+                            <c:path>completionTimestamp</c:path>
+                        </item>
+                    </container>
+                    <container>
+                        <displayOrder>910</displayOrder>
+                        <visibility>hidden</visibility>
+                        <identifier>operation-attributes-progress</identifier>
+                        <display>
+                            <label>Operational attributes (progress)</label>
+                        </display>
+                        <item>
+                            <c:path>progress</c:path>
+                        </item>
+                        <item>
+                            <c:path>expectedTotal</c:path>
+                        </item>
+                        <item>
+                            <c:path>stalledSince</c:path>
+                        </item>
+                    </container>
+                </panel>
             </objectDetailsPage>
         </objectDetails>
         <configurableUserDashboard>
@@ -595,50 +654,51 @@
             </class>
             <class>
                 <name>java.lang.Object</name>
-                    <description>Basic Java operations.</description>
-                    <decision>deny</decision>
-                    <method>
-                        <name>equals</name>
-                        <decision>allow</decision>
-                    </method><method>
-                        <name>hashCode</name>
-                        <decision>allow</decision>
-                    </method>
+                <description>Basic Java operations.</description>
+                <decision>deny</decision>
+                <method>
+                    <name>equals</name>
+                    <decision>allow</decision>
+                </method>
+                <method>
+                    <name>hashCode</name>
+                    <decision>allow</decision>
+                </method>
             </class>
             <class>
                 <name>java.lang.String</name>
-                    <description>String operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
-                    <decision>allow</decision> <!-- Default decision for those methods that are not explicitly enumerated. -->
-                    <method>
-                        <name>execute</name>
-                        <decision>deny</decision>
-                    </method>
+                <description>String operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
+                <decision>allow</decision> <!-- Default decision for those methods that are not explicitly enumerated. -->
+                <method>
+                    <name>execute</name>
+                    <decision>deny</decision>
+                </method>
             </class>
             <class>
                 <name>java.lang.CharSequence</name>
-                    <decision>allow</decision>
+                <decision>allow</decision>
             </class>
             <class>
                 <name>java.lang.Enum</name>
-                    <decision>allow</decision>
+                <decision>allow</decision>
             </class>
             <class>
                 <name>java.util.List</name>
-                    <description>List operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
-                    <decision>allow</decision>
-                    <method>
-                        <name>execute</name>
-                        <decision>deny</decision>
-                    </method>
+                <description>List operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
+                <decision>allow</decision>
+                <method>
+                    <name>execute</name>
+                    <decision>deny</decision>
+                </method>
             </class>
             <class>
                 <name>java.util.ArrayList</name>
-                    <description>List operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
-                    <decision>allow</decision>
-                    <method>
-                        <name>execute</name>
-                        <decision>deny</decision>
-                    </method>
+                <description>List operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
+                <decision>allow</decision>
+                <method>
+                    <name>execute</name>
+                    <decision>deny</decision>
+                </method>
             </class>
             <class>
                 <name>java.util.Map</name>
