@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.trigger;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_TRIGGER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F_TIMESTAMP;
 
+import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +42,12 @@ final class TriggerScanActivityRun
             @NotNull ActivityRunInstantiationContext<TriggerScanWorkDefinition, TriggerScanActivityHandler> context) {
         super(context, "Trigger scan");
         setInstanceReady();
+    }
+
+    @Override
+    public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
+        return super.createReportingCharacteristics()
+                .actionsExecutedStatisticsSupported(true);
     }
 
     @Override
