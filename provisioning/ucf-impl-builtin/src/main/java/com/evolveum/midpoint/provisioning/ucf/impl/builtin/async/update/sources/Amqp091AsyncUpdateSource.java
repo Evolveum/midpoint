@@ -106,7 +106,12 @@ public class Amqp091AsyncUpdateSource implements ActiveAsyncUpdateSource {
                         listener.onMessage(createAsyncUpdateMessage(message), (processed, result) -> {
                             if (processed) {
                                 try {
-                                    activeChannel.basicAck(message.getEnvelope().getDeliveryTag(), false);
+                                    if (activeChannel != null) {
+                                        activeChannel.basicAck(message.getEnvelope().getDeliveryTag(), false);
+                                    } else {
+                                        // TODO
+                                        LOGGER.warn("Couldn't acknowledge message because the channel is gone: {}", message);
+                                    }
                                 } catch (IOException e) {
                                     throw new SystemException("Couldn't acknowledge message processing", e); // TODO
                                 }
@@ -221,7 +226,10 @@ public class Amqp091AsyncUpdateSource implements ActiveAsyncUpdateSource {
                 case RETRY:
                     throw new UnsupportedOperationException("'Retry' error handling strategy is not implemented yet");
                 case SKIP_UPDATE:
-                    activeChannel.basicReject(message.getEnvelope().getDeliveryTag(), false);
+                    if (activeChannel != null) {
+                        // TODO what if it's null?
+                        activeChannel.basicReject(message.getEnvelope().getDeliveryTag(), false);
+                    }
                     break;
                 case STOP_PROCESSING:
                     stopInternal(true);

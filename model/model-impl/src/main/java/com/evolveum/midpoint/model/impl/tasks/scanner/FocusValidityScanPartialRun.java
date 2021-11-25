@@ -15,6 +15,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_A
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -66,6 +68,12 @@ public final class FocusValidityScanPartialRun
         super(context, String.format("Validity scan (%s)", scanScope));
         this.scanScope = scanScope;
         setInstanceReady();
+    }
+
+    @Override
+    public @NotNull ActivityReportingCharacteristics createReportingCharacteristics() {
+        return super.createReportingCharacteristics()
+                .actionsExecutedStatisticsSupported(true);
     }
 
     @Override

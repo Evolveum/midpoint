@@ -34,10 +34,10 @@
             <mapping>
                 <strength>weak</strength>
                 <expression>
-                    <value>http://midpoint.evolveum.com/xml/ns/public/workflow/operation-execution/handler-3</value>
+                    <value>Workflow</value>
                 </expression>
                 <target>
-                    <c:path>handlerUri</c:path>
+                    <c:path>category</c:path>
                 </target>
             </mapping>
         </focusMappings>
@@ -47,10 +47,10 @@
             <mapping>
                 <strength>weak</strength>
                 <expression>
-                    <value>Workflow</value>
+                    <value>http://midpoint.evolveum.com/xml/ns/public/workflow/operation-execution/handler-3</value>
                 </expression>
                 <target>
-                    <c:path>category</c:path>
+                    <c:path>handlerUri</c:path>
                 </target>
             </mapping>
         </focusMappings>

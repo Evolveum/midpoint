@@ -7,9 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.activity.run.buckets;
 
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import static java.util.Objects.requireNonNullElseGet;
 
@@ -324,7 +322,7 @@ public class GetBucketOperation extends BucketOperation {
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
         Set<String> liveWorkers = getLiveWorkers(result);
-        Holder<Integer> reclaimingHolder = new Holder<>();
+        Holder<Integer> reclaimingHolder = new Holder<>(0);
 
         plainRepositoryService.modifyObjectDynamically(TaskType.class, coordinatorTaskOid, null,
                 task -> {
@@ -348,7 +346,11 @@ public class GetBucketOperation extends BucketOperation {
                     return modifications;
                 }, null, result);
 
-        LOGGER.info("Reclaimed {} buckets in {}", reclaimingHolder.getValue(), coordinatorTaskOid);
+        if (reclaimingHolder.getValue() > 0) {
+            LOGGER.info("Reclaimed {} buckets in {}", reclaimingHolder.getValue(), coordinatorTaskOid);
+        } else {
+            LOGGER.debug("Reclaimed no buckets in {}", coordinatorTaskOid);
+        }
     }
 
     private Set<String> getLiveWorkers(OperationResult result) throws SchemaException, ObjectNotFoundException {

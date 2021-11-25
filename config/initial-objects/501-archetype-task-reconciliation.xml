@@ -54,37 +54,52 @@
         <adminGuiConfiguration>
             <objectDetails>
                 <type>c:TaskType</type>
-                <container>
-                    <display>
-                        <label>ReconciliationTask.resourceObjects</label>
-                    </display>
-                    <item>
-                        <c:path>objectRef</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:objectclass</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:kind</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:intent</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:objectQuery</c:path>
-                    </item>
-                </container>
-                <container>
-                    <display>
-                        <label>ReconciliationTask.reconciliationOptions</label>
-                    </display>
-                    <item>
-                        <c:path>extension/mext:workerThreads</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:dryRun</c:path>
-                    </item>
-                </container>
+                <panel>
+                    <identifier>activity</identifier>
+                    <panel>
+                        <identifier>work</identifier>
+                        <container>
+                            <identifier>work-reconciliation</identifier>
+                            <path>activity/work/reconciliation</path>
+                        </container>
+                    </panel>
+                </panel>
+                <panel>
+                    <identifier>taskBasic</identifier>
+                    <container>
+                        <identifier>resource-objects</identifier>
+                        <display>
+                            <label>ReconciliationTask.resourceObjects</label>
+                        </display>
+                        <item>
+                            <c:path>objectRef</c:path>
+                        </item>
+                        <item>
+                            <c:path>extension/mext:objectclass</c:path>
+                        </item>
+                        <item>
+                            <c:path>extension/mext:kind</c:path>
+                        </item>
+                        <item>
+                            <c:path>extension/mext:intent</c:path>
+                        </item>
+                        <item>
+                            <c:path>extension/mext:objectQuery</c:path>
+                        </item>
+                    </container>
+                    <container>
+                        <identifier>reconciliation-options</identifier>
+                        <display>
+                            <label>ReconciliationTask.reconciliationOptions</label>
+                        </display>
+                        <item>
+                            <c:path>extension/mext:workerThreads</c:path>
+                        </item>
+                        <item>
+                            <c:path>extension/mext:dryRun</c:path>
+                        </item>
+                    </container>
+                </panel>
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
@@ -98,10 +113,10 @@
             <mapping>
                 <strength>weak</strength>
                 <expression>
-                    <value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</value>
+                    <value>Reconciliation</value>
                 </expression>
                 <target>
-                    <c:path>handlerUri</c:path>
+                    <c:path>category</c:path>
                 </target>
             </mapping>
         </focusMappings>
@@ -110,12 +125,22 @@
         <focusMappings>
             <mapping>
                 <strength>weak</strength>
+                <source>
+                    <path>activity</path>
+                </source>
                 <expression>
-                    <value>Reconciliation</value>
+                    <value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</value>
                 </expression>
                 <target>
-                    <c:path>category</c:path>
+                    <c:path>handlerUri</c:path>
                 </target>
+                <condition>
+                    <script>
+                        <code>
+                            activity == null
+                        </code>
+                    </script>
+                </condition>
             </mapping>
         </focusMappings>
     </inducement>

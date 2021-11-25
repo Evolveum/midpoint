@@ -27,14 +27,92 @@
             <path>dashboard</path>
             <visibility>hidden</visibility>
         </itemConstraint>
-        <itemConstraint>
-            <path>jasper</path>
-            <visibility>hidden</visibility>
-        </itemConstraint>
+        <adminGuiConfiguration>
+            <objectDetails>
+                <type>ReportType</type>
+                <panel>
+                    <identifier>engine</identifier>
+                    <displayOrder>11</displayOrder>
+                    <display>
+                        <label>Engine</label>
+                        <cssClass>fa fa-microchip</cssClass>
+                        <icon>
+                            <cssClass>fa fa-microchip</cssClass>
+                        </icon>
+                    </display>
+                    <container>
+                        <identifier>engineContainer</identifier>
+                        <display>
+                            <label>Engine</label>
+                        </display>
+                        <item>
+                            <path>objectCollection/condition</path>
+                        </item>
+                        <item>
+                            <path>objectCollection/useOnlyReportView</path>
+                        </item>
+                    </container>
+                    <panelType>formPanel</panelType>
+                    <path>c:objectCollection</path>
+                    <type>c:ObjectCollectionReportEngineConfigurationType</type>
+                </panel>
+                <panel>
+                    <identifier>collection</identifier>
+                    <displayOrder>12</displayOrder>
+                    <display>
+                        <label>Collection</label>
+                        <cssClass>fa fa-filter</cssClass>
+                        <icon>
+                            <cssClass>fa fa-filter</cssClass>
+                        </icon>
+                    </display>
+                    <container>
+                        <path>objectCollection/collection</path>
+                    </container>
+                    <panelType>formPanel</panelType>
+                    <path>c:objectCollection/collection</path>
+                    <type>c:CollectionRefSpecificationType</type>
+                </panel>
+                <panel>
+                    <identifier>view</identifier>
+                    <display>
+                        <label>View</label>
+                        <cssClass>fa fa-eye</cssClass>
+                        <icon>
+                            <cssClass>fa fa-eye</cssClass>
+                        </icon>
+                    </display>
+                    <panelType>reportCollectionView</panelType>
+                </panel>
+                <panel>
+                    <identifier>parameters</identifier>
+                    <display>
+                        <label>Parameter</label>
+                        <cssClass>fa fa-th</cssClass>
+                        <icon>
+                            <cssClass>fa fa-th</cssClass>
+                        </icon>
+                    </display>
+                    <panelType>reportCollectionParameter</panelType>
+                </panel>
+                <panel>
+                    <identifier>subreport</identifier>
+                    <display>
+                        <label>Subreport</label>
+                        <cssClass>fa fa-th</cssClass>
+                        <icon>
+                            <cssClass>fa fa-th</cssClass>
+                        </icon>
+                    </display>
+                    <panelType>reportCollectionSubreport</panelType>
+                </panel>
+            </objectDetails>
+        </adminGuiConfiguration>
     </archetypePolicy>
     <assignment>
         <assignmentRelation>
             <holderType>ReportType</holderType>
         </assignmentRelation>
     </assignment>
+    <superArchetypeRef oid="00000000-0000-0000-0000-000000000172" type="c:ArchetypeType"/>
 </archetype>
