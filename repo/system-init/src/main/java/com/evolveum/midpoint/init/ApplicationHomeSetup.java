@@ -72,7 +72,7 @@ class ApplicationHomeSetup {
             if (checkDirectoryExistence(directory)) {
                 continue;
             }
-            LOGGER.warn("Missing midPoint home directory '{}'. Creating.", directory);
+            LOGGER.info("Missing midPoint home directory '{}'. Creating.", directory);
             createDir(directory);
         }
     }
@@ -94,7 +94,7 @@ class ApplicationHomeSetup {
         }
 
         if (d.isDirectory()) {
-            LOGGER.info("Directory " + dir + " already exists. Reusing it.");
+            LOGGER.debug("Directory " + dir + " already exists. Reusing it.");
             return true;
         } else {
             return false;

@@ -195,7 +195,7 @@ public class StartupConfiguration implements MidpointConfiguration {
     }
 
     private void extractConfigurationFile(File configFile) {
-        LOGGER.warn("Configuration file {} does not exists. Need to do extraction ...", configFile);
+        LOGGER.info("Configuration file {} does not exists, the default one will be extracted.", configFile);
         boolean success = ClassPathUtil.extractFileFromClassPath(this.getConfigFilename(), configFile.getPath());
         if (!success || !configFile.exists()) {
             String message = "Unable to extract configuration file " + this.getConfigFilename() + " from classpath";
