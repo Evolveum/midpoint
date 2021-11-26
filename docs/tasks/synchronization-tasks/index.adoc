@@ -37,7 +37,7 @@ The synchronization task needs to know _what_ it has to process:
 
 * What _resource_ to synchronize.
 * What _objects_ on the resource to synchronize. These objects are specified using their
-xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[object class, kind and intent].
+xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[object class, kind, and intent].
 
 === MidPoint 4.4 and After
 
