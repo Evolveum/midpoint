@@ -1,5 +1,5 @@
-MidPoint 4.4 Development Branch
--------------------------------
+MidPoint 4.4 "Tesla"
+--------------------
 
 General information:
 

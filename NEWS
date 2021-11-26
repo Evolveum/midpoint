@@ -1,12 +1,14 @@
-midPoint 4.3 "Faraday"
+midPoint 4.4 "Tesla"
 ----------------------
 
-Release 4.3 is a thirty-fourth midPoint release code-named Faraday.
- The 4.3 release brings performance improvements, user interface and diagnostic improvements and major internal improvements.
+Release 4.4 is thirty-seventh midPoint release code-named Tesla.
+The 4.4 release brings major performance and scalability improvements implemented in scope of
+midScale project. In addition to that there are significant user experience and reporting
+improvements.
 
-Release date: 9th April 2021
-Release type: Feature release
-End of support: 9th April 2022
+Release date: 26th November 2021
+Release type: Long-term support release
+End of support: 26th November 2024
 
 Please see the release notes for detailed list of changes:
-https://docs.evolveum.com/midpoint/release/4.3/
+https://docs.evolveum.com/midpoint/release/4.4/

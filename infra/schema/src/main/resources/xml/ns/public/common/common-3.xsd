@@ -37,7 +37,7 @@
             <a href="https://docs.evolveum.com/midpoint/reference/schema/">https://docs.evolveum.com/midpoint/reference/schema/</a>
             for more details.
 
-            <p>Version: 3.9</p>
+            <p>Version: 4.4</p>
 
             <p>Recommended namespace prefix: (default), c</p>
         </xsd:documentation>
