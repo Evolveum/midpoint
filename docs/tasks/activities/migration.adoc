@@ -3,6 +3,9 @@
 :page-since: "4.4"
 :page-upkeep-status: green
 
+TIP: *TL;DR* There is xref:/midpoint/tools/studio/usage/#upgrade-task-objects-to-use-activity-midpoint-4-4[a migration tool]
+available. Besides, be sure to re-import all the tasks.
+
 == Legacy Task Definition Style
 
 In midPoint 4.3 and before, the definition of the _work_ done by a task was based on the following items:
