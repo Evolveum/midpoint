@@ -178,11 +178,11 @@ Here midPoint issues a search operation against the resource, taking into accoun
 and `query`. All returned resource objects are processed - in a way very similar to the Import activity.
 The differences are:
 
-* `#reconciliation` channel value is used instead of the `#import` one;
-* internal changes (deltas) used are different: "add" for import, no delta for reconciliationfootnote:[The real effects
-of this difference are not clear yet. During import, all the accounts seem to be "just created" (regardless of reality).
-During reconciliation, all the accounts seem to be "already existing" (again, regardless of reality). So what really matters
-- in both kinds of tasks - is if the corresponding focal objects exist in the repository or not. At least for now.].
+1. `#reconciliation` channel value is used instead of the `#import` one;
+2. internal changes (deltas) used are different: "add" for import, no delta for reconciliation. footnote:[The real effects
+ of this difference are not clear yet. During import, all the accounts seem to be "just created" (regardless of reality).
+ During reconciliation, all the accounts seem to be "already existing" (again, regardless of reality). So what really matters
+ - in both kinds of tasks - is if the corresponding focal objects exist in the repository or not. At least for now.]
 
 === Remaining Shadows Processing
 
