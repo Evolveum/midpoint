@@ -25,6 +25,8 @@ xref:../../resource-object-set-specification/[here].
 
 == Some Examples
 
+NOTE: These examples use the new form of task/activity configuration that is available since version 4.4.
+
 This task imports all objects of `inetOrgPerson` class on resource `ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2`.
 Note that here we specify the object class directly by its name.
 
@@ -160,8 +162,9 @@ Now let us describe each of these activities in detail.
 === Operation Completion
 
 Here midPoint scans for shadows on the resource that have any pending operations and tries to finish them.
-The operations are executed even if their retry time has not come yet.footnote:[Technically, the operation
-invoked on the shadows found is `provisioning.refreshShadow` with the option of `forceRetry`.]
+The operations are executed even if their retry time has not come yet.footnote:[As far as implementation
+is concerned, the operation invoked on the shadows found is `provisioning.refreshShadow` with the option
+of `forceRetry`.]
 
 [NOTE]
 ====
@@ -176,10 +179,10 @@ and `query`. All returned resource objects are processed - in a way very similar
 The differences are:
 
 * `#reconciliation` channel value is used instead of the `#import` one;
-* internal changes (deltas) used are different: "add" for import, no delta for reconciliation.footnote:[The real effects
+* internal changes (deltas) used are different: "add" for import, no delta for reconciliationfootnote:[The real effects
 of this difference are not clear yet. During import, all the accounts seem to be "just created" (regardless of reality).
 During reconciliation, all the accounts seem to be "already existing" (again, regardless of reality). So what really matters
-- in both kinds of tasks - is if the corresponding focal objects exist in the repository or not. At least for now.]
+- in both kinds of tasks - is if the corresponding focal objects exist in the repository or not. At least for now.].
 
 === Remaining Shadows Processing
 
@@ -189,7 +192,7 @@ before, but do not exist on the resource now.
 A special query is issued against all _shadows_ (i.e. against the repository), looking for the ones fulfilling
 the following conditions:
 
-1. `resourceRef` and `objectclass` match the values derived from the `resourceObjects` part of the work definition,footnote:[Technically,
+1. `resourceRef` and `objectclass` match the values derived from the `resourceObjects` part of the work definition,footnote:[In fact,
 kind and intent are checked as well. However, in 4.4 they are not checked during query execution, but right before processing a shadow.
 If they do not match, the shadow processing is skipped, so such shadows are visible in activity item processing statistics.]
 2. the shadow's last synchronization timestamp (usually `fullSynchronizationTimestamp`) is either null or is older than
