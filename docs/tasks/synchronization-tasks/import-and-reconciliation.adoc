@@ -18,10 +18,10 @@ by clicking the "Import" menu item pages displaying resource objects (accounts, 
 == Basic Configuration
 
 The core of the configuration of both import and reconciliation activity is the specification of what
-xref:../../resource-object-set-specification/[resource objects] we want to process. We need to know
+xref:/midpoint/reference/tasks/activities/resource-object-set-specification/[resource objects] we want to process. We need to know
 _both_ `resourceRef` and the object class. The latter can be specified either explicitly by the
 object class name, or implicitly by kind-intent pair, or using both, as described
-xref:../../resource-object-set-specification/[here].
+xref:/midpoint/reference/tasks/activities/resource-object-set-specification/[here].
 
 == Some Examples
 
