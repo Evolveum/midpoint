@@ -8,9 +8,9 @@
 :page-upkeep-status: orange
 :page-upkeep-note: is this s right concept to describe interfaces?
 
-*Version:* 4.0 +
+*Version:* 4.4 +
 *Status:* Public +
-*Stability: *STABLE +
+*Stability:* STABLE +
 *Platform:* Java +
 *Dependencies:* xref:/midpoint/reference/schema/[Data Model], Common schema +
 *Responsible person:* Radovan Semancik
@@ -35,6 +35,11 @@ See xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface] for d
 [%autowidth]
 |===
 | Version | Date | Description | Change Author
+
+| 4.4
+| November 2021
+| Small formal changes. However, changed behavior due to Prism API changes.
+| Radovan Semancik et al.
 
 | 4.0
 | August 2019
