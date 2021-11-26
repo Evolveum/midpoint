@@ -470,10 +470,9 @@ As an example, let us consider a task that imports first from resource A, then f
 
 === Migration Using MidPoint Studio
 
-MidPoint Studio offers an assistance to the task configuration migration: a tool that
-attempts the migration for you.
-
-#TODO#
+MidPoint Studio offers an assistance to the task configuration migration:
+xref:/midpoint/tools/studio/usage/#upgrade-task-objects-to-use-activity-midpoint-4-4[a tool] that
+does the migration for you. (Be sure to check the task after migration, though.)
 
 == Migration of Run-Time Data
 
