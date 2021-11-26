@@ -10,7 +10,7 @@
 :page-upkeep-status: orange
 :page-toc: top
 
-*Version:* 4.3 +
+*Version:* 4.4 +
 *Status:* Public +
 *Stability:* [.green]#STABLE#, only backward-compatible changes expected +
 *Platform:* RESTful interface +
