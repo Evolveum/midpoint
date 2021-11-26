@@ -60,15 +60,19 @@ or reconciliation activity:
 
 === Live Synchronization
 
-#TODO#
+For live synchronization, the object class is what is important. Currently, no kind/intent filtering is done,
+nor custom query is supported.
 
-=== Asynchronous Update
+The object class is determined in a way similar to the import and reconciliation case:
 
-#TODO#
+1. If only `objectclass` is specified (i.e. both `kind` and `intent` are not present), then it is used.
+2. If `kind` is specified (with or without object class), then the object class is found by looking at `kind` and `intent` values.
+3. If `kind` is not specified but `objectclass` and `intent` are, then the `objectclass` is used.
+4. If none of them is specified, all object classes are processed. (If the connector supports this mode of operation.)
 
-=== Shadow Refresh
+=== Asynchronous Update (Experimental Functionality)
 
-#TODO#
+Only the `resourceRef` is used. All other parameters are currently ignored.
 
 == Query Application Mode
 

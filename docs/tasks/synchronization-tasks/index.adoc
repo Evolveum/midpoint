@@ -29,7 +29,7 @@ Main synchronization tasks are:
 
 * xref:import-and-reconciliation.adoc[import and reconciliation],
 * xref:live-synchronization.adoc[live synchronization],
-* asynchronous update (experimental).
+* xref:asynchronous-update.adoc[asynchronous update] (experimental).
 
 == Target Specification
 

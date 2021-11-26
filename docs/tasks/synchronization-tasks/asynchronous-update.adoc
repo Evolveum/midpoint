@@ -1,6 +1,6 @@
 = Asynchronous Update
 :toc:
-:experimental:
+:page-experimental: true
 
 The asynchronous update activity/task processes a stream of so-called _change events_ coming from a resource.
 These events represent changes related to _resource objects_: their creation, modification, or deletion.
@@ -13,8 +13,7 @@ i.e. the transfer is driven by the resource, not by midPoint.
 == Basic Configuration
 
 The heart of the configuration is the specification of what xref:/midpoint/reference/tasks/activities/resource-object-set-specification/[resource objects]
-we want to process updates for. The `resourceRef` is obligatory, all the other properties are optional. The `query` property
-of the object set specification is not applicable for Asynchronous update tasks.
+we want to process updates for. The `resourceRef` is obligatory, all the other properties are ignored (for now).
 
 === An example
 
