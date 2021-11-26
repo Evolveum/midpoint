@@ -98,11 +98,11 @@ This is done in system configuration object, for example by including the follow
 . Re-index existing objects.
 This can be done by _About -> Reindex repository objects_ action.
 
-image::reindex.PNG[]
+image::images/reindex.PNG[]
 
 The `m_object_text_info` table content (Generic repo) will then look like this:
 
-image::IMG_24022017_180501_0.png[]
+image::images/IMG_24022017_180501_0.png[]
 
 The same result (only with different colum names) can be achived by running the following SQL in the Native repository:
 
@@ -115,7 +115,7 @@ select oid, fulltextinfo from m_object
 
 If the full text search feature is enabled in the system configuration, it can be used from the GUI.
 
-image::image2017-2-28-10-46-42.png[]
+image::images/image2017-2-28-10-46-42.png[]
 
 == Limitations
 
