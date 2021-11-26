@@ -38,7 +38,7 @@ As of midPoint 4.4, the following items are supported (MT means "Supports multi-
 | What xref:../resource-object-set-specification/[resource objects] to reconcile.
 | This is obligatory parameter.
 
-| `asynchronousUpdate`
+| xref:/midpoint/reference/tasks/synchronization-tasks/asynchronous-update/[`asynchronousUpdate`]
 | Processes asynchronous updates for given resource objects (EXPERIMENTAL).
 | Simple
 | Y
@@ -47,7 +47,7 @@ As of midPoint 4.4, the following items are supported (MT means "Supports multi-
 | What xref:../resource-object-set-specification/[resource objects] to receive updates for. (Not all configuration items are supported - TODO.)
 | This is obligatory parameter.
 
-.3+| xref:../synchronization-tasks/live-synchronization/[`liveSynchronization`]
+.3+| xref:/midpoint/reference/tasks/synchronization-tasks/live-synchronization/[`liveSynchronization`]
 .3+| Processes live synchronization events for give resource objects.
 .3+| Simple
 .3+| Y
@@ -56,10 +56,10 @@ As of midPoint 4.4, the following items are supported (MT means "Supports multi-
 | What xref:../resource-object-set-specification/[resource objects] to synchronize.
 | This is obligatory parameter.
 | `batchSize`
-| See xref:../synchronization-tasks/live-synchronization/[].
+| See xref:/midpoint/reference/tasks/synchronization-tasks/live-synchronization/[].
 | 0
 | `updateLiveSyncTokenInDryRun`
-| See xref:../synchronization-tasks/live-synchronization/[].
+| See xref:/midpoint/reference/tasks/synchronization-tasks/live-synchronization/[].
 | `false`
 
 | `cleanup`
