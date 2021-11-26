@@ -8,7 +8,7 @@ on midPoint objects (and propagated to other resources, if needed).
 
 == Basic Configuration
 
-The heart of the configuration is the specification of what xref:../../resource-object-set-specification/[resource objects]
+The heart of the configuration is the specification of what xref:/midpoint/reference/tasks/activities/resource-object-set-specification/[resource objects]
 we want to synchronize. The `resourceRef` is obligatory, all the other properties are optional. However, usually
 the object class is specified as well - either directly, or indirectly via the kind-intent pair. The `query` property
 of the object set specification is not applicable for Live synchronization tasks.
