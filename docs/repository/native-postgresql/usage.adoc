@@ -17,7 +17,7 @@ See this xref:/midpoint/reference/repository/configuration/[Repository Configura
 * Main difference in `config.xml` is to use `<type>generic</type>` instead of
 `<repositoryServiceFactoryClass>` element (which does not work with new repo).
 Definitely don't try to use both `<repositoryServiceFactoryClass>` and `<type>` simultaneously!
-* For xref:../../native-audit/[SQL audit] replace old repository value in `auditServiceFactoryClass`
+* For the xref:../../native-audit/[SQL audit] replace old repository value in `auditServiceFactoryClass`
 with `com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory`.
 Audit factory class for SQL auditing must match the used repository.
 
@@ -135,12 +135,16 @@ wget -q https://raw.githubusercontent.com/Evolveum/midpoint/master/config/sql/na
 psql -h localhost midpoint midpoint -f postgres-new-quartz.sql
 ----
 
-== Example `config.xml`
+== Example config.xml
 
-Example `config.xml` is https://github.com/virgo47/midpoint-vagrantboxes/blob/master/vagrant-midpoint-db-pg-new-repo/config.xml[here].
-The main difference is using the `type` element instead of `repositoryServiceFactoryClass` which does not work for new repository anymore.
-Set the value of `type` element to `native`, values `sqale` or `scale` are also supported.
-Do not use `sql` which indicates old repo!
+One example is the configuration file `config-native.xml` which is included in the distribution under `doc/config`.
+You can also see it online https://github.com/Evolveum/midpoint/blob/master/config/config-native.xml[here].
+If you use this example, don't forget to rename it to `config.xml` after dropping it to `midpoint.home`.
+
+Another example is https://github.com/virgo47/midpoint-vagrantboxes/blob/master/vagrant-midpoint-db-pg-new-repo/config.xml[here].
+The main difference when comparing it to the old repository is using the `type` element instead of `repositoryServiceFactoryClass` which does not work for new repository anymore.
+Set the value of `type` element to `native` (values `sqale` or `scale` are also supported).
+*Do not* use `sql` which indicates old repo!
 
 Native repository comes with native SQL audit, so we need to change the audit factory class in
 `auditServiceFactoryClass` element from old repository value containing
@@ -154,6 +158,7 @@ Consult xref:/midpoint/reference/repository/configuration/[Repository Configurat
 The setup for the new repo is also available in the `config.xml` automatically generated
 when the midPoint starts for the first time - it's just commented out.
 Stop the midPoint, remove the created H2 database files, adjust the config file and start the midPoint again.
+However, using the provided `config-native.xml` from `doc/config` is probably easier, just rename it properly.
 
 Of course, you still need the installed and prepared PostgreSQL database!
 ====
