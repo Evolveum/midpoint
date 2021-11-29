@@ -6,11 +6,25 @@
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2013-12-06T14:45:14.514+01:00
 :page-upkeep-status: orange
+:page-toc: top
 
 System Configuration object is a midPoint object that represents global system configuration applicable for the system itself, logging, profiling, all the resources, tasks, processes and all other aspects of the system.
 There is usually just one system configuration object.
-It has fixed xref:/midpoint/devel/prism/concepts/object-identifier/[OID]`00000000-0000-0000-0000-000000000001`.
+It has a fixed xref:/midpoint/devel/prism/concepts/object-identifier/[OID] `00000000-0000-0000-0000-000000000001`.
 
+== How to change System Configuration
+
+The System Configuration can be modified in a couple of ways:
+
+* In GUI choose *System* in the main menu and then the relevant section.
+This supports many common configuration changes, but not all.
+
+* In GUI choose *Repository Objects*/*All Objects* in the main menu - *SystemConfiguration* object appears in the list.
+Click on it, edit the XML as needed and then click the *Save* button to apply the changes.
+
+* Use xref:/midpoint/tools/studio/[MidPoint Studio] - download the current system configuration first, then change it and upload it back.
+
+GUI related changes require logout/login of the user.
 
 == Example
 
