@@ -146,14 +146,133 @@ This also makes the inspection of the values in the columns easier.
 
 == Audit tables
 
-Audit logs are stored in the tables structured as described below.
+Audit logs are stored in the tables structured as shown below.
 You can find current schema script for audit in link:https://github.com/Evolveum/midpoint/blob/master/config/sql/native-new/postgres-new-audit.sql[git],
 or in the distribution packages in the file `doc/config/sql/native-new/postgres-new-audit.sql`.
+
+.Native PostgreSQL audit tables
+image::images/native-tables-audit.png[]
+
+`ma_audit_event` is the main table representing each audit event.
+See xref:/midpoint/reference/security/audit/#audit-record-structure[Audit record structure]
+for detailed logical descritiption of the events.
+
+* Each record can have multiple deltas associated with it, these are stored in `ma_audit_delta`.
+* References are stored in `ma_audit_ref` table, multiple references for the same `recordId`
+can be stored, even under the same `name`.
+Conceptually, this stores multimap (name -> references) for each record.
+* Audit event `changedItem` and `resourceOid` are stored as arrays of `TEXT` directly in `ma_audit_event` table.
+* Item `property`, which is a multimap (name -> strings), is stored in JSONB column directly in `ma_audit_event` table.
+* Custom properties (`customColumnProperty`) are stored each in dedicated column of `TEXT` type.
+See section link:#_custom_column[Custom columns] below for details.
+
+=== Upgrading
+
 // TODO
 
 == Partitioning
 
 // TODO
+
+== Custom column
+
+[WARNING]
+.EXPERIMENTAL
+====
+This feature is *xref:/midpoint/versioning/experimental/[experimental]*.
+It means that it is not intended for production use.
+The feature is not finished.
+It is not stable.
+The implementation may contain bugs, the configuration may change at any moment without any warning and it may not work at all.
+Use at your own risk.
+This feature is not covered by midPoint support.
+In case that you are interested in xref:/support/subscription-sponsoring/[supporting] development of this feature, please consider purchasing link:https://evolveum.com/services/professional-support/[midPoint Platform subscription].
+
+It would be more flexible to have an `extension` container in the audit event record.
+Current implementation requires DB changes for each custom property and allows only a single string as value for each property.
+====
+
+When we need some other information in the audit table, we can add custom columns to the table in the database.
+We can use new column to tag some special audit records for reporting.
+
+Custom columns is configured in three steps:
+
+. Creating the `TEXT` columns in `ma_audit_event` table in the database using SQL command.
+
+. Adding the configuration for each custom column to `config.xml` file in the xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory].
+
+. Adding the configuration how the audit event record property is created to the xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object].
+
+.1. Creating the column in `ma_audit_event`:
+[source,sql]
+----
+ALTER TABLE ma_audit_event ADD custFoo TEXT;
+
+CREATE INDEX ma_audit_event_custFoo_idx ON ma_audit_event (custFoo);
+----
+
+If the search by the property is required (which is likely), the index is needed.
+In order to avoid conflicting column names, it is recommended to name the columns as 'custXXX' where `XXX `represents the name of the custom property.
+
+.2. Adding the configuration in `config.xml` file:
+[source,xml]
+----
+<configuration>
+    <midpoint>
+        ...
+        <audit>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
+                <customColumn>
+                    <columnName>custFoo</columnName>
+                    <eventRecordPropertyName>foo</eventRecordPropertyName>
+                </customColumn>
+            </auditService>
+        </audit>
+        ...
+    </midpoint>
+</configuration>
+----
+
+Multiple `customColumn` elements can be added.
+After adding of this configuration is needed restart of midpoint.
+
+While not recommended, it is possible to let midPoint create the missing custom columns - if the connection allows it.
+Just add the following line inside the `auditService` element:
+[source,xml]
+----
+<createMissingCustomColumns>true</createMissingCustomColumns>
+----
+
+This creates the missing column, but it *does not create the index*.
+It can be useful in experimental environments, but definitely not recommended for production ones, including UAT, etc.
+
+.3. Setting up the custom property initialization - modify the xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object]:
+[source,xml]
+----
+<systemConfiguration>
+    ...
+    <audit>
+        <eventRecording>
+            <property>
+                <name>foo</name>
+                <expression>
+                    <path>$target/extension/foo</path>
+                </expression>
+            </property>
+        </eventRecording>
+    </audit>
+    ...
+</systemConfiguration>
+----
+
+We can use a script in expression for obtaining some special information.
+In the script we can use variable `target`, which represent target object of audit record, and `auditRecord`, which represent audit record itself (type `AuditEventRecord`).
+
+An example with custom column is available link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/audit[in the samples].
 
 == Examples
 
