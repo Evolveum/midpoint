@@ -16,7 +16,6 @@ also known as `midpoint.home`.
 
 See xref:/midpoint/reference/security/audit/[Auditing] for more general information about auditing
 and some other configuration options, not specific for the SQL trail implementation.
-These options, often realized via *SystemConfiguration* object customizations, are not covered in this document.
 
 SQL audit trail for the Native Repository is enabled in `audit` configuration element by
 adding `auditService` element containing `auditServiceFactoryClass` element with the value
@@ -164,7 +163,7 @@ Conceptually, this stores multimap (name -> references) for each record.
 * Audit event `changedItem` and `resourceOid` are stored as arrays of `TEXT` directly in `ma_audit_event` table.
 * Item `property`, which is a multimap (name -> strings), is stored in JSONB column directly in `ma_audit_event` table.
 * Custom properties (`customColumnProperty`) are stored each in dedicated column of `TEXT` type.
-See section link:#_custom_column[Custom columns] below for details.
+See section link:#custom-column[Custom columns] below for details.
 
 === Upgrading
 

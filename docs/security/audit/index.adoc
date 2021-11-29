@@ -449,78 +449,14 @@ In case that you are interested in xref:/support/subscription-sponsoring/[suppor
 This feature is available only in midPoint 4.2 and later.
 ====
 
-When we need some other information in the audit table, we can add custom columns to the table in the database.
-We can use new column to tag some special audit records for reporting.
+When we need some other information in the audit table, we can store custom properties in additional custom columns in the database.
+This configuration is useful only when SQL audit trail is used.
 
-Custom column have three parts of configuration:
+* If the xref:/midpoint/reference/repository/native-postgresql/[Native PostgreSQL Repository] is used,
+see xref:/midpoint/reference/repository/native-audit/#custom-column[Custom Column] in Native SQL Audit Trail.
 
-. Creating column of `m_audit_event` table in database using SQL command.
-
-. Adding of configuration for every custom column to `config.xml` file in Midpoint home directory.
-
-. Adding of configuration of details how an audit event record property is created to system configuration file.
-
-.1.Creating column of m_audit_event (H2 database)
-[source,sql]
-----
-ALTER TABLE m_audit_event ADD custFoo VARCHAR(255);
-
-CREATE INDEX iAuditEventCustFoo
-    ON m_audit_event (custFoo);
-----
-
-When we want search by our column, we add index for it.
-Please for name of our new column use 'custXXX' where XXX represents your name.
-It is important in order to we obviate conflict with already exist columns.
-
-.2. Adding of configuration for every custom column to config.xml file
-[source]
-----
-<configuration>
-    <midpoint>
-        ...
-        <audit>
-            <auditService>
-                <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
-            </auditService>
-            <auditService>
-                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
-                <customColumn>
-                    <columnName>custFoo</columnName>
-                    <eventRecordPropertyName>foo</eventRecordPropertyName>
-                </customColumn>
-            </auditService>
-        </audit>
-        ...
-    </midpoint>
-</configuration>
-----
-
-After adding of this configuration is needed restart of midpoint.
-
-.3. Details how an audit event record property is created
-[source,xml]
-----
-<systemConfiguration>
-    ...
-    <audit>
-        <eventRecording>
-            <property>
-                <name>foo</name>
-                <expression>
-                    <path>$target/extension/foo</path>
-                </expression>
-            </property>
-        </eventRecording>
-    </audit>
-    ...
-</systemConfiguration>
-----
-
-We can use a script in expression for obtaining some special information.
-In the script we can use variable `target`, which represent target object of audit record, and `auditRecord`, which represent audit record itself (type `AuditEventRecord`).
-
-Next example about custom column you can see on link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/audit[https://github.com/Evolveum/midpoint-samples/tree/master/samples/audit].
+* If the deprcated xref:/midpoint/reference/repository/generic/[Generic SQL Repository] is used,
+see xref:/midpoint/reference/repository/generic/generic-audit/#custom-column[Custom Column] in Generic SQL Audit Trail.
 
 == Auditing of create/termination session event for channels rest and actuator
 
