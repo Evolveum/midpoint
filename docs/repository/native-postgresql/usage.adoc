@@ -170,6 +170,13 @@ It always runs only the missing parts of the upgrade process.
 
 // TODO details
 
+////
+TODO: If different upgrade is needed for LTS version I'd start with apply_change using forced=true for LTS branch.
+Each change used in LTS must have some "if not applied yet" check in the main upgrade script.
+Alternatively m_global_metadata could be used to note what LTS changes were made.
+Generally, minimal (if any) DB changes are expected on the LTS DB.
+////
+
 == See also
 
 * xref:/midpoint/reference/repository/repository-database-support/[Repository Database Support]
