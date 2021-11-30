@@ -9,55 +9,83 @@ package com.evolveum.midpoint.provisioning.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.AcknowledgementSink;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
- * TODO
+ * Represents a synchronization change event (obtained typically by live synchronization or asynchronous update)
+ * that needs to be processed.
  *
  * It is comparable on the sequential number.
  */
 public interface SynchronizationEvent extends AcknowledgementSink, DebugDumpable, Comparable<SynchronizationEvent> {
 
     /**
+     * The description of the change.
+     *
      * BEWARE! Can be null for erroneous changes that failed in such a crude way that no repo shadow was created.
      */
     ResourceObjectShadowChangeDescription getChangeDescription();
 
     /**
      * Sequential number of this event.
+     *
+     * It is unique at least in the context of the current synchronization operation
+     * ({@link ProvisioningService#synchronize(ResourceShadowDiscriminator, LiveSyncOptions, LiveSyncTokenStorage, LiveSyncEventHandler, Task, OperationResult)}
+     * or {@link ProvisioningService#processAsynchronousUpdates(ResourceShadowDiscriminator, AsyncUpdateEventHandler, Task, OperationResult)}).
      */
     int getSequentialNumber();
 
     /**
-     * Value against which the events are to be ordered: events A and B having A.sequentialNumber
-     * less than B.sequentialNumber must be processed in that order if their correlation value is the
+     * Value against which the events are to be ordered: events A and B having `A.sequentialNumber`
+     * less than `B.sequentialNumber` must be processed in that order (A then B) if their correlation value is the
      * same. (Which means that they refer to the same resource object.)
      */
     Object getCorrelationValue();
 
     /**
-     * Is the event ready to be processed?
+     * Is the event ready to be processed? Events can be incomplete e.g. in the case of errors during pre-processing.
      *
-     * TODO
+     * TODO reconsider the name
      */
     boolean isComplete();
 
     /**
-     * Is the event "empty", and therefore should be skipped?
+     * Is the event irrelevant, and therefore should be skipped?
      * This means no error has occurred, but simply there is nothing to do.
      * Like a deletion of already-deleted account.
      */
     boolean isNotApplicable();
 
+    /**
+     * Has the event encountered an error during pre-processing?
+     * Such events should be reported but not processed in the regular way.
+     */
     boolean isError();
 
-    // TODO!!!
+    /**
+     * Error message related to the pre-processing of this event.
+     * Should be non-null only if {@link #isError()} is `true`.
+     *
+     * Temporary feature. Most probably it will be replaced by something more serious.
+     */
+    @Experimental
     String getErrorMessage();
 
-    // TODO
+    /**
+     * OID of the shadow corresponding to the resource object in question.
+     * Should be non-null if the change was pre-processed correctly.
+     */
     String getShadowOid();
 
-    // TODO
+    /**
+     * The resulting combination of resource object and its repo shadow.
+     *
+     * TODO clarify this description; see `ShadowedChange.shadowedObject`
+     */
     PrismObject<ShadowType> getShadowedObject();
 }

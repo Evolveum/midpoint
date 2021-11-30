@@ -17,24 +17,19 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
+/**
+ * Specialization of standard {@link SearchSpecification} dealing with resource objects search.
+ *
+ * (We could maybe delete this class in the future.)
+ */
 public class ResourceSearchSpecification extends SearchSpecification<ShadowType> {
 
-    @NotNull private final ResourceObjectClassSpecification resourceObjectClassSpecification;
-
-    ResourceSearchSpecification(@NotNull ResourceObjectClassSpecification resourceObjectClassSpecification,
-            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options) {
+    ResourceSearchSpecification(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options) {
         super(ShadowType.class, query, options, null);
-        this.resourceObjectClassSpecification = resourceObjectClassSpecification;
     }
 
     private ResourceSearchSpecification(@NotNull ResourceSearchSpecification prototype) {
         super(prototype);
-        this.resourceObjectClassSpecification = prototype.resourceObjectClassSpecification; // Not cloning for now FIXME
-    }
-
-    // FIXME problematic: usually we need TargetInfo in initializeExecution, i.e. before search specification is ready
-    public @NotNull ResourceObjectClassSpecification getTargetInfo() {
-        return resourceObjectClassSpecification;
     }
 
     @Override

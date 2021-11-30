@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
-import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClassSpecification;
+import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClass;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -36,10 +36,10 @@ public class ReconciliationResult implements DebugDumpable {
             @NotNull ActivityRunResult executionResult) {
         ReconciliationResult result = new ReconciliationResult();
         result.runResult = executionResult.createTaskRunResult();
-        ResourceObjectClassSpecification resourceObjectClassSpecification = findTargetInfo(execution);
-        if (resourceObjectClassSpecification != null) {
-            result.resource = resourceObjectClassSpecification.resource.asPrismObject();
-            result.objectclassDefinition = resourceObjectClassSpecification.getObjectClassDefinition();
+        ResourceObjectClass resourceObjectClass = findResourceObjectClass(execution);
+        if (resourceObjectClass != null) {
+            result.resource = resourceObjectClass.resource.asPrismObject();
+            result.objectclassDefinition = resourceObjectClass.getObjectClassDefinition();
         }
         OperationCompletionActivityRun operationCompletionExecution = execution.getOperationCompletionExecution();
         if (operationCompletionExecution != null) {
@@ -57,10 +57,10 @@ public class ReconciliationResult implements DebugDumpable {
         return result;
     }
 
-    private static ResourceObjectClassSpecification findTargetInfo(ReconciliationActivityRun run) {
+    private static ResourceObjectClass findResourceObjectClass(ReconciliationActivityRun run) {
         for (PartialReconciliationActivityRun partialActivityRun : run.getPartialActivityRunsList()) {
-            if (partialActivityRun.objectClassSpec != null) {
-                return partialActivityRun.objectClassSpec;
+            if (partialActivityRun.resourceObjectClass != null) {
+                return partialActivityRun.resourceObjectClass;
             }
         }
         return null;

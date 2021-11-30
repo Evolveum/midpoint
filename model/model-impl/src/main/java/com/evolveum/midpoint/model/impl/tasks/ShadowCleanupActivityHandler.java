@@ -14,13 +14,13 @@ import java.util.Date;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClass;
 import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClassSpecification;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -109,7 +109,7 @@ public class ShadowCleanupActivityHandler
     public static final class MyRun extends
             SearchBasedActivityRun<ShadowType, MyWorkDefinition, ShadowCleanupActivityHandler, AbstractActivityWorkStateType> {
 
-        private ResourceObjectClassSpecification resourceObjectClassSpecification;
+        private ResourceObjectClass resourceObjectClass;
 
         MyRun(@NotNull ActivityRunInstantiationContext<MyWorkDefinition, ShadowCleanupActivityHandler> context,
                 String shortName) {
@@ -130,16 +130,14 @@ public class ShadowCleanupActivityHandler
             ResourceObjectSetType resourceObjectSet = getWorkDefinition().getResourceObjectSetSpecification();
             RunningTask runningTask = getRunningTask();
 
-            resourceObjectClassSpecification = getActivityHandler().syncTaskHelper
-                    .createObjectClassSpec(resourceObjectSet, runningTask, result);
-
-            resourceObjectClassSpecification.checkNotInMaintenance();
-            resourceObjectClassSpecification.checkResourceUp();
+            resourceObjectClass = getActivityHandler().syncTaskHelper
+                    .getResourceObjectClassCheckingMaintenance(resourceObjectSet, runningTask, result);
+            resourceObjectClass.checkResourceUp();
         }
 
         @Override
         protected @NotNull ObjectReferenceType getDesiredTaskObjectRef() {
-            return resourceObjectClassSpecification.getResourceRef();
+            return resourceObjectClass.getResourceRef();
         }
 
         @Override
@@ -178,7 +176,7 @@ public class ShadowCleanupActivityHandler
         private void deleteShadow(PrismObject<ShadowType> shadow, Task workerTask, OperationResult result) {
             ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
             change.setObjectDelta(shadow.createDeleteDelta());
-            change.setResource(resourceObjectClassSpecification.getResource().asPrismObject());
+            change.setResource(resourceObjectClass.getResource().asPrismObject());
             change.setShadowedResourceObject(shadow);
             change.setSourceChannel(SchemaConstants.CHANNEL_CLEANUP_URI);
             getActivityHandler().synchronizationService.notifyChange(change, workerTask, result);

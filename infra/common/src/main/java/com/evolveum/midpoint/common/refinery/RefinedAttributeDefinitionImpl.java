@@ -393,10 +393,9 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 
     // schemaHandlingAttrDefType may be null if we are parsing from schema only
     static <T> RefinedAttributeDefinition<T> parse(ResourceAttributeDefinition<T> schemaAttrDef,
-            ResourceAttributeDefinitionType schemaHandlingAttrDefType, ObjectClassComplexTypeDefinition objectClassDef,
-            PrismContext prismContext, String contextDescription) throws SchemaException {
+            ResourceAttributeDefinitionType schemaHandlingAttrDefType) throws SchemaException {
 
-        RefinedAttributeDefinitionImpl<T> rAttrDef = new RefinedAttributeDefinitionImpl<>(schemaAttrDef, prismContext);
+        RefinedAttributeDefinitionImpl<T> rAttrDef = new RefinedAttributeDefinitionImpl<>(schemaAttrDef, PrismContext.get());
 
         if (schemaHandlingAttrDefType != null && schemaHandlingAttrDefType.getDisplayName() != null) {
             rAttrDef.setDisplayName(schemaHandlingAttrDefType.getDisplayName());

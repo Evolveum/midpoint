@@ -10,11 +10,12 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCol
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClass;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.NullSynchronizationObjectFilterImpl;
-import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClassSpecification;
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -56,7 +57,7 @@ public class ImportFromResourceLauncher {
             ShadowType shadow = provisioningService
                     .getObject(ShadowType.class, shadowOid, createReadOnlyCollection(), task, result)
                     .asObjectable();
-            ResourceObjectClassSpecification spec = syncTaskHelper.createObjectClassSpecForShadow(shadow, task, result);
+            ResourceObjectClass spec = syncTaskHelper.createObjectClassForShadow(shadow, task, result);
             Synchronizer synchronizer = new Synchronizer(
                     spec.getResource(),
                     spec.getObjectClassDefinitionRequired(),

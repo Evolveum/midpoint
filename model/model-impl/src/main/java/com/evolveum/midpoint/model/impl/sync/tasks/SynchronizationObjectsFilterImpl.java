@@ -24,12 +24,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  * Introduced to streamline clumsy filtering by [refined] object class definition, kind, and intent.
  * See e.g. MID-5672.
+ *
+ * TODO shouldn't we take object class inheritance (subtyping) into account?
  */
 @Experimental
 public class SynchronizationObjectsFilterImpl implements SynchronizationObjectsFilter {
 
     /**
      * This is either "simple" OCD or refined OCD.
+     *
      * FIXME this should be clarified; the current state mirrors objectClassDef information in sync handlers
      */
     private final ObjectClassComplexTypeDefinition objectClassDefinition;
@@ -44,7 +47,7 @@ public class SynchronizationObjectsFilterImpl implements SynchronizationObjectsF
      */
     private final String intent;
 
-    public SynchronizationObjectsFilterImpl(ObjectClassComplexTypeDefinition objectClassDefinition,
+    SynchronizationObjectsFilterImpl(ObjectClassComplexTypeDefinition objectClassDefinition,
             ShadowKindType kind, String intent) {
         this.objectClassDefinition = objectClassDefinition;
         this.kind = kind;

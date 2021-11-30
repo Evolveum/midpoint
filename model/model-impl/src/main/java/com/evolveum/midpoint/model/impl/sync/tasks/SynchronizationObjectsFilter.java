@@ -13,10 +13,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * An additional filter used to match objects (returned by the iterative search) with the objectclass/kind/intent
+ * Additional filter used to match objects (returned by the iterative search) with the objectclass/kind/intent
  * specification, which is typically given in the synchronization task.
  *
- * TODO consolidate with {@link ResourceObjectClassSpecification}.
+ * Currently it overlaps with {@link ResourceObjectClass}.
+ *
+ * TODO Reconsider if we really want this to be a class distinct from {@link ResourceObjectClass}.
  */
 public interface SynchronizationObjectsFilter {
 

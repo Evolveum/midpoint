@@ -33,7 +33,7 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
     /** Where to send acknowledgements to. */
     @NotNull private final AcknowledgementSink acknowledgementSink;
 
-    public ResourceObjectAsyncChange(@NotNull UcfAsyncUpdateChange ucfAsyncUpdateChange,
+    ResourceObjectAsyncChange(@NotNull UcfAsyncUpdateChange ucfAsyncUpdateChange,
             @NotNull ResourceObjectConverter converter, @NotNull ProvisioningContext originalContext) {
         super(ucfAsyncUpdateChange, null, originalContext, converter.getLocalBeans());
         this.notificationOnly = ucfAsyncUpdateChange.isNotificationOnly();

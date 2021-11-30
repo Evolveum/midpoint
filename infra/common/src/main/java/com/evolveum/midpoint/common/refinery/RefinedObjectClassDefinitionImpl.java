@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.common.refinery;
 
+import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
+
 import static java.util.Collections.emptySet;
 
 import java.util.*;
@@ -412,7 +414,7 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
     }
 
     @Override
-    public ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
+    public @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
         if (getKind() == null) {
             return ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOid, getTypeName(), getPrismContext());
         } else {
@@ -888,7 +890,7 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
     //region ==== Parsing =================================================================================
 
     static RefinedObjectClassDefinition parse(ResourceObjectTypeDefinitionType entTypeDefType,
-            ResourceType resourceType, RefinedResourceSchema rSchema, ShadowKindType impliedKind, PrismContext prismContext,
+            ResourceType resource, RefinedResourceSchema rSchema, ShadowKindType impliedKind,
             String contextDescription) throws SchemaException {
 
         ShadowKindType kind = entTypeDefType.getKind();
@@ -902,10 +904,10 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
         if (intent == null) {
             intent = SchemaConstants.INTENT_DEFAULT;
         }
-        RefinedObjectClassDefinition rObjectClassDef = parseRefinedObjectClass(entTypeDefType,
-                resourceType, rSchema, prismContext, kind, intent, kind.value(), kind.value() + " type definition '" + intent + "' in " + contextDescription);
 
-        return rObjectClassDef;
+        return parseRefinedObjectClass(entTypeDefType,
+                rSchema, resource.getOid(), kind, intent, kind.value(),
+                kind.value() + " type definition '" + intent + "' in " + contextDescription);
     }
 
     private static void parseProtected(RefinedObjectClassDefinition rAccountDef,
@@ -929,11 +931,16 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
         }
     }
 
-    public static RefinedObjectClassDefinition parseFromSchema(ObjectClassComplexTypeDefinition objectClassDef, ResourceType resourceType,
-            RefinedResourceSchema rSchema,
-            PrismContext prismContext, String contextDescription) throws SchemaException {
+    /**
+     * Converts {@link ObjectClassComplexTypeDefinition} to {@link RefinedObjectClassDefinition}.
+     * We have no schemaHandling definitions here, so this is a pure conversion only.
+     *
+     * TODO why the name "parseFromSchema"?
+     */
+    public static @NotNull RefinedObjectClassDefinition parseFromSchema(@NotNull ObjectClassComplexTypeDefinition objectClassDef,
+            String resourceOid, String contextDescription) throws SchemaException {
 
-        RefinedObjectClassDefinitionImpl rOcDef = new RefinedObjectClassDefinitionImpl(resourceType.getOid(), objectClassDef);
+        RefinedObjectClassDefinitionImpl rOcDef = new RefinedObjectClassDefinitionImpl(resourceOid, objectClassDef);
 
         String intent = objectClassDef.getIntent();
         if (intent == null && objectClassDef.isDefaultInAKind()) {
@@ -941,33 +948,27 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
         }
         rOcDef.setIntent(intent);
 
-        if (objectClassDef.getDisplayName() != null) {
-            rOcDef.setDisplayName(objectClassDef.getDisplayName());
-        }
-
+        rOcDef.setDisplayName(objectClassDef.getDisplayName());
         rOcDef.setDefault(objectClassDef.isDefaultInAKind());
 
-        for (ResourceAttributeDefinition attrDef : objectClassDef.getAttributeDefinitions()) {
-            String attrContextDescription = intent + ", in " + contextDescription;
+        for (ResourceAttributeDefinition<?> attrDef : objectClassDef.getAttributeDefinitions()) {
 
-            RefinedAttributeDefinition rAttrDef = RefinedAttributeDefinitionImpl.parse(attrDef, null, objectClassDef, prismContext,
-                    attrContextDescription);
+            RefinedAttributeDefinition<?> rAttrDef = RefinedAttributeDefinitionImpl.parse(attrDef, null);
             rOcDef.processIdentifiers(rAttrDef, objectClassDef);
 
-            if (rOcDef.containsAttributeDefinition(rAttrDef.getItemName())) {
-                throw new SchemaException("Duplicate definition of attribute " + rAttrDef.getItemName() + " in " + attrContextDescription);
-            }
-            rOcDef.add(rAttrDef);
+            schemaCheck(!rOcDef.containsAttributeDefinition(rAttrDef.getItemName()),
+                "Duplicate definition of attribute %s in %s in %s", rAttrDef.getItemName(), intent, contextDescription);
 
+            rOcDef.add(rAttrDef);
         }
 
         return rOcDef;
-
     }
 
     private static RefinedObjectClassDefinition parseRefinedObjectClass(ResourceObjectTypeDefinitionType schemaHandlingObjDefType,
-            ResourceType resourceType, RefinedResourceSchema rSchema, PrismContext prismContext,
-            @NotNull ShadowKindType kind, @NotNull String intent, String typeDesc, String contextDescription) throws SchemaException {
+            RefinedResourceSchema rSchema, String resourceOid,
+            @NotNull ShadowKindType kind, @NotNull String intent, String typeDesc, String contextDescription)
+            throws SchemaException {
 
         ObjectClassComplexTypeDefinition objectClassDef;
         if (schemaHandlingObjDefType.getObjectClass() != null) {
@@ -980,7 +981,7 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
             throw new SchemaException("Definition of " + typeDesc + " type " + schemaHandlingObjDefType.getIntent() + " does not have objectclass, in " + contextDescription);
         }
 
-        RefinedObjectClassDefinitionImpl rOcDef = new RefinedObjectClassDefinitionImpl(resourceType.getOid(), objectClassDef);
+        RefinedObjectClassDefinitionImpl rOcDef = new RefinedObjectClassDefinitionImpl(resourceOid, objectClassDef);
         rOcDef.setKind(kind);
         rOcDef.setIntent(intent);
         // clone here to disassociate this definition from the resource. So this definition can be serialized without the need to serialize
@@ -1088,9 +1089,7 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
             // the shadows will still have that attributes and we will need their type definition to work
             // well with them. They may also be mandatory. We cannot pretend that they do not exist.
 
-            // TODO !!!! fix the cast
-            RefinedAttributeDefinition<?> rAttrDef = RefinedAttributeDefinitionImpl.parse(road, attrDefType, ocDef,
-                    rSchema.getPrismContext(), "in " + kind + " type " + intent + ", in " + contextDescription);
+            RefinedAttributeDefinition<?> rAttrDef = RefinedAttributeDefinitionImpl.parse(road, attrDefType);
             if (!auxiliary) {
                 processIdentifiers(rAttrDef, ocDef);
             }

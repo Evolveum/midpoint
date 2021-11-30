@@ -117,7 +117,7 @@ public interface ObjectClassTypeDefinitionDelegator extends ComplexTypeDefinitio
     }
 
     @Override
-    default ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
+    default @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
         return delegate().createShadowSearchQuery(resourceOid);
     }
 

@@ -158,27 +158,29 @@ public abstract class SearchBasedActivityRun<
         }
     }
 
+    /**
+     * Creates the search specification (type, query, options, use repo).
+     *
+     * Normally it is created from the configuration embodied in work definition
+     * but there are activities that completely ignore it and provide their own search spec.
+     *
+     * After creation, it is customized by the activity run. (Even if it was created by activity run completely!)
+     */
     private @NotNull SearchSpecification<C> createCustomizedSearchSpecification(OperationResult result)
             throws CommonException, ActivityRunException {
-        SearchSpecification<C> searchSpecification = doCreateSearchSpecification(result);
-        customizeSearchSpecification(searchSpecification, result);
-        return searchSpecification;
-    }
 
-    /**
-     * Creates the search specification (type, query, options, use repo). Normally it is created from the configuration
-     * embodied in work definition, but it can be fully overridden for the least configurable activities.
-     */
-    private @NotNull SearchSpecification<C> doCreateSearchSpecification(OperationResult result)
-            throws SchemaException, ActivityRunException {
+        @NotNull SearchSpecification<C> searchSpecification;
         SearchSpecification<C> customSpec = createCustomSearchSpecification(result);
         if (customSpec != null) {
-            return customSpec;
+            searchSpecification = customSpec;
+        } else {
+            searchSpecification = createSearchSpecificationFromObjectSetSpec(
+                    ObjectSetSpecification.fromWorkDefinition(activity.getWorkDefinition()),
+                    result);
         }
 
-        return createSearchSpecificationFromObjectSetSpec(
-                ObjectSetSpecification.fromWorkDefinition(activity.getWorkDefinition()),
-                result);
+        customizeSearchSpecification(searchSpecification, result);
+        return searchSpecification;
     }
 
     /**

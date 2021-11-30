@@ -13,7 +13,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 /**
- * Handles changes retrieved by {@link ProvisioningService#synchronize(ResourceShadowDiscriminator, Task, boolean, LiveSyncEventHandler, OperationResult)} method.
+ * Handles changes retrieved by {@link ProvisioningService#synchronize(ResourceShadowDiscriminator, LiveSyncOptions,
+ * LiveSyncTokenStorage, LiveSyncEventHandler, Task, OperationResult)} method.
  */
 @Experimental
 public interface LiveSyncEventHandler extends SynchronizationEventHandler<LiveSyncEvent> {

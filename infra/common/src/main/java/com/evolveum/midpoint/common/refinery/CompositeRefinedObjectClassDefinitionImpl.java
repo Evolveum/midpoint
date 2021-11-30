@@ -583,7 +583,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
     }
 
     @Override
-    public ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
+    public @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
         return structuralObjectClassDefinition.createShadowSearchQuery(resourceOid);
     }
 

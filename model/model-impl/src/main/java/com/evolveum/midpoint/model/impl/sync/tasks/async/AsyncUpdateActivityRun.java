@@ -7,13 +7,13 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.async;
 
+import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClass;
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClassSpecification;
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncItemProcessingRequest;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.provisioning.api.AsyncUpdateEvent;
@@ -32,7 +32,8 @@ public final class AsyncUpdateActivityRun
                 AsyncUpdateActivityHandler,
                 AbstractActivityWorkStateType> {
 
-    private ResourceObjectClassSpecification objectClassSpecification;
+    /** What we want to process. Currently we use only resourceRef from here. */
+    private ResourceObjectClass resourceObjectClass;
 
     AsyncUpdateActivityRun(
             @NotNull ActivityRunInstantiationContext<AsyncUpdateWorkDefinition, AsyncUpdateActivityHandler> context) {
@@ -54,15 +55,13 @@ public final class AsyncUpdateActivityRun
         RunningTask runningTask = getRunningTask();
         ResourceObjectSetType resourceObjectSet = getResourceObjectSet();
 
-        objectClassSpecification = getModelBeans().syncTaskHelper
-                .createObjectClassSpec(resourceObjectSet, runningTask, result);
-
-        objectClassSpecification.checkNotInMaintenance();
+        resourceObjectClass = getModelBeans().syncTaskHelper
+                .getResourceObjectClassCheckingMaintenance(resourceObjectSet, runningTask, result);
     }
 
     @Override
     protected @NotNull ObjectReferenceType getDesiredTaskObjectRef() {
-        return objectClassSpecification.getResourceRef();
+        return resourceObjectClass.getResourceRef();
     }
 
     @Override
@@ -79,7 +78,7 @@ public final class AsyncUpdateActivityRun
         RunningTask runningTask = getRunningTask();
         ModelImplUtils.clearRequestee(runningTask);
         getModelBeans().provisioningService
-                .processAsynchronousUpdates(objectClassSpecification.getCoords(), handler, runningTask, opResult);
+                .processAsynchronousUpdates(resourceObjectClass.getCoords(), handler, runningTask, opResult);
     }
 
     @Override

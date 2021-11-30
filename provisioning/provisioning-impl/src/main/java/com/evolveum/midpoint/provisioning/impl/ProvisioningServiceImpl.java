@@ -389,8 +389,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
     @NotNull
     @Override
-    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(@NotNull Class<T> type, @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull Task task, @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 

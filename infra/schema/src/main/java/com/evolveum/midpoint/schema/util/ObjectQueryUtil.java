@@ -94,7 +94,7 @@ public class ObjectQueryUtil {
         return createNameQuery(object.asObjectable().getName(), object.getPrismContext());
     }
 
-    public static ObjectQuery createResourceAndObjectClassQuery(String resourceOid, QName objectClass, PrismContext prismContext) {
+    public static @NotNull ObjectQuery createResourceAndObjectClassQuery(String resourceOid, QName objectClass, PrismContext prismContext) {
         return prismContext.queryFactory().createQuery(createResourceAndObjectClassFilter(resourceOid, objectClass, prismContext));
     }
 
@@ -116,12 +116,14 @@ public class ObjectQueryUtil {
                 .and().item(ShadowType.F_OBJECT_CLASS).eq(objectClass);
     }
 
-    public static ObjectQuery createResourceAndKindIntent(String resourceOid, ShadowKindType kind, String intent, PrismContext prismContext) throws SchemaException {
-        return prismContext.queryFactory().createQuery(createResourceAndKindIntentFilter(resourceOid, kind, intent, prismContext));
+    public static @NotNull ObjectQuery createResourceAndKindIntent(String resourceOid, ShadowKindType kind, String intent, PrismContext prismContext) throws SchemaException {
+        return prismContext.queryFactory().createQuery(
+                createResourceAndKindIntentFilter(resourceOid, kind, intent, prismContext));
     }
 
     public static ObjectQuery createResourceAndKind(String resourceOid, ShadowKindType kind, PrismContext prismContext) throws SchemaException {
-        return prismContext.queryFactory().createQuery(createResourceAndKindFilter(resourceOid, kind, prismContext));
+        return prismContext.queryFactory().createQuery(
+                createResourceAndKindFilter(resourceOid, kind, prismContext));
     }
 
     public static ObjectFilter createResourceAndKindIntentFilter(String resourceOid, ShadowKindType kind, String intent, PrismContext prismContext) {

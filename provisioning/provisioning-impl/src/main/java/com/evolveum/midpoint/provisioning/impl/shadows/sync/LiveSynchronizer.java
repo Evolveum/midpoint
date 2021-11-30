@@ -50,7 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapa
  *
  * Responsibilities:
  *
- * 1. Converts ROC changes into pre-processed adopted changes, embeds them to {@link LiveSyncEvent} instances and emits them out.
+ * 1. Converts ROC changes into pre-processed shadowed changes, embeds them to {@link LiveSyncEvent} instances and emits them out.
  * 2. Manages the token value in the task, based on the acknowledgements.
  * 3. Keeps the control until all events are acknowledged.
  */
@@ -220,7 +220,7 @@ public class LiveSynchronizer {
         @NotNull private final OldestTokenWatcher oldestTokenWatcher;
         private LiveSyncToken finalToken; // TODO what exactly is this for? Be sure to set it only when all changes were processed
 
-        private LiveSyncCtx(ResourceShadowDiscriminator shadowCoordinates, @NotNull Task task,
+        private LiveSyncCtx(@NotNull ResourceShadowDiscriminator shadowCoordinates, @NotNull Task task,
                 LiveSyncOptions options, @NotNull LiveSyncTokenStorage tokenStorage, OperationResult result)
                 throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
             this.syncResult = new SynchronizationOperationResult();

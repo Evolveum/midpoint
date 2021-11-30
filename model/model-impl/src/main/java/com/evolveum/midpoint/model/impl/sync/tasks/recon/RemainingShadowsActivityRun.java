@@ -94,13 +94,14 @@ final class RemainingShadowsActivityRun
                         ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP :
                         ShadowType.F_SYNCHRONIZATION_TIMESTAMP;
 
+        // TODO maybe we should filter on kind/intent here as well, and not rely on objectsFilter?
         return getBeans().prismContext.queryFor(ShadowType.class)
                 .block()
                     .item(syncTimestampItem).le(getReconciliationStartTimestamp(result))
                     .or().item(syncTimestampItem).isNull()
                 .endBlock()
-                    .and().item(ShadowType.F_RESOURCE_REF).ref(objectClassSpec.getResourceOid())
-                    .and().item(ShadowType.F_OBJECT_CLASS).eq(objectClassSpec.getObjectClassDefinitionRequired().getTypeName())
+                    .and().item(ShadowType.F_RESOURCE_REF).ref(resourceObjectClass.getResourceOid())
+                    .and().item(ShadowType.F_OBJECT_CLASS).eq(resourceObjectClass.getObjectClassName())
                 .build();
     }
 
@@ -125,7 +126,7 @@ final class RemainingShadowsActivityRun
 
     @Override
     public ItemDefinitionProvider createItemDefinitionProvider() {
-        return ItemDefinitionProvider.forObjectClassAttributes(objectClassSpec.getObjectClassDefinitionRequired());
+        return resourceObjectClass.createItemDefinitionProvider();
     }
 
     @Override
@@ -199,7 +200,7 @@ final class RemainingShadowsActivityRun
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_RECON));
-        change.setResource(objectClassSpec.getResource().asPrismObject());
+        change.setResource(resourceObjectClass.getResource().asPrismObject());
         change.setObjectDelta(shadow.createDeleteDelta());
         change.setShadowedResourceObject(shadow);
         change.setSimulate(isPreview());

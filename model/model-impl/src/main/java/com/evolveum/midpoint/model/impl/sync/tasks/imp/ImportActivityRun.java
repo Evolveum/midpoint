@@ -17,8 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClassSpecification;
-import com.evolveum.midpoint.model.impl.sync.tasks.SynchronizationObjectsFilterImpl;
+import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClass;
 import com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
@@ -36,8 +35,10 @@ import com.evolveum.midpoint.util.exception.CommonException;
 public final class ImportActivityRun
         extends SearchBasedActivityRun<ShadowType, ImportWorkDefinition, ImportActivityHandler, AbstractActivityWorkStateType> {
 
-    private ResourceObjectClassSpecification resourceObjectClassSpecification;
-    private SynchronizationObjectsFilterImpl objectsFilter;
+    /** Object class to be imported (resource, OC, kind, intent). */
+    private ResourceObjectClass resourceObjectClass;
+
+    /** Executor that imports the resource objects. */
     private Synchronizer synchronizer;
 
     ImportActivityRun(ActivityRunInstantiationContext<ImportWorkDefinition, ImportActivityHandler> context) {
@@ -56,24 +57,21 @@ public final class ImportActivityRun
     public void beforeRun(OperationResult result) throws ActivityRunException, CommonException {
         ResourceObjectSetType resourceObjectSet = getWorkDefinition().getResourceObjectSetSpecification();
 
-        resourceObjectClassSpecification = getModelBeans().syncTaskHelper
-                .createObjectClassSpec(resourceObjectSet, getRunningTask(), result);
-        objectsFilter = this.resourceObjectClassSpecification.getObjectFilter(resourceObjectSet);
+        resourceObjectClass = getModelBeans().syncTaskHelper
+                .getResourceObjectClassCheckingMaintenance(resourceObjectSet, getRunningTask(), result);
         synchronizer = createSynchronizer();
-
-        resourceObjectClassSpecification.checkNotInMaintenance();
     }
 
     @Override
     protected @NotNull ObjectReferenceType getDesiredTaskObjectRef() {
-        return resourceObjectClassSpecification.getResourceRef();
+        return resourceObjectClass.getResourceRef();
     }
 
     private Synchronizer createSynchronizer() {
         return new Synchronizer(
-                resourceObjectClassSpecification.getResource(),
-                resourceObjectClassSpecification.getObjectClassDefinitionRequired(),
-                objectsFilter,
+                resourceObjectClass.getResource(),
+                resourceObjectClass.getObjectClassDefinitionRequired(),
+                resourceObjectClass.getObjectFilter(),
                 getModelBeans().eventDispatcher,
                 SchemaConstants.CHANNEL_IMPORT,
                 isPreview(),
@@ -95,7 +93,7 @@ public final class ImportActivityRun
 
     @Override
     public ItemDefinitionProvider createItemDefinitionProvider() {
-        return ItemDefinitionProvider.forObjectClassAttributes(resourceObjectClassSpecification.getObjectClassDefinition());
+        return resourceObjectClass.createItemDefinitionProvider();
     }
 
     @Override

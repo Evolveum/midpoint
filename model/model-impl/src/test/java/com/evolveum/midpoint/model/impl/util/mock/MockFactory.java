@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({ "ConstantConditions" })
 public class MockFactory {
@@ -53,13 +54,13 @@ public class MockFactory {
             }
 
             @Override
-            public void processAsynchronousUpdates(ResourceShadowDiscriminator shadowCoordinates, AsyncUpdateEventHandler handler, Task task,
-                    OperationResult parentResult) {
+            public void processAsynchronousUpdates(@NotNull ResourceShadowDiscriminator shadowCoordinates, @NotNull AsyncUpdateEventHandler handler, @NotNull Task task,
+                    @NotNull OperationResult parentResult) {
             }
 
             @NotNull
             @Override
-            public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) {
+            public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(@NotNull Class<T> type, @Nullable ObjectQuery query, @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull Task task, @NotNull OperationResult parentResult) {
                 return new SearchResultList<>(new ArrayList<>(0));
             }
 

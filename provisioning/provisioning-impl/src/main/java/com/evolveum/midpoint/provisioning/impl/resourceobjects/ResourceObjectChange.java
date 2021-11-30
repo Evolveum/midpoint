@@ -47,7 +47,6 @@ import javax.xml.namespace.QName;
  * Usually derived from {@link UcfChange} but may be also provided externally -
  * see {@link ExternalResourceEventListener#notifyEvent(ExternalResourceEvent, Task, OperationResult)}.
  */
-@SuppressWarnings("JavadocReference")
 public abstract class ResourceObjectChange implements InitializableMixin {
 
     /**
@@ -75,7 +74,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
      *
      * Refined during initialization, see {@link #refinedObjectClassDefinition}.
      */
-    protected final ObjectClassComplexTypeDefinition initialObjectClassDefinition;
+    private final ObjectClassComplexTypeDefinition initialObjectClassDefinition;
 
     /**
      * Refined object class definition as determined from (possibly updated) provisioning context.
@@ -238,7 +237,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
                 + toStringExtra() + ")";
     }
 
-    void updateProvisioningContext(@NotNull Task task) throws SchemaException {
+    private void updateProvisioningContext(@NotNull Task task) throws SchemaException {
 
         schemaCheck(initialObjectClassDefinition != null || isDelete() && context.isWildcard(),
                 "No object class definition in change %s", this);
@@ -331,11 +330,11 @@ public abstract class ResourceObjectChange implements InitializableMixin {
 
     protected abstract void debugDumpExtra(StringBuilder sb, int indent);
 
-    protected void freezeIdentifiers() {
+    private void freezeIdentifiers() {
         identifiers = Collections.unmodifiableCollection(identifiers);
     }
 
-    protected void addFakePrimaryIdentifierIfNeeded() throws SchemaException {
+    private void addFakePrimaryIdentifierIfNeeded() throws SchemaException {
         localBeans.fakeIdentifierGenerator.addFakePrimaryIdentifierIfNeeded(
                 identifiers, primaryIdentifierRealValue, getCurrentObjectClassDefinition());
     }
@@ -351,7 +350,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
         }
     }
 
-    public boolean hasObjectClassDefinition() {
+    private boolean hasObjectClassDefinition() {
         return getCurrentObjectClassDefinition() != null;
     }
 
