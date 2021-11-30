@@ -107,7 +107,7 @@ Currently, defined event types are shown in the table below.
 
 [NOTE]
 Column *Event DB ID* is relevant only for the older xref:/midpoint/reference/repository/generic/[Generic Repository].
-The new xref:/midpoint/reference/repository/native-postgrsql/[Native PostgreSQL Repository] uses custom types displaying the name in the first column.
+The new xref:/midpoint/reference/repository/native-postgresql/[Native PostgreSQL Repository] uses custom types displaying the name in the first column.
 
 [%autowidth]
 |===
@@ -185,7 +185,7 @@ Event stages are defined to denote this difference and to record events at vario
 
 [NOTE]
 Column *Event DB ID* is relevant only for the older xref:/midpoint/reference/repository/generic/[Generic Repository].
-The new xref:/midpoint/reference/repository/native-postgrsql/[Native PostgreSQL Repository] uses custom types displaying the name in the first column.
+The new xref:/midpoint/reference/repository/native-postgresql/[Native PostgreSQL Repository] uses custom types displaying the name in the first column.
 
 [%autowidth]
 |===
@@ -224,7 +224,7 @@ All the possible values are described in the following table.
 
 [NOTE]
 Column *Event DB ID* is relevant only for the older xref:/midpoint/reference/repository/generic/[Generic Repository].
-The new xref:/midpoint/reference/repository/native-postgrsql/[Native PostgreSQL Repository] uses custom types displaying the name in the first column.
+The new xref:/midpoint/reference/repository/native-postgresql/[Native PostgreSQL Repository] uses custom types displaying the name in the first column.
 
 [%autowidth]
 |===

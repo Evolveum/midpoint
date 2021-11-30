@@ -124,7 +124,7 @@ But midPoint takes care to work with auxiliary object classes properly.
 ====
 There are even more things to make really good configuration to manage LDAP server with the NIS (RFC2307) schema.
 Auxiliary object classes are just one part of the story.
-See the xref:/reference/samples/story-tests/unix/[Unix Story Test] for a complete configuration example.
+See the xref:/midpoint/reference/samples/story-tests/unix/[Unix Story Test] for a complete configuration example.
 ====
 
 
@@ -179,4 +179,4 @@ To preserve them, it is possible to use the tolerant flag set to true within the
 
 == See Also
 
-* xref:/reference/samples/story-tests/unix/[Unix Story Test]
+* xref:/midpoint/reference/samples/story-tests/unix/[Unix Story Test]
