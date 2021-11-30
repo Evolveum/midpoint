@@ -43,18 +43,9 @@ public class ResetPolicyDto implements Serializable {
             return;
         }
 
-//        if (securityPolicyType.getCredentials() != null
-//                && securityPolicyType.getCredentials().getSecurityQuestions() != null) {
-//            this.securityQuestions = securityPolicyType.getCredentials().getSecurityQuestions();
-//            resetMethod.add(ResetMethod.SECURITY_QUESTIONS);
-//            return;
-//        }
-
         if (securityPolicyType.getCredentialsReset() == null) {
             return;
         }
-
-
 
         MailResetPolicyType mailResetPolicy = securityPolicyType.getCredentialsReset().getMailReset();
         if (mailResetPolicy != null) {
@@ -82,7 +73,10 @@ public class ResetPolicyDto implements Serializable {
 
     private void initResetPolicy(AbstractCredentialsResetPolicyType resetPolicy,
             SecurityPolicyType securityPolicyType) throws SchemaException {
-        this.formRef = resetPolicy.getFormRef();
+        this.formRef = securityPolicyType.getCredentialsReset().getFormRef();
+        if (this.formRef == null) {
+            this.formRef = resetPolicy.getFormRef();
+        }
         AbstractAuthenticationPolicyType authPolicy = SecurityPolicyUtil
                 .getAuthenticationPolicy(resetPolicy.getAdditionalAuthenticationName(), securityPolicyType);
         if (authPolicy instanceof MailAuthenticationPolicyType) {

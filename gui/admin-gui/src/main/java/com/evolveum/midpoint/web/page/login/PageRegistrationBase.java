@@ -82,8 +82,6 @@ public class PageRegistrationBase extends PageBase {
     }
 
     private void initResetCredentialsConfiguration() {
-
-        // TODO: cleanup, the same as in the PageRegistrationBase
         SecurityPolicyType securityPolicy = resolveSecurityPolicy();
 
         this.resetPasswordPolicy = new ResetPolicyDto();
