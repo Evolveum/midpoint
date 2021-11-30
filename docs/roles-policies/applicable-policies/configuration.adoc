@@ -8,6 +8,7 @@
 :page-wiki-metadata-modify-date: 2020-02-21T14:24:26.071+01:00
 :page-since: "3.8"
 :page-upkeep-status: yellow
+:page-toc: top
 
 MidPoint is very flexible system, especially when it comes to xref:/midpoint/reference/cases/approval/[approval] and other xref:/midpoint/reference/roles-policies/policy-rules/[policies]. But the flexibility comes at a cost.
 Policy definition can be quite complex.
@@ -133,4 +134,4 @@ Therefore display names can be used almost freely to provide a meaningful inform
 
 * xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
 
-* xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]
+* xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']

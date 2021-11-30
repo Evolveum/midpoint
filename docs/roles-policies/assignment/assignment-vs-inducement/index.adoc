@@ -5,8 +5,6 @@
 :page-wiki-metadata-create-date: 2014-01-09T16:44:31.895+01:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2014-07-23T12:10:15.415+02:00
-
-
 :page-toc: top
 
 
@@ -23,9 +21,6 @@ Therefore if user has an account assignment then this account should be created 
 Plain and simple.
 
 image::assignments-link-2.png[]
-
-
-
 
 == Inducement
 
@@ -44,7 +39,6 @@ The account shadow is implied for the *user*, not the role.
 Therefore the inducement is indirect.
 It is "inducting" the assignment in a different object.
 
-
 == Why Do We Need Inducement?
 
 Assignments and inducements are internally identical.
@@ -54,7 +48,6 @@ But the situation gets very complex once we allow roles and organizational units
 But for this feature to work well we had to refine and clean up the data model to allow for greater flexibility and expressive power.
 And therefore we need both (direct) assignment and (indirect) inducement.
 While it may seem a bit overcomplicated it greatly pays off on the side of flexibility and the ability to elegantly handle even very complex situations.
-
 
 == Rule of the Thumb
 
@@ -68,7 +61,6 @@ Unless you are creating a very complex setup there is a simple rule of the thumb
 
 You want to deviate from this rule usually only if xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization] is used.
 
-
 == Assignment and Inducement
 
 Let's get into a more complex setup now.
@@ -77,13 +69,13 @@ Like this:
 
 image::assignments-both-1.png[]
 
-The *assignment* in a role imply an entitlement to be created as a representation of the *role itself*. Therefore a group "Captain" will be created on the resource.
+The *assignment* in a role imply an entitlement to be created as a representation of the *role itself*.
+Therefore a group "Captain" will be created on the resource.
 But the *inducement* does not imply anything for the role itself.
 The inducement is actually completely ignored until the role is assigned to a user.
 In that case the inducement will behave in a similar way as if an equivalent assignment was placed directly in the user.
 It is "inducing" the assignment in a different object (in this case user).
 Therefore the *inducement* in the role causes that an account will be created for the *user*.
-
 
 == See Also
 
@@ -91,4 +83,4 @@ Therefore the *inducement* in the role causes that an account will be created fo
 
 * xref:/midpoint/reference/roles-policies/roles-and-policies-configuration/[Roles and Policies Configuration]
 
-* xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]
+* xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']

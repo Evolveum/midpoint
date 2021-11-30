@@ -822,7 +822,7 @@ There is an authorization clause `orderConstraints` that controls whether author
 
 This authorization applies both to assignments and inducements.
 The differentiator between assignment and inducement is so called _order_. Order of zero means assignment.
-Order of one or more means inducement (see xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization] page for more details).
+Order of one or more means inducement (see xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization'] page for more details).
 The `orderConstraints` clause can be used to set min/max for order therefore limiting authorization to assignment, inducements or both.
 
 The default behavior of assignment/inducement authorizations is to apply only to assignments.

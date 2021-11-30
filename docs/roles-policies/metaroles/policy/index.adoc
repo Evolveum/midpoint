@@ -6,6 +6,7 @@
 :page-wiki-metadata-modify-user: petr.gasparik
 :page-wiki-metadata-modify-date: 2020-09-02T11:50:47.537+02:00
 :page-upkeep-status: yellow
+:page-toc: top
 
 == Introduction
 
@@ -137,4 +138,4 @@ Role approver is determined by examining all the users that have this role assig
 
 * xref:/midpoint/reference/roles-policies/applicable-policies/configuration/[Applicable Policy Configuration]
 
-* xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]
+* xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']

@@ -10,7 +10,7 @@
 :page-toc: top
 
 
-For basic information about this feature please see xref:/midpoint/reference/admin-gui/dashboards/[Customizable Dashboards] and xref:/midpoint/devel/design/dashboards-widgets-and-reports-design-notes/[Dashboards, Widgets and Reports Design Notes].
+For basic information about this feature please see xref:/midpoint/reference/admin-gui/dashboards/[Customizable Dashboards] and xref:/midpoint/devel/design/dashboards-widgets-and-reports-design-notes/['Dashboards, Widgets and Reports Design Notes'].
 
 Here we describe configurable dashboard and report, which is generated from a dashboard.
 

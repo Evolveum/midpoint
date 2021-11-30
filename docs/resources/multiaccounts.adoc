@@ -329,6 +329,6 @@ All those limitations can be removed with appropriate xref:/support/subscription
 
 == See Also
 
-* xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[Kind, Intent and ObjectClass]
+* xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/['Kind, Intent and ObjectClass']
 
 * xref:/midpoint/reference/expressions/mappings/inbound-mapping/[Inbound Mapping]

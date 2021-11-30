@@ -306,7 +306,7 @@ This meta-role contains `inducement` which specifies that a new `ou` resource ob
 .... The projections are computed for an LDAP resource.
 The projections have a form of LDAP organizationalUnit objects.
 This is defined in the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[schema handling] part of LDAP resource definition.
-The inducement specifies an xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[(kind, intent)] tuple which is used to locate a matching definition in the schemaHandling.
+The inducement specifies a xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/['(kind, intent)'] tuple which is used to locate a matching definition in the schemaHandling.
 
 .... The xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings] are used to compute a correct DN for the new "ou" object in LDAP.
 The `orgpath` property is once again used to compute a correct DN.
@@ -417,7 +417,7 @@ The `R_` prefix is used to avoid collistion with other roles in the system.
 
 .... The meta-role contains an inducement which specifies that a xref:/midpoint/reference/schema/focus-and-projections/[projection] should be created for the role on the LDAP resource.
 The projection should be a group entitlement.
-This is specified by xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[(kind, intent)] tuple which points to the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[schema handling] part of LDAP resource definition.
+This is specified by xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/['(kind, intent)'] tuple which points to the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[schema handling] part of LDAP resource definition.
 
 .... The xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings] are used to compute a correct DN for the new group object in LDAP.
 

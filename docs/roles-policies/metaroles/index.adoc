@@ -9,6 +9,7 @@
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-keywords: [ 'metarole', 'meta-role', 'metaroles', 'meta-roles', 'meta' ]
 :page-upkeep-status: yellow
+:page-toc: top
 
 MidPoint xref:/midpoint/reference/roles-policies/rbac/[roles] are usually applied to users.
 But midPoint roles are universal.
@@ -72,7 +73,7 @@ Thats what metarole can do.
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]
+* xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']
 
 * xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration]
 

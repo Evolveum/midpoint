@@ -276,11 +276,11 @@ image::rbac-6.png[]
 
 == Roles and Organizational Structure
 
-See xref:/midpoint/reference/roles-policies/roles-services-and-orgs/[Roles, Services and Orgs]
+See xref:/midpoint/reference/roles-policies/roles-services-and-orgs/['Roles, Services and Orgs']
 
 == Meta-Roles
 
-See xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]
+See xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']
 
 == Idempotent Roles
 
@@ -352,10 +352,10 @@ If those conditions depend only on the environment or properties of the focus th
 
 * xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement]
 
-* xref:/midpoint/reference/roles-policies/roles-services-and-orgs/[Roles, Services and Orgs]
+* xref:/midpoint/reference/roles-policies/roles-services-and-orgs/['Roles, Services and Orgs']
 
 * xref:/midpoint/reference/roles-policies/rbac/best-practice/[RBAC Best Practice]
 
-* xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]
+* xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']
 
 * xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]

@@ -8,6 +8,7 @@
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
+:page-toc: top
 
 Most IDM systems are limited to manage just users.
 That was good enough in the early 2000s.
@@ -163,7 +164,7 @@ Simply speaking, midPoint does not really need the concept of special generic ob
 
 * xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration]
 
-* xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]
+* xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']
 
 * xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]
 
