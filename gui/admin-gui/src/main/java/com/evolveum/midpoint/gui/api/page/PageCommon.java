@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -13,12 +13,12 @@ import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.collections4.CollectionUtils;
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.feedback.FeedbackMessage;
@@ -28,8 +28,6 @@ import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -50,12 +48,10 @@ import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.LegacyValidator;
 import com.evolveum.midpoint.gui.api.DefaultGuiConfigurationCompiler;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
-import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -66,6 +62,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuPanel;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
+import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerValuePanel;
 import com.evolveum.midpoint.model.api.*;
@@ -121,20 +118,13 @@ import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.dialog.MainPopupDialog;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.menu.BaseMenuItem;
-import com.evolveum.midpoint.web.component.menu.SideBarMenuItem;
-import com.evolveum.midpoint.web.component.menu.UserMenuPanel;
-import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
-import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -148,45 +138,45 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @author lazyman
  * @author semancik
  */
-public abstract class PageBase extends PageCommon implements ModelServiceLocator {
+public abstract class PageCommon extends WebPage implements ModelServiceLocator {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String DOT_CLASS = PageBase.class.getName() + ".";
+    private static final String DOT_CLASS = PageCommon.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
     protected static final String OPERATION_LOAD_VIEW_COLLECTION_REF = DOT_CLASS + "loadViewCollectionRef";
-    private static final String OPERATION_LOAD_WORK_ITEM_COUNT = DOT_CLASS + "loadWorkItemCount";
-    private static final String OPERATION_LOAD_CERT_WORK_ITEM_COUNT = DOT_CLASS + "loadCertificationWorkItemCount";
+//    private static final String OPERATION_LOAD_WORK_ITEM_COUNT = DOT_CLASS + "loadWorkItemCount";
+//    private static final String OPERATION_LOAD_CERT_WORK_ITEM_COUNT = DOT_CLASS + "loadCertificationWorkItemCount";
 
     private static final String ID_TITLE = "title";
     private static final String ID_MAIN_HEADER = "mainHeader";
     private static final String ID_PAGE_TITLE_CONTAINER = "pageTitleContainer";
-    private static final String ID_PAGE_TITLE_REAL = "pageTitleReal";
-    private static final String ID_PAGE_TITLE = "pageTitle";
+//    private static final String ID_PAGE_TITLE_REAL = "pageTitleReal";
+//    private static final String ID_PAGE_TITLE = "pageTitle";
     private static final String ID_DEBUG_PANEL = "debugPanel";
-    private static final String ID_VERSION = "version";
+//    private static final String ID_VERSION = "version";
     public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_DEBUG_BAR = "debugBar";
     private static final String ID_CLEAR_CACHE = "clearCssCache";
     private static final String ID_CART_BUTTON = "cartButton";
-    private static final String ID_CART_ITEMS_COUNT = "itemsCount";
+//    private static final String ID_CART_ITEMS_COUNT = "itemsCount";
     private static final String ID_SIDEBAR_MENU = "sidebarMenu";
-    private static final String ID_RIGHT_MENU = "rightMenu";
-    private static final String ID_LOCALE = "locale";
-    private static final String ID_MENU_TOGGLE = "menuToggle";
-    private static final String ID_BREADCRUMB = "breadcrumb";
-    private static final String ID_BC_LINK = "bcLink";
-    private static final String ID_BC_ICON = "bcIcon";
-    private static final String ID_BC_NAME = "bcName";
+//    private static final String ID_RIGHT_MENU = "rightMenu";
+//    private static final String ID_LOCALE = "locale";
+//    private static final String ID_MENU_TOGGLE = "menuToggle";
+//    private static final String ID_BREADCRUMB = "breadcrumb";
+//    private static final String ID_BC_LINK = "bcLink";
+//    private static final String ID_BC_ICON = "bcIcon";
+//    private static final String ID_BC_NAME = "bcName";
     private static final String ID_MAIN_POPUP = "mainPopup";
-    private static final String ID_MAIN_POPUP_BODY = "popupBody";
-    private static final String ID_SUBSCRIPTION_MESSAGE = "subscriptionMessage";
-    private static final String ID_FOOTER_CONTAINER = "footerContainer";
-    private static final String ID_COPYRIGHT_MESSAGE = "copyrightMessage";
+//    private static final String ID_MAIN_POPUP_BODY = "popupBody";
+//    private static final String ID_SUBSCRIPTION_MESSAGE = "subscriptionMessage";
+//    private static final String ID_FOOTER_CONTAINER = "footerContainer";
+//    private static final String ID_COPYRIGHT_MESSAGE = "copyrightMessage";
 
     private static final String ID_NAVIGATION = "navigation";
-    private static final String ID_DEPLOYMENT_NAME = "deploymentName";
+//    private static final String ID_DEPLOYMENT_NAME = "deploymentName";
     private static final String ID_BODY = "body";
 
     private static final int DEFAULT_BREADCRUMB_STEP = 2;
@@ -198,10 +188,10 @@ public abstract class PageBase extends PageCommon implements ModelServiceLocator
 
     private static final String CLASS_DEFAULT_SKIN = "skin-blue-light";
 
-    private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
-    private static final String OPERATION_GET_DEPLOYMENT_INFORMATION = DOT_CLASS + "getDeploymentInformation";
+//    private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
+//    private static final String OPERATION_GET_DEPLOYMENT_INFORMATION = DOT_CLASS + "getDeploymentInformation";
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageCommon.class);
 
     // Strictly speaking following fields should be transient.
     // But making them transient is causing problems on some
@@ -295,7 +285,7 @@ public abstract class PageBase extends PageCommon implements ModelServiceLocator
     // No need for this to store in session. It is used only during single init and render.
     private transient Task pageTask;
 
-    public PageBase(PageParameters parameters) {
+    public PageCommon(PageParameters parameters) {
         super(parameters);
 
         LOGGER.debug("Initializing page {}", this.getClass());
@@ -341,35 +331,35 @@ public abstract class PageBase extends PageCommon implements ModelServiceLocator
         addBreadcrumb(bc);
     }
 
-    protected void createInstanceBreadcrumb() {
-        BreadcrumbPageInstance bc = new BreadcrumbPageInstance(new IModel<>() {
-            private static final long serialVersionUID = 1L;
+//    protected void createInstanceBreadcrumb() {
+//        BreadcrumbPageInstance bc = new BreadcrumbPageInstance(new IModel<>() {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public String getObject() {
+//                return getPageTitleModel().getObject();
+//            }
+//        }, this);
+//
+//        addBreadcrumb(bc);
+//    }
+//
+//    public void updateBreadcrumbParameters(String key, Object value) {
+//        List<Breadcrumb> list = getBreadcrumbs();
+//        if (list.isEmpty()) {
+//            return;
+//        }
+//
+//        Breadcrumb bc = list.get(list.size() - 1);
+//        PageParameters params = bc.getParameters();
+//        if (params == null) {
+//            return;
+//        }
+//
+//        params.set(key, value);
+//    }
 
-            @Override
-            public String getObject() {
-                return getPageTitleModel().getObject();
-            }
-        }, this);
-
-        addBreadcrumb(bc);
-    }
-
-    public void updateBreadcrumbParameters(String key, Object value) {
-        List<Breadcrumb> list = getBreadcrumbs();
-        if (list.isEmpty()) {
-            return;
-        }
-
-        Breadcrumb bc = list.get(list.size() - 1);
-        PageParameters params = bc.getParameters();
-        if (params == null) {
-            return;
-        }
-
-        params.set(key, value);
-    }
-
-    public PageBase() {
+    public PageCommon() {
         this(null);
     }
 
@@ -377,10 +367,10 @@ public abstract class PageBase extends PageCommon implements ModelServiceLocator
         return (MidPointApplication) getApplication();
     }
 
-    public WebApplicationConfiguration getWebApplicationConfiguration() {
-        MidPointApplication application = getMidpointApplication();
-        return application.getWebApplicationConfiguration();
-    }
+//    public WebApplicationConfiguration getWebApplicationConfiguration() {
+//        MidPointApplication application = getMidpointApplication();
+//        return application.getWebApplicationConfiguration();
+//    }
 
     @Override
     public LocalizationService getLocalizationService() {
@@ -507,7 +497,7 @@ public abstract class PageBase extends PageCommon implements ModelServiceLocator
     public CompiledGuiProfile getCompiledGuiProfile() {
         // TODO: may need to always go to ModelInteractionService to make sure the setting is up to date
         if (compiledGuiProfile == null) {
-            Task task = createSimpleTask(PageBase.DOT_CLASS + "getCompiledGuiProfile");
+            Task task = createSimpleTask(PageCommon.DOT_CLASS + "getCompiledGuiProfile");
             try {
                 compiledGuiProfile = modelInteractionService.getCompiledGuiProfile(task, task.getResult());
             } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
@@ -651,149 +641,149 @@ public abstract class PageBase extends PageCommon implements ModelServiceLocator
         getSession().getFeedbackMessages().clear();
     }
 
-    private void initHeaderLayout(WebMarkupContainer container) {
-        WebMarkupContainer menuToggle = new WebMarkupContainer(ID_MENU_TOGGLE);
-        menuToggle.add(createUserStatusBehaviour());
-        container.add(menuToggle);
+//    private void initHeaderLayout(WebMarkupContainer container) {
+//        WebMarkupContainer menuToggle = new WebMarkupContainer(ID_MENU_TOGGLE);
+//        menuToggle.add(createUserStatusBehaviour());
+//        container.add(menuToggle);
+//
+//        UserMenuPanel rightMenu = new UserMenuPanel(ID_RIGHT_MENU);
+//        rightMenu.add(createUserStatusBehaviour());
+//        container.add(rightMenu);
+//
+//        LocalePanel locale = new LocalePanel(ID_LOCALE);
+//        container.add(locale);
+//    }
+//
+//    private void initTitleLayout(WebMarkupContainer mainHeader) {
+//        WebMarkupContainer pageTitleContainer = new WebMarkupContainer(ID_PAGE_TITLE_CONTAINER);
+//        pageTitleContainer.add(createUserStatusBehaviour());
+//        pageTitleContainer.setOutputMarkupId(true);
+//        mainHeader.add(pageTitleContainer);
+//
+//        WebMarkupContainer pageTitle = new WebMarkupContainer(ID_PAGE_TITLE);
+//        pageTitleContainer.add(pageTitle);
+//
+//        IModel<String> deploymentNameModel = new IModel<>() {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public String getObject() {
+//                DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
+//                if (info == null) {
+//                    return "";
+//                }
+//
+//                return StringUtils.isEmpty(info.getName()) ? "" : info.getName() + ": ";
+//            }
+//        };
+//
+//        Label deploymentName = new Label(ID_DEPLOYMENT_NAME, deploymentNameModel);
+//        deploymentName.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(deploymentNameModel.getObject())));
+//        deploymentName.setRenderBodyOnly(true);
+//        pageTitle.add(deploymentName);
+//
+//        Label pageTitleReal = new Label(ID_PAGE_TITLE_REAL, createPageTitleModel());
+//        pageTitleReal.setRenderBodyOnly(true);
+//        pageTitle.add(pageTitleReal);
+//
+//        IModel<List<Breadcrumb>> breadcrumbsModel = new IModel<>() {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public List<Breadcrumb> getObject() {
+//                return getBreadcrumbs();
+//            }
+//        };
+//
+//        ListView<Breadcrumb> breadcrumbs = new ListView<>(ID_BREADCRUMB, breadcrumbsModel) {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected void populateItem(ListItem<Breadcrumb> item) {
+//                final Breadcrumb dto = item.getModelObject();
+//
+//                AjaxLink<String> bcLink = new AjaxLink<>(ID_BC_LINK) {
+//                    private static final long serialVersionUID = 1L;
+//
+//                    @Override
+//                    public void onClick(AjaxRequestTarget target) {
+//                        redirectBackToBreadcrumb(dto);
+//                    }
+//                };
+//                item.add(bcLink);
+//                bcLink.add(new VisibleEnableBehaviour() {
+//                    private static final long serialVersionUID = 1L;
+//
+//                    @Override
+//                    public boolean isEnabled() {
+//                        return dto.isUseLink();
+//                    }
+//                });
+//
+//                WebMarkupContainer bcIcon = new WebMarkupContainer(ID_BC_ICON);
+//                bcIcon.add(new VisibleEnableBehaviour() {
+//                    private static final long serialVersionUID = 1L;
+//
+//                    @Override
+//                    public boolean isVisible() {
+//                        return dto.getIcon() != null && dto.getIcon().getObject() != null;
+//                    }
+//                });
+//                bcIcon.add(AttributeModifier.replace("class", dto.getIcon()));
+//                bcLink.add(bcIcon);
+//
+//                Label bcName = new Label(ID_BC_NAME, dto.getLabel());
+//                bcLink.add(bcName);
+//
+//                item.add(new VisibleEnableBehaviour() {
+//                    private static final long serialVersionUID = 1L;
+//
+//                    @Override
+//                    public boolean isVisible() {
+//                        return dto.isVisible();
+//                    }
+//                });
+//            }
+//        };
+//        breadcrumbs.add(new VisibleBehaviour(() -> !isErrorPage()));
+//        mainHeader.add(breadcrumbs);
+//
+//        initCartButton(mainHeader);
+//    }
 
-        UserMenuPanel rightMenu = new UserMenuPanel(ID_RIGHT_MENU);
-        rightMenu.add(createUserStatusBehaviour());
-        container.add(rightMenu);
-
-        LocalePanel locale = new LocalePanel(ID_LOCALE);
-        container.add(locale);
-    }
-
-    private void initTitleLayout(WebMarkupContainer mainHeader) {
-        WebMarkupContainer pageTitleContainer = new WebMarkupContainer(ID_PAGE_TITLE_CONTAINER);
-        pageTitleContainer.add(createUserStatusBehaviour());
-        pageTitleContainer.setOutputMarkupId(true);
-        mainHeader.add(pageTitleContainer);
-
-        WebMarkupContainer pageTitle = new WebMarkupContainer(ID_PAGE_TITLE);
-        pageTitleContainer.add(pageTitle);
-
-        IModel<String> deploymentNameModel = new IModel<>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
-                if (info == null) {
-                    return "";
-                }
-
-                return StringUtils.isEmpty(info.getName()) ? "" : info.getName() + ": ";
-            }
-        };
-
-        Label deploymentName = new Label(ID_DEPLOYMENT_NAME, deploymentNameModel);
-        deploymentName.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(deploymentNameModel.getObject())));
-        deploymentName.setRenderBodyOnly(true);
-        pageTitle.add(deploymentName);
-
-        Label pageTitleReal = new Label(ID_PAGE_TITLE_REAL, createPageTitleModel());
-        pageTitleReal.setRenderBodyOnly(true);
-        pageTitle.add(pageTitleReal);
-
-        IModel<List<Breadcrumb>> breadcrumbsModel = new IModel<>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public List<Breadcrumb> getObject() {
-                return getBreadcrumbs();
-            }
-        };
-
-        ListView<Breadcrumb> breadcrumbs = new ListView<>(ID_BREADCRUMB, breadcrumbsModel) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void populateItem(ListItem<Breadcrumb> item) {
-                final Breadcrumb dto = item.getModelObject();
-
-                AjaxLink<String> bcLink = new AjaxLink<>(ID_BC_LINK) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        redirectBackToBreadcrumb(dto);
-                    }
-                };
-                item.add(bcLink);
-                bcLink.add(new VisibleEnableBehaviour() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public boolean isEnabled() {
-                        return dto.isUseLink();
-                    }
-                });
-
-                WebMarkupContainer bcIcon = new WebMarkupContainer(ID_BC_ICON);
-                bcIcon.add(new VisibleEnableBehaviour() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public boolean isVisible() {
-                        return dto.getIcon() != null && dto.getIcon().getObject() != null;
-                    }
-                });
-                bcIcon.add(AttributeModifier.replace("class", dto.getIcon()));
-                bcLink.add(bcIcon);
-
-                Label bcName = new Label(ID_BC_NAME, dto.getLabel());
-                bcLink.add(bcName);
-
-                item.add(new VisibleEnableBehaviour() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public boolean isVisible() {
-                        return dto.isVisible();
-                    }
-                });
-            }
-        };
-        breadcrumbs.add(new VisibleBehaviour(() -> !isErrorPage()));
-        mainHeader.add(breadcrumbs);
-
-        initCartButton(mainHeader);
-    }
-
-    private void initCartButton(WebMarkupContainer mainHeader) {
-        AjaxButton cartButton = new AjaxButton(ID_CART_BUTTON) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                navigateToNext(new PageAssignmentsList<>(true));
-            }
-        };
-        cartButton.setOutputMarkupId(true);
-        cartButton.add(getShoppingCartVisibleBehavior());
-        mainHeader.add(cartButton);
-
-        Label cartItemsCount = new Label(ID_CART_ITEMS_COUNT, new LoadableModel<String>(true) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String load() {
-                return Integer.toString(getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size());
-            }
-        });
-        cartItemsCount.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return !(getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() == 0);
-            }
-        });
-        cartItemsCount.setOutputMarkupId(true);
-        cartButton.add(cartItemsCount);
-    }
+//    private void initCartButton(WebMarkupContainer mainHeader) {
+//        AjaxButton cartButton = new AjaxButton(ID_CART_BUTTON) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+//                navigateToNext(new PageAssignmentsList<>(true));
+//            }
+//        };
+//        cartButton.setOutputMarkupId(true);
+//        cartButton.add(getShoppingCartVisibleBehavior());
+//        mainHeader.add(cartButton);
+//
+//        Label cartItemsCount = new Label(ID_CART_ITEMS_COUNT, new LoadableModel<String>(true) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public String load() {
+//                return Integer.toString(getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size());
+//            }
+//        });
+//        cartItemsCount.add(new VisibleEnableBehaviour() {
+//            @Override
+//            public boolean isVisible() {
+//                return !(getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() == 0);
+//            }
+//        });
+//        cartItemsCount.setOutputMarkupId(true);
+//        cartButton.add(cartItemsCount);
+//    }
 
     //TODO change according to new tempalte
     protected IModel<String> getBodyCssClass() {
@@ -814,98 +804,97 @@ public abstract class PageBase extends PageCommon implements ModelServiceLocator
     }
 
     private void initLayout() {
-//        TransparentWebMarkupContainer body = new TransparentWebMarkupContainer(ID_BODY);
-////        body.add(new AttributeAppender("class", "hold-transition ", " "));
-////        body.add(new AttributeAppender("class", "custom-hold-transition ", " "));
-//
-//        body.add(AttributeAppender.append("class", getBodyCssClass()));
-//        add(body);
+        TransparentWebMarkupContainer body = new TransparentWebMarkupContainer(ID_BODY);
+//        body.add(new AttributeAppender("class", "hold-transition ", " "));
+//        body.add(new AttributeAppender("class", "custom-hold-transition ", " "));
+
+        body.add(AttributeAppender.append("class", getBodyCssClass()));
+        add(body);
 
 //        WebMarkupContainer mainHeader = new WebMarkupContainer(ID_MAIN_HEADER);
 //        mainHeader.setOutputMarkupId(true);
 //        add(mainHeader);
 
 
-//        Label title = new Label(ID_TITLE, createPageTitleModel());
-//        title.setRenderBodyOnly(true);
-//        add(title);
+        Label title = new Label(ID_TITLE, createPageTitleModel());
+        title.setRenderBodyOnly(true);
+        add(title);
 
-        WebMarkupContainer navigation = new WebMarkupContainer(ID_NAVIGATION);
-        navigation.setOutputMarkupId(true);
-        add(navigation);
-
-        initHeaderLayout(navigation);
-        initTitleLayout(navigation);
-
+//        WebMarkupContainer navigation = new WebMarkupContainer(ID_NAVIGATION);
+//        navigation.setOutputMarkupId(true);
+//        add(navigation);
+//
+//        initHeaderLayout(navigation);
+//
 
 //        mainHeader.add(createHeaderColorStyleModel(false));
 
 //        navigation.add(createHeaderColorStyleModel(true));
 
-        initDebugBarLayout();
-
-        LeftMenuPanel sidebarMenu = new LeftMenuPanel(ID_SIDEBAR_MENU);
-        sidebarMenu.add(createUserStatusBehaviour());
-        add(sidebarMenu);
-
-        WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
-        footerContainer.add(new VisibleBehaviour(() -> !isErrorPage() && isFooterVisible()));
-        add(footerContainer);
-
-        WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Deprecated
-            public String getDescribe() {
-                return PageBase.this.getDescribe();
-            }
-        };
-        version.add(new VisibleBehaviour(() ->
-                isFooterVisible() && RuntimeConfigurationType.DEVELOPMENT.equals(getApplication().getConfigurationType())));
-        footerContainer.add(version);
-
-        WebMarkupContainer copyrightMessage = new WebMarkupContainer(ID_COPYRIGHT_MESSAGE);
-        copyrightMessage.add(getFooterVisibleBehaviour());
-        footerContainer.add(copyrightMessage);
-
-        Label subscriptionMessage = new Label(ID_SUBSCRIPTION_MESSAGE,
-                new IModel<String>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public String getObject() {
-                        String subscriptionId = getSubscriptionId();
-                        if (StringUtils.isEmpty(subscriptionId)) {
-                            return "";
-                        }
-                        if (!WebComponentUtil.isSubscriptionIdCorrect(subscriptionId)) {
-                            return " " + createStringResource("PageBase.nonActiveSubscriptionMessage").getString();
-                        }
-                        if (SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))) {
-                            return " " + createStringResource("PageBase.demoSubscriptionMessage").getString();
-                        }
-                        return "";
-                    }
-                });
-        subscriptionMessage.setOutputMarkupId(true);
-        subscriptionMessage.add(getFooterVisibleBehaviour());
-        footerContainer.add(subscriptionMessage);
-
-//        WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
-//        feedbackContainer.setOutputMarkupId(true);
-//        feedbackContainer.setOutputMarkupPlaceholderTag(true);
-//        add(feedbackContainer);
-
-//        FeedbackAlerts feedbackList = new FeedbackAlerts(ID_FEEDBACK);
-//        feedbackList.setOutputMarkupId(true);
-//        feedbackList.setOutputMarkupPlaceholderTag(true);
-//        feedbackContainer.add(feedbackList);
-
-        MainPopupDialog mainPopup = new MainPopupDialog(ID_MAIN_POPUP);
-//        mainPopup.showUnloadConfirmation(false);
-//        mainPopup.setResizable(false);
-        add(mainPopup);
+//        initDebugBarLayout();
+//
+//        LeftMenuPanel sidebarMenu = new LeftMenuPanel(ID_SIDEBAR_MENU);
+//        sidebarMenu.add(createUserStatusBehaviour());
+//        add(sidebarMenu);
+//
+//        WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
+//        footerContainer.add(new VisibleBehaviour(() -> !isErrorPage() && isFooterVisible()));
+//        add(footerContainer);
+//
+//        WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Deprecated
+//            public String getDescribe() {
+//                return PageCommon.this.getDescribe();
+//            }
+//        };
+//        version.add(new VisibleBehaviour(() ->
+//                isFooterVisible() && RuntimeConfigurationType.DEVELOPMENT.equals(getApplication().getConfigurationType())));
+//        footerContainer.add(version);
+//
+//        WebMarkupContainer copyrightMessage = new WebMarkupContainer(ID_COPYRIGHT_MESSAGE);
+//        copyrightMessage.add(getFooterVisibleBehaviour());
+//        footerContainer.add(copyrightMessage);
+//
+//        Label subscriptionMessage = new Label(ID_SUBSCRIPTION_MESSAGE,
+//                new IModel<String>() {
+//                    private static final long serialVersionUID = 1L;
+//
+//                    @Override
+//                    public String getObject() {
+//                        String subscriptionId = getSubscriptionId();
+//                        if (StringUtils.isEmpty(subscriptionId)) {
+//                            return "";
+//                        }
+//                        if (!WebComponentUtil.isSubscriptionIdCorrect(subscriptionId)) {
+//                            return " " + createStringResource("PageBase.nonActiveSubscriptionMessage").getString();
+//                        }
+//                        if (SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))) {
+//                            return " " + createStringResource("PageBase.demoSubscriptionMessage").getString();
+//                        }
+//                        return "";
+//                    }
+//                });
+//        subscriptionMessage.setOutputMarkupId(true);
+//        subscriptionMessage.add(getFooterVisibleBehaviour());
+//        footerContainer.add(subscriptionMessage);
+//
+        WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
+        feedbackContainer.setOutputMarkupId(true);
+        feedbackContainer.setOutputMarkupPlaceholderTag(true);
+        add(feedbackContainer);
+//
+        FeedbackAlerts feedbackList = new FeedbackAlerts(ID_FEEDBACK);
+        feedbackList.setOutputMarkupId(true);
+        feedbackList.setOutputMarkupPlaceholderTag(true);
+        feedbackContainer.add(feedbackList);
+//
+//        MainPopupDialog mainPopup = new MainPopupDialog(ID_MAIN_POPUP);
+////        mainPopup.showUnloadConfirmation(false);
+////        mainPopup.setResizable(false);
+//        add(mainPopup);
     }
 
 //    private AttributeAppender createHeaderColorStyleModel(boolean checkSkinUsage) {
@@ -1022,7 +1011,7 @@ public abstract class PageBase extends PageCommon implements ModelServiceLocator
 //            ObjectName objectName = ObjectName.getInstance(Wro4jConfig.WRO_MBEAN_NAME + ":type=WroConfiguration");
 //            server.invoke(objectName, "reloadCache", new Object[] {}, new String[] {});
             if (target != null) {
-                target.add(PageBase.this);
+                target.add(PageCommon.this);
             }
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't clear less/js cache", ex);
@@ -1044,39 +1033,40 @@ public abstract class PageBase extends PageCommon implements ModelServiceLocator
 
     protected IModel<String> createPageTitleModel() {
         return () -> {
-            BaseMenuItem activeMenu = getActiveMenu();
-            String pageTitleKey = null;
-            if (activeMenu != null) {
-                pageTitleKey = activeMenu.getNameModel();
-            }
-
-            if (StringUtils.isEmpty(pageTitleKey)) {
-                pageTitleKey = PageBase.this.getClass().getSimpleName() + ".title";
-            }
-            return createStringResource(pageTitleKey).getString();
+            return "";
+//            BaseMenuItem activeMenu = getActiveMenu();
+//            String pageTitleKey = null;
+//            if (activeMenu != null) {
+//                pageTitleKey = activeMenu.getNameModel();
+//            }
+//
+//            if (StringUtils.isEmpty(pageTitleKey)) {
+//                pageTitleKey = PageCommon.this.getClass().getSimpleName() + ".title";
+//            }
+//            return createStringResource(pageTitleKey).getString();
         };
     }
 
-    private <MI extends BaseMenuItem> MI getActiveMenu() {
-        LeftMenuPanel sideBarMenu = getSideBarMenuPanel();
-        if (sideBarMenu == null || !sideBarMenu.isVisible()) {
-            return null;
-        }
-
-        List<SideBarMenuItem> sideMenuItems = sideBarMenu.getItems();
-        if (CollectionUtils.isEmpty(sideMenuItems)) {
-            return null;
-        }
-
-        for (SideBarMenuItem sideBarMenuItem : sideMenuItems) {
-            MI activeMenu = sideBarMenuItem.getActiveMenu(PageBase.this);
-            if (activeMenu != null) {
-                return activeMenu;
-            }
-        }
-
-        return null;
-    }
+//    private <MI extends BaseMenuItem> MI getActiveMenu() {
+//        LeftMenuPanel sideBarMenu = getSideBarMenuPanel();
+//        if (sideBarMenu == null || !sideBarMenu.isVisible()) {
+//            return null;
+//        }
+//
+//        List<SideBarMenuItem> sideMenuItems = sideBarMenu.getItems();
+//        if (CollectionUtils.isEmpty(sideMenuItems)) {
+//            return null;
+//        }
+//
+//        for (SideBarMenuItem sideBarMenuItem : sideMenuItems) {
+//            MI activeMenu = sideBarMenuItem.getActiveMenu(PageCommon.this);
+//            if (activeMenu != null) {
+//                return activeMenu;
+//            }
+//        }
+//
+//        return null;
+//    }
 
     public void refreshTitle(AjaxRequestTarget target) {
         target.add(getTitleContainer());
@@ -1192,7 +1182,7 @@ public abstract class PageBase extends PageCommon implements ModelServiceLocator
 
         result = scriptResult;
 
-        OpResult opResult = OpResult.getOpResult((PageBase) getPage(), result);
+        OpResult opResult = OpResult.getOpResult(this, result);
         opResult.determineObjectsVisibility(this);
         switch (opResult.getStatus()) {
             case FATAL_ERROR:
@@ -1285,16 +1275,16 @@ public abstract class PageBase extends PageCommon implements ModelServiceLocator
     }
 
     // common result processing
-    public void processResult(AjaxRequestTarget target, OperationResult result, boolean showSuccess) {
-        result.computeStatusIfUnknown();
-        if (!result.isSuccess()) {
-            showResult(result, showSuccess);
-            target.add(getFeedbackPanel());
-        } else {
-            showResult(result);
-            redirectBack();
-        }
-    }
+//    public void processResult(AjaxRequestTarget target, OperationResult result, boolean showSuccess) {
+//        result.computeStatusIfUnknown();
+//        if (!result.isSuccess()) {
+//            showResult(result, showSuccess);
+//            target.add(getFeedbackPanel());
+//        } else {
+//            showResult(result);
+//            redirectBack();
+//        }
+//    }
 
     public String createComponentPath(String... components) {
         return StringUtils.join(components, ":");
@@ -1401,17 +1391,17 @@ public abstract class PageBase extends PageCommon implements ModelServiceLocator
         return userProfile.getPagingSize(tableIdName);
     }
 
-    public PrismObject<? extends FocusType> loadFocusSelf() {
-        Task task = createSimpleTask(OPERATION_LOAD_USER);
-        OperationResult result = task.getResult();
-        PrismObject<? extends FocusType> focus = WebModelServiceUtils.loadObject(FocusType.class,
-                WebModelServiceUtils.getLoggedInFocusOid(), PageBase.this, task, result);
-        result.computeStatus();
-
-        showResult(result, null, false);
-
-        return focus;
-    }
+//    public PrismObject<? extends FocusType> loadFocusSelf() {
+//        Task task = createSimpleTask(OPERATION_LOAD_USER);
+//        OperationResult result = task.getResult();
+//        PrismObject<? extends FocusType> focus = WebModelServiceUtils.loadObject(FocusType.class,
+//                WebModelServiceUtils.getLoggedInFocusOid(), PageCommon.this, task, result);
+//        result.computeStatus();
+//
+//        showResult(result, null, false);
+//
+//        return focus;
+//    }
 
     public boolean canRedirectBack() {
         return canRedirectBack(DEFAULT_BREADCRUMB_STEP);
@@ -1479,12 +1469,12 @@ public abstract class PageBase extends PageCommon implements ModelServiceLocator
     }
 
     public void navigateToNext(WebPage page) {
-        if (!(page instanceof PageBase)) {
+        if (!(page instanceof PageCommon)) {
             setResponsePage(page);
             return;
         }
 
-        PageBase next = (PageBase) page;
+        PageCommon next = (PageCommon) page;
         next.setBreadcrumbs(getBreadcrumbs());
 
         setResponsePage(next);
@@ -1519,15 +1509,15 @@ public abstract class PageBase extends PageCommon implements ModelServiceLocator
             }
         }
         WebPage page = breadcrumb.redirect();
-        if (page instanceof PageBase) {
-            PageBase base = (PageBase) page;
+        if (page instanceof PageCommon) {
+            PageCommon base = (PageCommon) page;
             base.setBreadcrumbs(breadcrumbs);
         }
 
         setResponsePage(page);
     }
 
-    protected void setTimeZone(PageBase page) {
+    protected void setTimeZone(PageCommon page) {
         String timeZone = null;
         GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
         if (principal != null && principal.getCompiledGuiProfile() != null) {

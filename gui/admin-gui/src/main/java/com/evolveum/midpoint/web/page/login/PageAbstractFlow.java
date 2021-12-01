@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.login;
 
+import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;

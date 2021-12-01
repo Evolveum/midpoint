@@ -24,7 +24,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PageAbstractSelfCredentials;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;

@@ -10,6 +10,8 @@ package com.evolveum.midpoint.web.page.login;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import com.evolveum.midpoint.gui.api.page.PageCommon;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -34,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequen
 /**
  * @author lskublik
  */
-public abstract class AbstractPageLogin extends PageBase {
+public abstract class AbstractPageLogin extends PageCommon {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractPageLogin.class);

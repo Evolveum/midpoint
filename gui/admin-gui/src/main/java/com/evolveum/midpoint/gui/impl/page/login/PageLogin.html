@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2021 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+<div class="login-box">
+    <div class="login-logo">
+        <a href="../../index2.html"><b>Admin</b>LTE</a>
+    </div>
+    <!-- /.login-logo -->
+    <div class="card">
+        <div class="card-body login-card-body">
+            <p class="login-box-msg">Sign in to start your session</p>
+
+            <form method="post" wicket:id="form">
+                <div class="input-group mb-3">
+                    <input name="username" type="text" class="form-control" wicket:message="placeholder:PageLogin.username">
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-user"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="input-group mb-3">
+                    <input name="password" type="password" class="form-control" wicket:message="placeholder:PageLogin.password">
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-lock"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-8">
+
+                    </div>
+                    <!-- /.col -->
+                    <div class="col-4">
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <wicket:message key="PageLogin.signIn"/>
+                        </button>
+                    </div>
+                    <!-- /.col -->
+                </div>
+
+                <div wicket:id="csrfField"/>
+            </form>
+
+
+            <p class="mb-1">
+                <a wicket:id="forgotPassword"><wicket:message key="PageLogin.forgetPassword"/></a>
+            </p>
+            <p class="mb-0">
+                <a wicket:id="selfRegistration" class="text-center"><wicket:message key="PageLogin.selfRegistration"/></a>
+            </p>
+        </div>
+    </div>
+</div>
+</wicket:extend>
+
+</html>

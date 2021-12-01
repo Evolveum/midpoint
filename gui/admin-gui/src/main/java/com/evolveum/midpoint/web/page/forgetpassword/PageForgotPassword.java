@@ -51,7 +51,7 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.forgetpassword.ResetPolicyDto.ResetMethod;
-import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.login.PageRegistrationBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;

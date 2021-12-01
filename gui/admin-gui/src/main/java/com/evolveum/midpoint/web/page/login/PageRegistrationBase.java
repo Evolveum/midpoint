@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.login;
 
+import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.RestartResponseException;

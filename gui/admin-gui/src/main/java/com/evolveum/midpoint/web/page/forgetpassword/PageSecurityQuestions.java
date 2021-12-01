@@ -58,7 +58,7 @@ import com.evolveum.midpoint.web.page.admin.home.component.MyPasswordQuestionsPa
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordQuestionsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SecurityQuestionAnswerDTO;
 import com.evolveum.midpoint.web.page.error.PageError;
-import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 

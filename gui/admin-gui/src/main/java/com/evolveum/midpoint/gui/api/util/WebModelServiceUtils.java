@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageCommon;
 import com.evolveum.midpoint.web.page.error.PageError;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -46,7 +47,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -77,20 +78,20 @@ public class WebModelServiceUtils {
     private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
     private static final String OPERATION_LOAD_FLOW_POLICY = DOT_CLASS + "loadFlowPolicy";
 
-    public static String resolveReferenceName(Referencable ref, PageBase page) {
+    public static String resolveReferenceName(Referencable ref, PageCommon page) {
         return resolveReferenceName(ref, page, false);
     }
 
-    public static String resolveReferenceName(Referencable ref, PageBase page, boolean translate) {
+    public static String resolveReferenceName(Referencable ref, PageCommon page, boolean translate) {
         Task task = page.createSimpleTask(WebModelServiceUtils.class.getName() + ".resolveReferenceName");
         return resolveReferenceName(ref, page, task, task.getResult(), translate);
     }
 
-    public static String resolveReferenceName(Referencable ref, PageBase page, Task task, OperationResult result) {
+    public static String resolveReferenceName(Referencable ref, PageCommon page, Task task, OperationResult result) {
         return resolveReferenceName(ref, page, task, result, false);
     }
 
-    public static String resolveReferenceName(Referencable ref, PageBase page, Task task, OperationResult result, boolean translate) {
+    public static String resolveReferenceName(Referencable ref, PageCommon page, Task task, OperationResult result, boolean translate) {
         if (ref == null) {
             return null;
         }
@@ -110,7 +111,7 @@ public class WebModelServiceUtils {
         }
     }
 
-    public static <T extends ObjectType> PrismObject<T> resolveReferenceNoFetch(Referencable reference, PageBase page, Task task, OperationResult result) {
+    public static <T extends ObjectType> PrismObject<T> resolveReferenceNoFetch(Referencable reference, PageCommon page, Task task, OperationResult result) {
         if (reference == null) {
             return null;
         }
@@ -196,7 +197,7 @@ public class WebModelServiceUtils {
 
     }
 
-    public static <O extends ObjectType> PrismObject<O> loadObject(PrismReferenceValue objectRef, QName expectedTargetType, PageBase pageBase, Task task, OperationResult result) {
+    public static <O extends ObjectType> PrismObject<O> loadObject(PrismReferenceValue objectRef, QName expectedTargetType, PageCommon pageBase, Task task, OperationResult result) {
         if (objectRef == null) {
             return null;
         }
@@ -212,7 +213,7 @@ public class WebModelServiceUtils {
 
     @Nullable
     public static <T extends ObjectType> PrismObject<T> loadObject(Referencable objectReference,
-            PageBase page) {
+            PageCommon page) {
         Task task = page.createSimpleTask(OPERATION_LOAD_OBJECT);
         OperationResult result = task.getResult();
         Class<T> type = ObjectTypes.getObjectTypeClassIfKnown(objectReference.getType());
@@ -221,28 +222,28 @@ public class WebModelServiceUtils {
 
     @Nullable
     public static <T extends ObjectType> PrismObject<T> loadObject(Referencable objectReference,
-            PageBase page, Task task, OperationResult result) {
+            PageCommon page, Task task, OperationResult result) {
         Class<T> type = page.getPrismContext().getSchemaRegistry().determineClassForType(objectReference.getType());
         return loadObject(type, objectReference.getOid(), null, page, task, result);
     }
 
     @Nullable
     public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
-            PageBase page, Task task, OperationResult result) {
+            PageCommon page, Task task, OperationResult result) {
         return loadObject(type, oid, null, page, task, result);
     }
 
     @Nullable
     public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
             Collection<SelectorOptions<GetOperationOptions>> options,
-            PageBase page, Task task, OperationResult result) {
+            PageCommon page, Task task, OperationResult result) {
         return loadObject(type, oid, options, true, page, task, result);
     }
 
     @Nullable
     public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
             Collection<SelectorOptions<GetOperationOptions>> options, boolean allowNotFound,
-            PageBase page, Task task, OperationResult result) {
+            PageCommon page, Task task, OperationResult result) {
         LOGGER.debug("Loading {} with oid {}, options {}", type.getSimpleName(), oid, options);
 
         OperationResult subResult;
@@ -427,20 +428,20 @@ public class WebModelServiceUtils {
                 .build();
     }
 
-    public static void save(ObjectDelta delta, OperationResult result, PageBase page) {
+    public static void save(ObjectDelta delta, OperationResult result, PageCommon page) {
         save(delta, result, null, page);
     }
 
-    public static void save(ObjectDelta delta, OperationResult result, Task task, PageBase page) {
+    public static void save(ObjectDelta delta, OperationResult result, Task task, PageCommon page) {
         save(delta, null, result, task, page);
     }
 
-    public static void save(ObjectDelta delta, ModelExecuteOptions options, OperationResult result, Task task, PageBase page) {
+    public static void save(ObjectDelta delta, ModelExecuteOptions options, OperationResult result, Task task, PageCommon page) {
         save(MiscUtil.createCollection(delta), options, result, task, page);
     }
 
     public static void save(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
-            OperationResult result, Task task, PageBase page) {
+            OperationResult result, Task task, PageCommon page) {
         LOGGER.debug("Saving deltas {}, options {}", deltas, options);
 
         OperationResult subResult;
@@ -759,7 +760,7 @@ public class WebModelServiceUtils {
         return false;
     }
 
-    public static PrismObject<SystemConfigurationType> loadSystemConfigurationAsPrismObject(PageBase pageBase, Task task, OperationResult result) {
+    public static PrismObject<SystemConfigurationType> loadSystemConfigurationAsPrismObject(PageCommon pageBase, Task task, OperationResult result) {
         PrismObject<SystemConfigurationType> systemConfig = loadObject(
                 SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
                 pageBase, task, result);

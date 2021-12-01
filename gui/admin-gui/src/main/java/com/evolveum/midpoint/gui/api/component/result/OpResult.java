@@ -15,6 +15,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.api.page.PageCommon;
+
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.model.IModel;
@@ -86,7 +88,7 @@ public class OpResult implements Serializable, Visitable {
         this.alreadyShown = alreadyShown;
     }
 
-    public static OpResult getOpResult(PageBase page, OperationResult result) {
+    public static OpResult getOpResult(PageCommon page, OperationResult result) {
         OpResult opResult = new OpResult();
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
@@ -155,7 +157,7 @@ public class OpResult implements Serializable, Visitable {
         return opResult;
     }
 
-    private static IModel<String> createXmlModel(OperationResult result, PageBase page) {
+    private static IModel<String> createXmlModel(OperationResult result, PageCommon page) {
         try {
             OperationResultType resultType = result.createOperationResultType();
             return new ReadOnlyModel<String>(() -> {
@@ -175,12 +177,12 @@ public class OpResult implements Serializable, Visitable {
 
     // This method should be called along with getOpResult for root operationResult. However, it might take some time,
     // and there might be situations in which it is not required -- so we opted for calling it explicitly.
-    public void determineObjectsVisibility(PageBase pageBase) {
+    public void determineObjectsVisibility(PageCommon pageBase) {
         determineBackgroundTaskVisibility(pageBase);
         determineCaseVisibility(pageBase);
     }
 
-    private void determineBackgroundTaskVisibility(PageBase pageBase) {
+    private void determineBackgroundTaskVisibility(PageCommon pageBase) {
         if (backgroundTaskOid == null) {
             return;
         }
@@ -205,7 +207,7 @@ public class OpResult implements Serializable, Visitable {
         }
     }
 
-    private void determineCaseVisibility(PageBase pageBase) {
+    private void determineCaseVisibility(PageCommon pageBase) {
         if (getStatus().equals(OperationResultStatus.FATAL_ERROR)) {
             caseVisible = false;
             return;

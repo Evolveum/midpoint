@@ -99,7 +99,7 @@ import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
 import com.evolveum.midpoint.web.page.error.*;
-import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PagePostAuthentication;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.resource.img.ImgResources;

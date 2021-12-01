@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageCommon;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -352,7 +353,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
-    public boolean checkRequired(PageBase pageBase) {
+    public boolean checkRequired(PageCommon pageBase) {
         return newItem.getDefinition().isMandatory();
     }
 

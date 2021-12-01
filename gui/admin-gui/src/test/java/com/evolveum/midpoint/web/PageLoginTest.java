@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.web;
 
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import org.apache.wicket.util.tester.WicketTester;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;

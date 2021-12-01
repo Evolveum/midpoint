@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.login;
 
+import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;

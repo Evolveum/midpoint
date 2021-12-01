@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.page.PageCommon;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
@@ -605,7 +606,7 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
-    public boolean checkRequired(PageBase pageBase) {
+    public boolean checkRequired(PageCommon pageBase) {
         return metadataValueWrapper.checkRequired(pageBase);
     }
 

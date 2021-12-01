@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web.component.prism;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.page.PageCommon;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.basic.Label;
@@ -46,14 +48,14 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
 
     private final List<AbstractFormItemType> formItems;
 
-    public DynamicFieldGroupPanel(String id, String groupName, IModel<PrismObjectWrapper<O>> objectWrapper, List<AbstractFormItemType> formItems, Form<?> mainForm, PageBase parentPage) {
+    public DynamicFieldGroupPanel(String id, String groupName, IModel<PrismObjectWrapper<O>> objectWrapper, List<AbstractFormItemType> formItems, Form<?> mainForm, PageCommon parentPage) {
         super(id, objectWrapper);
         setParent(parentPage);
         this.formItems = formItems;
         initLayout(groupName, formItems, mainForm);
     }
 
-    public DynamicFieldGroupPanel(String id, IModel<PrismObjectWrapper<O>> objectWrapper, @NotNull FormDefinitionType formDefinition, Form<?> mainForm, PageBase parentPage) {
+    public DynamicFieldGroupPanel(String id, IModel<PrismObjectWrapper<O>> objectWrapper, @NotNull FormDefinitionType formDefinition, Form<?> mainForm, PageCommon parentPage) {
         super(id, objectWrapper);
         setParent(parentPage);
         this.formItems = FormTypeUtil.getFormItems(formDefinition.getFormItems());
@@ -170,7 +172,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
      * Checks embedded properties if they are the minOccurs check.
      * Experimental implementation. Please do not rely on it too much.
      */
-    public boolean checkRequiredFields(PageBase pageBase) {
+    public boolean checkRequiredFields(PageCommon pageBase) {
         Holder<Boolean> rvHolder = new Holder<>(true);
         getRepeatingPropertyView().visitChildren((component, iVisit) -> {
             if (component instanceof PrismPropertyPanel) {

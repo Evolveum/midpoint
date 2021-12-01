@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.web.page.login;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.page.PageCommon;
+import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.context.NonceAuthenticationContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -186,7 +188,7 @@ public abstract class PageAuthenticationBase extends AbstractPageLogin {
         return authenticationEvaluator;
     }
 
-    protected void initDynamicLayout(final org.apache.wicket.markup.html.form.Form<?> mainForm, PageBase parentPage) {
+    protected void initDynamicLayout(final org.apache.wicket.markup.html.form.Form<?> mainForm, PageCommon parentPage) {
         WebMarkupContainer dynamicLayout = new WebMarkupContainer(ID_DYNAMIC_LAYOUT);
         dynamicLayout.setOutputMarkupId(true);
         mainForm.add(dynamicLayout);
