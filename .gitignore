@@ -34,3 +34,4 @@ rebel.xml
 .DS_Store
 _mess
 .checkstyle
+/gui/admin-gui/src/main/resources/static/dist/
