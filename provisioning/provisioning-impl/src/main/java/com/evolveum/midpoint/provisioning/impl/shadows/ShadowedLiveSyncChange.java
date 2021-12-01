@@ -16,7 +16,7 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectLiv
 import com.evolveum.midpoint.provisioning.impl.shadows.sync.ChangeProcessingBeans;
 
 /**
- * Adopted Live Sync change. The client should implement the {@link AcknowledgementSink} interface.
+ * Adopted (shadowed) Live Sync change. The client should implement the {@link AcknowledgementSink} interface.
  */
 public class ShadowedLiveSyncChange extends ShadowedChange<ResourceObjectLiveSyncChange> {
 

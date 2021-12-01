@@ -36,6 +36,16 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+/**
+ * "Compiled" specification of items that are to be processed by {@link SearchBasedActivityRun}.
+ * Basically, this is a grouping of type + query + options + "use repo" flag.
+ *
+ * This object has writable fields, as it can be modified during activity run.
+ *
+ * There is a subclass dedicated to searching for objects on a resource (`ResourceSearchSpecification`).
+ *
+ * @param <C> Type of items
+ */
 public class SearchSpecification<C extends Containerable> implements DebugDumpable, Cloneable {
 
     /**

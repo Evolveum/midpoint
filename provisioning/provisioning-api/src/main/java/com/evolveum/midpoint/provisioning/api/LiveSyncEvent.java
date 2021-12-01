@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.provisioning.api;
 
 /**
- * TODO
+ * Represents [live] synchronization change event obtained from a resource.
  */
 public interface LiveSyncEvent extends SynchronizationEvent {
 

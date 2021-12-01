@@ -223,7 +223,15 @@ public interface ObjectClassComplexTypeDefinition extends ComplexTypeDefinition 
         return ObjectFactory.createResourceAttributeContainerDefinition(elementName, this, getPrismContext());
     }
 
-    default ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
+    /**
+     * Creates a query for obtaining shadows related to this object class.
+     *
+     * The current implementation returns either:
+     *
+     * - a combination of resource OID + object class name, or
+     * - a combination of resource OID + kind + intent.
+     */
+    default @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
         return ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOid, getTypeName(), getPrismContext());
     }
 

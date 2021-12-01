@@ -43,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @param <C> Type of objects processed by the activity
  */
 @SuppressWarnings("RedundantThrows")
-interface SearchBasedActivityRunSpecifics<C extends Containerable>
+public interface SearchBasedActivityRunSpecifics<C extends Containerable>
         extends IterativeActivityRunSpecifics {
 
     //region 1. Search specification formulation and customization

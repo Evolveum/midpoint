@@ -98,15 +98,21 @@ public final class RefinedResourceSchemaImpl implements RefinedResourceSchema {
     }
 
     @Override
-    public CompositeRefinedObjectClassDefinition determineCompositeObjectClassDefinition(ResourceShadowDiscriminator discriminator) {
-        if (discriminator.getKind() == null && discriminator.getObjectClass() == null) {
+    public CompositeRefinedObjectClassDefinition determineCompositeObjectClassDefinition(
+            @NotNull ResourceShadowDiscriminator discriminator) {
+        ShadowKindType kind = discriminator.getKind();
+        String intent = discriminator.getIntent();
+        QName objectClassName = discriminator.getObjectClass();
+
+        if (kind == null && objectClassName == null) {
             return null;
         }
         RefinedObjectClassDefinition structuralObjectClassDefinition;
-        if (discriminator.getKind() == null && discriminator.getObjectClass() != null) {
-            structuralObjectClassDefinition = getRefinedDefinition(discriminator.getObjectClass());
+        if (kind == null) {
+            assert objectClassName != null;
+            structuralObjectClassDefinition = getRefinedDefinition(objectClassName);
         } else {
-            structuralObjectClassDefinition = getRefinedDefinition(discriminator.getKind(), discriminator.getIntent());
+            structuralObjectClassDefinition = getRefinedDefinition(kind, intent);
         }
         if (structuralObjectClassDefinition == null) {
             return null;
@@ -216,7 +222,7 @@ public final class RefinedResourceSchemaImpl implements RefinedResourceSchema {
     @Override
     public RefinedObjectClassDefinition getRefinedDefinition(QName objectClassName) {
         for (RefinedObjectClassDefinition def: getRefinedDefinitions()) {
-            if (def.isDefault() && (QNameUtil.match(def.getTypeName(), objectClassName))) {
+            if (def.isDefault() && QNameUtil.match(def.getTypeName(), objectClassName)) {
                 return def;
             }
         }
@@ -224,7 +230,7 @@ public final class RefinedResourceSchemaImpl implements RefinedResourceSchema {
         // This is not strictly correct .. but it is a "compatible bug" :-)
         // TODO: remove this in next major revision
         for (RefinedObjectClassDefinition def: getRefinedDefinitions()) {
-            if ((QNameUtil.match(def.getTypeName(), objectClassName))) {
+            if (QNameUtil.match(def.getTypeName(), objectClassName)) {
                 return def;
             }
         }
@@ -399,24 +405,24 @@ public final class RefinedResourceSchemaImpl implements RefinedResourceSchema {
         return parse(resource.asObjectable(), prismContext);
     }
 
-    public static RefinedResourceSchema parse(ResourceType resourceType, PrismContext prismContext) throws SchemaException {
+    public static RefinedResourceSchema parse(ResourceType resource, PrismContext prismContext) throws SchemaException {
 
-        ResourceSchema originalResourceSchema = getResourceSchema(resourceType, prismContext);
+        ResourceSchema originalResourceSchema = getResourceSchema(resource, prismContext);
         if (originalResourceSchema == null) {
             return null;
         }
 
-        String contextDescription = "definition of "+resourceType;
+        String contextDescription = "definition of "+resource;
 
         RefinedResourceSchemaImpl rSchema = new RefinedResourceSchemaImpl(originalResourceSchema);
 
-        SchemaHandlingType schemaHandling = resourceType.getSchemaHandling();
+        SchemaHandlingType schemaHandling = resource.getSchemaHandling();
         if (schemaHandling != null) {
-            parseObjectTypeDefsFromSchemaHandling(rSchema, resourceType, schemaHandling,
+            parseObjectTypeDefsFromSchemaHandling(rSchema, resource, schemaHandling,
                     schemaHandling.getObjectType(), null, prismContext, contextDescription);
         }
 
-        parseObjectTypesFromSchema(rSchema, resourceType, prismContext, contextDescription);
+        parseObjectTypesFromSchema(rSchema, resource.getOid(), contextDescription);
 
         // We need to parse associations and auxiliary object classes in a second pass. We need to have all object classes parsed before correctly setting association
         // targets
@@ -456,7 +462,7 @@ public final class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 
         for (ResourceObjectTypeDefinitionType accountTypeDefType: resourceObjectTypeDefs) {
             RefinedObjectClassDefinition rOcDef = RefinedObjectClassDefinitionImpl.parse(accountTypeDefType, resourceType, rSchema, impliedKind,
-                    prismContext, contextDescription);
+                    contextDescription);
 
             if (rOcDef.isDefault()) {
                 if (defaults.containsKey(rOcDef.getKind())) {
@@ -482,17 +488,16 @@ public final class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 
     }
 
-
-    private static void parseObjectTypesFromSchema(RefinedResourceSchemaImpl rSchema, ResourceType resourceType,
-            PrismContext prismContext, String contextDescription) throws SchemaException {
+    private static void parseObjectTypesFromSchema(RefinedResourceSchemaImpl rSchema,
+            String resourceOid, String contextDescription) throws SchemaException {
 
         RefinedObjectClassDefinition rAccountDefDefault = null;
-        for(ObjectClassComplexTypeDefinition objectClassDef: rSchema.getOriginalResourceSchema().getObjectClassDefinitions()) {
+        for (ObjectClassComplexTypeDefinition objectClassDef : rSchema.getOriginalResourceSchema().getObjectClassDefinitions()) {
             QName objectClassname = objectClassDef.getTypeName();
             if (rSchema.getRefinedDefinition(objectClassname) != null) {
                 continue;
             }
-            RefinedObjectClassDefinition rOcDef = RefinedObjectClassDefinitionImpl.parseFromSchema(objectClassDef, resourceType, rSchema, prismContext,
+            RefinedObjectClassDefinition rOcDef = RefinedObjectClassDefinitionImpl.parseFromSchema(objectClassDef, resourceOid,
                     "object class " + objectClassname + ", in " + contextDescription);
 
             if (objectClassDef.getKind() == ShadowKindType.ACCOUNT && rOcDef.isDefault()) {

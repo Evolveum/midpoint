@@ -113,7 +113,7 @@
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
                         <a:deprecatedSince>4.1</a:deprecatedSince>
-                        <a:plannedRemoval>4.5</a:plannedRemoval>
+                        <a:plannedRemoval>4.6</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -122,7 +122,7 @@
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
                         <a:deprecatedSince>4.1</a:deprecatedSince>
-                        <a:plannedRemoval>4.5</a:plannedRemoval>
+                        <a:plannedRemoval>4.6</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1573,13 +1573,41 @@
             </xsd:element>
             <!-- Later: delivery -->
             <xsd:element name="securityQuestionReset" type="tns:SecurityQuestionsResetPolicyType" minOccurs="0">
-                <!-- This will be deprecated soon -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.5</a:deprecatedSince>
+                        <a:plannedRemoval>4.6</a:plannedRemoval>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="mailReset" type="tns:MailResetPolicyType" minOccurs="0">
-                <!-- This will be deprecated soon -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.5</a:deprecatedSince>
+                        <a:plannedRemoval>4.6</a:plannedRemoval>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="smsReset" type="tns:SmsResetPolicyType" minOccurs="0">
-                <!-- This will be deprecated soon -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.5</a:deprecatedSince>
+                        <a:plannedRemoval>4.6</a:plannedRemoval>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="formRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to form which is displayed for registration
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:FormType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>

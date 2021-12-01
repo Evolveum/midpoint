@@ -82,6 +82,12 @@ class ResourceObjectReferenceResolver {
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
+    /**
+     * TODO description
+     *
+     * *Note that the object is resolved using _raw_ definition of the given object class.*
+     * (This is to avoid endless loops during base context resolution.)
+     */
     PrismObject<ShadowType> resolve(ProvisioningContext ctx, ResourceObjectReferenceType resourceObjectReference,
             QName objectClass, final String desc, OperationResult result)
                     throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,

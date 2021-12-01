@@ -109,6 +109,7 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 
     String getResourceOid();
 
+    /** TODO define semantics */
     boolean isDefault();
 
     ResourceObjectReferenceType getBaseContext();

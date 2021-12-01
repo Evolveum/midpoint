@@ -15,7 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClassSpecification;
+import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClass;
 import com.evolveum.midpoint.model.impl.sync.tasks.SynchronizationObjectsFilterImpl;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
@@ -38,7 +38,10 @@ public abstract class PartialReconciliationActivityRun
                 ReconciliationActivityHandler,
                 ReconciliationWorkStateType> {
 
-    ResourceObjectClassSpecification objectClassSpec;
+    /** Object class to reconcile (resource + OC + kind + intent). */
+    ResourceObjectClass resourceObjectClass;
+
+    /** Post-search filter (currently OC, kind, intent). */
     SynchronizationObjectsFilterImpl objectsFilter;
 
     PartialReconciliationActivityRun(
@@ -51,18 +54,16 @@ public abstract class PartialReconciliationActivityRun
     public void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
         ResourceObjectSetType resourceObjectSet = getResourceObjectSet();
 
-        objectClassSpec = getModelBeans().syncTaskHelper
-                .createObjectClassSpec(resourceObjectSet, getRunningTask(), result);
-        objectsFilter = objectClassSpec.getObjectFilter(resourceObjectSet);
+        resourceObjectClass = getModelBeans().syncTaskHelper
+                .getResourceObjectClassCheckingMaintenance(resourceObjectSet, getRunningTask(), result);
+        objectsFilter = resourceObjectClass.getObjectFilter();
 
-        objectClassSpec.checkNotInMaintenance();
-
-        setContextDescription(getShortName() + " on " + objectClassSpec.getContextDescription()); // TODO?
+        setContextDescription(getShortName() + " on " + resourceObjectClass.getContextDescription()); // TODO?
     }
 
     @Override
     protected @NotNull ObjectReferenceType getDesiredTaskObjectRef() {
-        return objectClassSpec.getResourceRef();
+        return resourceObjectClass.getResourceRef();
     }
 
     protected @NotNull ResourceObjectSetType getResourceObjectSet() {

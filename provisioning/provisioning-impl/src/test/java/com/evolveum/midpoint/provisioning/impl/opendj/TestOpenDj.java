@@ -2825,10 +2825,14 @@ public class TestOpenDj extends AbstractOpenDjTest {
     }
 
     /**
-     * List organizationUnits with intent ou-people. There are no sub-ous in People.
-     * But the definition has objectclass organizationalUnit and it has baseContext that
-     * is also organizationalUnit. This test therefore makes sure this will not end up
-     * in endless loop (stack overflow).
+     * List objects (organizational units) with kind `generic` and intent `ou-people`. (There are no sub-ous in People,
+     * so the test should return only the People OU.)
+     *
+     * The basic problem is that the definition of `generic` : `ou-people` has an object class
+     * of `organizationalUnit` and - at the same time - it has a `baseContext` pointing
+     * to the same object class of `organizationalUnit`.
+     *
+     * This test therefore makes sure this will not end up in endless loop (stack overflow).
      */
     @Test
     public void test460ListOrganizationalUnitPeopleKindIntent() throws Exception {

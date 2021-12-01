@@ -86,6 +86,14 @@ public class ResourceShadowDiscriminator
         this.tag = null;
     }
 
+    public ResourceShadowDiscriminator(String resourceOid, ShadowKindType kind, String intent, QName objectClass) {
+        this.resourceOid = resourceOid;
+        this.objectClass = objectClass;
+        this.kind = kind;
+        this.intent = intent;
+        this.tag = null;
+    }
+
     public String getResourceOid() {
         return resourceOid;
     }

@@ -674,7 +674,7 @@ public final class LayerRefinedObjectClassDefinitionImpl implements LayerRefined
     }
 
     @Override
-    public ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
+    public @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
         return refinedObjectClassDefinition.createShadowSearchQuery(resourceOid);
     }
 

@@ -203,7 +203,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
         QName objectClass = getObjectClassDefinition().getTypeName();
 
         repoShadow = localBeans.shadowAcquisitionHelper.acquireRepoShadow(context, primaryIdentifier, objectClass,
-                this::createResourceObjectFromChange, false, result);
+                this::createResourceObjectFromChange, result);
     }
 
     /**

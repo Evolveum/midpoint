@@ -307,6 +307,11 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                         .eq(true)
                         .buildFilter();
             }
+
+            @Override
+            protected boolean canRemoveSearchItem() {
+                return false;
+            }
         };
         deadSearchItem.setFixed(true);
         search.addSpecialItem(deadSearchItem);

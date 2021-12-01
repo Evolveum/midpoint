@@ -168,21 +168,26 @@ public class ProvisioningContext extends StateReporter {
     public RefinedObjectClassDefinition getObjectClassDefinition() throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
         if (objectClassDefinition == null) {
             if (useRefinedDefinition) {
+                // This is the normal case.
                 if (originalShadow != null) {
                     objectClassDefinition = getRefinedSchema().determineCompositeObjectClassDefinition(originalShadow, additionalAuxiliaryObjectClassQNames);
                 } else if (shadowCoordinates != null && !shadowCoordinates.isWildcard()) {
                     objectClassDefinition = getRefinedSchema().determineCompositeObjectClassDefinition(shadowCoordinates);
                 }
             } else {
+                // This is a special case, currently used for "baseContext" resolution in refined object class definition.
+                // Other uses might be added in the future, see e.g. MID-7470.
                 if (shadowCoordinates.getObjectClass() == null) {
                     throw new IllegalStateException("No objectclass");
                 }
-                ObjectClassComplexTypeDefinition origObjectClassDefinition = getRefinedSchema().getOriginalResourceSchema().findObjectClassDefinition(shadowCoordinates.getObjectClass());
+                ObjectClassComplexTypeDefinition origObjectClassDefinition = getRefinedSchema().getOriginalResourceSchema()
+                        .findObjectClassDefinition(shadowCoordinates.getObjectClass());
                 if (origObjectClassDefinition == null) {
                     throw new SchemaException("No object class definition for "+shadowCoordinates.getObjectClass()+" in original resource schema for "+getResource());
                 } else {
-                    objectClassDefinition = RefinedObjectClassDefinitionImpl.parseFromSchema(origObjectClassDefinition, getResource(), getRefinedSchema(), getResource().asPrismObject().getPrismContext(),
-                        "objectclass "+origObjectClassDefinition+" in "+getResource());
+                    // This is a pure conversion of raw object class definition to refined one.
+                    objectClassDefinition = RefinedObjectClassDefinitionImpl.parseFromSchema(origObjectClassDefinition, getResource().getOid(),
+                            "objectclass "+origObjectClassDefinition+" in "+getResource());
                 }
             }
         }

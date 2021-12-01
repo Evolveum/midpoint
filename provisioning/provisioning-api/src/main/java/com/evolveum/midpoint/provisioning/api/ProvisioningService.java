@@ -11,12 +11,15 @@ import java.util.List;
 import java.util.Set;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ProvisioningDiag;
@@ -28,6 +31,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -39,6 +43,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * <p>Provisioning Service Interface.</p>
@@ -156,31 +161,38 @@ public interface ProvisioningService {
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
 
     /**
-     * Collect external changes on a resource and call the business logic with
-     * the accumulated change data.
+     * Fetches synchronization change events ({@link LiveSyncEvent}) from a resource and passes them into specified
+     * {@link LiveSyncEventHandler}. Uses provided {@link LiveSyncTokenStorage} to get and update the token
+     * that indicates the current position in the stream of live sync change events.
      *
-     * This method will be invoked by scheduler/sync thread.
+     * It is typically invoked from a live sync activity (task).
      *
-     * TODO: Better description
+     * Notes regarding the `shadowCoordinates` parameter:
      *
-     * @param shadowCoordinates
-     *            where to attempt synchronization
-     * @param parentResult
-     *            parent OperationResult (in/out)
-     * @return the number of processed changes
-     * @throws ObjectNotFoundException
-     *             some of key objects (resource, task, ...) do not exist
-     * @throws CommunicationException
-     *             error communicating with the resource
-     * @throws SchemaException
-     *             error dealing with resource schema
-     * @throws SecurityViolationException
-     *                 Security violation while communicating with the connector or processing provisioning policies
-     * @throws GenericConnectorException
-     *             unknown connector framework error
+     * * Resource OID is obligatory.
+     * * If both object class and kind are left unspecified, all object classes on the resource are synchronized
+     * (if supported by the connector/resource).
+     * * If kind is specified, the object class to synchronize is determined using kind + intent pair.
+     * * If kind is not specified, the object class to synchronize is determined using object class name.
+     * (Currently, the default refined object class having given object class name is selected. But this should
+     * be no problem, because we need just the object class name for live synchronization.)
+     *
+     * See also {@link RefinedResourceSchema#determineCompositeObjectClassDefinition(ResourceShadowDiscriminator)}.
+     *
+     * @param shadowCoordinates Where to attempt synchronization. See description above.
+     * @param options Options driving the synchronization process (execution mode, batch size, ...)
+     * @param tokenStorage Interface for getting and setting the token for the activity
+     * @param handler Handler that processes live sync events
+     * @param parentResult Parent OperationResult to where we write our own subresults.
+     * @throws ObjectNotFoundException Some of key objects (resource, task, ...) do not exist
+     * @throws CommunicationException Error communicating with the resource
+     * @throws SchemaException Error dealing with resource schema
+     * @throws SecurityViolationException Security violation while communicating with the connector
+     *         or processing provisioning policies
+     * @throws GenericConnectorException Unknown connector framework error
      */
     @NotNull SynchronizationResult synchronize(@NotNull ResourceShadowDiscriminator shadowCoordinates,
-            LiveSyncOptions options, @NotNull LiveSyncTokenStorage tokenStorage, @NotNull LiveSyncEventHandler handler,
+            @Nullable LiveSyncOptions options, @NotNull LiveSyncTokenStorage tokenStorage, @NotNull LiveSyncEventHandler handler,
             @NotNull Task task, @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException;
@@ -199,8 +211,10 @@ public interface ProvisioningService {
      * Execution of updates is done in the context of the task worker threads (i.e. lightweight asynchronous
      * subtask), if there are any. If there are none, execution is done in the thread that receives the message.
      *
-     * Note that although it is possible to specify other parameters in addition to resource OID (e.g. objectClass), these
-     * settings are not supported now.
+     * @param shadowCoordinates
+     *
+     *          What objects to synchronize. Note that although it is possible to specify other parameters in addition
+     *          to resource OID (e.g. objectClass), these settings are not supported now.
      */
     void processAsynchronousUpdates(@NotNull ResourceShadowDiscriminator shadowCoordinates,
             @NotNull AsyncUpdateEventHandler handler, @NotNull Task task, @NotNull OperationResult parentResult)
@@ -208,70 +222,75 @@ public interface ProvisioningService {
             ExpressionEvaluationException;
 
     /**
-     * Search for objects. Searches through all object types. Returns a list of
-     * objects that match search criteria.
+     * Search for objects. Returns a list of objects that match search criteria (may be empty if there are no matching objects).
      *
-     * Returns empty list if object type is correct but there are no objects of
-     * that type.
+     * Should fail if object type is wrong. Should fail if unknown property is specified in the query.
      *
-     * Should fail if object type is wrong. Should fail if unknown property is
-     * specified in the query.
+     * When dealing with shadow queries in non-raw mode, there are the following requirements:
      *
-     * @param query
-     *            search query
-     * @param task
-     * @param parentResult
-     *            parent OperationResult (in/out)  @return all objects of specified type that match search criteria (subject
-     *         to paging)
+     * - there must be exactly one `resourceRef` obtainable from the query (i.e. present in the conjunction at the root level),
+     * - there must be either `objectclass` or `kind` (optionally with `intent`) obtainable from the query.
      *
-     * @throws IllegalArgumentException
-     *             wrong object type
-     * @throws GenericConnectorException
-     *             unknown connector framework error
-     * @throws SchemaException
-     *             unknown property used in search query
-     * @throws ConfigurationException
-     * @throws SecurityViolationException
-     *                 Security violation while communicating with the connector or processing provisioning policies
+     * (For the raw mode the requirements are currently the same; however, we may relax them in the future.)
+     *
+     * The object class used for on-resource search is then determined like this:
+     *
+     * - if `kind` is specified, a combination of `kind` and `intent` is used to find refined object class definition,
+     * - if `kind` is not specified, `objectclass` is used to find the default refined OC definition with this name
+     * (i.e. it is _not_ so that the object class name is directly used for search on the resource!)
+     *
+     * See also MID-7470.
+     *
+     * Note that when using kind and/or intent, the method may return objects that do not match these conditions.
+     * (The reason is that the connector does not know about kind+intent. It gets just the object class and
+     * optionally an attribute query. So the search will return all members of that object class.)
+     * It is the responsibility of the caller to sort these extra objects out.
+     *
+     * @see ObjectQueryUtil#getCoordinates(ObjectFilter, PrismContext)
+     * @see RefinedResourceSchema#determineCompositeObjectClassDefinition(ResourceShadowDiscriminator)
+     *
+     * @return all objects of specified type that match search criteria (subject to paging)
+     *
+     * @throws IllegalArgumentException wrong object type
+     * @throws GenericConnectorException unknown connector framework error
+     * @throws SchemaException unknown property used in search query
+     * @throws SecurityViolationException Security violation while communicating with the connector or processing provisioning
+     * policies
      */
     @NotNull
-    <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+    <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(@NotNull Class<T> type, @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
     /**
-     * Options: if noFetch or raw, we count only shadows from the repository.
+     * @param query See {@link #searchObjects(Class, ObjectQuery, Collection, Task, OperationResult)} description.
+     * @param options If noFetch or raw, we count only shadows from the repository.
      */
-    <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+    <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
     /**
-     * Search for objects iteratively. Searches through all object types. Calls a
-     * specified handler for each object found.
+     * Search for objects iteratively. Searches through all object types. Calls a specified handler for each object found.
      *
      * If nothing is found the handler is not called and the operation returns.
      *
-     * Should fail if object type is wrong. Should fail if unknown property is
-     * specified in the query.
+     * Should fail if object type is wrong. Should fail if unknown property is specified in the query.
      *
-     * @param query
-     *            search query
-     * @param handler
-     *            result handler
-     * @param task
-     * @param parentResult
-     *            parent OperationResult (in/out)
-     *  @throws IllegalArgumentException
-     *             wrong object type
-     * @throws GenericConnectorException
-     *             unknown connector framework error
-     * @throws SchemaException
-     *             unknown property used in search query
+     * @param query search query
+     * @param handler result handler
+     * @param parentResult parent OperationResult (in/out)
+     * @throws IllegalArgumentException wrong object type
+     * @throws GenericConnectorException unknown connector framework error
+     * @throws SchemaException unknown property used in search query
      * @throws ObjectNotFoundException appropriate connector object was not found
-     * @throws ConfigurationException
-     * @throws SecurityViolationException
-     *                 Security violation while communicating with the connector or processing provisioning policies
+     * @throws SecurityViolationException Security violation while communicating with the connector or processing provisioning
+     * policies
+     *
+     * @see #searchObjects(Class, ObjectQuery, Collection, Task, OperationResult)
      */
     <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<T> handler, Task task,

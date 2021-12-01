@@ -71,6 +71,7 @@ import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -470,11 +471,7 @@ public class ModelImplUtils {
         return false;
     }
 
-    public static SynchronizationObjectsFilterImpl determineSynchronizationObjectsFilter(
-            ObjectClassComplexTypeDefinition objectclassDef, ResourceObjectSetType resourceObjectSet) {
-        return new SynchronizationObjectsFilterImpl(objectclassDef, resourceObjectSet.getKind(), resourceObjectSet.getIntent());
-    }
-
+    @VisibleForTesting
     public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, Task task)
             throws SchemaException {
         QName objectclass = getTaskExtensionPropertyValue(task, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS);
@@ -510,12 +507,14 @@ public class ModelImplUtils {
     }
 
     private static ObjectClassComplexTypeDefinition determineObjectClassInternal(
-            RefinedResourceSchema refinedSchema, QName objectclass, ShadowKindType kind, String intent, Object source) throws SchemaException {
+            RefinedResourceSchema refinedSchema, QName objectclass, ShadowKindType kind, String intent, Object source)
+            throws SchemaException {
 
         if (kind == null && intent == null && objectclass != null) {
             // Return generic object class definition from resource schema. No kind/intent means that we want
             // to process all kinds and intents in the object class.
-            ObjectClassComplexTypeDefinition objectClassDefinition = refinedSchema.getOriginalResourceSchema().findObjectClassDefinition(objectclass);
+            ObjectClassComplexTypeDefinition objectClassDefinition =
+                    refinedSchema.getOriginalResourceSchema().findObjectClassDefinition(objectclass);
             if (objectClassDefinition == null) {
                 throw new SchemaException("No object class "+objectclass+" in the schema for "+source);
             }

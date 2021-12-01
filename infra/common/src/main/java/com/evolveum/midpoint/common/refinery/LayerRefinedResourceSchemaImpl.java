@@ -93,7 +93,7 @@ public class LayerRefinedResourceSchemaImpl implements LayerRefinedResourceSchem
 
     @Override
     public CompositeRefinedObjectClassDefinition determineCompositeObjectClassDefinition(
-            ResourceShadowDiscriminator discriminator) {
+            @NotNull ResourceShadowDiscriminator discriminator) {
         return refinedResourceSchema.determineCompositeObjectClassDefinition(discriminator);
     }
 

@@ -768,7 +768,9 @@ class EntitlementConverter {
 
     // This is perhaps not the best place for this method. It has nothing to do with entitlements.
     // But given class dependencies this is a very convenient place. Let's leave it here for now.
-    public SearchHierarchyConstraints determineSearchHierarchyConstraints(final ProvisioningContext ctx, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, SecurityViolationException {
+    SearchHierarchyConstraints determineSearchHierarchyConstraints(ProvisioningContext ctx, OperationResult parentResult)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+            ExpressionEvaluationException, SecurityViolationException {
         RefinedObjectClassDefinition objectClassDef = ctx.getObjectClassDefinition();
         ResourceObjectReferenceType baseContextRef = objectClassDef.getBaseContext();
         ResourceObjectIdentification baseContextIdentification = null;
