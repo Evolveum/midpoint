@@ -8,10 +8,6 @@ package com.evolveum.midpoint.web.boot;
 
 import javax.servlet.DispatcherType;
 
-import com.evolveum.midpoint.web.security.MidpointAutowiredBeanFactoryObjectPostProcessor;
-import com.evolveum.midpoint.web.security.MidpointSessionRegistry;
-import com.evolveum.midpoint.web.security.RemoveUnusedSecurityFilterPublisher;
-
 import org.apache.wicket.Application;
 import org.apache.wicket.protocol.http.WicketFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,10 +45,12 @@ import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.filter.DelegatingFilterProxy;
-import ro.isdc.wro.http.WroFilter;
 
 import com.evolveum.midpoint.init.StartupConfiguration;
 import com.evolveum.midpoint.model.api.authentication.NodeAuthenticationEvaluator;
+import com.evolveum.midpoint.web.security.MidpointAutowiredBeanFactoryObjectPostProcessor;
+import com.evolveum.midpoint.web.security.MidpointSessionRegistry;
+import com.evolveum.midpoint.web.security.RemoveUnusedSecurityFilterPublisher;
 import com.evolveum.midpoint.web.security.SessionAndRequestScopeImpl;
 import com.evolveum.midpoint.web.util.MidPointProfilingServletFilter;
 
@@ -129,14 +127,6 @@ public abstract class AbstractSpringBootApplication extends SpringBootServletIni
         FilterRegistrationBean<DelegatingFilterProxy> registration = new FilterRegistrationBean<>();
         registration.setFilter(new DelegatingFilterProxy());
         registration.addUrlPatterns("/*");
-        return registration;
-    }
-
-    @Bean
-    public FilterRegistrationBean<WroFilter> webResourceOptimizer(WroFilter wroFilter) {
-        FilterRegistrationBean<WroFilter> registration = new FilterRegistrationBean<>();
-        registration.setFilter(wroFilter);
-        registration.addUrlPatterns("/wro/*");
         return registration;
     }
 

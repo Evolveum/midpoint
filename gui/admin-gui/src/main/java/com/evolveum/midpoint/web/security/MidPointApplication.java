@@ -221,7 +221,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
         getJavaScriptLibrarySettings().setJQueryReference(
                 new PackageResourceReference(MidPointApplication.class,
-                        "../../../../../webjars/AdminLTE/2.4.18/bower_components/jquery/dist/jquery.min.js")); //todo no jquery.js is found
+                        "../../../../../webjars/AdminLTE/3.1.0/plugins/jquery/jquery.js")); //todo no jquery.js is found
 
         getComponentInstantiationListeners().add(new SpringComponentInjector(this, applicationContext, true));
 

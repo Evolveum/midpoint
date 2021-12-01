@@ -139,6 +139,7 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         web.ignoring().antMatchers("/js/**");
         web.ignoring().antMatchers("/css/**");
+        web.ignoring().antMatchers("/dist/**");
         web.ignoring().antMatchers("/img/**");
         web.ignoring().antMatchers("/fonts/**");
 

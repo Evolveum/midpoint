@@ -115,12 +115,6 @@
             <artifactId>spring-boot-actuator-autoconfigure</artifactId>
         </dependency>
 
-        <!-- webjars -->
-        <dependency>
-            <groupId>com.evolveum.webjars</groupId>
-            <artifactId>AdminLTE</artifactId>
-            <scope>runtime</scope>
-        </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>respond</artifactId>
@@ -133,12 +127,7 @@
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
-            <artifactId>font-awesome</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars.npm</groupId>
-            <artifactId>ionicons</artifactId>
+            <artifactId>AdminLTE</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -147,101 +136,9 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- WRO4J-->
-        <dependency>
-            <groupId>ro.isdc.wro4j</groupId>
-            <artifactId>wro4j-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>less</artifactId>
-            <scope>runtime</scope>
-        </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-cas</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ro.isdc.wro4j</groupId>
-            <artifactId>wro4j-extensions</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.webjars</groupId>
-                    <artifactId>less</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library (13mb) -->
-                    <groupId>org.jruby</groupId>
-                    <artifactId>jruby-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library -->
-                    <groupId>org.jruby</groupId>
-                    <artifactId>jruby-stdlib</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library (500kb) -->
-                    <groupId>me.n4u.sass</groupId>
-                    <artifactId>sass-gems</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library (200kb) -->
-                    <groupId>nz.co.edmi</groupId>
-                    <artifactId>bourbon-gem-jar</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library (3.5mb) -->
-                    <groupId>com.google.javascript</groupId>
-                    <artifactId>closure-compiler</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library -->
-                    <groupId>org.webjars</groupId>
-                    <artifactId>coffee-script</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library -->
-                    <groupId>org.codehaus.gmaven.runtime</groupId>
-                    <artifactId>gmaven-runtime-1.7</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library -->
-                    <groupId>com.github.lltyk</groupId>
-                    <artifactId>dojo-shrinksafe</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library -->
-                    <groupId>org.webjars</groupId>
-                    <artifactId>emberjs</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library -->
-                    <groupId>org.webjars.npm</groupId>
-                    <artifactId>handlebars</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library -->
-                    <groupId>org.webjars</groupId>
-                    <artifactId>json2</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.darrinholst</groupId>
-                    <artifactId>sass-java-gems</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library -->
-                    <groupId>org.webjars.npm</groupId>
-                    <artifactId>jshint</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!-- JDBC DRIVERS -->
@@ -985,6 +882,61 @@
                     <attachClasses>true</attachClasses>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.12.0</version>
+
+                <executions>
+                    <execution>
+                        <!-- optional: you don't really need execution ids, but it looks nice in your build log. -->
+                        <id>install node and npm</id>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                        <!-- optional: default phase is "generate-resources" -->
+                        <phase>generate-resources</phase>
+                    </execution>
+                    <execution>
+                        <id>npm install</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+
+                        <!-- optional: default phase is "generate-resources" -->
+                        <phase>generate-resources</phase>
+
+                        <configuration>
+                            <!-- optional: The default argument is actually
+                            "install", so unless you need to run some other npm command,
+                            you can remove this whole <configuration> section.
+                            -->
+                            <arguments>install sass-loader sass css-loader style-loader postcss-loader webpack webpack-cli css-minimizer-webpack-plugin mini-css-extract-plugin admin-lte@^3.1 --save-dev</arguments>
+                            <workingDirectory>target</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>webpack build</id>
+                        <goals>
+                            <goal>webpack</goal>
+                        </goals>
+
+                        <!-- optional: the default phase is "generate-resources" -->
+                        <phase>generate-resources</phase>
+
+                        <configuration>
+                            <arguments>-c ./src/main/resources/static/webpack.config.js</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <nodeVersion>v16.13.0</nodeVersion>
+                    <installDirectory>target</installDirectory>
+                </configuration>
+
+            </plugin>
+
         </plugins>
     </build>
 
