@@ -26,7 +26,7 @@ And that's it - now you can run midPoint with the Native repository!
 
 [TIP]
 See the file `doc/config/config-native.xml` provided in the distribution archive for an example of simple Native repository configuration.
-You can also see it online [here].
+You can also see it online https://github.com/Evolveum/midpoint/blob/master/config/config-native.xml[here].
 If you use this example, don't forget to rename it to `config.xml` after dropping it to `midpoint.home`.
 
 But let's elaborate a bit about the `config.xml` changes:
@@ -219,6 +219,8 @@ There are no options for compression as this is left to PostgreSQL.
 This also makes the inspection of the values in the columns easier.
 
 == Index tuning
+
+// TODO extension indexing
 
 [NOTE]
 This section is not updated and cleaned-up for the new repository.

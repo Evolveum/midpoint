@@ -138,6 +138,10 @@ It can be raised if the iterative search overhead (executing the select)
 is too high compared to the time used for processing the page results.
 | `100`
 
+| `createMissingCustomColumns`
+| Specifies whether midPoint should create missing columns for link:#custom-column[custom properties] during the startup.
+| `false`
+
 |===
 
 There are no options for compression as this is left to PostgreSQL.

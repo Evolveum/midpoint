@@ -69,7 +69,7 @@ Therefore if such account is deleted sometime later midPoint will try to re-crea
 Most of the construction assignments assign accounts.
 However there may be several account types: default account, administration account, testing account, ... The assignment may also assign a very different kinds of objects.
 E.g. in xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization] cases an assignment may assign an xref:/midpoint/reference/resources/entitlements/[entitlement] (e.g. a group) to midPoint xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[role.] The `kind` and `intent` elements in the construction part define what resource object is actually assigned.
-See xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[Kind, Intent and ObjectClass] page for more details.
+See xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/['Kind, Intent and ObjectClass'] page for more details.
 If no kind and intent are specified then the assignment assigns default account on the specified resource.
 
 Please not that there is a substantial difference between assigning an _account_ to a group and assigning an entitlement (e.g. a group) to a _user_. The former case is what is usually desired: a provisioned account (resource object) is assigned to an existing group (also resource object).

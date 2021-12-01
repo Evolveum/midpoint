@@ -51,7 +51,7 @@ Having this part of the configuration right significantly simplifies the overall
 MidPoint identifies each type of resource object by using a *(kind, intent)* tuple.
 I.e. each resource object has a *kind* and an *intent*. Kind defines what the object _is_, intent specified how the object _behaves_.
 
-See the xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[Kind, Intent and ObjectClass] page for more details on kind and intent.
+See the xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/['Kind, Intent and ObjectClass'] page for more details on kind and intent.
 
 
 === Object Class
@@ -59,13 +59,14 @@ See the xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[Kind,
 xref:/midpoint/reference/resources/resource-schema/[Object Class] is a type of the object how the _resource_ understands it.
 It is therefore a "technical" type of the resource object.
 Object classes are presented to midPoint by the connector.
-But midPoint usually does not know what to do with a specific object class, e.g. an LDAP objectclass `inetOrgPerson`. Therefore midPoint sorts out the object class to _kind_ and _intent_ as specified above.
+But midPoint usually does not know what to do with a specific object class, e.g. an LDAP objectclass `inetOrgPerson`.
+Therefore, midPoint sorts out the object class to _kind_ and _intent_ as specified above.
 MidPoint then known quite well what to do with _default account_.
 
-_Object class_ is an term used by midPoint connectors.
-Therefore object class definition is passed to the connector.
+_Object class_ is a term used by midPoint connectors.
+Therefore, object class definition is passed to the connector.
 
-See xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[Kind, Intent and ObjectClass] page for more details.
+See xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/['Kind, Intent and ObjectClass'] page for more details.
 
 
 === The Definition

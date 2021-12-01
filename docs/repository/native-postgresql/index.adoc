@@ -10,11 +10,13 @@ MidPoint contains implementation of data storage mechanisms (a.k.a. "repository"
 
 image::repo-native.png[Native PostgreSQL repository implementation]
 
-Please see following pages for details:
+Please see the following pages for details:
 
 ++++
 {% children %}
 ++++
+
+See xref:../configuration.adoc[Repository Configuration] page for reference information about the configuration options.
 
 .Sqale
 TIP: Native PostgreSQL repository implementation is nick-named "sqale" (read "scale") in midPoint source code.

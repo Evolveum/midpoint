@@ -9,6 +9,7 @@
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
+:page-toc: top
 
 == Overview
 
@@ -67,6 +68,6 @@ Please see xref:/midpoint/reference/misc/persona/configuration/[Persona Configur
 
 * xref:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
-* xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[Kind, Intent and ObjectClass]
+* xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/['Kind, Intent and ObjectClass']
 
 * xref:/midpoint/reference/misc/persona/configuration/[Persona Configuration]

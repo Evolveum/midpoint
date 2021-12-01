@@ -38,15 +38,15 @@ The policy is determined by examining objectClass, kind, intent and evaluating a
 
 Synchronization policy applies to all xref:/midpoint/reference/synchronization/flavors/[synchronization flavors] by default.
 The idea is that midPoint will react to any change always in the same way regardless of how the change was detected.
-This mechanisms helps to keep policies simple and consistent.
-However if an exception from this rule is needed it can be configured e.g. by using a channel limitation (see below).
+These mechanisms help keeping the policies simple and consistent.
+However, if an exception to this rule is needed, it can be configured e.g. by using a channel limitation (see below).
 
 
 == Object Synchronization Definition
 
 The resource definition contains `synchronization` section which in turns contains several `objectSynchronization` sections.
 Each `objectSynchronization` section contains synchronization setting for a specific types of resource objects.
-MidPoint determines which definition to use based on xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[kind, intent and object class] of the resource object.
+MidPoint determines which definition to use based on xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/['kind, intent and object class'] of the resource object.
 Only one `objectSynchronization` section is used for each event.
 
 The object synchronization policy has several parts:

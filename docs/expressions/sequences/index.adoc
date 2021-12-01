@@ -56,4 +56,4 @@ See xref:/midpoint/reference/expressions/sequences/configuration/[Using Sequence
 
 * xref:configuration.adoc[]
 
-* xref:/reference/samples/story-tests/unix/[Unix Story Test]
+* xref:/midpoint/reference/samples/story-tests/unix/[Unix Story Test]

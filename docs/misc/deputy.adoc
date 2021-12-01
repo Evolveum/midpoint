@@ -9,9 +9,10 @@
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
+:page-toc: top
 
 
-This feature allows to specify deputies or delegates for users.
+This feature allows specifying deputies or delegates for users.
 For example a user that leaves for a vacation can delegate some of his responsibilities to his colleague.
 That colleague will become his deputy.
 The deputy will get the same privileges as the user from whom the privileges are delegated.
@@ -113,7 +114,7 @@ The delegations might be subject to compliance rules and re-certification in the
 And so on.
 
 If there is a need to distinguish between the privileges of a delegator and those of a deputy then it is possible to be defined using order constraints.
-See xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization] page for details.
+See xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization'] page for details.
 
 
 == Security and Authorizations
@@ -170,4 +171,4 @@ Yet.
 
 * xref:/midpoint/reference/concepts/relation/[Relation]
 
-* xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization]
+* xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']

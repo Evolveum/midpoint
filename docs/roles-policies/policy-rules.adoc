@@ -228,7 +228,7 @@ The policy rule is placed in the inducement, *not* in the assignment here.
 Therefore the rule does not apply to this role itself.
 It will apply to all the roles that have this role assigned.
 This is simple and scalable way how to define policies that apply only to some role types, organizational hierarchies, services and so on.
-See the xref:/midpoint/reference/roles-policies/metaroles/gensync/[Roles, Metaroles and Generic Synchronization] page for more details about the meta-role mechanism.
+See the xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization'] page for more details about the meta-role mechanism.
 
 
 == Policy Rule Exceptions

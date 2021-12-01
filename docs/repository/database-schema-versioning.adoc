@@ -11,7 +11,7 @@
 [TIP]
 ====
 The following information applies to the "Generic" (old) SQL repository implementation.
-New Native repository uses different upgrade described xref:../native-postgresql/usage/[here].
+The new Native repository uses different upgrade mechanism described xref:../native-postgresql/usage/#versioning-and-upgrading[here].
 ====
 
 _Database schema version_ is an indication of a version of the database schema, i.e. the structure of database tables, indices, constraints, and so on.
@@ -89,8 +89,8 @@ Recent database schema versions are summarized in the following table:
 |===
 
 Note: Sometimes - very exceptionally - there are changes in the way how data are stored without schema as such being changed.
-This is the case of 4.0  4.1 upgrade, where incomplete flag was added for some items.
-Please see a discussion for this in xref:/release/4.1/[4.1 release notes] and link:https://github.com/Evolveum/midpoint/commit/a4672da3ce410a20d5196c6675970d5689ddb25c[this commit].
+This is the case of 4.0 -> 4.1 upgrade, where incomplete flag was added for some items.
+Please see a discussion for this in xref:/midpoint/release/4.1/[4.1 release notes] and link:https://github.com/Evolveum/midpoint/commit/a4672da3ce410a20d5196c6675970d5689ddb25c[this commit].
 
 
 == Procedure of introducing new database schema version

@@ -59,7 +59,7 @@ E.g. you can add filter to search only enabled user or user in some organization
 The query language is 'mql' which is a shortcut for MidPoint Query Language.
 You can use the same query syntax as everywhere else (e.g. correlation rule).
 It is also possible to define script instead of query.
-All the existing midPoint function are available (xref:/midpoint/reference/expressions/expressions/script/functions/[Basic, midpoint, report]).
+All the existing midPoint function are available (xref:/midpoint/reference/expressions/expressions/script/functions/['Basic, midpoint, report']).
 
 ** Queries must be wrapped in <filter> element
 
