@@ -74,9 +74,9 @@ public class GuiStyleConstants {
 
     public static final String CLASS_OBJECT_COLLECTION_ICON = "fa fa-filter";
 
-    public static final String CLASS_OBJECT_TEMPLATE_ICON = "fa fa-file-text";
+    public static final String CLASS_OBJECT_TEMPLATE_ICON = "far fa-file-code";
 
-    public static final String CLASS_REPORT_ICON = "fa fa-pie-chart";
+    public static final String CLASS_REPORT_ICON = "fas fa-chart-pie";
 
     public static final String CLASS_ICON_STYLE = "icon-style-";  //some icon styles start with this string
     public static final String CLASS_ICON_STYLE_NORMAL = "icon-style-normal";
@@ -98,11 +98,11 @@ public class GuiStyleConstants {
     public static final String CLASS_SHADOW_ICON_PROTECTED = "fa fa-shield";
     public static final String CLASS_SHADOW_ICON_UNKNOWN = "fa fa-eye";
 
-    public static final String CLASS_ICON_DASHBOARD = "fa fa-dashboard";
+    public static final String CLASS_ICON_DASHBOARD = "fas fa-tachometer-alt";
     public static final String CLASS_ICON_PROFILE = "fa fa-user";
-    public static final String CLASS_ICON_CREDENTIALS = "fa fa-shield";
-    public static final String CLASS_ICON_REQUEST = "fa fa-pencil-square-o";
-    public static final String CLASS_ICON_CONSENT = "fa fa-check-square-o";
+    public static final String CLASS_ICON_CREDENTIALS = "fas fa-key";
+    public static final String CLASS_ICON_REQUEST = "fas fa-shopping-basket";
+    public static final String CLASS_ICON_CONSENT = "far fa-check-square";
 
     public static final String CLASS_APPROVAL_OUTCOME_ICON_UNKNOWN_COLORED = "fa fa-check text-warning";
     public static final String CLASS_APPROVAL_OUTCOME_ICON_APPROVED_COLORED = "fa fa-check text-success";

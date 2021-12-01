@@ -8,17 +8,19 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <!-- sidebar menu: : style can be found in sidebar.less -->
-    <ul class="sidebar-menu" data-widget="tree" wicket:id="sidebar">
-        <wicket:container wicket:id="menuItems">
-            <li class="header" wicket:id="header">
-                <span wicket:id="name">
-                </span>
-                <i class="fa fa-chevron-down pull-right"></i>
-            </li>
-            <wicket:container wicket:id="items">
-                <wicket:container wicket:id="item"/>
+    <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" wicket:id="sidebar">
+            <wicket:container wicket:id="menuItems">
+                <li class="nav-header" wicket:id="header">
+                    <span wicket:id="name">
+                    </span>
+                    <i class="fa fa-chevron-down pull-right"></i>
+                </li>
+                <wicket:container wicket:id="items">
+                    <wicket:container wicket:id="item"/>
+                </wicket:container>
             </wicket:container>
-        </wicket:container>
-    </ul>
+        </ul>
+    </nav>
 </wicket:panel>
 </html>

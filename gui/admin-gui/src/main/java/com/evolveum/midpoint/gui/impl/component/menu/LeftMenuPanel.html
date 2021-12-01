@@ -9,11 +9,18 @@
     <body>
         <wicket:panel>
             <wicket:enclosure child="menu">
+                <a class="brand-link" wicket:id="customLogo">
+                    <i wicket:id="customLogoImgCss"/>
+                    <img wicket:id="customLogoImgSrc"/>
+                </a>
+                <a class="brand-link" wicket:id="logo">
+                    <span>&nbsp;</span>
+                </a>
 
                     <!-- sidebar: style can be found in sidebar.less -->
-                    <section class="sidebar" style="height: auto;">
+                    <div class="sidebar"> <!--style="height: auto;"-->
                         <wicket:container wicket:id="menu"/>
-                    </section>
+                    </div>
                     <!-- /.sidebar -->
 <!--                </aside>-->
             </wicket:enclosure>

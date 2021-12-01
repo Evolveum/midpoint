@@ -66,6 +66,8 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
         menuItems.setOutputMarkupId(true);
         menuItems.setReuseItems(true);
         sidebar.add(menuItems);
+
+
     }
 
     private Component createHeader(IModel<SideBarMenuItem> model) {

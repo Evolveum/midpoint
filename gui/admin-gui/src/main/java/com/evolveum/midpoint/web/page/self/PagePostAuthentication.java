@@ -242,8 +242,8 @@ public class PagePostAuthentication extends PageAbstractFlow {
         return getPostAuthenticationConfiguration().getFormRef();
     }
 
-    @Override
-    protected boolean isLogoLinkEnabled() {
-        return false;
-    }
+//    @Override
+//    protected boolean isLogoLinkEnabled() {
+//        return false;
+//    }
 }
