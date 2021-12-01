@@ -73,11 +73,10 @@ class ShadowCreator {
     @Autowired private CreatorUpdaterHelper creatorUpdaterHelper;
     @Autowired private PendingOperationsHelper pendingOperationsHelper;
 
-    @NotNull
-    public PrismObject<ShadowType> addDiscoveredRepositoryShadow(ProvisioningContext ctx,
-            PrismObject<ShadowType> resourceObject, OperationResult parentResult) throws SchemaException, ConfigurationException,
-            ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
-            EncryptionException {
+    @NotNull PrismObject<ShadowType> addDiscoveredRepositoryShadow(ProvisioningContext ctx,
+            PrismObject<ShadowType> resourceObject, OperationResult parentResult)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+            ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException {
         LOGGER.trace("Adding new shadow from resource object:\n{}", resourceObject.debugDumpLazily(1));
         PrismObject<ShadowType> repoShadow = createRepositoryShadow(ctx, resourceObject);
         ConstraintsChecker.onShadowAddOperation(repoShadow.asObjectable()); // TODO eventually replace by repo cache invalidation
@@ -118,18 +117,20 @@ class ShadowCreator {
     }
 
     /**
-     * Create a copy of a shadow that is suitable for repository storage.
+     * Create a copy of a resource object (or another shadow) that is suitable for repository storage.
      */
-    @NotNull PrismObject<ShadowType> createRepositoryShadow(ProvisioningContext ctx, PrismObject<ShadowType> shadow)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, EncryptionException {
+    @NotNull PrismObject<ShadowType> createRepositoryShadow(ProvisioningContext ctx,
+            PrismObject<ShadowType> resourceObjectOrShadow)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+            ExpressionEvaluationException, EncryptionException {
 
-        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
+        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(resourceObjectOrShadow);
 
-        PrismObject<ShadowType> repoShadow = shadow.clone();
+        PrismObject<ShadowType> repoShadow = resourceObjectOrShadow.clone();
         ShadowType repoShadowType = repoShadow.asObjectable();
 
         ResourceAttributeContainer repoAttributesContainer = ShadowUtil.getAttributesContainer(repoShadow);
-        repoShadowType.setPrimaryIdentifierValue(helper.determinePrimaryIdentifierValue(ctx, shadow));
+        repoShadowType.setPrimaryIdentifierValue(helper.determinePrimaryIdentifierValue(ctx, resourceObjectOrShadow));
 
         CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
         if (cachingStrategy == CachingStategyType.NONE) {
@@ -196,7 +197,7 @@ class ShadowCreator {
         }
 
         if (repoShadowType.getName() == null) {
-            repoShadowType.setName(new PolyStringType(ShadowUtil.determineShadowName(shadow)));
+            repoShadowType.setName(new PolyStringType(ShadowUtil.determineShadowName(resourceObjectOrShadow)));
         }
 
         if (repoShadowType.getObjectClass() == null) {

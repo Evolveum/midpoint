@@ -51,7 +51,7 @@ class ShadowAcquisitionHelper {
      * It may look like this method would rather belong to ShadowManager. But it does NOT. It does too much stuff
      * (e.g. change notification).
      */
-    public @NotNull PrismObject<ShadowType> acquireRepoShadow(ProvisioningContext ctx,
+    @NotNull PrismObject<ShadowType> acquireRepoShadow(ProvisioningContext ctx,
             PrismObject<ShadowType> resourceObject, boolean skipClassification, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
@@ -67,12 +67,12 @@ class ShadowAcquisitionHelper {
                 .execute(result);
     }
 
-    public @NotNull PrismObject<ShadowType> acquireRepoShadow(ProvisioningContext ctx, PrismProperty<?> primaryIdentifier,
-            QName objectClass, ResourceObjectSupplier resourceObjectSupplier, boolean skipClassification, OperationResult result)
+    @NotNull PrismObject<ShadowType> acquireRepoShadow(ProvisioningContext ctx, PrismProperty<?> primaryIdentifier,
+            QName objectClass, ResourceObjectSupplier resourceObjectSupplier, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             GenericConnectorException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
 
-        return new ShadowAcquisition(ctx, primaryIdentifier, objectClass, resourceObjectSupplier, skipClassification, commonBeans)
+        return new ShadowAcquisition(ctx, primaryIdentifier, objectClass, resourceObjectSupplier, false, commonBeans)
                 .execute(result);
     }
 }
