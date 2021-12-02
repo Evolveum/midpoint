@@ -219,7 +219,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
                         @Override
                         protected boolean canRemoveSearchItem() {
-                            return super.canRemoveSearchItem() && SearchPanel.this.getModelObject().isCanConfigure();
+                            return super.canRemoveSearchItem() && SearchPanel.this.getModelObject().isConfigurable();
                         }
 
                         @Override
@@ -233,7 +233,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
                         @Override
                         protected boolean canRemoveSearchItem() {
-                            return super.canRemoveSearchItem() && SearchPanel.this.getModelObject().isCanConfigure();
+                            return super.canRemoveSearchItem() && SearchPanel.this.getModelObject().isConfigurable();
                         }
 
                         @Override
@@ -636,7 +636,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
                         @Override
                         protected boolean canRemoveSearchItem() {
-                            return super.canRemoveSearchItem() && SearchPanel.this.getModelObject().isCanConfigure();
+                            return super.canRemoveSearchItem() && SearchPanel.this.getModelObject().isConfigurable();
                         }
 
                         @Override

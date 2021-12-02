@@ -69,7 +69,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     private List<SearchBoxModeType> allowedSearchType = new ArrayList<>();
 
     private boolean isFullTextSearchEnabled;
-    private boolean canConfigure = true; //TODO should be changed to false
+    private boolean configurable = true; //TODO should be changed to false
 
     private String advancedQuery;
     private String dslQuery;
@@ -767,12 +767,12 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         isFullTextSearchEnabled = fullTextSearchEnabled;
     }
 
-    public boolean isCanConfigure() {
-        return canConfigure;
+    public boolean isConfigurable() {
+        return configurable;
     }
 
-    public void setCanConfigure(boolean canConfigure) {
-        this.canConfigure = canConfigure;
+    public void setConfigurable(boolean configurable) {
+        this.configurable = configurable;
     }
 
     public PropertySearchItem findPropertySearchItem(ItemPath path) {
@@ -871,6 +871,22 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public boolean isOidSearchMode() {
         return SearchBoxModeType.OID.equals(getSearchType());
+    }
+
+    public boolean isBasicSearchMode() {
+        return SearchBoxModeType.BASIC.equals(getSearchType());
+    }
+
+    public boolean isAdvancedSearchMode() {
+        return SearchBoxModeType.ADVANCED.equals(getSearchType());
+    }
+
+    public boolean isAxiomSearchMode() {
+        return SearchBoxModeType.AXIOM_QUERY.equals(getSearchType());
+    }
+
+    public boolean isFulltextSearchMode() {
+        return SearchBoxModeType.FULLTEXT.equals(getSearchType());
     }
 
     public boolean isAllowedSearchMode(SearchBoxModeType searchBoxModeType){

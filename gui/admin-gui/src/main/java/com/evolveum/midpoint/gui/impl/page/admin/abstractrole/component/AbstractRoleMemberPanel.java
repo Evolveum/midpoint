@@ -392,7 +392,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         search.addCompositedSpecialItem(createMemberSearchPanel(search, memberPanelStorage));
 
         if (additionalPanelConfig != null){
-            search.setCanConfigure(!Boolean.FALSE.equals(additionalPanelConfig.isAllowToConfigureSearchItems()));
+            search.setConfigurable(!Boolean.FALSE.equals(additionalPanelConfig.isAllowToConfigureSearchItems()));
         }
         return search;
     }

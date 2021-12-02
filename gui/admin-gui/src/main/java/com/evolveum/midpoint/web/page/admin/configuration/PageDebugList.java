@@ -511,7 +511,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private void configureSearch(@NotNull Search search) {
         if (search.isTypeChanged() && !search.isOidSearchMode()) {
-            search.setCanConfigure(true);
+            search.setConfigurable(true);
             if (ShadowType.class.equals(getType())) {
                 search.addSpecialItem(createObjectClassSearchItem(search));
                 search.addSpecialItem(createResourceRefSearchItem(search));

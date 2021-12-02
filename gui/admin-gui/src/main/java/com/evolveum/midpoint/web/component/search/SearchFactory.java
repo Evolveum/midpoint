@@ -275,7 +275,7 @@ public class SearchFactory {
                 }
             });
         }
-        search.setCanConfigure(isAllowToConfigureSearchItems(modelServiceLocator, qNametype, collectionViewName, panelType));
+        search.setConfigurable(isAllowToConfigureSearchItems(modelServiceLocator, qNametype, collectionViewName, panelType));
         return search;
     }
 
@@ -305,7 +305,7 @@ public class SearchFactory {
             configuredSearchItemDefs.add(new SearchItemDefinition(searchItemType));
         });
         processSearchItemDefFromCompiledView(configuredSearchItemDefs, search, objDef);
-        search.setCanConfigure(false);
+        search.setConfigurable(false);
         return search;
     }
 
