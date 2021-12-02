@@ -1,0 +1,131 @@
+/*
+ * Copyright (c) 2021 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+.top-level-prism-container {
+  border-top: 1px solid $table-divider-color;
+  padding-top: 5px;
+
+  .prism-properties {
+    .prism-container {
+      padding-left: 0px;
+      border-top: 1px solid $table-divider-color;
+
+      .prism-container {
+        padding-left: 40px;
+        border-top: none;
+      }
+      .prism-container.multivalue-container {
+        padding-left: 40px;
+        border-top: none;
+      }
+
+    }
+
+    .prism-container.multivalue-container {
+      padding-left: 0px;
+      border-top: 1px solid $table-divider-color;
+
+      .prism-container.multivalue-container {
+        padding-left: 40px;
+        border-top: none;
+
+        .container-wrapper {
+          padding-left: 40px;
+          border-top: none;
+        }
+      }
+
+      .container-wrapper {
+        padding-left: 40px;
+        border-top: none;
+
+        .container-wrapper {
+          padding-left: 0px;
+          border-top: none;
+        }
+      }
+    }
+  }
+
+  .metadata {
+    .prism-properties {
+      .prism-container {
+        border-top: none;
+      }
+    }
+  }
+}
+
+.top-level-prism-container .row {
+  margin-right: 0px;
+  margin-left: 0px;
+}
+
+.top-level-prism-container .prism-header {
+  margin-bottom: 0px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.multivalue-container > .container-wrapper > div > .added-value-background {
+  background-color: #dff0d8; // green background for new value of multivalue container
+}
+
+.multivalue-container > .container-wrapper > div > .removed-value-background {
+  background-color: #f2dede; // green background for new value of multivalue container
+}
+
+.top-level-prism-container > .prism-properties > div {
+  padding-left: 0px;
+}
+
+.prism-properties {
+
+
+  .prism-property {
+    padding-left: 40px;
+
+    //&.stripe {
+    //  background-color: $table-stripe-bg-color;
+    //}
+  }
+
+}
+
+.property-stripe:nth-of-type(odd) {
+  background-color: $table-stripe-bg-color;
+}
+
+.prism-header {
+  margin-bottom: 15px;
+  display: block;
+}
+
+.prism-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: $text-label-color;
+  margin-right: 15px;
+  float: left;
+  padding-top: 3px;
+  cursor: pointer;
+}
+
+.prism-property {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.prism-property-label { //padding because expand collapse button, which have 37px
+  padding-left: 20px;
+  word-wrap:break-word;
+  padding-top: 5px;
+}
+
+.prism-value { // DEPRECATED: rework the prism-value vs prism-property-value later
+  margin-top: 3px;
+}
