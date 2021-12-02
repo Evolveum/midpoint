@@ -410,10 +410,10 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
         if (!menuItems.isEmpty()) {
             InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase()){
-                @Override
-                public String getCssClass() {
-                    return "col-md-1";
-                }
+//                @Override
+//                public String getCssClass() {
+//                    return "col-md-1";
+//                }
 
                 @Override
                 protected boolean isButtonMenuItemEnabled(IModel<PO> rowModel) {

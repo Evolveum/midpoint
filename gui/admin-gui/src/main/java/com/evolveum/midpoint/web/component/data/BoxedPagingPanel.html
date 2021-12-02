@@ -8,21 +8,21 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <ul class="pagination pagination-sm no-margin pull-right" style="margin-bottom: 0px;">
-        <li wicket:id="first">
-            <a wicket:id="firstLink"><wicket:message key="NavigatorPanel.firstLink"/></a>
+    <ul class="pagination justify-content-end">
+        <li class="page-item" wicket:id="first">
+            <a class="page-link" wicket:id="firstLink"><wicket:message key="NavigatorPanel.firstLink"/></a>
         </li>
-        <li wicket:id="previous">
-            <a wicket:id="previousLink"><wicket:message key="NavigatorPanel.previousLink"/></a>
+        <li class="page-item" wicket:id="previous">
+            <a class="page-link" wicket:id="previousLink"><wicket:message key="NavigatorPanel.previousLink"/></a>
         </li>
-        <li wicket:id="navigation">
-            <a wicket:id="pageLink"/>
+        <li class="page-item" wicket:id="navigation">
+            <a class="page-link" wicket:id="pageLink"/>
         </li>
-        <li wicket:id="next">
-            <a wicket:id="nextLink"><wicket:message key="NavigatorPanel.nextLink"/></a>
+        <li class="page-item" wicket:id="next">
+            <a class="page-link" wicket:id="nextLink"><wicket:message key="NavigatorPanel.nextLink"/></a>
         </li>
-        <li wicket:id="last">
-            <a wicket:id="lastLink"><wicket:message key="NavigatorPanel.lastLink"/></a>
+        <li class="page-item" wicket:id="last">
+            <a class="page-link" wicket:id="lastLink"><wicket:message key="NavigatorPanel.lastLink"/></a>
         </li>
     </ul>
 </wicket:panel>

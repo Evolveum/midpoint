@@ -4,11 +4,13 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
+
+@import "midpoint-theme-variables";
+@import "icon-style";
+
 @import "../../../../../target/node_modules/admin-lte/build/scss/adminlte";
 @import "../../../../../target/node_modules/@fortawesome/fontawesome-free/css/all.css";
 @import "../../../../../target/node_modules/datatables.net-bs4/css/dataTables.bootstrap4";
-
-@import "midpoint-theme-variables";
 
 //@import "midpoint/prism-container";
 //@import "midpoint/wizard";

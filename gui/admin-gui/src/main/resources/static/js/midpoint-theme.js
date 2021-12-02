@@ -9,7 +9,7 @@ $(window).on('load', function() {
     //dom not only ready, but everything is loaded MID-3668
     $("body").removeClass("custom-hold-transition");
 
-    initAjaxStatusSigns();
+    // initAjaxStatusSigns();
 
     Wicket.Event.subscribe('/ajax/call/failure', function( attrs, jqXHR, textStatus, jqEvent, errorThrown ) {
         console.error("Ajax call failure:\n" + JSON.stringify(attrs.target.location)
