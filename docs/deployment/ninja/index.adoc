@@ -8,8 +8,9 @@
 :page-upkeep-status: red
 :page-upkeep-note: Need to update, also for midScale and DB migration
 :page-alias: { "parent" : "/midpoint/tools/" }
+:page-toc: top
 
-Ninja is new command line tool bundled with midPoint.
+Ninja is a command line tool bundled with midPoint.
 Implemented features are based on "repo-ninja", but code was rewritten from the ground up.
 This tool comes in handy when one needs to export or import objects from/to midPoint.
 Operations can be done on top of repository (DB) layer or through REST API.
@@ -21,16 +22,16 @@ Users of this tool need to be aware that using repository layer, access is not v
 It allows you to obtain or modify data in an otherwise unusable midPoint.
 Ninja also plan to support some other operations like listing keys from keystore, enforcing objects reencryption with new key, DB schema validation, password reset or user unlock.
 
-Ninja comes with also with shell and bat scripts located in midPoint installation directory, eg.
-<`midpoint>/bin/ninja.sh`. These scripts will preset `midpoint.home` to default midPoint home folder, eg.
-`<midpoint>/var`.
-
+Ninja comes with also with shell and bat scripts located in midPoint installation directory, e.g.
+`<midpoint>/bin/ninja.sh`.
+These scripts use `MIDPOINT_HOME` environment variable pointing to xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home],
+otherwise they will preset `midpoint.home` to a default value, e.g. `<midpoint>/var`.
 
 == Connecting to midPoint
 
 Connection options:
 
-* using midpoint.home
+* using `midpoint.home`
 
 * using REST service (not yet implemented)
 
@@ -41,8 +42,8 @@ This type of connection initialises repository layer of midpoint and operates on
 Mostly only one option is needed and that's specification of `midpoint.home` directory using `-m` option.
 This is not sufficient if `config.xml` uses datasource definition.
 Ninja then doesn't know how to connect to DB.
-For this case one have to use options to specify url ( `-U` ), username ( `-u` ) and password ( `-p` or `-P` ). These options can also be used to override JDBC url, username and password specified in `config.xml`.
-
+For this case one have to use options to specify url ( `-U` ), username ( `-u` ) and password ( `-p` or `-P` ).
+These options can also be used to override JDBC url, username and password specified in `config.xml`.
 
 === REST connection
 
@@ -55,7 +56,7 @@ Not yet implemented.
 
 === Supported operations
 
-Currently supports three operations:
+Ninja currently supports these operations:
 
 * import
 
@@ -69,8 +70,9 @@ Currently supports three operations:
 
 * delete
 
-Ninja can be started using standart `java -jar` or via bundles shell/bat script.
-Bundled scripts will automatically fill in path to for midPoint home option `-m`. There's also a difference between usage when pointing ninja to correct JDBC drivers.
+Ninja can be started using standard `java -jar` or via bundled shell/bat script.
+Bundled scripts will automatically fill in path to for midPoint home option `-m`.
+There's also a difference between usage when pointing ninja to correct JDBC drivers.
 Example use with `java -jar` option:
 
 [source]
@@ -85,12 +87,11 @@ Example use with bundled shell script:
 <MIDPOINT_INSTALLATION_PATH>/bin/ninja.sh -j <JDBC_DRIVER_JAR> [general options] [command] [command options]
 ----
 
-
 === Import
 
 Import command allow users to import objects from `SYSOUT` or file (either plain XML or compressed ZIP, which may contain multiple files).
 One can define `oid`, multiple types or filter to filter imported objects.
-Example of import from XML file using 4 threads with raw and overwrite option using explicit midpoint.home folder path:
+Example of import from XML file using 4 threads with raw and overwrite option using explicit `midpoint.home` folder path:
 
 .Example
 [source,bash]
@@ -98,10 +99,11 @@ Example of import from XML file using 4 threads with raw and overwrite option us
 java -jar ninja.jar -m ~/Desktop/midpoint/var import -O -i midpoint/samples/objects/user-ceresnickova.xml -l 4 -r
 ----
 
-
 === Export
 
-Export command allows users to export objects to SYSOUT or file (either plain XML or compressed ZIP). One can define oid, multiple types or filter to filter exported objects. Export objects to compressed zip file using 4 threads:
+Export command allows users to export objects to SYSOUT or file (either plain XML or compressed ZIP).
+One can define oid, multiple types or filter to filter exported objects.
+Export objects to compressed zip file using 4 threads:
 
 .Example
 [source,bash]
@@ -109,8 +111,7 @@ Export command allows users to export objects to SYSOUT or file (either plain XM
 java -jar ninja.jar -m ~/Desktop/midpoint/var export -O export.zip -z -l 4
 ----
 
-Use -ow switch if you wish the overwrite an existing output file.
-
+Use -ow switch if you wish to overwrite an existing output file.
 
 === Verify
 
@@ -121,7 +122,10 @@ This feature is available only in midPoint 3.9 and later.
 
 ====
 
-Command that verifies objects in midPoint repository. It displays warnings about objects to SYSOUT or file. Similarly to export, one can define oid, multiple types or filter to filter verified objects. Simple usage to verify all objects in the repository for all warnings:
+Command that verifies objects in midPoint repository.
+It displays warnings about objects to SYSOUT or file.
+Similarly to export, one can define oid, multiple types or filter to filter verified objects.
+Simple usage to verify all objects in the repository for all warnings:
 
 .Example: verify all objects in repository for all warnings
 [source,bash]
@@ -129,18 +133,15 @@ Command that verifies objects in midPoint repository. It displays warnings about
 ninja.sh verify
 ----
 
-There is a -w switch that can be used to select specific warnings to display. Currently it only supports values deprecated and plannedRemoval. Following command will show warnings about planned removal of items used by all objects in the repository:
-
-
+There is a -w switch that can be used to select specific warnings to display.
+Currently, it only supports values deprecated and plannedRemoval.
+Following command will show warnings about planned removal of items used by all objects in the repository:
 
 .Example: verify all objects in repository for planned removal of items
 [source,bash]
 ----
 ninja.sh verify -w plannedRemoval
 ----
-
-
-
 
 === Keys
 
@@ -151,7 +152,6 @@ List keys in with aliases from keystore located in `midpoint.home`.
 ----
 java -jar ninja.jar -m /opt/midpoint-home keys -K
 ----
-
 
 == Full help
 
@@ -291,7 +291,7 @@ Usage: java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar [options] [com
             Object type, case insensitive value. Rest type name can be used as well.
             Default: []
           -w, --warn
-            List of displayed varning categories, e.g. deprecated,plannedRemoval
+            List of displayed warning categories, e.g. deprecated, plannedRemoval
           -z, --zip
             Use zip/unzip compression
             Default: false
@@ -303,5 +303,4 @@ Usage: java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar [options] [com
             Key password
           -K
             Please write key password
-
 ----
