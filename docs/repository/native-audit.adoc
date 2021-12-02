@@ -169,10 +169,6 @@ Conceptually, this stores multimap (name -> references) for each record.
 * Custom properties (`customColumnProperty`) are stored each in dedicated column of `TEXT` type.
 See section link:#custom-column[Custom columns] below for details.
 
-=== Audit migration from other database
-
-// TODO
-
 === Upgrading
 
 // TODO
@@ -281,6 +277,10 @@ We can use a script in expression for obtaining some special information.
 In the script we can use variable `target`, which represent target object of audit record, and `auditRecord`, which represent audit record itself (type `AuditEventRecord`).
 
 An example with custom column is available link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/audit[in the samples].
+
+== Audit migration from other database
+
+// TODO
 
 == Configuration examples
 
