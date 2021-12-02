@@ -15,17 +15,19 @@
 
         <wicket:container wicket:id="sidebar"/>
 
-        <div class="content-wrapper" style="min-height: 916px; overflow: auto; overflow-x: hidden;">
-            <section class="content col-xs-12" style="float:left;">
-                <div wicket:id="feedbackContainer" class="feedbackContainer">
-                    <div wicket:id="feedback" class="messagePanel"/>
-                </div>
-                <wicket:child/>
+        <div class="content-wrapper">
+            <section class="content">
+                <div class="container-fluid">
+                    <div wicket:id="feedbackContainer" class="feedbackContainer">
+                        <div wicket:id="feedback" class="messagePanel"/>
+                    </div>
+                    <wicket:child/>
 
-                <div class="wicket-debug-buttons" wicket:id="debugBar">
-                    <a wicket:id="clearCssCache">Clear css cache</a>
+                    <div class="wicket-debug-buttons" wicket:id="debugBar">
+                        <a wicket:id="clearCssCache">Clear css cache</a>
+                    </div>
+                    <div wicket:id="debugPanel" style="z-index: 10000;"/>
                 </div>
-                <div wicket:id="debugPanel" style="z-index: 10000;"/>
             </section>
         </div>
 

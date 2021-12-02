@@ -279,7 +279,7 @@ public abstract class PageBase extends PageCommon implements ModelServiceLocator
             public String getObject() {
                 DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
                 if (info == null || StringUtils.isEmpty(info.getSkin())) {
-                    return CLASS_DEFAULT_SKIN;
+                    return "sidebar-mini control-sidebar-slide-open";
                 }
 
                 return info.getSkin();
