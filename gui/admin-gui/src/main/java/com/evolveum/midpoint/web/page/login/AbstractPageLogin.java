@@ -123,13 +123,13 @@ public abstract class AbstractPageLogin extends PageCommon {
 
         httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
 
-        clearBreadcrumbs();
+//        clearBreadcrumbs();
     }
 
-    @Override
-    protected void createBreadcrumb() {
-        //don't create breadcrumb for login page
-    }
+//    @Override
+//    protected void createBreadcrumb() {
+//        //don't create breadcrumb for login page
+//    }
 
     @Override
     protected void onBeforeRender() {

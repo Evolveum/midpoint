@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.util.PageParameterConstants;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -988,7 +989,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     private CompiledObjectCollectionView getWidgetCollectionView() {
         PageParameters parameters = getPageBase().getPageParameters();
-        String dashboardOid = parameters == null ? null : parameters.get(PageBase.PARAMETER_DASHBOARD_TYPE_OID).toString();
+        String dashboardOid = parameters == null ? null : parameters.get(PageParameterConstants.PARAMETER_DASHBOARD_TYPE_OID).toString();
 
         if (StringUtils.isEmpty(dashboardOid) || StringUtils.isEmpty(getWidgetNameOfCollection())) {
             LOGGER.trace("Dashboard not defined, skipping getting collection view for dashboard");
@@ -1035,14 +1036,14 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     protected StringValue getCollectionNameParameterValue(){
         PageParameters parameters = getPageBase().getPageParameters();
-        return parameters ==  null ? null : parameters.get(PageBase.PARAMETER_OBJECT_COLLECTION_NAME);
+        return parameters ==  null ? null : parameters.get(PageParameterConstants.PARAMETER_OBJECT_COLLECTION_NAME);
     }
 
     protected boolean isCollectionViewPanelForWidget() {
         PageParameters parameters = getPageBase().getPageParameters();
         if (parameters != null) {
-            StringValue widget = parameters.get(PageBase.PARAMETER_DASHBOARD_WIDGET_NAME);
-            StringValue dashboardOid = parameters.get(PageBase.PARAMETER_DASHBOARD_TYPE_OID);
+            StringValue widget = parameters.get(PageParameterConstants.PARAMETER_DASHBOARD_WIDGET_NAME);
+            StringValue dashboardOid = parameters.get(PageParameterConstants.PARAMETER_DASHBOARD_TYPE_OID);
             return widget != null && widget.toString() != null && dashboardOid != null && dashboardOid.toString() != null;
         }
         return false;
@@ -1050,7 +1051,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     private String getWidgetNameOfCollection() {
         PageParameters parameters = getPageBase().getPageParameters();
-        return parameters == null ? null : parameters.get(PageBase.PARAMETER_DASHBOARD_WIDGET_NAME).toString();
+        return parameters == null ? null : parameters.get(PageParameterConstants.PARAMETER_DASHBOARD_WIDGET_NAME).toString();
     }
 
     protected boolean isCollectionViewPanelForCompiledView() {

@@ -51,6 +51,16 @@ public class PageSamlSelect extends AbstractPageLogin implements Serializable {
     }
 
     @Override
+    protected IModel<String> getBodyCssClass() {
+        return null;
+    }
+
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return null;
+    }
+
+    @Override
     protected void initCustomLayer() {
         List<IdentityProvider> providers = getProviders();
         add(new ListView<IdentityProvider>(ID_PROVIDERS, providers) {

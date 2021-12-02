@@ -7,10 +7,10 @@
 package com.evolveum.midpoint.gui.impl.component.box;
 
 import java.util.HashMap;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
 
+import com.evolveum.midpoint.web.util.PageParameterConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -23,7 +23,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
@@ -40,15 +39,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
-import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
-import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -192,8 +186,8 @@ public abstract class InfoBoxPanel extends BasePanel<DashboardWidgetType> {
             if(pageType == null) {
                 return;
             }
-            parameters.add(PageBase.PARAMETER_DASHBOARD_TYPE_OID, getDashboardOid());
-            parameters.add(PageBase.PARAMETER_DASHBOARD_WIDGET_NAME, dashboardWidget.getIdentifier());
+            parameters.add(PageParameterConstants.PARAMETER_DASHBOARD_TYPE_OID, getDashboardOid());
+            parameters.add(PageParameterConstants.PARAMETER_DASHBOARD_WIDGET_NAME, dashboardWidget.getIdentifier());
             getPageBase().navigateToNext(pageType, parameters);
         }  else {
             LOGGER.error("CollectionType from collectionRef is null in widget " + dashboardWidget.getIdentifier());

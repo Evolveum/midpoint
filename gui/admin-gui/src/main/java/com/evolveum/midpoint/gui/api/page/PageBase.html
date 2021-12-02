@@ -10,91 +10,15 @@
 <wicket:extend>
     <div wicket:id="mainPopup"/>
     <div class="wrapper">
-        <!--        <header wicket:id="mainHeader" class="main-header navbar navbar-expand navbar-white navbar-light" >  &lt;!&ndash;style="max-height:550px;"&ndash;&gt;-->
-        <!-- Logo -->
-        <!--            <a class="custom-logo" wicket:id="customLogo">-->
-        <!--                <i wicket:id="customLogoImgCss"/>-->
-        <!--                <img wicket:id="customLogoImgSrc"/>-->
-        <!--            </a>-->
-        <!--            <a class="logo" wicket:id="logo">-->
-        <!--                <span>&nbsp;</span>-->
-        <!--            </a>-->
-        <!-- Header Navbar: style can be found in header.less -->
-        <nav wicket:id="navigation" class="main-header navbar navbar-expand navbar-white navbar-light">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
-                </li>
-                <li class="nav-item d-none d-sm-inline-block">
-                    <div class="navbar-title" wicket:id="pageTitleContainer" style="max-width:94%;">
-                            <span class="page-title" wicket:id="pageTitle">
-                                <span wicket:id="deploymentName"/>
-                                <span wicket:id="pageTitleReal"/>
-                            </span>
-                    </div>
-                </li>
-            </ul>
-        </nav>
-        <!--            <nav wicket:id="navigation" role="navigation" class="navbar navbar-static-top">-->
-        <!--                &lt;!&ndash; Sidebar toggle button&ndash;&gt;-->
-        <!--                <a wicket:id="menuToggle" role="button" data-toggle="push-menu" class="sidebar-toggle" href="#">-->
-        <!--                    <span class="sr-only"><wicket:message key="PageTemplate.toggleNavigation"/></span>-->
-        <!--                </a>-->
 
-        <!--                <div class="navbar-title" wicket:id="pageTitleContainer" style="max-width:94%;">-->
-        <!--                    <span class="page-title" wicket:id="pageTitle">-->
-        <!--                        <span wicket:id="deploymentName"/>-->
-        <!--                        <span wicket:id="pageTitleReal"/>-->
-        <!--                    </span>-->
-        <!--                </div>-->
-        <!--                <div class="navbar-ajax">-->
-        <!--                    <img id="ajax_busy" src="img/ajax-loader.gif" style="display: inline; visibility: hidden;"/>-->
-        <!--                </div>-->
+        <wicket:container wicket:id="navigation"/>
 
-        <!--                &lt;!&ndash; Navbar Right Menu &ndash;&gt;-->
-        <!--                <div class="navbar-custom-menu">-->
-        <!--                    <ol class="breadcrumb">-->
-        <!--                        <li wicket:id="breadcrumb">-->
-        <!--                            <a wicket:id="bcLink">-->
-        <!--                                <i wicket:id="bcIcon"></i>&nbsp;-->
-        <!--                                <span wicket:id="bcName"/>-->
-        <!--                            </a>-->
-        <!--                        </li>-->
-        <!--                    </ol>-->
-        <!--                    <div class="pull-right">-->
-        <!--                        <a wicket:id="cartButton" class="shopping-cart-icon">-->
-        <!--                            <i class="fa fa-shopping-cart fa-2x shopping-cart-icon"></i>-->
-        <!--                            <span wicket:id="itemsCount" class="badge bg-red"-->
-        <!--                                  style="position: absolute; top: 1px; margin-left: -10px;"></span>-->
-        <!--                        </a>-->
-        <!--                        <ul class="nav navbar-nav pull-right">-->
-        <!--                            &lt;!&ndash; User Account: style can be found in dropdown.less &ndash;&gt;-->
-        <!--                            <li>-->
-        <!--                                <div wicket:id="locale"/>-->
-        <!--                            </li>-->
-        <!--                            <li class="dropdown user user-menu" wicket:id="rightMenu"/>-->
-        <!--                        </ul>-->
-        <!--                    </div>-->
-        <!--                </div>-->
-        <!--            </nav>-->
-        <!--        </header>-->
-        <wicket:enclosure child="sidebarMenu">
-            <!--            <aside class="main-sidebar">-->
-            <!--                &lt;!&ndash; sidebar: style can be found in sidebar.less &ndash;&gt;-->
-            <!--                <section class="sidebar" style="height: auto;">-->
-            <!--                    <wicket:container wicket:id="sidebarMenu"/>-->
-            <!--                </section>-->
-            <!--                &lt;!&ndash; /.sidebar &ndash;&gt;-->
-            <!--            </aside>-->
-            <aside class="main-sidebar sidebar-dark-primary" wicket:id="sidebarMenu"/>
+        <wicket:container wicket:id="sidebar"/>
 
-        </wicket:enclosure>
         <div class="content-wrapper" style="min-height: 916px; overflow: auto; overflow-x: hidden;">
-            <!-- Main content -->
             <section class="content col-xs-12" style="float:left;">
                 <div wicket:id="feedbackContainer" class="feedbackContainer">
                     <div wicket:id="feedback" class="messagePanel"/>
-                    <!--                     <div wicket:id="tempFeedback" class="tempMessage"/> -->
                 </div>
                 <wicket:child/>
 
@@ -104,16 +28,11 @@
                 <div wicket:id="debugPanel" style="z-index: 10000;"/>
             </section>
         </div>
-        <footer wicket:id="footerContainer" class="main-footer">
-            <div class="pull-right hidden-xs" wicket:id="version">
-                <b><wicket:message key="PageTemplate.version"/></b> <wicket:message key="midpoint.system.build"/>
-            </div>
-            <div wicket:id="copyrightMessage" class="pull-left"><wicket:message key="PageTemplate.copyright" /></div>
-            <div wicket:id="subscriptionMessage"/>
-        </footer>
+
+        <wicket:container wicket:id="footerContainer"/>
+
     </div>
 
-    <wicket:remove><!-- todo fix results --></wicket:remove>
     <div id="blackWindow"/>
     <div id="xmlExport">
         <span id="xmlExportContent"/>

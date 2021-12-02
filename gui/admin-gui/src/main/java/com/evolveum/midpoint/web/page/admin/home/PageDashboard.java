@@ -33,7 +33,7 @@ public abstract class PageDashboard extends PageAdminHome {
 
     public PageDashboard() {
         principalModel.setObject(loadFocusSelf());
-        setTimeZone(PageDashboard.this);
+        setTimeZone();
     }
 
     @Override

@@ -40,6 +40,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.form.RequiredTextField;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.cycle.RequestCycle;
@@ -305,13 +306,13 @@ public class PageEmailNonse extends PageAuthenticationBase {
 
         httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
 
-        clearBreadcrumbs();
+//        clearBreadcrumbs();
     }
 
-    @Override
-    protected void createBreadcrumb() {
-        //don't create breadcrumb for login page
-    }
+//    @Override
+//    protected void createBreadcrumb() {
+//        //don't create breadcrumb for login page
+//    }
 
     @Override
     protected void onBeforeRender() {
@@ -321,6 +322,16 @@ public class PageEmailNonse extends PageAuthenticationBase {
             MidPointApplication app = getMidpointApplication();
             throw new RestartResponseException(app.getHomePage());
         }
+    }
+
+    @Override
+    protected IModel<String> getBodyCssClass() {
+        return null;
+    }
+
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return null;
     }
 
     private OperationResult saveUserNonce(final UserType user, final NonceCredentialsPolicyType noncePolicy) {

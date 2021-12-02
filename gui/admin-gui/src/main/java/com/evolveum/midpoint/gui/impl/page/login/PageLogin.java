@@ -68,6 +68,11 @@ public class PageLogin extends AbstractPageLogin {
     }
 
     @Override
+    protected IModel<String> createPageTitleModel() {
+        return null;
+    }
+
+    @Override
     protected void initCustomLayer() {
         MidpointForm form = new MidpointForm(ID_FORM);
         form.add(AttributeModifier.replace("action", (IModel<String>) this::getUrlProcessingLogin));

@@ -93,6 +93,16 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
     }
 
     @Override
+    protected IModel<String> getBodyCssClass() {
+        return null;
+    }
+
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return null;
+    }
+
+    @Override
     protected void initCustomLayer() {
         MidpointForm form = new MidpointForm(ID_MAIN_FORM);
         form.add(AttributeModifier.replace("action", new IModel<String>() {

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.web.util.PageParameterConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.formula.functions.T;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -26,7 +27,6 @@ import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -166,7 +166,7 @@ public class DashboardSearchPanel extends BasePanel<T> {
         PageParameters params = null;
         if (StringUtils.isNotBlank(text)) {
             params = new PageParameters();
-            params.add(PageBase.PARAMETER_SEARCH_BY_NAME, text);
+            params.add(PageParameterConstants.PARAMETER_SEARCH_BY_NAME, text);
         }
         switch (selectedSearchType) {
             case RESOURCES:

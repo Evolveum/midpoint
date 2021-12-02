@@ -16,6 +16,7 @@ import javax.mail.internet.MimeMessage;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
+import com.evolveum.midpoint.gui.api.page.PageCommon;
 import com.evolveum.midpoint.web.application.Url;
 
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -25,6 +26,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -67,7 +69,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
                 @Url(mountUrl = "/securityquestionsold")
         },
         permitAll = true)
-public class PageSecurityQuestions extends PageBase {
+public class PageSecurityQuestions extends PageCommon {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageSecurityQuestions.class);
@@ -98,9 +100,14 @@ public class PageSecurityQuestions extends PageBase {
     }
 
     @Override
-    protected void createBreadcrumb() {
-        //don't create breadcrumb for this page
+    protected IModel<String> getBodyCssClass() {
+        return null;
     }
+
+//    @Override
+//    protected void createBreadcrumb() {
+//        //don't create breadcrumb for this page
+//    }
 
     public void initLayout() {
 
@@ -176,6 +183,11 @@ public class PageSecurityQuestions extends PageBase {
         mainForm.add(getPanels(pqPanels));
 
         initButtons(mainForm);
+    }
+
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return null;
     }
 
     private PrismObject<SecurityPolicyType> getGlobalSecurityPolicy() {

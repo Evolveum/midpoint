@@ -1,0 +1,31 @@
+<!--
+  ~ Copyright (c) 2021 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:wicket="http://wicket.apache.org">
+
+    <wicket:panel>
+        <aside class="main-sidebar sidebar-dark-primary">
+            <wicket:enclosure child="menu">
+                <a class="brand-link" wicket:id="customLogo">
+                    <i wicket:id="customLogoImgCss"/>
+                    <img wicket:id="customLogoImgSrc"/>
+                </a>
+                <a class="brand-link logo" wicket:id="logo">
+                    <span>&nbsp;</span>
+                </a>
+
+                <!-- sidebar: style can be found in sidebar.less -->
+                <div class="sidebar"> <!--style="height: auto;"-->
+                    <wicket:container wicket:id="menu"/>
+                </div>
+                <!-- /.sidebar -->
+                <!--                </aside>-->
+            </wicket:enclosure>
+        </aside>
+    </wicket:panel>
+</html>
+

@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.util.PageParameterConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -469,7 +470,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         String taskCollectionViewName = getTaskCollectionViewNameByArchetypeOid(archetypeOid);
         PageParameters pageParameters = new PageParameters();
         if (StringUtils.isNotEmpty(taskCollectionViewName)) {
-            pageParameters.add(PageBase.PARAMETER_OBJECT_COLLECTION_NAME, taskCollectionViewName);
+            pageParameters.add(PageParameterConstants.PARAMETER_OBJECT_COLLECTION_NAME, taskCollectionViewName);
             PageTasks pageTasks = new PageTasks(tasksQuery, pageParameters);
             getPageBase().setResponsePage(pageTasks);
         } else {

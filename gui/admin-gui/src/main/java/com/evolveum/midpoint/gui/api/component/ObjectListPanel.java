@@ -12,12 +12,12 @@ import java.util.function.Supplier;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.web.component.search.*;
 
+import com.evolveum.midpoint.web.util.PageParameterConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
@@ -26,7 +26,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -66,7 +65,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         if (parameters == null) {
             return null;
         }
-        StringValue value = parameters.get(PageBase.PARAMETER_SEARCH_BY_NAME);
+        StringValue value = parameters.get(PageParameterConstants.PARAMETER_SEARCH_BY_NAME);
         if (value == null) {
             return null;
         }
