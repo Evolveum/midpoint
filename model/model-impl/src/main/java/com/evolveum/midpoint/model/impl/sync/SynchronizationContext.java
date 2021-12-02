@@ -46,6 +46,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+/**
+ * Context of the synchronization operation. It is created in the early stages of {@link ResourceObjectShadowChangeDescription}
+ * progressing in {@link SynchronizationServiceImpl}.
+ *
+ * @param <F> Type of the matching focus object
+ */
 public class SynchronizationContext<F extends FocusType> implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationContext.class);

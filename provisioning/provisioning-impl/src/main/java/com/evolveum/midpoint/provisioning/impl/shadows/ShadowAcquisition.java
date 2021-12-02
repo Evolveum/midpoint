@@ -75,7 +75,7 @@ class ShadowAcquisition {
     private final CommonBeans beans;
     private final ShadowsLocalBeans localBeans;
 
-    public ShadowAcquisition(@NotNull ProvisioningContext ctx, @NotNull PrismProperty<?> primaryIdentifier,
+    ShadowAcquisition(@NotNull ProvisioningContext ctx, @NotNull PrismProperty<?> primaryIdentifier,
             @NotNull QName objectClass, @NotNull ResourceObjectSupplier resourceObjectSupplier,
             boolean skipClassification, CommonBeans commonBeans) {
         this.ctx = ctx;
