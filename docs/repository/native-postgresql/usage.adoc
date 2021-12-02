@@ -101,8 +101,7 @@ wget -q https://raw.githubusercontent.com/Evolveum/midpoint/master/config/sql/na
 export PGPASSWORD=password
 # If you want to replace any previous tables in the schema, uncomment this drop too:
 #psql -h localhost midpoint midpoint -c "drop schema public cascade"
-psql -h localhost midpoint midpoint -f postgres-new.sql
-psql -h localhost midpoint midpoint -f postgres-new-audit.sql
+psql -h localhost midpoint midpoint -f postgres-new.sql -f postgres-new-audit.sql
 ----
 
 If you plan to use https://www.postgresql.org/docs/13/pgstatstatements.html[statement statistics extension]

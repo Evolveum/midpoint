@@ -384,6 +384,81 @@ In the script we can use variable `target`, which represent target object of aud
 
 An example with custom column is available link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/audit[in the samples].
 
+== Configuration examples
+
+=== Audit to main repository + logs
+
+SQL repository + auditing to PostgreSQL, audit also to logs.
+If *auditService* for *SqlAuditServiceFactory* does not contain any other configuration, main repository configuration is used - in fact, the same data source (connection pool, etc.) is shared.
+
+[source,xml]
+----
+<repository>
+    <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
+    <embedded>false</embedded>
+    <driverClassName>org.postgresql.Driver</driverClassName>
+    <hibernateHbm2ddl>update</hibernateHbm2ddl>
+    <hibernateDialect>org.hibernate.dialect.PostgreSQLDialect</hibernateDialect>
+    <jdbcPassword>midpoint</jdbcPassword>
+    <jdbcUsername>midpoint</jdbcUsername>
+    <jdbcUrl>jdbc:postgresql://localhost:5432/midpoint</jdbcUrl>
+</repository>
+<audit>
+    <auditService>
+        <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+    </auditService>
+    <auditService>
+        <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
+    <auditService>
+</audit>
+----
+
+=== Audit to separate database
+
+++++
+{% include since.html since="4.2" %}
+++++
+
+Configuration element *auditService* for *SqlAuditServiceFactory* can contain any element from *repository* configuration - see xref:/midpoint/reference/repository/generic/configuration/[Repository Configuration] for more.
+
+* One of *jdbcUrl* or *dataSource* must be used - otherwise any repository configuration in *auditService* is ignored and only main *repository* configuration is used.
+
+* The recommended way is to use *jdbcUrl* with *jdbcUsername*, *jdbcPassword* and *driverClassName* and *database*.
+
+* Preconfigured *dataSource* for WAR deployment on application server or Tomcat is also possible - but this is not recommended anymore and not officially supported.
+
+* In both cases the right value for *database* element should be used, e.g. *postgresql*.
+
+* If the separate repository for audit is used, [.underline]#do not use H2# - this option is not supported.
+Use only production-like settings.
+It is however possible to use other database for audit while main repository is set to embedded H2, mostly for development/testing purposes.
+
+* Separate database must be prepared in a similar way to the main database with tables, indexes and foreing keys containing "audit" created.
+For PostgreSQL example, see xref:/midpoint/reference/repository/generic/postgresql/[PostgreSQL] page, section *Separate audit database*.
+
+Example configuration with default H2 for main repository and PostgreSQL on localhost for audit:
+
+[source,xml]
+----
+<repository>
+    <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
+    <baseDir>${midpoint.home}</baseDir>
+    <asServer>true</asServer>
+</repository>
+<audit>
+    <auditService>
+        <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+    </auditService>
+    <auditService>
+        <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
+        <jdbcUrl>jdbc:postgresql://localhost/midaudit</jdbcUrl>
+        <database>postgresql</database>
+        <jdbcUsername>midaudit</jdbcUsername>
+        <jdbcPassword>password</jdbcPassword>
+    </auditService>
+</audit>
+----
+
 == See Also
 
 * xref:../generic/[Generic SQL Repository]

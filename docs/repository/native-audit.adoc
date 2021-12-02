@@ -169,6 +169,10 @@ Conceptually, this stores multimap (name -> references) for each record.
 * Custom properties (`customColumnProperty`) are stored each in dedicated column of `TEXT` type.
 See section link:#custom-column[Custom columns] below for details.
 
+=== Audit migration from other database
+
+// TODO
+
 === Upgrading
 
 // TODO
@@ -245,6 +249,7 @@ After adding of this configuration is needed restart of midpoint.
 
 While not recommended, it is possible to let midPoint create the missing custom columns - if the connection allows it.
 Just add the following line inside the `auditService` element:
+
 [source,xml]
 ----
 <createMissingCustomColumns>true</createMissingCustomColumns>
@@ -277,7 +282,10 @@ In the script we can use variable `target`, which represent target object of aud
 
 An example with custom column is available link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/audit[in the samples].
 
-== Examples
+== Configuration examples
+
+Both examples also configure the audit service for writing the audit trail to a log file
+(factory class `LoggerAuditServiceFactory`).
 
 === Basic SQL audit setup
 
@@ -298,7 +306,9 @@ The audit tables (prefixed `ma_`) must be present in the same database as the ma
             <jdbcPassword>password</jdbcPassword>
         </repository>
         <audit>
-            ...
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
             <auditService>
                 <auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
             </auditService>
@@ -335,7 +345,9 @@ although the default settings do release unused physical connections.
             <jdbcPassword>password</jdbcPassword>
         </repository>
         <audit>
-            ...
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
             <auditService>
                 <auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
                 <jdbcUrl>jdbc:postgresql://192.168.56.33:5432/midaudit?ApplicationName=audit</jdbcUrl>
