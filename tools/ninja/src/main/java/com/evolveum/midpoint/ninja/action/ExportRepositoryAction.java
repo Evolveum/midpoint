@@ -24,7 +24,7 @@ public class ExportRepositoryAction extends AbstractRepositorySearchAction<Expor
     }
 
     @Override
-    protected Runnable createConsumer(BlockingQueue<PrismObject> queue, OperationStatus operation) {
+    protected Runnable createConsumer(BlockingQueue<PrismObject<?>> queue, OperationStatus operation) {
         return new ExportConsumerWorker(context, options, queue, operation);
     }
 }
