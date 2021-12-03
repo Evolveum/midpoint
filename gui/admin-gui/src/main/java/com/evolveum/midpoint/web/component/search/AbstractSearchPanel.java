@@ -65,6 +65,7 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
@@ -107,6 +108,9 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
     private static final String ID_ADVANCED_CHECK = "advancedCheck";
     private static final String ID_ADVANCED_ERROR_GROUP = "advancedErrorGroup";
     private static final String ID_ADVANCED_ERROR = "advancedError";
+    private static final String ID_FULL_TEXT_CONTAINER = "fullTextContainer";
+    private static final String ID_FULL_TEXT_FIELD = "fullTextField";
+
     private static final Trace LOG = TraceManager.getTrace(AbstractSearchPanel.class);
 
     private LoadableModel<MoreDialogDto> moreDialogModel;
@@ -267,6 +271,18 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
         advancedSearchFragment.setOutputMarkupId(true);
         advancedSearchFragment.add(new VisibleBehaviour(() -> getModelObject().isAdvancedSearchMode()));
         listItems.add(advancedSearchFragment);
+
+//        AdvancedSearchFragment axiomSearchFragment = new AdvancedSearchFragment(listItems.newChildId(), ID_ADVANCED_SEARCH_FRAGMENT,
+//                AbstractSearchPanel.this);
+//        advancedSearchFragment.setOutputMarkupId(true);
+//        advancedSearchFragment.add(new VisibleBehaviour(() -> getModelObject().isAdvancedSearchMode()));
+//        listItems.add(advancedSearchFragment);
+
+        FulltextSearchFragment fulltextSearchFragment = new FulltextSearchFragment(listItems.newChildId(), ID_FULLTEXT_SEARCH_FRAGMENT,
+                AbstractSearchPanel.this);
+        fulltextSearchFragment.setOutputMarkupId(true);
+        fulltextSearchFragment.add(new VisibleBehaviour(() -> getModelObject().isFulltextSearchMode()));
+        listItems.add(fulltextSearchFragment);
     }
 
     private CompositedIcon getSubmitSearchButtonBuilder() {
@@ -359,6 +375,19 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
     }
 
     protected void saveSearch(Search search, AjaxRequestTarget target) {
+    }
+
+    private VisibleEnableBehaviour createVisibleBehaviour(SearchBoxModeType ... searchType) {
+        return new VisibleEnableBehaviour() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return getModelObject() != null && getModelObject().getSearchType() != null
+                        && Arrays.asList(searchType).contains(getModelObject().getSearchType());
+            }
+        };
     }
 
     private IModel<String> getIconLabelByModeModel() {
@@ -623,11 +652,11 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
                     debugPerformed();
                 }
             };
-            debug.add(new VisibleBehaviour(this::isQueryPlaygroundAccessible));
+            debug.add(new VisibleBehaviour(() -> isQueryPlaygroundAccessible()));
             add(debug);
 
             WebMarkupContainer advancedGroup = new WebMarkupContainer(ID_ADVANCED_GROUP);
-//            advancedGroup.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED, SearchBoxModeType.AXIOM_QUERY));
+            advancedGroup.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED, SearchBoxModeType.AXIOM_QUERY));
             advancedGroup.add(AttributeAppender.append("class", createAdvancedGroupStyle()));
             advancedGroup.setOutputMarkupId(true);
             add(advancedGroup);
@@ -654,7 +683,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
                 }
             });
             advancedArea.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertFilterXml")));
-//            advancedArea.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED));
+            advancedArea.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED));
             advancedGroup.add(advancedArea);
 
             TextField<String> queryDslField = new TextField<>(ID_AXIOM_QUERY_FIELD,
@@ -676,7 +705,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
                 }
             });
             queryDslField.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertAxiomQuery")));
-//            queryDslField.add(createVisibleBehaviour(SearchBoxModeType.AXIOM_QUERY));
+            queryDslField.add(createVisibleBehaviour(SearchBoxModeType.AXIOM_QUERY));
             advancedGroup.add(queryDslField);
 
             WebMarkupContainer advancedErrorGroup = new WebMarkupContainer(ID_ADVANCED_ERROR_GROUP);
@@ -782,5 +811,47 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
                     get(createComponentPath(ID_FORM, ID_SEARCH_CONTAINER)));
         }
 
+    }
+
+    class FulltextSearchFragment extends Fragment {
+        private static final long serialVersionUID = 1L;
+
+        public FulltextSearchFragment(String id, String markupId, AbstractSearchPanel markupProvider) {
+            super(id, markupId, markupProvider);
+            initFulltextLayout();
+        }
+
+        private void initFulltextLayout() {
+            WebMarkupContainer fullTextContainer = new WebMarkupContainer(ID_FULL_TEXT_CONTAINER);
+            fullTextContainer.add(new VisibleEnableBehaviour() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public boolean isVisible() {
+                    return getModelObject().isFullTextSearchEnabled()
+                            && getModelObject().getSearchType().equals(SearchBoxModeType.FULLTEXT);
+                }
+            });
+            fullTextContainer.setOutputMarkupId(true);
+            add(fullTextContainer);
+
+            TextField<String> fullTextInput = new TextField<>(ID_FULL_TEXT_FIELD,
+                    new PropertyModel<>(getModel(), Search.F_FULL_TEXT));
+
+            fullTextInput.add(new AjaxFormComponentUpdatingBehavior("blur") {
+
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                }
+            });
+            fullTextInput.add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
+            fullTextInput.setOutputMarkupId(true);
+            fullTextInput.add(new AttributeAppender("placeholder",
+                    createStringResource("SearchPanel.fullTextSearch")));
+            fullTextContainer.add(fullTextInput);
+
+        }
     }
 }
