@@ -114,18 +114,17 @@ public class ImportProducerWorker extends BaseWorker<ImportOptions, PrismObject>
         PrismContext prismContext = appContext.getBean(PrismContext.class);
         MatchingRuleRegistry matchingRuleRegistry = appContext.getBean(MatchingRuleRegistry.class);
 
-        EventHandler handler = new EventHandler() {
+        EventHandler<PrismObject<Objectable>, Objectable> handler = new EventHandler<>() {
 
             @Override
             public EventResult preMarshall(Element objectElement, Node postValidationTree,
-                                           OperationResult objectResult) {
+                    OperationResult objectResult) {
                 return EventResult.cont();
             }
 
             @Override
-            public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
-                                                                   OperationResult objectResult) {
-
+            public EventResult postMarshall(
+                    PrismObject<Objectable> object, Element objectElement, OperationResult objectResult) {
                 try {
                     if (filter != null) {
                         boolean match = ObjectQuery.match(object, filter, matchingRuleRegistry);

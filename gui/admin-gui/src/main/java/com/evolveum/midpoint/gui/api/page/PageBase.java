@@ -1056,7 +1056,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             public boolean isVisible() {
                 return !isErrorPage() && isSideMenuVisible() &&
                         (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SELF_REQUESTS_ASSIGNMENTS_URL, PageSelf.AUTH_SELF_ALL_URI)
-                        && getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() > 0);
+                                && getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() > 0);
             }
         };
     }
@@ -1454,7 +1454,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         if (isListOfObjects) {
             objectHolder.setValue((T) list);
         }
-        EventHandler handler = new EventHandler() {
+        EventHandler<PrismObject<Objectable>, Objectable> handler = new EventHandler<>() {
 
             @Override
             public EventResult preMarshall(Element objectElement, Node postValidationTree,
@@ -1463,8 +1463,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
 
             @Override
-            public <O extends Objectable> EventResult postMarshall(PrismObject<O> object, Element objectElement,
-                    OperationResult objectResult) {
+            public EventResult postMarshall(
+                    PrismObject<Objectable> object, Element objectElement, OperationResult objectResult) {
                 if (isListOfObjects) {
                     list.add(object);
                 } else {
