@@ -68,7 +68,6 @@ This example mapping can be expressed in XML using the same structure:
         <path>$projection/attributes/description</path>
     </target>
 </mapping>
-
 ----
 
 Not all parts of the mapping are mandatory.
@@ -91,7 +90,6 @@ Some parts of the mapping may be implicitly defined by the surrounding context, 
         </target>
     </inbound>
 </attribute>
-
 ----
 
 Both source and target are implicit in outbound/inbound mappings of standard properties such e.g. inside `activation` or `credentials` containers.
