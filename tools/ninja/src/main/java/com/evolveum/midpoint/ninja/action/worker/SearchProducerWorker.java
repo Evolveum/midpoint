@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.ninja.action.worker;
+
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
 
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
@@ -21,22 +23,19 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-import java.util.List;
-import java.util.concurrent.BlockingQueue;
-
 /**
  * Producer worker for all search-based operations, such as export and verify.
  *
  * Created by Viliam Repan (lazyman).
  */
-public class SearchProducerWorker extends BaseWorker<ExportOptions, PrismObject> {
+public class SearchProducerWorker extends BaseWorker<ExportOptions, PrismObject<?>> {
 
-    private ObjectTypes type;
-    private ObjectQuery query;
+    private final ObjectTypes type;
+    private final ObjectQuery query;
 
-    public SearchProducerWorker(NinjaContext context, ExportOptions options, BlockingQueue<PrismObject> queue,
-                                OperationStatus operation, List<SearchProducerWorker> producers,
-                                ObjectTypes type, ObjectQuery query) {
+    public SearchProducerWorker(
+            NinjaContext context, ExportOptions options, BlockingQueue<PrismObject<?>> queue,
+            OperationStatus operation, List<SearchProducerWorker> producers, ObjectTypes type, ObjectQuery query) {
         super(context, options, queue, operation, producers);
 
         this.type = type;
@@ -55,7 +54,7 @@ public class SearchProducerWorker extends BaseWorker<ExportOptions, PrismObject>
 
             optionsBuilder = NinjaUtils.addIncludeOptionsForExport(optionsBuilder, type.getClassDefinition());
 
-            ResultHandler handler = (object, parentResult) -> {
+            ResultHandler<?> handler = (object, parentResult) -> {
                 try {
                     queue.put(object);
                 } catch (InterruptedException ex) {

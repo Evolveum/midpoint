@@ -1,11 +1,22 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.ninja.action.worker;
+
+import java.io.*;
+import java.nio.charset.Charset;
+import java.util.concurrent.BlockingQueue;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import org.apache.commons.io.input.ReaderInputStream;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.ApplicationContext;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
@@ -23,28 +34,18 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import org.apache.commons.io.input.ReaderInputStream;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.context.ApplicationContext;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
-import java.io.*;
-import java.nio.charset.Charset;
-import java.util.concurrent.BlockingQueue;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ImportProducerWorker extends BaseWorker<ImportOptions, PrismObject> {
+public class ImportProducerWorker extends BaseWorker<ImportOptions, PrismObject<?>> {
 
-    private ObjectFilter filter;
-    private boolean stopAfterFound;
+    private final ObjectFilter filter;
+    private final boolean stopAfterFound;
 
-    public ImportProducerWorker(NinjaContext context, ImportOptions options, BlockingQueue queue, OperationStatus operation,
-                                ObjectFilter filter, boolean stopAfterFound) {
+    public ImportProducerWorker(
+            NinjaContext context, ImportOptions options, BlockingQueue<PrismObject<?>> queue,
+            OperationStatus operation, ObjectFilter filter, boolean stopAfterFound) {
         super(context, options, queue, operation);
 
         this.filter = filter;

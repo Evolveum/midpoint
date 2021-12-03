@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,30 +7,27 @@
 
 package com.evolveum.midpoint.ninja.action.worker;
 
+import java.io.IOException;
+import java.io.Writer;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
+
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.ninja.opts.ExportOptions;
 import com.evolveum.midpoint.ninja.util.Log;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismSerializer;
-import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import java.io.IOException;
-import java.io.Writer;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public abstract class AbstractWriterConsumerWorker<OP extends ExportOptions> extends BaseWorker<OP, PrismObject> {
+public abstract class AbstractWriterConsumerWorker<OP extends ExportOptions, T>
+        extends BaseWorker<OP, T> {
 
-    public AbstractWriterConsumerWorker(NinjaContext context, OP options, BlockingQueue<PrismObject> queue,
-                                OperationStatus operation) {
+    public AbstractWriterConsumerWorker(NinjaContext context,
+            OP options, BlockingQueue<T> queue, OperationStatus operation) {
         super(context, options, queue, operation);
     }
 
@@ -44,7 +41,7 @@ public abstract class AbstractWriterConsumerWorker<OP extends ExportOptions> ext
 
         try (Writer writer = createWriter()) {
             while (!shouldConsumerStop()) {
-                PrismObject object = null;
+                T object = null;
                 try {
                     object = queue.poll(CONSUMER_POLL_TIMEOUT, TimeUnit.SECONDS);
                     if (object == null) {
@@ -79,7 +76,7 @@ public abstract class AbstractWriterConsumerWorker<OP extends ExportOptions> ext
 
     protected abstract String getProlog();
 
-    protected abstract <O extends ObjectType> void write(Writer writer, PrismObject<O> object) throws SchemaException, IOException;
+    protected abstract void write(Writer writer, T object) throws SchemaException, IOException;
 
     protected abstract String getEpilog();
 
