@@ -25,10 +25,7 @@ import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.ninja.opts.BaseOptions;
 import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismParserNoIO;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
@@ -92,13 +89,13 @@ public class NinjaUtils {
         return null;
     }
 
-    public static ObjectFilter createObjectFilter(FileReference strFilter, NinjaContext context, Class<? extends ObjectType> objectClass)
+    public static ObjectFilter createObjectFilter(FileReference strFilter, NinjaContext context, Class<? extends Containerable> objectClass)
             throws IOException, SchemaException {
         ObjectQuery query = createObjectQuery(strFilter, context, objectClass);
         return query != null ? query.getFilter() : null;
     }
 
-    public static ObjectQuery createObjectQuery(FileReference ref, NinjaContext context, Class<? extends ObjectType> objectClass)
+    public static ObjectQuery createObjectQuery(FileReference ref, NinjaContext context, Class<? extends Containerable> objectClass)
             throws IOException, SchemaException {
 
         if (ref == null) {
@@ -112,11 +109,17 @@ public class NinjaUtils {
         }
 
         PrismContext prismContext = context.getPrismContext();
-        PrismParserNoIO parser = prismContext.parserFor(filterStr);
-        RootXNode root = parser.parseToXNode();
+        // Experimental Axiom filter support, % is chosen as a marker and will be skipped.
+        if (filterStr.startsWith("%")) {
+            ObjectFilter objectFilter = prismContext.createQueryParser().parseQuery(objectClass, filterStr.substring(1));
+            return prismContext.queryFactory().createQuery(objectFilter);
+        } else {
+            PrismParserNoIO parser = prismContext.parserFor(filterStr);
+            RootXNode root = parser.parseToXNode();
 
-        ObjectFilter filter = context.getQueryConverter().parseFilter(root.toMapXNode(), objectClass);
-        return prismContext.queryFactory().createQuery(filter);
+            ObjectFilter filter = context.getQueryConverter().parseFilter(root.toMapXNode(), objectClass);
+            return prismContext.queryFactory().createQuery(filter);
+        }
     }
 
     public static String printStackToString(Exception ex) {
@@ -167,7 +170,7 @@ public class NinjaUtils {
     }
 
     public static GetOperationOptionsBuilder addIncludeOptionsForExport(GetOperationOptionsBuilder optionsBuilder,
-            Class<? extends ObjectType> type) {
+            Class<? extends Containerable> type) {
         // todo fix this brutal hack (related to checking whether to include particular options)
         boolean all = type == null
                 || Objectable.class.equals(type)

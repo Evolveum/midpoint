@@ -39,9 +39,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * Abstract action for all search-based operations, such as export and verify.
  *
- * @author Viliam Repan (lazyman)
+ * @param <O> options class
  */
-public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> extends RepositoryAction<OP> {
+public abstract class AbstractRepositorySearchAction<O extends ExportOptions> extends RepositoryAction<O> {
 
     private static final String DOT_CLASS = AbstractRepositorySearchAction.class.getName() + ".";
 
@@ -91,7 +91,10 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
         }
 
         executor.shutdown();
-        executor.awaitTermination(NinjaUtils.WAIT_FOR_EXECUTOR_FINISH, TimeUnit.DAYS);
+        boolean awaitResult = executor.awaitTermination(NinjaUtils.WAIT_FOR_EXECUTOR_FINISH, TimeUnit.DAYS);
+        if (!awaitResult) {
+            log.error("Executor did not finish before timeout");
+        }
 
         handleResultOnFinish(operation, "Finished " + getOperationShortName());
     }
