@@ -11,15 +11,14 @@ import java.util.concurrent.BlockingQueue;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.PrismObject;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ProgressReporterWorker extends BaseWorker<Object, PrismObject<?>> {
+public class ProgressReporterWorker<T> extends BaseWorker<Object, T> {
 
     public ProgressReporterWorker(NinjaContext context,
-            Object options, BlockingQueue<PrismObject<?>> queue, OperationStatus operation) {
+            Object options, BlockingQueue<T> queue, OperationStatus operation) {
         super(context, options, queue, operation);
     }
 
@@ -31,8 +30,10 @@ public class ProgressReporterWorker extends BaseWorker<Object, PrismObject<?>> {
             }
 
             try {
+                //noinspection BusyWait
                 Thread.sleep(NinjaUtils.COUNT_STATUS_LOG_INTERVAL);
             } catch (InterruptedException ex) {
+                // ignored
             }
         }
     }

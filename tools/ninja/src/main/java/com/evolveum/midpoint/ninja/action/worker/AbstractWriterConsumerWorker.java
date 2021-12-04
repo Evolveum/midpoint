@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.ninja.action.worker;
 
 import java.io.IOException;
@@ -23,11 +22,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public abstract class AbstractWriterConsumerWorker<OP extends ExportOptions, T>
-        extends BaseWorker<OP, T> {
+public abstract class AbstractWriterConsumerWorker<O extends ExportOptions, T>
+        extends BaseWorker<O, T> {
 
     public AbstractWriterConsumerWorker(NinjaContext context,
-            OP options, BlockingQueue<T> queue, OperationStatus operation) {
+            O options, BlockingQueue<T> queue, OperationStatus operation) {
         super(context, options, queue, operation);
     }
 
