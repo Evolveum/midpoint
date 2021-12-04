@@ -931,7 +931,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     public void test767ModifyConfigurationDiffExpressionRawValidatorParse() throws Exception {
         modifyConfigurationDiffExpressionRaw(xml -> {
             final Holder<PrismObject<ResourceType>> objectHolder = new Holder<>();
-            EventHandler handler = new EventHandler() {
+            EventHandler<PrismObject<ResourceType>, ResourceType> handler = new EventHandler<>() {
 
                 @Override
                 public EventResult preMarshall(Element objectElement, Node postValidationTree,
@@ -940,9 +940,9 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
                 }
 
                 @Override
-                public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
-                        OperationResult objectResult) {
-                    objectHolder.setValue((PrismObject<ResourceType>) object);
+                public EventResult postMarshall(
+                        PrismObject<ResourceType> object, Element objectElement, OperationResult objectResult) {
+                    objectHolder.setValue(object);
                     return EventResult.cont();
                 }
 

@@ -1,25 +1,35 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.ninja.util;
 
+import java.io.*;
+import java.lang.reflect.Modifier;
+import java.nio.charset.Charset;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
 import com.beust.jcommander.JCommander;
+import org.apache.commons.io.FileUtils;
+
 import com.evolveum.midpoint.ninja.impl.Command;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.ninja.opts.BaseOptions;
 import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismParserNoIO;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -27,15 +37,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.commons.io.FileUtils;
-
-import java.io.*;
-import java.lang.reflect.Modifier;
-import java.nio.charset.Charset;
-import java.text.DecimalFormat;
-import java.util.*;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -49,7 +50,7 @@ public class NinjaUtils {
 
     public static final String XML_OBJECTS_SUFFIX = "</c:objects>";
 
-    public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat(".##");
+    public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.##");
 
     public static final long COUNT_STATUS_LOG_INTERVAL = 2 * 1000; // two seconds
 
@@ -80,6 +81,7 @@ public class NinjaUtils {
         List<Object> objects = jc.getObjects();
         for (Object object : objects) {
             if (type.equals(object.getClass())) {
+                //noinspection unchecked
                 return (T) object;
             }
         }
@@ -87,13 +89,13 @@ public class NinjaUtils {
         return null;
     }
 
-    public static ObjectFilter createObjectFilter(FileReference strFilter, NinjaContext context, Class<? extends ObjectType> objectClass)
+    public static ObjectFilter createObjectFilter(FileReference strFilter, NinjaContext context, Class<? extends Containerable> objectClass)
             throws IOException, SchemaException {
         ObjectQuery query = createObjectQuery(strFilter, context, objectClass);
         return query != null ? query.getFilter() : null;
     }
 
-    public static ObjectQuery createObjectQuery(FileReference ref, NinjaContext context, Class<? extends ObjectType> objectClass)
+    public static ObjectQuery createObjectQuery(FileReference ref, NinjaContext context, Class<? extends Containerable> objectClass)
             throws IOException, SchemaException {
 
         if (ref == null) {
@@ -107,11 +109,17 @@ public class NinjaUtils {
         }
 
         PrismContext prismContext = context.getPrismContext();
-        PrismParserNoIO parser = prismContext.parserFor(filterStr);
-        RootXNode root = parser.parseToXNode();
+        // Experimental Axiom filter support, % is chosen as a marker and will be skipped.
+        if (filterStr.startsWith("%")) {
+            ObjectFilter objectFilter = prismContext.createQueryParser().parseQuery(objectClass, filterStr.substring(1));
+            return prismContext.queryFactory().createQuery(objectFilter);
+        } else {
+            PrismParserNoIO parser = prismContext.parserFor(filterStr);
+            RootXNode root = parser.parseToXNode();
 
-        ObjectFilter filter = context.getQueryConverter().parseFilter(root.toMapXNode(), objectClass);
-        return prismContext.queryFactory().createQuery(filter);
+            ObjectFilter filter = context.getQueryConverter().parseFilter(root.toMapXNode(), objectClass);
+            return prismContext.queryFactory().createQuery(filter);
+        }
     }
 
     public static String printStackToString(Exception ex) {
@@ -162,7 +170,7 @@ public class NinjaUtils {
     }
 
     public static GetOperationOptionsBuilder addIncludeOptionsForExport(GetOperationOptionsBuilder optionsBuilder,
-            Class<? extends ObjectType> type) {
+            Class<? extends Containerable> type) {
         // todo fix this brutal hack (related to checking whether to include particular options)
         boolean all = type == null
                 || Objectable.class.equals(type)
@@ -185,7 +193,7 @@ public class NinjaUtils {
     public static List<ObjectTypes> getTypes(Set<ObjectTypes> selected) {
         List<ObjectTypes> types = new ArrayList<>();
 
-        if (selected != null && !   selected.isEmpty()) {
+        if (selected != null && !selected.isEmpty()) {
             types.addAll(selected);
         } else {
             for (ObjectTypes type : ObjectTypes.values()) {

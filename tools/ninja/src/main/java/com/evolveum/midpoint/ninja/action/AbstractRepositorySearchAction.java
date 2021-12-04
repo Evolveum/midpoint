@@ -1,19 +1,29 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.ninja.action;
 
-import com.evolveum.midpoint.ninja.action.worker.SearchProducerWorker;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.*;
+
 import com.evolveum.midpoint.ninja.action.worker.ProgressReporterWorker;
+import com.evolveum.midpoint.ninja.action.worker.SearchProducerWorker;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.opts.ExportOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -26,16 +36,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.*;
-
 /**
  * Abstract action for all search-based operations, such as export and verify.
  *
- * @author Viliam Repan (lazyman)
+ * @param <O> options class
  */
-public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> extends RepositoryAction<OP> {
+public abstract class AbstractRepositorySearchAction<O extends ExportOptions> extends RepositoryAction<O> {
 
     private static final String DOT_CLASS = AbstractRepositorySearchAction.class.getName() + ".";
 
@@ -46,7 +52,7 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
 
     protected abstract String getOperationShortName();
 
-    protected abstract Runnable createConsumer(BlockingQueue<PrismObject> queue, OperationStatus operation);
+    protected abstract Runnable createConsumer(BlockingQueue<PrismObject<?>> queue, OperationStatus operation);
 
     protected String getOperationName() {
         return this.getClass().getName() + "." + getOperationShortName();
@@ -60,7 +66,7 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
         // "+ 2" will be used for consumer and progress reporter
         ExecutorService executor = Executors.newFixedThreadPool(options.getMultiThread() + 2);
 
-        BlockingQueue<PrismObject> queue = new LinkedBlockingQueue<>(QUEUE_CAPACITY_PER_THREAD * options.getMultiThread());
+        BlockingQueue<PrismObject<?>> queue = new LinkedBlockingQueue<>(QUEUE_CAPACITY_PER_THREAD * options.getMultiThread());
 
         List<SearchProducerWorker> producers = createProducers(queue, operation);
 
@@ -85,7 +91,10 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
         }
 
         executor.shutdown();
-        executor.awaitTermination(NinjaUtils.WAIT_FOR_EXECUTOR_FINISH, TimeUnit.DAYS);
+        boolean awaitResult = executor.awaitTermination(NinjaUtils.WAIT_FOR_EXECUTOR_FINISH, TimeUnit.DAYS);
+        if (!awaitResult) {
+            log.error("Executor did not finish before timeout");
+        }
 
         handleResultOnFinish(operation, "Finished " + getOperationShortName());
     }
@@ -99,7 +108,7 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
         return LogTarget.SYSTEM_ERR;
     }
 
-    private List<SearchProducerWorker> createProducers(BlockingQueue<PrismObject> queue, OperationStatus operation)
+    private List<SearchProducerWorker> createProducers(BlockingQueue<PrismObject<?>> queue, OperationStatus operation)
             throws SchemaException, IOException {
 
         QueryFactory queryFactory = context.getPrismContext().queryFactory();
@@ -122,7 +131,8 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
             ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context, type.getClassDefinition());
             ObjectQuery query = queryFactory.createQuery(filter);
             if (ObjectTypes.SHADOW.equals(type)) {
-                List<SearchProducerWorker> shadowProducers = createProducersForShadows(context, queue, operation, producers, filter);
+                List<SearchProducerWorker> shadowProducers =
+                        createProducersForShadows(context, queue, operation, producers, filter);
                 producers.addAll(shadowProducers);
                 continue;
             }
@@ -138,8 +148,9 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
      * run in more threads. No extra special processing is done for shadows. Just to split them to workers for
      * performance reasons.
      */
-    private List<SearchProducerWorker> createProducersForShadows(NinjaContext context,
-            BlockingQueue<PrismObject> queue, OperationStatus operation, List<SearchProducerWorker> producers, ObjectFilter filter) {
+    private List<SearchProducerWorker> createProducersForShadows(
+            NinjaContext context, BlockingQueue<PrismObject<?>> queue,
+            OperationStatus operation, List<SearchProducerWorker> producers, ObjectFilter filter) {
 
         QueryFactory queryFactory = context.getPrismContext().queryFactory();
         List<SearchProducerWorker> shadowProducers = new ArrayList<>();
@@ -210,8 +221,8 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
         return prismContext.queryFactory().createReferenceEqual(ShadowType.F_RESOURCE_REF, def, values);
     }
 
-    private SearchProducerWorker createProducer(BlockingQueue<PrismObject> queue, OperationStatus operation,
-                                                List<SearchProducerWorker> producers, ObjectTypes type, ObjectFilter filter) {
+    private SearchProducerWorker createProducer(BlockingQueue<PrismObject<?>> queue, OperationStatus operation,
+            List<SearchProducerWorker> producers, ObjectTypes type, ObjectFilter filter) {
         ObjectQuery query = context.getPrismContext().queryFactory().createQuery(filter);
         return new SearchProducerWorker(context, options, queue, operation, producers, type, query);
     }

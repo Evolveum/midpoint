@@ -1,14 +1,16 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.ninja;
 
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
@@ -27,7 +29,7 @@ public class Main {
         new Main().run(args);
     }
 
-    protected void run(String[] args) {
+    protected <T> void run(String[] args) {
         JCommander jc = NinjaUtils.setupCommandLineParser();
 
         try {
@@ -39,14 +41,18 @@ public class Main {
 
         String parsedCommand = jc.getParsedCommand();
 
-        BaseOptions base = NinjaUtils.getOptions(jc, BaseOptions.class);
+        BaseOptions base = Objects.requireNonNull(
+                NinjaUtils.getOptions(jc, BaseOptions.class));
 
         if (base.isVersion()) {
             try {
-                Path path = Paths.get(Main.class.getResource("/version").toURI());
+                URL versionResource = Objects.requireNonNull(
+                        Main.class.getResource("/version"));
+                Path path = Paths.get(versionResource.toURI());
                 String version = FileUtils.readFileToString(path.toFile(), StandardCharsets.UTF_8);
                 System.out.println(version);
             } catch (Exception ex) {
+                // ignored
             }
             return;
         }
@@ -65,8 +71,9 @@ public class Main {
 
         NinjaContext context = null;
         try {
-            ConnectionOptions connection = NinjaUtils.getOptions(jc, ConnectionOptions.class);
-            Action action;
+            ConnectionOptions connection = Objects.requireNonNull(
+                    NinjaUtils.getOptions(jc, ConnectionOptions.class));
+            Action<T> action;
             if (connection.isUseWebservice()) {
                 action = Command.createRestAction(parsedCommand);
             } else {
@@ -80,7 +87,8 @@ public class Main {
                 return;
             }
 
-            Object options = jc.getCommands().get(parsedCommand).getObjects().get(0);
+            //noinspection unchecked
+            T options = (T) jc.getCommands().get(parsedCommand).getObjects().get(0);
 
             context = new NinjaContext(jc);
 
@@ -140,11 +148,9 @@ public class Main {
     }
 
     private void printHelp(JCommander jc, String parsedCommand) {
-        if (parsedCommand == null) {
-            jc.usage();
-        } else {
+        if (parsedCommand != null) {
             jc.getUsageFormatter().usage(parsedCommand);
-            jc.usage();
         }
+        jc.usage();
     }
 }

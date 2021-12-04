@@ -4,30 +4,32 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.ninja.action.worker;
+package com.evolveum.midpoint.ninja.action.audit;
 
 import java.io.IOException;
 import java.io.Writer;
 import java.util.concurrent.BlockingQueue;
 
+import com.evolveum.midpoint.ninja.action.worker.AbstractWriterConsumerWorker;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.opts.ExportOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismSerializer;
 import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ExportConsumerWorker extends AbstractWriterConsumerWorker<ExportOptions, PrismObject<?>> {
+public class ExportAuditConsumerWorker
+        extends AbstractWriterConsumerWorker<ExportOptions, AuditEventRecordType> {
 
     private PrismSerializer<String> serializer;
 
-    public ExportConsumerWorker(NinjaContext context,
-            ExportOptions options, BlockingQueue<PrismObject<?>> queue, OperationStatus operation) {
+    public ExportAuditConsumerWorker(NinjaContext context,
+            ExportOptions options, BlockingQueue<AuditEventRecordType> queue, OperationStatus operation) {
         super(context, options, queue, operation);
     }
 
@@ -44,8 +46,8 @@ public class ExportConsumerWorker extends AbstractWriterConsumerWorker<ExportOpt
     }
 
     @Override
-    protected void write(Writer writer, PrismObject<?> object) throws SchemaException, IOException {
-        String xml = serializer.serialize(object);
+    protected void write(Writer writer, AuditEventRecordType object) throws SchemaException, IOException {
+        String xml = serializer.serialize(object.asPrismContainerValue());
         writer.write(xml);
     }
 
@@ -53,5 +55,4 @@ public class ExportConsumerWorker extends AbstractWriterConsumerWorker<ExportOpt
     protected String getEpilog() {
         return NinjaUtils.XML_OBJECTS_SUFFIX;
     }
-
 }

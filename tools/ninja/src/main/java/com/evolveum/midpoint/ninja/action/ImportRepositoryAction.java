@@ -1,13 +1,17 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.ninja.action;
 
-import com.evolveum.midpoint.ninja.action.worker.ImportConsumerWorker;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
+
 import com.evolveum.midpoint.ninja.action.worker.ImportProducerWorker;
+import com.evolveum.midpoint.ninja.action.worker.ImportRepositoryConsumerWorker;
 import com.evolveum.midpoint.ninja.action.worker.ProgressReporterWorker;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.opts.ImportOptions;
@@ -18,10 +22,6 @@ import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.*;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -40,7 +40,7 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
         OperationResult result = new OperationResult(OPERATION_IMPORT);
         OperationStatus progress = new OperationStatus(context, result);
 
-        BlockingQueue<PrismObject> queue = new LinkedBlockingQueue<>(QUEUE_CAPACITY_PER_THREAD * options.getMultiThread());
+        BlockingQueue<PrismObject<?>> queue = new LinkedBlockingQueue<>(QUEUE_CAPACITY_PER_THREAD * options.getMultiThread());
 
         // "+ 2" will be used for producer and progress reporter
         ExecutorService executor = Executors.newFixedThreadPool(options.getMultiThread() + 2);
@@ -60,11 +60,14 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
 
         executor.execute(new ProgressReporterWorker(context, options, queue, progress));
 
-        List<ImportConsumerWorker> consumers = createConsumers(queue, progress);
-        consumers.stream().forEach(c -> executor.execute(c));
+        List<ImportRepositoryConsumerWorker> consumers = createConsumers(queue, progress);
+        consumers.forEach(c -> executor.execute(c));
 
         executor.shutdown();
-        executor.awaitTermination(NinjaUtils.WAIT_FOR_EXECUTOR_FINISH, TimeUnit.DAYS);
+        boolean awaitResult = executor.awaitTermination(NinjaUtils.WAIT_FOR_EXECUTOR_FINISH, TimeUnit.DAYS);
+        if (!awaitResult) {
+            log.error("Executor did not finish before timeout");
+        }
 
         handleResultOnFinish(progress, "Import finished");
     }
@@ -79,15 +82,15 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
     }
 
     private ImportProducerWorker importByFilter(ObjectFilter filter, boolean stopAfterFound,
-                                                BlockingQueue<PrismObject> queue, OperationStatus status) {
+            BlockingQueue<PrismObject<?>> queue, OperationStatus status) {
         return new ImportProducerWorker(context, options, queue, status, filter, stopAfterFound);
     }
 
-    private List<ImportConsumerWorker> createConsumers(BlockingQueue<PrismObject> queue, OperationStatus operation) {
-        List<ImportConsumerWorker> consumers = new ArrayList<>();
+    private List<ImportRepositoryConsumerWorker> createConsumers(BlockingQueue<PrismObject<?>> queue, OperationStatus operation) {
+        List<ImportRepositoryConsumerWorker> consumers = new ArrayList<>();
 
         for (int i = 0; i < options.getMultiThread(); i++) {
-            consumers.add(new ImportConsumerWorker(context, options, queue, operation, consumers));
+            consumers.add(new ImportRepositoryConsumerWorker(context, options, queue, operation, consumers));
         }
 
         return consumers;
