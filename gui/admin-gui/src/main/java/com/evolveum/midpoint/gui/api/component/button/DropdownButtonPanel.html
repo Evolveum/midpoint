@@ -9,7 +9,8 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div style="position: relative; display: grid;">
-    <button wicket:id="buttonContainer" class="btn dropdown-toggle" type="button" data-toggle="dropdown">
+        <div class="btn-group">
+    <button wicket:id="buttonContainer" class="btn dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         <span class="badge bg-teal" wicket:id="info"></span>
         <i class="fa " wicket:id="icon"></i>
         <wicket:enclosure child="label">
@@ -17,11 +18,22 @@
         </wicket:enclosure>
         <span wicket:id="caret" class="caret"/>
     </button>
-    <ul class="dropdown-menu" role="menu" wicket:id="dropDownMenu">
-        <li wicket:id="menuItem">
-            <div wicket:id="menuItemBody"/>
-        </li>
-    </ul>
+    <div class="dropdown-menu" wicket:id="dropDownMenu">
+        <wicket:container wicket:id="menuItem">
+            <div class="dropdown-item" wicket:id="menuItemBody"/>
+        </wicket:container>
+<!--        <a class="dropdown-item" href="#">Action</a>-->
+<!--        <a class="dropdown-item" href="#">Another action</a>-->
+<!--        <a class="dropdown-item" href="#">Something else here</a>-->
+<!--        <div class="dropdown-divider"></div>-->
+<!--        <a class="dropdown-item" href="#">Separated link</a>-->
+    </div>
+<!--    <ul class="dropdown-menu" role="menu" wicket:id="dropDownMenu">-->
+<!--        <li wicket:id="menuItem">-->
+<!--            <div wicket:id="menuItemBody"/>-->
+<!--        </li>-->
+<!--    </ul>-->
+    </div>
     </div>
 </wicket:panel>
 </html>

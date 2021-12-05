@@ -72,11 +72,11 @@
 }
 
 .multivalue-container > .container-wrapper > div > .added-value-background {
-  background-color: #dff0d8; // green background for new value of multivalue container
+  background-color: $green; // green background for new value of multivalue container
 }
 
 .multivalue-container > .container-wrapper > div > .removed-value-background {
-  background-color: #f2dede; // green background for new value of multivalue container
+  background-color: $red; // green background for new value of multivalue container
 }
 
 .top-level-prism-container > .prism-properties > div {
@@ -108,7 +108,7 @@
 .prism-title {
   font-size: 16px;
   font-weight: 600;
-  color: $text-label-color;
+  color: $text-label-color;;
   margin-right: 15px;
   float: left;
   padding-top: 3px;

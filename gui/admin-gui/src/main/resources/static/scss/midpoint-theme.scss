@@ -12,13 +12,12 @@
 @import "../../../../../target/node_modules/datatables.net-bs4/css/dataTables.bootstrap4";
 
 @import "icon-style";
+@import "prism-forms";
 
 //@import "midpoint/prism-container";
 //@import "midpoint/wizard";
 //@import "midpoint/tree.less";
-@import "page-login";
 //@import "midpoint/page-user-details.less";
-@import "page-dashboard";
 //@import "midpoint/page-debugs.less";
 //@import "midpoint/capabilities.less";
 //@import "midpoint/tree-theme-basic.less";
@@ -413,53 +412,53 @@ th.cog, td.cog {
 
 // Summary panel (panel above the edit user/role/org forms)
 
-@mixin info-box-summary-panel($color) {
-	border-top: 3px solid $color;
-    min-height: 95px;
-}
-
-.info-box.summary-panel-user {
-  @include info-box-summary-panel($object-user-color);
-}
-
-.info-box.summary-panel-role {
-  @include info-box-summary-panel($object-role-color);
-}
-
-.info-box.summary-panel-org {
-  @include info-box-summary-panel($object-org-color);
-}
-
-.info-box.summary-panel-service {
-  @include info-box-summary-panel($object-service-color);
-}
-
-.info-box.summary-panel-resource {
-  @include info-box-summary-panel($object-resource-color);
-}
-
-.info-box.summary-panel-shadow {
-  @include info-box-summary-panel($object-shadow-color);
-}
-
-.info-box.summary-panel-task {
-  @include info-box-summary-panel($object-task-color);
-}
+//@mixin info-box-summary-panel($color) {
+//	border-top: 3px solid $color;
+//    min-height: 95px;
+//}
+//
+//.info-box.summary-panel-user {
+//  @include info-box-summary-panel($object-user-color);
+//}
+//
+//.info-box.summary-panel-role {
+//  @include info-box-summary-panel($object-role-color);
+//}
+//
+//.info-box.summary-panel-org {
+//  @include info-box-summary-panel($object-org-color);
+//}
+//
+//.info-box.summary-panel-service {
+//  @include info-box-summary-panel($object-service-color);
+//}
+//
+//.info-box.summary-panel-resource {
+//  @include info-box-summary-panel($object-resource-color);
+//}
+//
+//.info-box.summary-panel-shadow {
+//  @include info-box-summary-panel($object-shadow-color);
+//}
+//
+//.info-box.summary-panel-task {
+//  @include info-box-summary-panel($object-task-color);
+//}
 
 @mixin info-box-icon-summary-panel($color){
 	color: #FFF !important;
 	background-color: $color;
-	padding: 3px;
-	white-space: nowrap;
-	text-align: center;
-	line-height: 0px;
-    border-radius: 0;
+	//padding: 3px;
+	//white-space: nowrap;
+	//text-align: center;
+	//line-height: 0px;
+    //border-radius: 0;
 }
 
 .info-box-icon.summary-panel-user {
   @include info-box-icon-summary-panel($object-user-color);
-  line-height: 105px;
-  height: 105px;
+  //line-height: 105px;
+  //height: 105px;
 }
 
 .info-box-icon.summary-panel-role {
@@ -544,22 +543,6 @@ th.cog, td.cog {
 		cursor: pointer;
 	}
 }
-
-
-// Datables/lists (BoxedTablePanel)
-.boxed-table {
-	//margin-bottom: 0px;  //TODO: is this really neccessary?
-
-	&.without-box-header-top-border {
-		border-top: 0px;
-	}
-
-	table {
-		// prohibit overflow of the table beyond the bounding box
-		table-layout: fixed;
-	}
-}
-
 
 .boxed-table-footer-button-toolbar {
 	display: inline-block;

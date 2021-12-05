@@ -691,10 +691,10 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
+        <!--<dependency>-->
+        <!--    <groupId>org.slf4j</groupId>-->
+        <!--    <artifactId>slf4j-api</artifactId>-->
+        <!--</dependency>-->
     </dependencies>
 
     <build>
@@ -912,7 +912,7 @@
                             "install", so unless you need to run some other npm command,
                             you can remove this whole <configuration> section.
                             -->
-                            <arguments>install sass-loader sass css-loader style-loader postcss-loader webpack webpack-cli css-minimizer-webpack-plugin mini-css-extract-plugin admin-lte@^3.1 --save-dev</arguments>
+                            <arguments>install ace-builds babel-loader sass-loader sass css-loader style-loader postcss-loader webpack webpack-cli expose-loader css-minimizer-webpack-plugin mini-css-extract-plugin admin-lte@^3.1 --save-dev</arguments>
                             <workingDirectory>target</workingDirectory>
                         </configuration>
                     </execution>

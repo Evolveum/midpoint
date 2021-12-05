@@ -6,13 +6,13 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <form wicket:id="form" class="form-inline pull-right search-form" style="padding-bottom:5px; width:100%; text-align: justify; -ms-text-justify: distribute-all-lines; text-justify: distribute-all-lines; text-align-last: right;">
-        <div class="form-inline" style="float:right; text-align-last: left;">
-            <div class="form-group pull-right" style="vertical-align: top; margin-top: -5px; display: grid;">
+    <form wicket:id="form" class="form-inline float-right search-form">
+        <div class="form-inline float-right" style="text-align-last: left;">
+            <div class="form-group float-right" style="vertical-align: top; margin-top: -5px; display: grid;">
                 <a class="btn btn-sm btn-link" wicket:id="debug" style="display: table-cell; vertical-align: top; padding: 0px;"/>
             </div>
 
-            <div class="form-group pull-right" style="vertical-align: top; padding-right: 5px;" wicket:id="searchContainer">
+            <div class="form-group float-right" style="vertical-align: top; padding-right: 5px;" wicket:id="searchContainer">
                 <div class="btn-group btn-group-sm">
                     <button type="button" class="btn btn-primary" about="searchSimple" wicket:id="searchButtonBeforeDropdown">
                         <i class="fa fa-search flip-icon fa-lg"></i>
@@ -22,7 +22,7 @@
                         <span class="caret"></span>
                         <span class="sr-only">Toggle Dropdown</span>
                     </button>
-                    <ul class="dropdown-menu pull-right" role="menu">
+                    <ul class="dropdown-menu float-right" role="menu">
                         <li wicket:id="menuItem">
                             <div wicket:id="menuItemBody"/>
                         </li>
@@ -30,7 +30,7 @@
                 </div>
             </div>
 
-            <div class="form-group pull-right" wicket:id="moreGroup" style="padding-right: 5px;">
+            <div class="form-group float-right" wicket:id="moreGroup" style="padding-right: 5px;">
                 <a wicket:id="more" class="btn btn-sm btn-default">
                     <wicket:message key="SearchPanel.more"/>
                     &nbsp;

@@ -14,23 +14,23 @@
             <i class="fa fa-cog"></i>
             <!--<span class="caret" style="margin-left: 10px;"></span>-->
         </button>
-        <ul class="dropdown-menu">
-            <li><a wicket:id="pageSize"><wicket:message key="TableConfigurationPanel.pageSize"/></a></li>
-            <li><a wicket:id="tableColumns"><wicket:message key="TableConfigurationPanel.tableColumns"/></a></li>
-        </ul>
+        <div class="dropdown-menu">
+            <a class="dropdown-item" wicket:id="pageSize"><wicket:message key="TableConfigurationPanel.pageSize"/></a>
+            <a class="dropdown-item" wicket:id="tableColumns"><wicket:message key="TableConfigurationPanel.tableColumns"/></a>
+        </div>
     </div>
 
-    <div wicket:id="popover" class="popover fade left in">
+    <div wicket:id="popover" class="popover bs-popover-left fade">
         <div class="arrow"></div>
-        <h3 class="popover-title"><wicket:message key="PageSizePopover.title"/></h3>
-        <div class="popover-content">
+        <h3 class="popover-header"><wicket:message key="PageSizePopover.title"/></h3>
+        <div class="popover-body">
             <form wicket:id="form">
                 <span wicket:id="inputFeedback" class="text-danger"/>
                 <div class="input-group">
                     <input wicket:id="input" type="text" size="3" style="display: inline-block; width: auto;"
                            class="form-control input-sm">
                     <div class="input-group-btn" style="width: auto;">
-                        <button wicket:id="button" type="button" class="btn btn-sm btn-success">
+                        <button wicket:id="button" type="button" class="btn btn-sm btn-success" >
                             <i class="fa fa-check"></i>
                         </button>
                     </div>

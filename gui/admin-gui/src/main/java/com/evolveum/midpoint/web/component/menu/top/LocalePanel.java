@@ -120,7 +120,7 @@ public class LocalePanel extends Panel {
         super.renderHead(response);
 
         String selectId = get(ID_LOCALE_ICON).getMarkupId();
-        response.render(OnDomReadyHeaderItem.forScript("$('#" + selectId + "').selectpicker({});"));
+//        response.render(OnDomReadyHeaderItem.forScript("$('#" + selectId + "').selectpicker({});"));
     }
 
     private void changeLocale(AjaxRequestTarget target, LocaleDescriptor descriptor) {

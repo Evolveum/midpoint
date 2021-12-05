@@ -119,10 +119,10 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
                 return "btn-sm btn-default btn-margin-right";
             }
 
-            @Override
-            protected String getSpecialDropdownMenuClass() {
-                return "execute-options";
-            }
+//            @Override
+//            protected String getSpecialDropdownMenuClass() {
+//                return "execute-options";
+//            }
 
             @Override
             protected String getSpecialLabelClass() {

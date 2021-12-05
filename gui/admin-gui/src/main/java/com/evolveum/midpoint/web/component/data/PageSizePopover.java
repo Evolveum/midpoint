@@ -47,7 +47,7 @@ public class PageSizePopover extends BasePanel<PageSizePopover> {
         String buttonId = get(ID_POP_BUTTON).getMarkupId();
 
         response.render(OnDomReadyHeaderItem.forScript(
-                "initPageSizePopover('" + buttonId
+                "Test.initPageSizePopover('" + buttonId
                         + "','" + get(ID_POPOVER).getMarkupId()
                         + "','" + buttonId
                         + "');"));

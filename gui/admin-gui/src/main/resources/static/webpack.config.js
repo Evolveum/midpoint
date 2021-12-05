@@ -5,7 +5,10 @@ const path = require('path');
 
 module.exports = {
     entry: {
-        midpoint: ['./src/main/resources/static/scss/midpoint-theme.scss', './src/main/resources/static/js/midpoint-theme.js'],
+        midpoint: [
+            './src/main/resources/static/scss/midpoint-theme.scss',
+            './src/main/resources/static/js/index.js'
+        ],
     },
     mode: 'production',
     devtool: false,
@@ -15,7 +18,7 @@ module.exports = {
         filename: './[name].bundle.js',
     },
     module: {
-        noParse: /midpoint-theme.js/,
+        // noParse: /midpoint-theme.js/,
         rules: [
             {
                 test: /\.(sass|scss|css)$/,
@@ -33,10 +36,25 @@ module.exports = {
                     './target/node_modules/sass-loader',
                 ],
             },
+            // {
+            //     test: require.resolve('../../../../target/node_modules/jquery'),
+            //     use: [{
+            //         loader: './target/node_modules/expose-loader',
+            //         options: 'jQuery'
+            //     },
+            //         {
+            //             loader: './target/node_modules/expose-loader',
+            //             options: '$'
+            //         }
+            //     ]
+            // },
             {
                 test: /\.js$/,
                 exclude: /node_modules/,
-                type: 'asset/resource'
+                // type: 'asset/resource',
+                use: {
+                    loader: "./target/node_modules/babel-loader"
+                }
             },
 
             // Images: Copy image files to build folder

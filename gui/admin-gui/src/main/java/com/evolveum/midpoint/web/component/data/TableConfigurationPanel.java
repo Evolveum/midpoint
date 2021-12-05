@@ -49,11 +49,12 @@ public class TableConfigurationPanel extends BasePanel {
         super.renderHead(response);
 
         response.render(OnDomReadyHeaderItem.forScript(
-                "initPageSizePopover('"
+                "MidPointTheme.initPageSizePopover('"
                         + get(createComponentPath(ID_COG_BUTTON, ID_PAGE_SIZE)).getMarkupId()
                         + "','" + get(ID_POPOVER).getMarkupId()
                         + "','" + get(ID_COG_BUTTON).getMarkupId()
                         + "');"));
+
     }
 
     //    @Override
