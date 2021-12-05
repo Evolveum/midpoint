@@ -4,7 +4,7 @@ import '../../../../../target/node_modules/admin-lte/plugins/bootstrap/js/bootst
 import '../../../../../target/node_modules/admin-lte/dist/js/adminlte';
 
 import MidPointTheme from './midpoint/midpoint-theme';
-import MidPointAceEditor from "./midpoint/ace-editor-midpoint";
+import MidPointAceEditor from "./midpoint/ace-editor";
 
 // Test.abc();
 
