@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS m_global_metadata (
 
 -- region AUDIT
 CREATE TABLE ma_audit_event (
-    id BIGSERIAL NOT NULL,
+    id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY, -- ID must NOT be provided by the application
     timestamp TIMESTAMPTZ NOT NULL,
     eventIdentifier TEXT,
     eventType AuditEventTypeType,
