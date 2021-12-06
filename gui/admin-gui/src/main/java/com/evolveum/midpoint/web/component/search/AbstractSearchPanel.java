@@ -168,7 +168,10 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
         MidpointForm<?> form = new MidpointForm<>(ID_FORM);
         add(form);
 
-        initSearchItemsPanel(form);
+        RepeatingView searchItemsRepeatingView = new RepeatingView(ID_SEARCH_ITEMS_PANEL);
+        searchItemsRepeatingView.setOutputMarkupId(true);
+        form.add(searchItemsRepeatingView);
+        initSearchItemsPanel(searchItemsRepeatingView);
 
         WebMarkupContainer searchContainer = new WebMarkupContainer(ID_SEARCH_CONTAINER);
         searchContainer.setOutputMarkupId(true);
@@ -186,7 +189,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
-//                searchPerformed(target);
+                searchPerformed(target);
             }
         };
 
@@ -255,34 +258,25 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
 
     }
 
-    private void initSearchItemsPanel(MidpointForm form) {
-        RepeatingView listItems = new RepeatingView(ID_SEARCH_ITEMS_PANEL);
-        listItems.setOutputMarkupId(true);
-        form.add(listItems);
-
-        BasicSearchFragment basicSearchFragment = new BasicSearchFragment(listItems.newChildId(), ID_BASIC_SEARCH_FRAGMENT,
+    protected void initSearchItemsPanel(RepeatingView searchItemsRepeatingView) {
+        BasicSearchFragment basicSearchFragment = new BasicSearchFragment(searchItemsRepeatingView.newChildId(), ID_BASIC_SEARCH_FRAGMENT,
                 AbstractSearchPanel.this);
         basicSearchFragment.setOutputMarkupId(true);
         basicSearchFragment.add(new VisibleBehaviour(() -> getModelObject().isBasicSearchMode()));
-        listItems.add(basicSearchFragment);
+        searchItemsRepeatingView.add(basicSearchFragment);
 
-        AdvancedSearchFragment advancedSearchFragment = new AdvancedSearchFragment(listItems.newChildId(), ID_ADVANCED_SEARCH_FRAGMENT,
+        AdvancedSearchFragment advancedSearchFragment = new AdvancedSearchFragment(searchItemsRepeatingView.newChildId(), ID_ADVANCED_SEARCH_FRAGMENT,
                 AbstractSearchPanel.this);
         advancedSearchFragment.setOutputMarkupId(true);
         advancedSearchFragment.add(new VisibleBehaviour(() -> getModelObject().isAdvancedSearchMode()));
-        listItems.add(advancedSearchFragment);
+        searchItemsRepeatingView.add(advancedSearchFragment);
 
-//        AdvancedSearchFragment axiomSearchFragment = new AdvancedSearchFragment(listItems.newChildId(), ID_ADVANCED_SEARCH_FRAGMENT,
-//                AbstractSearchPanel.this);
-//        advancedSearchFragment.setOutputMarkupId(true);
-//        advancedSearchFragment.add(new VisibleBehaviour(() -> getModelObject().isAdvancedSearchMode()));
-//        listItems.add(advancedSearchFragment);
-
-        FulltextSearchFragment fulltextSearchFragment = new FulltextSearchFragment(listItems.newChildId(), ID_FULLTEXT_SEARCH_FRAGMENT,
+        FulltextSearchFragment fulltextSearchFragment = new FulltextSearchFragment(searchItemsRepeatingView.newChildId(), ID_FULLTEXT_SEARCH_FRAGMENT,
                 AbstractSearchPanel.this);
         fulltextSearchFragment.setOutputMarkupId(true);
-        fulltextSearchFragment.add(new VisibleBehaviour(() -> getModelObject().isFulltextSearchMode()));
-        listItems.add(fulltextSearchFragment);
+        fulltextSearchFragment.add(new VisibleBehaviour(() -> getModelObject().isFullTextSearchEnabled()
+                && getModelObject().getSearchType().equals(SearchBoxModeType.FULLTEXT)));
+        searchItemsRepeatingView.add(fulltextSearchFragment);
     }
 
     private CompositedIcon getSubmitSearchButtonBuilder() {
@@ -367,7 +361,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
         target.appendJavaScript("$('#" + popoverId + "').toggle();");
     }
 
-    public abstract void searchPerformed(AjaxRequestTarget target);
+    protected abstract void searchPerformed(AjaxRequestTarget target);
 
     void refreshSearchForm(AjaxRequestTarget target) {
         target.add(get(ID_FORM));
@@ -823,15 +817,6 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
 
         private void initFulltextLayout() {
             WebMarkupContainer fullTextContainer = new WebMarkupContainer(ID_FULL_TEXT_CONTAINER);
-            fullTextContainer.add(new VisibleEnableBehaviour() {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public boolean isVisible() {
-                    return getModelObject().isFullTextSearchEnabled()
-                            && getModelObject().getSearchType().equals(SearchBoxModeType.FULLTEXT);
-                }
-            });
             fullTextContainer.setOutputMarkupId(true);
             add(fullTextContainer);
 

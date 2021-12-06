@@ -6,9 +6,14 @@
  */
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
+import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.search.SearchSpecialItemPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
+
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -20,15 +25,18 @@ import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-public class DebugSearchFragment extends Fragment {
+import org.apache.wicket.model.PropertyModel;
+
+public class DebugSearchFragment<O extends ObjectType> extends Fragment {
 
     private static final String ID_SEARCH = "search";
     private static final String ID_ZIP_CHECK = "zipCheck";
     private static final String ID_SHOW_ALL_ITEMS_CHECK = "showAllItemsCheck";
     private static final String ID_SEARCH_FORM = "searchForm";
+    private static final String ID_OID_ITEM = "oidItem";
 
     public DebugSearchFragment(String id, String markupId, MarkupContainer markupProvider,
-            IModel<Search<? extends ObjectType>> model, IModel<Boolean> showAllItemsModel) {
+            IModel<Search<O>> model, IModel<Boolean> showAllItemsModel) {
         super(id, markupId, markupProvider, model);
 
         initLayout(showAllItemsModel);
@@ -61,6 +69,25 @@ public class DebugSearchFragment extends Fragment {
         };
         add(showAllItemsCheck);
 
+        SearchSpecialItemPanel oidItem = new SearchSpecialItemPanel<String>(ID_OID_ITEM, new PropertyModel<String>(getModel(), Search.F_OID)) {
+            @Override
+            protected WebMarkupContainer initSearchItemField(String id) {
+                TextPanel<String> inputPanel = new TextPanel<String>(id, getModelValue());
+                inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 220px; max-width: 400px !important;"));
+                return inputPanel;
+            }
+
+            @Override
+            protected IModel<String> createLabelModel() {
+                return getPageBase().createStringResource("SearchPanel.oid");
+            }
+
+            @Override
+            protected IModel<String> createHelpModel() {
+                return getPageBase().createStringResource("SearchPanel.oid.help");
+            }
+        };
+        add(oidItem);
     }
 
     private void createSearchForm() {

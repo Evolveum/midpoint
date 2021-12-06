@@ -893,6 +893,9 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         if (!allowedSearchType.isEmpty()) {
             return allowedSearchType.contains(searchBoxModeType);
         }
+        if (SearchBoxModeType.FULLTEXT.equals(searchBoxModeType)) {
+            return isFullTextSearchEnabled;
+        }
         return true;
     }
 

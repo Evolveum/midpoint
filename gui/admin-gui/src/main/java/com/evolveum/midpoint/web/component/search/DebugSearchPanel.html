@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2021 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+    <wicket:fragment wicket:id="debugSearchFragment">
+        <div class="form-group" style="margin-right: 10px;">
+            <label class="control-label">
+                <wicket:message key="pageDebugList.options"/>
+            </label>
+        </div>
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" wicket:id="zipCheck">
+                <wicket:message key="pageDebugList.zipCheck"/>
+            </label>
+        </div>
+        &nbsp;&nbsp;    <!-- todo implement in a nicer way -->
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" wicket:id="showAllItemsCheck">
+                <wicket:message key="pageDebugList.showAllItems"/>
+            </label>
+        </div>
+
+        <div wicket:id="oidItem" class="form-group" style="float:right; padding-right: 5px; margin-bottom: 5px; text-align-last: left;"/>
+    </wicket:fragment>
+</wicket:extend>
+</body>
+</html>
