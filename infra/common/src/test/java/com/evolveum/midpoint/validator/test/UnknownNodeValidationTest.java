@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2010-2021 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.validator.test;
 
 import java.io.File;
@@ -12,6 +18,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.LegacyValidator;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -100,11 +107,12 @@ public class UnknownNodeValidationTest extends AbstractUnitTest
     }
 
     protected void validateFile(String filename, OperationResult result) throws FileNotFoundException {
-        validateFile(filename, (EventHandler) null, result);
+        validateFile(filename, (EventHandler<?>) null, result);
     }
 
-    protected void validateFile(String filename, EventHandler handler, OperationResult result) throws FileNotFoundException {
-        LegacyValidator validator = new LegacyValidator(PrismTestUtil.getPrismContext());
+    protected <T extends Containerable> void validateFile(
+            String filename, EventHandler<T> handler, OperationResult result) throws FileNotFoundException {
+        LegacyValidator<T> validator = new LegacyValidator<>(PrismTestUtil.getPrismContext());
         if (handler != null) {
             validator.setHandler(handler);
         }
@@ -120,9 +128,8 @@ public class UnknownNodeValidationTest extends AbstractUnitTest
 
         String filepath = BASE_PATH + filename;
         System.out.println("Validating " + filename);
-        FileInputStream fis = null;
         File file = new File(filepath);
-        fis = new FileInputStream(file);
+        FileInputStream fis = new FileInputStream(file);
         validator.validate(fis, result, OBJECT_RESULT_OPERATION_NAME);
         if (!result.isSuccess()) {
             displayDumpable("Errors:", result);
