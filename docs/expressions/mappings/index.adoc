@@ -33,7 +33,7 @@ There is a broad variety of possibilities that are described in the xref:/midpoi
 
 The three parts of the mapping as well as the basic principle is illustrated in the following figure:
 
-image::synchronization-mapping.png[]
+image::mapping-complete.png[]
 
 
 The figure shows simple mapping that takes `employeeNumber` user property and transforms it to `description` account attribute by using a simple Groovy script expression.
