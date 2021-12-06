@@ -249,6 +249,7 @@ DO $$ BEGIN
 END; $$;
 
 -- region partition creation procedures
+-- Use negative futureCount for creating partitions for the past months if needed.
 CREATE OR REPLACE PROCEDURE audit_create_monthly_partitions(futureCount int)
     LANGUAGE plpgsql
 AS $$
@@ -258,7 +259,7 @@ DECLARE
     tableSuffix TEXT;
 BEGIN
     -- noinspection SqlUnused
-    FOR i IN 1..futureCount loop
+    FOR i IN 1..abs(futureCount) loop
         dateTo := dateFrom + interval '1 month';
         tableSuffix := to_char(dateFrom, 'YYYYMM');
 
@@ -294,7 +295,13 @@ BEGIN
                     'ma_audit_event_' || tableSuffix);
         END;
 
-        dateFrom := dateTo;
+        IF futureCount < 0 THEN
+            -- going to the past
+            dateFrom := dateFrom - interval '1 month';
+        ELSE
+            dateFrom := dateTo;
+        END IF;
+
     END loop;
 END $$;
 -- endregion
@@ -302,12 +309,15 @@ END $$;
 /*
 IMPORTANT: Only default partitions are created in this script!
 Use something like this, if you desire monthly partitioning:
-call audit_create_monthly_partitions(12);
+call audit_create_monthly_partitions(120);
 
-This creates 12 monthly partitions into the future.
+This creates 120 monthly partitions into the future (10 years).
 It can be safely called multiple times, so you can run it again anytime in the future.
 If you forget to run, audit events will go to default partition so no data is lost,
 however it may be complicated to organize it into proper partitions after the fact.
+
+Create past partitions if needed, e.g. for migration. E.g., for last 12 months (including current):
+call audit_create_monthly_partitions(-12);
 
 For Quartz tables see:
 repo/task-quartz-impl/src/main/resources/com/evolveum/midpoint/task/quartzimpl/execution/tables_postgres.sql
