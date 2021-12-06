@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.Predicate;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -49,8 +48,6 @@ public class SqaleAuditSearchIterativeTest extends SqaleRepoBaseTest {
 
     // default page size for iterative search, reset before each test
     private static final int ITERATION_PAGE_SIZE = 100;
-
-    @Autowired private AuditService auditService;
 
     private final long startTimestamp = System.currentTimeMillis();
 

@@ -115,6 +115,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         long opHandle = registerOperationStart(OP_AUDIT);
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             MAuditEventRecord auditRow = insertAuditEventRecord(jdbcSession, record);
+            record.setRepoId(auditRow.id);
 
             insertAuditDeltas(jdbcSession, auditRow);
             insertReferences(jdbcSession, auditRow, record.getReferences());
@@ -146,6 +147,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         Set<String> changedItemPaths = collectChangedItemPaths(deltaRows);
         row.changedItemPaths = changedItemPaths.isEmpty() ? null : changedItemPaths.toArray(String[]::new);
 
+        row.id = null; // We must not provide ID, it is ALWAYS GENERATED in DB, so it would fail.
         SQLInsertClause insert = jdbcSession.newInsert(aer).populate(row);
         Map<String, ColumnMetadata> customColumns = aerMapping.getExtensionColumns();
         for (Map.Entry<String, String> property : record.getCustomColumnProperty().entrySet()) {
