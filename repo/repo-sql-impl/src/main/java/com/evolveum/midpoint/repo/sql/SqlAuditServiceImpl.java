@@ -31,6 +31,7 @@ import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -62,13 +63,15 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Audit service using SQL DB as a store, also allows for searching (see {@link #supportsRetrieval}).
@@ -115,8 +118,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     @Override
     public void audit(AuditEventRecord record, Task task, OperationResult result) {
         Objects.requireNonNull(record, "Audit event record must not be null.");
-        Objects.requireNonNull(task, "Task must not be null.");
 
+        // TODO convert record to AERType and call that version?
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(OP_AUDIT, AuditEventRecord.class);
         int attempt = 1;
@@ -355,7 +358,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     private void insertResourceOids(
-            JdbcSession jdbcSession, long recordId, Set<String> resourceOids) {
+            JdbcSession jdbcSession, long recordId, Collection<String> resourceOids) {
         if (resourceOids.isEmpty()) {
             return;
         }
@@ -366,6 +369,225 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             insertBatch.set(qAuditResource.recordId, recordId)
                     .set(qAuditResource.resourceOid, resourceOid)
                     .addBatch();
+        }
+
+        insertBatch.setBatchToBulk(true);
+        insertBatch.execute();
+    }
+
+    @Override
+    public void audit(AuditEventRecordType record, OperationResult result) {
+        Objects.requireNonNull(record, "Audit event record must not be null.");
+
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(OP_AUDIT, AuditEventRecordType.class);
+        int attempt = 1;
+
+        while (true) {
+            try {
+                auditAttempt(record);
+                return;
+            } catch (RuntimeException ex) {
+                attempt = baseHelper.logOperationAttempt(null, OP_AUDIT, attempt, ex, result);
+                pm.registerOperationNewAttempt(opHandle, attempt);
+            } finally {
+                pm.registerOperationFinish(opHandle, attempt);
+            }
+        }
+    }
+
+    private void auditAttempt(AuditEventRecordType record) {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            try {
+                MAuditEventRecord auditRow = insertAuditEventRecord(jdbcSession, record);
+
+                insertAuditDeltas(jdbcSession, auditRow, record.getDelta());
+                insertChangedItemPaths(jdbcSession, auditRow);
+
+                insertProperties(jdbcSession, auditRow.id, record.getProperty());
+                insertReferences(jdbcSession, auditRow.id, record.getReference());
+                insertResourceOids(jdbcSession, auditRow.id, record.getResourceOid());
+                jdbcSession.commit();
+            } catch (RuntimeException ex) {
+                baseHelper.handleGeneralRuntimeException(ex, jdbcSession, null);
+            }
+        }
+    }
+
+    /**
+     * Inserts audit event record aggregate root without any subentities.
+     *
+     * @return ID of created audit event record
+     */
+    private MAuditEventRecord insertAuditEventRecord(JdbcSession jdbcSession, AuditEventRecordType record) {
+        QAuditEventRecordMapping aerMapping = QAuditEventRecordMapping.get();
+        QAuditEventRecord aer = aerMapping.defaultAlias();
+        MAuditEventRecord row = aerMapping.toRowObject(record);
+        SQLInsertClause insert = jdbcSession.newInsert(aer).populate(row);
+
+        Map<String, ColumnMetadata> customColumns = aerMapping.getExtensionColumns();
+        for (AuditEventRecordCustomColumnPropertyType property : record.getCustomColumnProperty()) {
+            String propertyName = property.getName();
+            if (!customColumns.containsKey(propertyName)) {
+                throw new IllegalArgumentException("Audit event record table doesn't"
+                        + " contains column for property " + propertyName);
+            }
+            // Like insert.set, but that one is too parameter-type-safe for our generic usage here.
+            insert.columns(aer.getPath(propertyName)).values(property.getValue());
+        }
+
+        Long returnedId = insert.executeWithKey(aer.id);
+        // If returned ID is null, it was provided. If not, it fails, something went bad.
+        row.id = returnedId != null ? returnedId : record.getRepoId();
+        return row;
+    }
+
+    private void insertAuditDeltas(
+            JdbcSession jdbcSession, MAuditEventRecord auditRow, List<ObjectDeltaOperationType> deltas) {
+        // we want to keep only unique deltas, checksum is also part of PK
+        Map<String, MAuditDelta> deltasByChecksum = new HashMap<>();
+        for (ObjectDeltaOperationType delta : deltas) {
+            if (delta == null) {
+                continue;
+            }
+
+            MAuditDelta mAuditDelta = convertDelta(delta, auditRow);
+            deltasByChecksum.put(mAuditDelta.checksum, mAuditDelta);
+        }
+
+        if (!deltasByChecksum.isEmpty()) {
+            SQLInsertClause insertBatch = jdbcSession.newInsert(
+                    QAuditDeltaMapping.get().defaultAlias());
+            for (MAuditDelta value : deltasByChecksum.values()) {
+                // NULLs are important to keep the value count consistent during the batch
+                insertBatch.populate(value, DefaultMapper.WITH_NULL_BINDINGS).addBatch();
+            }
+            insertBatch.setBatchToBulk(true);
+            insertBatch.execute();
+        }
+    }
+
+    private MAuditDelta convertDelta(ObjectDeltaOperationType deltaOperation, MAuditEventRecord auditRow) {
+        MAuditDelta mAuditDelta = new MAuditDelta();
+        mAuditDelta.recordId = auditRow.id;
+
+        try {
+            ObjectDeltaType delta = deltaOperation.getObjectDelta();
+            if (delta != null) {
+                DeltaConversionOptions options =
+                        DeltaConversionOptions.createSerializeReferenceNames();
+                options.setEscapeInvalidCharacters(isEscapingInvalidCharacters(auditConfiguration));
+                String serializedDelta = DeltaConvertor.serializeDelta(delta, options, PrismContext.LANG_XML);
+
+                // serializedDelta is transient, needed for changed items later
+                mAuditDelta.serializedDelta = serializedDelta;
+                mAuditDelta.delta = RUtil.getBytesFromSerializedForm(
+                        serializedDelta, sqlConfiguration().isUseZipAudit());
+                mAuditDelta.deltaOid = delta.getOid();
+                mAuditDelta.deltaType = MiscUtil.enumOrdinal(
+                        RUtil.getRepoEnumValue(ChangeType.toChangeType(delta.getChangeType()), RChangeType.class));
+
+                for (ItemDeltaType itemDelta : delta.getItemDelta()) {
+                    ItemPath path = itemDelta.getPath().getItemPath();
+                    CanonicalItemPath canonical =
+                            schemaService.createCanonicalItemPath(path, delta.getObjectType());
+                    for (int i = 0; i < canonical.size(); i++) {
+                        auditRow.addChangedItem(canonical.allUpToIncluding(i).asString());
+                    }
+                }
+            }
+
+            OperationResultType executionResult = deltaOperation.getExecutionResult();
+            if (executionResult != null) {
+                mAuditDelta.status = MiscUtil.enumOrdinal(
+                        RUtil.getRepoEnumValue(executionResult.getStatus(), ROperationResultStatus.class));
+                // Note that escaping invalid characters and using toString for unsupported types is safe in the
+                // context of operation result serialization.
+                String full = schemaService.createStringSerializer(PrismContext.LANG_XML)
+                        .options(SerializationOptions.createEscapeInvalidCharacters()
+                                .serializeUnsupportedTypesAsString(true))
+                        .serializeRealValue(executionResult, SchemaConstantsGenerated.C_OPERATION_RESULT);
+                mAuditDelta.fullResult = RUtil.getBytesFromSerializedForm(
+                        full, sqlConfiguration().isUseZipAudit());
+            }
+            mAuditDelta.resourceOid = deltaOperation.getResourceOid();
+            if (deltaOperation.getObjectName() != null) {
+                mAuditDelta.objectNameOrig = deltaOperation.getObjectName().getOrig();
+                mAuditDelta.objectNameNorm = deltaOperation.getObjectName().getNorm();
+            }
+            if (deltaOperation.getResourceName() != null) {
+                mAuditDelta.resourceNameOrig = deltaOperation.getResourceName().getOrig();
+                mAuditDelta.resourceNameNorm = deltaOperation.getResourceName().getNorm();
+            }
+            mAuditDelta.checksum = RUtil.computeChecksum(mAuditDelta.delta, mAuditDelta.fullResult);
+        } catch (Exception ex) {
+            throw new SystemException("Problem during audit delta conversion", ex);
+        }
+        return mAuditDelta;
+    }
+
+    private void insertChangedItemPaths(JdbcSession jdbcSession, MAuditEventRecord auditRow) {
+        if (auditRow.changedItemPaths != null && !auditRow.changedItemPaths.isEmpty()) {
+            QAuditItem qAuditItem = QAuditItemMapping.get().defaultAlias();
+            SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditItem);
+            for (String changedItemPath : auditRow.changedItemPaths) {
+                insertBatch.set(qAuditItem.recordId, auditRow.id)
+                        .set(qAuditItem.changedItemPath, changedItemPath)
+                        .addBatch();
+            }
+            insertBatch.setBatchToBulk(true);
+            insertBatch.execute();
+        }
+    }
+
+    private void insertProperties(
+            JdbcSession jdbcSession, long recordId, List<AuditEventRecordPropertyType> properties) {
+        if (properties.isEmpty()) {
+            return;
+        }
+
+        QAuditPropertyValue qAuditPropertyValue = QAuditPropertyValueMapping.get().defaultAlias();
+        SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditPropertyValue);
+        for (AuditEventRecordPropertyType propertySet : properties) {
+            for (String value : propertySet.getValue()) {
+                // id will be generated, but we're not interested in those here
+                insertBatch.set(qAuditPropertyValue.recordId, recordId)
+                        .set(qAuditPropertyValue.name, propertySet.getName())
+                        .set(qAuditPropertyValue.value, value)
+                        .addBatch();
+            }
+        }
+        if (insertBatch.getBatchCount() == 0) {
+            return; // strange, no values anywhere?
+        }
+
+        insertBatch.setBatchToBulk(true);
+        insertBatch.execute();
+    }
+
+    private void insertReferences(JdbcSession jdbcSession,
+            long recordId, List<AuditEventRecordReferenceType> references) {
+        if (references.isEmpty()) {
+            return;
+        }
+
+        QAuditRefValue qAuditRefValue = QAuditRefValueMapping.get().defaultAlias();
+        SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditRefValue);
+        for (AuditEventRecordReferenceType refSet : references) {
+            for (AuditEventRecordReferenceValueType refValue : refSet.getValue()) {
+                // id will be generated, but we're not interested in those here
+                PolyStringType targetName = refValue.getTargetName();
+                insertBatch.set(qAuditRefValue.recordId, recordId)
+                        .set(qAuditRefValue.name, refSet.getName())
+                        .set(qAuditRefValue.oid, refValue.getOid())
+                        .set(qAuditRefValue.type, RUtil.qnameToString(refValue.getType()))
+                        .set(qAuditRefValue.targetNameOrig, PolyString.getOrig(targetName))
+                        .set(qAuditRefValue.targetNameNorm, PolyString.getNorm(targetName))
+                        .addBatch();
+            }
+        }
+        if (insertBatch.getBatchCount() == 0) {
+            return; // strange, no values anywhere?
         }
 
         insertBatch.setBatchToBulk(true);

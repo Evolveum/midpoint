@@ -12,7 +12,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.context.ApplicationContext;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.ninja.action.worker.BaseWorker;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
@@ -20,7 +19,6 @@ import com.evolveum.midpoint.ninja.opts.ImportOptions;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 /**
@@ -54,10 +52,13 @@ public class ImportAuditConsumerWorker extends BaseWorker<ImportOptions, AuditEv
                         CryptoUtil.encryptValues(protector, object);
                     }
                     */
-                    AuditEventRecord recordPlain = AuditEventRecord.from(auditRecord, false);
 
                     AuditService auditService = context.getAuditService();
-                    auditService.audit(recordPlain, NullTaskImpl.INSTANCE, new OperationResult("Import audit"));
+                    auditService.audit(auditRecord, new OperationResult("Import audit"));
+                    // TODO if this "classic" version messing with deltas is useless,
+                    //  remove AuditEventRecord.from as well.
+//                    AuditEventRecord recordPlain = AuditEventRecord.from(auditRecord, false);
+//                    auditService.audit(recordPlain, NullTaskImpl.INSTANCE, new OperationResult("Import audit"));
 
                     operation.incrementTotal();
                 } catch (Exception ex) {

@@ -40,7 +40,21 @@ public interface AuditService {
     String OP_SEARCH_OBJECTS_ITERATIVE = "searchObjectsIterative";
     String OP_SEARCH_OBJECTS_ITERATIVE_PAGE = "searchObjectsIterativePage";
 
+    /**
+     * Emits audit event record, e.g. writes it in the database or logs it to a file.
+     * If audit is recorded to the repository, {@link AuditEventRecord#repoId} will be set,
+     * it should not be provided by the client code except for import reasons.
+     * This is high-level audit method that also tries to complete the audit event record,
+     * e.g. filling in missing task information, current timestamp if none is provided, etc.
+     */
     void audit(AuditEventRecord record, Task task, OperationResult result);
+
+    /**
+     * Emits audit event record provided as a generated Prism bean.
+     * Used for audit import functionality.
+     * This is a low-level audit method that does not process provided record at all.
+     */
+    void audit(AuditEventRecordType record, OperationResult result);
 
     /**
      * Clean up audit records that are older than specified.

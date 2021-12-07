@@ -360,6 +360,11 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
     }
 
     @Override
+    public void audit(AuditEventRecordType record, OperationResult result) {
+        // TODO
+    }
+
+    @Override
     public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
         Objects.requireNonNull(policy, "Cleanup policy must not be null.");
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
