@@ -86,7 +86,9 @@ CREATE TABLE IF NOT EXISTS m_global_metadata (
 
 -- region AUDIT
 CREATE TABLE ma_audit_event (
-    id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY, -- ID must NOT be provided by the application
+    -- ID is generated as unique, but if provided, it is checked for uniqueness
+    -- only in combination with timestamp because of partitioning.
+    id BIGSERIAL NOT NULL,
     timestamp TIMESTAMPTZ NOT NULL,
     eventIdentifier TEXT,
     eventType AuditEventTypeType,
@@ -237,12 +239,6 @@ BEGIN
 END $$;
 -- endregion
 
--- Initializing the last change number used in postgres-new-upgrade.sql.
-call apply_audit_change(0, $$ SELECT 1 $$, true);
-
----------------------------------------------------------------------------------
--- The rest of the file can be omitted if partitioning is not required or desired
-
 -- https://www.postgresql.org/docs/current/runtime-config-query.html#GUC-ENABLE-PARTITIONWISE-JOIN
 DO $$ BEGIN
     EXECUTE 'ALTER DATABASE ' || current_database() || ' SET enable_partitionwise_join TO on';
@@ -328,3 +324,6 @@ from ma_audit_event
 order by id desc
 limit 50;
 */
+
+-- Initializing the last change number used in postgres-new-upgrade.sql.
+call apply_audit_change(1, $$ SELECT 1 $$, true);

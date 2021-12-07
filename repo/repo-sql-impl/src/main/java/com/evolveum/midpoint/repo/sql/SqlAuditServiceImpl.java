@@ -176,7 +176,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             insert.columns(aer.getPath(propertyName)).values(property.getValue());
         }
 
-        return insert.executeWithKey(aer.id);
+        Long returnedId = insert.executeWithKey(aer.id);
+        // If returned ID is null, it was provided. If not, it fails, something went bad.
+        return returnedId != null ? returnedId : record.getRepoId();
     }
 
     private Collection<MAuditDelta> insertAuditDeltas(

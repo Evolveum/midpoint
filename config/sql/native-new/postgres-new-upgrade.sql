@@ -18,3 +18,9 @@ call apply_change(0, $$ SELECT 1 $$, true);
 -- SCHEMA-COMMIT 4.0: commit 69e8c29b
 
 -- changes for 4.4.1
+
+-- REPLACE THIS WITH THE FIRST CHANGE
+
+-- WRITE CHANGES ABOVE ^^
+-- IMPORTANT: update apply_change number at the end of postgres-new-upgrade.sql
+-- to match the number used in the last change here!

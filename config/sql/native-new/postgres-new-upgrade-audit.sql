@@ -79,13 +79,6 @@ BEGIN
 END $$;
 $aac$, false);
 
--- enforcing DB sequence IDs, ignoring provided ones
-call apply_audit_change(2, $aac$
-ALTER TABLE ma_audit_event ALTER COLUMN id DROP DEFAULT;
--- We don't want just to fill it in, we want to enforce it for uniqueness reasons.
-ALTER TABLE ma_audit_event ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY;
-
--- false flag means that first value returned by nextval() will be the set one, not +1
-SELECT setval(pg_get_serial_sequence('ma_audit_event', 'id'),
-    coalesce((SELECT MAX(id) + 1 FROM ma_audit_event), 1), false);
-$aac$, false);
+-- WRITE CHANGES ABOVE ^^
+-- IMPORTANT: update apply_audit_change number at the end of postgres-new-upgrade-audit.sql
+-- to match the number used in the last change here!

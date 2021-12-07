@@ -48,6 +48,7 @@ import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -524,23 +525,49 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test601AuditRecordIgnoresProvidedId() {
+    public void test601AuditRecordRespectsProvidedIdEvenDuplicateForDifferentTimestamp() {
         given("audit event record with assigned already taken ID");
+        clearAudit();
         AuditEventRecord record = new AuditEventRecord(AuditEventType.ADD_OBJECT, AuditEventStage.EXECUTION);
+        record.setRepoId(-1L);
+        record.setTimestamp(1L);
         OperationResult result = createOperationResult();
         auditService.audit(record, NullTaskImpl.INSTANCE, result);
-        Long takenId = record.getRepoId();
+        assertThat(record.getRepoId()).isEqualTo(-1L);
 
         record = new AuditEventRecord(AuditEventType.MODIFY_OBJECT, AuditEventStage.EXECUTION);
-        record.setRepoId(takenId);
+        record.setRepoId(-1L);
+        record.setTimestamp(2L); // timestamp must be different
 
         when("saving the event record with taken ID");
         auditService.audit(record, NullTaskImpl.INSTANCE, result);
 
         then("operation is success and new record ID is assigned (provided ID is ignored)");
         assertThatOperationResult(result).isSuccess();
-        assertThat(record.getRepoId()).isNotNull()
-                .isNotEqualTo(takenId);
+        assertThat(record.getRepoId()).isEqualTo(-1L);
+    }
+
+    @Test
+    public void test602AuditRecordWithNonUniqueIdAndTimestampFails() {
+        given("audit event record with assigned already taken ID");
+        clearAudit();
+        AuditEventRecord record = new AuditEventRecord(AuditEventType.ADD_OBJECT, AuditEventStage.EXECUTION);
+        record.setRepoId(-1L);
+        record.setTimestamp(1L);
+        OperationResult result = createOperationResult();
+        auditService.audit(record, NullTaskImpl.INSTANCE, result);
+        assertThat(record.getRepoId()).isEqualTo(-1L);
+
+        AuditEventRecord record2 = new AuditEventRecord(AuditEventType.MODIFY_OBJECT, AuditEventStage.EXECUTION);
+        record2.setRepoId(-1L);
+        record2.setTimestamp(1L);
+
+        expect("saving the event record throws");
+        assertThatThrownBy(() -> auditService.audit(record2, NullTaskImpl.INSTANCE, result))
+                .isInstanceOf(SystemException.class)
+                .hasRootCauseInstanceOf(org.postgresql.util.PSQLException.class);
+
+        assertThatOperationResult(result).isFatalError();
     }
 
     // region low-level tests

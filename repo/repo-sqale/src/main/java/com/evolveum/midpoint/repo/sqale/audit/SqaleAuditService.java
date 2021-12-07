@@ -95,7 +95,6 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
     @Override
     public void audit(AuditEventRecord record, Task task, OperationResult parentResult) {
         Objects.requireNonNull(record, "Audit event record must not be null.");
-        Objects.requireNonNull(task, "Task must not be null.");
 
         OperationResult operationResult = parentResult.createSubresult(opNamePrefix + OP_AUDIT);
 
@@ -147,7 +146,6 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         Set<String> changedItemPaths = collectChangedItemPaths(deltaRows);
         row.changedItemPaths = changedItemPaths.isEmpty() ? null : changedItemPaths.toArray(String[]::new);
 
-        row.id = null; // We must not provide ID, it is ALWAYS GENERATED in DB, so it would fail.
         SQLInsertClause insert = jdbcSession.newInsert(aer).populate(row);
         Map<String, ColumnMetadata> customColumns = aerMapping.getExtensionColumns();
         for (Map.Entry<String, String> property : record.getCustomColumnProperty().entrySet()) {
@@ -160,7 +158,9 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             insert.columns(aer.getPath(propertyName)).values(property.getValue());
         }
 
-        row.id = insert.executeWithKey(aer.id);
+        Long returnedId = insert.executeWithKey(aer.id);
+        // If returned ID is null, it was likely provided, so we use that one.
+        row.id = returnedId != null ? returnedId : record.getRepoId();
         return row;
     }
 
