@@ -45,6 +45,24 @@
         <dependency>
             <groupId>org.springframework.security.extensions</groupId>
             <artifactId>spring-security-saml2-core</artifactId>
+            <exclusions>
+              <exclusion>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-saml-api</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-saml-impl</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-saml-core</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-core</artifactId>
+              </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -632,6 +650,12 @@
         <dependency>
             <groupId>org.opensaml</groupId>
             <artifactId>opensaml-security-impl</artifactId>
+            <exclusions>
+             <exclusion>
+                <groupId>org.cryptacular</groupId>
+                <artifactId>cryptacular</artifactId>
+              </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
