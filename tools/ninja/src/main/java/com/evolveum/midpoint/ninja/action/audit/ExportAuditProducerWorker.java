@@ -26,13 +26,13 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 /**
  * Producer worker for audit export operation.
  */
-public class AuditExportProducerWorker extends BaseWorker<ExportOptions, AuditEventRecordType> {
+public class ExportAuditProducerWorker extends BaseWorker<ExportOptions, AuditEventRecordType> {
 
     private final ObjectQuery query;
 
-    public AuditExportProducerWorker(
+    public ExportAuditProducerWorker(
             NinjaContext context, ExportOptions options, BlockingQueue<AuditEventRecordType> queue,
-            OperationStatus operation, List<AuditExportProducerWorker> producers, ObjectQuery query) {
+            OperationStatus operation, List<ExportAuditProducerWorker> producers, ObjectQuery query) {
         super(context, options, queue, operation, producers);
 
         this.query = query;
@@ -52,8 +52,7 @@ public class AuditExportProducerWorker extends BaseWorker<ExportOptions, AuditEv
 
             AuditResultHandler handler = (object, parentResult) -> {
                 try {
-                    //noinspection unchecked
-                    queue.put(object); // TODO no better way of conversion?
+                    queue.put(object);
                 } catch (InterruptedException ex) {
                     log.error("Couldn't queue object {}, reason: {}", ex, object, ex.getMessage());
                 }

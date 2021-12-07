@@ -21,7 +21,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 /**
- * Created by Viliam Repan (lazyman).
+ * Consumer writing exported audit events to the writer (stdout or file).
  */
 public class ExportAuditConsumerWorker
         extends AbstractWriterConsumerWorker<ExportOptions, AuditEventRecordType> {

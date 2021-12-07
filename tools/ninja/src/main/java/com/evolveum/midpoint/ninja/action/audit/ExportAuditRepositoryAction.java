@@ -37,19 +37,16 @@ public class ExportAuditRepositoryAction extends RepositoryAction<ExportOptions>
     private static final long CONSUMERS_WAIT_FOR_START = 2000L;
 
     public static final String OPERATION_SHORT_NAME = "exportAudit";
+    public static final String OPERATION_NAME = ExportAuditRepositoryAction.class.getName() + "." + OPERATION_SHORT_NAME;
 
     protected Runnable createConsumer(
             BlockingQueue<AuditEventRecordType> queue, OperationStatus operation) {
         return new ExportAuditConsumerWorker(context, options, queue, operation);
     }
 
-    protected String getOperationName() {
-        return this.getClass().getName() + "." + OPERATION_SHORT_NAME;
-    }
-
     @Override
     public void execute() throws Exception {
-        OperationResult result = new OperationResult(getOperationName());
+        OperationResult result = new OperationResult(OPERATION_NAME);
         OperationStatus operation = new OperationStatus(context, result);
 
         // "+ 2" will be used for consumer and progress reporter
@@ -58,7 +55,7 @@ public class ExportAuditRepositoryAction extends RepositoryAction<ExportOptions>
         BlockingQueue<AuditEventRecordType> queue =
                 new LinkedBlockingQueue<>(QUEUE_CAPACITY_PER_THREAD * options.getMultiThread());
 
-        List<AuditExportProducerWorker> producers = createProducers(queue, operation);
+        List<ExportAuditProducerWorker> producers = createProducers(queue, operation);
 
         log.info("Starting " + OPERATION_SHORT_NAME);
         operation.start();
@@ -98,12 +95,12 @@ public class ExportAuditRepositoryAction extends RepositoryAction<ExportOptions>
         return LogTarget.SYSTEM_ERR;
     }
 
-    private List<AuditExportProducerWorker> createProducers(
+    private List<ExportAuditProducerWorker> createProducers(
             BlockingQueue<AuditEventRecordType> queue, OperationStatus operation)
             throws SchemaException, IOException {
 
         QueryFactory queryFactory = context.getPrismContext().queryFactory();
-        List<AuditExportProducerWorker> producers = new ArrayList<>();
+        List<ExportAuditProducerWorker> producers = new ArrayList<>();
 
         if (options.getOid() != null) {
             log.info("OID is ignored for audit export");
@@ -112,7 +109,7 @@ public class ExportAuditRepositoryAction extends RepositoryAction<ExportOptions>
         ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context, AuditEventRecordType.class);
         ObjectQuery query = queryFactory.createQuery(filter);
 
-        producers.add(new AuditExportProducerWorker(context, options, queue, operation, producers, query));
+        producers.add(new ExportAuditProducerWorker(context, options, queue, operation, producers, query));
 
         return producers;
     }
