@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.security.enforcer.impl;
 
-import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.authentication.api.Authorization;
 import com.evolveum.midpoint.security.enforcer.api.PositiveNegativeItemPaths;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;

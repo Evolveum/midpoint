@@ -12,6 +12,9 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemT
 
 import java.util.*;
 
+import com.evolveum.midpoint.authentication.api.*;
+
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import org.apache.wicket.Application;
 import org.apache.wicket.Component;
 import org.apache.wicket.Session;
@@ -34,13 +37,9 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
@@ -56,7 +55,6 @@ import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
 import com.evolveum.midpoint.web.page.admin.server.CasesTablePanel;
 import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
 import com.evolveum.midpoint.web.page.self.component.LinksPanel;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -171,7 +169,7 @@ public class PageSelfDashboard extends PageSelf {
                     @Override
                     protected ObjectFilter getCaseWorkItemsFilter() {
                         return QueryUtils.filterForNotClosedStateAndAssignees(getPrismContext().queryFor(CaseWorkItemType.class),
-                                        SecurityUtils.getPrincipalUser(),
+                                        AuthUtil.getPrincipalUser(),
                                         OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
                                 .desc(F_CREATE_TIMESTAMP)
                                 .buildFilter();
@@ -220,7 +218,7 @@ public class PageSelfDashboard extends PageSelf {
                             @Override
                             protected ObjectFilter getCasesFilter() {
                                 return QueryUtils.filterForMyRequests(getPrismContext().queryFor(CaseType.class),
-                                                SecurityUtils.getPrincipalUser().getOid())
+                                                AuthUtil.getPrincipalUser().getOid())
                                         .desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
                                         .buildFilter();
                             }
@@ -335,7 +333,7 @@ public class PageSelfDashboard extends PageSelf {
         AccountCallableResult callableResult = new AccountCallableResult();
         List<SimpleAccountDto> list = new ArrayList<>();
         callableResult.setValue(list);
-        FocusType focus = SecurityUtils.getPrincipalUser().getFocus();
+        FocusType focus = AuthUtil.getPrincipalUser().getFocus();
 
         Task task = createSimpleTask(OPERATION_LOAD_ACCOUNTS);
         OperationResult result = task.getResult();
@@ -419,7 +417,7 @@ public class PageSelfDashboard extends PageSelf {
         List<AssignmentItemDto> list = new ArrayList<>();
         callableResult.setValue(list);
 
-        FocusType focus = SecurityUtils.getPrincipalUser().getFocus();
+        FocusType focus = AuthUtil.getPrincipalUser().getFocus();
         if (focus.getAssignment().isEmpty()) {
             return callableResult;
         }

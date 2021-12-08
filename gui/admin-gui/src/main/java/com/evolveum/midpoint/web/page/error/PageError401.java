@@ -6,8 +6,9 @@
  */
 package com.evolveum.midpoint.web.page.error;
 
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
+import com.evolveum.midpoint.authentication.api.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.Url;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
@@ -26,7 +27,7 @@ import java.util.stream.Collectors;
         urls = {
                 @Url(mountUrl = "/error/401")
         },
-        permitAll = true)
+        permitAll = true, authModule = AuthenticationModuleNameConstants.HTTP_HEADER)
 public class PageError401 extends PageError {
 
     public PageError401() {

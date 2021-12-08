@@ -7,23 +7,23 @@
 
 package com.evolveum.midpoint.web.page.login;
 
+import com.evolveum.midpoint.authentication.api.*;
+import com.evolveum.midpoint.authentication.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.error.PageError;
-import com.evolveum.midpoint.web.security.filter.SecurityQuestionsAuthenticationFilter;
-import com.evolveum.midpoint.web.security.module.authentication.SecurityQuestionFormModuleAuthentication;
 import com.evolveum.midpoint.web.security.util.SecurityQuestionDto;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -56,7 +56,7 @@ import java.util.List;
  */
 @PageDescriptor(urls = {
         @Url(mountUrl = "/securityquestions", matchUrlForSecurity = "/securityquestions")
-}, permitAll = true, loginPage = true)
+}, permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.SECURITY_QUESTIONS_FORM)
 public class PageSecurityQuestions extends PageAuthenticationBase {
     private static final long serialVersionUID = 1L;
 
@@ -189,8 +189,8 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
         for (SecurityQuestionDto question : questionsModel.getObject()) {
             if (StringUtils.isNotBlank(question.getQuestionAnswer())) {
                 JSONObject json  = new JSONObject();
-                json.put(SecurityQuestionsAuthenticationFilter.J_QID, question.getIdentifier());
-                json.put(SecurityQuestionsAuthenticationFilter.J_QANS, question.getQuestionAnswer());
+                json.put(AuthConstants.SEC_QUESTION_J_QID, question.getIdentifier());
+                json.put(AuthConstants.SEC_QUESTION_J_QANS, question.getQuestionAnswer());
                 answers.put(json);
             }
         }
@@ -375,9 +375,10 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
         if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
             ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-            if (moduleAuthentication != null && moduleAuthentication instanceof SecurityQuestionFormModuleAuthentication){
-                String prefix = ((SecurityQuestionFormModuleAuthentication) moduleAuthentication).getPrefix();
-                return SecurityUtils.stripSlashes(prefix) + "/spring_security_login";
+            if (moduleAuthentication != null
+                    && AuthenticationModuleNameConstants.SECURITY_QUESTIONS_FORM.equals(moduleAuthentication.getNameOfModuleType())){
+                String prefix = moduleAuthentication.getPrefix();
+                return AuthUtil.stripSlashes(prefix) + "/spring_security_login";
             }
         }
 

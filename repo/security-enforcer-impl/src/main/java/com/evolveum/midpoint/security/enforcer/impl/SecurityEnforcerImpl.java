@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -21,7 +22,6 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.util.*;
-import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.security.enforcer.api.*;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.logging.LoggingUtils;

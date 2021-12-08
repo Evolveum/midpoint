@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.net.URL;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -27,8 +30,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.authentication.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -101,7 +103,7 @@ public class UserMenuPanel extends BasePanel<UserMenuPanel> {
     private IModel<AbstractResource> loadJpegPhotoModel() {
         return new ReadOnlyModel<>(() -> {
 
-            GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
+            GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
             if (principal == null) {
                 return null;
             }
@@ -126,7 +128,7 @@ public class UserMenuPanel extends BasePanel<UserMenuPanel> {
     }
 
     private ModuleAuthentication getAuthenticatedModule() {
-        ModuleAuthentication moduleAuthentication = SecurityUtils.getAuthenticatedModule();
+        ModuleAuthentication moduleAuthentication = AuthUtil.getAuthenticatedModule();
 
         if (moduleAuthentication == null) {
             String message = "Unauthenticated request";

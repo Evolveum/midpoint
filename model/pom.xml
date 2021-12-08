@@ -36,6 +36,8 @@
         <module>report-impl</module>
         <module>certification-api</module>
         <module>certification-impl</module>
+        <module>authentication-api</module>
+        <module>authentication-impl</module>
         <!-- TODO separate rest-api after PoC is finished -->
         <module>rest-impl</module>
     </modules>

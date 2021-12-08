@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.forgetpassword;
 
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.authentication.api.Url;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -20,10 +20,10 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.authentication.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.PageDescriptor;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PageAbstractSelfCredentials;
 import com.evolveum.midpoint.web.page.self.PageSelf;
@@ -34,7 +34,7 @@ import java.util.List;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = PageResetPassword.URL, matchUrlForSecurity = PageResetPassword.URL)
+                @Url(mountUrl = "/resetPassword", matchUrlForSecurity = "/resetPassword")
         },
         action = {
                 @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
@@ -46,8 +46,6 @@ import java.util.List;
 public class PageResetPassword extends PageAbstractSelfCredentials{
 
     private static final long serialVersionUID = 1L;
-
-    public static final String URL = "/resetPassword";
 
     public PageResetPassword() {
         // TODO Auto-generated constructor stub

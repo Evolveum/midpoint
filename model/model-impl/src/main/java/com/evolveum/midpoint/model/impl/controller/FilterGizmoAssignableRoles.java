@@ -10,7 +10,7 @@ import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.authentication.api.Authorization;
 import com.evolveum.midpoint.security.enforcer.api.FilterGizmo;
 
 import org.jetbrains.annotations.NotNull;

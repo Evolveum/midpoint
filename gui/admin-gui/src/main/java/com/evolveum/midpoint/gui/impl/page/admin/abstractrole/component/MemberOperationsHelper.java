@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.Abstract
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
 
@@ -35,14 +36,13 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.authentication.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -448,7 +448,7 @@ public class MemberOperationsHelper {
 
         Task task = pageBase.createSimpleTask(taskSpec.operationName);
         task.setName(taskSpec.taskName);
-        MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
+        MidPointPrincipal owner = AuthUtil.getPrincipalUser();
         task.setOwner(owner.getFocus().asPrismObject());
         task.setInitiallyRunnable();
         task.setThreadStopAction(ThreadStopActionType.RESTART);

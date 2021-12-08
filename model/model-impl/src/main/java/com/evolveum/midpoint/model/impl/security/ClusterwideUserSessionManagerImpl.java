@@ -13,12 +13,13 @@ import java.util.List;
 import java.util.Map;
 import javax.ws.rs.core.Response;
 
+import com.evolveum.midpoint.model.api.authentication.ClusterwideUserSessionManager;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.TerminateSessionEvent;
-import com.evolveum.midpoint.model.api.authentication.ClusterwideUserSessionManager;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.impl.ClusterServiceConsts;
 import com.evolveum.midpoint.schema.result.OperationResult;

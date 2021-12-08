@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.authentication.api.SecurityContextManager;
 
 /**
  * Factory for RunAsRunner instances. Its sole purpose is to provide necessary autowired prism beans.

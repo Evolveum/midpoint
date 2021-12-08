@@ -15,7 +15,7 @@ import org.apache.wss4j.common.ext.WSPasswordCallback;
 import java.io.IOException;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.authentication.api.ConnectionEnvironment;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 

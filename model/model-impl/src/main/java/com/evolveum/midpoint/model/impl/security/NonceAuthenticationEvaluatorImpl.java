@@ -13,9 +13,9 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.NonceAuthenticationContext;
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.authentication.api.ConnectionEnvironment;
+import com.evolveum.midpoint.authentication.api.MidPointPrincipal;
+import com.evolveum.midpoint.authentication.api.SecurityUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;

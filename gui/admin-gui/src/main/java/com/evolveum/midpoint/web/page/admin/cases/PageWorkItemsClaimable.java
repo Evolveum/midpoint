@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.page.admin.cases;
 
+import com.evolveum.midpoint.authentication.api.*;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -15,18 +17,13 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -68,7 +65,7 @@ public class PageWorkItemsClaimable extends PageCaseWorkItems {
         OperationResult result = new OperationResult(OPERATION_LOAD_CLAIMABLE_WORK_ITEMS);
         try {
             return QueryUtils.filterForClaimableItems(getPrismContext().queryFor(CaseWorkItemType.class),
-                    SecurityUtils.getPrincipalUser().getOid(),
+                    AuthUtil.getPrincipalUser().getOid(),
                     getRepositoryService(), getRelationRegistry(), result)
                     .buildFilter();
         } catch (SchemaException ex){

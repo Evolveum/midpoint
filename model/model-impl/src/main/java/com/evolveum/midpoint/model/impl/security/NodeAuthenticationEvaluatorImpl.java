@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.authentication.api.NodeAuthenticationEvaluator;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeOperationalStateType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -27,13 +28,12 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.authentication.api.ConnectionEnvironment;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import com.evolveum.midpoint.model.api.authentication.NodeAuthenticationEvaluator;
 
 @Component
 public class NodeAuthenticationEvaluatorImpl implements NodeAuthenticationEvaluator {

@@ -9,13 +9,13 @@ package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.api.Authorization;
+import com.evolveum.midpoint.authentication.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import org.apache.wicket.Session;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebSession;
@@ -53,7 +53,7 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession implements D
     public Roles getRoles() {
         Roles roles = new Roles();
         //todo - used for wicket auth roles...
-        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        MidPointPrincipal principal = AuthUtil.getPrincipalUser();
         if (principal == null) {
             return roles;
         }
@@ -82,7 +82,7 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession implements D
     }
 
     public void setClientCustomization() {
-        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        MidPointPrincipal principal = AuthUtil.getPrincipalUser();
         if (principal == null) {
             return;
         }

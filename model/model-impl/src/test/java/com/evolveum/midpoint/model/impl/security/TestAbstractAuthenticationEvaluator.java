@@ -15,6 +15,7 @@ import java.util.Locale;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.authentication.*;
@@ -39,7 +40,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.*;
+import com.evolveum.midpoint.authentication.api.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -110,7 +111,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             @Override
             public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> user,
-                    AuthorizationTransformer authorizationLimiter, OperationResult result)
+                                                     AuthorizationTransformer authorizationLimiter, OperationResult result)
                     throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
                 GuiProfiledPrincipal principal = focusProfileService.getPrincipal(user);
                 addFakeAuthorization(principal);

@@ -24,6 +24,9 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.*;
+
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -122,8 +125,6 @@ import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.*;
@@ -132,8 +133,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
@@ -183,7 +182,6 @@ import com.evolveum.midpoint.web.page.self.PageRoleSelfProfile;
 import com.evolveum.midpoint.web.page.self.PageServiceSelfProfile;
 import com.evolveum.midpoint.web.page.self.PageUserSelfProfile;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.DateValidator;
@@ -682,7 +680,7 @@ public final class WebComponentUtil {
 
         TaskType task = new TaskType(pageBase.getPrismContext());
 
-        MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
+        MidPointPrincipal owner = AuthUtil.getPrincipalUser();
 
         ObjectReferenceType ownerRef = new ObjectReferenceType();
         ownerRef.setOid(owner.getOid());
@@ -4929,7 +4927,7 @@ public final class WebComponentUtil {
     }
 
     public static <F extends FocusType> Locale getLocale() {
-        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        MidPointPrincipal principal = AuthUtil.getPrincipalUser();
         if (principal == null) {
             return MidPointApplication.getDefaultLocale();
         }

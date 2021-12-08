@@ -9,16 +9,19 @@ package com.evolveum.midpoint.web.page.login;
 import java.io.Serializable;
 import java.util.List;
 
+import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
+import com.evolveum.midpoint.authentication.api.authentication.CredentialModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.authentication.MidpointAuthentication;
+
+import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.security.module.authentication.MailNonceModuleAuthentication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class SelfRegistrationDto implements Serializable {
@@ -78,11 +81,12 @@ public class SelfRegistrationDto implements Serializable {
         this.formRef = selfRegistration.getFormRef();
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        MailNonceModuleAuthentication mailModuleAuthentication = null;
+        CredentialModuleAuthentication mailModuleAuthentication = null;
         if (authentication instanceof MidpointAuthentication) {
             ModuleAuthentication moduleAuthentication = ((MidpointAuthentication) authentication).getProcessingModuleAuthentication();
-            if (moduleAuthentication instanceof MailNonceModuleAuthentication) {
-                mailModuleAuthentication = (MailNonceModuleAuthentication) moduleAuthentication;
+            if (moduleAuthentication instanceof CredentialModuleAuthentication
+                    && AuthenticationModuleNameConstants.MAIL_NONCE.equals(moduleAuthentication.getNameOfModuleType())) {
+                mailModuleAuthentication = (CredentialModuleAuthentication) moduleAuthentication;
             }
         }
         if (mailModuleAuthentication != null && mailModuleAuthentication.getCredentialName() != null) {

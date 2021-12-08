@@ -14,6 +14,9 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.*;
+
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -101,10 +104,6 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.OwnerResolver;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
@@ -140,7 +139,6 @@ import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
@@ -584,7 +582,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public GuiProfiledPrincipal getPrincipal() {
-        return SecurityUtils.getPrincipalUser();
+        return AuthUtil.getPrincipalUser();
     }
 
     public FocusType getPrincipalFocus() {
@@ -637,7 +635,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public Task createSimpleTask(String operation, String channel) {
-        MidPointPrincipal user = SecurityUtils.getPrincipalUser();
+        MidPointPrincipal user = AuthUtil.getPrincipalUser();
         if (user == null) {
             throw new RestartResponseException(PageLogin.class);
         }
@@ -1073,7 +1071,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected boolean isSideMenuVisible() {
-        return SecurityUtils.getPrincipalUser() != null;
+        return AuthUtil.getPrincipalUser() != null;
     }
 
     private void initDebugBarLayout() {
@@ -1624,7 +1622,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     protected void setTimeZone(PageBase page) {
         String timeZone = null;
-        GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
+        GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
         if (principal != null && principal.getCompiledGuiProfile() != null) {
             timeZone = principal.getCompiledGuiProfile().getDefaultTimezone();
         }

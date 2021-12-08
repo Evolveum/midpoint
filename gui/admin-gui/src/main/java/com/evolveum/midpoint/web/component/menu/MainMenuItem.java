@@ -9,13 +9,11 @@ package com.evolveum.midpoint.web.component.menu;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.page.admin.cases.PageCase;
+import com.evolveum.midpoint.authentication.api.PageDescriptor;
 
 import org.apache.wicket.markup.html.WebPage;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;

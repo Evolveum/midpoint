@@ -24,8 +24,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.authentication.api.MidPointPrincipal;
+import com.evolveum.midpoint.authentication.api.SecurityUtil;
 
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 

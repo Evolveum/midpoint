@@ -11,12 +11,12 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.page.admin.home.dto.PersonalInfoDto;
 import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationBehavioralDataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -68,7 +68,7 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
     }
 
     private PersonalInfoDto loadPersonalInfo() {
-        FocusType focus = SecurityUtils.getPrincipalUser().getFocus();
+        FocusType focus = AuthUtil.getPrincipalUser().getFocus();
         AuthenticationBehavioralDataType behaviour = focus.getBehavior() != null ? focus.getBehavior().getAuthentication() : null;
         PersonalInfoDto dto = new PersonalInfoDto();
         if (behaviour != null) {

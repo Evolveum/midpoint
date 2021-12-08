@@ -8,6 +8,11 @@ package com.evolveum.midpoint.web.page.forgetpassword;
 
 import java.util.*;
 
+import com.evolveum.midpoint.authentication.api.*;
+
+import com.evolveum.midpoint.authentication.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;
+
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Session;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -19,26 +24,17 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.api.context.NonceAuthenticationContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
-import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.login.PageRegistrationBase;
 import com.evolveum.midpoint.web.page.login.PageRegistrationConfirmation;
-import com.evolveum.midpoint.web.security.factory.channel.ResetPasswordChannelFactory;
-import com.evolveum.midpoint.web.security.factory.module.LoginFormModuleFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PageDescriptor(urls = { @Url(mountUrl = SchemaConstants.PASSWORD_RESET_CONFIRMATION_PREFIX) }, permitAll = true)
@@ -149,7 +145,7 @@ public class PageResetPasswordConfirmation extends PageRegistrationBase {
     }
 
     private UsernamePasswordAuthenticationToken authenticateUser(String username, String nonce, OperationResult result) {
-        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
+        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_RESET_PASSWORD_URI);
         try {
             return getAuthenticationEvaluator().authenticate(connEnv, new NonceAuthenticationContext(username, UserType.class,
                     nonce, getResetPasswordPolicy().getNoncePolicy()));

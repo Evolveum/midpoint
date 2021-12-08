@@ -10,6 +10,9 @@ package com.evolveum.midpoint.web.page.self;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.authentication.api.*;
+
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -30,8 +33,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -43,14 +44,10 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.login.PageAbstractFlow;
 import com.evolveum.midpoint.web.page.login.PageLogin;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
@@ -94,7 +91,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
             protected UserType load() {
                 //TODO: fix this... part of this is executed in object wrapper facotry..
                 // but the prism object in object wrapper was overridden with this loading..
-                MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+                MidPointPrincipal principal = AuthUtil.getPrincipalUser();
                 Task task = createSimpleTask("load self");
                 PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class, principal.getOid(), PagePostAuthentication.this, task, task.getResult());
                 try {
@@ -208,7 +205,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
         if (!result.isAcceptable()) {
             target.add(PagePostAuthentication.this);
         } else {
-            MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+            MidPointPrincipal principal = AuthUtil.getPrincipalUser();
             try {
                 getModelInteractionService().refreshPrincipal(principal.getOid(), principal.getFocus().getClass());
                 navigateToNext(getMidpointApplication().getHomePage());
