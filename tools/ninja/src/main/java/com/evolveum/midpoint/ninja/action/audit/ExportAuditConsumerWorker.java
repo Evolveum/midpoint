@@ -37,7 +37,11 @@ public class ExportAuditConsumerWorker
     protected void init() {
         serializer = context.getPrismContext()
                 .xmlSerializer()
-                .options(SerializationOptions.createSerializeForExport().skipContainerIds(options.isSkipContainerIds()));
+                .options(SerializationOptions.createSerializeForExport()
+                        // TODO: This does not help with RawType: (parsed:ObjectReferenceType) for which
+                        //  the names still go only to the comments (ignored by the import, obviously).
+                        .serializeReferenceNames(true)
+                        .skipContainerIds(options.isSkipContainerIds()));
     }
 
     @Override
