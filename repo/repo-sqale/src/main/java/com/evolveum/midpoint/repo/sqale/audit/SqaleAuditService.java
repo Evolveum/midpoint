@@ -37,6 +37,7 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -199,7 +200,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                 deltaRow.serializedDelta = serializedDelta;
                 deltaRow.delta = serializedDelta.getBytes(StandardCharsets.UTF_8);
                 deltaRow.deltaOid = SqaleUtils.oidToUUid(delta.getOid());
-                deltaRow.deltaType = delta.getChangeType();
+                deltaRow.deltaType = ChangeType.toChangeTypeType(delta.getChangeType());
             }
 
             OperationResult executionResult = deltaOperation.getExecutionResult();
