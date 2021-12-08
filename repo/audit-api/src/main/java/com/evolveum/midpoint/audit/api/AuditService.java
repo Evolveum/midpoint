@@ -47,14 +47,14 @@ public interface AuditService {
      * This is high-level audit method that also tries to complete the audit event record,
      * e.g. filling in missing task information, current timestamp if none is provided, etc.
      */
-    void audit(AuditEventRecord record, Task task, OperationResult result);
+    void audit(AuditEventRecord record, Task task, OperationResult parentResult);
 
     /**
      * Emits audit event record provided as a generated Prism bean.
      * Used for audit import functionality.
      * This is a low-level audit method that does not process provided record at all.
      */
-    void audit(AuditEventRecordType record, OperationResult result);
+    void audit(AuditEventRecordType record, OperationResult parentResult);
 
     /**
      * Clean up audit records that are older than specified.

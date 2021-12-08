@@ -361,8 +361,34 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
     }
 
     @Override
-    public void audit(AuditEventRecordType record, OperationResult result) {
-        // TODO
+    public void audit(AuditEventRecordType record, OperationResult parentResult) {
+        Objects.requireNonNull(record, "Audit event record must not be null.");
+
+        OperationResult operationResult = parentResult.createSubresult(opNamePrefix + OP_AUDIT);
+
+        try {
+            executeAudit(record);
+        } catch (RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            recordFatalError(operationResult, t);
+            throw t;
+        } finally {
+            operationResult.computeStatusIfUnknown();
+        }
+    }
+
+    private void executeAudit(AuditEventRecordType record) {
+        long opHandle = registerOperationStart(OP_AUDIT);
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            // plenty of parameters, but it's better to have a short-lived stateful worker for it
+            new AuditInsertion(record, jdbcSession, sqlRepoContext, escapeIllegalCharacters, logger)
+                    .execute();
+
+            jdbcSession.commit();
+        } finally {
+            registerOperationFinish(opHandle);
+        }
     }
 
     @Override

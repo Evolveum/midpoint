@@ -29,7 +29,10 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -528,11 +531,7 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         ObjectDeltaOperation.checkConsistence(deltas);
     }
 
-    @Deprecated // should go away with the old audit listRecord
-    public AuditEventRecordType createAuditEventRecordType() {
-        return createAuditEventRecordType(false);
-    }
-
+    // TODO: currently unused (2021), but if audit(AERType) will be reused as part of audit(AER) it can still be useful
     public AuditEventRecordType createAuditEventRecordType(boolean tolerateInconsistencies) {
         AuditEventRecordType auditRecord = new AuditEventRecordType();
         auditRecord.setRepoId(repoId);
@@ -604,67 +603,6 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
 
         // TODO MID-5531 convert custom properties too? What about other than string types?
         return auditRecord;
-    }
-
-    public static AuditEventRecord from(AuditEventRecordType record, boolean tolerateInconsistencies) {
-        AuditEventRecord newRecord = new AuditEventRecord();
-        newRecord.setRepoId(record.getRepoId());
-        newRecord.setChannel(record.getChannel());
-        newRecord.setEventIdentifier(record.getEventIdentifier());
-        newRecord.setEventStage(AuditEventStage.fromSchemaValue(record.getEventStage()));
-        newRecord.setEventType(AuditEventType.fromSchemaValue(record.getEventType()));
-        newRecord.setHostIdentifier(record.getHostIdentifier());
-        newRecord.setRemoteHostAddress(record.getRemoteHostAddress());
-        newRecord.setNodeIdentifier(record.getNodeIdentifier());
-        newRecord.setInitiatorRef(toRefValue(record.getInitiatorRef()));
-        newRecord.setAttorneyRef(toRefValue(record.getAttorneyRef()));
-        newRecord.setMessage(record.getMessage());
-        newRecord.setOutcome(OperationResultStatus.parseStatusType(record.getOutcome()));
-        newRecord.setParameter(record.getParameter());
-        newRecord.setResult(record.getResult());
-        newRecord.setSessionIdentifier(record.getSessionIdentifier());
-        newRecord.setTargetOwnerRef(toRefValue(record.getTargetOwnerRef()));
-        newRecord.setTargetRef(toRefValue(record.getTargetRef()));
-        newRecord.setRequestIdentifier(record.getRequestIdentifier());
-        newRecord.setTaskIdentifier(record.getTaskIdentifier());
-        newRecord.setTaskOid(record.getTaskOID());
-        newRecord.getResourceOids().addAll(record.getResourceOid());
-        newRecord.setTimestamp(MiscUtil.asLong(record.getTimestamp()));
-        for (ObjectDeltaOperationType objectDeltaOperation : record.getDelta()) {
-            try {
-                newRecord.addDelta(
-                        DeltaConvertor.createObjectDeltaOperation(
-                                objectDeltaOperation, PrismContext.get()));
-            } catch (Exception e) {
-                if (!tolerateInconsistencies) {
-                    throw new SystemException("Problem converting audit record " + record.getRepoId()
-                            + ", delta " + objectDeltaOperation, e);
-                }
-                // TODO now what? ignore per delta? where to write the info? just log it?
-            }
-        }
-
-        for (AuditEventRecordPropertyType entry : record.getProperty()) {
-            for (String value : entry.getValue()) {
-                newRecord.addPropertyValue(entry.getName(), value);
-            }
-        }
-
-        for (AuditEventRecordReferenceType entry : record.getReference()) {
-            for (AuditEventRecordReferenceValueType refValue : entry.getValue()) {
-                newRecord.addReferenceValue(entry.getName(), AuditReferenceValue.fromXml(refValue));
-            }
-        }
-
-        for (AuditEventRecordCustomColumnPropertyType entry : record.getCustomColumnProperty()) {
-            newRecord.getCustomColumnProperty().put(entry.getName(), entry.getValue());
-        }
-
-        return newRecord;
-    }
-
-    private static PrismReferenceValue toRefValue(ObjectReferenceType reference) {
-        return reference != null ? reference.asReferenceValue() : null;
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod") // it's wrong, but intended
