@@ -124,6 +124,13 @@ public class ExceptionUtil {
         return null;
     }
 
+    public static Throwable findRootCause(Throwable throwable) {
+        while (throwable != null && throwable.getCause() != null && throwable != throwable.getCause()) {
+            throwable = throwable.getCause();
+        }
+        return throwable;
+    }
+
     public static String printStackTrace(Throwable t) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
