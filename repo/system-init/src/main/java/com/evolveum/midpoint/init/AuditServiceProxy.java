@@ -87,6 +87,18 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
     }
 
     @Override
+    public void audit(AuditEventRecordType record, OperationResult result) {
+        if (services.isEmpty()) {
+            LOGGER.warn("Audit event will not be recorded. No audit services registered.");
+            return;
+        }
+
+        for (AuditService service : services) {
+            service.audit(record, result);
+        }
+    }
+
+    @Override
     public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
         Validate.notNull(policy, "Cleanup policy must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");

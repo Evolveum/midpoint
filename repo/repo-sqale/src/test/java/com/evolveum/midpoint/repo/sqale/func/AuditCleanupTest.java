@@ -12,11 +12,9 @@ import java.time.Instant;
 import java.util.UUID;
 
 import com.querydsl.core.types.dsl.NumberExpression;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
@@ -37,8 +35,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 @SuppressWarnings("unchecked")
 public class AuditCleanupTest extends SqaleRepoBaseTest {
-
-    @Autowired private AuditService auditService;
 
     /**
      * Prepares `count` audit records with timestamp starting with specified value

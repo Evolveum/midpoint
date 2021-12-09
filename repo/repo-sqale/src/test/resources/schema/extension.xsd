@@ -40,38 +40,38 @@
         </xsd:annotation>
         <xsd:sequence>
             <!-- values stored as JSON strings -->
-            <xsd:element name="string" type="xsd:string"/>
-            <xsd:element name="string2" type="xsd:string"/>
-            <xsd:element name="dateTime" type="xsd:dateTime"/>
-            <xsd:element name="enum" type="c:BeforeAfterType"/>
+            <xsd:element name="string" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="string2" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="dateTime" type="xsd:dateTime" minOccurs="0"/>
+            <xsd:element name="enum" type="c:BeforeAfterType" minOccurs="0"/>
 
             <!-- values stored as JSON numbers -->
-            <xsd:element name="int" type="xsd:int"/>
-            <xsd:element name="short" type="xsd:short"/>
-            <xsd:element name="long" type="xsd:long"/>
-            <xsd:element name="integer" type="xsd:integer"/>
-            <xsd:element name="decimal" type="xsd:decimal"/>
-            <xsd:element name="decimal-2" type="xsd:decimal"/>
-            <xsd:element name="decimal-3" type="xsd:decimal"/>
-            <xsd:element name="double" type="xsd:double"/>
-            <xsd:element name="double-2" type="xsd:double"/>
-            <xsd:element name="float" type="xsd:float"/>
-            <xsd:element name="float-2" type="xsd:float"/>
+            <xsd:element name="int" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="short" type="xsd:short" minOccurs="0"/>
+            <xsd:element name="long" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="integer" type="xsd:integer" minOccurs="0"/>
+            <xsd:element name="decimal" type="xsd:decimal" minOccurs="0"/>
+            <xsd:element name="decimal-2" type="xsd:decimal" minOccurs="0"/>
+            <xsd:element name="decimal-3" type="xsd:decimal" minOccurs="0"/>
+            <xsd:element name="double" type="xsd:double" minOccurs="0"/>
+            <xsd:element name="double-2" type="xsd:double" minOccurs="0"/>
+            <xsd:element name="float" type="xsd:float" minOccurs="0"/>
+            <xsd:element name="float-2" type="xsd:float" minOccurs="0"/>
 
             <!-- values stored as JSON boolean -->
-            <xsd:element name="boolean" type="xsd:boolean"/>
+            <xsd:element name="boolean" type="xsd:boolean" minOccurs="0"/>
 
             <!-- values stored as JSON objects -->
-            <xsd:element name="poly" type="t:PolyStringType"/>
-            <xsd:element name="ref" type="c:ObjectReferenceType"/>
+            <xsd:element name="poly" type="t:PolyStringType" minOccurs="0"/>
+            <xsd:element name="ref" type="c:ObjectReferenceType" minOccurs="0"/>
 
             <!-- multi-value stored as JSON arrays -->
-            <xsd:element name="string-mv" type="xsd:string" maxOccurs="unbounded"/>
-            <xsd:element name="int-mv" type="xsd:int" maxOccurs="unbounded"/>
-            <xsd:element name="enum-mv" type="c:OperationResultStatusType" maxOccurs="unbounded"/>
-            <xsd:element name="dateTime-mv" type="xsd:dateTime" maxOccurs="unbounded"/>
-            <xsd:element name="poly-mv" type="t:PolyStringType" maxOccurs="unbounded"/>
-            <xsd:element name="ref-mv" type="c:ObjectReferenceType" maxOccurs="unbounded">
+            <xsd:element name="string-mv" type="xsd:string" maxOccurs="unbounded" minOccurs="0"/>
+            <xsd:element name="int-mv" type="xsd:int" maxOccurs="unbounded" minOccurs="0"/>
+            <xsd:element name="enum-mv" type="c:OperationResultStatusType" maxOccurs="unbounded" minOccurs="0"/>
+            <xsd:element name="dateTime-mv" type="xsd:dateTime" maxOccurs="unbounded" minOccurs="0"/>
+            <xsd:element name="poly-mv" type="t:PolyStringType" maxOccurs="unbounded" minOccurs="0"/>
+            <xsd:element name="ref-mv" type="c:ObjectReferenceType" maxOccurs="unbounded" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>c:OrgType</a:objectReferenceTargetType>
@@ -80,9 +80,9 @@
             </xsd:element>
 
             <!-- custom type, not recognized for indexing -->
-            <xsd:element name="blob" type="xsd:base64Binary"/>
+            <xsd:element name="blob" type="xsd:base64Binary" minOccurs="0"/>
 
-            <xsd:element name="string-ni" type="xsd:string">
+            <xsd:element name="string-ni" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:indexed>false</a:indexed>
@@ -108,9 +108,9 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="string-mv" type="xsd:string" maxOccurs="unbounded"/>
-            <xsd:element name="integer" type="xsd:integer"/>
-            <xsd:element name="ref" type="c:ObjectReferenceType"/>
+            <xsd:element name="string-mv" type="xsd:string" maxOccurs="unbounded" minOccurs="0"/>
+            <xsd:element name="integer" type="xsd:integer" minOccurs="0"/>
+            <xsd:element name="ref" type="c:ObjectReferenceType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -121,8 +121,8 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="string" type="xsd:string"/>
-            <xsd:element name="string2" type="xsd:string"/>
+            <xsd:element name="string" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="string2" type="xsd:string" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 </xsd:schema>

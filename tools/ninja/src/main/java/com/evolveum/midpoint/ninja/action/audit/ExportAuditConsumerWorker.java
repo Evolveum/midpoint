@@ -21,7 +21,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 /**
- * Created by Viliam Repan (lazyman).
+ * Consumer writing exported audit events to the writer (stdout or file).
  */
 public class ExportAuditConsumerWorker
         extends AbstractWriterConsumerWorker<ExportOptions, AuditEventRecordType> {
@@ -37,7 +37,11 @@ public class ExportAuditConsumerWorker
     protected void init() {
         serializer = context.getPrismContext()
                 .xmlSerializer()
-                .options(SerializationOptions.createSerializeForExport().skipContainerIds(options.isSkipContainerIds()));
+                .options(SerializationOptions.createSerializeForExport()
+                        // TODO: This does not help with RawType: (parsed:ObjectReferenceType) for which
+                        //  the names still go only to the comments (ignored by the import, obviously).
+                        .serializeReferenceNames(true)
+                        .skipContainerIds(options.isSkipContainerIds()));
     }
 
     @Override

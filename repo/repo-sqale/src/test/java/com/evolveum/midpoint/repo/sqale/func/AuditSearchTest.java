@@ -18,14 +18,12 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -60,8 +58,6 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
     public static final long TIMESTAMP_2 = 1580515200000L; // 2020-02-01
     public static final long TIMESTAMP_3 = 1583020800000L; // 2020-03-01
     public static final long TIMESTAMP_4 = 1600000000000L; // 2020-04...
-
-    @Autowired private AuditService auditService;
 
     private String initiatorOid;
     private String attorneyOid;

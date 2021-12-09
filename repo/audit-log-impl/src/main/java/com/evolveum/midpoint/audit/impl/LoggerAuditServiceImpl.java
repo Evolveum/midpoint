@@ -49,6 +49,11 @@ public class LoggerAuditServiceImpl implements AuditService {
     }
 
     @Override
+    public void audit(AuditEventRecordType record, OperationResult result) {
+        // nothing, used only by Ninja right now
+    }
+
+    @Override
     public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
         //nothing to cleanup
     }

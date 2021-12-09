@@ -147,7 +147,7 @@ public class ObjectImporter {
             }
             parentResult.computeStatus(errors.get() + " errors, " + successes.get() + " passed");
         } else {
-            EventHandler<PrismObject<Objectable>, Objectable> handler = new EventHandler<>() {
+            EventHandler<Objectable> handler = new EventHandler<>() {
 
                 @Override
                 public EventResult preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult) {
@@ -156,8 +156,9 @@ public class ObjectImporter {
 
                 @Override
                 public EventResult postMarshall(
-                        PrismObject<Objectable> object, Element objectElement, OperationResult objectResult) {
-                    return importParsedObject(object, objectResult, options, task);
+                        Objectable object, Element objectElement, OperationResult objectResult) {
+                    //noinspection unchecked
+                    return importParsedObject(object.asPrismObject(), objectResult, options, task);
                 }
 
                 @Override
@@ -166,7 +167,7 @@ public class ObjectImporter {
                 }
             };
 
-            LegacyValidator validator = new LegacyValidator(prismContext, handler);
+            LegacyValidator<?> validator = new LegacyValidator<>(prismContext, handler);
             validator.setVerbose(true);
             if (options != null) {
                 validator.setValidateSchema(isTrue(options.isValidateStaticSchema()));
