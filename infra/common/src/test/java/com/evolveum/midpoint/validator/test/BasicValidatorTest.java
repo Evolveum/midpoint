@@ -60,8 +60,7 @@ public class BasicValidatorTest extends AbstractUnitTest
     @Test
     public void resource1Valid() throws Exception {
         OperationResult result = createOperationResult();
-        EventHandler<PrismObject<Objectable>, Objectable> handler = new EventHandler<>() {
-
+        EventHandler<Objectable> handler = new EventHandler<>() {
             @Override
             public EventResult preMarshall(Element objectElement, Node postValidationTree,
                     OperationResult objectResult) {
@@ -70,11 +69,12 @@ public class BasicValidatorTest extends AbstractUnitTest
 
             @Override
             public EventResult postMarshall(
-                    PrismObject<Objectable> object, Element objectElement, OperationResult objectResult) {
-                displayDumpable("Validating resource:", object);
-                object.checkConsistence();
+                    Objectable object, Element objectElement, OperationResult objectResult) {
+                PrismObject<?> prismObject = object.asPrismObject();
+                displayDumpable("Validating resource:", prismObject);
+                prismObject.checkConsistence();
 
-                PrismContainer<?> extensionContainer = object.getExtension();
+                PrismContainer<?> extensionContainer = prismObject.getExtension();
                 PrismProperty<Integer> menProp = extensionContainer.findProperty(
                         new ItemName("http://myself.me/schemas/whatever", "menOnChest"));
                 assertNotNull("No men on a dead man chest!", menProp);
@@ -103,7 +103,7 @@ public class BasicValidatorTest extends AbstractUnitTest
         final List<String> postMarshallHandledOids = new ArrayList<>();
         final List<String> preMarshallHandledOids = new ArrayList<>();
 
-        EventHandler<PrismObject<Objectable>, Objectable> handler = new EventHandler<>() {
+        EventHandler<Objectable> handler = new EventHandler<>() {
             @Override
             public EventResult preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult) {
                 preMarshallHandledOids.add(objectElement.getAttribute("oid"));
@@ -112,7 +112,7 @@ public class BasicValidatorTest extends AbstractUnitTest
 
             @Override
             public EventResult postMarshall(
-                    PrismObject<Objectable> object, Element objectElement, OperationResult objectResult) {
+                    Objectable object, Element objectElement, OperationResult objectResult) {
                 displayDumpable("Handler processing " + object + ", result:", objectResult);
                 postMarshallHandledOids.add(object.getOid());
                 return EventResult.cont();
@@ -184,13 +184,13 @@ public class BasicValidatorTest extends AbstractUnitTest
     }
 
     /**
-     * Same data as schemaViolation test, but this will set s lower threshold to stop after just two erros.
+     * Same data as schemaViolation test, but this will set s lower threshold to stop after just two errors.
      */
     @Test
     public void testStopOnErrors() throws Exception {
         OperationResult result = createOperationResult();
 
-        LegacyValidator validator = new LegacyValidator(PrismTestUtil.getPrismContext());
+        LegacyValidator<?> validator = new LegacyValidator<>(PrismTestUtil.getPrismContext());
         validator.setVerbose(false);
         validator.setStopAfterErrors(2);
 
@@ -215,11 +215,12 @@ public class BasicValidatorTest extends AbstractUnitTest
     }
 
     private void validateFile(String filename, OperationResult result) throws FileNotFoundException {
-        validateFile(filename, (EventHandler<?, ?>) null, result);
+        validateFile(filename, (EventHandler<?>) null, result);
     }
 
-    private void validateFile(String filename, EventHandler<?, ?> handler, OperationResult result) throws FileNotFoundException {
-        LegacyValidator validator = new LegacyValidator(PrismTestUtil.getPrismContext());
+    private <T extends Containerable> void validateFile(
+            String filename, EventHandler<T> handler, OperationResult result) throws FileNotFoundException {
+        LegacyValidator<T> validator = new LegacyValidator<>(PrismTestUtil.getPrismContext());
         if (handler != null) {
             validator.setHandler(handler);
         }
@@ -227,7 +228,7 @@ public class BasicValidatorTest extends AbstractUnitTest
         validateFile(filename, validator, result);
     }
 
-    private void validateFile(String filename, LegacyValidator validator, OperationResult result) throws FileNotFoundException {
+    private void validateFile(String filename, LegacyValidator<?> validator, OperationResult result) throws FileNotFoundException {
         String filepath = BASE_PATH + filename;
 
         display("Validating " + filename);

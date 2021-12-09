@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -29,9 +29,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismParserNoIO;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -53,7 +53,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  * @author Radovan Semancik
  */
-public class LegacyValidator {
+public class LegacyValidator<T extends Containerable> {
 
     private static final Trace LOGGER = TraceManager.getTrace(LegacyValidator.class);
     private static final Charset INPUT_STREAM_CHARSET = StandardCharsets.UTF_8;
@@ -69,7 +69,7 @@ public class LegacyValidator {
     private boolean validateSchemas = true;
     private boolean validateName = true;
     private boolean allowAnyType = false;
-    private EventHandler handler;
+    private EventHandler<T> handler;
     private javax.xml.validation.Validator xsdValidator;
     private long progress = 0;
     private long errors = 0;
@@ -82,7 +82,7 @@ public class LegacyValidator {
         initialize();
     }
 
-    public LegacyValidator(PrismContext prismContext, EventHandler handler) {
+    public LegacyValidator(PrismContext prismContext, EventHandler<T> handler) {
         this.prismContext = prismContext;
         this.handler = handler;
         initialize();
@@ -95,11 +95,11 @@ public class LegacyValidator {
         xsdValidator = prismContext.getSchemaRegistry().getJavaxSchemaValidator();
     }
 
-    public EventHandler getHandler() {
+    public EventHandler<T> getHandler() {
         return handler;
     }
 
-    public void setHandler(EventHandler handler) {
+    public void setHandler(EventHandler<T> handler) {
         this.handler = handler;
     }
 
@@ -252,6 +252,8 @@ public class LegacyValidator {
                             objectResult.recordFatalError(e);
                         }
                         throw e;
+                    } finally {
+                        objectResult.close();
                     }
 
                     if (objectResult.isError()) {
@@ -321,10 +323,8 @@ public class LegacyValidator {
 
         objectResult.addContext(END_LINE_NUMBER, stream.getLocation().getLineNumber());
 
-        // This element may not have complete namespace definitions for a
-        // stand-alone
-        // processing, therefore copy namespace definitions from the root
-        // element
+        // This element may not have complete namespace definitions for a stand-alone
+        // processing, therefore copy namespace definitions from the root element.
         Element objectElement = DOMUtil.getFirstChildElement(objectDoc);
         DOMUtil.setNamespaceDeclarations(objectElement, rootNamespaceDeclarations);
 
@@ -382,28 +382,29 @@ public class LegacyValidator {
             if (compatMode) {
                 parser = parser.compat();
             }
-            PrismObject<? extends Objectable> object = parser.parse();
+            T containerable = parser.parseRealValue();
 
-            try {
-                object.checkConsistence();
-            } catch (RuntimeException e) {
-                objectResult.recordFatalError("Internal object inconsistence, probably a parser bug: " + e.getMessage(), e);
-                return EventResult.skipObject(e.getMessage());
+            objectResult.addContext(OperationResult.CONTEXT_OBJECT, containerable.toString());
+
+            if (containerable instanceof Objectable) {
+                Objectable objectable = (Objectable) containerable;
+
+                try {
+                    objectable.asPrismObject().checkConsistence();
+                } catch (RuntimeException e) {
+                    objectResult.recordFatalError("Internal object inconsistence, probably a parser bug: " + e.getMessage(), e);
+                    return EventResult.skipObject(e.getMessage());
+                }
+                if (verbose) {
+                    LOGGER.trace("Processing OID {}", objectable.getOid());
+                }
+                validateObject(objectable, objectResult);
             }
-
-            Objectable objectType = object.asObjectable();
-            objectResult.addContext(OperationResult.CONTEXT_OBJECT, object.toString());
-
-            if (verbose) {
-                LOGGER.trace("Processing OID {}", objectType.getOid());
-            }
-
-            validateObject(objectType, objectResult);
 
             if (handler != null) {
                 EventResult cont;
                 try {
-                    cont = handler.postMarshall(object, objectElement, objectResult);
+                    cont = handler.postMarshall(containerable, objectElement, objectResult);
                 } catch (RuntimeException e) {
                     // Make sure that unhandled exceptions are recorded in object result before they are rethrown
                     objectResult.recordFatalError("Internal error: postMarshall call failed: " + e.getMessage(), e);
@@ -488,8 +489,6 @@ public class LegacyValidator {
         // TODO: more checks
 
         objectResult.recomputeStatus("Object validation has failed", "Validation warning");
-        objectResult.recordSuccessIfUnknown();
-
     }
 
     // BIG checks - checks that create subresults

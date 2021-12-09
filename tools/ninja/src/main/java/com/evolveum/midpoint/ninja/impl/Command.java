@@ -8,6 +8,7 @@ package com.evolveum.midpoint.ninja.impl;
 
 import com.evolveum.midpoint.ninja.action.*;
 import com.evolveum.midpoint.ninja.action.audit.ExportAuditRepositoryAction;
+import com.evolveum.midpoint.ninja.action.audit.ImportAuditRepositoryAction;
 import com.evolveum.midpoint.ninja.action.trace.EditTraceAction;
 import com.evolveum.midpoint.ninja.opts.*;
 
@@ -27,6 +28,8 @@ public enum Command {
     VERIFY("verify", VerifyOptions.class, VerifyRepositoryAction.class, null),
 
     KEYS("keys", ListKeysOptions.class, ListKeysRepositoryAction.class, null),
+
+    IMPORT_AUDIT("importAudit", ImportOptions.class, ImportAuditRepositoryAction.class, null),
 
     EXPORT_AUDIT("exportAudit", ExportOptions.class, ExportAuditRepositoryAction.class, null),
 
