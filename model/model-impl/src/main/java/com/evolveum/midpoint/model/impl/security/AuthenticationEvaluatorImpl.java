@@ -11,16 +11,15 @@ import java.util.Collection;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.authentication.api.Authorization;
-import com.evolveum.midpoint.authentication.api.ConnectionEnvironment;
-import com.evolveum.midpoint.authentication.api.MidPointPrincipal;
-import com.evolveum.midpoint.authentication.api.SecurityUtil;
+import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.model.api.util.AuthenticationEvaluatorUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
-import com.evolveum.midpoint.authentication.api.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;

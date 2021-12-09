@@ -11,8 +11,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.evolveum.midpoint.authentication.api.*;
-
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.authentication.api.StateOfModule;
 import com.evolveum.midpoint.authentication.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;

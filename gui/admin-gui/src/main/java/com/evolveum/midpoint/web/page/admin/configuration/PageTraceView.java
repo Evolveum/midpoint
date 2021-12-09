@@ -40,7 +40,7 @@ import com.evolveum.midpoint.schema.traces.TraceParser;
 import com.evolveum.midpoint.schema.traces.visualizer.TraceTreeVisualizer;
 import com.evolveum.midpoint.schema.traces.visualizer.TraceVisualizerRegistry;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
-import com.evolveum.midpoint.authentication.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;

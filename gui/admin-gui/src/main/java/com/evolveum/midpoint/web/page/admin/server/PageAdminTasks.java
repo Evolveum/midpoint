@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 
-import com.evolveum.midpoint.authentication.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 
 /**

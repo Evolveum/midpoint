@@ -14,8 +14,8 @@ import org.apache.wicket.Session;
 import org.apache.wicket.ThreadContext;
 import org.springframework.security.core.Authentication;
 
-import com.evolveum.midpoint.authentication.api.HttpConnectionInformation;
-import com.evolveum.midpoint.authentication.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.HttpConnectionInformation;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 
 /**
  * @author lazyman

@@ -7,7 +7,8 @@
 
 package com.evolveum.midpoint.web.page.login;
 
-import com.evolveum.midpoint.authentication.api.*;
+import com.evolveum.midpoint.authentication.api.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.Url;
 import com.evolveum.midpoint.authentication.api.authentication.CredentialModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;

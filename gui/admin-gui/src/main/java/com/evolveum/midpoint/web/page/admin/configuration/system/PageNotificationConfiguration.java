@@ -8,7 +8,7 @@ package com.evolveum.midpoint.web.page.admin.configuration.system;
 
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.NotificationConfigTabPanel;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-import com.evolveum.midpoint.authentication.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.authentication.api.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.Url;

@@ -10,7 +10,7 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import java.util.ArrayList;
 import java.util.List;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.authentication.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.authentication.api.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.Url;

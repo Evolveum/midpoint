@@ -52,7 +52,7 @@ import org.springframework.security.web.context.request.async.WebAsyncManagerInt
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.authentication.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.authentication.impl.security.factory.channel.AuthChannelRegistryImpl;

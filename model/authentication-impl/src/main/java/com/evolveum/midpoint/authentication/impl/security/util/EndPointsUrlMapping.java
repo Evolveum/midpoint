@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.authentication.impl.security.util;
 
-import static com.evolveum.midpoint.authentication.api.AuthorizationConstants.*;
+import static com.evolveum.midpoint.security.api.AuthorizationConstants.*;
 
 import com.evolveum.midpoint.authentication.impl.security.authorization.AuthorizationActionValue;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;

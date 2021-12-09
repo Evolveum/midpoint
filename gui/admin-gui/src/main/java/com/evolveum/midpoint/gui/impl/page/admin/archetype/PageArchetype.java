@@ -14,7 +14,7 @@ import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.authentication.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.authentication.api.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.Url;

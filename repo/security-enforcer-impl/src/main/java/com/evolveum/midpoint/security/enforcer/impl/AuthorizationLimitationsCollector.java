@@ -14,8 +14,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
 
-import com.evolveum.midpoint.authentication.api.Authorization;
-import com.evolveum.midpoint.authentication.api.AuthorizationTransformer;
+import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.AuthorizationTransformer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationLimitationsType;

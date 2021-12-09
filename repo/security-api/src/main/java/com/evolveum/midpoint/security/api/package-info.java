@@ -12,4 +12,4 @@
  *
  * @author semancik
  */
-package com.evolveum.midpoint.authentication.api;
+package com.evolveum.midpoint.security.api;

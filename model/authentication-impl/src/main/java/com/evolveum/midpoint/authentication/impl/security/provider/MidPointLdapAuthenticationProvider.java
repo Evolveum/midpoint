@@ -10,7 +10,9 @@ package com.evolveum.midpoint.authentication.impl.security.provider;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.authentication.api.*;
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.MidpointDirContextAdapter;
+import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.authentication.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.token.LdapAuthenticationToken;

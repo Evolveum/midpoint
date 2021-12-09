@@ -8,8 +8,9 @@ package com.evolveum.midpoint.authentication.impl.security.channel;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.authentication.api.*;
-
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;

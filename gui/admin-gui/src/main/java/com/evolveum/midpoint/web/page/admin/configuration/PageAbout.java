@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.*;
+import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;

@@ -9,7 +9,7 @@ package com.evolveum.midpoint.security.enforcer.impl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.authentication.api.Authorization;
+import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.enforcer.api.FilterGizmo;
 
 public class FilterGizmoObjectFilterImpl implements FilterGizmo<ObjectFilter> {

@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.api.util;
 
-import com.evolveum.midpoint.authentication.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 
 public class AuthConstants {
     public static final String DEFAULT_PATH_AFTER_LOGIN = "/self/dashboard";

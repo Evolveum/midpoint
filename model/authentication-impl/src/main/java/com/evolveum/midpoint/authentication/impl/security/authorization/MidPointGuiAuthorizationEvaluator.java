@@ -11,10 +11,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import com.evolveum.midpoint.authentication.api.*;
 import com.evolveum.midpoint.authentication.impl.security.util.AuthSequenceUtil;
 import com.evolveum.midpoint.authentication.impl.security.util.EndPointsUrlMapping;
 
+import com.evolveum.midpoint.security.api.*;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.access.AccessDecisionManager;
@@ -128,7 +128,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     // MidPoint pages invoke this method (through PageBase)
     @Override
     public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
-            AuthorizationParameters<O, T> params, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+                                                                             AuthorizationParameters<O, T> params, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         return securityEnforcer.isAuthorized(operationUrl, phase, params, ownerResolver, task, result);
     }
 

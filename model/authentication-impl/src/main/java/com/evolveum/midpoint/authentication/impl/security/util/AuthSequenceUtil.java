@@ -10,7 +10,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
-import com.evolveum.midpoint.authentication.api.*;
+import com.evolveum.midpoint.authentication.api.AuthModule;
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.authentication.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
@@ -251,9 +254,9 @@ public class AuthSequenceUtil {
     }
 
     public static List<AuthModule> buildModuleFilters(AuthModuleRegistryImpl authRegistry, AuthenticationSequenceType sequence,
-            HttpServletRequest request, AuthenticationModulesType authenticationModulesType,
-            CredentialsPolicyType credentialPolicy, Map<Class<?>, Object> sharedObjects,
-            AuthenticationChannel authenticationChannel) {
+                                                      HttpServletRequest request, AuthenticationModulesType authenticationModulesType,
+                                                      CredentialsPolicyType credentialPolicy, Map<Class<?>, Object> sharedObjects,
+                                                      AuthenticationChannel authenticationChannel) {
         Validate.notNull(authRegistry, "Registry for module factories is null");
 
         if (isSpecificSequence(request)) {
@@ -423,7 +426,7 @@ public class AuthSequenceUtil {
     }
 
     public static UserType searchUserPrivileged(String username, SecurityContextManager securityContextManager, TaskManager manager,
-            ModelService modelService, PrismContext prismContext) {
+                                                ModelService modelService, PrismContext prismContext) {
         UserType userType = securityContextManager.runPrivileged(new Producer<UserType>() {
             final ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(UserType.F_NAME).eqPoly(username).matchingNorm()

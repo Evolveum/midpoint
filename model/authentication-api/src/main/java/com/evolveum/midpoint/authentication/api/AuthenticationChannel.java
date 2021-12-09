@@ -8,6 +8,7 @@ package com.evolveum.midpoint.authentication.api;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 
 /**

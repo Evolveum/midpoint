@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.authentication.api;
+package com.evolveum.midpoint.security.api;
 
 import org.apache.commons.lang.StringUtils;
 

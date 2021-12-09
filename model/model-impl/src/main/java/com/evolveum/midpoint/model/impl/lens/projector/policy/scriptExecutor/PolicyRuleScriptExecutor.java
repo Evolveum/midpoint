@@ -15,7 +15,7 @@ import com.evolveum.midpoint.model.impl.security.RunAsRunner;
 import com.evolveum.midpoint.model.impl.security.RunAsRunnerFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.authentication.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 
 import com.evolveum.midpoint.util.exception.CommonException;
 

@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.api.util;
 
-import com.evolveum.midpoint.authentication.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 
 import java.util.HashMap;
 import java.util.Map;

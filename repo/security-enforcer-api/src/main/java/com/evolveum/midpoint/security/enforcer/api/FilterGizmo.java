@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.security.enforcer.api;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.authentication.api.Authorization;
+import com.evolveum.midpoint.security.api.Authorization;
 
 /**
  * Gizmo (device,gadget,thing) that handles search filters and other filter-like things during security processing of search filters.

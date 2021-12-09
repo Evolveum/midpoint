@@ -14,7 +14,6 @@ import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.authentication.api.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -22,6 +21,7 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.security.enforcer.api.*;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -98,15 +98,15 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
     @Override
     public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
-            AuthorizationParameters<O,T> params, OwnerResolver ownerResolver, Task task, OperationResult result)
+                                                                             AuthorizationParameters<O,T> params, OwnerResolver ownerResolver, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         AccessDecision decision = isAuthorizedInternal(getMidPointPrincipal(), operationUrl, phase, params, ownerResolver, null, task, result);
         return decision.equals(AccessDecision.ALLOW);
     }
 
     private <O extends ObjectType, T extends ObjectType> AccessDecision isAuthorizedInternal(MidPointPrincipal midPointPrincipal, String operationUrl, AuthorizationPhaseType phase,
-            AuthorizationParameters<O,T> params, OwnerResolver ownerResolver,
-            Consumer<Authorization> applicableAutzConsumer, Task task, OperationResult result)
+                                                                                             AuthorizationParameters<O,T> params, OwnerResolver ownerResolver,
+                                                                                             Consumer<Authorization> applicableAutzConsumer, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (phase == null) {
             AccessDecision requestPhaseDecision = isAuthorizedPhase(midPointPrincipal, operationUrl, AuthorizationPhaseType.REQUEST, params, ownerResolver, applicableAutzConsumer, task, result);

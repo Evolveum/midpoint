@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.*;
 
+import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;

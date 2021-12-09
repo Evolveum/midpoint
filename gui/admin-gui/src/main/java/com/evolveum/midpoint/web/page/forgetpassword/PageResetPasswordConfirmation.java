@@ -10,6 +10,7 @@ import java.util.*;
 
 import com.evolveum.midpoint.authentication.api.*;
 
+import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.authentication.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;
 

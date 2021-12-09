@@ -26,7 +26,7 @@ import org.springframework.security.web.authentication.AuthenticationConverter;
 
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.authentication.api.ConnectionEnvironment;
+import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.Saml2ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.security.util.RequestState;
 

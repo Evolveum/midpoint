@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.authentication.api.Authorization;
-import com.evolveum.midpoint.authentication.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;

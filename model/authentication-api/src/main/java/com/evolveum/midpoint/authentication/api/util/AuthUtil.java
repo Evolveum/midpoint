@@ -6,7 +6,9 @@
  */
 package com.evolveum.midpoint.authentication.api.util;
 
-import com.evolveum.midpoint.authentication.api.*;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.authentication.api.StateOfModule;
 import com.evolveum.midpoint.authentication.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
