@@ -11,7 +11,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.search.ContainerTypeSearchItem;
+import com.evolveum.midpoint.web.component.search.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -19,19 +19,14 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinitionImpl;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 public class ResourceContentResourcePanel extends ResourceContentPanel {
@@ -56,14 +51,14 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 
     @Override
     protected Search createSearch() {
-        List<SearchItemDefinition> availableDefs = new ArrayList<>();
+        List<AttributeSearchItemDefinition> availableDefs = new ArrayList<>();
         availableDefs.addAll(createAttributeDefinitionList());
         return new Search(new ContainerTypeSearchItem(ShadowType.class), availableDefs);
     }
 
-    private <T extends ObjectType> List<SearchItemDefinition> createAttributeDefinitionList() {
+    private <T extends ObjectType> List<AttributeSearchItemDefinition> createAttributeDefinitionList() {
 
-        List<SearchItemDefinition> map = new ArrayList<>();
+        List<AttributeSearchItemDefinition> map = new ArrayList<>();
 
         RefinedObjectClassDefinition ocDef = null;
         try {
@@ -86,7 +81,7 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
         }
 
         for (ResourceAttributeDefinition def : ocDef.getAttributeDefinitions()) {
-            map.add(new SearchItemDefinition(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)), def, null));
+            map.add(new AttributeSearchItemDefinition(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)), def));
         }
 
         return map;

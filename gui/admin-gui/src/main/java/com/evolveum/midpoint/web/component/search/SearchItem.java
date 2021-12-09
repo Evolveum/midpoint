@@ -10,11 +10,13 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 
 /**
  * @author Viliam Repan (lazyman)
  */
-public abstract class SearchItem implements Serializable {
+public abstract class SearchItem<D extends AbstractSearchItemDefinition> implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -23,19 +25,34 @@ public abstract class SearchItem implements Serializable {
     }
 
     private final Search<Containerable> search;
+    private D searchItemDefinition;
 
     private boolean fixed;
     private boolean editWhenVisible;
-    private SearchItemDefinition definition;
     private boolean applyFilter = true;
 
     public SearchItem(Search search) {
         this.search = search;
     }
 
+    public SearchItem(Search search, D searchItemDefinition) {
+        this.search = search;
+        this.searchItemDefinition = searchItemDefinition;
+    }
+
     public abstract String getName();
 
     public abstract Type getSearchItemType();
+
+    public abstract ObjectFilter createFilter(PageBase pageBase, VariablesMap variables);
+
+    public <S extends SearchItem, ASIP extends SearchItemPanel<S>> Class<ASIP> getSearchItemPanelClass(){
+        return null;
+    }
+
+    public D getSearchItemDefinition() {
+        return searchItemDefinition;
+    }
 
     protected String getTitle(PageBase pageBase) {
         return "";
@@ -65,20 +82,16 @@ public abstract class SearchItem implements Serializable {
         this.editWhenVisible = editWhenVisible;
     }
 
-    public SearchItemDefinition getDefinition() {
-        return definition;
-    }
-
-    public void setDefinition(SearchItemDefinition definition) {
-        this.definition = definition;
-    }
-
     public boolean isApplyFilter() {
         return applyFilter;
     }
 
     public void setApplyFilter(boolean applyFilter) {
         this.applyFilter = applyFilter;
+    }
+
+    public boolean shouldResetMoreModelOnSearchPerformed() {
+        return false;
     }
 
     protected boolean canRemoveSearchItem() {

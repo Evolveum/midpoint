@@ -218,7 +218,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     @Override
                     protected Search createSearch(Class<ShadowType> type) {
                         Search search = super.createSearch(type);
-                        PropertySearchItem<Boolean> defaultDeadItem = search.findPropertySearchItem(ShadowType.F_DEAD);
+                        AttributeSearchItem<Boolean> defaultDeadItem = search.findPropertySearchItem(ShadowType.F_DEAD);
                         if (defaultDeadItem != null) {
                             defaultDeadItem.setVisible(false);
                         }
@@ -227,9 +227,9 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     }
 
                     @Override
-                    protected List<SearchItemDefinition> initSearchableItems(
+                    protected List<AbstractSearchItemDefinition> initSearchableItems(
                             PrismContainerDefinition<ShadowType> containerDef) {
-                        List<SearchItemDefinition> defs = new ArrayList<>();
+                        List<AbstractSearchItemDefinition> defs = new ArrayList<>();
                         SearchFactory.addSearchRefDef(containerDef, ShadowType.F_RESOURCE_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
                         SearchFactory.addSearchPropertyDef(containerDef, ShadowType.F_NAME, defs);
                         SearchFactory.addSearchPropertyDef(containerDef, ShadowType.F_INTENT, defs);
@@ -285,10 +285,10 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
     }
 
     private void addDeadSearchItem(Search search) {
-        SearchItemDefinition def = new SearchItemDefinition(ShadowType.F_DEAD,
+        AttributeSearchItemDefinition def = new AttributeSearchItemDefinition(ShadowType.F_DEAD,
                 getShadowDefinition().findPropertyDefinition(ShadowType.F_DEAD),
                 Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
-        PropertySearchItem<Boolean> deadSearchItem = new PropertySearchItem<>(search, def, new SearchValue<>(false)) {
+        AttributeSearchItem<Boolean> deadSearchItem = new AttributeSearchItem<>(search, def, new SearchValue<>(false)) {
 
             @Override
             public ObjectFilter transformToFilter() {

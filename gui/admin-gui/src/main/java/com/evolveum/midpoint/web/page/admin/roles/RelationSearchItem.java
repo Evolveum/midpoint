@@ -50,7 +50,7 @@ public class RelationSearchItem extends SpecialSearchItem {
             }
 
             @Override
-            public SearchSpecialItemPanel createSpecialSearchPanel(String id) {
+            public SearchSpecialItemPanel createSearchItemPanel(String id) {
                 return new SearchSpecialItemPanel(id, new PropertyModel<>(memberStorage, MemberPanelStorage.F_RELATION_ITEM)) {
                     @Override
                     protected WebMarkupContainer initSearchItemField(String id) {

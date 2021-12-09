@@ -88,7 +88,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return new ContainerTypeSearchItem<>(new SearchValue<>(type, containerDefinition == null ? getType().getTypeName() : containerDefinition.getDisplayName()));
     }
 
-    protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<C> containerDef){
+    protected List<AbstractSearchItemDefinition> initSearchableItems(PrismContainerDefinition<C> containerDef){
         return null;
     }
 

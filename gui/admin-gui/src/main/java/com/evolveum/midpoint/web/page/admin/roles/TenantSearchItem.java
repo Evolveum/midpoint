@@ -50,7 +50,7 @@ public class TenantSearchItem extends SpecialSearchItem {
     }
 
     @Override
-    public SearchSpecialItemPanel createSpecialSearchPanel(String id){
+    public SearchSpecialItemPanel createSearchItemPanel(String id){
         IModel tenantModel = new PropertyModel(getMemberPanelStorage(), MemberPanelStorage.F_TENANT) {
             @Override
             public void setObject(Object object) {

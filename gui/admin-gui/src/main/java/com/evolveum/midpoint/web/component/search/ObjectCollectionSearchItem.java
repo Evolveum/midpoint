@@ -12,6 +12,8 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -84,6 +86,11 @@ public class ObjectCollectionSearchItem extends SearchItem {
     }
 
     @Override
+    public Class<SearchObjectCollectionPanel> getSearchItemPanelClass() {
+        return SearchObjectCollectionPanel.class;
+    }
+
+    @Override
     protected String getTitle(PageBase pageBase) {
         if (objectCollectionView.getFilter() == null) {
             return null;
@@ -104,6 +111,11 @@ public class ObjectCollectionSearchItem extends SearchItem {
         }
 
         return objectCollectionView.getObjectCollectionDescription();
+    }
+
+    @Override
+    public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
+        return null; //todo implement
     }
 
     public CompiledObjectCollectionView getObjectCollectionView() {

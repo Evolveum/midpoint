@@ -10,12 +10,18 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypeSearchItemConfigurationType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
+
 import org.apache.commons.lang3.Validate;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -69,6 +75,16 @@ public class ContainerTypeSearchItem<C extends Containerable> extends SearchItem
             return WebComponentUtil.getTranslatedPolyString(configuration.getDisplay().getHelp());
         }
         return "";
+    }
+
+    @Override
+    public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
+        return null; //todo implement
+    }
+
+    @Override
+    public Class<TypeSearchPanel> getSearchItemPanelClass() {
+        return TypeSearchPanel.class;
     }
 
     @Override
@@ -131,5 +147,9 @@ public class ContainerTypeSearchItem<C extends Containerable> extends SearchItem
 
     public void setConfiguration(ObjectTypeSearchItemConfigurationType configuration) {
         this.configuration = configuration;
+    }
+
+    public boolean shouldResetMoreModelOnSearchPerformed() {
+        return true;
     }
 }

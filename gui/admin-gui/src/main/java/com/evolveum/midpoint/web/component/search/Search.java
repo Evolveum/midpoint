@@ -12,8 +12,6 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleCompositedSearchItem;
-
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,6 +35,7 @@ import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleCompositedSearchItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -78,9 +77,9 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     private String oid;
 
     private final ContainerTypeSearchItem typeSearchItem;
-    private final List<SearchItemDefinition> allDefinitions;
+    private final List<AbstractSearchItemDefinition> allDefinitions;
 
-    private final List<SearchItemDefinition> availableDefinitions = new ArrayList<>();
+//    private final List<AbstractSearchItemDefinition> availableDefinitions = new ArrayList<>();
     private final List<SearchItem> items = new ArrayList<>();
     private List<SearchItem> specialItems = new ArrayList<>();
     private SearchItem compositedSpecialItems;
@@ -89,11 +88,11 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     private boolean isCollectionItemVisible = false;
     private boolean isOidSearchEnabled = false;
 
-    public Search(ContainerTypeSearchItem<C> typeSearchItem, List<SearchItemDefinition> allDefinitions) {
+    public Search(ContainerTypeSearchItem<C> typeSearchItem, List<AbstractSearchItemDefinition> allDefinitions) {
         this(typeSearchItem, allDefinitions, false, null, null, false);
     }
 
-    public Search(ContainerTypeSearchItem<C> typeSearchItem, List<SearchItemDefinition> allDefinitions, boolean isFullTextSearchEnabled,
+    public Search(ContainerTypeSearchItem<C> typeSearchItem, List<AbstractSearchItemDefinition> allDefinitions, boolean isFullTextSearchEnabled,
             SearchBoxModeType searchBoxModeType, List<SearchBoxModeType> allowedSearchType, boolean isOidSearchenabled) {
         this.typeSearchItem = typeSearchItem;
         this.allDefinitions = allDefinitions;
@@ -128,7 +127,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             }
         }
 
-        availableDefinitions.addAll(allDefinitions);
+//        availableDefinitions.addAll(allDefinitions);
     }
 
     public List<SearchItem> getItems() {
@@ -167,11 +166,11 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         isCollectionItemVisible = collectionItemVisible;
     }
 
-    public List<PropertySearchItem> getPropertyItems() {
-        List<PropertySearchItem> propertyItems = new ArrayList<>();
+    public List<AttributeSearchItem> getPropertyItems() {
+        List<AttributeSearchItem> propertyItems = new ArrayList<>();
         items.forEach(item -> {
-            if (item instanceof PropertySearchItem) {
-                propertyItems.add((PropertySearchItem) item);
+            if (item instanceof AttributeSearchItem) {
+                propertyItems.add((AttributeSearchItem) item);
             }
         });
         return Collections.unmodifiableList(propertyItems);
@@ -187,118 +186,134 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return Collections.unmodifiableList(filterItems);
     }
 
-    public List<SearchItemDefinition> getAvailableDefinitions() {
-        return Collections.unmodifiableList(availableDefinitions);
-    }
+//    public List<AbstractSearchItemDefinition> getAvailableDefinitions() {
+//        return Collections.unmodifiableList(availableDefinitions);
+//    }
 
-    public List<SearchItemDefinition> getAllDefinitions() {
+    public List<AbstractSearchItemDefinition> getAllDefinitions() {
         return Collections.unmodifiableList(allDefinitions);
     }
 
-    public SearchItem addItem(ItemDefinition def) {
-        boolean isPresent = false;
-        for (SearchItemDefinition searchItemDefinition : availableDefinitions) {
-            if (searchItemDefinition.getDef() != null && searchItemDefinition.getDef().getItemName() != null
-                    && searchItemDefinition.getDef().getItemName().equals(def.getItemName())) {
-                isPresent = true;
-                break;
-            }
-        }
-        if (!isPresent) {
-            return null;
-        }
+//    public AttributeSearchItem addItem(ItemDefinition def) {
+//        AttributeSearchItemDefinition searchItemDef = new AttributeSearchItemDefinition(def);
+//        AttributeSearchItem item = new AttributeSearchItem(this, def);
+//        items.add(item);
+//
+////        boolean isPresent = false;
+////        List<AttributeSearchItemDefinition> defList = (List<AttributeSearchItemDefinition>) availableDefinitions.stream().filter(attrDef -> attrDef instanceof AttributeSearchItemDefinition);
+////        for (AttributeSearchItemDefinition searchItemDefinition : defList) {
+////            if (searchItemDefinition.getDef() != null && searchItemDefinition.getDef().getItemName() != null
+////                    && searchItemDefinition.getDef().getItemName().equals(def.getItemName())) {
+////                isPresent = true;
+////                break;
+////            }
+////        }
+////        if (!isPresent) {
+////            return null;
+////        }
+////
+////        AttributeSearchItemDefinition itemToRemove = null;
+////        for (AbstractSearchItemDefinition entry : allDefinitions) {
+////            if (entry instanceof AttributeSearchItemDefinition) {
+////                if (((AttributeSearchItemDefinition)entry).getDef().getItemName().equals(def.getItemName())) {
+////                    itemToRemove = (AttributeSearchItemDefinition) entry;
+////                    break;
+////                }
+////            }
+////        }
+////
+////        if (itemToRemove.getPath() == null) {
+////            return null;
+////        }
+////
+////        AttributeSearchItem item; //todo refactor to itemToRemove.createSearchItem()
+////        if (QNameUtil.match(itemToRemove.getDef().getTypeName(), DOMUtil.XSD_DATETIME)) {
+////            item = new DateSearchItem(this, itemToRemove);
+////        } else if (ShadowType.F_OBJECT_CLASS.equivalent(itemToRemove.getPath())) {
+////            item = new ObjectClassSearchItem(this, itemToRemove);
+////        } else {
+////            item = new AttributeSearchItem<>(this, itemToRemove);
+////        }
+////        if (def instanceof PrismReferenceDefinition) {
+////            ObjectReferenceType ref = new ObjectReferenceType();
+////            List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) def).getTargetTypeName());
+////            if (supportedTargets.size() == 1) {
+////                ref.setType(supportedTargets.iterator().next());
+////            }
+////            if (itemToRemove.getAllowedValues() != null && itemToRemove.getAllowedValues().size() == 1) {
+////                ref.setRelation((QName)itemToRemove.getAllowedValues().iterator().next());
+////            }
+////
+////            item.setValue(new SearchValue<>(ref));
+////        } else {
+////            item.setValue(new SearchValue<>());
+////        }
+////
+////        items.add(item);
+////        if (itemToRemove != null) {
+////            availableDefinitions.remove(itemToRemove);
+////        }
+//
+//        return item;
+//    }
 
-        SearchItemDefinition itemToRemove = null;
-        for (SearchItemDefinition entry : allDefinitions) {
-            if (entry.getDef().getItemName().equals(def.getItemName())) {
-                itemToRemove = entry;
-                break;
-            }
-        }
+//    public SearchItem addItem(SearchItemType predefinedFilter) {
+//        FilterSearchItemDefinition def = null;
+//        List<FilterSearchItemDefinition> defList = (List<FilterSearchItemDefinition>) availableDefinitions.stream()
+//                .filter(attrDef -> attrDef instanceof FilterSearchItemDefinition);
+//        for (FilterSearchItemDefinition searchItemDefinition : defList) {
+//            if (searchItemDefinition.getPredefinedFilter() != null
+//                    && searchItemDefinition.getPredefinedFilter().equals(predefinedFilter)) {
+//                def = searchItemDefinition;
+//                break;
+//            }
+//        }
+//        if (def == null) {
+//            return null;
+//        }
+//        FilterSearchItem item = new FilterSearchItem(this, def) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected boolean canRemoveSearchItem() {
+//                return isConfigurable();
+//            }
+//        };
+//
+//        if (predefinedFilter != null && predefinedFilter.getParameter() != null
+//                && QNameUtil.match(predefinedFilter.getParameter().getType(), ObjectReferenceType.COMPLEX_TYPE)) {
+//            ObjectReferenceType ref = new ObjectReferenceType();
+//            List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(predefinedFilter.getParameter().getTargetType());
+//            if (supportedTargets.size() == 1) {
+//                ref.setType(supportedTargets.iterator().next());
+//            }
+//            item.setInput(new SearchValue<>(ref));
+//        }
+//
+//        items.add(item);
+//        availableDefinitions.remove(def);
+//        return item;
+//    }
 
-        if (itemToRemove.getPath() == null) {
-            return null;
-        }
+//    public SearchItem addItem(SearchItemDefinition def) {
+//        if (def.getDef() != null) {
+//            return addItem(def.getDef());
+//        } else if (def.getPredefinedFilter() != null) {
+//            return addItem(def.getPredefinedFilter());
+//        }
+//        return null;
+//    }
 
-        PropertySearchItem item;
-        if (QNameUtil.match(itemToRemove.getDef().getTypeName(), DOMUtil.XSD_DATETIME)) {
-            item = new DateSearchItem(this, itemToRemove);
-        } else if (ShadowType.F_OBJECT_CLASS.equivalent(itemToRemove.getPath())) {
-            item = new ObjectClassSearchItem(this, itemToRemove);
-        } else {
-            item = new PropertySearchItem<>(this, itemToRemove);
-        }
-        if (def instanceof PrismReferenceDefinition) {
-            ObjectReferenceType ref = new ObjectReferenceType();
-            List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) def).getTargetTypeName());
-            if (supportedTargets.size() == 1) {
-                ref.setType(supportedTargets.iterator().next());
-            }
-            if (itemToRemove.getAllowedValues() != null && itemToRemove.getAllowedValues().size() == 1) {
-                ref.setRelation((QName)itemToRemove.getAllowedValues().iterator().next());
-            }
+//    public void addItemToAllDefinitions(AbstractSearchItemDefinition itemDef) {
+//        allDefinitions.add(itemDef);
+//        availableDefinitions.add(itemDef);
+//    }
 
-            item.setValue(new SearchValue<>(ref));
-        } else {
-            item.setValue(new SearchValue<>());
-        }
-
-        items.add(item);
-        if (itemToRemove != null) {
-            availableDefinitions.remove(itemToRemove);
-        }
-
-        return item;
-    }
-
-    public SearchItem addItem(SearchItemType predefinedFilter) {
-        SearchItemDefinition def = null;
-        for (SearchItemDefinition searchItemDefinition : availableDefinitions) {
-            if (searchItemDefinition.getPredefinedFilter() != null
-                    && searchItemDefinition.getPredefinedFilter().equals(predefinedFilter)) {
-                def = searchItemDefinition;
-                break;
-            }
-        }
-        if (def == null) {
-            return null;
-        }
-        FilterSearchItem item = new FilterSearchItem(this, predefinedFilter);
-        item.setDefinition(def);
-
-        if (predefinedFilter != null && predefinedFilter.getParameter() != null
-                && QNameUtil.match(predefinedFilter.getParameter().getType(), ObjectReferenceType.COMPLEX_TYPE)) {
-            ObjectReferenceType ref = new ObjectReferenceType();
-            List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(predefinedFilter.getParameter().getTargetType());
-            if (supportedTargets.size() == 1) {
-                ref.setType(supportedTargets.iterator().next());
-            }
-            item.setInput(new SearchValue<>(ref));
-        }
-
-        items.add(item);
-        availableDefinitions.remove(def);
-        return item;
-    }
-
-    public SearchItem addItem(SearchItemDefinition def) {
-        if (def.getDef() != null) {
-            return addItem(def.getDef());
-        } else if (def.getPredefinedFilter() != null) {
-            return addItem(def.getPredefinedFilter());
-        }
-        return null;
-    }
-
-    public void addItemToAllDefinitions(SearchItemDefinition itemDef) {
-        allDefinitions.add(itemDef);
-        availableDefinitions.add(itemDef);
-    }
-
-    public void delete(SearchItem item) {
-        if (items.remove(item)) {
-            availableDefinitions.add(item.getDefinition());
-        }
+    public void delete(AbstractSearchItemDefinition item) {
+        item.setDisplayed(false);
+//        if (items.remove(item)) {
+//            availableDefinitions.add(item.getSearchItemDefinition());
+//        }
     }
 
     public Class<C> getTypeClass() {
@@ -375,15 +390,13 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                         conditions.add(filter);
                     }
                 }
-                if (item instanceof PropertySearchItem) {
-                    PropertySearchItem propertyItem = (PropertySearchItem) item;
-                    ObjectFilter filter = propertyItem.transformToFilter();
-                    if (filter == null) {
-                        filter = createFilterForSearchItem(propertyItem, pageBase.getPrismContext());
-                    }
-                    if (filter != null) {
-                        conditions.add(filter);
-                    }
+                AttributeSearchItem propertyItem = (AttributeSearchItem) item;
+                ObjectFilter filter = propertyItem.transformToFilter();
+                if (filter == null) {
+                    filter = createFilterForSearchItem(propertyItem, pageBase.getPrismContext());
+                }
+                if (filter != null) {
+                    conditions.add(filter);
                 }
             }
         }
@@ -439,7 +452,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         }
 
         List<ObjectFilter> conditions = new ArrayList<>();
-        for (PropertySearchItem item : getPropertyItems()) {
+        for (AttributeSearchItem item : getPropertyItems()) {
             if (item.isEnabled() && item.isApplyFilter()) {
                 ObjectFilter filter = createFilterForSearchItem(item, pageBase.getPrismContext());
                 if (filter != null) {
@@ -515,7 +528,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return variables;
     }
 
-    private ObjectFilter createFilterForSearchItem(PropertySearchItem item, PrismContext ctx) {
+    private ObjectFilter createFilterForSearchItem(AttributeSearchItem item, PrismContext ctx) {
         if (!(item instanceof DateSearchItem) && (item.getValue() == null || item.getValue().getValue() == null)) {
             return null;
         }
@@ -537,10 +550,10 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         }
     }
 
-    private ObjectFilter createFilterForSearchValue(PropertySearchItem item, DisplayableValue searchValue,
+    private ObjectFilter createFilterForSearchValue(AttributeSearchItem<AttributeSearchItemDefinition> item, DisplayableValue searchValue,
             PrismContext ctx) {
 
-        ItemDefinition definition = item.getDefinition().getDef();
+        ItemDefinition definition = item.getSearchItemDefinition().getDef();
         ItemPath path = item.getPath();
 
         if (definition instanceof PrismReferenceDefinition) {
@@ -775,11 +788,11 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         this.configurable = configurable;
     }
 
-    public PropertySearchItem findPropertySearchItem(ItemPath path) {
+    public AttributeSearchItem findPropertySearchItem(ItemPath path) {
         if (path == null) {
             return null;
         }
-        for (PropertySearchItem searchItem : getPropertyItems()) {
+        for (AttributeSearchItem searchItem : getPropertyItems()) {
             if (path.equivalent(searchItem.getPath())) {
                 return searchItem;
             }
@@ -787,13 +800,14 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return null;
     }
 
-    public SearchItem findSpecialItem(ItemPath path) {
+    public AttributeSearchItem findSpecialAttributeSearchItem(ItemPath path) {
         if (path == null) {
             return null;
         }
         for (SearchItem searchItem : getSpecialItems()) {
-            if (path.equivalent(searchItem.getDefinition().getPath())) {
-                return searchItem;
+            if (searchItem instanceof AttributeSearchItem
+                    && path.equivalent(((AttributeSearchItem<AttributeSearchItemDefinition>)searchItem).getSearchItemDefinition().getPath())) {
+                return (AttributeSearchItem)searchItem;
             }
         }
         return null;
@@ -832,7 +846,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         DebugUtil.debugDumpWithLabelLn(sb, "advancedError", advancedError, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "type", getTypeClass(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "allDefinitions", allDefinitions, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "availableDefinitions", availableDefinitions, indent + 1);
+//        DebugUtil.debugDumpWithLabelLn(sb, "availableDefinitions", availableDefinitions, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "items", items, indent + 1);
         return sb.toString();
     }

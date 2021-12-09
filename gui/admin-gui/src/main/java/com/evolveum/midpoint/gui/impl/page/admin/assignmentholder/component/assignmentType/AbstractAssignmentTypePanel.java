@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.search.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -63,9 +65,6 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.AssignmentListProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -573,12 +572,12 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     protected abstract UserProfileStorage.TableId getTableId();
 
     @Override
-    protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
+    protected List<AbstractSearchItemDefinition> initSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
         return createSearchableItems(containerDef);
     }
 
-    protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
-        List<SearchItemDefinition> defs = new ArrayList<>();
+    protected List<AbstractSearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
+        List<AbstractSearchItemDefinition> defs = new ArrayList<>();
 
         addSpecificSearchableItems(containerDef, defs);
         SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
@@ -590,7 +589,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
     }
 
-    protected abstract void addSpecificSearchableItems(PrismContainerDefinition<AssignmentType> containerDef, List<SearchItemDefinition> defs);
+    protected abstract void addSpecificSearchableItems(PrismContainerDefinition<AssignmentType> containerDef, List<AbstractSearchItemDefinition> defs);
 
     protected <AH extends AssignmentHolderType> boolean isNewObjectButtonVisible(PrismObject<AH> focusObject) {
         try {

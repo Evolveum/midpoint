@@ -49,7 +49,7 @@ public class IndirectSearchItem extends SpecialSearchItem {
     }
 
     @Override
-    public SearchSpecialItemPanel createSpecialSearchPanel(String id) {
+    public SearchSpecialItemPanel createSearchItemPanel(String id) {
         SearchSpecialItemPanel panel = new SearchSpecialItemPanel(id, new PropertyModel(memberStorage, MemberPanelStorage.F_INDIRECT_ITEM + "." + IndirectSearchItemConfigurationType.F_INDIRECT.getLocalPart())) {
             @Override
             protected WebMarkupContainer initSearchItemField(String id) {

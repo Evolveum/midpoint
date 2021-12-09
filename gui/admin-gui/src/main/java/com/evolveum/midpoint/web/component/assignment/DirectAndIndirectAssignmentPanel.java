@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.search.AbstractSearchItemDefinition;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -199,8 +201,8 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
     }
 
     @Override
-    protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
-        List<SearchItemDefinition> defs = new ArrayList<>();
+    protected List<AbstractSearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
+        List<AbstractSearchItemDefinition> defs = new ArrayList<>();
         SearchFactory.addSearchRefDef(containerDef, AssignmentType.F_TARGET_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
         return defs;
     }

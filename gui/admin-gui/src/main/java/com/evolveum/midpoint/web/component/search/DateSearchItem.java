@@ -8,22 +8,17 @@ package com.evolveum.midpoint.web.component.search;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 /**
  * @author honchar
  */
-public class DateSearchItem extends PropertySearchItem {
+public class DateSearchItem extends AttributeSearchItem {
 
     private static final long serialVersionUID = 1L;
 
     private XMLGregorianCalendar fromDate;
     private XMLGregorianCalendar toDate;
 
-    public DateSearchItem(Search search, SearchItemDefinition definition) {
+    public DateSearchItem(Search search, AttributeSearchItemDefinition definition) {
         super(search, definition);
     }
 

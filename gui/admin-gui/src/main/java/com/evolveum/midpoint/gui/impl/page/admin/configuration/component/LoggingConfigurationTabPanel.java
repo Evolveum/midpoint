@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.web.component.search.AbstractSearchItemDefinition;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -112,9 +113,9 @@ public class LoggingConfigurationTabPanel extends BasePanel<PrismContainerWrappe
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<SearchItemDefinition> initSearchableItems(
+            protected List<AbstractSearchItemDefinition> initSearchableItems(
                     PrismContainerDefinition<ClassLoggerConfigurationType> containerDef) {
-                List<SearchItemDefinition> defs = new ArrayList<>();
+                List<AbstractSearchItemDefinition> defs = new ArrayList<>();
 
                 SearchFactory.addSearchPropertyDef(containerDef, ClassLoggerConfigurationType.F_APPENDER, defs);
                 SearchFactory.addSearchPropertyDef(containerDef, ClassLoggerConfigurationType.F_PACKAGE, defs);

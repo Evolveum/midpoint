@@ -27,7 +27,7 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 /**
  * @author lskublik
  */
-public class SearchTypePanel<C extends Containerable> extends AbstractSearchItemPanel<ContainerTypeSearchItem<C>> {
+public class SearchTypePanel<C extends Containerable> extends SearchItemPanel<ContainerTypeSearchItem<C>> {
 
     private static final long serialVersionUID = 1L;
 

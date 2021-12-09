@@ -35,6 +35,6 @@ public abstract class SpecialSearchItem extends SearchItem implements Serializab
 
     public abstract ObjectFilter createFilter(PageBase pageBase, VariablesMap variables);
 
-    public abstract SearchSpecialItemPanel createSpecialSearchPanel(String id);
+    public abstract SearchSpecialItemPanel createSearchItemPanel(String id);
 
 }

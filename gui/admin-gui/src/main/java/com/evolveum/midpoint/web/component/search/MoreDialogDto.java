@@ -21,7 +21,7 @@ public class MoreDialogDto implements Serializable {
 
     private String nameFilter;
 
-    private List<SearchItemDefinition> properties;
+    private List<AbstractSearchItemDefinition> properties;
 
     public String getNameFilter() {
         return nameFilter;
@@ -31,14 +31,14 @@ public class MoreDialogDto implements Serializable {
         this.nameFilter = nameFilter;
     }
 
-    public List<SearchItemDefinition> getProperties() {
+    public List<AbstractSearchItemDefinition> getProperties() {
         if (properties == null) {
             properties = new ArrayList<>();
         }
         return properties;
     }
 
-    public void setProperties(List<SearchItemDefinition> properties) {
+    public void setProperties(List<AbstractSearchItemDefinition> properties) {
         this.properties = properties;
     }
 }

@@ -39,7 +39,7 @@ import java.util.List;
  * @author Viliam Repan (lazyman)
  * @author lskublik
  */
-public class SearchFilterPanel extends AbstractSearchItemPanel<FilterSearchItem> {
+public class SearchFilterPanel extends SearchItemPanel<FilterSearchItem> {
 
     private static final long serialVersionUID = 1L;
 

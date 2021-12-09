@@ -11,6 +11,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 
+import com.evolveum.midpoint.web.component.search.AbstractSearchItemDefinition;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -137,7 +139,7 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     }
 
     @Override
-    protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<CaseWorkItemType> containerDef) {
+    protected List<AbstractSearchItemDefinition> initSearchableItems(PrismContainerDefinition<CaseWorkItemType> containerDef) {
         return new ArrayList<>();
     }
 

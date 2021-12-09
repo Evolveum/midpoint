@@ -34,7 +34,7 @@ public class SearchFormPanel<C extends Containerable> extends BasePanel<Search<C
         add(searchForm);
         searchForm.setOutputMarkupId(true);
 
-        SearchPanel<C> search = new SearchPanel<>(ID_SEARCH, getModel()) {
+        AbstractSearchPanel<C> search = new AbstractSearchPanel<>(ID_SEARCH, getModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override

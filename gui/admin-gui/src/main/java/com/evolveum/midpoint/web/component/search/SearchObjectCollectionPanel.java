@@ -8,25 +8,19 @@ package com.evolveum.midpoint.web.component.search;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-import com.evolveum.midpoint.web.component.input.CheckPanel;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 
 /**
  * @author lskublik
  */
-public class SearchObjectCollectionPanel extends AbstractSearchItemPanel<ObjectCollectionSearchItem> {
+public class SearchObjectCollectionPanel extends SearchItemPanel<ObjectCollectionSearchItem> {
 
     private static final long serialVersionUID = 1L;
 

@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.component.search.AbstractSearchItemDefinition;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -116,9 +117,9 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<PrismContainerW
             }
 
             @Override
-            protected List<SearchItemDefinition> initSearchableItems(
+            protected List<AbstractSearchItemDefinition> initSearchableItems(
                     PrismContainerDefinition<ObjectPolicyConfigurationType> containerDef) {
-                List<SearchItemDefinition> defs = new ArrayList<>();
+                List<AbstractSearchItemDefinition> defs = new ArrayList<>();
 
                 SearchFactory.addSearchRefDef(containerDef, ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
                 SearchFactory.addSearchPropertyDef(containerDef, ObjectPolicyConfigurationType.F_SUBTYPE, defs);

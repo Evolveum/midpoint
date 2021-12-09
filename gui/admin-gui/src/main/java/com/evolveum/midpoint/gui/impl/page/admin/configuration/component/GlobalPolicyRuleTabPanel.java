@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.web.component.search.AbstractSearchItemDefinition;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -110,9 +111,9 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
                     }
 
                     @Override
-                    protected List<SearchItemDefinition> initSearchableItems(
+                    protected List<AbstractSearchItemDefinition> initSearchableItems(
                             PrismContainerDefinition<GlobalPolicyRuleType> containerDef) {
-                        List<SearchItemDefinition> defs = new ArrayList<>();
+                        List<AbstractSearchItemDefinition> defs = new ArrayList<>();
 
                         SearchFactory.addSearchPropertyDef(containerDef, ItemPath
                                 .create(GlobalPolicyRuleType.F_FOCUS_SELECTOR, ObjectSelectorType.F_SUBTYPE), defs);

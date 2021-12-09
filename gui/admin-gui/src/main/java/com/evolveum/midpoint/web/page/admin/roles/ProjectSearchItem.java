@@ -45,7 +45,7 @@ public class ProjectSearchItem extends SpecialSearchItem {
     }
 
     @Override
-    public SearchSpecialItemPanel createSpecialSearchPanel(String id) {
+    public SearchSpecialItemPanel createSearchItemPanel(String id) {
         IModel projectModel = new PropertyModel(getMemberPanelStorage(), MemberPanelStorage.F_PROJECT) {
             @Override
             public void setObject(Object object) {

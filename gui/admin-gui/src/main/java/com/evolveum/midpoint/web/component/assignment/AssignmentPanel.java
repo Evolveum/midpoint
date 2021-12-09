@@ -18,7 +18,7 @@ import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.AssignmentsDetailsPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.*;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
@@ -80,8 +80,6 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.AssignmentListProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -231,7 +229,7 @@ public class AssignmentPanel<AH extends AssignmentHolderType> extends BasePanel<
                     }
 
                     @Override
-                    protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
+                    protected List<AbstractSearchItemDefinition> initSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
                         return createSearchableItems(containerDef);
                     }
 
@@ -343,8 +341,8 @@ public class AssignmentPanel<AH extends AssignmentHolderType> extends BasePanel<
         }
     }
 
-    protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
-        List<SearchItemDefinition> defs = new ArrayList<>();
+    protected List<AbstractSearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
+        List<AbstractSearchItemDefinition> defs = new ArrayList<>();
 
         if (getAssignmentType() == null) {
             SearchFactory.addSearchRefDef(containerDef, ItemPath.create(AssignmentType.F_TARGET_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
@@ -357,7 +355,7 @@ public class AssignmentPanel<AH extends AssignmentHolderType> extends BasePanel<
         SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
         SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
 
-        defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
+//        defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef)); //todo
 
         return defs;
 

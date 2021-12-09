@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
+import com.evolveum.midpoint.web.component.search.AbstractSearchItemDefinition;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -92,9 +93,8 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
                     }
 
                     @Override
-                    protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<CaseEventType> containerDef) {
-                        List<SearchItemDefinition> defs = new ArrayList<>();
-                        return defs;
+                    protected List<AbstractSearchItemDefinition> initSearchableItems(PrismContainerDefinition<CaseEventType> containerDef) {
+                        return new ArrayList<>();
                     }
 
                     @Override

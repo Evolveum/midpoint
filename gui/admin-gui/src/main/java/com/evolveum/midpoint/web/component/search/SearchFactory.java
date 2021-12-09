@@ -10,7 +10,12 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import org.apache.cxf.common.util.CollectionUtils;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
+import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
+
+import com.evolveum.midpoint.util.QNameUtil;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -20,6 +25,7 @@ import com.evolveum.midpoint.gui.impl.GuiChannel;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -184,35 +190,40 @@ public class SearchFactory {
         return createContainerSearch(type, defaultSearchItem, null, modelServiceLocator, useObjectCollection);
     }
 
-    public static <C extends Containerable> Search<C> createContainerSearch(ContainerTypeSearchItem<C> type, ItemPath defaultSearchItem, List<SearchItemDefinition> defaultAvailableDefs,
+    public static <C extends Containerable> Search<C> createContainerSearch(ContainerTypeSearchItem<C> type, ItemPath defaultSearchItem, List<AbstractSearchItemDefinition> defaultAvailableDefs,
             ModelServiceLocator modelServiceLocator, boolean useObjectCollection) {
         PrismContainerDefinition<C> containerDef = modelServiceLocator.getPrismContext().getSchemaRegistry()
                 .findContainerDefinitionByCompileTimeClass(type.getTypeClass());
         return createContainerSearch(type, containerDef, defaultSearchItem, defaultAvailableDefs, modelServiceLocator, useObjectCollection);
     }
 
-    public static <C extends Containerable> Search<C> createContainerSearch(ContainerTypeSearchItem<C> type, PrismContainerDefinition<C> containerDef, ItemPath defaultSearchItem, List<SearchItemDefinition> defaultAvailableDefs,
+    public static <C extends Containerable> Search<C> createContainerSearch(ContainerTypeSearchItem<C> type, PrismContainerDefinition<C> containerDef, ItemPath defaultSearchItem, List<AbstractSearchItemDefinition> defaultAvailableDefs,
             ModelServiceLocator modelServiceLocator, boolean useObjectCollection) {
 
-        List<SearchItemDefinition> availableDefs = defaultAvailableDefs;
+        List<AbstractSearchItemDefinition> availableDefs = defaultAvailableDefs;
         if (CollectionUtils.isEmpty(defaultAvailableDefs)) {
-            availableDefs = getAvailableDefinitions(containerDef, null, true, modelServiceLocator);
+            availableDefs = getAvailableAttributeDefinitions(containerDef, null,
+                    defaultSearchItem != null ? Collections.singletonList(defaultSearchItem) : null,
+                    true, modelServiceLocator);
         }
-
-        Search<C> search = new Search<>(type, availableDefs);
-
-        List<SearchItemDefinition> configuredSearchItemDefs = null;
+        List<AbstractSearchItemDefinition> configuredSearchItemDefs = null;
         if (useObjectCollection) {
             configuredSearchItemDefs = getConfiguredSearchItemDefinitions(availableDefs, modelServiceLocator, containerDef.getTypeName(), null, Search.PanelType.DEFAULT);
         }
         if (!CollectionUtils.isEmpty(configuredSearchItemDefs)) {
-            processSearchItemDefFromCompiledView(configuredSearchItemDefs, search, containerDef);
-        } else if (defaultSearchItem != null) {
-            ItemDefinition defaultItemDef = containerDef.findItemDefinition(defaultSearchItem);
-            if (defaultItemDef != null) {
-                search.addItem(defaultItemDef);
-            }
+            availableDefs.addAll(configuredSearchItemDefs);
         }
+
+        Search<C> search = new Search<>(type, availableDefs);
+
+//        if (!CollectionUtils.isEmpty(configuredSearchItemDefs)) {
+//            processSearchItemDefFromCompiledView(configuredSearchItemDefs, search, containerDef);
+//        } else if (defaultSearchItem != null) {
+//            ItemDefinition defaultItemDef = containerDef.findItemDefinition(defaultSearchItem);
+//            if (defaultItemDef != null) {
+//                search.addItem(defaultItemDef);
+//            }
+//        }
         return search;
     }
 
@@ -240,7 +251,9 @@ public class SearchFactory {
             boolean isOidSearchEnabled) {
 
         PrismObjectDefinition<?> objectDef = findObjectDefinition(type.getTypeClass(), discriminator, modelServiceLocator);
-        List<SearchItemDefinition> availableDefs = getAvailableDefinitions(objectDef, availableItemPath, useDefsFromSuperclass, modelServiceLocator);
+        List<AbstractSearchItemDefinition> availableDefs = getAvailableAttributeDefinitions(objectDef, availableItemPath,
+                CollectionUtils.isEmpty(fixedSearchItems) ? Collections.singletonList(ObjectType.F_NAME) : fixedSearchItems,
+                useDefsFromSuperclass, modelServiceLocator);
         boolean isFullTextSearchEnabled = isFullTextSearchEnabled(modelServiceLocator, type.getTypeClass());
 
         QName qNametype = WebComponentUtil.classToQName(modelServiceLocator.getPrismContext(), type.getTypeClass());
@@ -251,30 +264,35 @@ public class SearchFactory {
             searchMode = searchBox.getDefaultMode();
             allowedSearchModes = searchBox.getAllowedMode();
         }
-        Search<T> search = new Search<>(type, availableDefs, isFullTextSearchEnabled, searchMode, allowedSearchModes, isOidSearchEnabled);
+
 
         SchemaRegistry registry = modelServiceLocator.getPrismContext().getSchemaRegistry();
         PrismObjectDefinition<?> objDef = registry.findObjectDefinitionByCompileTimeClass(type.getTypeClass());
 
-        List<SearchItemDefinition> configuredSearchItemDefs = null;
+        List<AbstractSearchItemDefinition> configuredSearchItemDefs = null;
         if (useObjectCollection) {
             configuredSearchItemDefs = getConfiguredSearchItemDefinitions(availableDefs, modelServiceLocator, qNametype, collectionViewName, panelType);
         }
-        if (useObjectCollection && !CollectionUtils.isEmpty(configuredSearchItemDefs)) {
-            processSearchItemDefFromCompiledView(configuredSearchItemDefs, search, objDef);
-        } else {
-            if (CollectionUtils.isEmpty(fixedSearchItems)) {
-                fixedSearchItems = new ArrayList<>();
-                fixedSearchItems.add(ObjectType.F_NAME);
-            }
-            fixedSearchItems.forEach(searchItemPath -> {
-                ItemDefinition def = objDef.findItemDefinition(searchItemPath);
-                SearchItem item = search.addItem(def);
-                if (item != null) {
-                    item.setFixed(true);
-                }
-            });
+        if (CollectionUtils.isNotEmpty(configuredSearchItemDefs)) {
+            availableDefs.addAll(configuredSearchItemDefs);
         }
+//        if (useObjectCollection && !CollectionUtils.isEmpty(configuredSearchItemDefs)) {
+//            processSearchItemDefFromCompiledView(configuredSearchItemDefs, search, objDef);
+//        } else {
+//            if (CollectionUtils.isEmpty(fixedSearchItems)) {
+//                fixedSearchItems = new ArrayList<>();
+//                fixedSearchItems.add(ObjectType.F_NAME);
+//            }
+//            fixedSearchItems.forEach(searchItemPath -> {
+//                ItemDefinition def = objDef.findItemDefinition(searchItemPath);
+//                SearchItem item = search.addItem(def);
+//                if (item != null) {
+//                    item.setFixed(true);
+//                }
+//            });
+//        }
+
+        Search<T> search = new Search<>(type, availableDefs, isFullTextSearchEnabled, searchMode, allowedSearchModes, isOidSearchEnabled);
         search.setConfigurable(isAllowToConfigureSearchItems(modelServiceLocator, qNametype, collectionViewName, panelType));
         return search;
     }
@@ -304,30 +322,31 @@ public class SearchFactory {
             }
             configuredSearchItemDefs.add(new SearchItemDefinition(searchItemType));
         });
-        processSearchItemDefFromCompiledView(configuredSearchItemDefs, search, objDef);
+//        processSearchItemDefFromCompiledView(configuredSearchItemDefs, search, objDef);
         search.setConfigurable(false);
         return search;
     }
 
-    private static void processSearchItemDefFromCompiledView(List<SearchItemDefinition> configuredSearchItemDefs, Search search, PrismContainerDefinition containerDef) {
-        configuredSearchItemDefs.forEach(searchItemDef -> {
-            search.addItemToAllDefinitions(searchItemDef);
-            if (searchItemDef.isVisibleByDefault()) {
-                SearchItem item = null;
-                if (searchItemDef.getPath() != null) {
-                    ItemDefinition def = containerDef.findItemDefinition(searchItemDef.getPath());
-                    item = search.addItem(def);
-                    ((PropertySearchItem) item).setDisplayName(searchItemDef.getDisplayName());
-                } else if (searchItemDef.getPredefinedFilter() != null) {
-                    item = search.addItem(searchItemDef.getPredefinedFilter());
-                }
-                if (item != null) {
-                    item.setFixed(true);
-                    item.setDefinition(searchItemDef);
-                }
-            }
-        });
-    }
+//    private static void processSearchItemDefFromCompiledView(List<AbstractSearchItemDefinition> configuredSearchItemDefs,
+//            Search search, PrismContainerDefinition containerDef) {
+//        configuredSearchItemDefs.forEach(searchItemDef -> {
+//            search.addItemToAllDefinitions(searchItemDef);
+//            if (searchItemDef.isVisibleByDefault()) {
+//                SearchItem item = null;
+//                if (searchItemDef.getPath() != null) {
+//                    ItemDefinition def = containerDef.findItemDefinition(searchItemDef.getPath());
+//                    item = search.addItem(def);
+////                    ((AttributeSearchItem) item).setDisplayName(searchItemDef.getDisplayName());
+//                } else if (searchItemDef.getPredefinedFilter() != null) {
+//                    item = search.addItem(searchItemDef.getPredefinedFilter());
+//                }
+//                if (item != null) {
+//                    item.setFixed(true);
+//                    item.setDefinition(searchItemDef);
+//                }
+//            }
+//        });
+//    }
 
     public static <T extends ObjectType> PrismObjectDefinition findObjectDefinition(
             Class<T> type, ResourceShadowDiscriminator discriminator,
@@ -355,39 +374,58 @@ public class SearchFactory {
         }
     }
 
-    public static List<SearchItemDefinition> getConfiguredSearchItemDefinitions(List<SearchItemDefinition> availableDefinitions,
+    public static List<AbstractSearchItemDefinition> getConfiguredSearchItemDefinitions(List<AbstractSearchItemDefinition> availableDefinitions,
             ModelServiceLocator modelServiceLocator, QName type, String collectionViewName, Search.PanelType panelType) {
         SearchBoxConfigurationType searchConfig = getSearchBoxConfiguration(modelServiceLocator, type, collectionViewName, panelType);
         if (searchConfig == null) {
-            return null;
+            return new ArrayList<>();
         }
         SearchItemsType configuredSearchItems = searchConfig.getSearchItems();
         if (configuredSearchItems == null || CollectionUtils.isEmpty(configuredSearchItems.getSearchItem())) {
-            return null;
+            return new ArrayList<>();
         }
-        List<SearchItemDefinition> configuredSearchItemList = new ArrayList<>();
+        List<AbstractSearchItemDefinition> configuredSearchItemList = new ArrayList<>();
         configuredSearchItems.getSearchItem().forEach(searchItem -> {
-            for (SearchItemDefinition def : availableDefinitions) {
-                ItemPathType searchItemPath = new ItemPathType(def.getPath());
-                if (searchItem.getPath() != null && searchItem.getPath().equivalent(searchItemPath)) {
-                    def.setDisplayName(searchItem.getDisplayName());
-                    configuredSearchItemList.add(def);
-                    return;
+            AbstractSearchItemDefinition def = null;
+            if (searchItem.getPath() != null) {
+                def = getAttributeItemDef(availableDefinitions, searchItem);
+            } else if (searchItem.getFilter() != null || searchItem.getFilterExpression() != null) {
+                def = new FilterSearchItemDefinition(searchItem);
+                if (searchItem.getParameter() != null
+                        && QNameUtil.match(searchItem.getParameter().getType(), ObjectReferenceType.COMPLEX_TYPE)) {
+                    ObjectReferenceType ref = new ObjectReferenceType();
+                    List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(searchItem.getParameter().getTargetType());
+                    if (supportedTargets.size() == 1) {
+                        ref.setType(supportedTargets.iterator().next());
+                    }
+                    ((FilterSearchItemDefinition)def).setInput(new SearchValue<>(ref));
                 }
             }
-        });
-        configuredSearchItems.getSearchItem().forEach(searchItem -> {
-            if (searchItem.getFilter() != null || searchItem.getFilterExpression() != null) {
-                configuredSearchItemList.add(new SearchItemDefinition(searchItem));
-                return;
+            if (def != null) {
+                def.setDisplayName(searchItem.getDisplayName());
+                def.setDescription(searchItem.getDescription());
+                def.setVisibleByDefault(!Boolean.FALSE.equals(searchItem.isVisibleByDefault()));
+                def.setDisplayed(def.isVisibleByDefault());
+                configuredSearchItemList.add(def);
             }
         });
         return configuredSearchItemList;
     }
 
-    public static <C extends Containerable> List<SearchItemDefinition> getAvailableDefinitions(
-            PrismContainerDefinition<C> objectDef, List<ItemPath> availableItemPath, boolean useDefsFromSuperclass, ModelServiceLocator modelServiceLocator) {
-        List<SearchItemDefinition> definitions = new ArrayList<>();
+    private static AttributeSearchItemDefinition getAttributeItemDef(List<AbstractSearchItemDefinition> availableDefinitions,
+            SearchItemType searchItem) {
+        List<AttributeSearchItemDefinition> attributeItems = (List<AttributeSearchItemDefinition>) availableDefinitions.stream()
+                .filter(attrDef -> attrDef instanceof AttributeSearchItemDefinition &&
+                        searchItem.getPath().equivalent(((AttributeSearchItemDefinition) attrDef).getPath()));
+        if (attributeItems.size() != 1) {
+            return null;
+        }
+        return attributeItems.get(0);
+    }
+
+    public static <C extends Containerable> List<AbstractSearchItemDefinition> getAvailableAttributeDefinitions(PrismContainerDefinition<C> objectDef,
+            List<ItemPath> availableItemPath, List<ItemPath> fixedSearchItems, boolean useDefsFromSuperclass, ModelServiceLocator modelServiceLocator) {
+        List<AbstractSearchItemDefinition> definitions = new ArrayList<>();
 
         if (objectDef == null) {
             return definitions;
@@ -402,7 +440,10 @@ public class SearchFactory {
                 for (ItemPath path : paths) {
                     ItemDefinition<?> def = objectDef.findItemDefinition(path);
                     if (def != null) {
-                        SearchItemDefinition searchItemDef = new SearchItemDefinition(path, def, getAllowedValues(path));
+                        AttributeSearchItemDefinition searchItemDef = new AttributeSearchItemDefinition(path, def, getAllowedValues(path));
+                        if (ItemPathCollectionsUtil.containsEquivalent(fixedSearchItems, path)) {
+                            searchItemDef.setFixed(true);
+                        }
                         definitions.add(searchItemDef);
                     }
                 }
@@ -489,10 +530,10 @@ public class SearchFactory {
         }
     }
 
-    public static <C extends Containerable> List<SearchItemDefinition> createExtensionDefinitionList(
+    public static <C extends Containerable> List<AbstractSearchItemDefinition> createExtensionDefinitionList(
             PrismContainerDefinition<C> objectDef) {
 
-        List<SearchItemDefinition> searchItemDefinitions = new ArrayList<>();
+        List<AbstractSearchItemDefinition> searchItemDefinitions = new ArrayList<>();
 
         ItemPath extensionPath = ObjectType.F_EXTENSION;
 
@@ -528,32 +569,32 @@ public class SearchFactory {
 
     public static <C extends Containerable> void addSearchRefDef(
             PrismContainerDefinition<C> containerDef, ItemPath path,
-            List<SearchItemDefinition> defs, AreaCategoryType category, PageBase pageBase) {
+            List<AbstractSearchItemDefinition> defs, AreaCategoryType category, PageBase pageBase) {
         PrismReferenceDefinition refDef = containerDef.findReferenceDefinition(path);
         if (refDef == null) {
             return;
         }
         if (pageBase == null) {
-            defs.add(new SearchItemDefinition(path, refDef,
+            defs.add(new AttributeSearchItemDefinition(path, refDef,
                     Collections.singletonList(WebComponentUtil.getDefaultRelationOrFail())));
             return;
         }
-        defs.add(new SearchItemDefinition(path, refDef,
+        defs.add(new AttributeSearchItemDefinition(path, refDef,
                 WebComponentUtil.getCategoryRelationChoices(category, pageBase)));
     }
 
     public static <C extends Containerable> void addSearchPropertyDef(
-            PrismContainerDefinition<C> containerDef, ItemPath path, List<SearchItemDefinition> defs) {
+            PrismContainerDefinition<C> containerDef, ItemPath path, List<AbstractSearchItemDefinition> defs) {
         addSearchPropertyDef(containerDef, path, defs, null);
     }
 
     public static <C extends Containerable> void addSearchPropertyDef(
-            PrismContainerDefinition<C> containerDef, ItemPath path, List<SearchItemDefinition> defs, String key) {
+            PrismContainerDefinition<C> containerDef, ItemPath path, List<AbstractSearchItemDefinition> defs, String key) {
         PrismPropertyDefinition propDef = containerDef.findPropertyDefinition(path);
         if (propDef == null) {
             return;
         }
-        SearchItemDefinition searchItem = new SearchItemDefinition(path, propDef, getAllowedValues(path));
+        AttributeSearchItemDefinition searchItem = new AttributeSearchItemDefinition(path, propDef, getAllowedValues(path));
         if (key != null) {
             PolyStringType displayName = new PolyStringType(propDef.getItemName().getLocalPart());
             PolyStringTranslationType translation = new PolyStringTranslationType();

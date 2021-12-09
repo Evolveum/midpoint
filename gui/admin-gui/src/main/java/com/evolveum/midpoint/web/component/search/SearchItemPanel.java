@@ -40,7 +40,7 @@ import java.util.List;
  * @author Viliam Repan (lazyman)
  * @author lskublik
  */
-public abstract class AbstractSearchItemPanel<S extends SearchItem> extends BasePanel<S> {
+public class SearchItemPanel<S extends SearchItem> extends BasePanel<S> {
 
     private static final long serialVersionUID = 1L;
 
@@ -50,7 +50,7 @@ public abstract class AbstractSearchItemPanel<S extends SearchItem> extends Base
     private static final String ID_HELP = "help";
     private static final String ID_REMOVE_BUTTON = "removeButton";
 
-    public AbstractSearchItemPanel(String id, IModel<S> model) {
+    public SearchItemPanel(String id, IModel<S> model) {
         super(id, model);
     }
 
@@ -118,7 +118,7 @@ public abstract class AbstractSearchItemPanel<S extends SearchItem> extends Base
     }
 
     protected boolean canRemoveSearchItem() {
-        return getModelObject().canRemoveSearchItem();
+        return getModelObject().canRemoveSearchItem() && getModelObject().getSearch().isConfigurable();
     }
 
     protected IModel<String> createLabelModel() {
@@ -137,13 +137,15 @@ public abstract class AbstractSearchItemPanel<S extends SearchItem> extends Base
         return Model.of(item.getTitle(getPageBase()));
     }
 
-    protected void searchPerformed(AjaxRequestTarget target){
+    protected void searchPerformed(AjaxRequestTarget target) {
+        //refactor to use WebComponentUtil.getSubmitOnEnterKeyDownBehavior
     }
 
     private void deletePerformed(AjaxRequestTarget target) {
         SearchItem item = getModelObject();
-        Search search = item.getSearch();
-        search.delete(item);
+        item.getSearchItemDefinition().setDisplayed(false);
+//        Search search = item.getSearch();
+//        search.delete(item);
 
         SearchPanel panel = findParent(SearchPanel.class);
         panel.refreshSearchForm(target);

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -63,6 +64,8 @@ import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -149,16 +152,18 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
         };
     }
 
-    private List<SearchItemDefinition> createPropertiesList() {
-        List<SearchItemDefinition> list = new ArrayList<>();
+    private List<AbstractSearchItemDefinition> createPropertiesList() {
+        List<AbstractSearchItemDefinition> list = new ArrayList<>();
 
         List<ItemPath> specialItemPaths = new ArrayList<>();
-        getModelObject().getSpecialItems().stream().filter(specItem -> (specItem instanceof PropertySearchItem))
-                .forEach(specItem -> specialItemPaths.add(((PropertySearchItem<?>) specItem).getPath()));
+        getModelObject().getSpecialItems().stream().filter(specItem -> (specItem instanceof AttributeSearchItem))
+                .forEach(specItem -> specialItemPaths.add(((AttributeSearchItem<?>) specItem).getPath()));
 
         Search search = getModelObject();
-        search.getAllDefinitions().stream().filter((Predicate<SearchItemDefinition>) def -> !ItemPathCollectionsUtil.containsEquivalent(specialItemPaths, def.getPath()))
-                .forEach((Consumer<SearchItemDefinition>) def -> list.add(def));
+        search.getAllDefinitions().stream().filter((Predicate<AbstractSearchItemDefinition>) def ->
+                (def instanceof AttributeSearchItemDefinition) &&
+                !ItemPathCollectionsUtil.containsEquivalent(specialItemPaths, ((AttributeSearchItemDefinition)def).getPath()))
+                .forEach((Consumer<AbstractSearchItemDefinition>) def -> list.add(def));
         Collections.sort(list);
 
         return list;
@@ -224,7 +229,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
                 Search search = getModelObject();
                 if (search.getAllowedSearchType().size() == 1
                         && SearchBoxModeType.BASIC.equals(search.getAllowedSearchType().get(0))) {
-                    return !search.getItems().isEmpty() || !search.getAvailableDefinitions().isEmpty();
+                    return !search.getItems().isEmpty(); //|| !search.getAvailableDefinitions().isEmpty();
                 }
                 return true;
             }
@@ -332,10 +337,11 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
         refreshSearchForm(target);
     }
 
-    private void addOneItemPerformed(SearchItemDefinition property, AjaxRequestTarget target) {
-        Search search = getModelObject();
-        SearchItem item = search.addItem(property);
-        item.setEditWhenVisible(true);
+    private void addOneItemPerformed(AbstractSearchItemDefinition searchItemDef, AjaxRequestTarget target) {
+        searchItemDef.setDisplayed(true);
+//        Search search = getModelObject();
+//        SearchItem item = search.addItem(property);
+//        item.setEditWhenVisible(true);
 
         refreshSearchForm(target);
     }
@@ -344,15 +350,14 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
         Search search = getModelObject();
 
         MoreDialogDto dto = moreDialogModel.getObject();
-        for (SearchItemDefinition property : dto.getProperties()) {
-            if (!property.isSelected()) {
+        for (AbstractSearchItemDefinition searchItem : dto.getProperties()) {
+            if (!searchItem.isSelected()) {
                 continue;
             }
-
-            search.addItem(property);
-            property.setSelected(false);
+            searchItem.setDisplayed(true);
+//            search.addItem(searchItem);
+            searchItem.setSelected(false);
         }
-
         refreshSearchForm(target);
     }
 
@@ -404,6 +409,17 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
         moreDialogModel.reset();
     }
 
+    public <SIP extends SearchItemPanel, S extends SearchItem> SIP createSearchItemPanel(String panelId, IModel<S> searchItemModel){
+        Class<?> panelClass = searchItemModel.getObject().getSearchItemPanelClass();
+        Constructor<?> constructor;
+        try {
+            constructor = panelClass.getConstructor(String.class, IModel.class);
+            return (SIP) constructor.newInstance(panelId, searchItemModel);
+        } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            throw new SystemException("Cannot instantiate " + panelClass, e);
+        }
+    }
+
     class BasicSearchFragment extends Fragment {
         private static final long serialVersionUID = 1L;
 
@@ -420,37 +436,37 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
 
                 @Override
                 protected void populateItem(ListItem<S> item) {
-                    AbstractSearchItemPanel searchItem;
-                    if (item.getModelObject() instanceof FilterSearchItem) {
-                        searchItem = new SearchFilterPanel(ID_ITEM, (IModel<FilterSearchItem>) item.getModel()) {
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            protected boolean canRemoveSearchItem() {
-                                return super.canRemoveSearchItem() && AbstractSearchPanel.this.getModelObject().isConfigurable();
-                            }
-
-                            @Override
-                            protected void searchPerformed(AjaxRequestTarget target) {
-                                AbstractSearchPanel.this.searchPerformed(target);
-                            }
-                        };
-                    } else {
-                        searchItem = new SearchPropertyPanel<T>(ID_ITEM, (IModel<PropertySearchItem<T>>) item.getModel()) {
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            protected boolean canRemoveSearchItem() {
-                                return super.canRemoveSearchItem() && AbstractSearchPanel.this.getModelObject().isConfigurable();
-                            }
-
-                            @Override
-                            protected void searchPerformed(AjaxRequestTarget target) {
-                                AbstractSearchPanel.this.searchPerformed(target);
-                            }
-                        };
-                    }
-                    item.add(searchItem);
+//                    AbstractSearchItemPanel searchItem;
+//                    if (item.getModelObject() instanceof FilterSearchItem) {
+//                        searchItem = new SearchFilterPanel(ID_ITEM, (IModel<FilterSearchItem>) item.getModel()) {
+//                            private static final long serialVersionUID = 1L;
+//
+//                            @Override
+//                            protected boolean canRemoveSearchItem() {
+//                                return super.canRemoveSearchItem() && AbstractSearchPanel.this.getModelObject().isConfigurable();
+//                            }
+//
+//                            @Override
+//                            protected void searchPerformed(AjaxRequestTarget target) {
+//                                AbstractSearchPanel.this.searchPerformed(target);
+//                            }
+//                        };
+//                    } else {
+//                        searchItem = new SearchPropertyPanel<T>(ID_ITEM, (IModel<PropertySearchItem<T>>) item.getModel()) {
+//                            private static final long serialVersionUID = 1L;
+//
+//                            @Override
+//                            protected boolean canRemoveSearchItem() {
+//                                return super.canRemoveSearchItem() && AbstractSearchPanel.this.getModelObject().isConfigurable();
+//                            }
+//
+//                            @Override
+//                            protected void searchPerformed(AjaxRequestTarget target) {
+//                                AbstractSearchPanel.this.searchPerformed(target);
+//                            }
+//                        };
+//                    }
+                    item.add(createSearchItemPanel(ID_ITEM, item.getModel()));
                 }
             };
 //            items.add(createVisibleBehaviour(SearchBoxModeType.BASIC));//todo
@@ -478,7 +494,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
                 @Override
                 public boolean isVisible() {
                     Search search = getModelObject();
-                    return !search.getAvailableDefinitions().isEmpty();
+                    return !search.getAllDefinitions().isEmpty();
                 }
             });
             more.setOutputMarkupId(true);
@@ -496,12 +512,12 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
             propList.setOutputMarkupId(true);
             popover.add(propList);
 
-            ListView properties = new ListView<SearchItemDefinition>(ID_PROPERTIES,
+            ListView properties = new ListView<AbstractSearchItemDefinition>(ID_PROPERTIES,
                     new PropertyModel<>(moreDialogModel, MoreDialogDto.F_PROPERTIES)) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
-                protected void populateItem(final ListItem<SearchItemDefinition> item) {
+                protected void populateItem(final ListItem<AbstractSearchItemDefinition> item) {
                     CheckBox check = new CheckBox(ID_CHECK,
                             new PropertyModel<>(item.getModel(), SearchItemDefinition.F_SELECTED));
                     check.add(new AjaxFormComponentUpdatingBehavior("change") {
@@ -542,42 +558,43 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
                     help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(helpModel.getObject())));
                     item.add(help);
 
-                    item.add(new VisibleEnableBehaviour() {
+                    item.add(new VisibleBehaviour(() -> !item.getModelObject().isDisplayed()));
+//                    item.add(new VisibleEnableBehaviour() {
+//
+//                        private static final long serialVersionUID = 1L;
+//
+//                        @Override
+//                        public boolean isVisible() {
+//                            AbstractSearchItemDefinition property = item.getModelObject();
 
-                        private static final long serialVersionUID = 1L;
+//                            Search<C> search = AbstractSearchPanel.this.getModelObject();
+//                            if (!search.getAvailableDefinitions().contains(property)) {
+//                                return false;
+//                            }
+//
+//                            for (SearchItem searchItem : search.getItems()) {
+//                                if (searchItem.getSearchItemDefinition().equals(property)) {
+//                                    return false;
+//                                }
+//                                if (searchItem instanceof AttributeSearchItem) {
+//                                    ItemPath propertyPath = property.getPath();
+//                                    if (propertyPath != null && QNameUtil.match(propertyPath.lastName(), ((AttributeSearchItem) searchItem).getPath().lastName())) {
+//                                        return false;
+//                                    }
+//                                }
+//                            }
 
-                        @Override
-                        public boolean isVisible() {
-                            SearchItemDefinition property = item.getModelObject();
-
-                            Search<C> search = AbstractSearchPanel.this.getModelObject();
-                            if (!search.getAvailableDefinitions().contains(property)) {
-                                return false;
-                            }
-
-                            for (SearchItem searchItem : search.getItems()) {
-                                if (searchItem.getDefinition().equals(property)) {
-                                    return false;
-                                }
-                                if (searchItem instanceof PropertySearchItem) {
-                                    ItemPath propertyPath = property.getPath();
-                                    if (propertyPath != null && QNameUtil.match(propertyPath.lastName(), ((PropertySearchItem) searchItem).getPath().lastName())) {
-                                        return false;
-                                    }
-                                }
-                            }
-
-                            MoreDialogDto dto = moreDialogModel.getObject();
-                            String nameFilter = dto.getNameFilter();
-                            String propertyName = property.getName().toLowerCase();
-                            if (StringUtils.isNotEmpty(nameFilter)
-                                    && !propertyName.contains(nameFilter.toLowerCase())) {
-                                return false;
-                            }
-
-                            return true;
-                        }
-                    });
+//                            MoreDialogDto dto = moreDialogModel.getObject();
+//                            String nameFilter = dto.getNameFilter();
+//                            String propertyName = property.getName().toLowerCase();
+//                            if (StringUtils.isNotEmpty(nameFilter)
+//                                    && !propertyName.contains(nameFilter.toLowerCase())) {
+//                                return false;
+//                            }
+//
+//                            return true;
+//                        }
+//                    });
                 }
             };
             propList.add(properties);

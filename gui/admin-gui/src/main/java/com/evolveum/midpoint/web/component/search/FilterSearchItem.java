@@ -10,8 +10,11 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -38,7 +41,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 /**
  * @author honchar
  */
-public class FilterSearchItem extends SearchItem {
+public class FilterSearchItem extends SearchItem<FilterSearchItemDefinition> {
 
     private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(FilterSearchItem.class);
@@ -51,8 +54,8 @@ public class FilterSearchItem extends SearchItem {
     private DisplayableValue<? extends Serializable> input = new SearchValue<>();
     private List<DisplayableValue<?>> allowedValues = null;
 
-    public FilterSearchItem(Search search, @NotNull SearchItemType predefinedFilter) {
-        super(search);
+    public FilterSearchItem(Search search, @NotNull FilterSearchItemDefinition filterDef) {
+        super(search, filterDef);
         Validate.notNull(predefinedFilter, "Filter must not be null.");
         this.predefinedFilter = predefinedFilter;
 //        setApplyFilter(false);
@@ -66,6 +69,16 @@ public class FilterSearchItem extends SearchItem {
     @Override
     public Type getSearchItemType() {
         return Type.FILTER;
+    }
+
+    @Override
+    public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
+        return null; //todo implement
+    }
+
+    @Override
+    public Class<SearchFilterPanel> getSearchItemPanelClass() {
+        return SearchFilterPanel.class;
     }
 
     @Override

@@ -37,20 +37,20 @@ import javax.xml.namespace.QName;
  * @author Viliam Repan (lazyman)
  * @author lskublik
  */
-public class SearchPropertyPanel<T extends Serializable> extends AbstractSearchItemPanel<PropertySearchItem<T>> {
+public class SearchPropertyPanel<T extends Serializable> extends SearchItemPanel<AttributeSearchItem<T>> {
 
     private static final long serialVersionUID = 1L;
 
     private static final String ID_SEARCH_ITEM_FIELD = "searchItemField";
 
-    public SearchPropertyPanel(String id, IModel<PropertySearchItem<T>> model) {
+    public SearchPropertyPanel(String id, IModel<AttributeSearchItem<T>> model) {
         super(id, model);
     }
 
     @Override
     protected void onConfigure() {
         super.onConfigure();
-        PropertySearchItem<T> item = getModelObject();
+        AttributeSearchItem<T> item = getModelObject();
         if (!item.isEditWhenVisible()) {
             return;
         }
@@ -60,13 +60,13 @@ public class SearchPropertyPanel<T extends Serializable> extends AbstractSearchI
 
     protected void initSearchItemField(WebMarkupContainer searchItemContainer) {
         Component searchItemField;
-        PropertySearchItem<T> item = getModelObject();
+        AttributeSearchItem<T> item = getModelObject();
         IModel<List<DisplayableValue<?>>> choices = null;
         switch (item.getSearchItemType()) {
             case REFERENCE:
                 searchItemField = new ReferenceValueSearchPanel(ID_SEARCH_ITEM_FIELD,
                         new PropertyModel<>(getModel(), "value.value"),
-                        (PrismReferenceDefinition) item.getDefinition().getDef()){
+                        (PrismReferenceDefinition) item.getSearchItemDefinition().getDef()){
                     @Override
                     public Boolean isItemPanelEnabled() {
                         return item.isEnabled();
@@ -105,7 +105,7 @@ public class SearchPropertyPanel<T extends Serializable> extends AbstractSearchI
                         new PropertyModel(getModel(), "value.value"));
                 break;
             case TEXT:
-                PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(item.getDefinition().getDef(), getPageBase());
+                PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(item.getSearchItemDefinition().getDef(), getPageBase());
                 if (lookupTable != null) {
                     searchItemField = createAutoCompetePanel(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"),
                             lookupTable.asObjectable());

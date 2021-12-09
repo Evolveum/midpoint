@@ -48,7 +48,7 @@ public class ScopeSearchItem extends SpecialSearchItem {
     }
 
     @Override
-    public SearchSpecialItemPanel createSpecialSearchPanel(String id){
+    public SearchSpecialItemPanel createSearchItemPanel(String id){
         return new SearchSpecialItemPanel(id, new PropertyModel(scopeConfigModel, ScopeSearchItemConfigurationType.F_DEFAULT_VALUE.getLocalPart())) {
 
 

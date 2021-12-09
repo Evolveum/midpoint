@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.search.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -26,10 +28,6 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchItem;
-import com.evolveum.midpoint.web.component.search.SearchSpecialItemPanel;
-import com.evolveum.midpoint.web.component.search.SpecialSearchItem;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -173,7 +171,12 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
             }
 
             @Override
-            public SearchSpecialItemPanel createSpecialSearchPanel(String id){
+            public Class<SearchFilterPanel> getSearchItemPanelClass() {
+                return SearchFilterPanel.class;
+            }
+
+            @Override
+            public SearchSpecialItemPanel createSearchItemPanel(String id){
                 return new SearchSpecialItemPanel(id, new PropertyModel(getRoleCatalogStorage(), RoleCatalogStorage.F_ORG_SEARCH_SCOPE)) {
                     @Override
                     protected WebMarkupContainer initSearchItemField(String id) {

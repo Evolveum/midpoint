@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assi
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.web.component.search.AbstractSearchItemDefinition;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -69,7 +70,7 @@ public class AbstractInducementPanel<AR extends AbstractRoleType> extends Abstra
     }
 
     @Override
-    protected void addSpecificSearchableItems(PrismContainerDefinition<AssignmentType> containerDef, List<SearchItemDefinition> defs) {
+    protected void addSpecificSearchableItems(PrismContainerDefinition<AssignmentType> containerDef, List<AbstractSearchItemDefinition> defs) {
 
     }
 

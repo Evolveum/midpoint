@@ -6,12 +6,76 @@
  */
 package com.evolveum.midpoint.web.component.search;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import java.io.Serializable;
 
-public abstract class AbstractSearchItemDefinition<D extends AbstractSearchItemDefinition> implements Serializable, Comparable<D> {
+public abstract class AbstractSearchItemDefinition implements Serializable, Comparable<AbstractSearchItemDefinition> {
+
+    protected boolean displayed;
+    protected boolean visibleByDefault = true;
+    private PolyStringType displayName;
+    private String description;
+    private boolean fixed;
+    private boolean isSelected = false;
+
+    public abstract String getName();
+
+    public abstract String getHelp();
+
+    public abstract <SI extends SearchItem> SI createSearchItem();
+
+    public boolean isVisibleByDefault() {
+        return visibleByDefault;
+    }
+
+    public void setVisibleByDefault(boolean visibleByDefault) {
+        this.visibleByDefault = visibleByDefault;
+    }
+
+    public PolyStringType getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(PolyStringType displayName) {
+        this.displayName = displayName;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public boolean isDisplayed() {
+        return displayed;
+    }
+
+    public void setDisplayed(boolean displayed) {
+        this.displayed = displayed;
+    }
+
+    public boolean isFixed() {
+        return fixed;
+    }
+
+    public void setFixed(boolean fixed) {
+        this.fixed = fixed;
+    }
+
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public void setSelected(boolean selected) {
+        isSelected = selected;
+    }
 
     @Override
-    public int compareTo(D def) {
+    public int compareTo(AbstractSearchItemDefinition def) {
         String n1 = getName();
         String n2 = def.getName();
 
@@ -20,9 +84,4 @@ public abstract class AbstractSearchItemDefinition<D extends AbstractSearchItemD
         }
         return String.CASE_INSENSITIVE_ORDER.compare(n1, n2);
     }
-
-    public abstract String getName();
-
-    public abstract String getHelp();
-
 }
