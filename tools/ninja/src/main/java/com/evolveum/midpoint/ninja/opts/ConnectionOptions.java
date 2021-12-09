@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,6 +8,7 @@ package com.evolveum.midpoint.ninja.opts;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
 import com.evolveum.midpoint.ninja.util.URIConverter;
 
 /**
@@ -36,27 +37,27 @@ public class ConnectionOptions {
 
     public static final String P_OFFLINE_LONG = "--offline";
 
-
-    @Parameter(names = {P_URL, P_URL_LONG}, validateWith = URIConverter.class, descriptionKey = "connection.url")
+    @Parameter(names = { P_URL, P_URL_LONG }, validateWith = URIConverter.class, descriptionKey = "connection.url")
     private String url;
 
-    @Parameter(names = {P_USERNAME, P_USERNAME_LONG}, descriptionKey = "connection.username")
+    @Parameter(names = { P_USERNAME, P_USERNAME_LONG }, descriptionKey = "connection.username")
     private String username;
 
-    @Parameter(names = {P_PASSWORD, P_PASSWORD_LONG}, descriptionKey = "connection.password")
+    @Parameter(names = { P_PASSWORD, P_PASSWORD_LONG }, descriptionKey = "connection.password")
     private String password;
 
-    @Parameter(names = {P_ASK_PASSWORD, P_ASK_PASSWORD_LONG}, password = true,
+    @Parameter(names = { P_ASK_PASSWORD, P_ASK_PASSWORD_LONG }, password = true,
             descriptionKey = "connection.askPassword")
     private String askPassword;
 
-    @Parameter(names = {P_MIDPOINT_HOME, P_MIDPOINT_HOME_LONG}, descriptionKey = "connection.midpointHome")
+    @Parameter(names = { P_MIDPOINT_HOME, P_MIDPOINT_HOME_LONG }, descriptionKey = "connection.midpointHome")
     private String midpointHome;
 
-    @Parameter(names = {P_WEBSERVICE, P_WEBSERVICE_LONG}, descriptionKey = "connection.useWebservice", hidden = true)   //todo remove hidden when implementation is done
+    @Parameter(names = { P_WEBSERVICE, P_WEBSERVICE_LONG }, descriptionKey = "connection.useWebservice", hidden = true)
+    //todo remove hidden when implementation is done
     private boolean useWebservice;
 
-    @Parameter(names = {P_OFFLINE_LONG}, descriptionKey = "connection.offline")
+    @Parameter(names = { P_OFFLINE_LONG }, descriptionKey = "connection.offline")
     private boolean offline;
 
     public String getAskPassword() {

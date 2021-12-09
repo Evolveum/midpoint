@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.ninja.impl;
 
+import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.REPOSITORY_CONFIGURATION;
+
 import java.nio.charset.Charset;
 
 import com.beust.jcommander.JCommander;
@@ -17,12 +19,12 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.ninja.opts.BaseOptions;
 import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
-import com.evolveum.midpoint.ninja.util.InitializationBeanPostprocessor;
 import com.evolveum.midpoint.ninja.util.Log;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.schema.SchemaService;
 
 /**
@@ -105,19 +107,10 @@ public class NinjaContext {
 
         String midpointHome = options.getMidpointHome();
 
-        String jdbcUrl = options.getUrl();
-        String jdbcUsername = options.getUsername();
-        String jdbcPassword = getPassword(options);
-
         System.setProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY, midpointHome);
-
-        InitializationBeanPostprocessor postprocessor = new InitializationBeanPostprocessor();
-        postprocessor.setJdbcUrl(jdbcUrl);
-        postprocessor.setJdbcUsername(jdbcUsername);
-        postprocessor.setJdbcPassword(jdbcPassword);
+        overrideRepoConfiguration(options);
 
         GenericXmlApplicationContext ctx = new GenericXmlApplicationContext();
-        ctx.addBeanFactoryPostProcessor(beanFactory -> beanFactory.addBeanPostProcessor(postprocessor));
         ctx.load(CTX_NINJA);
         ctx.load(connectRepo ? CTX_MIDPOINT : CTX_MIDPOINT_NO_REPO);
         ctx.refresh();
@@ -126,6 +119,44 @@ public class NinjaContext {
 
         repository = connectRepo ? context.getBean(REPOSITORY_SERVICE_BEAN, RepositoryService.class) : null;
         auditService = connectRepo ? context.getBean(AUDIT_SERVICE_BEAN, AuditService.class) : null;
+    }
+
+    private void overrideRepoConfiguration(ConnectionOptions options) {
+        if (options.getUrl() != null) {
+            System.setProperty(REPOSITORY_CONFIGURATION + '.' + JdbcRepositoryConfiguration.PROPERTY_JDBC_URL,
+                    options.getUrl());
+            System.setProperty(REPOSITORY_CONFIGURATION + '.' + JdbcRepositoryConfiguration.PROPERTY_DATABASE,
+                    getDatabase(options.getUrl()));
+        }
+
+        if (options.getUsername() != null) {
+            System.setProperty(REPOSITORY_CONFIGURATION + '.' + JdbcRepositoryConfiguration.PROPERTY_JDBC_USERNAME,
+                    options.getUsername());
+        }
+
+        if (options.getPassword() != null) {
+            System.setProperty(REPOSITORY_CONFIGURATION + '.' + JdbcRepositoryConfiguration.PROPERTY_JDBC_PASSWORD,
+                    options.getPassword());
+        }
+    }
+
+    private String getDatabase(String url) {
+        String postfix = url.replaceFirst("jdbc:", "").toLowerCase();
+        if (postfix.startsWith("postgresql")) {
+            return "postgresql";
+        } else if (postfix.startsWith("sqlserver")) {
+            return "sqlserver";
+        } else if (postfix.startsWith("mysql")) {
+            return "mysql";
+        } else if (postfix.startsWith("mariadb")) {
+            return "mariadb";
+        } else if (postfix.startsWith("oracle")) {
+            return "oracle";
+        } else if (postfix.startsWith("h2")) {
+            return "h2";
+        }
+
+        throw new IllegalStateException("Unknown database for url " + url);
     }
 
     public ApplicationContext getApplicationContext() {
