@@ -24,7 +24,7 @@ This documentation may not be suitable for beginners.
 xref:/book[MidPoint book] may be a good starting point instead.
 
 
-=== The Basics
+== Basic Structure
 
 Mapping consists of four basic parts:
 
@@ -109,6 +109,7 @@ The mapping is represented in the JSON/XML form as follows:
 </mapping>
 ----
 
+Mappings are xref:mapping-relativity/[relativistic], reactive to changes in mapping sources in a smart way.
 
 NOTE: This mapping that takes user's `givenName` and `familyName` to produce `cn` of an account should be considered only an example, an illustration, not a best practice.
 Computing `cn` attribute in such a direct way is not a good idea.
@@ -117,9 +118,12 @@ In most cases, `givenName` and `familyName` should be used to compute user's `fu
 
 == Sources
 
-Sources are primary input for a mapping.
+Sources form primary inputs for a mapping.
+Mapping source definitions point to data items that the mapping works with.
+The mapping will react to changes of source data, triggering re-evaluation of the mapping.
 
-TODO: sources refer to a path in an object that is part of clockwork/project computation, which is usually a _focus_ or a _projection_.
+The most important part of mapping source definitions is specification of the xref:/midpoint/reference/concepts/item-path/[item path].
+The path refers to an item in an object, which is part of xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[clockwork/project] computation, which is usually a _focus_ or a _projection_.
 
 .Mapping source definition
 [source,json]
@@ -139,26 +143,67 @@ TODO: sources refer to a path in an object that is part of clockwork/project com
 </source>
 ----
 
+For the mapping to operate correctly, the sources must point to an object appropriate for the clockwork phase in which the mapping is evaluated.
+E.g. source of _inbound_ mapping must point to a _projection_, source of _outbound_ mapping must point to a focus.
+The appropriate object is usually set up as _default context_ for the mapping, which means that relative item paths should be conveniently used to point to appropriate object:
+
+.Mapping source definition (relative path)
+[source,json]
+----
+{
+    "source" : {
+        "path" : "familyName"
+    }
+}
+----
+
+.Mapping source definition (relative path)
+[source,xml]
+----
+<source>
+    <path>familyName</path>
+</source>
+----
+
+More details about mapping context is provided below.
+
 === Relativity of Sources
 
-TODO: sources are relative (contain deltas), changes in the source trigger mapping computation, deltas are taken into consideration when evaluating the mapping.
-E.g. mapping may recompute only the values that were changed.
+Mappings are xref:mapping-relativity/[relativistic] in several ways.
+Mappings will react to changes in source values, triggering re-evaluation of mappings as needed.
+In the above example, the mapping will be re-evaluated if either of the sources change (`givenName` or `familyName`), or in case that full recompute is requested (e.g. in case of full reconciliation).
+In case that neither of the sources have changed there is no need to re-evaluate that mapping.
 
-TODO: mapping will react to changes in sources
+However, midPoint assumes that re-evaluation of mapping is usually cheap, assuming we have all the input data ready.
+Therefore, midPoint may re-evaluate the mapping even in case that neither of the sources have changed, as it helps to make sure that the data are still consistent.
 
-=== Multiple Sources
+Smart reaction to changes is one of the reasons for requiring explicit definition of sources in the mappings.
+Without such definitions it is not (realistically) possible to reliably determine how and when the expression should be re-evaluated.
 
-TODO: There may be several sources.
+The sources themselves are delta-aware.
+The source does not specify the value only, it also specifies previous value, and the way how the value changed (xref:/devel/prism/concepts/deltas/[delta]).
+This allows mapping to be smart, re-computing only some values.
+Even more importantly, source deltas are taken into consideration when mapping is evaluated.
+Therefore, mapping can figure out how target value have changed, and apply the changes in a smart way (see xref:mapping-relativity/[]).
+
+Mappings can have several sources, each of the sources can have many values.
+All the values of all the sources are taken into consideration when a mapping is evaluated.
 
 === Source Name
 
-TODO: name of the source, derived from path, used in scripts as variable name
+Mapping sources are specified using xref:/midpoint/reference/concepts/item-path/[item path], which may be quite long and complex.
+Yet, almost all the scripting languages require simple strings to denote variables, parameters and inputs.
+Therefore, each source has assigned a simple name.
+The name is derived from the last segment of item path of the source.
+Hence a source with path of `$focus/activation/administrativeStatus` will be accessible as `administrativeStatus` in the scripts.
+The two sources in the above example are passed to the expression as a variables with names `givenName` and `familyName` respectively.
 
-Source definition has one additional element: a name.
-The `name` element explicitly specifies the name that the source will take when used as an expression variable.
-Each source has an implicit name which is derived from the last segment of the path.
-E.g. a source that has path of `$user/givenName` will have an implicit name `givenName`. Also the implicit sources has a special name `input` that can be used in the (inbound) mapping.
-The name of the source can be specified explicitly if needed by using a `name` element:
+Automatic derivation of source name usually works well.
+However, there is `administrativeStatus` in `$focus/activation/administrativeStatus`, but also on `$focus/assignment/activation/administrativeStatus`.
+If both of them are used as two sources of one mapping, one of them has to be renamed.
+
+For that purpose, source definition has one additional element: a name.
+The `name` element explicitly specifies the name that the source will take when used as an expression variable:
 
 .Explicit specification of source name
 [source,json]
@@ -182,151 +227,25 @@ The name of the source can be specified explicitly if needed by using a `name` e
 
 This source will be accessible under the name `lastName` in the mapping expression.
 
-Please note that the names of expression variables are QNames (strictly speaking).
-This usually makes little difference in practice, but may cause some issues with expression script languages that are name namespace-sensitive such as XPath.
-See xref:/midpoint/reference/expressions/expressions/[Expression] page for more details.
+In some cases, the primary input to an expression is accessible under name `input`.
+This approach is applied in cases when there is only a single source for a mapping (by definition), such as _inbound_ mappings applied to a single attribute.
+Similar approach is applied to stand-alone expression, where there is no obvios name for expression input.
 
 
 === Sources and Variables
 
+Variables are secondary inputs to the mapping.
+Variables provide information about the _surroundings_ of the mapping, about the environment in which the mapping evaluates.
+For example, _inbound_ mapping usually takes information from account attribute on a source system (resource) to produce a value for user property.
+The account attribute is mapping source, and the user property is a target.
+However, mapping may need to consider other data as well, such as a definition of the resource or global system configuration.
+Mapping variables provide such additional information.
+
 Sources behave in a slightly similar way than variables behave, especially in mappings with scripting expressions.
-However, ...
-
-TODO: Variables can also provide data to a mapping, and they can also be relative.
-However, the mapping will not react to changes in variables.
-Variables will be provided as (quasi) static values.
-
-
-
-== Targets
-
-
-
-== Variables
-
-Secondary input to mapping.
-
-Mapping does *not* react to changes in variables.
-
-While mapping will usually treat each value of a source separately, (e.g. execute expression for each value individually), there is no such functionality for variables.
-They are provided "as is", as (quasi) static values.
-
-Variables can still be relative.
-E.g. when mapping is processing old value of the source, variable `$focus` will contain old version of the user.
-Later, when mapping is processing new value of the source, variable `$focus` will contain new version of the user.
-
-
-
-== Default Sources and Targets
-
-TODO: sources and targets for inbound/outbound
-
-
-
-== Expressions
-
-TODO: scripting expressions and multiple multi-valued sources
-
-
-== TODO: OLD text
-
-
-Because expressions are so flexible they are documented in a separate xref:/midpoint/reference/expressions/expressions/[Expression] page.
-
-
-
-
-There are two sources specified by the source definitions: user properties `givenName` and `familyName`. The mapping combines them to create a single value which is used to populate user's `fullName` property.
-
-The two sources are passed to the expression as a variables with names `givenName` and `familyName` respectivelly.
-The interesting part is that the mapping will be evaluated only if one of the sources changes or if a full reconciliation is requested.
-In case that neither `givenName` not `familyName` changes there is no need to re-evaluate that expression.
-This is the primary reason for requiring explicit source definition in the mappings.
-Without such definitions it is not (realistically) possible to reliably determine when and how the expression should be re-evaluated.
-The expression evaluators get full information regarding what was changed and how it was changed (deltas) therefore they may recompute the value accordingly.
-E.g. in case of replacing a familyName with a new value the provided Groovy script might be executed for both the old and new to correctly determine the delta (but in fact that may not really happen here because midPoint can optimizing that as all the properties are single-value).
-This is the way how mapping fully and correctly supports relative changes.
-
-
-== Source and Target Definitions
-
-Source and target definitions have similar syntax.
-The most important part of the definitions is specification of the *path*. The path is in a form of usual prism path and can be either relative or absolute variable-based path.
-The variable-based paths are bound to the specific context in which the mapping is executed.
-But the `$user` variable is almost always present.
-The relative paths are interpreted as relative to source or target _contexts_ of the mapping.
-The contexts are described by the following table which also provides some examples of path usage.
-
-[%autowidth,cols="h,1,1,1,1"]
-|===
-| Mapping |  | Variables | Default Context | Examples
-
-| Outbound
-| Source
-| $focus +
-$projection
-| $focus
-| $focus/givenName +
-givenName
-
-
-| Outbound
-| Target
-| N/A +
-fixed to account attribute
-| N/A +
-fixed to account attribute
-|
-
-
-
-| Inbound
-| Source
-| N/A +
-fixed to account attribute, presented as `input` variable
-| N/A +
-fixed to account attribute
-|
-
-
-
-| Inbound
-| Target
-| $focus +
-$projection
-| $focus
-| $focus/givenName +
-givenName
-
-
-| User template
-| Source
-| $focus
-| $focus
-| $user/givenName +
-givenName
-
-
-| User template
-| Target
-| $focus
-| $focus
-| $focus/givenName +
-givenName
-
-|===
-
-
-
-[TIP]
-.$user and $account variables
-====
-The variable `$focus` and `$projection` were introduced in midPoint 3.0 as a consequence of the xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization] feature.
-The objects that the expression works with might no longe be just user or account.
-Therefore a generic concepts of xref:/midpoint/reference/schema/focus-and-projections/[focus and projections] were introduced and the variable names were changed to reflect that.
-The old variables `$user` and `$account` can still be used, but their use is deprecated.
-====
-
+Mapping variables are provided as variables or parameters in the script code, in much the same way as sources are provided.
+Variable data may also be delta-aware.
+However, there are crucial differences between variables and sources.
+Changes in variable values may not trigger mapping re-evaluation and the deltas of variables are not reflected to mapping output in the same way as source deltas are.
 
 
 === Mapping Domain
@@ -339,9 +258,10 @@ The old variables `$user` and `$account` can still be used, but their use is dep
 The _domain_ of a mapping (in a mathematical sense) is a set of values that are valid inputs of the mapping.
 The mapping will operate only on the values that belong to its domain.
 Other values will be ignored.
-By default the mapping has unlimited domain: all possible values are processed by the mapping.
+By default, the mapping has unlimited domain: all possible values are processed by the mapping.
 The mapping domain can be specified by using a `set` declaration in its source:
 
+.Specification of mapping domain
 [source,xml]
 ----
     <mapping>
@@ -365,17 +285,55 @@ The mapping domain can be specified by using a `set` declaration in its source:
     </mapping>
 ----
 
-The above mapping will only operate on input values that starts with "AUTO-". Other values will be ignored by the mapping.
+The above mapping will only operate on input values that starts with `AUTO-`.
+Other values will be ignored by the mapping.
 
-The domain definition is a very practical mechanism if there are several mappings that work on the same source and/or target and that need a different expression.
-It is also useful if we want to provide output values only for some input values.
-This cannot be easily achieved by using mapping condition, as the condition will activate or deactivate entire mapping.
+The domain definition is a very practical mechanism if there are several mappings that work on the same source and/or target, each of the mappings using a different expression.
+In this case mapping domains can be set in such a way that they do not overlap, making sure only one of the mapping is processing any particular value.
+Domain is also useful if we want to provide output values only for some input values.
+This cannot be easily achieved by using mapping condition, as the condition will activate or deactivate entire mapping, it applies to all the values processed by a mapping.
 The condition does not work for individual values.
 
 The domain is very useful especially for automatic xref:/midpoint/reference/roles-policies/assignment/[assignment] expressions in xref:/midpoint/reference/expressions/object-template/[object template].
 
 
+== Target
+
+Mapping target specifies were and how is the output of a mapping used.
+Specification of mapping target is much more than a mere assignment of mapping output value to some property.
+The target _binds_ output property to the mapping, it indirectly specifies the type of output values, its multiplicity, it may also imply set of valid output values.
+The nature of mapping target influences the way how relative changes are processed and how deltas are formed.
+Mapping range specified together with the target is a powerful tool to influence other values of target item.
+All in all, understanding how mapping is bound to its target is a crucial aspect in understanding how mappings work.
+
+Formally, target definition is very similar to definition of mapping source.
+The most important part is _item path_, binding the mapping to the target item.
+
+
+.Mapping target definition
+[source,json]
+----
+{
+    "target" : {
+        "path" : "fullName"
+    }
+}
+----
+
+.Mapping target definition
+[source,xml]
+----
+<target>
+    <path>fullName</path>
+</target>
+----
+
+Unlike mapping sources, there can be only one mapping target.
+
+
 === Mapping Range
+
+// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
 
 ++++
 {% include since.html since="3.6" %}
@@ -446,6 +404,111 @@ Which means that no values will be removed.
 This is also known as _tolerant_ behavior.
 
 
+
+== Variables
+
+Secondary input to mapping.
+
+Mapping does *not* react to changes in variables.
+
+While mapping will usually treat each value of a source separately, (e.g. execute expression for each value individually), there is no such functionality for variables.
+They are provided "as is", as (quasi) static values.
+
+Variables can still be relative.
+E.g. when mapping is processing old value of the source, variable `$focus` will contain old version of the user.
+Later, when mapping is processing new value of the source, variable `$focus` will contain new version of the user.
+
+TODO: list of names of the variables
+
+== Default Sources and Targets
+
+TODO: sources and targets for inbound/outbound
+
+[%autowidth,cols="h,1,1,1,1"]
+|===
+| Mapping |  | Variables | Default Context | Examples
+
+| Outbound
+| Source
+| $focus +
+$projection
+| $focus
+| $focus/givenName +
+givenName
+
+| Outbound
+| Target
+| N/A +
+fixed to account attribute
+| N/A +
+fixed to account attribute
+|
+
+| Inbound
+| Source
+| N/A +
+fixed to account attribute, presented as `input` variable
+| N/A +
+fixed to account attribute
+|
+
+| Inbound
+| Target
+| $focus +
+$projection
+| $focus
+| $focus/givenName +
+givenName
+
+| User template
+| Source
+| $focus
+| $focus
+| $user/givenName +
+givenName
+
+| User template
+| Target
+| $focus
+| $focus
+| $focus/givenName +
+givenName
+
+|===
+
+
+
+[TIP]
+.$user and $account variables
+====
+The variable `$focus` and `$projection` were introduced in midPoint 3.0 as a consequence of the xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization] feature.
+The objects that the expression works with might no longe be just user or account.
+Therefore a generic concepts of xref:/midpoint/reference/schema/focus-and-projections/[focus and projections] were introduced and the variable names were changed to reflect that.
+The old variables `$user` and `$account` can still be used, but their use is deprecated.
+====
+
+
+
+
+== Expressions
+
+TODO: scripting expressions and multiple multi-valued sources
+
+
+
+
+Because expressions are so flexible they are documented in a separate xref:/midpoint/reference/expressions/expressions/[Expression] page.
+
+
+
+== TODO: OLD text
+
+
+
+
+
+
+
 == Expression
 
 Expression is the part of the mapping that contains transformation logic.
@@ -466,6 +529,9 @@ The return value of an expression is used as value for the target.
 The application of a mapping can be affected by using constraints and condition.
 These mechanisms can influence when the mapping is applied and when it is not.
 
+
+condition will activate or deactivate entire mapping, it applies to all the values processed by a mapping.
+The condition does not work for individual values.
 
 === Constraints
 
