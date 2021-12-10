@@ -30,7 +30,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
-import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
+import com.evolveum.midpoint.authentication.api.authentication.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;

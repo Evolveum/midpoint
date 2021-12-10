@@ -20,7 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
+import com.evolveum.midpoint.authentication.api.authentication.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.context.SecurityQuestionsAuthenticationContext;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;

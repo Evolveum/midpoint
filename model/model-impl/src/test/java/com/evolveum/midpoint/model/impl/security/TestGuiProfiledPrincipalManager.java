@@ -19,8 +19,11 @@ import java.util.function.Consumer;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
@@ -89,7 +92,7 @@ public class TestGuiProfiledPrincipalManager extends AbstractInternalModelIntegr
 
         // WHEN
         when();
-        display("Logging in as", deputy);
+        AbstractIntegrationTest.display("Logging in as", deputy);
         login(deputy.asPrismObject());
 
         // THEN
@@ -97,13 +100,13 @@ public class TestGuiProfiledPrincipalManager extends AbstractInternalModelIntegr
         MidPointPrincipal principal = securityContextManager.getPrincipal();
         Collection<DelegatorWithOtherPrivilegesLimitations> delegators =
                 principal.getDelegatorWithOtherPrivilegesLimitationsCollection();
-        display("delegators with other privileges limitations", delegators);
+        AbstractIntegrationTest.display("delegators with other privileges limitations", delegators);
         if (expectedLimitations == null) {
-            assertEquals("Wrong # of delegator records: " + DebugUtil.debugDump(delegators), 0, delegators.size());
+            AssertJUnit.assertEquals("Wrong # of delegator records: " + DebugUtil.debugDump(delegators), 0, delegators.size());
         } else {
-            assertEquals("Wrong # of delegator records: " + DebugUtil.debugDump(delegators), 1, delegators.size());
+            AssertJUnit.assertEquals("Wrong # of delegator records: " + DebugUtil.debugDump(delegators), 1, delegators.size());
             DelegatorWithOtherPrivilegesLimitations record = delegators.iterator().next();
-            assertEquals("Unexpected limitations: " + DebugUtil.debugDump(delegators), new HashSet<>(expectedLimitations), new HashSet<>(record.getLimitations()));
+            AssertJUnit.assertEquals("Unexpected limitations: " + DebugUtil.debugDump(delegators), new HashSet<>(expectedLimitations), new HashSet<>(record.getLimitations()));
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.model.impl;
+package com.evolveum.midpoint.model.api.util;
 
 /**
  * URL pattern constants shared by cluster client and REST service.

@@ -36,7 +36,7 @@ import org.springframework.security.ldap.authentication.LdapAuthenticator;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
+import com.evolveum.midpoint.authentication.api.authentication.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.api.util.AuthenticationEvaluatorUtil;

@@ -4,13 +4,15 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.impl.security;
+package com.evolveum.midpoint.authentication.impl.security.evaluator;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.authentication.impl.security.module.authentication.NodeAuthenticationTokenImpl;
+import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.authentication.api.NodeAuthenticationEvaluator;
@@ -42,7 +44,7 @@ public class NodeAuthenticationEvaluatorImpl implements NodeAuthenticationEvalua
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
     @Autowired private TaskManager taskManager;
-    @Autowired private SecurityHelper securityHelper;
+    @Autowired private ModelAuditRecorder securityHelper;
     @Autowired private Protector protector;
 
     private static final Trace LOGGER = TraceManager.getTrace(NodeAuthenticationEvaluatorImpl.class);
@@ -94,7 +96,7 @@ public class NodeAuthenticationEvaluatorImpl implements NodeAuthenticationEvalua
                 }
                 if (actualNode != null) {
                     LOGGER.trace("Established authenticity for remote {}", actualNode);
-                    NodeAuthenticationToken authNtoken = new NodeAuthenticationToken(actualNode, remoteAddress,
+                    NodeAuthenticationTokenImpl authNtoken = new NodeAuthenticationTokenImpl(actualNode, remoteAddress,
                             Collections.emptyList());
                     SecurityContextHolder.getContext().setAuthentication(authNtoken);
                     securityHelper.auditLoginSuccess(actualNode.asObjectable(), connEnv);

@@ -29,7 +29,7 @@ import org.springframework.security.web.firewall.HttpFirewall;
  */
 
 @Configuration
-@DependsOn("securityConfiguration")
+@DependsOn("initialSecurityConfiguration")
 public class MidpointWebSecurityConfiguration extends WebSecurityConfiguration {
 
     @Autowired(required = false)

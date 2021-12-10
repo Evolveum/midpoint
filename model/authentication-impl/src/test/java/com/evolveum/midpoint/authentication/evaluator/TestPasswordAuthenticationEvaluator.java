@@ -4,13 +4,13 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.impl.security;
+package com.evolveum.midpoint.authentication.evaluator;
 
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
+import com.evolveum.midpoint.authentication.api.authentication.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;

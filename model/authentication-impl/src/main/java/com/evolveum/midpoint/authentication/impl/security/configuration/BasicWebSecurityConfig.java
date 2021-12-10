@@ -64,7 +64,7 @@ import com.evolveum.midpoint.authentication.impl.security.factory.module.AuthMod
 @Order(SecurityProperties.BASIC_AUTH_ORDER - 1)
 @Configuration
 @EnableWebSecurity
-@DependsOn("securityConfiguration")
+@DependsOn("initialSecurityConfiguration")
 public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired

@@ -42,8 +42,7 @@ import java.util.*;
 /**
  * @author semancik
  */
-@ContextConfiguration(locations = "classpath:ctx-authentication"
-        + "-test-main.xml")
+@ContextConfiguration(locations = "classpath:ctx-authentication-test-main.xml")
 @DirtiesContext
 public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
 
@@ -66,7 +65,7 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
     public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
 
     private static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
-    private static final String USER_JACK_OID = "b5541d3c-b2fd-11e5-88c0-4f82a8602266";
+    private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
     private static final String USER_JACK_USERNAME = "jack";
 
     @Autowired private GuiProfiledPrincipalManager focusProfileService;
@@ -83,20 +82,8 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
         repoAddObjectFromFile(ROLE_SUPERUSER_FILE, true, initResult);
         userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, true, initResult);
         login(userAdministrator);
-//
-//        dummyResourceCtl = DummyResourceContoller.create(null);
-//        dummyResourceCtl.extendSchemaPirate();
-//        dummyResource = dummyResourceCtl.getDummyResource();
-//        resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILE, RESOURCE_DUMMY_OID, initTask, initResult);
-//        resourceDummyType = resourceDummy.asObjectable();
-//        dummyResourceCtl.setResource(resourceDummy);
 
         repoAddObjectFromFile(USER_JACK_FILE, true, initResult);
-//        repoAddObjectFromFile(USER_EMPTY_FILE, true, initResult);
-//
-//        importObjectFromFile(ROLE_MAPMAKER_FILE);
-//
-//        repoAddObjectsFromFile(ORG_MONKEY_ISLAND_FILE, OrgType.class, initResult);
 
         midPointGuiAuthorizationEvaluator = new MidPointGuiAuthorizationEvaluator(
                 securityEnforcer, securityContextManager, taskManager);

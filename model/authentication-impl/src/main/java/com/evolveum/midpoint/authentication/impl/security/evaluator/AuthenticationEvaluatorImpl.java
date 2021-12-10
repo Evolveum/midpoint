@@ -4,13 +4,14 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.impl.security;
+package com.evolveum.midpoint.authentication.impl.security.evaluator;
 
 import java.util.Collection;
 
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -26,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
@@ -40,7 +42,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
+import com.evolveum.midpoint.authentication.api.authentication.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -69,13 +71,15 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
     @Autowired private Protector protector;
     @Autowired private Clock clock;
-    @Autowired private SecurityHelper securityHelper;
+    @Autowired private ModelAuditRecorder securityHelper;
 
-    // Has to be package-private so the tests can manipulate it
-    @Autowired
-    GuiProfiledPrincipalManager focusProfileService;
-
+    private GuiProfiledPrincipalManager focusProfileService;
     protected MessageSourceAccessor messages;
+
+    @Autowired
+    public void setPrincipalManager(GuiProfiledPrincipalManager focusProfileService) {
+        this.focusProfileService = focusProfileService;
+    }
 
     @Override
     public void setMessageSource(MessageSource messageSource) {

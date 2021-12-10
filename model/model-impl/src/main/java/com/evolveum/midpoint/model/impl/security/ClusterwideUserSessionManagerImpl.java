@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
-import com.evolveum.midpoint.model.impl.ClusterServiceConsts;
+import com.evolveum.midpoint.model.api.util.ClusterServiceConsts;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
 import com.evolveum.midpoint.task.api.ClusterExecutionOptions;

@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.impl.security;
+package com.evolveum.midpoint.authentication.evaluator;
 
 import static org.testng.AssertJUnit.*;
 
@@ -15,7 +15,10 @@ import java.util.Locale;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.security.api.*;
+import com.evolveum.midpoint.authentication.impl.security.evaluator.AuthenticationEvaluatorImpl;
+
+import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.authentication.*;
@@ -28,21 +31,20 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.TerminateSessionEvent;
+import com.evolveum.midpoint.authentication.api.authentication.AuthenticationEvaluator;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationMessageSource;
-import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
-import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
@@ -51,13 +53,24 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * @author semancik
  */
-@ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
+@ContextConfiguration(locations = "classpath:ctx-authentication-test-main.xml")
 @DirtiesContext
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
-public abstract class TestAbstractAuthenticationEvaluator<V, AC extends AbstractAuthenticationContext, T extends AuthenticationEvaluator<AC>> extends AbstractInternalModelIntegrationTest {
+public abstract class TestAbstractAuthenticationEvaluator<V, AC extends AbstractAuthenticationContext, T extends AuthenticationEvaluator<AC>> extends AbstractModelImplementationIntegrationTest {
 
-    protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "security");
+    public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
+    public static final File SECURITY_POLICY_FILE = new File(COMMON_DIR, "security-policy.xml");
+    public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
+    public static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
 
+    protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
+    protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+    protected static final String USER_JACK_USERNAME = "jack";
+    protected static final String USER_JACK_PASSWORD = "deadmentellnotales";
+
+    protected static final File USER_GUYBRUSH_FILE = new File(COMMON_DIR, "user-guybrush.xml");
+    protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
+    protected static final String USER_GUYBRUSH_USERNAME = "guybrush";
     protected static final String USER_GUYBRUSH_PASSWORD = "XmarksTHEspot";
 
     @Autowired private LocalizationMessageSource messageSource;
@@ -65,10 +78,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     @Autowired private Clock clock;
 
     private MessageSourceAccessor messages;
-
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.test.AbstractIntegrationTest#initSystem(com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
-     */
 
     public abstract T getAuthenticationEvaluator();
     public abstract AC getAuthenticationContext(String username, V value);
@@ -89,9 +98,30 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        modelService.postInit(initResult);
+
+        // System Configuration
+        try {
+            repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
+        } catch (ObjectAlreadyExistsException e) {
+            throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
+                    "looks like the previous test haven't cleaned it up", e);
+        }
+
+        repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
+
+        // Administrator
+        repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
+        PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
+        login(userAdministrator);
+
+        // Users
+        repoAddObjectFromFile(USER_JACK_FILE, UserType.class, initResult).asObjectable();
+        repoAddObjectFromFile(USER_GUYBRUSH_FILE, UserType.class, initResult).asObjectable();
+
         messages = new MessageSourceAccessor(messageSource);
 
-        ((AuthenticationEvaluatorImpl) getAuthenticationEvaluator()).focusProfileService = new GuiProfiledPrincipalManager() {
+        ((AuthenticationEvaluatorImpl) getAuthenticationEvaluator()).setPrincipalManager(new GuiProfiledPrincipalManager() {
 
             @Override
             public <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -141,7 +171,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             public void terminateLocalSessions(TerminateSessionEvent terminateSessionEvent) {
                 //TOTO test it
             }
-        };
+        });
     }
 
     @Test
@@ -914,10 +944,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     private String getTranslatedMessage(Throwable t) {
         return localizationService.translate(t.getMessage(), new Object[0], Locale.getDefault());
-    }
-
-    private void assertPasswordEncodingException(BadCredentialsException e) {
-        assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.password.encoding"), getTranslatedMessage(e));
     }
 
     private void assertLockedException(LockedException e) {
