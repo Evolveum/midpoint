@@ -14,7 +14,6 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.ninja.action.worker.BaseWorker;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
-import com.evolveum.midpoint.ninja.opts.ExportOptions;
 import com.evolveum.midpoint.ninja.util.Log;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
@@ -26,12 +25,12 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 /**
  * Producer worker for audit export operation.
  */
-public class ExportAuditProducerWorker extends BaseWorker<ExportOptions, AuditEventRecordType> {
+public class ExportAuditProducerWorker extends BaseWorker<ExportAuditOptions, AuditEventRecordType> {
 
     private final ObjectQuery query;
 
     public ExportAuditProducerWorker(
-            NinjaContext context, ExportOptions options, BlockingQueue<AuditEventRecordType> queue,
+            NinjaContext context, ExportAuditOptions options, BlockingQueue<AuditEventRecordType> queue,
             OperationStatus operation, List<ExportAuditProducerWorker> producers, ObjectQuery query) {
         super(context, options, queue, operation, producers);
 
@@ -44,9 +43,6 @@ public class ExportAuditProducerWorker extends BaseWorker<ExportOptions, AuditEv
 
         try {
             GetOperationOptionsBuilder optionsBuilder = context.getSchemaService().getOperationOptionsBuilder();
-            if (options.isRaw()) {
-                optionsBuilder = optionsBuilder.raw();
-            }
 
             optionsBuilder = NinjaUtils.addIncludeOptionsForExport(optionsBuilder, AuditEventRecordType.class);
 

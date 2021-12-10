@@ -21,14 +21,15 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ImportRepositoryConsumerWorker extends BaseWorker<ImportOptions, PrismObject<?>> {
+public class ImportRepositoryConsumerWorker extends BaseWorker<ImportOptions, ObjectType> {
 
     public ImportRepositoryConsumerWorker(
-            NinjaContext context, ImportOptions options, BlockingQueue<PrismObject<?>> queue,
+            NinjaContext context, ImportOptions options, BlockingQueue<ObjectType> queue,
             OperationStatus operation, List<ImportRepositoryConsumerWorker> consumers) {
         super(context, options, queue, operation, consumers);
     }
@@ -40,24 +41,22 @@ public class ImportRepositoryConsumerWorker extends BaseWorker<ImportOptions, Pr
 
         try {
             while (!shouldConsumerStop()) {
-                //noinspection rawtypes
-                PrismObject object = null;
+                ObjectType object = null;
                 try {
                     object = queue.poll(CONSUMER_POLL_TIMEOUT, TimeUnit.SECONDS);
                     if (object == null) {
                         continue;
                     }
+                    PrismObject<? extends ObjectType> prismObject = object.asPrismObject();
 
                     RepoAddOptions opts = createRepoAddOptions(options);
 
                     if (!opts.isAllowUnencryptedValues()) {
-                        //noinspection unchecked
-                        CryptoUtil.encryptValues(protector, object);
+                        CryptoUtil.encryptValues(protector, prismObject);
                     }
 
                     RepositoryService repository = context.getRepository();
-                    //noinspection unchecked
-                    repository.addObject(object, opts, new OperationResult("Import object"));
+                    repository.addObject(prismObject, opts, new OperationResult("Import object"));
 
                     operation.incrementTotal();
                 } catch (Exception ex) {

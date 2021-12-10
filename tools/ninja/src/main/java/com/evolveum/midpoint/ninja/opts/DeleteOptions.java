@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -48,10 +48,10 @@ public class DeleteOptions {
     @Parameter(names = {P_ASK, P_ASK_LONG}, descriptionKey = "delete.ask")
     private boolean ask;
 
-    @Parameter(names = {P_TYPE, P_TYPE_LONG}, descriptionKey = "delete.type")
+    @Parameter(names = {P_TYPE, P_TYPE_LONG}, descriptionKey = "base.type")
     private ObjectTypes type;
 
-    @Parameter(names = {P_FILTER, P_FILTER_LONG}, descriptionKey = "delete.filter",
+    @Parameter(names = {P_FILTER, P_FILTER_LONG}, descriptionKey = "base.filter",
             converter = FileReferenceConverter.class, validateWith = FileReferenceConverter.class)
     private FileReference filter;
 

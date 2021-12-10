@@ -14,10 +14,8 @@ import com.evolveum.midpoint.ninja.action.RepositoryAction;
 import com.evolveum.midpoint.ninja.action.worker.ImportProducerWorker;
 import com.evolveum.midpoint.ninja.action.worker.ProgressReporterWorker;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
-import com.evolveum.midpoint.ninja.opts.ImportOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -25,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 /**
  * Action for importing audit event records to the repository.
  */
-public class ImportAuditRepositoryAction extends RepositoryAction<ImportOptions> {
+public class ImportAuditRepositoryAction extends RepositoryAction<ImportAuditOptions> {
 
     private static final int QUEUE_CAPACITY_PER_THREAD = 100;
     private static final long CONSUMERS_WAIT_FOR_START = 2000L;
@@ -45,13 +43,8 @@ public class ImportAuditRepositoryAction extends RepositoryAction<ImportOptions>
         ExecutorService executor = Executors.newFixedThreadPool(options.getMultiThread() + 2);
 
         ImportProducerWorker<AuditEventRecordType> producer;
-        if (options.getOid() != null) {
-            InOidFilter filter = context.getPrismContext().queryFactory().createInOid(options.getOid());
-            producer = importByFilter(filter, true, queue, progress);
-        } else {
-            ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context, AuditEventRecordType.class);
-            producer = importByFilter(filter, false, queue, progress);
-        }
+        ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context, AuditEventRecordType.class);
+        producer = importByFilter(filter, false, queue, progress);
 
         executor.execute(producer);
 

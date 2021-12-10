@@ -25,7 +25,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
 
 /**
- * @author semancik
+ * Service contract for audit - this can actually represent multiple audit services.
+ * This is implementation independent, but some features may not be supported by all implementations.
+ * For instance, {@link #supportsRetrieval()} indicates whether audit supports searching, or just storing.
  */
 public interface AuditService {
 
@@ -54,6 +56,7 @@ public interface AuditService {
      * Used for audit import functionality.
      * This is a low-level audit method that does not process provided record at all.
      */
+    @Experimental
     void audit(AuditEventRecordType record, OperationResult parentResult);
 
     /**

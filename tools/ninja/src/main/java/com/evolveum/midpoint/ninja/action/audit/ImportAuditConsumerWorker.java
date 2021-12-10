@@ -15,7 +15,6 @@ import org.springframework.context.ApplicationContext;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.ninja.action.worker.BaseWorker;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.opts.ImportOptions;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -25,10 +24,10 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 /**
  * Consumer importing audit events to the database.
  */
-public class ImportAuditConsumerWorker extends BaseWorker<ImportOptions, AuditEventRecordType> {
+public class ImportAuditConsumerWorker extends BaseWorker<ImportAuditOptions, AuditEventRecordType> {
 
     public ImportAuditConsumerWorker(
-            NinjaContext context, ImportOptions options, BlockingQueue<AuditEventRecordType> queue,
+            NinjaContext context, ImportAuditOptions options, BlockingQueue<AuditEventRecordType> queue,
             OperationStatus operation, List<ImportAuditConsumerWorker> consumers) {
         super(context, options, queue, operation, consumers);
     }

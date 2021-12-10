@@ -4,18 +4,19 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.ninja.opts;
+package com.evolveum.midpoint.ninja.action.audit;
 
 import java.io.File;
+import java.util.Set;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
-/**
- * Created by Viliam Repan (lazyman).
- */
-@Parameters(resourceBundle = "messages", commandDescriptionKey = "import")
-public class ImportOptions extends BaseImportExportOptions implements BasicImportOptions {
+import com.evolveum.midpoint.ninja.opts.BasicImportOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+
+@Parameters(resourceBundle = "messages", commandDescriptionKey = "importAudit")
+public class ImportAuditOptions extends BaseAuditImportExportOptions implements BasicImportOptions {
 
     public static final String P_INPUT = "-i";
     public static final String P_INPUT_LONG = "--input";
@@ -23,30 +24,22 @@ public class ImportOptions extends BaseImportExportOptions implements BasicImpor
     public static final String P_OVERWRITE = "-O";
     public static final String P_OVERWRITE_LONG = "--overwrite";
 
-    public static final String P_ALLOW_UNENCRYPTED_VALUES = "-e";
-    public static final String P_ALLOW_UNENCRYPTED_VALUES_LONG = "--allowUnencryptedValues";
-
     @Parameter(names = { P_INPUT, P_INPUT_LONG }, descriptionKey = "import.input")
     private File input;
 
     @Parameter(names = { P_OVERWRITE, P_OVERWRITE_LONG }, descriptionKey = "import.overwrite")
     private boolean overwrite;
 
-    @Parameter(names = { P_ALLOW_UNENCRYPTED_VALUES, P_ALLOW_UNENCRYPTED_VALUES_LONG },
-            descriptionKey = "import.allowUnencryptedValues")
-    private boolean allowUnencryptedValues;
-
-    @Override
     public File getInput() {
         return input;
     }
 
-    @Override
     public boolean isOverwrite() {
         return overwrite;
     }
 
-    public boolean isAllowUnencryptedValues() {
-        return allowUnencryptedValues;
+    @Override
+    public Set<ObjectTypes> getType() {
+        return Set.of();
     }
 }

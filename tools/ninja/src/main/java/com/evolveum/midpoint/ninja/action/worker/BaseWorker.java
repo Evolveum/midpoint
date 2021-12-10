@@ -13,13 +13,16 @@ import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 
 /**
- * Created by Viliam Repan (lazyman).
+ * Base worker class that either produces or consumes {@link T} object for/from queue.
+ *
+ * @param <O> options class
+ * @param <T> type of objects in the queue
  */
 public abstract class BaseWorker<O, T> implements Runnable {
 
     public static final int CONSUMER_POLL_TIMEOUT = 2;
 
-    private final List<? extends BaseWorker> workers;
+    private final List<? extends BaseWorker<?, ?>> workers;
 
     protected BlockingQueue<T> queue;
     protected NinjaContext context;
@@ -34,7 +37,7 @@ public abstract class BaseWorker<O, T> implements Runnable {
     }
 
     public BaseWorker(NinjaContext context, O options, BlockingQueue<T> queue, OperationStatus operation,
-            List<? extends BaseWorker> workers) {
+            List<? extends BaseWorker<?, ?>> workers) {
         this.queue = queue;
         this.context = context;
         this.options = options;
@@ -71,7 +74,7 @@ public abstract class BaseWorker<O, T> implements Runnable {
             return true;
         }
 
-        for (BaseWorker worker : workers) {
+        for (BaseWorker<?, ?> worker : workers) {
             if (!worker.isDone()) {
                 return false;
             }

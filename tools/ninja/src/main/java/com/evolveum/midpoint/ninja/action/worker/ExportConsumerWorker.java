@@ -14,20 +14,20 @@ import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.opts.ExportOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismSerializer;
 import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ExportConsumerWorker extends AbstractWriterConsumerWorker<ExportOptions, PrismObject<?>> {
+public class ExportConsumerWorker extends AbstractWriterConsumerWorker<ExportOptions, ObjectType> {
 
     private PrismSerializer<String> serializer;
 
     public ExportConsumerWorker(NinjaContext context,
-            ExportOptions options, BlockingQueue<PrismObject<?>> queue, OperationStatus operation) {
+            ExportOptions options, BlockingQueue<ObjectType> queue, OperationStatus operation) {
         super(context, options, queue, operation);
     }
 
@@ -44,8 +44,8 @@ public class ExportConsumerWorker extends AbstractWriterConsumerWorker<ExportOpt
     }
 
     @Override
-    protected void write(Writer writer, PrismObject<?> object) throws SchemaException, IOException {
-        String xml = serializer.serialize(object);
+    protected void write(Writer writer, ObjectType object) throws SchemaException, IOException {
+        String xml = serializer.serialize(object.asPrismObject());
         writer.write(xml);
     }
 
