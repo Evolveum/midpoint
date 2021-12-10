@@ -340,10 +340,22 @@ Unlike mapping sources, there can be only one mapping target.
 ++++
 
 The _range_ of a mapping (in a mathematical sense) is a set of values that are considered to be valid outputs of the mapping.
-The range definition does *not* influence mapping inputs or expression.
-The range is used when the mapping outputs are processed.
+Definition of mapping range is not important for evaluation of mapping expression.
+However, it is important for application of mapping outputs.
+
+The mapping is considered to be authoritative for all values in its range.
+If the target item contains values that belong to the mapping range, it is assumed that the values were created by the mapping.
+I.e. if the mapping contains any values that belong to the mapping range, and the mapping does not produce such values as its output, the values are removed.
+
+Please see xref:range/[] for detailed explanation of mapping range concepts.
+
+
 The range defines what are the possible outputs of the mapping.
 The xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[projector] can use this information to determine what values to remove when the mapping is authoritative.
+
+The range definition does *not* influence mapping inputs or expression.
+The range is used when the mapping outputs are processed.
+
 
 Range specification makes sense only for authoritative mappings.
 If the range is specified then the mapping will scan existing values of the target property.
