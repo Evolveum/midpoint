@@ -29,19 +29,19 @@ import java.util.List;
 /**
  * @author skublik
  */
-public class ObjectClassSearchItem extends AttributeSearchItem<QName> {
+public class ObjectClassSearchItem extends PropertySearchItem<QName> {
 
     private static final long serialVersionUID = 1L;
     private String lastResourceOid;
 
     private final IModel<List<SearchItem>> itemsModel;
 
-    public ObjectClassSearchItem(Search search, AttributeSearchItemDefinition definition,  @NotNull IModel<List<SearchItem>> itemsModel) {
+    public ObjectClassSearchItem(Search search, PropertySearchItemDefinition definition,  @NotNull IModel<List<SearchItem>> itemsModel) {
         super(search, definition);
         this.itemsModel = itemsModel;
     }
 
-    public ObjectClassSearchItem(Search search, AttributeSearchItemDefinition definition) {
+    public ObjectClassSearchItem(Search search, PropertySearchItemDefinition definition) {
         super(search, definition);
         this.itemsModel = search.getItemsModel();
     }
@@ -50,8 +50,8 @@ public class ObjectClassSearchItem extends AttributeSearchItem<QName> {
     public List<DisplayableValue<QName>> getAllowedValues(PageBase pageBase) {
         List<DisplayableValue<QName>> list = new ArrayList<>();
         for (SearchItem item : itemsModel.getObject()) {
-            if (item instanceof AttributeSearchItem) {
-                AttributeSearchItem property = (AttributeSearchItem) item;
+            if (item instanceof PropertySearchItem) {
+                PropertySearchItem property = (PropertySearchItem) item;
                 if (ShadowType.F_RESOURCE_REF.equivalent(property.getPath())
                         && property.getValue() != null && property.getValue().getValue() != null) {
                     Referencable ref = (Referencable) property.getValue().getValue();
@@ -82,20 +82,20 @@ public class ObjectClassSearchItem extends AttributeSearchItem<QName> {
 
     @Override
     public DisplayableValue<QName> getValue() {
-        for (AttributeSearchItem property : getSearch().getPropertyItems()) {
+        for (PropertySearchItem property : getSearch().getPropertyItems()) {
             if (existResourceValue(property)) {
                 return super.getValue();
             }
         }
         for (SearchItem item : getSearch().getSpecialItems()) {
-            if (item instanceof AttributeSearchItem && existResourceValue((AttributeSearchItem) item)) {
+            if (item instanceof PropertySearchItem && existResourceValue((PropertySearchItem) item)) {
                 return super.getValue();
             }
         }
         return new SearchValue<>();
     }
 
-    private boolean existResourceValue(AttributeSearchItem property) {
+    private boolean existResourceValue(PropertySearchItem property) {
         if (ShadowType.F_RESOURCE_REF.equivalent(property.getPath())
                 && property.getValue() != null && property.getValue().getValue() != null) {
             Referencable ref = (Referencable) property.getValue().getValue();
@@ -107,7 +107,7 @@ public class ObjectClassSearchItem extends AttributeSearchItem<QName> {
 
     @Override
     protected String getTitle(PageBase pageBase) {
-        for (AttributeSearchItem property : getSearch().getPropertyItems()) {
+        for (PropertySearchItem property : getSearch().getPropertyItems()) {
             if (ShadowType.F_RESOURCE_REF.equivalent(property.getPath())
                     && property.getValue() != null && property.getValue().getValue() != null) {
                 Referencable ref = (Referencable) property.getValue().getValue();

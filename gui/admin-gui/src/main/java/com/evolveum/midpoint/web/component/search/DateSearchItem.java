@@ -11,14 +11,14 @@ import javax.xml.datatype.XMLGregorianCalendar;
 /**
  * @author honchar
  */
-public class DateSearchItem extends AttributeSearchItem {
+public class DateSearchItem extends PropertySearchItem {
 
     private static final long serialVersionUID = 1L;
 
     private XMLGregorianCalendar fromDate;
     private XMLGregorianCalendar toDate;
 
-    public DateSearchItem(Search search, AttributeSearchItemDefinition definition) {
+    public DateSearchItem(Search search, PropertySearchItemDefinition definition) {
         super(search, definition);
     }
 

@@ -189,7 +189,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                     if (SearchBoxModeType.FULLTEXT.equals(search.getSearchType())) {
                         search.setFullText(searchByName);
                     } else {
-                        for (AttributeSearchItem<String> item : search.getPropertyItems()) {
+                        for (PropertySearchItem<String> item : search.getPropertyItems()) {
                             if (ItemPath.create(ObjectType.F_NAME).equivalent(item.getPath())) {
                                 item.setValue(new SearchValue<>(searchByName));
                             }

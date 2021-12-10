@@ -143,7 +143,7 @@ public class SearchItemPanel<S extends SearchItem> extends BasePanel<S> {
 //        Search search = item.getSearch();
 //        search.delete(item);
 
-        SearchPanel panel = findParent(SearchPanel.class);
+        AbstractSearchPanel panel = findParent(AbstractSearchPanel.class);  //todo refactor
         panel.refreshSearchForm(target);
         panel.searchPerformed(target);
     }

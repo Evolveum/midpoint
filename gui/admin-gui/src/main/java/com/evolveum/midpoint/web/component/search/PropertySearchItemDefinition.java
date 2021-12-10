@@ -8,7 +8,6 @@ package com.evolveum.midpoint.web.component.search;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
@@ -20,18 +19,18 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Objects;
 
-public class AttributeSearchItemDefinition extends AbstractSearchItemDefinition {
+public class PropertySearchItemDefinition extends AbstractSearchItemDefinition {
 
     private ItemPath path;
     private ItemDefinition def;
     private List allowedValues;
     private PolyStringType displayName;
 
-    public AttributeSearchItemDefinition(@NotNull ItemPath path, @NotNull ItemDefinition def) {
+    public PropertySearchItemDefinition(@NotNull ItemPath path, @NotNull ItemDefinition def) {
         this(path, def, null);
     }
 
-    public AttributeSearchItemDefinition(@NotNull ItemPath path, @NotNull ItemDefinition def, List allowedValues) {
+    public PropertySearchItemDefinition(@NotNull ItemPath path, @NotNull ItemDefinition def, List allowedValues) {
         this.path = path;
         this.def = def;
         this.allowedValues = allowedValues;
@@ -62,8 +61,8 @@ public class AttributeSearchItemDefinition extends AbstractSearchItemDefinition 
     }
 
     @Override
-    public AttributeSearchItem<AttributeSearchItemDefinition> createSearchItem() {
-        return new AttributeSearchItem<>(null, AttributeSearchItemDefinition.this);
+    public PropertySearchItem<PropertySearchItemDefinition> createSearchItem() {
+        return new PropertySearchItem<>(null, PropertySearchItemDefinition.this);
     }
 
     @Override

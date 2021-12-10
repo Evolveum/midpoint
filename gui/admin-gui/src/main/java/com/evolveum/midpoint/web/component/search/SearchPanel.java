@@ -224,7 +224,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                         }
                     };
                 } else {
-                    searchItem = new SearchPropertyPanel<T>(ID_ITEM, (IModel<AttributeSearchItem<T>>) item.getModel()) {
+                    searchItem = new SearchPropertyPanel<T>(ID_ITEM, (IModel<PropertySearchItem<T>>) item.getModel()) {
                         private static final long serialVersionUID = 1L;
 
                         @Override
@@ -627,7 +627,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                     searchItem = ((SpecialSearchItem) item.getModelObject()).createSearchItemPanel(ID_SPECIAL_ITEM);
                 } else {
                     IModel itemModel = item.getModel();
-                    searchItem = new SearchPropertyPanel<T>(ID_SPECIAL_ITEM, (IModel<AttributeSearchItem<T>>) itemModel) {
+                    searchItem = new SearchPropertyPanel<T>(ID_SPECIAL_ITEM, (IModel<PropertySearchItem<T>>) itemModel) {
                         private static final long serialVersionUID = 1L;
 
                         @Override
@@ -802,9 +802,9 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                             if (searchItem.getSearchItemDefinition().equals(property)) {
                                 return false;
                             }
-                            if (searchItem instanceof AttributeSearchItem) {
+                            if (searchItem instanceof PropertySearchItem) {
                                 ItemPath propertyPath = property.getPath();
-                                if (propertyPath != null && QNameUtil.match(propertyPath.lastName(), ((AttributeSearchItem) searchItem).getPath().lastName())) {
+                                if (propertyPath != null && QNameUtil.match(propertyPath.lastName(), ((PropertySearchItem) searchItem).getPath().lastName())) {
                                     return false;
                                 }
                             }
@@ -867,8 +867,8 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         List<AbstractSearchItemDefinition> list = new ArrayList<>();
 
         List<ItemPath> specialItemPaths = new ArrayList<>();
-        getModelObject().getSpecialItems().stream().filter(specItem -> (specItem instanceof AttributeSearchItem))
-                .forEach(specItem -> specialItemPaths.add(((AttributeSearchItem<?>) specItem).getPath()));
+        getModelObject().getSpecialItems().stream().filter(specItem -> (specItem instanceof PropertySearchItem))
+                .forEach(specItem -> specialItemPaths.add(((PropertySearchItem<?>) specItem).getPath()));
 
 //        Search search = getModelObject();
 //        search.getAllDefinitions().stream().filter((Predicate<SearchItemDefinition>) def -> !ItemPathCollectionsUtil.containsEquivalent(specialItemPaths, def.getPath()))

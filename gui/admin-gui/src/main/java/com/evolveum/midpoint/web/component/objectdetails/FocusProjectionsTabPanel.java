@@ -213,7 +213,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                     @Override
                     protected Search createSearch(Class<ShadowType> type) {
                         Search search = super.createSearch(type);
-                        AttributeSearchItem<Boolean> defaultDeadItem = search.findPropertySearchItem(ShadowType.F_DEAD);
+                        PropertySearchItem<Boolean> defaultDeadItem = search.findPropertySearchItem(ShadowType.F_DEAD);
                         if (defaultDeadItem != null) {
                             defaultDeadItem.setVisible(false);
                         }
@@ -275,10 +275,10 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
     }
 
     private void addDeadSearchItem(Search search) {
-        AttributeSearchItemDefinition def = new AttributeSearchItemDefinition(ShadowType.F_DEAD,
+        PropertySearchItemDefinition def = new PropertySearchItemDefinition(ShadowType.F_DEAD,
                 getShadowDefinition().findPropertyDefinition(ShadowType.F_DEAD),
                 Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
-        AttributeSearchItem<Boolean> deadSearchItem = new AttributeSearchItem<>(search, def, new SearchValue<>(false)) {
+        PropertySearchItem<Boolean> deadSearchItem = new PropertySearchItem<>(search, def, new SearchValue<>(false)) {
 
             @Override
             public ObjectFilter transformToFilter() {

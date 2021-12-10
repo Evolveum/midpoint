@@ -155,13 +155,13 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
         List<AbstractSearchItemDefinition> list = new ArrayList<>();
 
         List<ItemPath> specialItemPaths = new ArrayList<>();
-        getModelObject().getSpecialItems().stream().filter(specItem -> (specItem instanceof AttributeSearchItem))
-                .forEach(specItem -> specialItemPaths.add(((AttributeSearchItem<?>) specItem).getPath()));
+        getModelObject().getSpecialItems().stream().filter(specItem -> (specItem instanceof PropertySearchItem))
+                .forEach(specItem -> specialItemPaths.add(((PropertySearchItem<?>) specItem).getPath()));
 
         Search search = getModelObject();
         search.getAllDefinitions().stream().filter((Predicate<AbstractSearchItemDefinition>) def ->
-                (def instanceof AttributeSearchItemDefinition) &&
-                !ItemPathCollectionsUtil.containsEquivalent(specialItemPaths, ((AttributeSearchItemDefinition)def).getPath()))
+                (def instanceof PropertySearchItemDefinition) &&
+                !ItemPathCollectionsUtil.containsEquivalent(specialItemPaths, ((PropertySearchItemDefinition)def).getPath()))
                 .forEach((Consumer<AbstractSearchItemDefinition>) def -> list.add(def));
         Collections.sort(list);
 
@@ -169,6 +169,8 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
     }
 
     private <S extends SearchItem, T extends Serializable> void initLayout() {
+        setOutputMarkupId(true);
+
         MidpointForm<?> form = new MidpointForm<>(ID_FORM);
         add(form);
 

@@ -30,7 +30,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 /**
  * @author honchar
  */
-public class AttributeSearchItem<T extends Serializable> extends SearchItem<AttributeSearchItemDefinition> {
+public class PropertySearchItem<T extends Serializable> extends SearchItem<PropertySearchItemDefinition> {
 
     private static final long serialVersionUID = 1L;
 
@@ -39,11 +39,11 @@ public class AttributeSearchItem<T extends Serializable> extends SearchItem<Attr
     @Experimental
     private boolean visible = true;
 
-    public AttributeSearchItem(Search search, @NotNull AttributeSearchItemDefinition definition) {
-        this(search, definition, null);
+    public PropertySearchItem(Search search, @NotNull PropertySearchItemDefinition definition) {
+        this(search, definition, new SearchValue<>());
     }
 
-    public AttributeSearchItem(Search search, @NotNull AttributeSearchItemDefinition definition, DisplayableValue<T> defaultValue) {
+    public PropertySearchItem(Search search, @NotNull PropertySearchItemDefinition definition, DisplayableValue<T> defaultValue) {
         super(search, definition);
         Validate.notNull(definition.getPath(), "Item definition.getPath() must not be null.");
         Validate.notNull(definition.getDef(), "Item definition.getDef() must not be null.");

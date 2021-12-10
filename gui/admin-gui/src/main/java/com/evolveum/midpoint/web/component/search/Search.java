@@ -187,11 +187,11 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         isCollectionItemVisible = collectionItemVisible;
     }
 
-    public List<AttributeSearchItem> getPropertyItems() {
-        List<AttributeSearchItem> propertyItems = new ArrayList<>();
+    public List<PropertySearchItem> getPropertyItems() {
+        List<PropertySearchItem> propertyItems = new ArrayList<>();
         itemsModel.getObject().forEach(item -> {
-            if (item instanceof AttributeSearchItem) {
-                propertyItems.add((AttributeSearchItem) item);
+            if (item instanceof PropertySearchItem) {
+                propertyItems.add((PropertySearchItem) item);
             }
         });
         return Collections.unmodifiableList(propertyItems);
@@ -411,7 +411,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                         conditions.add(filter);
                     }
                 }
-                AttributeSearchItem propertyItem = (AttributeSearchItem) item;
+                PropertySearchItem propertyItem = (PropertySearchItem) item;
                 ObjectFilter filter = propertyItem.transformToFilter();
                 if (filter == null) {
                     filter = createFilterForSearchItem(propertyItem, pageBase.getPrismContext());
@@ -473,7 +473,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         }
 
         List<ObjectFilter> conditions = new ArrayList<>();
-        for (AttributeSearchItem item : getPropertyItems()) {
+        for (PropertySearchItem item : getPropertyItems()) {
             if (item.isEnabled() && item.isApplyFilter()) {
                 ObjectFilter filter = createFilterForSearchItem(item, pageBase.getPrismContext());
                 if (filter != null) {
@@ -549,7 +549,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return variables;
     }
 
-    private ObjectFilter createFilterForSearchItem(AttributeSearchItem item, PrismContext ctx) {
+    private ObjectFilter createFilterForSearchItem(PropertySearchItem item, PrismContext ctx) {
         if (!(item instanceof DateSearchItem) && (item.getValue() == null || item.getValue().getValue() == null)) {
             return null;
         }
@@ -571,7 +571,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         }
     }
 
-    private ObjectFilter createFilterForSearchValue(AttributeSearchItem<AttributeSearchItemDefinition> item, DisplayableValue searchValue,
+    private ObjectFilter createFilterForSearchValue(PropertySearchItem<PropertySearchItemDefinition> item, DisplayableValue searchValue,
             PrismContext ctx) {
 
         ItemDefinition definition = item.getSearchItemDefinition().getDef();
@@ -809,11 +809,11 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         this.configurable = configurable;
     }
 
-    public AttributeSearchItem findPropertySearchItem(ItemPath path) {
+    public PropertySearchItem findPropertySearchItem(ItemPath path) {
         if (path == null) {
             return null;
         }
-        for (AttributeSearchItem searchItem : getPropertyItems()) {
+        for (PropertySearchItem searchItem : getPropertyItems()) {
             if (path.equivalent(searchItem.getPath())) {
                 return searchItem;
             }
@@ -821,14 +821,14 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return null;
     }
 
-    public AttributeSearchItem findSpecialAttributeSearchItem(ItemPath path) {
+    public PropertySearchItem findSpecialAttributeSearchItem(ItemPath path) {
         if (path == null) {
             return null;
         }
         for (SearchItem searchItem : getSpecialItems()) {
-            if (searchItem instanceof AttributeSearchItem
-                    && path.equivalent(((AttributeSearchItem<AttributeSearchItemDefinition>)searchItem).getSearchItemDefinition().getPath())) {
-                return (AttributeSearchItem)searchItem;
+            if (searchItem instanceof PropertySearchItem
+                    && path.equivalent(((PropertySearchItem<PropertySearchItemDefinition>)searchItem).getSearchItemDefinition().getPath())) {
+                return (PropertySearchItem)searchItem;
             }
         }
         return null;

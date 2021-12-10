@@ -51,14 +51,14 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 
     @Override
     protected Search createSearch() {
-        List<AttributeSearchItemDefinition> availableDefs = new ArrayList<>();
+        List<PropertySearchItemDefinition> availableDefs = new ArrayList<>();
         availableDefs.addAll(createAttributeDefinitionList());
         return new Search(new ContainerTypeSearchItem(ShadowType.class), availableDefs);
     }
 
-    private <T extends ObjectType> List<AttributeSearchItemDefinition> createAttributeDefinitionList() {
+    private <T extends ObjectType> List<PropertySearchItemDefinition> createAttributeDefinitionList() {
 
-        List<AttributeSearchItemDefinition> map = new ArrayList<>();
+        List<PropertySearchItemDefinition> map = new ArrayList<>();
 
         RefinedObjectClassDefinition ocDef = null;
         try {
@@ -81,7 +81,7 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
         }
 
         for (ResourceAttributeDefinition def : ocDef.getAttributeDefinitions()) {
-            map.add(new AttributeSearchItemDefinition(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)), def));
+            map.add(new PropertySearchItemDefinition(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)), def));
         }
 
         return map;

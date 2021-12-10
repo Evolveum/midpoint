@@ -409,11 +409,11 @@ public class SearchFactory {
         return configuredSearchItemList;
     }
 
-    private static AttributeSearchItemDefinition getAttributeItemDef(List<AbstractSearchItemDefinition> availableDefinitions,
+    private static PropertySearchItemDefinition getAttributeItemDef(List<AbstractSearchItemDefinition> availableDefinitions,
             SearchItemType searchItem) {
-        List<AttributeSearchItemDefinition> attributeItems = (List<AttributeSearchItemDefinition>) availableDefinitions.stream()
-                .filter(attrDef -> attrDef instanceof AttributeSearchItemDefinition &&
-                        searchItem.getPath().equivalent(((AttributeSearchItemDefinition) attrDef).getPath()));
+        List<PropertySearchItemDefinition> attributeItems = (List<PropertySearchItemDefinition>) availableDefinitions.stream()
+                .filter(attrDef -> attrDef instanceof PropertySearchItemDefinition &&
+                        searchItem.getPath().equivalent(((PropertySearchItemDefinition) attrDef).getPath()));
         if (attributeItems.size() != 1) {
             return null;
         }
@@ -437,7 +437,7 @@ public class SearchFactory {
                 for (ItemPath path : paths) {
                     ItemDefinition<?> def = objectDef.findItemDefinition(path);
                     if (def != null) {
-                        AttributeSearchItemDefinition searchItemDef = new AttributeSearchItemDefinition(path, def, getAllowedValues(path));
+                        PropertySearchItemDefinition searchItemDef = new PropertySearchItemDefinition(path, def, getAllowedValues(path));
                         if (ItemPathCollectionsUtil.containsEquivalent(fixedSearchItems, path)) {
                             searchItemDef.setFixed(true);
                             searchItemDef.setSearchItemDisplayed(true);
@@ -573,11 +573,11 @@ public class SearchFactory {
             return;
         }
         if (pageBase == null) {
-            defs.add(new AttributeSearchItemDefinition(path, refDef,
+            defs.add(new PropertySearchItemDefinition(path, refDef,
                     Collections.singletonList(WebComponentUtil.getDefaultRelationOrFail())));
             return;
         }
-        defs.add(new AttributeSearchItemDefinition(path, refDef,
+        defs.add(new PropertySearchItemDefinition(path, refDef,
                 WebComponentUtil.getCategoryRelationChoices(category, pageBase)));
     }
 
@@ -592,7 +592,7 @@ public class SearchFactory {
         if (propDef == null) {
             return;
         }
-        AttributeSearchItemDefinition searchItem = new AttributeSearchItemDefinition(path, propDef, getAllowedValues(path));
+        PropertySearchItemDefinition searchItem = new PropertySearchItemDefinition(path, propDef, getAllowedValues(path));
         if (key != null) {
             PolyStringType displayName = new PolyStringType(propDef.getItemName().getLocalPart());
             PolyStringTranslationType translation = new PolyStringTranslationType();

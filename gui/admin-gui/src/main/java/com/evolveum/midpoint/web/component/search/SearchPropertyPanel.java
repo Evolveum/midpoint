@@ -37,20 +37,20 @@ import javax.xml.namespace.QName;
  * @author Viliam Repan (lazyman)
  * @author lskublik
  */
-public class SearchPropertyPanel<T extends Serializable> extends SearchItemPanel<AttributeSearchItem<T>> {
+public class SearchPropertyPanel<T extends Serializable> extends SearchItemPanel<PropertySearchItem<T>> {
 
     private static final long serialVersionUID = 1L;
 
     private static final String ID_SEARCH_ITEM_FIELD = "searchItemField";
 
-    public SearchPropertyPanel(String id, IModel<AttributeSearchItem<T>> model) {
+    public SearchPropertyPanel(String id, IModel<PropertySearchItem<T>> model) {
         super(id, model);
     }
 
     @Override
     protected void onConfigure() {
         super.onConfigure();
-        AttributeSearchItem<T> item = getModelObject();
+        PropertySearchItem<T> item = getModelObject();
         if (!item.isEditWhenVisible()) {
             return;
         }
@@ -60,7 +60,7 @@ public class SearchPropertyPanel<T extends Serializable> extends SearchItemPanel
 
     protected void initSearchItemField(WebMarkupContainer searchItemContainer) {
         Component searchItemField;
-        AttributeSearchItem<T> item = getModelObject();
+        PropertySearchItem<T> item = getModelObject();
         IModel<List<DisplayableValue<?>>> choices = null;
         switch (item.getSearchItemType()) {
             case REFERENCE:

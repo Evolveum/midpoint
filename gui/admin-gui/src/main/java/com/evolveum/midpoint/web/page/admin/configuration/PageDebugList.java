@@ -520,10 +520,10 @@ public class PageDebugList extends PageAdminConfiguration {
         }
     }
 
-    private AttributeSearchItem createObjectClassSearchItem(Search search) {
+    private PropertySearchItem createObjectClassSearchItem(Search search) {
         PrismPropertyDefinition objectClassDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ShadowType.class)
                 .findPropertyDefinition(ShadowType.F_OBJECT_CLASS);
-        return new ObjectClassSearchItem(search, new AttributeSearchItemDefinition(ShadowType.F_OBJECT_CLASS, objectClassDef, null),
+        return new ObjectClassSearchItem(search, new PropertySearchItemDefinition(ShadowType.F_OBJECT_CLASS, objectClassDef, null),
                 new PropertyModel(searchModel, Search.F_SPECIAL_ITEMS)) {
 
             @Override
@@ -543,10 +543,10 @@ public class PageDebugList extends PageAdminConfiguration {
         };
     }
 
-    private AttributeSearchItem createResourceRefSearchItem(Search search) {
+    private PropertySearchItem createResourceRefSearchItem(Search search) {
         PrismReferenceDefinition resourceRefDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ShadowType.class)
                 .findReferenceDefinition(ShadowType.F_RESOURCE_REF);
-        AttributeSearchItem<ObjectReferenceType> item = new AttributeSearchItem<>(search, new AttributeSearchItemDefinition(ShadowType.F_RESOURCE_REF, resourceRefDef, null)) {
+        PropertySearchItem<ObjectReferenceType> item = new PropertySearchItem<>(search, new PropertySearchItemDefinition(ShadowType.F_RESOURCE_REF, resourceRefDef, null)) {
             @Override
             protected boolean canRemoveSearchItem() {
                 return false;
@@ -821,8 +821,8 @@ public class PageDebugList extends PageAdminConfiguration {
     private ObjectReferenceType getResourceRefFromSearch() {
         Search search = searchModel.getObject();
         SearchItem searchItem = search.findSpecialAttributeSearchItem(ShadowType.F_RESOURCE_REF);
-        if (searchItem instanceof AttributeSearchItem) {
-            DisplayableValue<ObjectReferenceType> displayableValue = ((AttributeSearchItem) searchItem).getValue();
+        if (searchItem instanceof PropertySearchItem) {
+            DisplayableValue<ObjectReferenceType> displayableValue = ((PropertySearchItem) searchItem).getValue();
             if (displayableValue != null) {
                 return displayableValue.getValue();
             }

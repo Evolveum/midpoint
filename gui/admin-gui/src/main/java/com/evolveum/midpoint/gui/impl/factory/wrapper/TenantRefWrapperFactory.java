@@ -56,7 +56,7 @@ public class TenantRefWrapperFactory extends PrismReferenceWrapperFactory<Object
     private SearchItem createTenantSearchItem(Search search) {
         PrismPropertyDefinition tenantDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(OrgType.class)
                 .findPropertyDefinition(OrgType.F_TENANT);
-        AttributeSearchItem<Boolean> item = new AttributeSearchItem<>(search, new AttributeSearchItemDefinition(OrgType.F_TENANT, tenantDef, null)) {
+        PropertySearchItem<Boolean> item = new PropertySearchItem<>(search, new PropertySearchItemDefinition(OrgType.F_TENANT, tenantDef, null)) {
             @Override
             protected boolean canRemoveSearchItem() {
                 return false;
