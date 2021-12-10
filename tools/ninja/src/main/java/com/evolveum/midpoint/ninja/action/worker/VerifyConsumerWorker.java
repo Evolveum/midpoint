@@ -18,16 +18,17 @@ import com.evolveum.midpoint.schema.validator.ObjectValidator;
 import com.evolveum.midpoint.schema.validator.ValidationItem;
 import com.evolveum.midpoint.schema.validator.ValidationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author Radovan Semancik
  */
-public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOptions, PrismObject<?>> {
+public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOptions, ObjectType> {
 
     private ObjectValidator validator;
 
-    public VerifyConsumerWorker(NinjaContext context, VerifyOptions options, BlockingQueue<PrismObject<?>> queue,
-            OperationStatus operation) {
+    public VerifyConsumerWorker(NinjaContext context, VerifyOptions options,
+            BlockingQueue<ObjectType> queue, OperationStatus operation) {
         super(context, options, queue, operation);
     }
 
@@ -64,11 +65,11 @@ public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOpt
     }
 
     @Override
-    protected void write(Writer writer, PrismObject<?> object)
-            throws IOException {
-        ValidationResult validationResult = validator.validate(object);
+    protected void write(Writer writer, ObjectType object) throws IOException {
+        PrismObject<?> prismObject = object.asPrismObject();
+        ValidationResult validationResult = validator.validate(prismObject);
         for (ValidationItem validationItem : validationResult.getItems()) {
-            writeValidationItem(writer, object, validationItem);
+            writeValidationItem(writer, prismObject, validationItem);
         }
     }
 

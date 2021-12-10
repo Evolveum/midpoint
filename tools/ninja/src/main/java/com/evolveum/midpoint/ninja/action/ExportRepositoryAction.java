@@ -11,7 +11,7 @@ import java.util.concurrent.BlockingQueue;
 import com.evolveum.midpoint.ninja.action.worker.ExportConsumerWorker;
 import com.evolveum.midpoint.ninja.opts.ExportOptions;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Ninja action realizing "export" command.
@@ -24,7 +24,7 @@ public class ExportRepositoryAction extends AbstractRepositorySearchAction<Expor
     }
 
     @Override
-    protected Runnable createConsumer(BlockingQueue<PrismObject<?>> queue, OperationStatus operation) {
+    protected Runnable createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation) {
         return new ExportConsumerWorker(context, options, queue, operation);
     }
 }

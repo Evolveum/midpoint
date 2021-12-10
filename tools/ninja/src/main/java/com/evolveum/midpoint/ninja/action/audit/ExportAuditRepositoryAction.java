@@ -16,7 +16,6 @@ import com.evolveum.midpoint.ninja.action.ExportRepositoryAction;
 import com.evolveum.midpoint.ninja.action.RepositoryAction;
 import com.evolveum.midpoint.ninja.action.worker.ProgressReporterWorker;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
-import com.evolveum.midpoint.ninja.opts.ExportOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -31,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
  * {@link AbstractRepositorySearchAction} because we need containers here and objects are quite
  * deeply embedded in the existing classes.
  */
-public class ExportAuditRepositoryAction extends RepositoryAction<ExportOptions> {
+public class ExportAuditRepositoryAction extends RepositoryAction<ExportAuditOptions> {
 
     private static final int QUEUE_CAPACITY_PER_THREAD = 100;
     private static final long CONSUMERS_WAIT_FOR_START = 2000L;
@@ -101,10 +100,6 @@ public class ExportAuditRepositoryAction extends RepositoryAction<ExportOptions>
 
         QueryFactory queryFactory = context.getPrismContext().queryFactory();
         List<ExportAuditProducerWorker> producers = new ArrayList<>();
-
-        if (options.getOid() != null) {
-            log.info("OID is ignored for audit export");
-        }
 
         ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context, AuditEventRecordType.class);
         ObjectQuery query = queryFactory.createQuery(filter);

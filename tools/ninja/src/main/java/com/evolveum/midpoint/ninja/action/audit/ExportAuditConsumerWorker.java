@@ -12,7 +12,6 @@ import java.util.concurrent.BlockingQueue;
 
 import com.evolveum.midpoint.ninja.action.worker.AbstractWriterConsumerWorker;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.opts.ExportOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismSerializer;
@@ -24,12 +23,12 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
  * Consumer writing exported audit events to the writer (stdout or file).
  */
 public class ExportAuditConsumerWorker
-        extends AbstractWriterConsumerWorker<ExportOptions, AuditEventRecordType> {
+        extends AbstractWriterConsumerWorker<ExportAuditOptions, AuditEventRecordType> {
 
     private PrismSerializer<String> serializer;
 
     public ExportAuditConsumerWorker(NinjaContext context,
-            ExportOptions options, BlockingQueue<AuditEventRecordType> queue, OperationStatus operation) {
+            ExportAuditOptions options, BlockingQueue<AuditEventRecordType> queue, OperationStatus operation) {
         super(context, options, queue, operation);
     }
 
@@ -41,7 +40,7 @@ public class ExportAuditConsumerWorker
                         // TODO: This does not help with RawType: (parsed:ObjectReferenceType) for which
                         //  the names still go only to the comments (ignored by the import, obviously).
                         .serializeReferenceNames(true)
-                        .skipContainerIds(options.isSkipContainerIds()));
+                        .skipContainerIds(true));
     }
 
     @Override
