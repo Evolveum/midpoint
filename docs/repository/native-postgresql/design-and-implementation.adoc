@@ -300,3 +300,15 @@ This is not used by midPoint itself and there are no tests for it.
 * Arbitrary ordering for iterative search - currently only one path is supported.
 Fixes for `NULL` values are needed - TODO in the code.
 Multi-path ordering throws - this can probably wait a bit.
+
+////
+TODO
+=== Select for update vs serializable isolation
+
+While serializable is recommended to lower contention (with retries on the application side),
+it didn't work for us.
+FOR UPDATE is used only for modifyObject operation, there is minimal gap possible to execute it
+atomically, and the default transaction isolation level does not prevent from reading the row during that time either.
+It only blocks the same modifyObject on the very same row - which is exactly what we want.
+Also, serializable isolation reports the errors that are rather confusing for our users/customers.
+////
