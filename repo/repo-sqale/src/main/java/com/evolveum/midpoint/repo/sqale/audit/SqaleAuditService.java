@@ -114,6 +114,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
     private void executeAudit(AuditEventRecord record) {
         long opHandle = registerOperationStart(OP_AUDIT);
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            record.setRepoId(null); // we want DB to assign the ID
             MAuditEventRecord auditRow = insertAuditEventRecord(jdbcSession, record);
             record.setRepoId(auditRow.id);
 

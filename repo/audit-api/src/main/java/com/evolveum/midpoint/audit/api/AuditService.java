@@ -45,7 +45,7 @@ public interface AuditService {
     /**
      * Emits audit event record, e.g. writes it in the database or logs it to a file.
      * If audit is recorded to the repository, {@link AuditEventRecord#repoId} will be set,
-     * it should not be provided by the client code except for import reasons.
+     * any provided ID is ignored.
      * This is high-level audit method that also tries to complete the audit event record,
      * e.g. filling in missing task information, current timestamp if none is provided, etc.
      */

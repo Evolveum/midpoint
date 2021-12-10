@@ -45,10 +45,14 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -525,45 +529,89 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test601AuditRecordRespectsProvidedIdEvenDuplicateForDifferentTimestamp() {
+    public void test601AuditRecordIgnoresProvidedId() {
+        given("audit event record with repoId");
+        AuditEventRecord record = new AuditEventRecord(AuditEventType.ADD_OBJECT, AuditEventStage.EXECUTION);
+        record.setRepoId(-47L);
+        OperationResult result = createOperationResult();
+
+        when("saving the event record");
+        auditService.audit(record, NullTaskImpl.INSTANCE, result);
+
+        then("operation is success and record ID is assigned, disregarding the provided one");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(record.getRepoId()).isNotNull()
+                .isNotEqualTo(-47L);
+    }
+
+    @Test
+    public void test610AuditForImportRespectsProvidedId() {
+        given("audit event record with ID");
+        clearAudit();
+        // NOTE: AERType is used here, not AER for which the repoId is ignored by the service
+        AuditEventRecordType record = new AuditEventRecordType(prismContext)
+                .eventType(AuditEventTypeType.ADD_OBJECT)
+                .eventStage(AuditEventStageType.EXECUTION)
+                .repoId(-47L)
+                .timestamp(MiscUtil.asXMLGregorianCalendar(1L));
+        OperationResult result = createOperationResult();
+
+        when("saving the event record");
+        auditService.audit(record, result);
+
+        then("operation is success and the provided record ID is used");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(record.getRepoId()).isEqualTo(-47L);
+    }
+
+    @Test
+    public void test611AuditForImportRespectsProvidedIdEvenDuplicateForDifferentTimestamp() {
         given("audit event record with assigned already taken ID");
         clearAudit();
-        AuditEventRecord record = new AuditEventRecord(AuditEventType.ADD_OBJECT, AuditEventStage.EXECUTION);
-        record.setRepoId(-1L);
-        record.setTimestamp(1L);
+        AuditEventRecordType record = new AuditEventRecordType(prismContext)
+                .eventType(AuditEventTypeType.ADD_OBJECT)
+                .eventStage(AuditEventStageType.EXECUTION)
+                .repoId(-1L)
+                .timestamp(MiscUtil.asXMLGregorianCalendar(1L));
         OperationResult result = createOperationResult();
-        auditService.audit(record, NullTaskImpl.INSTANCE, result);
+        auditService.audit(record, result);
         assertThat(record.getRepoId()).isEqualTo(-1L);
 
-        record = new AuditEventRecord(AuditEventType.MODIFY_OBJECT, AuditEventStage.EXECUTION);
-        record.setRepoId(-1L);
-        record.setTimestamp(2L); // timestamp must be different
+        record = new AuditEventRecordType(prismContext)
+                .eventType(AuditEventTypeType.MODIFY_OBJECT)
+                .eventStage(AuditEventStageType.EXECUTION)
+                .repoId(-1L)
+                .timestamp(MiscUtil.asXMLGregorianCalendar(2L)); // timestamp must be different
 
         when("saving the event record with taken ID");
-        auditService.audit(record, NullTaskImpl.INSTANCE, result);
+        auditService.audit(record, result);
 
-        then("operation is success and new record ID is assigned (provided ID is ignored)");
+        then("operation is success and the provided record ID is reused");
         assertThatOperationResult(result).isSuccess();
         assertThat(record.getRepoId()).isEqualTo(-1L);
     }
 
     @Test
-    public void test602AuditRecordWithNonUniqueIdAndTimestampFails() {
+    public void test612AuditForImportWithNonUniqueIdAndTimestampFails() {
         given("audit event record with assigned already taken ID");
         clearAudit();
-        AuditEventRecord record = new AuditEventRecord(AuditEventType.ADD_OBJECT, AuditEventStage.EXECUTION);
-        record.setRepoId(-1L);
-        record.setTimestamp(1L);
+        AuditEventRecordType record = new AuditEventRecordType(prismContext)
+                .eventType(AuditEventTypeType.ADD_OBJECT)
+                .eventStage(AuditEventStageType.EXECUTION)
+                .repoId(-1L)
+                .timestamp(MiscUtil.asXMLGregorianCalendar(1L));
         OperationResult result = createOperationResult();
-        auditService.audit(record, NullTaskImpl.INSTANCE, result);
+        auditService.audit(record, result);
         assertThat(record.getRepoId()).isEqualTo(-1L);
 
-        AuditEventRecord record2 = new AuditEventRecord(AuditEventType.MODIFY_OBJECT, AuditEventStage.EXECUTION);
-        record2.setRepoId(-1L);
-        record2.setTimestamp(1L);
+        AuditEventRecordType record2 = new AuditEventRecordType(prismContext)
+                .eventType(AuditEventTypeType.MODIFY_OBJECT)
+                .eventStage(AuditEventStageType.EXECUTION)
+                .repoId(-1L)
+                .timestamp(MiscUtil.asXMLGregorianCalendar(1L));
 
         expect("saving the event record throws");
-        assertThatThrownBy(() -> auditService.audit(record2, NullTaskImpl.INSTANCE, result))
+        assertThatThrownBy(() -> auditService.audit(record2, result))
                 .isInstanceOf(SystemException.class)
                 .hasRootCauseInstanceOf(org.postgresql.util.PSQLException.class);
 
