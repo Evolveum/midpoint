@@ -144,15 +144,15 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
 
                 strState = strState.toLowerCase();
 
-                if ("y".equals(strState) || "yes".equals(strState)) {
+                if ("y".equalsIgnoreCase(strState) || "yes".equalsIgnoreCase(strState)) {
                     state = State.DELETE;
                 }
 
-                if ("n".equals(strState) || "no".equals(strState)) {
+                if ("n".equalsIgnoreCase(strState) || "no".equalsIgnoreCase(strState)) {
                     state = State.SKIP;
                 }
 
-                if ("c".equals(strState) || "cancel".equals(strState)) {
+                if ("c".equalsIgnoreCase(strState) || "cancel".equalsIgnoreCase(strState)) {
                     state = State.STOP;
                 }
             }
