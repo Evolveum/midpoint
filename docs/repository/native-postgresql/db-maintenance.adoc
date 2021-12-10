@@ -166,7 +166,7 @@ ORDER BY total_bytes DESC;
 
 -- Display settings different from defaults
 SELECT name,source,setting FROM pg_settings
-WHERE source<>'default' AND source<>'override';
+WHERE source <> 'default' AND source <> 'override';
 
 -- Display all settings (equivalent to show all with more info)
 SELECT * FROM pg_settings;
@@ -227,7 +227,7 @@ SELECT
 FROM pg_class c
 INNER JOIN pg_buffercache b ON b.relfilenode = c.relfilenode
 INNER JOIN pg_database d ON (b.reldatabase = d.oid AND d.datname = current_database())
-GROUP BY c.oid,c.relname
+GROUP BY c.oid, c.relname
 ORDER BY count(*) DESC
 LIMIT 10;
 ----
