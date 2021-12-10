@@ -15,26 +15,26 @@ import com.evolveum.midpoint.ninja.opts.ExportOptions;
 import com.evolveum.midpoint.ninja.util.Log;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Producer worker for all search-based operations, such as export and verify.
  *
  * Created by Viliam Repan (lazyman).
  */
-public class SearchProducerWorker extends BaseWorker<ExportOptions, PrismObject<?>> {
+public class SearchProducerWorker extends BaseWorker<ExportOptions, ObjectType> {
 
     private final ObjectTypes type;
     private final ObjectQuery query;
 
     public SearchProducerWorker(
-            NinjaContext context, ExportOptions options, BlockingQueue<PrismObject<?>> queue,
+            NinjaContext context, ExportOptions options, BlockingQueue<ObjectType> queue,
             OperationStatus operation, List<SearchProducerWorker> producers, ObjectTypes type, ObjectQuery query) {
         super(context, options, queue, operation, producers);
 
@@ -56,7 +56,7 @@ public class SearchProducerWorker extends BaseWorker<ExportOptions, PrismObject<
 
             ResultHandler<?> handler = (object, parentResult) -> {
                 try {
-                    queue.put(object);
+                    queue.put(object.asObjectable());
                 } catch (InterruptedException ex) {
                     log.error("Couldn't queue object {}, reason: {}", ex, object, ex.getMessage());
                 }

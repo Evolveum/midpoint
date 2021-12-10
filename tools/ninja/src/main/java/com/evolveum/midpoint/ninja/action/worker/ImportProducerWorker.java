@@ -23,7 +23,7 @@ import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.LegacyValidator;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
-import com.evolveum.midpoint.ninja.opts.ImportOptions;
+import com.evolveum.midpoint.ninja.opts.BasicImportOptions;
 import com.evolveum.midpoint.ninja.util.Log;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.Containerable;
@@ -38,13 +38,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
  * Created by Viliam Repan (lazyman).
  */
 public class ImportProducerWorker<T extends Containerable>
-        extends BaseWorker<ImportOptions, T> {
+        extends BaseWorker<BasicImportOptions, T> {
 
     private final ObjectFilter filter;
     private final boolean stopAfterFound;
 
     public ImportProducerWorker(
-            NinjaContext context, ImportOptions options, BlockingQueue<T> queue,
+            NinjaContext context, BasicImportOptions options, BlockingQueue<T> queue,
             OperationStatus operation, ObjectFilter filter, boolean stopAfterFound) {
         super(context, options, queue, operation);
 

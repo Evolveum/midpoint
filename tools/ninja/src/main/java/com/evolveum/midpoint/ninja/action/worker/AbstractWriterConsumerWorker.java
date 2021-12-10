@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
-import com.evolveum.midpoint.ninja.opts.ExportOptions;
+import com.evolveum.midpoint.ninja.opts.BasicExportOptions;
 import com.evolveum.midpoint.ninja.util.Log;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
@@ -22,7 +22,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public abstract class AbstractWriterConsumerWorker<O extends ExportOptions, T>
+public abstract class AbstractWriterConsumerWorker<O extends BasicExportOptions, T>
         extends BaseWorker<O, T> {
 
     public AbstractWriterConsumerWorker(NinjaContext context,
