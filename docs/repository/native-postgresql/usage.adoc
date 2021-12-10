@@ -166,8 +166,10 @@ Of course, you still need the installed and prepared PostgreSQL database!
 
 Long story short, just run the provided `postgres-new-upgrade.sql` anytime, it should be safe.
 It always runs only the missing parts of the upgrade process.
+Be sure you're running the upgrade script provided with the version you're actually using, see
+xref:/midpoint/reference/upgrade/database-schema-upgrade/#upgrading-native-postgresql-repository[database schema upgrade].
 
-// TODO details
+You can find further details in the source code documentation for `apply_change` procedure at the end of the `postgres-new.sql` script.
 
 ////
 TODO: If different upgrade is needed for LTS version I'd start with apply_change using forced=true for LTS branch.
