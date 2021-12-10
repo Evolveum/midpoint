@@ -8,6 +8,11 @@
 This page documents the audit trail based on the new Native PostgreSQL Repository introduced in midPoint 4.4.
 For the old Generic SQL audit trail see xref:../generic/generic-audit/[this page].
 
+.Before you migrate your audit!
+[IMPORTANT]
+If you want to migrate your old audit to the new database, *be sure to prepare the audit database as described
+in link:#audit-migration-from-other-database[migration notes] before you start using the new repository audit*.
+
 == Configuration overview
 
 SQL auditing is configured in `config.xml` inside
@@ -169,11 +174,111 @@ Conceptually, this stores multimap (name -> references) for each record.
 * Custom properties (`customColumnProperty`) are stored each in dedicated column of `TEXT` type.
 See section link:#custom-column[Custom columns] below for details.
 
+Audit event record should be uniquely identified by its `id` column (matching `recordId` in the related tables).
+However, for technical reasons related to the partitioning support, only uniqueness of `id`+`timestamp` combination is enforced.
+Database will assign a new unique ID, but if ID is provided, and is unique in combination with the timestamp, DB will accept it.
+MidPoint does not provide ID for new audit records, but export/import preserves the original record IDs.
+
+Long story short: Audit event record ID is unique under normal circumstances.
+If you want to export/import your old audit from previous database and keep ID unique, check the
+link:#audit-migration-from-other-database[migration notes] below.
+
 === Upgrading
+
+To upgrade the audit database, run the provided `postgres-new-upgrade-audit.sql` anytime, it should be safe.
+It always runs only the missing parts of the upgrade process.
+Be sure you're running the upgrade script provided with the version you're actually using, see
+xref:/midpoint/reference/upgrade/database-schema-upgrade/#upgrading-native-postgresql-repository[database schema upgrade].
+
+You can find further details in the source code documentation for `apply_audit_change` procedure in the `postgres-new-audit.sql` script.
+
+
+== Partitioning
 
 // TODO
 
-== Partitioning
+== Audit migration from other database
+
+[NOTE]
+Audit migration is implemented in xref:/midpoint/reference/deployment/ninja[Ninja] since midPoint 4.4.1.
+
+If you plan to migrate audit records from the Generic repository, you need to make necessary
+preparations *before* you start using the new audit.
+It is possible to perform the migration later, but it is important to be prepared for it before you start using the new audit database.
+
+=== Preparing the new audit database for migration
+
+This is part of the xref:/midpoint/reference/repository/native-postgresql/migration/[Migration to Native PostgreSQL Repository],
+If you're not coming from that guide, please, check it now to put these steps in the context of the whole process.
+
+As described in the section about link:#audit-tables[audit tables], Native SQL audit uses
+combination of `id` and `timestamp` as a unique identifier (primary key).
+There is currently nothing in audit mechanism that relies on uniqueness of `id` column (or `repoId` in schema),
+but it can be a nice property.
+If you want to keep the database audit this way, for instance, your external systems are somehow tied to the `id` column,
+you need to prepare for it.
+The following steps are the same for a separate audit database or a shared one with the repository:
+
+. Technically, it does not matter whether you import first the audit or the repository.
+It is more convenient to migrate the repository first, though, because audit can be migrated slowly while the system is working.
+
+. Be sure there are no essential audit records created in your new environment before the preparation steps.
+You can test the new environment, if you're OK with audit deletion before going serious.
+
+. Check your old audit database and find out what the highest used `ID` is:
++
+[source,sql]
+----
+select max(id) from m_audit_event;
+----
+
+. Make an informed estimate (or wild guess) how many more records will be created until the old system is fully migrated,
+or simply use much higher number to set the `id` in the new audit database (it is `bigint` column, don't worry about going over maximum value of 9223372036854775807):
++
+[source,sql]
+----
+-- use your value, 100m can be still too low for your deployment
+select setval(pg_get_serial_sequence('ma_audit_event', 'id'), 100000000);
+----
+
+. If you want to use partitioning, *prepare the partitions before you start using the audit for real!*
+It is possible to migrate data later, but it can be extremely cumbersome, so get ready before going live.
+Check the link:#partitioning[Partitioning] section above.
+Don't worry about any test audits that you delete later, but anything production better goes into the right partitions.
+Don't forget to prepare partitions into the future for production, but also for the past for your migrated audit.
+
+=== Executing the migration
+
+Audit migration is performed using the xref:/midpoint/reference/deployment/ninja[Ninja] tool.
+It does not require the old MidPoint running, it is actually better when it does not.
+That's why it is better to migrate audit data after the objects are migrated already and the new upgraded MidPoint is up and running.
+
+To export the old audit you need the following:
+
+* The old audit database must be accessible by Ninja; JDBC connection is used.
+* xref:/midpoint/reference/deployment/midpoint-home-directory/[MidPoint home directory] with `config.xml` is available.
+The configuration file is essential, but other parts of MidPoint home are important too - especially the extension schema files.
+
+Now it is time to decide whether you want to export/import the whole audit at once, or do it in smaller slices.
+
+==== Single roundtrip audit migration
+
+To do it all at once just run the following command (add `-z` to zip the file):
+[source,bash]
+----
+MIDPOINT_HOME='/var/old-mp-home' bin/ninja.sh -v exportAudit -O audit-export.xml
+----
+
+[NOTE]
+If you use unbundled JDBC driver, check xref:/midpoint/reference/deployment/ninja[Ninja documentation] how to specify the JDBC JAR.
+
+Now you can move the file to a new environment, if necessary, and import the audit using the following command:
+[source,bash]
+----
+MIDPOINT_HOME='/var/new-mp-home' bin/ninja.sh -v importAudit -i audit-export.xml
+----
+
+==== Iterative audit migration
 
 // TODO
 
@@ -277,10 +382,6 @@ We can use a script in expression for obtaining some special information.
 In the script we can use variable `target`, which represent target object of audit record, and `auditRecord`, which represent audit record itself (type `AuditEventRecord`).
 
 An example with custom column is available link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/audit[in the samples].
-
-== Audit migration from other database
-
-// TODO
 
 == Configuration examples
 
