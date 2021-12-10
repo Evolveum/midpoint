@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchItem;
 
+import com.evolveum.midpoint.web.component.search.SearchSpecialItemPanel;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -50,6 +51,10 @@ public class AbstractRoleCompositedSearchItem extends SearchItem {
         create();
     }
 
+    @Override
+    public Class<SearchSpecialItemPanel> getSearchItemPanelClass() {
+        return SearchSpecialItemPanel.class;
+    }
 
     public void create() {
         if (memberPanelStorage.isRelationVisible()) {

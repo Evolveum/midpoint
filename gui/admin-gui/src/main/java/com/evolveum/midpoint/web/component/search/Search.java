@@ -10,9 +10,13 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -80,7 +84,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     private final List<AbstractSearchItemDefinition> allDefinitions;
 
 //    private final List<AbstractSearchItemDefinition> availableDefinitions = new ArrayList<>();
-    private final List<SearchItem> items = new ArrayList<>();
+    private LoadableModel<List<SearchItem>> itemsModel;
     private List<SearchItem> specialItems = new ArrayList<>();
     private SearchItem compositedSpecialItems;
 
@@ -126,12 +130,29 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                 }
             }
         }
-
+        initItemsModel();
 //        availableDefinitions.addAll(allDefinitions);
     }
 
+    private void initItemsModel() {
+        itemsModel = new LoadableModel<List<SearchItem>>(true) {
+            @Override
+            protected List<SearchItem> load() {
+                List<SearchItem> items = new ArrayList<>();
+                List<AbstractSearchItemDefinition> defs = allDefinitions.stream().filter(def -> def.isSearchItemDisplayed())
+                        .collect(Collectors.toList());
+                defs.forEach(def -> items.add(def.createSearchItem()));
+                return items;
+            }
+        };
+    }
+
+    public IModel<List<SearchItem>> getItemsModel() {
+        return itemsModel;
+    }
+
     public List<SearchItem> getItems() {
-        return Collections.unmodifiableList(items);
+        return itemsModel.getObject();
     }
 
     public List<SearchItem> getSpecialItems() {
@@ -168,7 +189,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public List<AttributeSearchItem> getPropertyItems() {
         List<AttributeSearchItem> propertyItems = new ArrayList<>();
-        items.forEach(item -> {
+        itemsModel.getObject().forEach(item -> {
             if (item instanceof AttributeSearchItem) {
                 propertyItems.add((AttributeSearchItem) item);
             }
@@ -178,7 +199,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public List<FilterSearchItem> getFilterItems() {
         List<FilterSearchItem> filterItems = new ArrayList<>();
-        items.forEach(item -> {
+        itemsModel.getObject().forEach(item -> {
             if (item instanceof FilterSearchItem) {
                 filterItems.add((FilterSearchItem) item);
             }
@@ -310,7 +331,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 //    }
 
     public void delete(AbstractSearchItemDefinition item) {
-        item.setDisplayed(false);
+        item.setSearchItemDisplayed(false);
 //        if (items.remove(item)) {
 //            availableDefinitions.add(item.getSearchItemDefinition());
 //        }
@@ -446,7 +467,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     private ObjectQuery createObjectQuerySimple(VariablesMap defaultVariables, PageBase pageBase) {
-        List<SearchItem> searchItems = getItems();
+        List<SearchItem> searchItems = itemsModel.getObject();
         if (searchItems.isEmpty()) {
             return null;
         }
@@ -847,7 +868,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         DebugUtil.debugDumpWithLabelLn(sb, "type", getTypeClass(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "allDefinitions", allDefinitions, indent + 1);
 //        DebugUtil.debugDumpWithLabelLn(sb, "availableDefinitions", availableDefinitions, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "items", items, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "items", itemsModel.getObject(), indent + 1);
         return sb.toString();
     }
 
@@ -856,7 +877,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return "Search{" +
                 "objectCollectionSearchItem=" + objectCollectionSearchItem +
                 "typeSearchItem=" + typeSearchItem +
-                "items=" + items +
+                "items=" + itemsModel.getObject() +
                 '}';
     }
 

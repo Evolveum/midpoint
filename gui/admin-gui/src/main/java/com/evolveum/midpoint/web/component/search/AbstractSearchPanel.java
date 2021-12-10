@@ -19,7 +19,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -338,7 +337,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
     }
 
     private void addOneItemPerformed(AbstractSearchItemDefinition searchItemDef, AjaxRequestTarget target) {
-        searchItemDef.setDisplayed(true);
+        searchItemDef.setSearchItemDisplayed(true);
 //        Search search = getModelObject();
 //        SearchItem item = search.addItem(property);
 //        item.setEditWhenVisible(true);
@@ -354,7 +353,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
             if (!searchItem.isSelected()) {
                 continue;
             }
-            searchItem.setDisplayed(true);
+            searchItem.setSearchItemDisplayed(true);
 //            search.addItem(searchItem);
             searchItem.setSelected(false);
         }
@@ -428,14 +427,13 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
             initBasicSearchLayout();
         }
 
-        private <S extends SearchItem, T extends Serializable> void initBasicSearchLayout() {
-            ListView<S> items = new ListView<S>(ID_ITEMS,
-                    new PropertyModel<>(getModel(), Search.F_ITEMS)) {
+        private <T extends Serializable> void initBasicSearchLayout() {
+            ListView<SearchItem> items = new ListView<>(ID_ITEMS, getModelObject().getItemsModel()) {
 
                 private static final long serialVersionUID = 1L;
 
                 @Override
-                protected void populateItem(ListItem<S> item) {
+                protected void populateItem(ListItem<SearchItem> item) {
 //                    AbstractSearchItemPanel searchItem;
 //                    if (item.getModelObject() instanceof FilterSearchItem) {
 //                        searchItem = new SearchFilterPanel(ID_ITEM, (IModel<FilterSearchItem>) item.getModel()) {
@@ -466,7 +464,10 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
 //                            }
 //                        };
 //                    }
-                    item.add(createSearchItemPanel(ID_ITEM, item.getModel()));
+                    if (item.getModelObject().getSearchItemDefinition().isSearchItemDisplayed()) {
+                        SearchItemPanel searchItemPanel = createSearchItemPanel(ID_ITEM, item.getModel());
+                        item.add(searchItemPanel);
+                    }
                 }
             };
 //            items.add(createVisibleBehaviour(SearchBoxModeType.BASIC));//todo
@@ -558,7 +559,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
                     help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(helpModel.getObject())));
                     item.add(help);
 
-                    item.add(new VisibleBehaviour(() -> !item.getModelObject().isDisplayed()));
+                    item.add(new VisibleBehaviour(() -> !item.getModelObject().isSearchItemDisplayed()));
 //                    item.add(new VisibleEnableBehaviour() {
 //
 //                        private static final long serialVersionUID = 1L;

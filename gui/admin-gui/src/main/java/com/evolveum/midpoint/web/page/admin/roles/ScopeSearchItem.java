@@ -37,6 +37,7 @@ public class ScopeSearchItem extends SpecialSearchItem {
     private ScopeSearchItemConfigurationType getScopeConfig() {
         return scopeConfigModel.getObject();
     }
+
     @Override
     public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
         throw new UnsupportedOperationException();
@@ -45,6 +46,11 @@ public class ScopeSearchItem extends SpecialSearchItem {
     @Override
     public boolean isApplyFilter() {
         return  getScopeConfig() != null && getScopeConfig().getDefaultValue() == SearchBoxScopeType.SUBTREE;
+    }
+
+    @Override
+    public Class<SearchSpecialItemPanel> getSearchItemPanelClass() {
+        return SearchSpecialItemPanel.class;
     }
 
     @Override

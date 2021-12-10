@@ -12,7 +12,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
@@ -26,12 +25,9 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -118,7 +114,7 @@ public class SearchItemPanel<S extends SearchItem> extends BasePanel<S> {
     }
 
     protected boolean canRemoveSearchItem() {
-        return getModelObject().canRemoveSearchItem() && getModelObject().getSearch().isConfigurable();
+        return getModelObject().canRemoveSearchItem(); // && getModelObject().getSearch().isConfigurable(); //todo
     }
 
     protected IModel<String> createLabelModel() {
@@ -143,7 +139,7 @@ public class SearchItemPanel<S extends SearchItem> extends BasePanel<S> {
 
     private void deletePerformed(AjaxRequestTarget target) {
         SearchItem item = getModelObject();
-        item.getSearchItemDefinition().setDisplayed(false);
+        item.getSearchItemDefinition().setSearchItemDisplayed(false);
 //        Search search = item.getSearch();
 //        search.delete(item);
 

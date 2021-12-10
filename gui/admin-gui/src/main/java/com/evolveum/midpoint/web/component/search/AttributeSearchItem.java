@@ -56,6 +56,11 @@ public class AttributeSearchItem<T extends Serializable> extends SearchItem<Attr
         this.value = defaultValue;
     }
 
+    @Override
+    public Class<SearchPropertyPanel> getSearchItemPanelClass() {
+        return SearchPropertyPanel.class;
+    }
+
     public DisplayableValue<T> getValue() {
         return value;
     }

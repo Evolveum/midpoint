@@ -11,9 +11,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchSpecialItemPanel;
-import com.evolveum.midpoint.web.component.search.SpecialSearchItem;
+import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
@@ -46,6 +44,11 @@ public class IndirectSearchItem extends SpecialSearchItem {
 
     private IndirectSearchItemConfigurationType getIndirectConfig() {
         return memberStorage.getIndirectSearchItem();
+    }
+
+    @Override
+    public Class<SearchSpecialItemPanel> getSearchItemPanelClass() {
+        return SearchSpecialItemPanel.class;
     }
 
     @Override

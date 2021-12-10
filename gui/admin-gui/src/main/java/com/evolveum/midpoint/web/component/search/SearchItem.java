@@ -46,9 +46,7 @@ public abstract class SearchItem<D extends AbstractSearchItemDefinition> impleme
 
     public abstract ObjectFilter createFilter(PageBase pageBase, VariablesMap variables);
 
-    public <S extends SearchItem, ASIP extends SearchItemPanel<S>> Class<ASIP> getSearchItemPanelClass(){
-        return null;
-    }
+    public abstract <S extends SearchItem, ASIP extends SearchItemPanel<S>> Class<ASIP> getSearchItemPanelClass();
 
     public D getSearchItemDefinition() {
         return searchItemDefinition;

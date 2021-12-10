@@ -21,7 +21,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -44,7 +43,7 @@ public class ObjectClassSearchItem extends AttributeSearchItem<QName> {
 
     public ObjectClassSearchItem(Search search, AttributeSearchItemDefinition definition) {
         super(search, definition);
-        this.itemsModel = Model.ofList(search.getItems());
+        this.itemsModel = search.getItemsModel();
     }
 
     @Override

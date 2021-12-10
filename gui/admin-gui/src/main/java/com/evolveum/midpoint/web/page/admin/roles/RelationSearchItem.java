@@ -112,6 +112,11 @@ public class RelationSearchItem extends SpecialSearchItem {
 //        };
 //    }
 
+    @Override
+    public Class<SearchSpecialItemPanel> getSearchItemPanelClass() {
+        return SearchSpecialItemPanel.class;    //todo ??
+    }
+
     private RelationSearchItemConfigurationType getReltaionConfig() {
         return memberStorage.getRelationSearchItem();
     }

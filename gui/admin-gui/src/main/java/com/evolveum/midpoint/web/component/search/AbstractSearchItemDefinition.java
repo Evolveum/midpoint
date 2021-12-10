@@ -6,14 +6,13 @@
  */
 package com.evolveum.midpoint.web.component.search;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import java.io.Serializable;
 
 public abstract class AbstractSearchItemDefinition implements Serializable, Comparable<AbstractSearchItemDefinition> {
 
-    protected boolean displayed;
+    protected boolean searchItemDisplayed;
     protected boolean visibleByDefault = true;
     private PolyStringType displayName;
     private String description;
@@ -50,12 +49,12 @@ public abstract class AbstractSearchItemDefinition implements Serializable, Comp
         this.description = description;
     }
 
-    public boolean isDisplayed() {
-        return displayed;
+    public boolean isSearchItemDisplayed() {
+        return searchItemDisplayed;
     }
 
-    public void setDisplayed(boolean displayed) {
-        this.displayed = displayed;
+    public void setSearchItemDisplayed(boolean searchItemDisplayed) {
+        this.searchItemDisplayed = searchItemDisplayed;
     }
 
     public boolean isFixed() {

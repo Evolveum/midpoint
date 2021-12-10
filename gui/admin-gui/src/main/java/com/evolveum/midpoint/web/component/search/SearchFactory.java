@@ -11,7 +11,6 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
-import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 
 import com.evolveum.midpoint.util.QNameUtil;
 
@@ -25,7 +24,6 @@ import com.evolveum.midpoint.gui.impl.GuiChannel;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -37,7 +35,6 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -405,7 +402,7 @@ public class SearchFactory {
                 def.setDisplayName(searchItem.getDisplayName());
                 def.setDescription(searchItem.getDescription());
                 def.setVisibleByDefault(!Boolean.FALSE.equals(searchItem.isVisibleByDefault()));
-                def.setDisplayed(def.isVisibleByDefault());
+                def.setSearchItemDisplayed(def.isVisibleByDefault());
                 configuredSearchItemList.add(def);
             }
         });
@@ -443,6 +440,7 @@ public class SearchFactory {
                         AttributeSearchItemDefinition searchItemDef = new AttributeSearchItemDefinition(path, def, getAllowedValues(path));
                         if (ItemPathCollectionsUtil.containsEquivalent(fixedSearchItems, path)) {
                             searchItemDef.setFixed(true);
+                            searchItemDef.setSearchItemDisplayed(true);
                         }
                         definitions.add(searchItemDef);
                     }

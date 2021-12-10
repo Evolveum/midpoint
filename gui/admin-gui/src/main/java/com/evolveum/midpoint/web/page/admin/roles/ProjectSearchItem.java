@@ -45,6 +45,11 @@ public class ProjectSearchItem extends SpecialSearchItem {
     }
 
     @Override
+    public Class<SearchSpecialItemPanel> getSearchItemPanelClass() {
+        return SearchSpecialItemPanel.class;
+    }
+
+    @Override
     public SearchSpecialItemPanel createSearchItemPanel(String id) {
         IModel projectModel = new PropertyModel(getMemberPanelStorage(), MemberPanelStorage.F_PROJECT) {
             @Override
