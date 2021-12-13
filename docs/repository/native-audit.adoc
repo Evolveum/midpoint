@@ -8,10 +8,20 @@
 This page documents the audit trail based on the new Native PostgreSQL Repository introduced in midPoint 4.4.
 For the old Generic SQL audit trail see xref:../generic/generic-audit/[this page].
 
+*First things first!* You want to check configuration overview lower, make the necessary changes in the new `config.xml`,
+but before you run your midPoint in production mode, you have to consider *audit migration* and *partitioning*.
+
 .Before you migrate your audit!
 [IMPORTANT]
 If you want to migrate your old audit to the new database, *be sure to prepare the audit database as described
 in the link:#audit-migration-from-other-database[migration notes] before you start using the new repository audit*.
+
+.If you want partitioned audit tables...
+[IMPORTANT]
+Check the link:#partitioning[Partitioning] section before you start MidPoint for production purposes.
+Anything later will be too late.
+
+Only if you don't care about either, you may safely ignore those sections.
 
 == Configuration overview
 
@@ -192,10 +202,148 @@ xref:/midpoint/reference/upgrade/database-schema-upgrade/#upgrading-native-postg
 
 You can find further details in the source code documentation for `apply_audit_change` procedure in the `postgres-new-audit.sql` script.
 
-
 == Partitioning
 
-// TODO
+Audit tables are designed to https://www.postgresql.org/docs/current/ddl-partitioning.html[allow partitioning] by the `timestamp` column.
+This is what PostgreSQL calls *declarative* partitioning by *range*.
+All audit tables can be split - preferably they should use the same partition ranges, which is exactly what the supported procedure described lower does.
+
+_Declarative_ partitioning means that the rows are placed into the right partition and also searched for in that partition, if the
+partitioning key (`timestamp` attribute) is used in the search conditions - which is always advisable.
+Word "declarative" however *does not* mean that the partitions are automatically created when needed.
+There are solutions for this problem out there, but these are not described here and are not supported.
+
+[NOTE]
+.PostgreSQL partitioning caveats
+Column `timestamp` is the partition key, and as such it must be present in all partitioned tables,
+that is also `ma_audit_delta` and `ma_audit_ref`.
+It also must be part of any unique index, including primary key, and of course the foreign keys referencing `ma_audit_table`.
+If `timestamp` is used in queries, only the relevant partitions are searched.
+On the other hand, if it is not part of the query, all partitions must be consulted - which is like executing `UNION` query on all of them.
+
+=== Do I need partitioning?
+
+For anything but large-scale deployments the answer is: "Likely not."
+In that case you don't need to do anything as the default partition is already precreated for all tables
+and audit rows have a place to go to.
+
+You should not consider partitioning for the search performance alone.
+The main benefit of audit partitioning is *fast audit removal*.
+You should consider partitioning if you struggled with audit cleanup previously.
+With partitioning you can virtually instantly drop or detach partitions from the active table which makes the audit data removal or archival much easier.
+
+[NOTE]
+With partitions or not (BTW, there is always the default one), outside this section you do not need to consider partitions.
+Always work with the tables described in previous sections (e.g. `ma_audit_event`) even though they are only virtual.
+The whole point of _declarative partitioning_ is that you do not need to care about it for normal use cases.
+
+=== Creating partitions
+
+MidPoint offers an SQL procedure `audit_create_monthly_partitions` that is declared in `postgres-new-audit.sql`
+(current version https://github.com/Evolveum/midpoint/blob/master/config/sql/native-new/postgres-new-audit.sql[here]).
+As the name suggests, it creates monthly partitions which is quite fine-grained and is easy to utilize,
+whether your removal is executed monthly, quarterly or yearly.
+
+See also the discussion on the Cleanup task in the section below.
+
+To create partitions for the next 5 years, simply run this SQL command:
+[source,sql]
+----
+call audit_create_monthly_partitions(60);
+----
+
+If you have anything in the default partition, the command will likely fail with the following error:
+----
+[23514] ERROR: updated partition constraint for default partition "ma_audit_event_default" would be violated by some row
+----
+
+You have to resolve the situation by deleting the rows in the default partition, which is likely to delete all the audit rows.
+Alternatively, you may only detach the partition if you want to do something with the rows later.
+However, this likely indicates that the partitioning is done too late in the process.
+
+If you're planning to link:#audit-migration-from-other-database[migrate the old audit], don't forget to create partitions into the past too:
+[source,sql]
+----
+call audit_create_monthly_partitions(-60);
+----
+
+Of course, investigate your old audit to find out how many partitions are needed.
+Alternatively, decide on the earliest date and use a filter for the audit export (example in the section on migration).
+
+To check existing audit partitions, including estimated row count, you can use the following SQL query:
+[source,sql]
+----
+select i.inhrelid::regclass::text as partition, t.reltuples rows_estimate
+from pg_inherits i
+join pg_class t on t.oid = i.inhrelid
+where inhparent = 'ma_audit_event'::regclass
+order by partition;
+----
+
+It is safe to run `audit_create_monthly_partitions` multiple times, it reports existing partitions and creates only the missing ones.
+
+.What about quarterly or yearly partitions?
+[NOTE]
+====
+There is no need for concern regarding the count of partitions, unless you plan to keep hundreds of them.
+
+If you really need partitions over longer time period, you may adapt the creation procedure.
+We would recommend using natively supported PostgreSQL intervals, that is `quarter` or `year`.
+If you want two-month partitions, you want to be sure they are all starting with odd months,
+but it's not so trivial with https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-TRUNC[date_trunc]
+used in the procedure.
+Adopting different supported interval, however, should be easy.
+
+Just remember that this way you're changing the granularity for your data removal procedure as well.
+====
+
+=== Cleanup task vs partitions
+
+MidPoint already has one mechanism to clean up the audit tables - the precreated *Cleanup* task, executed once a day.
+The task consults the xref:/midpoint/reference/deployment/removing-obsolete-information/[Cleanup policy]
+(part of ) to figure out what to delete.
+If you absolutely require something on day-to-day basis and the audit database can handle deletion
+of a day's work, you may stick to the Cleanup task.
+There is also an option to use `maxRecords` instead of `auditRecords` in the `cleanupPolicy`.
+
+If you want to use Cleanup task, you probably do not need partions; but you might - read on.
+There is one problem with deleting data from the big audit table though.
+PostgreSQL needs to reclaim the empty space; the process is called https://www.postgresql.org/docs/current/routine-vacuuming.html[vacuuming].
+In theory, you don't need to care about it, if the auto-vacuuming can keep up with the deletions,
+but there is a warning in the linked document that you may need to run `VACUUM FULL` eventually, which requires a table lock.
+That would make writing into audit impossible during the operation, and full vacuum takes time.
+
+This makes partitions attractive, even if you want to use these traditional cleanup methods based on `DELETE`.
+Non-vacuumed partition still needs vacuuming, but only locks that partition - which likely is not the partition for current time, used for inserting the new audit entries.
+
+However, if you don't need to remove data daily, you may utilize full potential of the partitions.
+Let's say, you don't need audit events older than 12 months, but can tolerate 13 months.
+That means that if it's December 2021, you may drop partition for November 2020, just like you dropped the one for October 2020 the previous month.
+Partitions created by the `audit_create_monthly_partitions` procedure are named with a specific suffix, so you know exactly what partitions they are.
+
+To drop these partitions, you simply drop their tables (first the dependent ones):
+[source,sql]
+----
+drop table ma_audit_ref_202009;
+drop table ma_audit_delta_202009;
+drop table ma_audit_event_202009;
+----
+
+Alternatively, just detach them, which makes them invisible for midPoint and you can later decide what to do with them
+(here the order does not matter):
+[source,sql]
+----
+alter table ma_audit_event detach partition ma_audit_event_202011;
+alter table ma_audit_delta detach partition ma_audit_delta_202011;
+alter table ma_audit_ref detach partition ma_audit_ref_202011;
+----
+
+Currently, there is no automation for these tasks available - these may be provided in the future.
+However, this is considered advanced PostgreSQL already, and your DB admin should be ready to automate these tasks.
+
+[NOTE]
+If you want to retire the audit data on the database level with partitions, it is best to leave `auditRecords`
+element in the `cleanupPolicy` empty.
 
 == Audit migration from other database
 
@@ -261,9 +409,19 @@ The configuration file is essential, but other parts of MidPoint home are import
 
 Now it is time to decide whether you want to export/import the whole audit at once, or do it in smaller slices.
 
+[IMPORTANT]
+.Before you import...
+New audit stores serialized objects in `ma_audit_delta` table, in the columns `delta` and `fullResult`.
+If you have any external analysis tool based on the content of these columns, you'll likely want to specify
+`fullObjectFormat` in the `auditService` section of the `config.xml`, because it defaults to JSON for the new audit.
+You can set it to `xml`, which was the previous default; do so *before you run the import commands*.
+New audit does not compress these columns.
+If you don't need XML, do not set anything, default JSON format takes much less space.
+
 ==== Single roundtrip audit migration
 
 To do it all at once just run the following command (add `-z` to zip the file):
+
 [source,bash]
 ----
 MIDPOINT_HOME='/var/old-mp-home' bin/ninja.sh -v exportAudit -O audit-export.xml
@@ -272,7 +430,20 @@ MIDPOINT_HOME='/var/old-mp-home' bin/ninja.sh -v exportAudit -O audit-export.xml
 [NOTE]
 If you use unbundled JDBC driver, check xref:/midpoint/reference/deployment/ninja[Ninja documentation] how to specify the JDBC JAR.
 
+You can also use filter to export only some audit events, typically by their timestamp.
+Following example uses Axiom language filter preceded by `%` (different parameter escaping may be needed if you don't use `bash`):
+
+[source,bash]
+----
+MIDPOINT_HOME='/var/old-mp-home' bin/ninja.sh -v exportAudit -O audit-export.xml -f '% timestamp >= "2019-01-01"'
+----
+
+Be sure to check the first audit records and add the timezone if needed, e.g. the proper value
+for you can look something like `2019-01-01-05:00` where `-05:00` is a timezone (see https://en.wikipedia.org/wiki/ISO_8601[ISO 8601]).
+Format with time is also recognized (with or without timezone), e.g. `2019-01-01T12:00:00+01:00`.
+
 Now you can move the file to a new environment, if necessary, and import the audit using the following command:
+
 [source,bash]
 ----
 MIDPOINT_HOME='/var/new-mp-home' bin/ninja.sh -v importAudit -i audit-export.xml
@@ -467,5 +638,10 @@ although the default settings do release unused physical connections.
 * xref:../generic/[Old Generic Repository]
 * xref:/midpoint/reference/deployment/clustering-ha/[Clustering / high availability setup]
 * xref:/midpoint/reference/repository/native-postgresql/migration/[Migration to Native PostgreSQL Repository]
-// TODO separate audit repository link
 * xref:/midpoint/reference/tasks/task-manager/configuration/[Task Manager Configuration]
+
+== External links
+
+* https://www.postgresql.org/docs/current/ddl-partitioning.html[PostgreSQL Table Partitioning]
+* https://jdbc.postgresql.org/documentation/head/connect.html[Connecting to the PostgreSQL Database]
+* https://github.com/Evolveum/midpoint/blob/master/config/sql/native-new/postgres-new-audit.sql[postgres-new-audit.sql] on GitHub
