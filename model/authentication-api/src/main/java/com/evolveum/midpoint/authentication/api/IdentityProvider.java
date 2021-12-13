@@ -9,6 +9,7 @@ package com.evolveum.midpoint.authentication.api;
 import java.io.Serializable;
 
 /**
+ * Define additional configuration for SAML2 Identity provider
  * @author skublik
  */
 

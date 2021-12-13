@@ -15,11 +15,9 @@ import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.impl.security.module.LdapWebSecurityConfig;
-import com.evolveum.midpoint.authentication.impl.security.module.ModuleWebSecurityConfig;
+import com.evolveum.midpoint.authentication.impl.security.module.configurer.LdapWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.LdapModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.security.module.configuration.LdapModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.impl.security.module.configuration.ModuleWebSecurityConfigurationImpl;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,15 +57,12 @@ public class LdapModuleFactory extends AbstractModuleFactory {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType) {
-        if (moduleType instanceof LdapAuthenticationModuleType) {
-            return true;
-        }
-        return false;
+        return moduleType instanceof LdapAuthenticationModuleType;
     }
 
     @Override
     public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence,
-            ServletRequest request, Map<Class<? extends Object>, Object> sharedObjects,
+            ServletRequest request, Map<Class<?>, Object> sharedObjects,
             AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
 
         if (!(moduleType instanceof LdapAuthenticationModuleType)) {
@@ -77,12 +72,12 @@ public class LdapModuleFactory extends AbstractModuleFactory {
 
         isSupportedChannel(authenticationChannel);
 
-        ModuleWebSecurityConfigurationImpl configuration = LdapModuleWebSecurityConfiguration.build(moduleType, prefixOfSequence);
+        LdapModuleWebSecurityConfiguration configuration = LdapModuleWebSecurityConfiguration.build(moduleType, prefixOfSequence);
         configuration.setPrefixOfSequence(prefixOfSequence);
 
-        configuration.addAuthenticationProvider(getProvider((LdapAuthenticationModuleType)moduleType, credentialPolicy));
+        configuration.addAuthenticationProvider(getProvider((LdapAuthenticationModuleType)moduleType));
 
-        ModuleWebSecurityConfig module = createModule(configuration);
+        LdapWebSecurityConfigurer<LdapModuleWebSecurityConfiguration> module = createModule(configuration);
         module.setObjectPostProcessor(getObjectObjectPostProcessor());
         HttpSecurity http = module.getNewHttpSecurity();
         setSharedObjects(http, sharedObjects);
@@ -92,7 +87,7 @@ public class LdapModuleFactory extends AbstractModuleFactory {
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }
 
-    protected AuthenticationProvider getProvider(LdapAuthenticationModuleType moduleType, CredentialsPolicyType credentialsPolicy){
+    private AuthenticationProvider getProvider(LdapAuthenticationModuleType moduleType){
         DefaultSpringSecurityContextSource ctx = new DefaultSpringSecurityContextSource(moduleType.getHost());
         ctx.setUserDn(moduleType.getUserDn());
 
@@ -125,8 +120,8 @@ public class LdapModuleFactory extends AbstractModuleFactory {
         return provider;
     }
 
-    protected ModuleWebSecurityConfig createModule(ModuleWebSecurityConfiguration configuration) {
-        return  getObjectObjectPostProcessor().postProcess(new LdapWebSecurityConfig((LdapModuleWebSecurityConfiguration) configuration));
+    private LdapWebSecurityConfigurer<LdapModuleWebSecurityConfiguration> createModule(LdapModuleWebSecurityConfiguration configuration) {
+        return  getObjectObjectPostProcessor().postProcess(new LdapWebSecurityConfigurer<>(configuration));
     }
 
     protected ModuleAuthenticationImpl createEmptyModuleAuthentication(LdapAuthenticationModuleType moduleType,

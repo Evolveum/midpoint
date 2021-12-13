@@ -16,6 +16,8 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author skublik
  */
@@ -35,20 +37,10 @@ public class ResetPasswordAuthenticationChannel extends AuthenticationChannelImp
         return "/resetPassword";
     }
 
-    public Collection<Authorization> resolveAuthorities(Collection<Authorization> authorities) {
-        ArrayList<Authorization> newAuthorities = new ArrayList<Authorization>();
-        if (authorities != null) {
-            Iterator<Authorization> authzIterator = authorities.iterator();
-            while (authzIterator.hasNext()) {
-                Authorization authzI= authzIterator.next();
-                Iterator<String> actionIterator = authzI.getAction().iterator();
-                while (actionIterator.hasNext()) {
-                    String action = actionIterator.next();
-                    if (action.contains(AuthorizationConstants.NS_AUTHORIZATION_UI)) {
-                        actionIterator.remove();
-                    }
-                }
-            }
+    public Collection<Authorization> resolveAuthorities(@NotNull Collection<Authorization> authorities) {
+        ArrayList<Authorization> newAuthorities = new ArrayList<>();
+        for (Authorization authzI : authorities) {
+            authzI.getAction().removeIf(action -> action.contains(AuthorizationConstants.NS_AUTHORIZATION_UI));
         }
         AuthorizationType authorizationType = new AuthorizationType();
         authorizationType.getAction().add(AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL);

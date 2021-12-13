@@ -19,7 +19,7 @@ import org.springframework.security.core.session.SessionRegistryImpl;
 
 public class MidpointSessionRegistry extends SessionRegistryImpl {
 
-    private RemoveUnusedSecurityFilterPublisher removeUnusedSecurityFilterPublisher;
+    private final RemoveUnusedSecurityFilterPublisher removeUnusedSecurityFilterPublisher;
 
     public MidpointSessionRegistry(RemoveUnusedSecurityFilterPublisher removeUnusedSecurityFilterPublisher){
         this.removeUnusedSecurityFilterPublisher = removeUnusedSecurityFilterPublisher;

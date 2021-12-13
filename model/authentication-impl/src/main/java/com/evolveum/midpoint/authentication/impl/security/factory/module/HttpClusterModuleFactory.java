@@ -16,8 +16,7 @@ import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.security.provider.ClusterProvider;
 import com.evolveum.midpoint.authentication.impl.security.util.AuthModuleImpl;
-import com.evolveum.midpoint.authentication.impl.security.module.HttpClusterModuleWebSecurityConfig;
-import com.evolveum.midpoint.authentication.impl.security.module.ModuleWebSecurityConfig;
+import com.evolveum.midpoint.authentication.impl.security.module.configurer.HttpClusterModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.security.module.configuration.ModuleWebSecurityConfigurationImpl;
 
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -25,8 +24,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModulesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
@@ -37,8 +34,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyTyp
 @Component
 public class HttpClusterModuleFactory extends AbstractModuleFactory {
 
-    private static final Trace LOGGER = TraceManager.getTrace(HttpClusterModuleFactory.class);
-
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType) {
         return false;
@@ -46,19 +41,19 @@ public class HttpClusterModuleFactory extends AbstractModuleFactory {
 
     @Override
     public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence,
-                                         ServletRequest request, Map<Class<? extends Object>, Object> sharedObjects,
+                                         ServletRequest request, Map<Class<?>, Object> sharedObjects,
                                          AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
 
         ModuleWebSecurityConfiguration configuration = createConfiguration(moduleType, prefixOfSequence);
 
         configuration.addAuthenticationProvider(createProvider());
 
-        ModuleWebSecurityConfig module = createModule(configuration);
+        HttpClusterModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration> module = createModule(configuration);
         module.setObjectPostProcessor(getObjectObjectPostProcessor());
         HttpSecurity http = module.getNewHttpSecurity();
         setSharedObjects(http, sharedObjects);
 
-        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(moduleType, configuration);
+        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(configuration);
         SecurityFilterChain filter = http.build();
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }
@@ -69,15 +64,15 @@ public class HttpClusterModuleFactory extends AbstractModuleFactory {
         return configuration;
     }
 
-    private ModuleWebSecurityConfig createModule(ModuleWebSecurityConfiguration configuration) {
-        return  getObjectObjectPostProcessor().postProcess(new HttpClusterModuleWebSecurityConfig(configuration));
+    private HttpClusterModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration> createModule(ModuleWebSecurityConfiguration configuration) {
+        return getObjectObjectPostProcessor().postProcess(new HttpClusterModuleWebSecurityConfigurer<>(configuration));
     }
 
     private AuthenticationProvider createProvider() {
         return getObjectObjectPostProcessor().postProcess(new ClusterProvider());
     }
 
-    private ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType, ModuleWebSecurityConfiguration configuration) {
+    private ModuleAuthenticationImpl createEmptyModuleAuthentication(ModuleWebSecurityConfiguration configuration) {
         ModuleAuthenticationImpl moduleAuthentication = new ModuleAuthenticationImpl(AuthenticationModuleNameConstants.CLUSTER);
         moduleAuthentication.setPrefix(configuration.getPrefix());
         moduleAuthentication.setNameOfModule(configuration.getNameOfModule());

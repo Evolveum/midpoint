@@ -10,11 +10,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
+ * An interface used for definition page url in GUI.
+ *
  * @author lazyman
  */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Url {
 
+    /**
+     * Url belonging to the given Page.
+     */
     String mountUrl();
 
     /**

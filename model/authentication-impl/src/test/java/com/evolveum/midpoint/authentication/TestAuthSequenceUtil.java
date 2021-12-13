@@ -27,7 +27,7 @@ import java.util.List;
 public class TestAuthSequenceUtil extends AbstractHigherUnitTest {
 
     private List<AuthenticationSequenceType> getSequences() {
-        List<AuthenticationSequenceType> sequences = new ArrayList();
+        List<AuthenticationSequenceType> sequences = new ArrayList<>();
         AuthenticationSequenceType sequence = new AuthenticationSequenceType();
         sequence.setName("sequence1");
         sequence.getNodeGroup().add(getReference("1"));
@@ -63,7 +63,7 @@ public class TestAuthSequenceUtil extends AbstractHigherUnitTest {
     public void TestGetSequenceByNodeGroup() {
         AuthenticationsPolicyType authenticationPolicy = new AuthenticationsPolicyType();
         authenticationPolicy.getSequence().addAll(getSequences());
-        List<ObjectReferenceType> nodeGroups = new ArrayList();
+        List<ObjectReferenceType> nodeGroups = new ArrayList<>();
         nodeGroups.add(getReference("2"));
         List<AuthenticationSequenceType> sequences = AuthSequenceUtil.getSequencesForNodeGroups(nodeGroups, authenticationPolicy);
         assertEquals("Wrong sequences", 2, sequences.size());
@@ -73,7 +73,7 @@ public class TestAuthSequenceUtil extends AbstractHigherUnitTest {
     public void TestGetSequenceByNodeGroups() {
         AuthenticationsPolicyType authenticationPolicy = new AuthenticationsPolicyType();
         authenticationPolicy.getSequence().addAll(getSequences());
-        List<ObjectReferenceType> nodeGroups = new ArrayList();
+        List<ObjectReferenceType> nodeGroups = new ArrayList<>();
         nodeGroups.add(getReference("1"));
         nodeGroups.add(getReference("2"));
         List<AuthenticationSequenceType> sequences = AuthSequenceUtil.getSequencesForNodeGroups(nodeGroups, authenticationPolicy);
@@ -84,7 +84,7 @@ public class TestAuthSequenceUtil extends AbstractHigherUnitTest {
     public void TestGetSequenceByEmptyNodeGroups() {
         AuthenticationsPolicyType authenticationPolicy = new AuthenticationsPolicyType();
         authenticationPolicy.getSequence().addAll(getSequences());
-        List<AuthenticationSequenceType> sequences = AuthSequenceUtil.getSequencesForNodeGroups(new ArrayList(), authenticationPolicy);
+        List<AuthenticationSequenceType> sequences = AuthSequenceUtil.getSequencesForNodeGroups(new ArrayList<>(), authenticationPolicy);
         assertEquals("Wrong sequences", 1, sequences.size());
     }
 

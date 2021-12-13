@@ -9,6 +9,8 @@ package com.evolveum.midpoint.authentication.api;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 /**
+ * Define actual state of authentication module between requests
+ *
  * @author skublik
  */
 @Experimental
@@ -17,5 +19,5 @@ public enum StateOfModule {
     FAILURE,
     SUCCESSFULLY,
     LOGOUT_PROCESSING,
-    CALLED_OFF;
+    CALLED_OFF
 }

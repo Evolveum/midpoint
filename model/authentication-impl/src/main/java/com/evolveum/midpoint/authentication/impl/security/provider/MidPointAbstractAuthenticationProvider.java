@@ -18,7 +18,6 @@ import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthenticat
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.ModuleAuthenticationImpl;
 
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -50,9 +49,6 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointAbstractAuthenticationProvider.class);
 
-    @Autowired
-    private PrismContext prismContext;
-
     protected abstract AuthenticationEvaluator<T> getEvaluator();
 
     @Override
@@ -71,7 +67,7 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
                     return mpAuthentication; // hack for specific situation when user is anonymous, but accessDecisionManager resolve it
                 }
                 processingAuthentication = moduleAuthentication.getAuthentication();
-                if (moduleAuthentication != null && moduleAuthentication.getFocusType() != null){
+                if (moduleAuthentication.getFocusType() != null){
                     focusType = PrismContext.get().getSchemaRegistry().determineCompileTimeClass(moduleAuthentication.getFocusType());
                 }
                 requireAssignment = mpAuthentication.getSequence().getRequireAssignmentTarget();
@@ -116,7 +112,7 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
 
     protected void writeAuthentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication, ModuleAuthenticationImpl moduleAuthentication, Authentication token) {
         Object principal = token.getPrincipal();
-        if (principal != null && principal instanceof MidPointPrincipal) {
+        if (principal instanceof MidPointPrincipal) {
             mpAuthentication.setPrincipal(principal);
         }
 
@@ -150,29 +146,13 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
 
     protected abstract Authentication createNewAuthenticationToken(Authentication actualAuthentication, Collection<? extends GrantedAuthority> newAuthorities);
 
-//    @Override
-//    public boolean supports(Class<?> authentication) {
-//        if (UsernamePasswordAuthenticationToken.class.equals(authentication)) {
-//            return true;
-//        }
-//        if (PreAuthenticatedAuthenticationToken.class.equals(authentication)) {
-//            return true;
-//        }
-//
-////        if (MidpointAuthentication.class.equals(authentication)) {
-////            return true;
-////        }
-//
-//        return false;
-//    }
-
     public boolean supports(Class<?> authenticationClass, Authentication authentication) {
         if (!(authentication instanceof MidpointAuthentication)) {
             return supports(authenticationClass);
         }
         MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
         ModuleAuthentication moduleAuthentication = getProcessingModule(mpAuthentication);
-        if (mpAuthentication == null || moduleAuthentication == null || moduleAuthentication.getAuthentication() == null) {
+        if (moduleAuthentication == null || moduleAuthentication.getAuthentication() == null) {
             return false;
         }
         if (moduleAuthentication.getAuthentication() instanceof AnonymousAuthenticationToken) {

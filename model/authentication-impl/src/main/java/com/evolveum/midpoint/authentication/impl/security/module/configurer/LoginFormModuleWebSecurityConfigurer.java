@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.authentication.impl.security.module;
+package com.evolveum.midpoint.authentication.impl.security.module.configurer;
 
 import java.util.Arrays;
 
@@ -31,7 +31,7 @@ import org.springframework.security.web.authentication.preauth.RequestAttributeA
  * @author skublik
  */
 
-public class LoginFormModuleWebSecurityConfig<C extends LoginFormModuleWebSecurityConfiguration> extends ModuleWebSecurityConfig<C> {
+public class LoginFormModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C> {
 
     @Autowired
     private AuditedLogoutHandler auditedLogoutHandler;
@@ -51,9 +51,9 @@ public class LoginFormModuleWebSecurityConfig<C extends LoginFormModuleWebSecuri
     @Autowired(required = false)
     private LogoutFilter requestSingleLogoutFilter;
 
-    private C configuration;
+    private final C configuration;
 
-    public LoginFormModuleWebSecurityConfig(C configuration) {
+    public LoginFormModuleWebSecurityConfigurer(C configuration) {
         super(configuration);
         this.configuration = configuration;
     }
@@ -67,13 +67,13 @@ public class LoginFormModuleWebSecurityConfig<C extends LoginFormModuleWebSecuri
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
         http.antMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
-        getOrApply(http, getMidpointFormLoginConfiguration())
+        getOrApply(http, getMidpointFormLoginConfigurer())
                 .loginPage("/login")
                 .loginProcessingUrl(AuthUtil.stripEndingSlashes(getPrefix()) + "/spring_security_login")
                 .failureHandler(new MidpointAuthenticationFailureHandler())
                 .successHandler(getObjectPostProcessor().postProcess(
-                        new MidPointAuthenticationSuccessHandler().setPrefix(configuration.getPrefix()))).permitAll();
-        getOrApply(http, new MidpointExceptionHandlingConfigurer())
+                        new MidPointAuthenticationSuccessHandler())).permitAll();
+        getOrApply(http, new MidpointExceptionHandlingConfigurer<>())
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint("/login"));
 
         http.logout().clearAuthentication(true)
@@ -92,8 +92,8 @@ public class LoginFormModuleWebSecurityConfig<C extends LoginFormModuleWebSecuri
         }
     }
 
-    protected MidpointFormLoginConfigurer getMidpointFormLoginConfiguration() {
-        return new MidpointFormLoginConfigurer(new MidpointUsernamePasswordAuthenticationFilter());
+    protected MidpointFormLoginConfigurer getMidpointFormLoginConfigurer() {
+        return new MidpointFormLoginConfigurer<>(new MidpointUsernamePasswordAuthenticationFilter());
     }
 
     @Override

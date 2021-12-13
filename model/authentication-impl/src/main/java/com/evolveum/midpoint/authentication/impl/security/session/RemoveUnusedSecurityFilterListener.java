@@ -10,6 +10,8 @@ import com.evolveum.midpoint.authentication.api.AuthModule;
 
 import com.evolveum.midpoint.authentication.impl.security.MidpointAutowiredBeanFactoryObjectPostProcessor;
 
+import com.evolveum.midpoint.authentication.impl.security.util.AuthModuleImpl;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
@@ -37,9 +39,10 @@ public class RemoveUnusedSecurityFilterListener  implements ApplicationListener<
         if (event.getMpAuthentication() != null && CollectionUtils.isNotEmpty(event.getMpAuthentication().getAuthModules())
                 && objectObjectPostProcessor instanceof MidpointAutowiredBeanFactoryObjectPostProcessor) {
             for (AuthModule module : event.getMpAuthentication().getAuthModules()) {
-                if (module.getSecurityFilterChain() != null
-                        && CollectionUtils.isNotEmpty(module.getSecurityFilterChain().getFilters())) {
-                    ((MidpointAutowiredBeanFactoryObjectPostProcessor)objectObjectPostProcessor).destroyAndRemoveFilters(module.getSecurityFilterChain().getFilters());
+                if (((AuthModuleImpl)module).getSecurityFilterChain() != null
+                        && CollectionUtils.isNotEmpty(((AuthModuleImpl)module).getSecurityFilterChain().getFilters())) {
+                    ((MidpointAutowiredBeanFactoryObjectPostProcessor)objectObjectPostProcessor).destroyAndRemoveFilters(
+                            ((AuthModuleImpl)module).getSecurityFilterChain().getFilters());
                 }
             }
         }

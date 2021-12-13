@@ -14,7 +14,6 @@ import com.evolveum.midpoint.authentication.impl.security.provider.MidPointAbstr
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.util.Assert;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -23,12 +22,9 @@ public class MidpointProviderManager implements MidpointAuthenticationManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidpointProviderManager.class);
 
-    private AuthenticationManager parent;
-    private List<AuthenticationProvider> providers = new ArrayList<AuthenticationProvider>();
+    private final List<AuthenticationProvider> providers = new ArrayList<>();
 
-    public MidpointProviderManager(List<AuthenticationProvider> providers) {
-        Assert.notNull(providers, "providers list cannot be null");
-        this.parent = parent;
+    public MidpointProviderManager() {
     }
 
     public List<AuthenticationProvider> getProviders() {
@@ -56,22 +52,11 @@ public class MidpointProviderManager implements MidpointAuthenticationManager {
                         + provider.getClass().getName());
             }
 
-            try {
-                result = provider.authenticate(authentication);
+            result = provider.authenticate(authentication);
 
-                if (result != null) {
-                    copyDetails(authentication, result);
-                    break;
-                }
-            }
-            catch (AccountStatusException e) {
-                throw e;
-            }
-            catch (InternalAuthenticationServiceException e) {
-                throw e;
-            }
-            catch (AuthenticationException e) {
-                throw e;
+            if (result != null) {
+                copyDetails(authentication, result);
+                break;
             }
         }
 

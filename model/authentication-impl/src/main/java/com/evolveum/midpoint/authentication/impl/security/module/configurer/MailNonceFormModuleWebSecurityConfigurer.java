@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.authentication.impl.security.module;
+package com.evolveum.midpoint.authentication.impl.security.module.configurer;
 
 import com.evolveum.midpoint.authentication.impl.security.handler.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.security.handler.MidpointAuthenticationFailureHandler;
@@ -21,13 +21,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
  * @author skublik
  */
 
-public class MailNonceFormModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfig<C> {
+public class MailNonceFormModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C> {
 
-    private C configuration;
-
-    public MailNonceFormModuleWebSecurityConfig(C configuration) {
+    public MailNonceFormModuleWebSecurityConfigurer(C configuration) {
         super(configuration);
-        this.configuration = configuration;
     }
 
     @Override
@@ -39,18 +36,17 @@ public class MailNonceFormModuleWebSecurityConfig<C extends ModuleWebSecurityCon
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
         http.antMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
-        getOrApply(http, new MidpointFormLoginConfigurer(new MailNonceAuthenticationFilter()))
+        getOrApply(http, new MidpointFormLoginConfigurer<>(new MailNonceAuthenticationFilter()))
                 .loginPage(getConfiguration().getSpecificLoginUrl() == null ? "/emailNonce" : getConfiguration().getSpecificLoginUrl())
                 .failureHandler(new MidpointAuthenticationFailureHandler())
                 .successHandler(getObjectPostProcessor().postProcess(
-                        new MidPointAuthenticationSuccessHandler().setPrefix(configuration.getPrefix()))).permitAll();
-        getOrApply(http, new MidpointExceptionHandlingConfigurer())
+                        new MidPointAuthenticationSuccessHandler())).permitAll();
+        getOrApply(http, new MidpointExceptionHandlingConfigurer<>())
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint(
                         getConfiguration().getSpecificLoginUrl() == null ? "/emailNonce" : getConfiguration().getSpecificLoginUrl()));
 
         http.logout().clearAuthentication(true)
                 .logoutRequestMatcher(getLogoutMatcher(http, getPrefix() +"/logout"))
-//                .logoutUrl(stripEndingSlases(getPrefix()) +"/logout")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .logoutSuccessHandler(createLogoutHandler());

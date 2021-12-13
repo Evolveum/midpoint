@@ -14,26 +14,45 @@ import org.springframework.security.core.Authentication;
 import javax.xml.namespace.QName;
 
 /**
+ * Wrapper for authentication module, provide all information about actual state
+ *
  * @author skublik
  */
 
 public interface ModuleAuthentication {
+
+    /**
+     * @return name of authentication module, get from configuration
+     */
     String getNameOfModule();
 
+    /**
+     * @return type of authentication module
+     */
     String getNameOfModuleType();
 
+    /**
+     * @return state of module
+     */
     StateOfModule getState();
 
     void setState(StateOfModule state);
 
+    /**
+     * @return authentication token for module
+     */
     Authentication getAuthentication();
 
     @Experimental
     void setAuthentication(Authentication authentication);
 
+    /**
+     * @return prefix used in url
+     */
     String getPrefix();
 
+    /**
+     * @return type of authenticated object, get from configuration
+     */
     QName getFocusType();
-
-    boolean isInternalLogout();
 }

@@ -43,9 +43,7 @@ public class AuthChannelRegistryImpl {
                     }
 
                     if (f2Order == null) {
-                        if (f1Order != null) {
-                            return -1;
-                        }
+                        return -1;
                     }
 
                     return Integer.compare(f1Order, f2Order);
@@ -59,7 +57,7 @@ public class AuthChannelRegistryImpl {
     public AbstractChannelFactory findModelFactory(String channelId) {
 
         Optional<AbstractChannelFactory> opt = moduleFactories.stream().filter(f -> f.match(channelId)).findFirst();
-        if (!opt.isPresent()) {
+        if (opt.isEmpty()) {
             LOGGER.trace("No factory found for {}", channelId);
             return null;
         }

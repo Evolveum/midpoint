@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.authentication.impl.security.module;
+package com.evolveum.midpoint.authentication.impl.security.module.configurer;
 
 import com.evolveum.midpoint.authentication.impl.security.entry.point.HttpAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.security.authorization.MidpointAllowAllAuthorizationEvaluator;
@@ -27,7 +27,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
  * @author skublik
  */
 
-public class HttpClusterModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfig<C> {
+public class HttpClusterModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C> {
 
     @Autowired
     private SecurityEnforcer securityEnforcer;
@@ -38,7 +38,7 @@ public class HttpClusterModuleWebSecurityConfig<C extends ModuleWebSecurityConfi
     @Autowired
     private TaskManager taskManager;
 
-    public HttpClusterModuleWebSecurityConfig(C configuration) {
+    public HttpClusterModuleWebSecurityConfigurer(C configuration) {
         super(configuration);
     }
 
@@ -58,7 +58,7 @@ public class HttpClusterModuleWebSecurityConfig<C extends ModuleWebSecurityConfi
         http.addFilterAt(filter, BasicAuthenticationFilter.class);
         http.formLogin().disable()
                 .csrf().disable();
-        getOrApply(http, new MidpointExceptionHandlingConfigurer())
+        getOrApply(http, new MidpointExceptionHandlingConfigurer<>())
                 .authenticationEntryPoint(entryPoint)
                 .authenticationTrustResolver(new MidpointAuthenticationTrustResolverImpl());
     }

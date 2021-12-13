@@ -44,9 +44,7 @@ public class AuthModuleRegistryImpl {
                     }
 
                     if (f2Order == null) {
-                        if (f1Order != null) {
-                            return -1;
-                        }
+                        return -1;
                     }
 
                     return Integer.compare(f1Order, f2Order);
@@ -60,7 +58,7 @@ public class AuthModuleRegistryImpl {
     public AbstractModuleFactory findModelFactory(AbstractAuthenticationModuleType configuration) {
 
         Optional<AbstractModuleFactory> opt = moduleFactories.stream().filter(f -> f.match(configuration)).findFirst();
-        if (!opt.isPresent()) {
+        if (opt.isEmpty()) {
             LOGGER.trace("No factory found for {}", configuration);
             return null;
         }
@@ -72,7 +70,7 @@ public class AuthModuleRegistryImpl {
     public <T extends AbstractModuleFactory> T findModelFactoryByClass(Class<T> clazz) {
 
         Optional<T> opt = (Optional<T>) moduleFactories.stream().filter(f -> f.getClass().equals(clazz)).findFirst();
-        if (!opt.isPresent()) {
+        if (opt.isEmpty()) {
             LOGGER.trace("No factory found for class {}", clazz);
             return null;
         }

@@ -12,36 +12,38 @@ import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 
 /**
+ * Wrapper for define channel of authentication, channel define scope of authentication etc. rest, gui, reset password ...
+ *
  * @author skublik
  */
 
 public interface AuthenticationChannel {
 
-    public void setPathAfterLogout(String pathAfterLogout);
+    void setPathAfterLogout(String pathAfterLogout);
 
-    public String getPathAfterLogout();
+    String getPathAfterLogout();
 
-    public boolean matchChannel(AuthenticationSequenceType sequence);
+    boolean matchChannel(AuthenticationSequenceType sequence);
 
-    public String getChannelId();
+    String getChannelId();
 
-    public String getPathAfterSuccessfulAuthentication();
+    String getPathAfterSuccessfulAuthentication();
 
-    public String getPathAfterUnsuccessfulAuthentication();
+    String getPathAfterUnsuccessfulAuthentication();
 
-    public String getPathDuringProccessing();
+    String getPathDuringProccessing();
 
-    public boolean isDefault();
+    boolean isDefault();
 
-    public Collection<Authorization> resolveAuthorities(Collection<Authorization> authorities);
+    Collection<Authorization> resolveAuthorities(Collection<Authorization> authorities);
 
-    public void postSuccessAuthenticationProcessing();
+    void postSuccessAuthenticationProcessing();
 
-    public String getSpecificLoginUrl();
+    String getSpecificLoginUrl();
 
-    public boolean isSupportActivationByChannel();
+    boolean isSupportActivationByChannel();
 
-    public String getUrlSuffix();
+    String getUrlSuffix();
 
-    public boolean isPostAuthenticationEnabled();
+    boolean isPostAuthenticationEnabled();
 }

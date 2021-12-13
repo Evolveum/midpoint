@@ -66,9 +66,6 @@ public class HttpSecurityQuestionsAuthenticationEntryPoint extends HttpAuthentic
     private ModelService model;
 
     @Autowired
-    private PrismContext prismContext;
-
-    @Autowired
     private ModelInteractionService modelInteractionService;
 
     private JSONArray generateAnswer(PrismObject<UserType> user) {
@@ -106,7 +103,7 @@ public class HttpSecurityQuestionsAuthenticationEntryPoint extends HttpAuthentic
                if (request.getHeader(AUTHENTICATION_HEADER) != null
                        && request.getHeader(AUTHENTICATION_HEADER).toLowerCase().startsWith(AuthenticationModuleNameConstants.SECURITY_QUESTIONS.toLowerCase())) {
                    String header = request.getHeader(AUTHENTICATION_HEADER);
-                   if (header.toLowerCase().equals(AuthenticationModuleNameConstants.SECURITY_QUESTIONS.toLowerCase())) {
+                   if (header.equalsIgnoreCase(AuthenticationModuleNameConstants.SECURITY_QUESTIONS)) {
                        createSecurityQuestionAbortMessage(response, DEFAULT_JSON);
                    } else {
                        byte[] jsonByte = Base64Utility.decode(header.substring(AuthenticationModuleNameConstants.SECURITY_QUESTIONS.length() + 1));
@@ -156,45 +153,39 @@ public class HttpSecurityQuestionsAuthenticationEntryPoint extends HttpAuthentic
     }
 
     private SearchResultList<PrismObject<UserType>> searchUser(String userName) {
-        return securityContextManager.runPrivileged(new Producer<SearchResultList<PrismObject<UserType>>>() {
-            @Override
-            public SearchResultList<PrismObject<UserType>> run() {
-                Task task = taskManager.createTaskInstance("Search user by name");
-                OperationResult result = task.getResult();
+        return securityContextManager.runPrivileged((Producer<SearchResultList<PrismObject<UserType>>>) () -> {
+            Task task = taskManager.createTaskInstance("Search user by name");
+            OperationResult result = task.getResult();
 
-                SearchResultList<PrismObject<UserType>> users;
-                try {
-                    users = model.searchObjects(UserType.class, ObjectQueryUtil.createNameQuery(userName, prismContext), null, task, result);
-                } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-                        | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-                    return null;
-                }
-                return users;
-
+            SearchResultList<PrismObject<UserType>> users;
+            try {
+                users = model.searchObjects(UserType.class, ObjectQueryUtil.createNameQuery(
+                        userName, PrismContext.get()), null, task, result);
+            } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
+                    | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+                return null;
             }
+            return users;
+
         });
 
     }
 
     private List<SecurityQuestionDefinitionType> getQuestions(PrismObject<UserType> user) {
-        return securityContextManager.runPrivileged(new Producer<List<SecurityQuestionDefinitionType>>() {
-
-            @Override
-            public List<SecurityQuestionDefinitionType> run() {
-                Task task = taskManager.createTaskInstance("Search user by name");
-                OperationResult result = task.getResult();
-                SecurityPolicyType securityPolicyType;
-                try {
-                    SecurityContextHolder.getContext().setAuthentication(new AnonymousAuthenticationToken("rest_sec_q_auth", "REST", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")));
-                    securityPolicyType = modelInteractionService.getSecurityPolicy(user, task, result);
-                } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
-                    return null;
-                }
-                if (securityPolicyType.getCredentials() != null && securityPolicyType.getCredentials().getSecurityQuestions() != null){
-                    return securityPolicyType.getCredentials().getSecurityQuestions().getQuestion();
-                }
+        return securityContextManager.runPrivileged((Producer<List<SecurityQuestionDefinitionType>>) () -> {
+            Task task = taskManager.createTaskInstance("Search user by name");
+            OperationResult result = task.getResult();
+            SecurityPolicyType securityPolicyType;
+            try {
+                SecurityContextHolder.getContext().setAuthentication(new AnonymousAuthenticationToken("rest_sec_q_auth", "REST", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")));
+                securityPolicyType = modelInteractionService.getSecurityPolicy(user, task, result);
+            } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
                 return null;
             }
+            if (securityPolicyType.getCredentials() != null && securityPolicyType.getCredentials().getSecurityQuestions() != null){
+                return securityPolicyType.getCredentials().getSecurityQuestions().getQuestion();
+            }
+            return null;
         });
 
     }

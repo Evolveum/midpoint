@@ -11,8 +11,7 @@ import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.impl.security.module.HttpBasicModuleWebSecurityConfig;
-import com.evolveum.midpoint.authentication.impl.security.module.ModuleWebSecurityConfig;
+import com.evolveum.midpoint.authentication.impl.security.module.configurer.HttpBasicModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.HttpModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.security.module.configuration.ModuleWebSecurityConfigurationImpl;
 
@@ -25,14 +24,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author skublik
  */
 @Component
-public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory<ModuleWebSecurityConfiguration> {
+public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory
+        <ModuleWebSecurityConfiguration, HttpBasicModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration>> {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType) {
-        if (moduleType instanceof HttpBasicAuthenticationModuleType) {
-            return true;
-        }
-        return false;
+        return moduleType instanceof HttpBasicAuthenticationModuleType;
     }
 
     @Override
@@ -43,8 +40,8 @@ public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory<Modu
     }
 
     @Override
-    protected ModuleWebSecurityConfig createModule(ModuleWebSecurityConfiguration configuration) {
-        return  getObjectObjectPostProcessor().postProcess(new HttpBasicModuleWebSecurityConfig(configuration));
+    protected HttpBasicModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration> createModule(ModuleWebSecurityConfiguration configuration) {
+        return  getObjectObjectPostProcessor().postProcess(new HttpBasicModuleWebSecurityConfigurer(configuration));
     }
 
     @Override

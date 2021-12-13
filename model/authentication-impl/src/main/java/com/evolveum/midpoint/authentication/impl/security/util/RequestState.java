@@ -12,5 +12,5 @@ package com.evolveum.midpoint.authentication.impl.security.util;
 
 public enum RequestState {
     SENDED,
-    RECEIVED;
+    RECEIVED
 }

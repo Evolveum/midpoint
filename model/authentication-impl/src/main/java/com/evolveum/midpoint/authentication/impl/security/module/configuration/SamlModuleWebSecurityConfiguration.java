@@ -73,7 +73,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
     private static final MidpointAssertingPartyMetadataConverter ASSERTING_PARTY_METADATA_CONVERTER = new MidpointAssertingPartyMetadataConverter();
 
     private InMemoryRelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
-    private Map<String, SamlMidpointAdditionalConfiguration> additionalConfiguration = new HashMap<String, SamlMidpointAdditionalConfiguration>();
+    private final Map<String, SamlMidpointAdditionalConfiguration> additionalConfiguration = new HashMap<>();
 
     private SamlModuleWebSecurityConfiguration() {
     }
@@ -150,7 +150,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         ssoBuilder.pathSegment(AuthUtil.stripSlashes(configuration.getPrefix()) + SSO_LOCATION_URL_SUFFIX);
         UriComponentsBuilder logoutBuilder = builder.cloneBuilder();
         logoutBuilder.pathSegment(AuthUtil.stripSlashes(configuration.getPrefix()) + LOGOUT_LOCATION_URL_SUFFIX);
-        registrationBuilder = registrationBuilder
+        registrationBuilder
                 .registrationId(registrationId)
                 .entityId(serviceProviderType.getEntityId())
                 .assertionConsumerServiceLocation(ssoBuilder.build().toUriString())
@@ -162,22 +162,20 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
                         party.wantAuthnRequestsSigned(Boolean.TRUE.equals(serviceProviderType.isSignRequests()));
                     }
                     if (providerType.getVerificationKeys() != null && !providerType.getVerificationKeys().isEmpty()) {
-                        party.verificationX509Credentials(c -> {
-                            providerType.getVerificationKeys().forEach(verKey -> {
-                                byte[] certbytes = new byte[0];
-                                try {
-                                    certbytes = protector.decryptString(verKey).getBytes();
-                                } catch (EncryptionException e) {
-                                    LOGGER.error("Couldn't obtain clear string for provider verification key");
-                                }
-                                try {
-                                    X509Certificate certificate = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(certbytes));
-                                    c.add(new Saml2X509Credential(certificate, Saml2X509Credential.Saml2X509CredentialType.VERIFICATION));
-                                } catch (CertificateException e) {
-                                    LOGGER.error("Couldn't obtain certificate from " + verKey);
-                                }
-                            });
-                        });
+                        party.verificationX509Credentials(c -> providerType.getVerificationKeys().forEach(verKey -> {
+                            byte[] certbytes = new byte[0];
+                            try {
+                                certbytes = protector.decryptString(verKey).getBytes();
+                            } catch (EncryptionException e) {
+                                LOGGER.error("Couldn't obtain clear string for provider verification key");
+                            }
+                            try {
+                                X509Certificate certificate = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(certbytes));
+                                c.add(new Saml2X509Credential(certificate, Saml2X509Credential.Saml2X509CredentialType.VERIFICATION));
+                            } catch (CertificateException e) {
+                                LOGGER.error("Couldn't obtain certificate from " + verKey);
+                            }
+                        }));
                     }
                 });
         Saml2X509Credential activeCredential = null;
@@ -213,20 +211,16 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         }
 
         if (!credentials.isEmpty()) {
-            registrationBuilder.decryptionX509Credentials(c -> {
-                credentials.forEach(cred -> {
-                    if (cred.getCredentialTypes().contains(Saml2X509Credential.Saml2X509CredentialType.DECRYPTION)) {
-                        c.add(cred);
-                    }
-                });
-            });
-            registrationBuilder.signingX509Credentials(c -> {
-                credentials.forEach(cred -> {
-                    if (cred.getCredentialTypes().contains(Saml2X509Credential.Saml2X509CredentialType.SIGNING)) {
-                        c.add(cred);
-                    }
-                });
-            });
+            registrationBuilder.decryptionX509Credentials(c -> credentials.forEach(cred -> {
+                if (cred.getCredentialTypes().contains(Saml2X509Credential.Saml2X509CredentialType.DECRYPTION)) {
+                    c.add(cred);
+                }
+            }));
+            registrationBuilder.signingX509Credentials(c -> credentials.forEach(cred -> {
+                if (cred.getCredentialTypes().contains(Saml2X509Credential.Saml2X509CredentialType.SIGNING)) {
+                    c.add(cred);
+                }
+            }));
         }
     }
 
@@ -236,11 +230,13 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
             if (metadata.getXml() != null || metadata.getPathToFile() != null) {
                 String metadataAsString = null;
                 try {
-                    metadataAsString = createMetadata(metadata, true);
+                    metadataAsString = createMetadata(metadata);
                 } catch (IOException e) {
                     LOGGER.error("Couldn't obtain metadata as string from " + metadata);
                 }
-                builder = ASSERTING_PARTY_METADATA_CONVERTER.convert(new ByteArrayInputStream(metadataAsString.getBytes()));
+                if (StringUtils.isNotEmpty(metadataAsString)) {
+                    builder = ASSERTING_PARTY_METADATA_CONVERTER.convert(new ByteArrayInputStream(metadataAsString.getBytes()));
+                }
             }
             if (metadata.getMetadataUrl() != null) {
                 try (InputStream source = RESOURCE_LOADER.getResource(metadata.getMetadataUrl()).getInputStream()) {
@@ -256,7 +252,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         return builder;
     }
 
-    private static String createMetadata(Saml2ProviderMetadataAuthenticationModuleType metadata, boolean required) throws IOException {
+    private static String createMetadata(Saml2ProviderMetadataAuthenticationModuleType metadata) throws IOException {
         if (metadata != null) {
             String metadataUrl = metadata.getMetadataUrl();
             if (StringUtils.isNotBlank(metadataUrl)) {
@@ -271,10 +267,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
                 return new String(xml);
             }
         }
-        if (required) {
             throw new IllegalArgumentException("Metadata is not present");
-        }
-        return null;
     }
 
     private static String readFile(String path) throws IOException {

@@ -18,7 +18,7 @@ import com.evolveum.midpoint.authentication.api.IdentityProvider;
 import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.ModuleAuthenticationImpl;
-import com.evolveum.midpoint.authentication.impl.security.module.SamlModuleWebSecurityConfig;
+import com.evolveum.midpoint.authentication.impl.security.module.configurer.SamlModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.Saml2ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.security.module.configuration.SamlMidpointAdditionalConfiguration;
 import com.evolveum.midpoint.authentication.impl.security.module.configuration.SamlModuleWebSecurityConfiguration;
@@ -56,15 +56,12 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType) {
-        if (moduleType instanceof Saml2AuthenticationModuleType) {
-            return true;
-        }
-        return false;
+        return moduleType instanceof Saml2AuthenticationModuleType;
     }
 
     @Override
     public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, ServletRequest request,
-                                         Map<Class<? extends Object>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
+                                         Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
         if (!(moduleType instanceof Saml2AuthenticationModuleType)) {
             LOGGER.error("This factory support only Saml2AuthenticationModuleType, but modelType is " + moduleType);
             return null;
@@ -77,7 +74,8 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
         configuration.setPrefixOfSequence(prefixOfSequence);
         configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(new Saml2Provider()));
 
-        SamlModuleWebSecurityConfig module = getObjectObjectPostProcessor().postProcess(new SamlModuleWebSecurityConfig(configuration));//, beanConfiguration));
+        SamlModuleWebSecurityConfigurer<SamlModuleWebSecurityConfiguration> module = getObjectObjectPostProcessor().postProcess(
+                new SamlModuleWebSecurityConfigurer<>(configuration));
         module.setObjectPostProcessor(getObjectObjectPostProcessor());
         HttpSecurity http = module.getNewHttpSecurity();
         setSharedObjects(http, sharedObjects);

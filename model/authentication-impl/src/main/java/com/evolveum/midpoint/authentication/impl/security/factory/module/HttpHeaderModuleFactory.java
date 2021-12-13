@@ -14,8 +14,7 @@ import com.evolveum.midpoint.authentication.impl.security.util.AuthModuleImpl;
 import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.ModuleAuthenticationImpl;
-import com.evolveum.midpoint.authentication.impl.security.module.HttpHeaderModuleWebSecurityConfig;
-import com.evolveum.midpoint.authentication.impl.security.module.ModuleWebSecurityConfig;
+import com.evolveum.midpoint.authentication.impl.security.module.configurer.HttpHeaderModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.HttpHeaderModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.security.module.configuration.HttpHeaderModuleWebSecurityConfiguration;
 
@@ -42,15 +41,12 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType) {
-        if (moduleType instanceof HttpHeaderAuthenticationModuleType) {
-            return true;
-        }
-        return false;
+        return moduleType instanceof HttpHeaderAuthenticationModuleType;
     }
 
     @Override
     public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, ServletRequest request,
-                                         Map<Class<? extends Object>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
+                                         Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
         if (!(moduleType instanceof HttpHeaderAuthenticationModuleType)) {
             LOGGER.error("This factory support only HttpHeaderAuthenticationModuleType, but modelType is " + moduleType);
             return null;
@@ -60,7 +56,8 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory {
         HttpHeaderAuthenticationModuleType httpModuleType = (HttpHeaderAuthenticationModuleType) moduleType;
         HttpHeaderModuleWebSecurityConfiguration configuration = HttpHeaderModuleWebSecurityConfiguration.build(httpModuleType, prefixOfSequence);
         configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(new PasswordProvider()));
-        ModuleWebSecurityConfig module = getObjectObjectPostProcessor().postProcess(new HttpHeaderModuleWebSecurityConfig(configuration));
+        HttpHeaderModuleWebSecurityConfigurer<HttpHeaderModuleWebSecurityConfiguration> module =
+                getObjectObjectPostProcessor().postProcess(new HttpHeaderModuleWebSecurityConfigurer<>(configuration));
         module.setObjectPostProcessor(getObjectObjectPostProcessor());
         HttpSecurity http = module.getNewHttpSecurity();
         setSharedObjects(http, sharedObjects);

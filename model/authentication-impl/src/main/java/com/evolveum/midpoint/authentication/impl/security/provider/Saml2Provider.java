@@ -61,10 +61,16 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
     public Saml2Provider() {
         openSamlProvider.setResponseAuthenticationConverter((responseToken) -> {
             Saml2Authentication authentication = defaultConverter.convert(responseToken);
+            if (authentication == null) {
+                return null;
+            }
             DefaultSaml2AuthenticatedPrincipal principal = (DefaultSaml2AuthenticatedPrincipal) authentication.getPrincipal();
             Map<String, List<Object>> originalAttributes = principal.getAttributes();
             Response response = responseToken.getResponse();
             Assertion assertion = CollectionUtils.firstElement(response.getAssertions());
+            if (assertion == null) {
+                return authentication;
+            }
             Map<String, List<Object>> attributes = new LinkedHashMap<>();
             for (AttributeStatement attributeStatement : assertion.getAttributeStatements()) {
                 for (Attribute attribute : attributeStatement.getAttributes()) {
@@ -102,7 +108,7 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
     protected void writeAuthentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication,
                                        ModuleAuthenticationImpl moduleAuthentication, Authentication token) {
         Object principal = token.getPrincipal();
-        if (principal != null && principal instanceof GuiProfiledPrincipal) {
+        if (principal instanceof GuiProfiledPrincipal) {
             mpAuthentication.setPrincipal(principal);
         }
         if (token instanceof PreAuthenticatedAuthenticationToken) {
@@ -120,12 +126,12 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
         if (authentication instanceof Saml2AuthenticationToken) {
             Saml2AuthenticationToken samlAuthenticationToken = (Saml2AuthenticationToken) authentication;
             Saml2Authentication samlAuthentication = (Saml2Authentication) openSamlProvider.authenticate(samlAuthenticationToken);
-            Saml2ModuleAuthenticationImpl samlModule = (Saml2ModuleAuthenticationImpl) AuthUtil.getProcessingModule(true);
+            Saml2ModuleAuthenticationImpl samlModule = (Saml2ModuleAuthenticationImpl) AuthUtil.getProcessingModule();
             try {
                 DefaultSaml2AuthenticatedPrincipal principal = (DefaultSaml2AuthenticatedPrincipal) samlAuthentication.getPrincipal();
                 samlAuthenticationToken.setDetails(principal);
                 Map<String, List<Object>> attributes = principal.getAttributes();
-                String enteredUsername = "";
+                String enteredUsername;
                 SamlMidpointAdditionalConfiguration config = samlModule.getAdditionalConfiguration().get(samlAuthenticationToken.getRelyingPartyRegistration().getRegistrationId());
                 String nameOfSamlAttribute = config.getNameOfUsernameAttribute();
                 if (!attributes.containsKey(nameOfSamlAttribute)){
@@ -179,7 +185,7 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
         return openSamlProvider.supports(authentication);
     }
 
-    public class MidpointSaml2AuthenticatedPrincipal extends DefaultSaml2AuthenticatedPrincipal{
+    public static class MidpointSaml2AuthenticatedPrincipal extends DefaultSaml2AuthenticatedPrincipal{
 
         private final String spNameQualifier;
         private final String nameIdFormat;

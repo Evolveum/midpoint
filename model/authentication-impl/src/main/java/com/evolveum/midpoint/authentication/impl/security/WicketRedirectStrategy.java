@@ -9,11 +9,11 @@ package com.evolveum.midpoint.authentication.impl.security;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.time.Instant;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.wicket.request.http.WebRequest;
-import org.apache.wicket.util.time.Time;
 import org.springframework.security.web.DefaultRedirectStrategy;
 
 /**
@@ -29,8 +29,8 @@ public class WicketRedirectStrategy extends DefaultRedirectStrategy {
 
         response.setHeader("Ajax-Location", url);
         // disabled caching
-        response.setHeader("Date", Long.toString(Time.now().getMilliseconds()));
-        response.setHeader("Expires", Long.toString(Time.START_OF_UNIX_TIME.getMilliseconds()));
+        response.setHeader("Date", Long.toString(java.time.Instant.now().toEpochMilli()));
+        response.setHeader("Expires", Long.toString(Instant.EPOCH.toEpochMilli()));
         response.setHeader("Pragma", "no-cache");
         response.setHeader("Cache-Control", "no-cache, no-store");
 
@@ -45,10 +45,6 @@ public class WicketRedirectStrategy extends DefaultRedirectStrategy {
         }
 
         value = request.getHeader(WebRequest.HEADER_AJAX);
-        if (Boolean.parseBoolean(value)) {
-            return true;
-        }
-
-        return false;
+        return Boolean.parseBoolean(value);
     }
 }

@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.authentication.impl.security.module;
+package com.evolveum.midpoint.authentication.impl.security.module.configurer;
 
 import com.evolveum.midpoint.authentication.impl.security.handler.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.security.handler.MidpointAuthenticationFailureHandler;
@@ -18,18 +18,14 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
-
 /**
  * @author skublik
  */
 
-public class SecurityQuestionsFormModuleWebSecurityConfig<C extends LoginFormModuleWebSecurityConfiguration> extends ModuleWebSecurityConfig<C> {
+public class SecurityQuestionsFormModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C> {
 
-    private C configuration;
-
-    public SecurityQuestionsFormModuleWebSecurityConfig(C configuration) {
+    public SecurityQuestionsFormModuleWebSecurityConfigurer(C configuration) {
         super(configuration);
-        this.configuration = configuration;
     }
 
     @Override
@@ -41,13 +37,13 @@ public class SecurityQuestionsFormModuleWebSecurityConfig<C extends LoginFormMod
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
         http.antMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
-        getOrApply(http, new MidpointFormLoginConfigurer(new SecurityQuestionsAuthenticationFilter()))
+        getOrApply(http, new MidpointFormLoginConfigurer<>(new SecurityQuestionsAuthenticationFilter()))
                 .loginPage("/securityquestions")
                 .loginProcessingUrl(AuthUtil.stripEndingSlashes(getPrefix()) + "/spring_security_login")
                 .failureHandler(new MidpointAuthenticationFailureHandler())
                 .successHandler(getObjectPostProcessor().postProcess(
-                        new MidPointAuthenticationSuccessHandler().setPrefix(configuration.getPrefix()))).permitAll();
-        getOrApply(http, new MidpointExceptionHandlingConfigurer())
+                        new MidPointAuthenticationSuccessHandler())).permitAll();
+        getOrApply(http, new MidpointExceptionHandlingConfigurer<>())
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint("/securityquestions"));
 
         http.logout().clearAuthentication(true)

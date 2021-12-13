@@ -15,7 +15,8 @@ import org.springframework.context.ApplicationEvent;
  */
 
 public class RemoveUnusedSecurityFilterEvent extends ApplicationEvent {
-    private MidpointAuthentication mpAuthentication;
+
+    private final MidpointAuthentication mpAuthentication;
 
     public RemoveUnusedSecurityFilterEvent(Object source, MidpointAuthentication mpAuthentication) {
         super(source);

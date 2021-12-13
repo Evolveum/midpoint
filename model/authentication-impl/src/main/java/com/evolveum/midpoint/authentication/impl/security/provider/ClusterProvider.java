@@ -52,9 +52,6 @@ public class ClusterProvider extends MidPointAbstractAuthenticationProvider {
         }
         String enteredUsername = (String) authentication.getPrincipal();
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
-
-        ConnectionEnvironment connEnv = createEnvironment(channel);
-
         try {
             Authentication token;
             if (authentication instanceof ClusterAuthenticationToken) {
@@ -96,11 +93,7 @@ public class ClusterProvider extends MidPointAbstractAuthenticationProvider {
 
     @Override
     public boolean supports(Class<?> authentication) {
-        if (ClusterAuthenticationToken.class.equals(authentication)) {
-            return true;
-        }
-
-        return false;
+        return ClusterAuthenticationToken.class.equals(authentication);
     }
 
     @Override

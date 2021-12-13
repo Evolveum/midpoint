@@ -11,9 +11,15 @@ import com.evolveum.midpoint.authentication.api.IdentityProvider;
 import java.util.List;
 
 /**
+ * Interface for authentication module for SAML2
+ *
  * @author skublik
  */
 
 public interface Saml2ModuleAuthentication extends ModuleAuthentication {
+
+    /**
+     * @return identity provider created by configuration
+     */
     List<IdentityProvider> getProviders();
 }

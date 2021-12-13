@@ -38,7 +38,7 @@ import org.springframework.security.web.authentication.preauth.RequestHeaderAuth
 public class MidpointRequestHeaderAuthenticationFilter extends RequestHeaderAuthenticationFilter {
 
     private AuthenticationFailureHandler authenticationFailureHandler = null;
-    private AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource = new WebAuthenticationDetailsSource();
+    private final AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource = new WebAuthenticationDetailsSource();
     private AuthenticationManager authenticationManager = null;
     private SessionRegistry sessionRegistry;
 
@@ -61,7 +61,7 @@ public class MidpointRequestHeaderAuthenticationFilter extends RequestHeaderAuth
     public void doFilter(ServletRequest request, ServletResponse response,
                          FilterChain chain) throws IOException, ServletException {
 
-        if (requiresAuthentication((HttpServletRequest) request)) {
+        if (requiresAuthentication()) {
             doAuthenticate((HttpServletRequest) request, (HttpServletResponse) response);
             chain.doFilter(request, response);
         } else {
@@ -70,7 +70,7 @@ public class MidpointRequestHeaderAuthenticationFilter extends RequestHeaderAuth
 
     }
 
-    private boolean requiresAuthentication(HttpServletRequest request) {
+    private boolean requiresAuthentication() {
         Authentication authentication = SecurityContextHolder.getContext()
                 .getAuthentication();
 

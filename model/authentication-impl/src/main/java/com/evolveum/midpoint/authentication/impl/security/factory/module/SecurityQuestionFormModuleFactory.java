@@ -9,12 +9,9 @@ package com.evolveum.midpoint.authentication.impl.security.factory.module;
 import com.evolveum.midpoint.authentication.impl.security.provider.SecurityQuestionProvider;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.ModuleAuthenticationImpl;
-import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.impl.security.module.ModuleWebSecurityConfig;
-import com.evolveum.midpoint.authentication.impl.security.module.SecurityQuestionsFormModuleWebSecurityConfig;
+import com.evolveum.midpoint.authentication.impl.security.module.configurer.SecurityQuestionsFormModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.SecurityQuestionFormModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.security.module.configuration.LoginFormModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.impl.security.module.configuration.ModuleWebSecurityConfigurationImpl;
 
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.stereotype.Component;
@@ -25,29 +22,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author skublik
  */
 @Component
-public class SecurityQuestionFormModuleFactory extends AbstractCredentialModuleFactory {
+public class SecurityQuestionFormModuleFactory extends AbstractCredentialModuleFactory
+        <LoginFormModuleWebSecurityConfiguration, SecurityQuestionsFormModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>> {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType) {
-        if (moduleType instanceof SecurityQuestionsFormAuthenticationModuleType) {
-            return true;
-        }
-        return false;
+        return moduleType instanceof SecurityQuestionsFormAuthenticationModuleType;
     }
 
     @Override
-    protected ModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
-        ModuleWebSecurityConfigurationImpl configuration = LoginFormModuleWebSecurityConfiguration.build(moduleType,prefixOfSequence);
+    protected LoginFormModuleWebSecurityConfiguration createConfiguration(
+            AbstractAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
+        LoginFormModuleWebSecurityConfiguration configuration = LoginFormModuleWebSecurityConfiguration.build(moduleType,prefixOfSequence);
         configuration.setPrefixOfSequence(prefixOfSequence);
         return configuration;
     }
 
     @Override
-    protected ModuleWebSecurityConfig createModule(ModuleWebSecurityConfiguration configuration) {
-        return  getObjectObjectPostProcessor().postProcess(new SecurityQuestionsFormModuleWebSecurityConfig((LoginFormModuleWebSecurityConfiguration) configuration));
+    protected SecurityQuestionsFormModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModule(
+            LoginFormModuleWebSecurityConfiguration configuration) {
+        return  getObjectObjectPostProcessor().postProcess(new SecurityQuestionsFormModuleWebSecurityConfigurer<>(configuration));
     }
 
-    //TODO
     @Override
     protected AuthenticationProvider createProvider(CredentialPolicyType usedPolicy) {
         return new SecurityQuestionProvider();
@@ -60,7 +56,7 @@ public class SecurityQuestionFormModuleFactory extends AbstractCredentialModuleF
 
     @Override
     protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType,
-                                                                   ModuleWebSecurityConfiguration configuration) {
+            LoginFormModuleWebSecurityConfiguration configuration) {
         SecurityQuestionFormModuleAuthentication moduleAuthentication = new SecurityQuestionFormModuleAuthentication();
         moduleAuthentication.setPrefix(configuration.getPrefix());
         moduleAuthentication.setCredentialName(((AbstractCredentialAuthenticationModuleType)moduleType).getCredentialName());

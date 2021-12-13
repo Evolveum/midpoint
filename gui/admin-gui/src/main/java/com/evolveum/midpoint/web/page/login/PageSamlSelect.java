@@ -61,7 +61,7 @@ public class PageSamlSelect extends AbstractPageLogin implements Serializable {
             }
         });
         MidpointForm<?> form = new MidpointForm<>(ID_LOGOUT_FORM);
-        ModuleAuthentication actualModule = AuthUtil.getProcessingModule(false);
+        ModuleAuthentication actualModule = AuthUtil.getProcessingModuleIfExist();
         form.add(new VisibleBehaviour(() -> existSamlAuthentication(actualModule)));
         form.add(AttributeModifier.replace("action",
                 (IModel<String>) () -> existSamlAuthentication(actualModule) ?

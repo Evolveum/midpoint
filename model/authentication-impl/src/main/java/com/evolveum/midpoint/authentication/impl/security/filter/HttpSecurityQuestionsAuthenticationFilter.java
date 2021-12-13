@@ -65,7 +65,7 @@ public class HttpSecurityQuestionsAuthenticationFilter extends HttpAuthenticatio
                         + " Please use form 'Authorization: <type> <credentials>' for successful authentication");
             }
 
-            if (header == null || !header.toLowerCase().startsWith(AuthenticationModuleNameConstants.SECURITY_QUESTIONS.toLowerCase() + " ")) {
+            if (!header.toLowerCase().startsWith(AuthenticationModuleNameConstants.SECURITY_QUESTIONS.toLowerCase() + " ")) {
                 chain.doFilter(request, response);
                 return;
             }

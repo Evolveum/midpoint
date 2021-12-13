@@ -11,12 +11,12 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletRequest;
 
+import com.evolveum.midpoint.authentication.impl.security.module.configurer.ModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.security.util.AuthModuleImpl;
 import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.impl.security.module.ModuleWebSecurityConfig;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * @author skublik
  */
-public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurityConfiguration>
+public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurityConfiguration, CA extends ModuleWebSecurityConfigurer<C>>
         extends AbstractModuleFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractCredentialModuleFactory.class);
@@ -56,7 +56,7 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
         configuration.addAuthenticationProvider(
                 getProvider((AbstractCredentialAuthenticationModuleType) moduleType, credentialPolicy));
 
-        ModuleWebSecurityConfig module = createModule(configuration);
+        CA module = createModule(configuration);
         module.setObjectPostProcessor(getObjectObjectPostProcessor());
         HttpSecurity http = module.getNewHttpSecurity();
         setSharedObjects(http, sharedObjects);
@@ -119,7 +119,7 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
     protected abstract C createConfiguration(AbstractAuthenticationModuleType moduleType,
             String prefixOfSequence, AuthenticationChannel authenticationChannel);
 
-    protected abstract ModuleWebSecurityConfig createModule(C configuration);
+    protected abstract CA createModule(C configuration);
 
     protected abstract AuthenticationProvider createProvider(CredentialPolicyType usedPolicy);
 

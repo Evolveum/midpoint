@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.authentication.impl.security.module;
+package com.evolveum.midpoint.authentication.impl.security.module.configurer;
 
 import com.evolveum.midpoint.authentication.impl.security.filter.LdapAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.security.filter.configurers.MidpointFormLoginConfigurer;
@@ -15,13 +15,13 @@ import com.evolveum.midpoint.authentication.impl.security.module.configuration.L
  * @author lskublik
  */
 
-public class LdapWebSecurityConfig<C extends LdapModuleWebSecurityConfiguration> extends LoginFormModuleWebSecurityConfig<C>{
+public class LdapWebSecurityConfigurer<C extends LdapModuleWebSecurityConfiguration> extends LoginFormModuleWebSecurityConfigurer<C> {
 
-    public LdapWebSecurityConfig(C configuration) {
+    public LdapWebSecurityConfigurer(C configuration) {
         super(configuration);
     }
 
-    protected MidpointFormLoginConfigurer getMidpointFormLoginConfiguration() {
+    protected MidpointFormLoginConfigurer getMidpointFormLoginConfigurer() {
         return new MidpointFormLoginConfigurer(new LdapAuthenticationFilter());
     }
 }

@@ -5,13 +5,15 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.authentication.impl.security.module;
+package com.evolveum.midpoint.authentication.impl.security.module.configurer;
 
 import java.util.Collections;
 import java.util.UUID;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 
+import com.evolveum.midpoint.authentication.impl.security.factory.channel.AuthChannelRegistryImpl;
+import com.evolveum.midpoint.authentication.impl.security.factory.module.AuthModuleRegistryImpl;
 import com.evolveum.midpoint.authentication.impl.security.handler.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.security.handler.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.authentication.impl.security.entry.point.SamlAuthenticationEntryPoint;
@@ -27,6 +29,8 @@ import com.evolveum.midpoint.authentication.impl.security.module.authentication.
 import com.evolveum.midpoint.authentication.impl.security.module.configuration.SamlModuleWebSecurityConfiguration;
 
 import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;
+
+import com.evolveum.midpoint.prism.PrismContext;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -59,15 +63,21 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author skublik
  */
 
-public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfiguration> extends ModuleWebSecurityConfig<C> {
+public class SamlModuleWebSecurityConfigurer<C extends SamlModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SamlModuleWebSecurityConfig.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SamlModuleWebSecurityConfigurer.class);
     public static final String SAML_LOGIN_PATH = "/saml2/select";
 
     @Autowired
     private ModelAuditRecorder auditProvider;
 
-    public SamlModuleWebSecurityConfig(C configuration) {
+    @Autowired
+    private AuthModuleRegistryImpl authRegistry;
+
+    @Autowired
+    private AuthChannelRegistryImpl authChannelRegistry;
+
+    public SamlModuleWebSecurityConfigurer(C configuration) {
         super(configuration);
     }
 
@@ -90,11 +100,11 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
         getOrApply(http, exceptionConfigurer)
                 .authenticationEntryPoint(new SamlAuthenticationEntryPoint(SAML_LOGIN_PATH));
 
-        MidpointSaml2LoginConfigurer configurer = new MidpointSaml2LoginConfigurer(auditProvider);
+        MidpointSaml2LoginConfigurer configurer = new MidpointSaml2LoginConfigurer<>(auditProvider);
         configurer.relyingPartyRegistrationRepository(relyingPartyRegistrations())
                 .loginProcessingUrl(getConfiguration().getPrefix() + SamlModuleWebSecurityConfiguration.SSO_LOCATION_URL_SUFFIX)
                 .successHandler(getObjectPostProcessor().postProcess(
-                        new MidPointAuthenticationSuccessHandler().setPrefix(getConfiguration().getPrefix())))
+                        new MidPointAuthenticationSuccessHandler()))
                 .failureHandler(new MidpointAuthenticationFailureHandler());
         try {
             configurer.authenticationManager(new ProviderManager(Collections.emptyList(), authenticationManager()));
@@ -120,7 +130,7 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
 
     @Override
     protected AnonymousAuthenticationFilter createAnonymousFilter() {
-        AnonymousAuthenticationFilter filter = new MidpointAnonymousAuthenticationFilter(authRegistry, authChannelRegistry, prismContext,
+        AnonymousAuthenticationFilter filter = new MidpointAnonymousAuthenticationFilter(authRegistry, authChannelRegistry, PrismContext.get(),
                 UUID.randomUUID().toString(), "anonymousUser",
                 AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")){
             @Override

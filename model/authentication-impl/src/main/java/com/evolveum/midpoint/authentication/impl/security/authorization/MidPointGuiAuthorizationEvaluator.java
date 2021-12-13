@@ -50,7 +50,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointGuiAuthorizationEvaluator.class);
 
-    private final String authUrl = "/" + ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE + "/*";
+    private static final String AUTH_URL = "/" + ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE + "/*";
 
     private final SecurityEnforcer securityEnforcer;
     private final SecurityContextManager securityContextManager;
@@ -195,8 +195,8 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             addSecurityConfig(filterInvocation, requiredActions, urlMapping.getUrl(), urlMapping.getAction());
         }
 
-        Map<String, DisplayableValue<String>[]> actions = DescriptorLoaderImpl.getActions();
-        for (Map.Entry<String, DisplayableValue<String>[]> entry : actions.entrySet()) {
+        Map<String, AuthorizationActionValue[]> actions = DescriptorLoaderImpl.getActions();
+        for (Map.Entry<String, AuthorizationActionValue[]> entry : actions.entrySet()) {
             addSecurityConfig(filterInvocation, requiredActions, entry.getKey(), entry.getValue());
         }
 
@@ -260,7 +260,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 
     private boolean isPermitAll(FilterInvocation filterInvocation) {
         if (filterInvocation.getResponse() != null && filterInvocation.getResponse().isCommitted()
-                && new AntPathRequestMatcher(authUrl).matches(filterInvocation.getRequest())) {
+                && new AntPathRequestMatcher(AUTH_URL).matches(filterInvocation.getRequest())) {
             return true;
         }
         for (String url : DescriptorLoaderImpl.getLoginPages()) {

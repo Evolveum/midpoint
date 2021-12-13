@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.authentication.impl.security;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import javax.servlet.Filter;
 
@@ -27,8 +26,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class MidpointAutowiredBeanFactoryObjectPostProcessor implements ObjectPostProcessor<Object>, DisposableBean, SmartInitializingSingleton {
     private static final Trace LOGGER = TraceManager.getTrace(MidpointAutowiredBeanFactoryObjectPostProcessor.class);
     private final AutowireCapableBeanFactory autowiredBeanFactory;
-    private final List<DisposableBean> disposableBeans = new ArrayList();
-    private final List<SmartInitializingSingleton> smartSingletons = new ArrayList();
+    private final List<DisposableBean> disposableBeans = new ArrayList<>();
+    private final List<SmartInitializingSingleton> smartSingletons = new ArrayList<>();
 
     public MidpointAutowiredBeanFactoryObjectPostProcessor(AutowireCapableBeanFactory autowiredBeanFactory) {
         Assert.notNull(autowiredBeanFactory, "autowiredBeanFactory cannot be null");
@@ -39,7 +38,7 @@ public class MidpointAutowiredBeanFactoryObjectPostProcessor implements ObjectPo
         if (object == null) {
             return null;
         } else {
-            Object result = null;
+            Object result;
 
             try {
                 result = this.autowiredBeanFactory.initializeBean(object, object.toString());
@@ -62,10 +61,8 @@ public class MidpointAutowiredBeanFactoryObjectPostProcessor implements ObjectPo
     }
 
     public void afterSingletonsInstantiated() {
-        Iterator var1 = this.smartSingletons.iterator();
 
-        while(var1.hasNext()) {
-            SmartInitializingSingleton singleton = (SmartInitializingSingleton)var1.next();
+        for (SmartInitializingSingleton singleton : this.smartSingletons) {
             singleton.afterSingletonsInstantiated();
         }
 
@@ -84,10 +81,8 @@ public class MidpointAutowiredBeanFactoryObjectPostProcessor implements ObjectPo
 
     public void destroy() {
         synchronized (this) {
-            Iterator<DisposableBean> disposableBeansIterator = this.disposableBeans.iterator();
 
-            while (disposableBeansIterator.hasNext()) {
-                DisposableBean disposableBean = disposableBeansIterator.next();
+            for (DisposableBean disposableBean : this.disposableBeans) {
                 destroyBean(disposableBean);
             }
         }
@@ -97,7 +92,7 @@ public class MidpointAutowiredBeanFactoryObjectPostProcessor implements ObjectPo
         try {
             disposableBean.destroy();
         } catch (Exception e) {
-            this.LOGGER.error("Couldn't destroy bean :" + disposableBean, e);
+            LOGGER.error("Couldn't destroy bean :" + disposableBean, e);
         }
     }
 }

@@ -14,6 +14,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
+ * Define urls and authorization for page
+ *
  * @author lazyman
  */
 @Retention(RetentionPolicy.RUNTIME)

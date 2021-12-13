@@ -11,35 +11,37 @@ import java.util.List;
 import org.springframework.security.authentication.AuthenticationProvider;
 
 /**
+ * Define configuration for authentication module
+ *
  * @author skublik
  */
 
 public interface ModuleWebSecurityConfiguration {
 
-    public static final String DEFAULT_PREFIX_OF_MODULE = "auth";
-    public static final String DEFAULT_PREFIX_OF_MODULE_WITH_SLASH = "/" + DEFAULT_PREFIX_OF_MODULE;
-    public static final String DEFAULT_PREFIX_FOR_DEFAULT_MODULE = "/default/";
+    String DEFAULT_PREFIX_OF_MODULE = "auth";
+    String DEFAULT_PREFIX_OF_MODULE_WITH_SLASH = "/" + DEFAULT_PREFIX_OF_MODULE;
+    String DEFAULT_PREFIX_FOR_DEFAULT_MODULE = "/default/";
 
-    public void setDefaultSuccessLogoutURL(String defaultSuccessLogoutURL);
+    void setDefaultSuccessLogoutURL(String defaultSuccessLogoutURL);
 
-    public String getDefaultSuccessLogoutURL();
+    String getDefaultSuccessLogoutURL();
 
-    public void setAuthenticationProviders(List<AuthenticationProvider> authenticationProviders);
+    void setAuthenticationProviders(List<AuthenticationProvider> authenticationProviders);
 
-    public void addAuthenticationProvider(AuthenticationProvider authenticationProvider);
+    void addAuthenticationProvider(AuthenticationProvider authenticationProvider);
 
-    public List<AuthenticationProvider> getAuthenticationProviders();
+    List<AuthenticationProvider> getAuthenticationProviders();
 
-    public String getPrefixOfSequence();
+    String getPrefixOfSequence();
 
-    public void setPrefixOfSequence(String prefixOfSequence);
+    void setPrefixOfSequence(String prefixOfSequence);
 
-    public String getNameOfModule();
+    String getNameOfModule();
 
-    public void setNameOfModule(String nameOfModule);
+    void setNameOfModule(String nameOfModule);
 
-    public String getPrefix();
+    String getPrefix();
 
-    public String getSpecificLoginUrl();
+    String getSpecificLoginUrl();
 
 }

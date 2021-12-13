@@ -53,7 +53,6 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
     private final LdapAuthenticationProvider authenticatorProvider;
 
     @Autowired private ModelAuditRecorder auditProvider;
-    @Autowired private PrismContext prismContext;
     @Autowired private Clock clock;
     @Autowired private GuiProfiledPrincipalManager focusProfileService;
 
@@ -111,11 +110,6 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
                 MidPointPrincipal midPointPrincipal = (MidPointPrincipal) principal;
                 FocusType focusType = midPointPrincipal.getFocus();
 
-                if (focusType == null) {
-                    recordPasswordAuthenticationFailure(authentication.getName(), "not contains required assignment");
-                    throw new BadCredentialsException("LdapAuthentication.bad.user");
-                }
-
                 Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
                 if (actualAuthentication instanceof MidpointAuthentication) {
                     MidpointAuthentication mpAuthentication = (MidpointAuthentication) actualAuthentication;
@@ -134,7 +128,7 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
 
     private RuntimeException processInternalAuthenticationException(InternalAuthenticationServiceException rootExeption, Throwable currentException) {
         if (currentException instanceof javax.naming.AuthenticationException) {
-            String message = ((javax.naming.AuthenticationException)currentException).getMessage();
+            String message = currentException.getMessage();
             if (message.contains("error code 49")) {
                 // JNDI and Active Directory strike again
                 return new BadCredentialsException("Invalid username and/or password.", rootExeption);
@@ -160,14 +154,10 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
         }
 
         String enteredUsername = (String) authentication.getPrincipal();
-        LOGGER.trace("Authenticating username '{}'", enteredUsername);
-
-        // TODO connEnv is not used... remove?
-        ConnectionEnvironment connEnv = createEnvironment(channel);
-
+        LOGGER.trace("Authenticating username '{}'",
+                enteredUsername);
         try {
-
-            Authentication token = null;
+            Authentication token;
             if (authentication instanceof LdapAuthenticationToken) {
                 token = this.authenticatorProvider.authenticate(authentication);
             } else {
@@ -211,11 +201,7 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
 
     @Override
     public boolean supports(Class<?> authentication) {
-        if (LdapAuthenticationToken.class.equals(authentication)) {
-            return true;
-        }
-
-        return false;
+        return LdapAuthenticationToken.class.equals(authentication);
     }
 
     @Override
@@ -239,7 +225,10 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
         }
         LoginEventType event = new LoginEventType();
         event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
-        event.setFrom(SecurityUtil.getCurrentConnectionInformation().getRemoteHostAddress());
+        HttpConnectionInformation connectionInfo = SecurityUtil.getCurrentConnectionInformation();
+        if (connectionInfo != null) {
+            event.setFrom(connectionInfo.getRemoteHostAddress());
+        }
 
         behavior.setPreviousSuccessfulLogin(behavior.getLastSuccessfulLogin());
         behavior.setLastSuccessfulLogin(event);
@@ -298,7 +287,10 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
 
             LoginEventType event = new LoginEventType();
             event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
-            event.setFrom(SecurityUtil.getCurrentConnectionInformation().getRemoteHostAddress());
+            HttpConnectionInformation connectionInfo = SecurityUtil.getCurrentConnectionInformation();
+            if (connectionInfo != null) {
+                event.setFrom(connectionInfo.getRemoteHostAddress());
+            }
 
             behavior.setLastFailedLogin(event);
             focusProfileService.updateFocus(principal, computeModifications(focusBefore, principal.getFocus()));
@@ -320,7 +312,7 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
         return focusType;
     }
 
-    protected void recordAuthenticationFailure(String name, FocusType focus, String channel, String reason) {
-        auditProvider.auditLoginFailure(name, focus, createConnectEnvironment(channel), "bad credentials");
+    private void recordAuthenticationFailure(String name, FocusType focus, String channel, String reason) {
+        auditProvider.auditLoginFailure(name, focus, createConnectEnvironment(channel), reason);
     }
 }

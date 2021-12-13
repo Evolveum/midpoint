@@ -42,10 +42,10 @@ public abstract class HttpAuthenticationFilter extends BasicAuthenticationFilter
 
     private static final Trace LOGGER = TraceManager.getTrace(HttpAuthenticationFilter.class);
 
-    private AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource = new WebAuthenticationDetailsSource();
+    private final AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource = new WebAuthenticationDetailsSource();
     private RememberMeServices rememberMeServices = new NullRememberMeServices();
     private String credentialsCharset = "UTF-8";
-    private AuthenticationSuccessHandler successHandler = new BasicMidPointAuthenticationSuccessHandler();
+    private final AuthenticationSuccessHandler successHandler = new BasicMidPointAuthenticationSuccessHandler();
 
     public HttpAuthenticationFilter(AuthenticationManager authenticationManager,
                                     AuthenticationEntryPoint authenticationEntryPoint) {
@@ -88,17 +88,12 @@ public abstract class HttpAuthenticationFilter extends BasicAuthenticationFilter
             return true;
         }
 
-        if (((existingAuth != null && existingAuth.getClass().isAssignableFrom(basicClass))
-        || existingAuth instanceof MidpointAuthentication)
+        if ((existingAuth.getClass().isAssignableFrom(basicClass)|| existingAuth instanceof MidpointAuthentication)
                 && !existingAuth.getName().equals(username)) {
             return true;
         }
 
-        if (existingAuth instanceof AnonymousAuthenticationToken) {
-            return true;
-        }
-
-        return false;
+        return existingAuth instanceof AnonymousAuthenticationToken;
     }
 
     public void setRememberMeServices(RememberMeServices rememberMeServices) {

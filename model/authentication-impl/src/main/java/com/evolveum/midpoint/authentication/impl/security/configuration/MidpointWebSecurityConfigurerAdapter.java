@@ -6,16 +6,12 @@
  */
 package com.evolveum.midpoint.authentication.impl.security.configuration;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.evolveum.midpoint.authentication.impl.security.*;
 import com.evolveum.midpoint.authentication.impl.security.authorization.MidPointGuiAuthorizationEvaluator;
 import com.evolveum.midpoint.authentication.impl.security.entry.point.WicketLoginUrlAuthenticationEntryPoint;
-import com.evolveum.midpoint.authentication.impl.security.filter.MidpointAnonymousAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.security.filter.configurers.AuthFilterConfigurer;
 import com.evolveum.midpoint.authentication.impl.security.handler.AuditedAccessDeniedHandler;
 import com.evolveum.midpoint.authentication.impl.security.handler.AuditedLogoutHandler;
@@ -24,8 +20,6 @@ import com.evolveum.midpoint.authentication.impl.security.session.RemoveUnusedSe
 import com.evolveum.midpoint.authentication.impl.security.session.SessionAndRequestScope;
 import com.evolveum.midpoint.authentication.impl.security.util.AuthSequenceUtil;
 
-import com.evolveum.midpoint.authentication.api.NodeAuthenticationEvaluator;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
@@ -33,7 +27,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
@@ -41,22 +34,18 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.authentication.impl.security.factory.channel.AuthChannelRegistryImpl;
-import com.evolveum.midpoint.authentication.impl.security.factory.module.AuthModuleRegistryImpl;
 
 /**
  * @author skublik
@@ -65,29 +54,20 @@ import com.evolveum.midpoint.authentication.impl.security.factory.module.AuthMod
 @Configuration
 @EnableWebSecurity
 @DependsOn("initialSecurityConfiguration")
-public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class MidpointWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    private AuthModuleRegistryImpl authRegistry;
-
-    @Autowired
-    AuthChannelRegistryImpl authChannelRegistry;
+    private AuthChannelRegistryImpl authChannelRegistry;
 
     @Autowired
     private SessionRegistry sessionRegistry;
 
     @Autowired
-    PrismContext prismContext;
-
-    @Autowired
     private RemoveUnusedSecurityFilterPublisher removeUnusedSecurityFilterPublisher;
-
-    @Autowired
-    private NodeAuthenticationEvaluator nodeAuthenticator;
 
     private ObjectPostProcessor<Object> objectObjectPostProcessor;
 
-    public BasicWebSecurityConfig() {
+    public MidpointWebSecurityConfigurerAdapter() {
         super(true);
     }
 
@@ -136,8 +116,7 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
     @SessionAndRequestScope
     @Override
     protected MidpointAuthenticationManager authenticationManager() throws Exception {
-        List<AuthenticationProvider> providers = new ArrayList<AuthenticationProvider>();
-        return new MidpointProviderManager(providers);
+        return new MidpointProviderManager();
     }
 
     @Override
@@ -165,10 +144,6 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        AnonymousAuthenticationFilter anonymousFilter = new MidpointAnonymousAuthenticationFilter(authRegistry, authChannelRegistry, prismContext,
-                UUID.randomUUID().toString(), "anonymousUser",
-                AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
-
         http.setSharedObject(AuthenticationTrustResolverImpl.class, new MidpointAuthenticationTrustResolverImpl());
         http.addFilter(new WebAsyncManagerIntegrationFilter())
                 .sessionManagement().and()
@@ -204,55 +179,6 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
         }
         http.setSharedObject(SecurityContextRepository.class, httpSecurityRepository);
     }
-
-//    TODO not used, don't delete because of possible future implementation authentication module
-//
-//    @Value("${auth.sso.env:REMOTE_USER}")
-//    private String principalRequestEnvVariable;
-//
-//    @Profile("ssoenv")
-//    @Bean
-//    public RequestAttributeAuthenticationFilter requestAttributeAuthenticationFilter() {
-//        MidpointRequestAttributeAuthenticationFilter filter = new MidpointRequestAttributeAuthenticationFilter();
-//        filter.setPrincipalEnvironmentVariable(principalRequestEnvVariable);
-//        filter.setExceptionIfVariableMissing(false);
-//        filter.setAuthenticationManager(authenticationManager);
-//        filter.setAuthenticationFailureHandler(new MidpointAuthenticationFauileHandler());
-//
-//        return filter;
-//    }
-
-//    TODO not used, don't delete because of possible future implementation CAS authentication module
-//
-//    @Value("${auth.cas.server.url:}")
-//    private String casServerUrl;
-//
-//    @Profile("cas")
-//    @Bean
-//    public CasAuthenticationFilter casFilter() {
-//        CasAuthenticationFilter filter = new CasAuthenticationFilter();
-//        filter.setAuthenticationManager(authenticationManager);
-//
-//        return filter;
-//    }
-//
-//    @Profile("cas")
-//    @Bean
-//    public LogoutFilter requestSingleLogoutFilter() {
-//        LogoutFilter filter = new LogoutFilter(casServerUrl + "/logout", new SecurityContextLogoutHandler());
-//        filter.setFilterProcessesUrl("/logout");
-//
-//        return filter;
-//    }
-//
-//    @Profile("cas")
-//    @Bean
-//    public SingleSignOutFilter singleSignOutFilter() {
-//        SingleSignOutFilter filter = new SingleSignOutFilter();
-//        filter.setCasServerUrlPrefix(casServerUrl);
-//
-//        return filter;
-//    }
 
     @Bean
     public ServletListenerRegistrationBean httpSessionEventPublisher() {

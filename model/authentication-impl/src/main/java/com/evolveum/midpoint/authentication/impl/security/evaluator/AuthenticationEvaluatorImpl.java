@@ -12,6 +12,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
+import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -27,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
@@ -82,7 +82,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     }
 
     @Override
-    public void setMessageSource(MessageSource messageSource) {
+    public void setMessageSource(@NotNull MessageSource messageSource) {
         this.messages = new MessageSourceAccessor(messageSource);
     }
 
@@ -173,7 +173,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         if (supportsAuthzCheck()) {
             // Authorizations
-            if (!hasAnyAuthorization(principal)) {
+            if (hasNoneAuthorization(principal)) {
                 recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "no authorizations", authnCtx.getPrincipalType(),false);
                 throw new DisabledException("web.security.provider.access.denied");
             }
@@ -228,7 +228,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         }
 
         // Authorizations
-        if (!hasAnyAuthorization(principal)) {
+        if (hasNoneAuthorization(principal)) {
             recordAuthenticationBehavior(username, null, connEnv, "no authorizations", FocusType.class,false);
             throw new InternalAuthenticationServiceException("web.security.provider.access.denied");
         }
@@ -240,13 +240,13 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     }
 
     @Override
-    public PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv, AbstractAuthenticationContext authnCtx) {
+    public PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv, PreAuthenticationContext authnCtx) {
 
         MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx.getUsername(),
                 authnCtx.getPrincipalType(), authnCtx.isSupportActivationByChannel());
 
         // Authorizations
-        if (!hasAnyAuthorization(principal)) {
+        if (hasNoneAuthorization(principal)) {
             recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "no authorizations", authnCtx.getPrincipalType(), false);
             throw new InternalAuthenticationServiceException("web.security.provider.access.denied");
         }
@@ -306,17 +306,18 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         return principal;
     }
 
-    protected boolean hasAnyAuthorization(MidPointPrincipal principal) {
+    protected boolean hasNoneAuthorization(MidPointPrincipal principal) {
         Collection<Authorization> authorizations = principal.getAuthorities();
         if (authorizations == null || authorizations.isEmpty()){
-            return false;
+            return true;
         }
+        boolean exist = false;
         for (Authorization auth : authorizations){
             if (auth.getAction() != null && !auth.getAction().isEmpty()){
-                return true;
+                exist = true;
             }
         }
-        return false;
+        return !exist;
     }
 
     private <P extends CredentialPolicyType> void checkPasswordValidityAndAge(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, C credentials,

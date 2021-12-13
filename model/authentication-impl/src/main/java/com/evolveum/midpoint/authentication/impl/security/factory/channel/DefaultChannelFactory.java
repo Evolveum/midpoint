@@ -24,7 +24,7 @@ public class DefaultChannelFactory extends AbstractChannelFactory {
     }
 
     @Override
-    public AuthenticationChannel createAuthChannel(AuthenticationSequenceChannelType channel) throws Exception {
+    public AuthenticationChannel createAuthChannel(AuthenticationSequenceChannelType channel) {
         if (channel != null) {
             return new AuthenticationChannelImpl(channel);
         }

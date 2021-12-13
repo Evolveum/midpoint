@@ -13,6 +13,8 @@ import java.util.Map;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.token.SecurityQuestionsAuthenticationToken;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -96,15 +98,11 @@ public class SecurityQuestionProvider extends AbstractCredentialProvider<Securit
 
     @Override
     public boolean supports(Class<?> authentication) {
-        if (SecurityQuestionsAuthenticationToken.class.equals(authentication)) {
-            return true;
-        }
-
-        return false;
+        return SecurityQuestionsAuthenticationToken.class.equals(authentication);
     }
 
     @Override
-    public Class getTypeOfCredential() {
+    public Class<? extends CredentialPolicyType> getTypeOfCredential() {
         return SecurityQuestionsCredentialsPolicyType.class;
     }
 

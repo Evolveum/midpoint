@@ -20,8 +20,8 @@ public class NodeAuthenticationTokenImpl extends AbstractAuthenticationToken imp
 
     private static final long serialVersionUID = 1L;
 
-    private PrismObject<NodeType> node;
-    private String remoteAddress;
+    private final PrismObject<NodeType> node;
+    private final String remoteAddress;
 
     public NodeAuthenticationTokenImpl(PrismObject<NodeType> node, String remoteAddress, Collection<? extends GrantedAuthority> authorities) {
         super(authorities);

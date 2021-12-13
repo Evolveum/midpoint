@@ -48,7 +48,7 @@ public class AuthModuleImpl implements AuthModule {
     }
 
     public ModuleAuthentication getBaseModuleAuthentication() {
-        return (ModuleAuthentication) baseModuleAuthentication.clone();
+        return baseModuleAuthentication.clone();
     }
 
     private void setBaseModuleAuthentication(ModuleAuthenticationImpl baseModuleAuthentication) {

@@ -30,10 +30,9 @@ public class AuthFilterConfigurer<H extends HttpSecurityBuilder<H>> extends
         AbstractHttpConfigurer<SecurityContextConfigurer<H>, H> {
 
     @Override
-    @SuppressWarnings("unchecked")
     public void configure(H http) throws Exception {
 
-        Map<Class<? extends Object>, Object> sharedObjects = new HashMap<Class<? extends Object>, Object>();
+        Map<Class<?>, Object> sharedObjects = new HashMap<>();
 
         setSharedObject(sharedObjects, http, InvalidSessionStrategy.class);
         setSharedObject(sharedObjects, http, SessionAuthenticationStrategy.class);
@@ -46,7 +45,7 @@ public class AuthFilterConfigurer<H extends HttpSecurityBuilder<H>> extends
         http.addFilterAfter(new TranslateExceptionFilter(), AnonymousAuthenticationFilter.class);
     }
 
-    private void setSharedObject(Map<Class<? extends Object>, Object> sharedObjects, H http, Class<? extends Object> clazz) {
+    private void setSharedObject(Map<Class<?>, Object> sharedObjects, H http, Class<?> clazz) {
         sharedObjects.put(clazz, http.getSharedObject(clazz));
     }
 }

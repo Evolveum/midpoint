@@ -41,10 +41,8 @@ public class HttpClusterAuthenticationFilter extends HttpAuthenticationFilter {
 
     private static final Trace LOGGER = TraceManager.getTrace(HttpClusterAuthenticationFilter.class);
 
-    private AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource = new WebAuthenticationDetailsSource();
-    private RememberMeServices rememberMeServices = new NullRememberMeServices();
-    private String credentialsCharset = "UTF-8";
-    private AuthenticationSuccessHandler successHandler = new BasicMidPointAuthenticationSuccessHandler();
+    private final AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource = new WebAuthenticationDetailsSource();
+    private final RememberMeServices rememberMeServices = new NullRememberMeServices();
 
     public HttpClusterAuthenticationFilter(AuthenticationManager authenticationManager,
                                            AuthenticationEntryPoint authenticationEntryPoint) {
@@ -93,9 +91,7 @@ public class HttpClusterAuthenticationFilter extends HttpAuthenticationFilter {
 
             this.rememberMeServices.loginFail(request, response);
 
-            StringBuilder sb = new StringBuilder();
-            sb.append(AuthenticationModuleNameConstants.CLUSTER).append(" realm=\"midpoint\"");
-            response.setHeader("WWW-Authenticate",sb.toString());
+            response.setHeader("WWW-Authenticate", AuthenticationModuleNameConstants.CLUSTER + " realm=\"midpoint\"");
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write(" test error ");
             response.getWriter().flush();
@@ -121,8 +117,6 @@ public class HttpClusterAuthenticationFilter extends HttpAuthenticationFilter {
                     "Failed to decode security question authentication token");
         }
 
-        String token = new String(decoded, getCredentialsCharset(request));
-
-        return token;
+        return new String(decoded, getCredentialsCharset(request));
     }
 }

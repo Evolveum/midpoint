@@ -11,15 +11,16 @@ import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthenticat
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
+ * Define authentication module created by module configuration, with all filters and configuration
+ *
  * @author skublik
  */
 
 public interface AuthModule {
 
-    public SecurityFilterChain getSecurityFilterChain();
-
-    public ModuleWebSecurityConfiguration getConfiguration();
-
-    public ModuleAuthentication getBaseModuleAuthentication();
+    /**
+     * @return module authentication (result after authentication process)
+     */
+    ModuleAuthentication getBaseModuleAuthentication();
 
 }

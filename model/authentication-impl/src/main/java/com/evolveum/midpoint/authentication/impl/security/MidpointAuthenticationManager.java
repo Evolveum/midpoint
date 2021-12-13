@@ -16,5 +16,5 @@ import org.springframework.security.authentication.AuthenticationProvider;
  */
 
 public interface MidpointAuthenticationManager extends AuthenticationManager {
-    public List<AuthenticationProvider> getProviders();
+    List<AuthenticationProvider> getProviders();
 }

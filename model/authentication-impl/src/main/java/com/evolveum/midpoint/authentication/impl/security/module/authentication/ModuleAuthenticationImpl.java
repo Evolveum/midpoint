@@ -32,7 +32,7 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
 
     private String prefix;
 
-    private String nameOfType;
+    private final String nameOfType;
 
     private QName focusType;
 
@@ -126,7 +126,7 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
         return  Objects.equals(nameOfModule, that.nameOfModule) &&
                 type == that.type &&
                 Objects.equals(prefix, that.prefix) &&
-                nameOfType == that.nameOfType;
+                Objects.equals(nameOfType, that.nameOfType);
     }
 
     @Override

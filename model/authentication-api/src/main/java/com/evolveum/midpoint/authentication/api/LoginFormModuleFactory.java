@@ -14,6 +14,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyTyp
 import javax.servlet.ServletRequest;
 import java.util.Map;
 
+/**
+ * not use it, temporary needed interface for old reset password configuration
+ */
 @Experimental
 public interface LoginFormModuleFactory {
 

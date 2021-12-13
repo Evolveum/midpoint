@@ -22,10 +22,6 @@ public class MidpointAuthenticationTrustResolverImpl extends AuthenticationTrust
 
     private Class<? extends Authentication> anonymousClass = AnonymousAuthenticationToken.class;
 
-    Class<? extends Authentication> getAnonymousClass() {
-        return anonymousClass;
-    }
-
     public boolean isAnonymous(Authentication authentication) {
         if ((anonymousClass == null) || (authentication == null)) {
             return false;

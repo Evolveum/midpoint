@@ -11,6 +11,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -41,10 +43,6 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
 
     @Autowired
     private AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
-
-    public void setPasswordAuthenticationEvaluator(AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator) {
-        this.passwordAuthenticationEvaluator = passwordAuthenticationEvaluator;
-    }
 
     @Override
     protected AuthenticationEvaluator<PasswordAuthenticationContext> getEvaluator() {
@@ -107,15 +105,11 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
         if (UsernamePasswordAuthenticationToken.class.equals(authentication)) {
             return true;
         }
-        if (PreAuthenticatedAuthenticationToken.class.equals(authentication)) {
-            return true;
-        }
-
-        return false;
+        return PreAuthenticatedAuthenticationToken.class.equals(authentication);
     }
 
     @Override
-    public Class getTypeOfCredential() {
+    public Class<? extends CredentialPolicyType> getTypeOfCredential() {
         return PasswordCredentialsPolicyType.class;
     }
 

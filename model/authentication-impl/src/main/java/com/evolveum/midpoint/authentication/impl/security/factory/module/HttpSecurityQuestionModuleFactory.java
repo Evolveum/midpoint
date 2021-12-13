@@ -11,8 +11,7 @@ import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.impl.security.module.HttpSecurityQuestionsModuleWebSecurityConfig;
-import com.evolveum.midpoint.authentication.impl.security.module.ModuleWebSecurityConfig;
+import com.evolveum.midpoint.authentication.impl.security.module.configurer.HttpSecurityQuestionsModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.HttpModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.security.module.configuration.ModuleWebSecurityConfigurationImpl;
 
@@ -25,14 +24,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author skublik
  */
 @Component
-public class HttpSecurityQuestionModuleFactory extends AbstractCredentialModuleFactory<ModuleWebSecurityConfiguration> {
+public class HttpSecurityQuestionModuleFactory extends AbstractCredentialModuleFactory
+        <ModuleWebSecurityConfiguration, HttpSecurityQuestionsModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration>> {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType) {
-        if (moduleType instanceof HttpSecQAuthenticationModuleType) {
-            return true;
-        }
-        return false;
+        return moduleType instanceof HttpSecQAuthenticationModuleType;
     }
 
     @Override
@@ -43,8 +40,8 @@ public class HttpSecurityQuestionModuleFactory extends AbstractCredentialModuleF
     }
 
     @Override
-    protected ModuleWebSecurityConfig createModule(ModuleWebSecurityConfiguration configuration) {
-        return  getObjectObjectPostProcessor().postProcess(new HttpSecurityQuestionsModuleWebSecurityConfig(configuration));
+    protected HttpSecurityQuestionsModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration> createModule(ModuleWebSecurityConfiguration configuration) {
+        return getObjectObjectPostProcessor().postProcess(new HttpSecurityQuestionsModuleWebSecurityConfigurer<>(configuration));
     }
 
     @Override

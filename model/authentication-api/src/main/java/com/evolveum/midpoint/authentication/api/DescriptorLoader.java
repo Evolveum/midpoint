@@ -8,6 +8,13 @@ package com.evolveum.midpoint.authentication.api;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 
+/**
+ * loader for url, initialize all urls with authorizations
+ */
 public interface DescriptorLoader extends DebugDumpable {
-    public void loadData();
+
+    /**
+     * load urls and their authorizations
+     */
+    void loadData();
 }

@@ -23,15 +23,12 @@ import com.evolveum.midpoint.authentication.impl.security.module.authentication.
 
 public class MailNonceAuthenticationFilter extends MidpointUsernamePasswordAuthenticationFilter {
 
-    private RequestMatcher requiredFilter = new RequestMatcher() {
-        @Override
-        public boolean matches(HttpServletRequest httpServletRequest) {
-            if (httpServletRequest.getParameter(SchemaConstants.USER_ID) != null
-                    && httpServletRequest.getParameter(SchemaConstants.TOKEN) != null) {
-                return true;
-            }
-            return false;
+    private final RequestMatcher requiredFilter = httpServletRequest -> {
+        if (httpServletRequest.getParameter(SchemaConstants.USER_ID) != null
+                && httpServletRequest.getParameter(SchemaConstants.TOKEN) != null) {
+            return true;
         }
+        return false;
     };
 
     @Override

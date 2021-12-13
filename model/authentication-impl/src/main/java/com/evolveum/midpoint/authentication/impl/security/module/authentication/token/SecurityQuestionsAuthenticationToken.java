@@ -20,8 +20,4 @@ public class SecurityQuestionsAuthenticationToken extends UsernamePasswordAuthen
     public SecurityQuestionsAuthenticationToken(Object principal, Object credentials) {
         super(principal, credentials);
     }
-
-    public SecurityQuestionsAuthenticationToken(Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities) {
-        super(principal, credentials, authorities);
-    }
 }

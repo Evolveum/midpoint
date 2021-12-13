@@ -12,6 +12,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
+ * Define focus during processing of Ldap authentication module.
+ *
  * @author skublik
  */
 

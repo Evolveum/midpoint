@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.authentication.impl.security.module;
+package com.evolveum.midpoint.authentication.impl.security.module.configurer;
 
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
@@ -51,7 +51,7 @@ import com.evolveum.midpoint.prism.PrismContext;
  * @author skublik
  */
 
-public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> extends WebSecurityConfigurerAdapter {
+public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration> extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private AuditedAccessDeniedHandler accessDeniedHandler;
@@ -66,21 +66,21 @@ public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> e
     private MidpointAuthenticationManager authenticationManager;
 
     @Autowired
-    AuthModuleRegistryImpl authRegistry;
+    private AuthModuleRegistryImpl authRegistry;
 
     @Autowired
-    AuthChannelRegistryImpl authChannelRegistry;
+    private AuthChannelRegistryImpl authChannelRegistry;
 
     @Autowired
-    PrismContext prismContext;
+    private PrismContext prismContext;
 
     @Value("${security.enable-csrf:true}")
     private boolean csrfEnabled;
 
     private ObjectPostProcessor<Object> objectPostProcessor;
-    private C configuration;
+    private final C configuration;
 
-    public ModuleWebSecurityConfig(C configuration){
+    public ModuleWebSecurityConfigurer(C configuration){
         super(true);
         this.configuration = configuration;
     }
@@ -114,7 +114,7 @@ public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> e
         http.authorizeRequests()
                 .accessDecisionManager(accessDecisionManager)
                 .anyRequest().fullyAuthenticated();
-        getOrApply(http, new MidpointExceptionHandlingConfigurer())
+        getOrApply(http, new MidpointExceptionHandlingConfigurer<>())
                 .accessDeniedHandler(accessDeniedHandler)
                 .authenticationTrustResolver(new MidpointAuthenticationTrustResolverImpl());
         http.headers().and()
@@ -163,26 +163,23 @@ public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> e
     }
 
     protected RequestMatcher getLogoutMatcher(HttpSecurity http, String logoutUrl) {
-        return new RequestMatcher() {
-            @Override
-            public boolean matches(HttpServletRequest httpServletRequest) {
-                ModuleAuthenticationImpl module = (ModuleAuthenticationImpl) AuthUtil.getProcessingModule(false);
-                if (module != null && module.isInternalLogout()) {
-                    module.setInternalLogout(false);
-                    return true;
-                }
-                RequestMatcher logoutRequestMatcher;
-                if (http.getConfigurer(CsrfConfigurer.class) != null) {
-                    logoutRequestMatcher = new AntPathRequestMatcher(logoutUrl, "POST");
-                } else {
-                    logoutRequestMatcher = new OrRequestMatcher(
-                            new AntPathRequestMatcher(logoutUrl, "GET"),
-                            new AntPathRequestMatcher(logoutUrl, "POST"),
-                            new AntPathRequestMatcher(logoutUrl, "PUT"),
-                            new AntPathRequestMatcher(logoutUrl, "DELETE"));
-                }
-                return logoutRequestMatcher.matches(httpServletRequest);
+        return httpServletRequest -> {
+            ModuleAuthenticationImpl module = (ModuleAuthenticationImpl) AuthUtil.getProcessingModuleIfExist();
+            if (module != null && module.isInternalLogout()) {
+                module.setInternalLogout(false);
+                return true;
             }
+            RequestMatcher logoutRequestMatcher;
+            if (http.getConfigurer(CsrfConfigurer.class) != null) {
+                logoutRequestMatcher = new AntPathRequestMatcher(logoutUrl, "POST");
+            } else {
+                logoutRequestMatcher = new OrRequestMatcher(
+                        new AntPathRequestMatcher(logoutUrl, "GET"),
+                        new AntPathRequestMatcher(logoutUrl, "POST"),
+                        new AntPathRequestMatcher(logoutUrl, "PUT"),
+                        new AntPathRequestMatcher(logoutUrl, "DELETE"));
+            }
+            return logoutRequestMatcher.matches(httpServletRequest);
         };
     }
 
@@ -200,9 +197,9 @@ public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> e
         return handler;
     }
 
-    protected  <C extends SecurityConfigurerAdapter<DefaultSecurityFilterChain, HttpSecurity>> C getOrApply(HttpSecurity http, C configurer) throws Exception {
-        C existingConfig = (C) http.getConfigurer(configurer.getClass());
-        return existingConfig != null ? existingConfig : http.apply(configurer);
+    protected  <CA extends SecurityConfigurerAdapter<DefaultSecurityFilterChain, HttpSecurity>> CA getOrApply(HttpSecurity http, CA configurer) throws Exception {
+        CA existingConfigurer = (CA) http.getConfigurer(configurer.getClass());
+        return existingConfigurer != null ? existingConfigurer : http.apply(configurer);
     }
 
 }

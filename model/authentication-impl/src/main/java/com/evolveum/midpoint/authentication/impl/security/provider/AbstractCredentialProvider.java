@@ -14,8 +14,6 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
 import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
 
 /**
@@ -24,9 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType
 
 public abstract class AbstractCredentialProvider<T extends AbstractAuthenticationContext> extends MidPointAbstractAuthenticationProvider<T> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractCredentialProvider.class);
-
-    public abstract Class getTypeOfCredential();
+    public abstract Class<? extends CredentialPolicyType> getTypeOfCredential();
 
     public boolean supports(Class<?> authenticationClass, Authentication authentication) {
         if (!(authentication instanceof MidpointAuthentication)) {
@@ -34,7 +30,7 @@ public abstract class AbstractCredentialProvider<T extends AbstractAuthenticatio
         }
         MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
         ModuleAuthenticationImpl moduleAuthentication = (ModuleAuthenticationImpl) getProcessingModule(mpAuthentication);
-        if (mpAuthentication == null || moduleAuthentication == null || moduleAuthentication.getAuthentication() == null) {
+        if (moduleAuthentication == null || moduleAuthentication.getAuthentication() == null) {
             return false;
         }
         if (moduleAuthentication.getAuthentication() instanceof AnonymousAuthenticationToken) {

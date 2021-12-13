@@ -13,7 +13,6 @@ import com.evolveum.midpoint.authentication.api.Url;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -33,12 +32,12 @@ public final class DescriptorLoaderImpl implements DescriptorLoader {
     private static final Trace LOGGER = TraceManager.getTrace(DescriptorLoaderImpl.class);
 
     // All could be final, but then Checkstyle complains about lower-case, although these are not constants.
-    private static Map<String, DisplayableValue<String>[]> actions = new HashMap<>();
+    private static Map<String, AuthorizationActionValue[]> actions = new HashMap<>();
     private static List<String> permitAllUrls = new ArrayList<>();
     private static List<String> loginPages = new ArrayList<>();
     private static Map<String, List<String>> mapForAuthPages = new HashMap<>();
 
-    public static Map<String, DisplayableValue<String>[]> getActions() {
+    public static Map<String, AuthorizationActionValue[]> getActions() {
         return actions;
     }
 
@@ -92,17 +91,17 @@ public final class DescriptorLoaderImpl implements DescriptorLoader {
     private void loadActions(PageDescriptor descriptor) {
 
         if (descriptor.loginPage()) {
-            foreachUrl(descriptor, url -> loginPages.add(url));
+            foreachUrl(descriptor, loginPages::add);
         }
 
         if (StringUtils.isNotEmpty(descriptor.authModule())) {
             List<String> urls = new ArrayList<>();
-            foreachUrl(descriptor, url -> urls.add(url));
+            foreachUrl(descriptor, urls::add);
             mapForAuthPages.put(descriptor.authModule(), urls);
         }
 
         if (descriptor.permitAll()) {
-            foreachUrl(descriptor, url -> permitAllUrls.add(url));
+            foreachUrl(descriptor, permitAllUrls::add);
             return;
         }
 
@@ -129,7 +128,7 @@ public final class DescriptorLoaderImpl implements DescriptorLoader {
                     AuthorizationConstants.AUTZ_GUI_ALL_LABEL, AuthorizationConstants.AUTZ_GUI_ALL_DESCRIPTION));
         }
 
-        foreachUrl(descriptor, url -> DescriptorLoaderImpl.actions.put(url, actions.toArray(new DisplayableValue[actions.size()])));
+        foreachUrl(descriptor, url -> DescriptorLoaderImpl.actions.put(url, actions.toArray(new AuthorizationActionValue[0])));
     }
 
     private void foreachUrl(PageDescriptor descriptor, Consumer<String> urlConsumer) {

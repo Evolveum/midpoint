@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.authentication.impl.security.util;
 
 import java.util.*;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
@@ -108,8 +109,7 @@ public class AuthSequenceUtil {
             usedChannel = SecurityPolicyUtil.DEFAULT_CHANNEL;
         }
 
-        AuthenticationSequenceType sequence = searchSequence(usedChannel, true, sequences);
-        return sequence;
+        return searchSequence(usedChannel, true, sequences);
 
     }
 
@@ -203,7 +203,7 @@ public class AuthSequenceUtil {
             String header = httpRequest.getHeader("Authorization");
             if (header != null) {
                 String type = header.split(" ")[0];
-                if (AuthenticationModuleNameConstants.CLUSTER.toLowerCase().equals(type.toLowerCase())) {
+                if (AuthenticationModuleNameConstants.CLUSTER.equalsIgnoreCase(type)) {
                     AuthenticationSequenceType sequence = new AuthenticationSequenceType();
                     sequence.setName(AuthenticationModuleNameConstants.CLUSTER);
                     AuthenticationSequenceChannelType seqChannel = new AuthenticationSequenceChannelType();
@@ -224,9 +224,7 @@ public class AuthSequenceUtil {
             String header = httpRequest.getHeader("Authorization");
             if (header != null) {
                 String type = header.split(" ")[0];
-                if (AuthenticationModuleNameConstants.CLUSTER.toLowerCase().equals(type.toLowerCase())) {
-                    return true;
-                }
+                return AuthenticationModuleNameConstants.CLUSTER.equalsIgnoreCase(type);
             }
         }
         return false;
@@ -293,7 +291,7 @@ public class AuthSequenceUtil {
             String header = httpRequest.getHeader("Authorization");
             if (header != null) {
                 String type = header.split(" ")[0];
-                if (AuthenticationModuleNameConstants.CLUSTER.toLowerCase().equals(type.toLowerCase())) {
+                if (AuthenticationModuleNameConstants.CLUSTER.equalsIgnoreCase(type)) {
                     List<AuthModule> authModules = new ArrayList<>();
                     HttpClusterModuleFactory factory = authRegistry.findModelFactoryByClass(HttpClusterModuleFactory.class);
                     AbstractAuthenticationModuleType module = new AbstractAuthenticationModuleType() {
@@ -323,7 +321,7 @@ public class AuthSequenceUtil {
             }
 
             PrismContainer<?> c = (PrismContainer<?>) v;
-            if (!(AbstractAuthenticationModuleType.class.isAssignableFrom(c.getCompileTimeClass()))) {
+            if (!(AbstractAuthenticationModuleType.class.isAssignableFrom(Objects.requireNonNull(c.getCompileTimeClass())))) {
                 return;
             }
 
@@ -346,11 +344,8 @@ public class AuthSequenceUtil {
             }
         }
         String servletPath = request.getServletPath();
-        if ("".equals(servletPath) || "/".equals(servletPath)) {
-            // Special case, this is in fact "magic" redirect to home page or login page. It handles autz in its own way.
-            return true;
-        }
-        return false;
+        // Special case, this is in fact "magic" redirect to home page or login page. It handles autz in its own way.
+        return "".equals(servletPath) || "/".equals(servletPath);
     }
 
     public static boolean isLoginPage(HttpServletRequest request) {
@@ -427,7 +422,7 @@ public class AuthSequenceUtil {
 
     public static UserType searchUserPrivileged(String username, SecurityContextManager securityContextManager, TaskManager manager,
                                                 ModelService modelService, PrismContext prismContext) {
-        UserType userType = securityContextManager.runPrivileged(new Producer<UserType>() {
+        return securityContextManager.runPrivileged(new Producer<>() {
             final ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(UserType.F_NAME).eqPoly(username).matchingNorm()
                     .build();
@@ -464,12 +459,12 @@ public class AuthSequenceUtil {
             }
 
         });
-        return userType;
     }
 
     public static SecurityPolicyType resolveSecurityPolicy(PrismObject<UserType> user, SecurityContextManager securityContextManager, TaskManager manager,
             ModelInteractionService modelInteractionService) {
-        SecurityPolicyType securityPolicy = securityContextManager.runPrivileged(new Producer<SecurityPolicyType>() {
+
+        return securityContextManager.runPrivileged(new Producer<SecurityPolicyType>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -488,8 +483,6 @@ public class AuthSequenceUtil {
             }
 
         });
-
-        return securityPolicy;
     }
 
     public static boolean isIgnoredLocalPath(AuthenticationsPolicyType authenticationsPolicy, HttpServletRequest httpRequest) {
@@ -514,11 +507,8 @@ public class AuthSequenceUtil {
         String defaultPrefix = ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH;
         int startIndex = localePath.indexOf(defaultPrefix) + defaultPrefix.length();
         localePath = localePath.substring(startIndex);
-        if (sequence == null || sequence.getChannel() == null || sequence.getChannel().getUrlSuffix() == null
-                || !AuthUtil.stripSlashes(localePath).equals(AuthUtil.stripSlashes(sequence.getChannel().getUrlSuffix()))) {
-            return false;
-        }
-        return true;
+        return sequence != null && sequence.getChannel() != null && sequence.getChannel().getUrlSuffix() != null
+                && AuthUtil.stripSlashes(localePath).equals(AuthUtil.stripSlashes(sequence.getChannel().getUrlSuffix()));
     }
 
     public static boolean isRecordSessionLessAccessChannel(HttpServletRequest httpRequest) {
@@ -534,7 +524,7 @@ public class AuthSequenceUtil {
     }
 
     public static boolean existLoginPageForActualAuthModule() {
-        ModuleAuthentication authModule = AuthUtil.getProcessingModule(false);
+        ModuleAuthentication authModule = AuthUtil.getProcessingModuleIfExist();
         if (authModule ==  null) {
             return false;
         }
@@ -543,7 +533,7 @@ public class AuthSequenceUtil {
     }
 
     public static boolean isLoginPageForActualAuthModule(String url) {
-        ModuleAuthentication authModule = AuthUtil.getProcessingModule(true);
+        ModuleAuthentication authModule = AuthUtil.getProcessingModule();
         String moduleType = authModule.getNameOfModuleType();
         return DescriptorLoaderImpl.getPageUrlsByAuthName(moduleType).contains(url);
     }

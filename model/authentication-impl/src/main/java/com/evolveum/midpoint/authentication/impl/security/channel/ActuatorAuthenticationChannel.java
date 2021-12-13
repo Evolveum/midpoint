@@ -21,7 +21,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequen
 
 public class ActuatorAuthenticationChannel extends AuthenticationChannelImpl {
 
-
     public ActuatorAuthenticationChannel(AuthenticationSequenceChannelType channel) {
         super(channel);
     }
@@ -35,24 +34,23 @@ public class ActuatorAuthenticationChannel extends AuthenticationChannelImpl {
     }
 
     public Collection<Authorization> resolveAuthorities(Collection<Authorization> authorities) {
-        ArrayList<Authorization> newAuthorities = new ArrayList<Authorization>();
+        ArrayList<Authorization> newAuthorities = new ArrayList<>();
         for (Authorization authority : authorities) {
-            List<String> authoritiesString = new ArrayList<String>();
-                Authorization clone = ((Authorization) authority).clone();
-                authoritiesString = clone.getAction();
-                List<String> newAction = new ArrayList<String>();
-                for (String authorityString : authoritiesString) {
-                    if (authorityString.startsWith(AuthorizationConstants.NS_AUTHORIZATION_ACTUATOR)
-                            || authorityString.equals(AuthorizationConstants.AUTZ_ALL_URL)
-                            || authorityString.equals(AuthorizationConstants.NS_AUTHORIZATION_UI)) {
-                        newAction.add(authorityString);
-                    }
+            Authorization clone = authority.clone();
+            List<String> authoritiesString = clone.getAction();
+            List<String> newAction = new ArrayList<>();
+            for (String authorityString : authoritiesString) {
+                if (authorityString.startsWith(AuthorizationConstants.NS_AUTHORIZATION_ACTUATOR)
+                        || authorityString.equals(AuthorizationConstants.AUTZ_ALL_URL)
+                        || authorityString.equals(AuthorizationConstants.NS_AUTHORIZATION_UI)) {
+                    newAction.add(authorityString);
                 }
-                if (!newAction.isEmpty()) {
-                    clone.getAction().clear();
-                    clone.getAction().addAll(newAction);
-                    newAuthorities.add(clone);
-                }
+            }
+            if (!newAction.isEmpty()) {
+                clone.getAction().clear();
+                clone.getAction().addAll(newAction);
+                newAuthorities.add(clone);
+            }
         }
         return newAuthorities;
     }

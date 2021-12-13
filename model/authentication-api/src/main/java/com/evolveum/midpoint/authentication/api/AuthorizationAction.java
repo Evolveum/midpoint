@@ -11,6 +11,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
+ * Definition of authorization
  * @author lazyman
  */
 @Retention(RetentionPolicy.RUNTIME)

@@ -7,9 +7,15 @@
 package com.evolveum.midpoint.authentication.api.authentication;
 
 /**
+ * Interface for authentication module which works with internal midpoint credentials
+ *
  * @author skublik
  */
 
 public interface CredentialModuleAuthentication extends ModuleAuthentication {
+
+    /**
+     * @return name of used credential for authentication
+     */
     String getCredentialName();
 }

@@ -38,9 +38,9 @@ public class MidpointExceptionHandlingConfigurer<H extends HttpSecurityBuilder<H
 
     private AuthenticationTrustResolver authenticationTrustResolver = new MidpointAuthenticationTrustResolverImpl();
 
-    private LinkedHashMap<RequestMatcher, AuthenticationEntryPoint> defaultEntryPointMappings = new LinkedHashMap<>();
+    private final LinkedHashMap<RequestMatcher, AuthenticationEntryPoint> defaultEntryPointMappings = new LinkedHashMap<>();
 
-    private LinkedHashMap<RequestMatcher, AccessDeniedHandler> defaultDeniedHandlerMappings = new LinkedHashMap<>();
+    private final LinkedHashMap<RequestMatcher, AccessDeniedHandler> defaultDeniedHandlerMappings = new LinkedHashMap<>();
 
     public MidpointExceptionHandlingConfigurer() {
     }
@@ -83,7 +83,7 @@ public class MidpointExceptionHandlingConfigurer<H extends HttpSecurityBuilder<H
 
     @Override
     public void configure(H http) throws Exception {
-        AuthenticationEntryPoint entryPoint = getAuthenticationEntryPoint(http);
+        AuthenticationEntryPoint entryPoint = getAuthenticationEntryPoint();
         ExceptionTranslationFilter exceptionTranslationFilter = new MidpointExceptionTranslationFilter(
                 entryPoint, getRequestCache(http)) {
             @Override
@@ -91,7 +91,7 @@ public class MidpointExceptionHandlingConfigurer<H extends HttpSecurityBuilder<H
                 return MidpointExceptionHandlingConfigurer.this.createNewAuthentication(authentication);
             }
         };
-        AccessDeniedHandler deniedHandler = getAccessDeniedHandler(http);
+        AccessDeniedHandler deniedHandler = getAccessDeniedHandler();
         exceptionTranslationFilter.setAccessDeniedHandler(deniedHandler);
         exceptionTranslationFilter.setAuthenticationTrustResolver(getAuthenticationTrustResolver());
         exceptionTranslationFilter = postProcess(exceptionTranslationFilter);
@@ -102,10 +102,10 @@ public class MidpointExceptionHandlingConfigurer<H extends HttpSecurityBuilder<H
         return null;
     }
 
-    AccessDeniedHandler getAccessDeniedHandler(H http) {
+    AccessDeniedHandler getAccessDeniedHandler() {
         AccessDeniedHandler deniedHandler = this.accessDeniedHandler;
         if (deniedHandler == null) {
-            deniedHandler = createDefaultDeniedHandler(http);
+            deniedHandler = createDefaultDeniedHandler();
         }
         return deniedHandler;
     }
@@ -114,15 +114,15 @@ public class MidpointExceptionHandlingConfigurer<H extends HttpSecurityBuilder<H
         return authenticationTrustResolver;
     }
 
-    AuthenticationEntryPoint getAuthenticationEntryPoint(H http) {
+    AuthenticationEntryPoint getAuthenticationEntryPoint() {
         AuthenticationEntryPoint entryPoint = this.authenticationEntryPoint;
         if (entryPoint == null) {
-            entryPoint = createDefaultEntryPoint(http);
+            entryPoint = createDefaultEntryPoint();
         }
         return entryPoint;
     }
 
-    private AccessDeniedHandler createDefaultDeniedHandler(H http) {
+    private AccessDeniedHandler createDefaultDeniedHandler() {
         if (this.defaultDeniedHandlerMappings.isEmpty()) {
             return new AccessDeniedHandlerImpl();
         }
@@ -134,7 +134,7 @@ public class MidpointExceptionHandlingConfigurer<H extends HttpSecurityBuilder<H
                 new AccessDeniedHandlerImpl());
     }
 
-    private AuthenticationEntryPoint createDefaultEntryPoint(H http) {
+    private AuthenticationEntryPoint createDefaultEntryPoint() {
         if (this.defaultEntryPointMappings.isEmpty()) {
             return new Http403ForbiddenEntryPoint();
         }

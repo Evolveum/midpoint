@@ -10,8 +10,7 @@ import com.evolveum.midpoint.authentication.impl.security.provider.MailNonceProv
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.impl.security.module.MailNonceFormModuleWebSecurityConfig;
-import com.evolveum.midpoint.authentication.impl.security.module.ModuleWebSecurityConfig;
+import com.evolveum.midpoint.authentication.impl.security.module.configurer.MailNonceFormModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.MailNonceModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.security.module.configuration.ModuleWebSecurityConfigurationImpl;
 
@@ -24,14 +23,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author skublik
  */
 @Component
-public class MailNonceModuleFactory extends AbstractCredentialModuleFactory {
+public class MailNonceModuleFactory extends AbstractCredentialModuleFactory
+        <ModuleWebSecurityConfiguration, MailNonceFormModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration>> {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType) {
-        if (moduleType instanceof MailNonceAuthenticationModuleType) {
-            return true;
-        }
-        return false;
+        return moduleType instanceof MailNonceAuthenticationModuleType;
     }
 
     @Override
@@ -43,8 +40,8 @@ public class MailNonceModuleFactory extends AbstractCredentialModuleFactory {
     }
 
     @Override
-    protected ModuleWebSecurityConfig createModule(ModuleWebSecurityConfiguration configuration) {
-        return  getObjectObjectPostProcessor().postProcess(new MailNonceFormModuleWebSecurityConfig(configuration));
+    protected MailNonceFormModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration> createModule(ModuleWebSecurityConfiguration configuration) {
+        return  getObjectObjectPostProcessor().postProcess(new MailNonceFormModuleWebSecurityConfigurer<>(configuration));
     }
 
     //TODO
@@ -71,7 +68,7 @@ public class MailNonceModuleFactory extends AbstractCredentialModuleFactory {
 
     @Override
     protected void isSupportedChannel(AuthenticationChannel authenticationChannel) {
-        return; //supported for all modules
+        //supported for all modules
     }
 
 }

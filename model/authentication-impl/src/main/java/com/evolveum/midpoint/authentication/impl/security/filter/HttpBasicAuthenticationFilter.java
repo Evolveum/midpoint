@@ -49,7 +49,7 @@ public class HttpBasicAuthenticationFilter extends HttpAuthenticationFilter {
             chain.doFilter(request, response);
             return;
         }
-        HttpServletRequest newRequest = request;
+        HttpServletRequest newRequest;
         try {
             int startIndex = AuthenticationModuleNameConstants.HTTP_BASIC.length()+1;
             String[] tokens = extractAndDecodeHeader(header, request, startIndex);

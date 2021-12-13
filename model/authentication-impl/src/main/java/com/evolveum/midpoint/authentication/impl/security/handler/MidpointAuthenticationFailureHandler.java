@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.authentication.impl.security.handler;
 
 import java.io.IOException;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -45,7 +44,7 @@ public class MidpointAuthenticationFailureHandler extends SimpleUrlAuthenticatio
     }
 
     @Override
-    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
+    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         String urlSuffix = AuthConstants.DEFAULT_PATH_AFTER_LOGIN;

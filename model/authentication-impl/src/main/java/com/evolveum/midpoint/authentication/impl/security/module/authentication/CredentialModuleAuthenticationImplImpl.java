@@ -42,6 +42,7 @@ public class CredentialModuleAuthenticationImplImpl extends ModuleAuthentication
         this.credentialType = credentialType;
     }
 
+    @Override
     public ModuleAuthenticationImpl clone() {
         CredentialModuleAuthenticationImplImpl module = new CredentialModuleAuthenticationImplImpl(this.getNameOfModuleType());
         module.setAuthentication(this.getAuthentication());

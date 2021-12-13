@@ -15,7 +15,6 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
@@ -28,8 +27,6 @@ public class MidpointUsernamePasswordAuthenticationFilter extends UsernamePasswo
 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
 //        if (logger.isDebugEnabled()) {
 //            logger.debug("Authentication request failed: " + failed.toString(), failed);
 //            logger.debug("Updated SecurityContextHolder to contain null Authentication");

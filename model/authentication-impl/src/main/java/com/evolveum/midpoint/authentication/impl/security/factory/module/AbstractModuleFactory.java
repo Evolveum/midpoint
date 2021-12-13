@@ -51,7 +51,7 @@ public abstract class AbstractModuleFactory {
     public abstract boolean match(AbstractAuthenticationModuleType moduleType);
 
     public abstract AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence,
-                                                  ServletRequest request, Map<Class<? extends Object>, Object> sharedObjects,
+                                                  ServletRequest request, Map<Class<?>, Object> sharedObjects,
                                                   AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy,
                                                   AuthenticationChannel authenticationChannel) throws Exception;
 
@@ -59,8 +59,8 @@ public abstract class AbstractModuleFactory {
         return 0;
     }
 
-    protected void setSharedObjects(HttpSecurity http, Map<Class<? extends Object>, Object> sharedObjects) {
-        for (Map.Entry<Class<? extends Object>, Object> sharedObject : sharedObjects.entrySet()) {
+    protected void setSharedObjects(HttpSecurity http, Map<Class<?>, Object> sharedObjects) {
+        for (Map.Entry<Class<?>, Object> sharedObject : sharedObjects.entrySet()) {
             http.setSharedObject((Class<? super Object>) sharedObject.getKey(), sharedObject.getValue());
         }
     }

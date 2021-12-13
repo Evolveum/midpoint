@@ -6,11 +6,9 @@
  */
 package com.evolveum.midpoint.authentication.api.authentication;
 
-import com.evolveum.midpoint.authentication.api.IdentityProvider;
-
-import java.util.List;
-
 /**
+ * Identify specific node authentication
+ *
  * @author skublik
  */
 

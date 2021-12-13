@@ -19,6 +19,7 @@ import com.evolveum.midpoint.authentication.api.NodeAuthenticationEvaluator;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeOperationalStateType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -140,9 +141,8 @@ public class NodeAuthenticationEvaluatorImpl implements NodeAuthenticationEvalua
             LOGGER.trace("Tried to eliminate nodes that are not checking in; found {} node(s) that are up: {}", up.size(), up);
             if (up.size() == 1) {
                 return up;
-            } else {
-                // Nothing reasonable can be done here. Let's return all the nodes.
             }
+            // Nothing reasonable can be done here. Let's return all the nodes.
         }
         return matchingNodes;
     }

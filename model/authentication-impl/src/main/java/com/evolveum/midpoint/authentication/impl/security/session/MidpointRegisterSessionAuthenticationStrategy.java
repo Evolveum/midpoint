@@ -22,7 +22,7 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 
 public class MidpointRegisterSessionAuthenticationStrategy extends RegisterSessionAuthenticationStrategy {
 
-    private RegisterSessionAuthenticationStrategy strategy;
+    private final RegisterSessionAuthenticationStrategy strategy;
 
     public MidpointRegisterSessionAuthenticationStrategy(RegisterSessionAuthenticationStrategy strategy) {
         super(new SessionRegistryImpl());

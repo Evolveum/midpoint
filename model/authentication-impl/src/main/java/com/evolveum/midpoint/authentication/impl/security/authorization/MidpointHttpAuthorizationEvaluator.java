@@ -74,8 +74,7 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
                     PrismObject<? extends FocusType> authorizedUser = searchUser(oid, task);
                     try {
                         if (authorizedUser == null) {
-                            SystemException e = new SystemException("Couldn't get proxy user");
-                            throw e;
+                            throw new SystemException("Couldn't get proxy user");
                         }
                         task.setOwner(authorizedUser);
 
@@ -125,19 +124,16 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
     }
 
     private PrismObject<? extends FocusType> searchUser(String oid, Task task) {
-        return securityContextManager.runPrivileged(new Producer<PrismObject<? extends FocusType>>() {
-            @Override
-            public PrismObject<? extends FocusType> run() {
-                PrismObject<? extends FocusType> user;
-                try {
-                    user = model.getObject(FocusType.class, oid, null, task, task.getResult());
-                } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-                        | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-                    return null;
-                }
-                return user;
-
+        return securityContextManager.runPrivileged((Producer<PrismObject<? extends FocusType>>) () -> {
+            PrismObject<? extends FocusType> user;
+            try {
+                user = model.getObject(FocusType.class, oid, null, task, task.getResult());
+            } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
+                    | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+                return null;
             }
+            return user;
+
         });
     }
 }

@@ -17,9 +17,9 @@ import java.io.Serializable;
 public class AuthorizationActionValue implements DisplayableValue<String>, Serializable {
     private static final long serialVersionUID = 1L;
 
-    private String value;
-    private String label;
-    private String description;
+    private final String value;
+    private final String label;
+    private final String description;
 
     public AuthorizationActionValue(String value, String label, String description) {
         this.value = value;

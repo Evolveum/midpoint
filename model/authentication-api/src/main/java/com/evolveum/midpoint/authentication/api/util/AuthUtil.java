@@ -25,9 +25,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SelfRegistrationPolicyType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.Objects;
 
 public class AuthUtil {
 
@@ -109,7 +113,17 @@ public class AuthUtil {
         return null;
     }
 
-    public static ModuleAuthentication getProcessingModule(boolean required) {
+    @Nullable
+    public static ModuleAuthentication getProcessingModuleIfExist() {
+        return getProcessingModule(false);
+    }
+
+    @NotNull
+    public static ModuleAuthentication getProcessingModule() {
+        return Objects.requireNonNull(getProcessingModule(true));
+    }
+
+    private static ModuleAuthentication getProcessingModule(boolean required) {
         Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (actualAuthentication instanceof MidpointAuthentication) {

@@ -28,18 +28,38 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequen
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 
 /**
+ * wrapper for all authentication modules, basic authentication token
+ *
  * @author skublik
  */
 
 public class MidpointAuthentication extends AbstractAuthenticationToken {
 
-    private final List<AuthenticationSequenceModuleType> modules;
-
+    /**
+     * Configuration of sequence from xml
+     */
     private final AuthenticationSequenceType sequence;
+
+    /**
+     * Authentications for modules of sequence
+     */
     private final List<ModuleAuthentication> authentications = new ArrayList<>();
 
+    /**
+     * Configuration of modules for sequence
+     */
+    private final List<AuthenticationSequenceModuleType> modules;
+
+    /**
+     * Channel defining scope of authentication, etc. rest, gui, reset password ...
+     */
     private AuthenticationChannel authenticationChannel;
+
+    /**
+     * Authentication module created basic on configuration of module
+     */
     private List<AuthModule> authModules;
+
     private Object principal;
     private Object credential;
     private String sessionId;
@@ -274,7 +294,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken {
         int resolvedIndex = -1;
         for (ModuleAuthentication parallelProcessingModule : parallelProcessingModules) {
             int usedIndex = getAuthentications().indexOf(parallelProcessingModule);
-            if (parallelProcessingModule.getNameOfModuleType().toLowerCase().equals(type.toLowerCase())
+            if (parallelProcessingModule.getNameOfModuleType().equalsIgnoreCase(type)
                     && resolvedIndex == -1) {
                 parallelProcessingModule.setState(StateOfModule.LOGIN_PROCESSING);
                 if (usedIndex != -1) {

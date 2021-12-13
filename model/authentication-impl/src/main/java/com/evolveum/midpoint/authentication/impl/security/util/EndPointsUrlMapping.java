@@ -11,7 +11,6 @@ import static com.evolveum.midpoint.security.api.AuthorizationConstants.*;
 
 import com.evolveum.midpoint.authentication.impl.security.authorization.AuthorizationActionValue;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-import com.evolveum.midpoint.util.DisplayableValue;
 
 /**
  * @author lazyman
@@ -209,14 +208,14 @@ public enum EndPointsUrlMapping {
     private final String url;
 
     // final, but array is still mutable
-    private final DisplayableValue[] action;
+    private final AuthorizationActionValue[] action;
 
-    EndPointsUrlMapping(String url, DisplayableValue... action) {
+    EndPointsUrlMapping(String url, AuthorizationActionValue... action) {
         this.url = url;
         this.action = action;
     }
 
-    public DisplayableValue[] getAction() {
+    public AuthorizationActionValue[] getAction() {
         return action;
     }
 

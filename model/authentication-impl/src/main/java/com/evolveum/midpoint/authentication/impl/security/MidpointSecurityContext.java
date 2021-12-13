@@ -19,8 +19,8 @@ import org.springframework.security.core.context.SecurityContext;
 
 public class MidpointSecurityContext implements SecurityContext {
 
-    private SecurityContext securityContext;
-    private RemoveUnusedSecurityFilterPublisher publisher;
+    private final SecurityContext securityContext;
+    private final RemoveUnusedSecurityFilterPublisher publisher;
 
     public MidpointSecurityContext (SecurityContext securityContext, RemoveUnusedSecurityFilterPublisher publisher) {
         this.securityContext = securityContext;

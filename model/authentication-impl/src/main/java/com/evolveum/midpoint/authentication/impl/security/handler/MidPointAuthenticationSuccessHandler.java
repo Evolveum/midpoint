@@ -15,7 +15,6 @@ import com.evolveum.midpoint.authentication.impl.security.module.authentication.
 import com.evolveum.midpoint.authentication.impl.security.util.AuthSequenceUtil;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.authentication.MidpointAuthentication;
 
 import com.evolveum.midpoint.authentication.api.StateOfModule;
@@ -36,14 +35,6 @@ import com.evolveum.midpoint.authentication.impl.security.module.configuration.M
 public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
     private String defaultTargetUrl;
-
-    // TODO: this seems to be useless, but setPrefix is called from multiple places
-    private String prefix = "";
-
-    public MidPointAuthenticationSuccessHandler setPrefix(String prefix) {
-        this.prefix = "/" + AuthUtil.stripSlashes(prefix) + "/";
-        return this;
-    }
 
     public MidPointAuthenticationSuccessHandler() {
         setRequestCache(new HttpSessionRequestCache());

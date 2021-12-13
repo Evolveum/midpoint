@@ -10,6 +10,7 @@ import com.evolveum.midpoint.authentication.impl.security.handler.MidpointAccess
 
 import com.evolveum.midpoint.authentication.impl.security.session.MidpointRegisterSessionAuthenticationStrategy;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;

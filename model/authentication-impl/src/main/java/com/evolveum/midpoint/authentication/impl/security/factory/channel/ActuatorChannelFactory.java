@@ -25,7 +25,7 @@ public class ActuatorChannelFactory extends AbstractChannelFactory {
     }
 
     @Override
-    public AuthenticationChannel createAuthChannel(AuthenticationSequenceChannelType channel) throws Exception {
+    public AuthenticationChannel createAuthChannel(AuthenticationSequenceChannelType channel) {
         return new ActuatorAuthenticationChannel(channel);
     }
 

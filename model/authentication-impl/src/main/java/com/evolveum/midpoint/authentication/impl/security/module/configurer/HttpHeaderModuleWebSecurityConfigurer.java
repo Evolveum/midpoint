@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.authentication.impl.security.module;
+package com.evolveum.midpoint.authentication.impl.security.module.configurer;
 
 import java.io.IOException;
 import javax.servlet.ServletException;
@@ -30,11 +30,11 @@ import org.springframework.security.web.authentication.preauth.RequestHeaderAuth
  * @author skublik
  */
 
-public class HttpHeaderModuleWebSecurityConfig<C extends HttpHeaderModuleWebSecurityConfiguration> extends LoginFormModuleWebSecurityConfig<C> {
+public class HttpHeaderModuleWebSecurityConfigurer<C extends HttpHeaderModuleWebSecurityConfiguration> extends LoginFormModuleWebSecurityConfigurer<C> {
 
     @Autowired private MidpointAuthenticationManager authenticationManager;
 
-    public HttpHeaderModuleWebSecurityConfig(C configuration) {
+    public HttpHeaderModuleWebSecurityConfigurer(C configuration) {
         super(configuration);
     }
 
@@ -42,10 +42,10 @@ public class HttpHeaderModuleWebSecurityConfig<C extends HttpHeaderModuleWebSecu
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
 
-        getOrApply(http, getMidpointFormLoginConfiguration())
+        getOrApply(http, getMidpointFormLoginConfigurer())
                 .loginPage("/error/401");
 
-        getOrApply(http, new MidpointExceptionHandlingConfigurer())
+        getOrApply(http, new MidpointExceptionHandlingConfigurer<>())
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint("/error/401"));
 
         http.addFilterBefore(requestHeaderAuthenticationFilter(), LogoutFilter.class);
@@ -73,7 +73,6 @@ public class HttpHeaderModuleWebSecurityConfig<C extends HttpHeaderModuleWebSecu
                 super.onAuthenticationSuccess(request, response, authentication);
             }
         };
-        successHandler.setPrefix(getConfiguration().getPrefix());
         filter.setAuthenticationSuccessHandler(getObjectPostProcessor().postProcess(successHandler));
         filter.setSessionRegistry(getSessionRegistry());
 

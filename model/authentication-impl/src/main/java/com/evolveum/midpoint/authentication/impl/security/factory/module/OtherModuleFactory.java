@@ -33,11 +33,7 @@ public class OtherModuleFactory extends AbstractModuleFactory {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType module) {
-        if (module instanceof OtherAuthenticationModuleType) {
-            return true;
-        }
-
-        return false;
+        return module instanceof OtherAuthenticationModuleType;
     }
 
     @Override
@@ -57,9 +53,7 @@ public class OtherModuleFactory extends AbstractModuleFactory {
         Class<AbstractModuleFactory> factoryClazz = (Class) Class.forName(factoryClass);
         AbstractModuleFactory factory = applicationContext.getBean(factoryClazz);
 
-        AuthModule authModule = factory.createModuleFilter(module, prefixOfSequence, request, sharedObjects,
+        return factory.createModuleFilter(module, prefixOfSequence, request, sharedObjects,
                 authenticationsPolicy, credentialPolicy, authenticationChannel);
-
-        return authModule;
     }
 }

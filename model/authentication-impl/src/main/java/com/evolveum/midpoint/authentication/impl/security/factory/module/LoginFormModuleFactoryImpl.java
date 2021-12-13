@@ -9,12 +9,9 @@ package com.evolveum.midpoint.authentication.impl.security.factory.module;
 import com.evolveum.midpoint.authentication.impl.security.provider.PasswordProvider;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.ModuleAuthenticationImpl;
-import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.impl.security.module.LoginFormModuleWebSecurityConfig;
-import com.evolveum.midpoint.authentication.impl.security.module.ModuleWebSecurityConfig;
+import com.evolveum.midpoint.authentication.impl.security.module.configurer.LoginFormModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.security.module.authentication.LoginFormModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.security.module.configuration.LoginFormModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.impl.security.module.configuration.ModuleWebSecurityConfigurationImpl;
 
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.stereotype.Component;
@@ -25,26 +22,24 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author skublik
  */
 @Component
-public class LoginFormModuleFactoryImpl extends AbstractCredentialModuleFactory {
+public class LoginFormModuleFactoryImpl extends AbstractCredentialModuleFactory
+        <LoginFormModuleWebSecurityConfiguration, LoginFormModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>> {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType) {
-        if (moduleType instanceof LoginFormAuthenticationModuleType) {
-            return true;
-        }
-        return false;
+        return moduleType instanceof LoginFormAuthenticationModuleType;
     }
 
     @Override
-    protected ModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
-        ModuleWebSecurityConfigurationImpl configuration = LoginFormModuleWebSecurityConfiguration.build(moduleType,prefixOfSequence);
+    protected LoginFormModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
+        LoginFormModuleWebSecurityConfiguration configuration = LoginFormModuleWebSecurityConfiguration.build(moduleType,prefixOfSequence);
         configuration.setPrefixOfSequence(prefixOfSequence);
         return configuration;
     }
 
     @Override
-    protected ModuleWebSecurityConfig createModule(ModuleWebSecurityConfiguration configuration) {
-        return  getObjectObjectPostProcessor().postProcess(new LoginFormModuleWebSecurityConfig((LoginFormModuleWebSecurityConfiguration) configuration));
+    protected LoginFormModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModule(LoginFormModuleWebSecurityConfiguration configuration) {
+        return  getObjectObjectPostProcessor().postProcess(new LoginFormModuleWebSecurityConfigurer<>(configuration));
     }
 
     @Override
@@ -59,7 +54,7 @@ public class LoginFormModuleFactoryImpl extends AbstractCredentialModuleFactory 
 
     @Override
     protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType,
-                                                                   ModuleWebSecurityConfiguration configuration) {
+            LoginFormModuleWebSecurityConfiguration configuration) {
         LoginFormModuleAuthenticationImpl moduleAuthentication = new LoginFormModuleAuthenticationImpl();
         moduleAuthentication.setPrefix(configuration.getPrefix());
         moduleAuthentication.setCredentialName(((AbstractCredentialAuthenticationModuleType)moduleType).getCredentialName());

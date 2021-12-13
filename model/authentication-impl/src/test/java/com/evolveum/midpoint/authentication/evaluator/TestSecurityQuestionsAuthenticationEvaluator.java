@@ -31,7 +31,7 @@ public class TestSecurityQuestionsAuthenticationEvaluator extends TestAbstractAu
     private static final String SECURITY_QUESTION_BAD_ANSWER ="This isn't correct answer!";
     private static final String SECURITY_QUESTION_GOOD_ANSWER_GUYBRUSH = "Some some generic answer";
 
-    @Autowired(required=true)
+    @Autowired
     private AuthenticationEvaluator<SecurityQuestionsAuthenticationContext> securityQuestionsAuthenticationEvaluator;
 
     @Override
@@ -47,22 +47,22 @@ public class TestSecurityQuestionsAuthenticationEvaluator extends TestAbstractAu
 
     @Override
     public Map<String, String> getGoodPasswordJack() {
-        return createMap(SECURITY_QUESTION_ID, SECURITY_QUESTION_GOOD_ANSWER_JACK);
+        return createMap(SECURITY_QUESTION_GOOD_ANSWER_JACK);
     }
 
     @Override
     public Map<String, String> getBadPasswordJack() {
-        return createMap(SECURITY_QUESTION_ID, SECURITY_QUESTION_BAD_ANSWER);
+        return createMap(SECURITY_QUESTION_BAD_ANSWER);
     }
 
     @Override
     public Map<String, String> getGoodPasswordGuybrush() {
-        return createMap(SECURITY_QUESTION_ID, SECURITY_QUESTION_GOOD_ANSWER_GUYBRUSH);
+        return createMap(SECURITY_QUESTION_GOOD_ANSWER_GUYBRUSH);
     }
 
     @Override
     public Map<String, String> getBadPasswordGuybrush() {
-        return createMap(SECURITY_QUESTION_ID, SECURITY_QUESTION_BAD_ANSWER);
+        return createMap(SECURITY_QUESTION_BAD_ANSWER);
     }
 
     @Override
@@ -97,9 +97,9 @@ public class TestSecurityQuestionsAuthenticationEvaluator extends TestAbstractAu
 
     }
 
-    private Map<String, String> createMap(String id, String value) {
+    private Map<String, String> createMap(String value) {
         Map<String, String> questionAnswers = new HashMap<>();
-        questionAnswers.put(id, value);
+        questionAnswers.put(TestSecurityQuestionsAuthenticationEvaluator.SECURITY_QUESTION_ID, value);
         return questionAnswers;
     }
 

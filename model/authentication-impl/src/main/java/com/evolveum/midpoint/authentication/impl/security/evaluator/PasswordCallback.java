@@ -27,7 +27,7 @@ public class PasswordCallback implements CallbackHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(PasswordCallback.class);
 
-    private PasswordAuthenticationEvaluatorImpl passwordAuthenticationEvaluatorImpl;
+    private final PasswordAuthenticationEvaluatorImpl passwordAuthenticationEvaluatorImpl;
 
     public PasswordCallback(PasswordAuthenticationEvaluatorImpl passwordAuthenticationEvaluatorImpl) {
         this.passwordAuthenticationEvaluatorImpl = passwordAuthenticationEvaluatorImpl;

@@ -36,7 +36,7 @@ public class MidpointExceptionTranslationFilter extends ExceptionTranslationFilt
 
     private static final Trace LOGGER = TraceManager.getTrace(MidpointExceptionTranslationFilter.class);
 
-    private RequestCache requestCache;
+    private final RequestCache requestCache;
 
     public MidpointExceptionTranslationFilter(AuthenticationEntryPoint authenticationEntryPoint, RequestCache requestCache) {
         super(authenticationEntryPoint, requestCache);

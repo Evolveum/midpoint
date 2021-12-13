@@ -25,7 +25,7 @@ public class RestChannelFactory extends AbstractChannelFactory {
     }
 
     @Override
-    public AuthenticationChannel createAuthChannel(AuthenticationSequenceChannelType channel) throws Exception {
+    public AuthenticationChannel createAuthChannel(AuthenticationSequenceChannelType channel) {
         return new RestAuthenticationChannel(channel);
     }
 

@@ -21,8 +21,8 @@ import org.springframework.web.context.request.*;
 
 public class SessionAndRequestScopeImpl extends AbstractRequestAttributesScope {
 
-    private SessionScope sessionScope;
-    private RequestScope requestScope;
+    private final SessionScope sessionScope;
+    private final RequestScope requestScope;
 
     public SessionAndRequestScopeImpl(){
         sessionScope = new SessionScope();
@@ -64,8 +64,7 @@ public class SessionAndRequestScopeImpl extends AbstractRequestAttributesScope {
         HttpServletRequest httpRequest = null;
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
         if (requestAttributes instanceof ServletRequestAttributes) {
-            HttpServletRequest request = ((ServletRequestAttributes)requestAttributes).getRequest();
-            httpRequest = request;
+            httpRequest = ((ServletRequestAttributes)requestAttributes).getRequest();
         }
         return AuthSequenceUtil.isRecordSessionLessAccessChannel(httpRequest);
     }

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.authentication.api.util.GuiAuthorizationConstants;
+import com.evolveum.midpoint.web.security.util.GuiAuthorizationConstants;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;

@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.authentication.api;
 
+/**
+ * Interface for authentication evaluator for specific node authentication
+ */
 public interface NodeAuthenticationEvaluator {
 
     boolean authenticate(String remoteName, String remoteAddress, String credentials, String operation);

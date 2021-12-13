@@ -26,7 +26,7 @@ public class TestNonceAuthenticationEvaluator extends TestAbstractAuthentication
     private static final String USER_JACK_NONCE = "asdfghjkl123456";
     private static final String USER_GUYBRUSH_NONCE = "asdfghjkl654321";
 
-    @Autowired(required=true)
+    @Autowired
     private AuthenticationEvaluator<NonceAuthenticationContext> nonceAuthenticationEvaluator;
 
     @Override

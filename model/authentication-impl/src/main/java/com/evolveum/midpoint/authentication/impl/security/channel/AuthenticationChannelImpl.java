@@ -28,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequen
 
 public class AuthenticationChannelImpl implements AuthenticationChannel {
 
-    private AuthenticationSequenceChannelType channel;
+    private final AuthenticationSequenceChannelType channel;
     private String pathAfterLogout;
 
     public AuthenticationChannelImpl(AuthenticationSequenceChannelType channel) {
@@ -60,11 +60,8 @@ public class AuthenticationChannelImpl implements AuthenticationChannel {
 
     @Override
     public boolean matchChannel(AuthenticationSequenceType sequence) {
-            if (sequence == null || sequence.getChannel() == null
-                    || !getChannelId().equals(sequence.getChannel().getChannelId())) {
-                return false;
-            }
-        return true;
+        return sequence != null && sequence.getChannel() != null
+                && getChannelId().equals(sequence.getChannel().getChannelId());
     }
 
     public String getChannelId() {

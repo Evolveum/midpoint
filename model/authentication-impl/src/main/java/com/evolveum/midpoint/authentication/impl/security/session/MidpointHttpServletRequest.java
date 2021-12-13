@@ -14,6 +14,7 @@ import com.evolveum.midpoint.authentication.api.authentication.MidpointAuthentic
 
 import com.evolveum.midpoint.authentication.impl.security.util.AuthSequenceUtil;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -34,7 +35,7 @@ public class MidpointHttpServletRequest extends HttpServletRequestWrapper {
         if (needChangePath()) {
             MidpointAuthentication mpAuth = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
             String path = AuthSequenceUtil.searchPathByChannel(mpAuth.getAuthenticationChannel().getChannelId());
-            if (path.contains("/")) {
+            if (StringUtils.isNotEmpty(path) && path.contains("/")) {
                 return "/" + path.split("/")[0];
             }
             return "/" + path;
@@ -48,10 +49,10 @@ public class MidpointHttpServletRequest extends HttpServletRequestWrapper {
             MidpointAuthentication mpAuth = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
             String path = AuthSequenceUtil.searchPathByChannel(mpAuth.getAuthenticationChannel().getChannelId());
             StringBuilder sb = new StringBuilder();
-            if (path.contains("/")) {
+            if (StringUtils.isNotEmpty(path) && path.contains("/")) {
                 String[] partOfPath = path.split("/");
                 for (int i = 1; i < partOfPath.length; i++) {
-                    sb.append("/" + partOfPath[i]);
+                    sb.append("/").append(partOfPath[i]);
                 }
                 String requestPath = getRequestURI().substring(getContextPath().length());
                 int startIndex = requestPath.indexOf(mpAuth.getAuthenticationChannel().getUrlSuffix() + "/") + mpAuth.getAuthenticationChannel().getUrlSuffix().length();
@@ -69,12 +70,10 @@ public class MidpointHttpServletRequest extends HttpServletRequestWrapper {
         String[] partsOfLocalPath = AuthUtil.stripStartingSlashes(localePath).split("/");
         if (partsOfLocalPath.length > 2 && partsOfLocalPath[0].equals(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE)) {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication != null && authentication instanceof MidpointAuthentication) {
+            if (authentication instanceof MidpointAuthentication) {
                 MidpointAuthentication mpAuth = (MidpointAuthentication) authentication;
-                if (!mpAuth.getAuthenticationChannel().isDefault()
-                        && partsOfLocalPath[1].equals(mpAuth.getAuthenticationChannel().getUrlSuffix())) {
-                    return true;
-                }
+                return !mpAuth.getAuthenticationChannel().isDefault()
+                        && partsOfLocalPath[1].equals(mpAuth.getAuthenticationChannel().getUrlSuffix());
             }
         }
         return false;

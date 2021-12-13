@@ -31,7 +31,7 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 
 public class Saml2ModuleAuthenticationImpl extends ModuleAuthenticationImpl implements Saml2ModuleAuthentication,Serializable {
 
-    private List<IdentityProvider> providers = new ArrayList<IdentityProvider>();
+    private List<IdentityProvider> providers = new ArrayList<>();
     private Map<String, SamlMidpointAdditionalConfiguration> additionalConfiguration;
     private RequestState requestState;
 

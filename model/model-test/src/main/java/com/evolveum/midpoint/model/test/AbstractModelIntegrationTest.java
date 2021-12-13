@@ -4468,11 +4468,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             public QName getFocusType() {
                 return null;
             }
-
-            @Override
-            public boolean isInternalLogout() {
-                return false;
-            }
         };
         mpAuthentication.addAuthentications(moduleAuthentication);
         mpAuthentication.setPrincipal(authentication.getPrincipal());

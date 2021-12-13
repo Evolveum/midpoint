@@ -23,7 +23,7 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,11 +57,10 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
     private static final File ROLE_UI_DENY_ALLOW_FILE = new File(COMMON_DIR, "role-ui-deny-allow.xml");
     private static final String ROLE_UI_DENY_ALLOW_OID = "da47fcf6-d02b-11e7-9e78-f31ae9aa0674";
 
-    private static final TestResource ROLE_AUTHORIZATION_1 = new TestResource(COMMON_DIR, "role-authorization-1.xml", "97984277-e809-4a86-ae9b-d5c40e09df0b");
-    private static final TestResource ROLE_AUTHORIZATION_2 = new TestResource(COMMON_DIR, "role-authorization-2.xml", "96b02d58-5147-4f5a-852c-0f415230ce2c");
+    private static final TestResource<RoleType> ROLE_AUTHORIZATION_1 = new TestResource<>(COMMON_DIR, "role-authorization-1.xml", "97984277-e809-4a86-ae9b-d5c40e09df0b");
+    private static final TestResource<RoleType> ROLE_AUTHORIZATION_2 = new TestResource<>(COMMON_DIR, "role-authorization-2.xml", "96b02d58-5147-4f5a-852c-0f415230ce2c");
 
     protected static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
-    protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
     public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
 
     private static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
@@ -112,7 +111,7 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
                 "PageUsers.auth.users.view.label", "PageUsers.auth.users.view.description"));
         listActions.add(new AuthorizationActionValue(AuthorizationConstants.AUTZ_GUI_ALL_URL,
                 AuthorizationConstants.AUTZ_GUI_ALL_LABEL, AuthorizationConstants.AUTZ_GUI_ALL_DESCRIPTION));
-        DescriptorLoaderImpl.getActions().put("/admin/users", listActions.toArray(new DisplayableValue[listActions.size()]));
+        DescriptorLoaderImpl.getActions().put("/admin/users", listActions.toArray(new AuthorizationActionValue[0]));
 
         listActions.clear();
         listActions.add(new AuthorizationActionValue(AuthorizationConstants.AUTZ_UI_SELF_DASHBOARD_URL,
@@ -121,7 +120,7 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
                 "PageSelf.auth.selfAll.label", "PageSelf.auth.selfAll.description"));
         listActions.add(new AuthorizationActionValue(AuthorizationConstants.AUTZ_GUI_ALL_URL,
                 AuthorizationConstants.AUTZ_GUI_ALL_LABEL, AuthorizationConstants.AUTZ_GUI_ALL_DESCRIPTION));
-        DescriptorLoaderImpl.getActions().put("/self/dashboard", listActions.toArray(new DisplayableValue[listActions.size()]));
+        DescriptorLoaderImpl.getActions().put("/self/dashboard", listActions.toArray(new AuthorizationActionValue[0]));
 
         listActions.clear();
         listActions.add(new AuthorizationActionValue(AuthConstants.AUTH_CONFIGURATION_ALL,
@@ -131,7 +130,7 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
                 "PageSystemConfiguration.auth.configSystemConfiguration.description"));
         listActions.add(new AuthorizationActionValue(AuthorizationConstants.AUTZ_GUI_ALL_URL,
                 AuthorizationConstants.AUTZ_GUI_ALL_LABEL, AuthorizationConstants.AUTZ_GUI_ALL_DESCRIPTION));
-        DescriptorLoaderImpl.getActions().put("/admin/config/system", listActions.toArray(new DisplayableValue[listActions.size()]));
+        DescriptorLoaderImpl.getActions().put("/admin/config/system", listActions.toArray(new AuthorizationActionValue[0]));
 
         listActions.clear();
         listActions.add(new AuthorizationActionValue(AuthConstants.AUTH_CONFIGURATION_ALL,
@@ -140,7 +139,7 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
                 "PageDebugList.auth.debugs.label", "PageDebugList.auth.debugs.description"));
         listActions.add(new AuthorizationActionValue(AuthorizationConstants.AUTZ_GUI_ALL_URL,
                 AuthorizationConstants.AUTZ_GUI_ALL_LABEL, AuthorizationConstants.AUTZ_GUI_ALL_DESCRIPTION));
-        DescriptorLoaderImpl.getActions().put("/admin/config/debugs", listActions.toArray(new DisplayableValue[listActions.size()]));
+        DescriptorLoaderImpl.getActions().put("/admin/config/debugs", listActions.toArray(new AuthorizationActionValue[0]));
 
         listActions.add(new AuthorizationActionValue(AuthorizationConstants.AUTZ_UI_USERS_VIEW_URL,
                 "", ""));
@@ -149,12 +148,12 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
     @Test
     public void test100DecideNoRole() throws Exception {
         // GIVEN
-        cleanupAutzTest(USER_JACK_OID);
+        cleanupAutzTest();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("user before", user);
         login(USER_JACK_USERNAME);
 
-        Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
+        Authentication authentication = createPasswordAuthentication();
 
         // WHEN
         when();
@@ -174,13 +173,13 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
     @Test
     public void test110DecideRoleUiAllowAll() throws Exception {
         // GIVEN
-        cleanupAutzTest(USER_JACK_OID);
+        cleanupAutzTest();
         assignRole(USER_JACK_OID, ROLE_UI_ALLOW_ALL_OID);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("user before", user);
         login(USER_JACK_USERNAME);
 
-        Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
+        Authentication authentication = createPasswordAuthentication();
 
         // WHEN
         when();
@@ -200,13 +199,13 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
     @Test
     public void test120DecideRoleUiDenyAll() throws Exception {
         // GIVEN
-        cleanupAutzTest(USER_JACK_OID);
+        cleanupAutzTest();
         assignRole(USER_JACK_OID, ROLE_UI_DENY_ALL_OID);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("user before", user);
         login(USER_JACK_USERNAME);
 
-        Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
+        Authentication authentication = createPasswordAuthentication();
 
         // WHEN
         when();
@@ -230,13 +229,13 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
     @Test
     public void test200DecideRoleUiDenyAllow() throws Exception {
         // GIVEN
-        cleanupAutzTest(USER_JACK_OID);
+        cleanupAutzTest();
         assignRole(USER_JACK_OID, ROLE_UI_DENY_ALLOW_OID);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("user before", user);
         login(USER_JACK_USERNAME);
 
-        Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
+        Authentication authentication = createPasswordAuthentication();
 
         // WHEN
         when();
@@ -260,7 +259,7 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
     @Test
     public void test300ConflictingAuthorizationIds() throws Exception {
         // GIVEN
-        cleanupAutzTest(USER_JACK_OID);
+        cleanupAutzTest();
         assignRole(USER_JACK_OID, ROLE_AUTHORIZATION_1.oid);
         assignRole(USER_JACK_OID, ROLE_AUTHORIZATION_2.oid);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -305,11 +304,10 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
 
     }
 
-    private Authentication createPasswordAuthentication(
-            String username, Class<? extends FocusType> focusType)
+    private Authentication createPasswordAuthentication()
             throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        MidPointPrincipal principal = focusProfileService.getPrincipal(username, focusType);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(TestIntegrationSecurity.USER_JACK_USERNAME, UserType.class);
         return new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
     }
 
@@ -321,11 +319,11 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
         return createConfigAttributes("fullyAuthenticated");
     }
 
-    private void cleanupAutzTest(String userOid)
+    private void cleanupAutzTest()
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
             PolicyViolationException, SecurityViolationException {
         login(userAdministrator);
-        unassignAllRoles(userOid);
+        unassignAllRoles(TestIntegrationSecurity.USER_JACK_OID);
     }
 }
