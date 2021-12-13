@@ -126,6 +126,12 @@ Mapping range is usually applied if there is a need for several information sour
 This may be a case of one mapping doing the automation, while still allowing for manual adjustments of data.
 However, the other common case is coexistence of several mappings, producing values targeted to the same item.
 
+image::mapping-range-multiple-1.png[Multiple mappings with ranges part 1]
+
+image::mapping-range-multiple-2.png[Multiple mappings with ranges part 2]
+
+image::mapping-range-multiple-3.png[Multiple mappings with ranges part 3]
+
 TODO: picture: two mappings with non-overlapping ranges
 
 
