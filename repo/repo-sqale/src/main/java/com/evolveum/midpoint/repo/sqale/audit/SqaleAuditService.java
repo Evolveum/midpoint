@@ -479,17 +479,19 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             logger.info("Audit cleanup, deleting to leave only {} records.", maxRecords);
             QAuditEventRecord qae = QAuditEventRecordMapping.get().defaultAlias();
-            Long lastId = jdbcSession.newQuery()
-                    .select(qae.id.max())
+            Long deleteFromId = jdbcSession.newQuery()
+                    .select(qae.id)
                     .from(qae)
-                    .fetchOne();
-            if (lastId == null || lastId < maxRecords) {
-                logger.info("Nothing to delete from audit, {} entries allowed, current max ID is {}.", maxRecords, lastId);
+                    .orderBy(qae.id.desc())
+                    .offset(maxRecords)
+                    .fetchFirst();
+            if (deleteFromId == null) {
+                logger.info("Nothing to delete from audit, {} entries allowed.", maxRecords);
                 return;
             }
 
             deletedCount = jdbcSession.newDelete(qae)
-                    .where(qae.id.loe(lastId - maxRecords))
+                    .where(qae.id.loe(deleteFromId))
                     .execute();
             jdbcSession.commit();
         } finally {

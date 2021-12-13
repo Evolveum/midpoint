@@ -69,6 +69,7 @@ public class AuditCleanupTest extends SqaleRepoBaseTest {
         }
     }
 
+    // These tests rely on uninterrupted ID series, but cleanup works even with holes
     @Test
     public void test100CleanupByCount() throws SchemaException {
         given("audit has 100 records");
@@ -88,6 +89,40 @@ public class AuditCleanupTest extends SqaleRepoBaseTest {
         long minId = selectMinMaxId(qae, qae.id.min());
         // top IDs are left, that is the newest records
         assertThat(maxId - minId).isEqualTo(recordsToLeave - 1);
+    }
+
+    @Test
+    public void test101CleanupByHighCount() throws SchemaException {
+        given("audit has 100 records");
+        OperationResult operationResult = createOperationResult();
+        prepareAuditRecords(System.currentTimeMillis(), 100, operationResult);
+        QAuditEventRecord qae = QAuditEventRecordMapping.get().defaultAlias();
+
+        when("audit cleanup is called to leave 150 records");
+        int recordsToLeave = 150;
+        auditService.cleanupAudit(new CleanupPolicyType()
+                .maxRecords(recordsToLeave), operationResult);
+
+        then("operation is success and nothing is deleted");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertCount(qae, 100); // original count
+    }
+
+    @Test
+    public void test102CleanupByZeroCount() throws SchemaException {
+        given("audit has 100 records");
+        OperationResult operationResult = createOperationResult();
+        prepareAuditRecords(System.currentTimeMillis(), 100, operationResult);
+        QAuditEventRecord qae = QAuditEventRecordMapping.get().defaultAlias();
+
+        when("audit cleanup is called to leave 0 records");
+        int recordsToLeave = 0;
+        auditService.cleanupAudit(new CleanupPolicyType()
+                .maxRecords(recordsToLeave), operationResult);
+
+        then("operation is success and everything is deleted");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertCount(qae, 0);
     }
 
     @Test
