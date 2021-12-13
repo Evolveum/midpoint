@@ -17,7 +17,7 @@ public abstract class AbstractSearchItemDefinition implements Serializable, Comp
     private PolyStringType displayName;
     private String description;
     private boolean fixed;
-    private boolean isSelected = false;
+    private boolean selected = false;
 
     public abstract String getName();
 
@@ -66,11 +66,11 @@ public abstract class AbstractSearchItemDefinition implements Serializable, Comp
     }
 
     public boolean isSelected() {
-        return isSelected;
+        return selected;
     }
 
     public void setSelected(boolean selected) {
-        isSelected = selected;
+        this.selected = selected;
     }
 
     @Override

@@ -113,7 +113,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
 
     private static final Trace LOG = TraceManager.getTrace(AbstractSearchPanel.class);
 
-    private LoadableModel<MoreDialogDto> moreDialogModel;
+//    private LoadableModel<MoreDialogDto> moreDialogModel;
 
     public AbstractSearchPanel(String id, IModel<Search<C>> model) {
         super(id, model);
@@ -122,32 +122,32 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initMoreDialogModel();
+//        initMoreDialogModel();
         initLayout();
     }
 
-    private void initMoreDialogModel() {
-        moreDialogModel = new LoadableModel<MoreDialogDto>(false) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected MoreDialogDto load() {
-                MoreDialogDto dto = new MoreDialogDto();
-                dto.setProperties(createPropertiesList());
-
-                return dto;
-            }
-
-            @Override
-            public MoreDialogDto getObject() {
-                if (AbstractSearchPanel.this.getModelObject() != null && AbstractSearchPanel.this.getModelObject().isTypeChanged()) {
-                    reset();
-                }
-                return super.getObject();
-            }
-        };
-    }
+//    private void initMoreDialogModel() {
+//        moreDialogModel = new LoadableModel<MoreDialogDto>(false) {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected MoreDialogDto load() {
+//                MoreDialogDto dto = new MoreDialogDto();
+//                dto.setProperties(createPropertiesList());
+//
+//                return dto;
+//            }
+//
+//            @Override
+//            public MoreDialogDto getObject() {
+//                if (AbstractSearchPanel.this.getModelObject() != null && AbstractSearchPanel.this.getModelObject().isTypeChanged()) {
+//                    reset();
+//                }
+//                return super.getObject();
+//            }
+//        };
+//    }
 
     private List<AbstractSearchItemDefinition> createPropertiesList() {
         List<AbstractSearchItemDefinition> list = new ArrayList<>();
@@ -334,7 +334,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
         if (getModelObject().isTypeChanged() && SearchBoxModeType.OID.equals(oldMode)) {
             getModelObject().setOid(null);
             searchPerformed(target);
-            resetMoreDialogModel();
+//            resetMoreDialogModel();
         }
 
         refreshSearchForm(target);
@@ -350,17 +350,22 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
     }
 
     private void addItemPerformed(AjaxRequestTarget target) {
-        Search search = getModelObject();
-
-        MoreDialogDto dto = moreDialogModel.getObject();
-        for (AbstractSearchItemDefinition searchItemDef : dto.getProperties()) {
-            if (!searchItemDef.isSelected()) {
-                continue;
+        getModelObject().getAllDefinitions().forEach(def -> {
+            if (def.isSelected()) {
+                def.setSearchItemDisplayed(true);
+                def.setSelected(false);
             }
-            searchItemDef.setSearchItemDisplayed(true);
-//            search.addItem(searchItem);
-            searchItemDef.setSelected(false);
-        }
+        });
+//        Search search = getModelObject();
+//        MoreDialogDto dto = moreDialogModel.getObject();
+//        for (AbstractSearchItemDefinition searchItemDef : getModelObject().getAllDefinitions()) {
+//            if (!searchItemDef.isSelected()) {
+//                continue;
+//            }
+//            searchItemDef.setSearchItemDisplayed(true);
+////            search.addItem(searchItem);
+//            searchItemDef.setSelected(false);
+//        }
         getModelObject().getItemsModel().reset();
         refreshSearchForm(target);
     }
@@ -413,9 +418,9 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
         };
     }
 
-    public void resetMoreDialogModel() {
-        moreDialogModel.reset();
-    }
+//    public void resetMoreDialogModel() {
+//        moreDialogModel.reset();
+//    }
 
     private RepeatingView getSearchItemsPanel() {
         return (RepeatingView) get(ID_FORM).get(ID_SEARCH_ITEMS_PANEL);
@@ -494,7 +499,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
 
                 @Override
                 public void onClick(AjaxRequestTarget target) {
-                    resetMoreDialogModel();
+//                    resetMoreDialogModel();
                     Component popover = BasicSearchFragment.this.get(createComponentPath(ID_POPOVER));
                     Component button = BasicSearchFragment.this.get(createComponentPath(ID_MORE_GROUP, ID_MORE));
                     togglePopover(target, button, popover, 14);
@@ -524,6 +529,22 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
             final WebMarkupContainer propList = new WebMarkupContainer(ID_PROP_LIST);
             propList.setOutputMarkupId(true);
             popover.add(propList);
+
+            IModel<String> searchPropertyModel = Model.of("");
+            TextField<?> addText = new TextField<>(ID_ADD_TEXT, searchPropertyModel);
+            addText.add(WebComponentUtil.preventSubmitOnEnterKeyDownBehavior());
+
+            popover.add(addText);
+            addText.add(new AjaxFormComponentUpdatingBehavior("keyup") {
+
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                    target.add(propList);
+                }
+            });
+            popover.add(addText);
 
             ListView properties = new ListView<AbstractSearchItemDefinition>(ID_PROPERTIES,
                     Model.ofList(getModelObject().getAllDefinitions())) {
@@ -571,7 +592,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
                     help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(helpModel.getObject())));
                     item.add(help);
 
-                    item.add(new VisibleBehaviour(() -> !item.getModelObject().isSearchItemDisplayed()));
+                    item.add(new VisibleBehaviour(() -> isPropertyItemVisible(item.getModelObject(), searchPropertyModel.getObject())));
 //                    item.add(new VisibleEnableBehaviour() {
 //
 //                        private static final long serialVersionUID = 1L;
@@ -609,23 +630,14 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
 //                        }
 //                    });
                 }
+
+                private boolean isPropertyItemVisible(AbstractSearchItemDefinition def, String propertySearchText) {
+                    return !def.isSearchItemDisplayed() &&
+                            (StringUtils.isEmpty(propertySearchText)
+                                    || def.getName().toLowerCase().contains(propertySearchText.toLowerCase()));
+                }
             };
             propList.add(properties);
-
-            TextField<?> addText = new TextField<>(ID_ADD_TEXT, new PropertyModel<>(moreDialogModel, MoreDialogDto.F_NAME_FILTER));
-            addText.add(WebComponentUtil.preventSubmitOnEnterKeyDownBehavior());
-
-            popover.add(addText);
-            addText.add(new AjaxFormComponentUpdatingBehavior("keyup") {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                protected void onUpdate(AjaxRequestTarget target) {
-                    target.add(propList);
-                }
-            });
-            popover.add(addText);
 
             AjaxButton add = new AjaxButton(ID_ADD, createStringResource("SearchPanel.add")) {
 

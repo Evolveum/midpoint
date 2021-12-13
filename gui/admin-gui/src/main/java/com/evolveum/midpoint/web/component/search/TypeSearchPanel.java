@@ -58,7 +58,8 @@ public class TypeSearchPanel<C extends Containerable> extends AbstractSearchPane
 
                 @Override
                 protected void searchPerformed(AjaxRequestTarget target) {
-                    resetMoreDialogModel();
+                    TypeSearchPanel.this.getModelObject().getItemsModel().reset();
+//                    resetMoreDialogModel();
                     TypeSearchPanel.this.searchPerformed(target);
                 }
             };
