@@ -85,10 +85,14 @@ the fastest way to replace any previous schema (obviously, not recommended for p
 It can be applied on top of the main repository schema or separately to another database.
 If both schemas are to be applied, first apply main repository schema followed by audit schema.
 
-See xref:/midpoint/reference/security/audit/configuration/[Audit configuration] for details how
-to set it up in a database separate from the main repository.
+See xref:/midpoint/reference/repository/native-audit[Native PostgreSQL Audit Trail] for details how
+to set it up in a database xref:/midpoint/reference/repository/native-audit/#sql-audit-using-its-own-database[separate from the main repository].
 Be aware that with new repository *both databases have to be PostgreSQL databases.*
 It is possible to use different versions for each database as long as they are supported (12 or higher).
+
+[IMPORTANT]
+If you want to migrate your old audit records to the new database and keep event record IDs unique,
+set the ID sequence in the new database as described in xref:/midpoint/reference/repository/native-audit/#audit-migration-from-other-database[Audit migration from other database].
 
 The location of the files will likely change, and it will be packed in the distribution as well.
 

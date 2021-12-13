@@ -11,7 +11,7 @@ For the old Generic SQL audit trail see xref:../generic/generic-audit/[this page
 .Before you migrate your audit!
 [IMPORTANT]
 If you want to migrate your old audit to the new database, *be sure to prepare the audit database as described
-in link:#audit-migration-from-other-database[migration notes] before you start using the new repository audit*.
+in the link:#audit-migration-from-other-database[migration notes] before you start using the new repository audit*.
 
 == Configuration overview
 
