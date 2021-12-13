@@ -6,37 +6,17 @@
  */
 package com.evolveum.midpoint.web.component.search;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.menu.cog.MenuLinkPanel;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
-import com.evolveum.midpoint.web.page.admin.configuration.PageRepositoryQuery;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
+import java.io.Serializable;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -61,17 +41,35 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.menu.cog.MenuLinkPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.PageRepositoryQuery;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 
 /**
  * @author honchar
@@ -265,11 +263,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
     }
 
     protected void initSearchItemsPanel(RepeatingView searchItemsRepeatingView) {
-        BasicSearchFragment basicSearchFragment = new BasicSearchFragment(searchItemsRepeatingView.newChildId(), ID_BASIC_SEARCH_FRAGMENT,
-                AbstractSearchPanel.this);
-        basicSearchFragment.setOutputMarkupId(true);
-        basicSearchFragment.add(new VisibleBehaviour(() -> getModelObject().isBasicSearchMode()));
-        searchItemsRepeatingView.add(basicSearchFragment);
+        addOrReplaceBasicSearchFragment(searchItemsRepeatingView);
 
         AdvancedSearchFragment advancedSearchFragment = new AdvancedSearchFragment(searchItemsRepeatingView.newChildId(), ID_ADVANCED_SEARCH_FRAGMENT,
                 AbstractSearchPanel.this);
@@ -283,6 +277,14 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
         fulltextSearchFragment.add(new VisibleBehaviour(() -> getModelObject().isFullTextSearchEnabled()
                 && getModelObject().getSearchType().equals(SearchBoxModeType.FULLTEXT)));
         searchItemsRepeatingView.add(fulltextSearchFragment);
+    }
+
+    private void addOrReplaceBasicSearchFragment(RepeatingView searchItemsRepeatingView){
+        BasicSearchFragment basicSearchFragment = new BasicSearchFragment(searchItemsRepeatingView.newChildId(), ID_BASIC_SEARCH_FRAGMENT,
+                AbstractSearchPanel.this);
+        basicSearchFragment.setOutputMarkupId(true);
+        basicSearchFragment.add(new VisibleBehaviour(() -> getModelObject().isBasicSearchMode()));
+        searchItemsRepeatingView.addOrReplace(basicSearchFragment);
     }
 
     private CompositedIcon getSubmitSearchButtonBuilder() {
@@ -351,14 +353,15 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
         Search search = getModelObject();
 
         MoreDialogDto dto = moreDialogModel.getObject();
-        for (AbstractSearchItemDefinition searchItem : dto.getProperties()) {
-            if (!searchItem.isSelected()) {
+        for (AbstractSearchItemDefinition searchItemDef : dto.getProperties()) {
+            if (!searchItemDef.isSelected()) {
                 continue;
             }
-            searchItem.setSearchItemDisplayed(true);
+            searchItemDef.setSearchItemDisplayed(true);
 //            search.addItem(searchItem);
-            searchItem.setSelected(false);
+            searchItemDef.setSelected(false);
         }
+        getModelObject().getItemsModel().reset();
         refreshSearchForm(target);
     }
 
@@ -370,6 +373,10 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
     protected abstract void searchPerformed(AjaxRequestTarget target);
 
     void refreshSearchForm(AjaxRequestTarget target) {
+//        if (SearchBoxModeType.BASIC.equals(getModelObject().getSearchType())) {
+//            addOrReplaceBasicSearchFragment(getSearchItemsPanel());
+//        }
+        getModelObject().getItemsModel().reset();
         target.add(get(ID_FORM));
         saveSearch(getModelObject(), target);
     }
@@ -410,6 +417,10 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
         moreDialogModel.reset();
     }
 
+    private RepeatingView getSearchItemsPanel() {
+        return (RepeatingView) get(ID_FORM).get(ID_SEARCH_ITEMS_PANEL);
+    }
+
     public <SIP extends SearchItemPanel, S extends SearchItem> SIP createSearchItemPanel(String panelId, IModel<S> searchItemModel){
         Class<?> panelClass = searchItemModel.getObject().getSearchItemPanelClass();
         Constructor<?> constructor;
@@ -430,6 +441,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
         }
 
         private <T extends Serializable> void initBasicSearchLayout() {
+
             ListView<SearchItem> items = new ListView<>(ID_ITEMS, getModelObject().getItemsModel()) {
 
                 private static final long serialVersionUID = 1L;
@@ -466,10 +478,8 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
 //                            }
 //                        };
 //                    }
-                    if (item.getModelObject().getSearchItemDefinition().isSearchItemDisplayed()) {
-                        SearchItemPanel searchItemPanel = createSearchItemPanel(ID_ITEM, item.getModel());
-                        item.add(searchItemPanel);
-                    }
+                    SearchItemPanel searchItemPanel = createSearchItemPanel(ID_ITEM, item.getModel());
+                    item.add(searchItemPanel);
                 }
             };
 //            items.add(createVisibleBehaviour(SearchBoxModeType.BASIC));//todo
@@ -516,7 +526,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
             popover.add(propList);
 
             ListView properties = new ListView<AbstractSearchItemDefinition>(ID_PROPERTIES,
-                    new PropertyModel<>(moreDialogModel, MoreDialogDto.F_PROPERTIES)) {
+                    Model.ofList(getModelObject().getAllDefinitions())) {
                 private static final long serialVersionUID = 1L;
 
                 @Override

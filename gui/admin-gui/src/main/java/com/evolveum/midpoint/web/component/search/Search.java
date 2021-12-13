@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -135,7 +136,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     private void initItemsModel() {
-        itemsModel = new LoadableModel<List<SearchItem>>(true) {
+        itemsModel = new LoadableModel<List<SearchItem>>() {
             @Override
             protected List<SearchItem> load() {
                 List<SearchItem> items = new ArrayList<>();
@@ -147,7 +148,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         };
     }
 
-    public IModel<List<SearchItem>> getItemsModel() {
+    public LoadableModel<List<SearchItem>> getItemsModel() {
         return itemsModel;
     }
 
