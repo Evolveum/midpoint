@@ -126,23 +126,127 @@ Mapping range is usually applied if there is a need for several information sour
 This may be a case of one mapping doing the automation, while still allowing for manual adjustments of data.
 However, the other common case is coexistence of several mappings, producing values targeted to the same item.
 
+As with any other set of mapping that target the same item, the results of both mappings are merged.
+What makes this situation special is removal of existing values of the target item.
+
+Let us illustrate that using an example of two mappings, both targetted for `assignment` container.
+The first mapping is the HR mapping used in the previous section.
+The other is a mapping from a project management system.
+Its purpose is automatic management membership in project teams.
+Authoritative information about project teams is stored in the project management system.
+The `project` attribute of user accounts contains a multi-valued list of project identifiers that a user belongs to.
+The mapping is processing the values of `project` attribute, creating assignments to appropriate xref:/midpoint/reference/org/[orgs].
+
 image::mapping-range-multiple-1.png[Multiple mappings with ranges part 1]
+
+Both mappings are evaluated almost independently, producing values for their respective sources.
+As in the usual case, the _plus_ part of the detlas (or _triples_) is produced by mapping expressions.
+The _minus_ values in deltas are what makes this case interesting.
+Each of the mapping is applying its range, looking for values to remove.
+The `Sales Assistant` value is removed by the HR mapping, the `Project Dinosaur` is removed by the project management system mapping.
 
 image::mapping-range-multiple-2.png[Multiple mappings with ranges part 2]
 
+Finally, the deltas are applied to the target values.
+Even though the deltas target the same item (`assignment`), the value sets are disjoint.
+There are no conflicts, everything goes smoothly.
+
 image::mapping-range-multiple-3.png[Multiple mappings with ranges part 3]
 
-TODO: picture: two mappings with non-overlapping ranges
-
+TIP: When constructing mappings that target the same item, the best strategy is to make sure that the mappings do not "overlap".
+I.e. make sure only one mapping is used to produce any particular value at any time.
+This can be achieved by mapping constraints (channel, time), use of mapping condition or range.
+For mappings that target multi-valued items, the best way to make sure the mappings do not overlap it so specify mapping ranges that do not overlap.
+Specifically for mappings that target `assignment` container, use of assignment subtype is strongly recommended.
 
 == Overlapping Ranges
 
-TODO: picture: two mappings with overlapping ranges
+Mapping ranges can, in theory, overlap.
+This is a case of two or more mappings for the same target item, with range definitions constructed in such a way, that some values are part of ranges of more than one mapping.
 
-TODO: warning about overlapping ranges, partial evaluation can produce invalid results (e.g. inbound mapping, reconcile only one resource).
-Do not use overlapping ranges if it can be avoided
+WARNING: Mapping with overlapping ranges create a lot of problems unless an utmost care is taken.
+Therefore, it is *strongly recommended to avoid using mappings with overlapping ranges*, unless you are completely aware of all the circumstances and consequences of such configuration.
 
-TODO: this also applies to "all" range. Do not overlap authoritative mappings.
+Despite that, there is very little special behavior when it comes to mappings with overlapping ranges.
+The mappings behave in much the same way as mapping with non-overlapping ranges, which quite paradoxically, can be a source of problems.
+
+Once again let us illustrate mapping evaluation using an example.
+In this case we have two mappings, both of them are _inbound_ mappings, mapping data from the HR resource.
+There is the `jobCode` attribute that have seen before.
+There is also a `legacyCode` attribute, that has almost the same function as `jobCode`, but it is using legacy job codes.
+The HR department is in an process to migrate all systems from the old legacy codes to a new codes.
+However, this process takes years and years, with no end in sight.
+Therefore, both `jobCode` and `legacyCode` has to work at the same time.
+Some jobs have both the new code and old code.
+New codes are continually introduces, while the legacy codes are slowly removed - without any notice.
+Therefore, the best strategy is to set up an algorithm that can work with both codes at the same time.
+This is one of the rare cases when use of mappings with overlapping ranges is appropriate.
+
+The configuration contains the _inbound_ mapping of `jobCode` attribute to `assignment` container.
+There is also a similar mapping that maps `legacyCode` attribute to the same `assignment` container, even setting the same `subtype` value.
+Both mappings are specifying the same range, overlapping completely.
+
+The figure below illustrates the case when the user is promoted from _sales assistant_ to _sales manager_.
+However, the job codes are much more messy this time, compared to the previous cases.
+Firstly, the _sales manager_ job is also associated with _sales advisor_ job code, both assigned at the same time.
+The _sales manager_ job code is using a new coding scheme, using job code of `30054`.
+The _sales advisor_ is a quasi-legacy concept, represent both by a new job code of `31238` and legacy code of `SAL_ADV`.
+In addition to that, the user also has a part-time engagement as _sales agent_, which is represented by legacy code of `SAL_AGE`.
+Finally, the old job of _sales assistant_ was accompanied by _sales trainee_ role, which is to be removed during this promotion.
+
+image::mapping-range-multiple-overlap-1.png[Multiple mappings with overlapping ranges part 1]
+
+Once again, the mappings start semi-independently, each of the expression creating appropriate assignment values, each of the mappings evaluating its own range.
+The result of the evaluation of each mapping is a _triple_, containing three sets of values: values to be added (_plus_ set), values that remain unchanged (_zero_ set) and set of values to be removed (_minus_ set).
+The _triple_ is an intermediary computation result used for all the mappings.
+It is usually completely hidden from the sight.
+However, in this case, the triple are important.
+
+image::mapping-range-multiple-overlap-2.png[Multiple mappings with overlapping ranges part 2]
+
+In this case, there is an overlap in the triples regarding the `Sales Agent` role assignment.
+Triple produced by mapping A indicates that this value should be removed (_minus_), while the triple produced by mapping B indicates that the value should be added.
+This is one of the reasons for computing the _triples_ first, before constructing final deltas.
+Having the triples, it is easy to see that the `Sales Agent` role assignment should not be removed, as it is a valid result of mapping B.
+
+Once we have all the triples from all the mappings, we can _consolidate_ them into deltas.
+The resulting delta leaves the `Sales Agent` value unchanged.
+Also, the `Business Analyst` role assignment is unchanged, as it is not part of range of any of the mappings.
+
+image::mapping-range-multiple-overlap-3.png[Multiple mappings with overlapping ranges part 3]
+
+Finally, the delta is applied to the target container.
+
+image::mapping-range-multiple-overlap-4.png[Multiple mappings with overlapping ranges part 4]
+
+This approach works, because the two mappings are both _inbound_ mappings for the same resource.
+Therefore, it is pretty much guaranteed that both of them will be evaluated at the same time.
+This fact is crucial for correctness of mappings with overlapping ranges.
+If mapping A would be evaluated in isolation, it would remove the `Sales Agent` role assignment, leading to incorrect result.
+
+When using mappings with overlapping ranges, *it is absolutely crucial to make sure all the mappings are evaluated together*.
+Two inbound mappings for the same resource will work, as they are evaluated together.
+Inbound mappings for _different_ resources are *not* guaranteed to work, as there may be a reconciliation process that is limited to one of the resources, not evaluating the other mapping.
+An inbound mapping and object template mapping with overlapping ranges will *not* work either.
+Such mappings are evaluated in diffirent phases of xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[projector computation], which may lead to incorrect results.
+Moreover, user may be recomputed without re-evaluating inbound mappings.
+Simply speaking, it is not straightforward to determine whether evaluation of mappings with overlapping changes is safe or note safe.
+
+As a general rule of the thumb, only following cases should be considered safe:
+
+* Inbound mappings for the same resource.
+
+* Object template mappings, with the same evaluation phase.
+
+Obviously, the mapping must have appropriate constraints (channel, time, etc.), to make sure that the mappings are evaluated correctly.
+In practice, this usually means having exactly the same constraints.
+
+Even more general (and simpler) rule of the thumb is to avoid use of mappings with overlapping changes if it can be avoided.
+
+.Overlapping authoritative mappings
+NOTE: Several mappings with `all` range definition also creates an overlapping range situation.
+The `all` pre-defined range is often used to specify a fully authoritative mapping, a mapping that is the sole source of all values for target property.
+It is perhaps quite intuitive that there cannot be more than one fully authoritative source for any particular target.
 
 == Other Cases
 
@@ -157,6 +261,17 @@ TODO: why is it called "range"?
 == Range and Metadata
 
 TODO
+
+== Notes
+
+In the explanations and examples above, we are somehow neglecting xref:../mapping-relativity/[relativity of mappings].
+In fact, the entire mechanisms of _mapping range_ is designed especially for the cases where _mapping relativity_ does not work.
+Such as situations where we know the new state of an account, without knowing how it has changed.
+The examples above are illustrating such cases.
+However, in real world case the relativity and the range mechanisms work together.
+Therefore, in reality, many of the values indicated as belonging to the _plus_ set will be probably in the _zero_ set instead.
+However, this is not a significant difference for the purpose of this explanation.
+
 
 == See Also
 
