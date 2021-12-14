@@ -35,15 +35,12 @@ public abstract class SearchSpecialItemPanel<T extends Serializable> extends Sea
     private static final String ID_SEARCH_ITEM_LABEL = "searchItemLabel";
     private static final String ID_HELP = "help";
 
-    private final IModel<T> modelValue;
-
-    public SearchSpecialItemPanel(String id, IModel<T> model) {
-        super(id, null);
-        this.modelValue = model;
+    public SearchSpecialItemPanel(String id, IModel<SpecialSearchItem> searchItemIModel) {
+        super(id, searchItemIModel);
     }
 
     public IModel<T> getModelValue() {
-        return modelValue;
+        return getModelObject().getValueModel();
     }
 
     protected void initLayout() {

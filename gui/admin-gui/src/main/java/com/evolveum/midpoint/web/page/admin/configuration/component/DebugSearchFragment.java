@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
 import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.search.OidSearchItemDefinition;
 import com.evolveum.midpoint.web.component.search.SearchSpecialItemPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 
@@ -36,8 +37,11 @@ public class DebugSearchFragment<O extends ObjectType> extends Fragment {
     private static final String ID_OID_ITEM = "oidItem";
 
     public DebugSearchFragment(String id, String markupId, MarkupContainer markupProvider,
-            IModel<Search<O>> model, IModel<Boolean> showAllItemsModel) {
-        super(id, markupId, markupProvider, model);
+            IModel<Search<O>> searchModel, IModel<Boolean> showAllItemsModel) {
+        super(id, markupId, markupProvider, searchModel);
+
+        OidSearchItemDefinition oidItemDef = new OidSearchItemDefinition(new PropertyModel<String>(getModel(), Search.F_OID));
+        searchModel.getObject().addSpecialItem(oidItemDef.createSearchItem());
 
         initLayout(showAllItemsModel);
     }
@@ -69,25 +73,25 @@ public class DebugSearchFragment<O extends ObjectType> extends Fragment {
         };
         add(showAllItemsCheck);
 
-        SearchSpecialItemPanel oidItem = new SearchSpecialItemPanel<String>(ID_OID_ITEM, new PropertyModel<String>(getModel(), Search.F_OID)) {
-            @Override
-            protected WebMarkupContainer initSearchItemField(String id) {
-                TextPanel<String> inputPanel = new TextPanel<String>(id, getModelValue());
-                inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 220px; max-width: 400px !important;"));
-                return inputPanel;
-            }
-
-            @Override
-            protected IModel<String> createLabelModel() {
-                return getPageBase().createStringResource("SearchPanel.oid");
-            }
-
-            @Override
-            protected IModel<String> createHelpModel() {
-                return getPageBase().createStringResource("SearchPanel.oid.help");
-            }
-        };
-        add(oidItem);
+//        SearchSpecialItemPanel oidItem = new SearchSpecialItemPanel<String>(ID_OID_ITEM, new PropertyModel<String>(getModel(), Search.F_OID)) {
+//            @Override
+//            protected WebMarkupContainer initSearchItemField(String id) {
+//                TextPanel<String> inputPanel = new TextPanel<String>(id, getModelValue());
+//                inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 220px; max-width: 400px !important;"));
+//                return inputPanel;
+//            }
+//
+//            @Override
+//            protected IModel<String> createLabelModel() {
+//                return getPageBase().createStringResource("SearchPanel.oid");
+//            }
+//
+//            @Override
+//            protected IModel<String> createHelpModel() {
+//                return getPageBase().createStringResource("SearchPanel.oid.help");
+//            }
+//        };
+//        add(oidItem);
     }
 
     private void createSearchForm() {

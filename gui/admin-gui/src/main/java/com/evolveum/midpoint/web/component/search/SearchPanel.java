@@ -244,26 +244,27 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         items.add(createVisibleBehaviour(SearchBoxModeType.BASIC));
         form.add(items);
 
-        SearchSpecialItemPanel oidItem = new SearchSpecialItemPanel<String>(ID_OID_ITEM, new PropertyModel<String>(getModel(), Search.F_OID)) {
-            @Override
-            protected WebMarkupContainer initSearchItemField(String id) {
-                TextPanel<String> inputPanel = new TextPanel<String>(id, getModelValue());
-                inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 220px; max-width: 400px !important;"));
-                return inputPanel;
-            }
-
-            @Override
-            protected IModel<String> createLabelModel() {
-                return getPageBase().createStringResource("SearchPanel.oid");
-            }
-
-            @Override
-            protected IModel<String> createHelpModel() {
-                return getPageBase().createStringResource("SearchPanel.oid.help");
-            }
-        };
-        oidItem.add(createVisibleBehaviour(SearchBoxModeType.OID));
-        form.add(oidItem);
+        //commented because it's refactored in AbstractSearchPanel
+//        SearchSpecialItemPanel oidItem = new SearchSpecialItemPanel<String>(ID_OID_ITEM, new PropertyModel<String>(getModel(), Search.F_OID)) {
+//            @Override
+//            protected WebMarkupContainer initSearchItemField(String id) {
+//                TextPanel<String> inputPanel = new TextPanel<String>(id, getModelValue());
+//                inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 220px; max-width: 400px !important;"));
+//                return inputPanel;
+//            }
+//
+//            @Override
+//            protected IModel<String> createLabelModel() {
+//                return getPageBase().createStringResource("SearchPanel.oid");
+//            }
+//
+//            @Override
+//            protected IModel<String> createHelpModel() {
+//                return getPageBase().createStringResource("SearchPanel.oid.help");
+//            }
+//        };
+//        oidItem.add(createVisibleBehaviour(SearchBoxModeType.OID));
+//        form.add(oidItem);
 
         WebMarkupContainer moreGroup = new WebMarkupContainer(ID_MORE_GROUP);
         moreGroup.add(new VisibleBehaviour(() -> createVisibleBehaviour(SearchBoxModeType.BASIC).isVisible()));

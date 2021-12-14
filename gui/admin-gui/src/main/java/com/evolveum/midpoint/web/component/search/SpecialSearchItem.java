@@ -12,15 +12,28 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 
+import org.apache.wicket.model.IModel;
+
 /**
  * @author lskublik
  */
-public abstract class SpecialSearchItem extends SearchItem implements Serializable {
+public abstract class SpecialSearchItem<S extends SpecialSearchItemDefinition, T extends Serializable> extends SearchItem<S> implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    private IModel<T> valueModel;
+
     public SpecialSearchItem(Search search) {
         super(search);
+    }
+
+    public SpecialSearchItem(Search search, IModel<T> valueModel) {
+        super(search);
+        this.valueModel = valueModel;
+    }
+
+    public IModel<T> getValueModel() {
+        return valueModel;
     }
 
     @Override
