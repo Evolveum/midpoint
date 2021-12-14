@@ -166,7 +166,7 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
     private SearchItem createScopeItem(Search search) {
         return new SpecialSearchItem(search) {
             @Override
-            public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
+            public ObjectFilter transformToFilter(PageBase pageBase, VariablesMap variables) {
                 return null;
             }
 

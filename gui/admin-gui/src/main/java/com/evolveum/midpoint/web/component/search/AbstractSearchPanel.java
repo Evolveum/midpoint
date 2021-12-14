@@ -325,7 +325,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
         SearchBoxModeType oldMode = getModelObject().getSearchType();
         getModelObject().setSearchType(searchType);
         if (getModelObject().isTypeChanged() && SearchBoxModeType.OID.equals(oldMode)) {
-            getModelObject().setOid(null);
+//            getModelObject().setOid(null); //todo refactor
             searchPerformed(target);
 //            resetMoreDialogModel();
         }

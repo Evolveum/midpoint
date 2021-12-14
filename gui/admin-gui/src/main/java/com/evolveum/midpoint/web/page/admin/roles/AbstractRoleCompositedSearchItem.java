@@ -144,7 +144,7 @@ public class AbstractRoleCompositedSearchItem extends SearchItem {
         };
     }
 
-    public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
+    public ObjectFilter transformToFilter(PageBase pageBase, VariablesMap variables) {
         AbstractRoleType object = getParentVariables(variables);
         if (object == null) {
             return null;

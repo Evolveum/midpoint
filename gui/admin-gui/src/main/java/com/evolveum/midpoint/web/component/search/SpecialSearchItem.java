@@ -24,12 +24,11 @@ public abstract class SpecialSearchItem<S extends SpecialSearchItemDefinition, T
     private IModel<T> valueModel;
 
     public SpecialSearchItem(Search search) {
-        super(search);
+        this(search, null);
     }
 
     public SpecialSearchItem(Search search, IModel<T> valueModel) {
-        super(search);
-        this.valueModel = valueModel;
+        this(search, valueModel, null);
     }
 
     public SpecialSearchItem(Search search, IModel<T> valueModel, S def) {
@@ -51,7 +50,7 @@ public abstract class SpecialSearchItem<S extends SpecialSearchItemDefinition, T
         return null;
     }
 
-    public abstract ObjectFilter createFilter(PageBase pageBase, VariablesMap variables);
+    public abstract ObjectFilter transformToFilter(PageBase pageBase, VariablesMap variables);
 
     public abstract SearchSpecialItemPanel createSearchItemPanel(String id);
 

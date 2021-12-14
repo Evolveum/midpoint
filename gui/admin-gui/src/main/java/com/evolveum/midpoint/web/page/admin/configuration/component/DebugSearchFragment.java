@@ -7,8 +7,7 @@
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
 import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.component.search.OidSearchItemDefinition;
-import com.evolveum.midpoint.web.component.search.SearchSpecialItemPanel;
+import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 
 import org.apache.wicket.MarkupContainer;
@@ -22,8 +21,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.model.PropertyModel;
@@ -40,7 +37,7 @@ public class DebugSearchFragment<O extends ObjectType> extends Fragment {
             IModel<Search<O>> searchModel, IModel<Boolean> showAllItemsModel) {
         super(id, markupId, markupProvider, searchModel);
 
-        OidSearchItemDefinition oidItemDef = new OidSearchItemDefinition(new PropertyModel<String>(getModel(), Search.F_OID));
+        OidSearchItemDefinition oidItemDef = new OidSearchItemDefinition();
         searchModel.getObject().addSpecialItem(oidItemDef.createSearchItem());
 
         initLayout(showAllItemsModel);
@@ -102,7 +99,7 @@ public class DebugSearchFragment<O extends ObjectType> extends Fragment {
     }
 
     private <O extends ObjectType> WebMarkupContainer createSearchPanel() {
-        SearchPanel<O> searchPanel = new SearchPanel<>(ID_SEARCH, getModel()) {
+        AbstractSearchPanel<O> searchPanel = new AbstractSearchPanel<>(ID_SEARCH, getModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override

@@ -8,7 +8,7 @@ import org.apache.wicket.model.IModel;
 
 public class OidSearchPanel extends SearchSpecialItemPanel {
 
-    public OidSearchPanel(String id, IModel<String> model) {
+    public OidSearchPanel(String id, IModel<OidSearchItem> model) {
         super(id, model);
     }
 

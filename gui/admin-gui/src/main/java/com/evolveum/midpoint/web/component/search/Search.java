@@ -57,7 +57,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     public static final String F_DSL_QUERY = "dslQuery";
     public static final String F_ADVANCED_ERROR = "advancedError";
     public static final String F_FULL_TEXT = "fullText";
-    public static final String F_OID = "oid";
+//    public static final String F_OID = "oid";
     public static final String F_COLLECTION = "collectionSearchItem";
     public static final String F_TYPE = "type";
 
@@ -78,7 +78,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     private String dslQuery;
     private String advancedError;
     private String fullText;
-    private String oid;
+//    private String oid;   //moved  to OidSearchItem
 
     private final ContainerTypeSearchItem typeSearchItem;
     private final List<AbstractSearchItemDefinition> allDefinitions;
@@ -365,9 +365,9 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     public ObjectQuery createObjectQuery(VariablesMap variables, PageBase pageBase, ObjectQuery customizeContentQuery) {
         LOGGER.debug("Creating query from {}", this);
         ObjectQuery query;
-        if (SearchBoxModeType.OID.equals(searchType)) {
-            query = createObjectQueryOid(pageBase);
-        } else {
+//        if (SearchBoxModeType.OID.equals(searchType)) {
+//            query = createObjectQueryOid(pageBase);
+//        } else {
             query = createQueryFromDefaultItems(pageBase, variables);
             ObjectQuery searchTypeQuery = null;
             if (SearchBoxModeType.ADVANCED.equals(searchType) || SearchBoxModeType.AXIOM_QUERY.equals(searchType)) {
@@ -385,7 +385,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
             ObjectQuery archetypeQuery = getArchetypeQuery(pageBase);
             query = mergeQueries(query, archetypeQuery);
-        }
+//        }
         query = mergeQueries(query, customizeContentQuery);
         LOGGER.debug("Created query: {}", query);
         return query;
@@ -401,7 +401,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
         List<ObjectFilter> conditions = new ArrayList<>();
         if (compositedSpecialItems instanceof AbstractRoleCompositedSearchItem) {
-            ObjectFilter filter = ((AbstractRoleCompositedSearchItem) compositedSpecialItems).createFilter(pageBase, variables);
+            ObjectFilter filter = ((AbstractRoleCompositedSearchItem) compositedSpecialItems).transformToFilter(pageBase, variables);
             if (filter != null) {
                 conditions.add(filter);
             }
@@ -409,21 +409,28 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
         for (SearchItem item : specialItems) {
             if (item.isApplyFilter()) {
-
-                if (item instanceof SpecialSearchItem) {
-                    ObjectFilter filter = ((SpecialSearchItem) item).createFilter(pageBase, variables);
-                    if (filter != null) {
-                        conditions.add(filter);
-                    }
-                }
-                PropertySearchItem propertyItem = (PropertySearchItem) item;
-                ObjectFilter filter = propertyItem.transformToFilter();
-                if (filter == null) {
-                    filter = createFilterForSearchItem(propertyItem, pageBase.getPrismContext());
+                ObjectFilter filter = item.transformToFilter(pageBase, variables);
+                if (filter == null && item instanceof PropertySearchItem) {
+                    filter = createFilterForSearchItem((PropertySearchItem) item, pageBase.getPrismContext());
                 }
                 if (filter != null) {
                     conditions.add(filter);
                 }
+
+//                if (item instanceof SpecialSearchItem) {
+//                    ObjectFilter filter = ((SpecialSearchItem) item).transformToFilter(pageBase, variables);
+//                    if (filter != null) {
+//                        conditions.add(filter);
+//                    }
+//                }
+//                PropertySearchItem propertyItem = (PropertySearchItem) item;
+//                ObjectFilter filter = propertyItem.transformToFilter();
+//                if (filter == null) {
+//                    filter = createFilterForSearchItem(propertyItem, pageBase.getPrismContext());
+//                }
+//                if (filter != null) {
+//                    conditions.add(filter);
+//                }
             }
         }
 
@@ -750,15 +757,16 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return query;
     }
 
-    private ObjectQuery createObjectQueryOid(PageBase pageBase) {
-        if (StringUtils.isEmpty(oid)) {
-            return null;
-        }
-        ObjectQuery query = pageBase.getPrismContext().queryFor(ObjectType.class)
-                .id(oid)
-                .build();
-        return query;
-    }
+    //moved to OidSearchItem
+//    private ObjectQuery createObjectQueryOid(PageBase pageBase) {
+//        if (StringUtils.isEmpty(oid)) {
+//            return null;
+//        }
+//        ObjectQuery query = pageBase.getPrismContext().queryFor(ObjectType.class)
+//                .id(oid)
+//                .build();
+//        return query;
+//    }
 
     private ObjectFilter createAdvancedObjectFilter(PrismContext ctx) throws SchemaException {
         if (SearchBoxModeType.ADVANCED.equals(searchType)) {
@@ -897,13 +905,13 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         }
     }
 
-    public String getOid() {
-        return oid;
-    }
-
-    public void setOid(String oid) {
-        this.oid = oid;
-    }
+//    public String getOid() {
+//        return oid;
+//    }
+//
+//    public void setOid(String oid) {
+//        this.oid = oid;
+//    }
 
 //    public boolean isOidSearchEnabled() {
 //        return isOidSearchEnabled;

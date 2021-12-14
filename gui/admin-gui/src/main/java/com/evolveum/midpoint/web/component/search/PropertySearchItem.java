@@ -140,7 +140,7 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem<Prope
     }
 
     @Override
-    public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables){
+    public ObjectFilter transformToFilter(PageBase pageBase, VariablesMap variables){
         return null;
     }
 
@@ -164,11 +164,6 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem<Prope
 
     public boolean isVisible() {
         return visible;
-    }
-
-    @Experimental
-    public ObjectFilter transformToFilter() {
-        return null;
     }
 
     @Override

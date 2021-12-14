@@ -10,8 +10,8 @@ import org.apache.wicket.model.IModel;
 
 public class OidSearchItemDefinition extends SpecialSearchItemDefinition {
 
-    public OidSearchItemDefinition(IModel<String> valueModel) {
-        super(valueModel);
+    public OidSearchItemDefinition() {
+        super();
     }
 
     @Override
@@ -26,7 +26,7 @@ public class OidSearchItemDefinition extends SpecialSearchItemDefinition {
 
     @Override
     public SearchItem<OidSearchItemDefinition> createSearchItem() {
-        return new OidSearchItem(null, getValueModel(), this);
+        return new OidSearchItem(null,this);
     }
 
 }

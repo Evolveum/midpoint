@@ -6,6 +6,9 @@ public abstract class SpecialSearchItemDefinition<O extends Object> extends Abst
 
     IModel<O> valueModel;
 
+    public SpecialSearchItemDefinition() {
+
+    }
     public SpecialSearchItemDefinition(IModel<O> valueModel) {
         this.valueModel = valueModel;
     }

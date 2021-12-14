@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -291,7 +292,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         PropertySearchItem<Boolean> deadSearchItem = new PropertySearchItem<>(search, def, new SearchValue<>(false)) {
 
             @Override
-            public ObjectFilter transformToFilter() {
+            public ObjectFilter transformToFilter(PageBase pageBase, VariablesMap variables) {
                 DisplayableValue<Boolean> selectedValue = getValue();
                 if (selectedValue == null) {
                     return null;

@@ -933,7 +933,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         SearchBoxModeType oldMode = getModelObject().getSearchType();
         getModelObject().setSearchType(searchType);
         if (getModelObject().isTypeChanged() && SearchBoxModeType.OID.equals(oldMode)) {
-            getModelObject().setOid(null);
+//            getModelObject().setOid(null);
             searchPerformed(target);
             resetMoreDialogModel();
         }

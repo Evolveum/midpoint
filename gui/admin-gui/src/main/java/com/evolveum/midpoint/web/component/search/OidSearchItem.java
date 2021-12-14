@@ -9,14 +9,30 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.apache.wicket.model.Model;
+
 public class OidSearchItem extends SpecialSearchItem<OidSearchItemDefinition, String> {
 
-    public OidSearchItem(Search search, IModel<String> valueModel, OidSearchItemDefinition def) {
-        super(search, valueModel, def);
+    private static String oid = "";
+
+    public OidSearchItem(Search search, OidSearchItemDefinition def) {
+        super(search, new IModel<String>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void setObject(String value) {
+                oid = value;
+            }
+
+            @Override
+            public String getObject() {
+                return oid;
+            }
+        }, def);
     }
 
     public OidSearchPanel createSearchItemPanel(String id) {
-        return new OidSearchPanel(id, getValueModel());
+        return new OidSearchPanel(id, Model.of(this));
     }
 
     public Class<OidSearchPanel> getSearchItemPanelClass() {
@@ -24,8 +40,8 @@ public class OidSearchItem extends SpecialSearchItem<OidSearchItemDefinition, St
     }
 
     @Override
-    public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
-        String oid = getValueModel().getObject();
+    public ObjectFilter transformToFilter(PageBase pageBase, VariablesMap variables) {
+//        String oid = getValueModel().getObject();
         if (StringUtils.isEmpty(oid)) {
             return null;
         }

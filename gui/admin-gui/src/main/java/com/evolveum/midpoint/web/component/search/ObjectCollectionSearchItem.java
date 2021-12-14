@@ -114,7 +114,7 @@ public class ObjectCollectionSearchItem extends SearchItem {
     }
 
     @Override
-    public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
+    public ObjectFilter transformToFilter(PageBase pageBase, VariablesMap variables) {
         return null; //todo implement
     }
 

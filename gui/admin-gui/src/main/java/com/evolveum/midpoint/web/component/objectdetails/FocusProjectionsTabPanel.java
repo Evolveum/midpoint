@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
@@ -281,7 +282,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
         PropertySearchItem<Boolean> deadSearchItem = new PropertySearchItem<>(search, def, new SearchValue<>(false)) {
 
             @Override
-            public ObjectFilter transformToFilter() {
+            public ObjectFilter transformToFilter(PageBase pageBase, VariablesMap variables) {
                 DisplayableValue<Boolean> selectedValue = getValue();
                 if (selectedValue == null) {
                     return null;

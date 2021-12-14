@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.util.annotation.Experimental;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -44,7 +45,8 @@ public abstract class SearchItem<D extends AbstractSearchItemDefinition> impleme
 
     public abstract Type getSearchItemType();
 
-    public abstract ObjectFilter createFilter(PageBase pageBase, VariablesMap variables);
+    @Experimental
+    public abstract ObjectFilter transformToFilter(PageBase pageBase, VariablesMap variables);
 
     public abstract <S extends SearchItem, ASIP extends SearchItemPanel<S>> Class<ASIP> getSearchItemPanelClass();
 

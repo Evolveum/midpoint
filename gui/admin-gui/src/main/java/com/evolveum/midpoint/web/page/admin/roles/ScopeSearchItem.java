@@ -39,7 +39,7 @@ public class ScopeSearchItem extends SpecialSearchItem {
     }
 
     @Override
-    public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
+    public ObjectFilter transformToFilter(PageBase pageBase, VariablesMap variables) {
         throw new UnsupportedOperationException();
     }
 
