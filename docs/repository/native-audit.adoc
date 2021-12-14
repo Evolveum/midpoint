@@ -282,6 +282,13 @@ order by partition;
 
 It is safe to run `audit_create_monthly_partitions` multiple times, it reports existing partitions and creates only the missing ones.
 
+[IMPORTANT]
+.Schedule the partition creation!
+You should schedule the procedure call or add it to a regular checklist, because 5 years may pass faster than expected.
+Audit will continue adding rows into the default partition and it will not be possible to use the procedure without changes.
+You can create future partitions and later migrate the data from the default partition when they are in the past, but it's best to avoid this situation altogether.
+Schedule the procedure call; then you can also consider creating less than 60 partitions into the future.
+
 .What about quarterly or yearly partitions?
 [NOTE]
 ====
@@ -571,7 +578,7 @@ The audit tables (prefixed `ma_`) must be present in the same database as the ma
     <midpoint>
         ...
         <repository>
-            <type>sqale</type>
+            <type>native</type>
             <database>postgresql</database>
             <jdbcUrl>jdbc:postgresql://192.168.56.33:5432/midpoint</jdbcUrl>
             <jdbcUsername>midpoint</jdbcUsername>
@@ -610,7 +617,7 @@ although the default settings do release unused physical connections.
     <midpoint>
         ...
         <repository>
-            <type>sqale</type>
+            <type>native</type>
             <database>postgresql</database>
             <jdbcUrl>jdbc:postgresql://192.168.56.33:5432/midpoint</jdbcUrl>
             <jdbcUsername>midpoint</jdbcUsername>
