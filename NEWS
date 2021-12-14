@@ -1,9 +1,11 @@
-midPoint 4.0.1 "Gutenberg" Update 1
+midPoint 4.0.4 "Gutenberg" Update 4
 -----------------------------------
 
-Release 4.0.1 is a twenty ninth midPoint release. It is the fist maintenance update for 4.0.x version family code-named code-named Gutenberg. The 4.0.x is a long-term support (LTS) version family. The 4.0.1 release brings bugfixes and minor improvements.
+Release 4.0.4 is a thirty-eight midPoint release. It is the fourth maintenance update for 4.0.x version family code-named
+Gutenberg. The 4.0.x is a long-term support (LTS) version family. The 4.0.4 release brings bugfixes and improvements for
+upgrade to 4.4 LTS.
 
-Release date: 22nd October 2019
+Release date: 14th December 2021
 
 Please see the release notes for detailed list of changes:
-https://wiki.evolveum.com/display/midPoint/Release+4.0.1
+https://docs.evolveum.com/midpoint/release/4.0.4/
