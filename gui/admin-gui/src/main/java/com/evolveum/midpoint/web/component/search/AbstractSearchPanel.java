@@ -12,10 +12,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
@@ -43,7 +40,6 @@ import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
@@ -51,8 +47,6 @@ import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -149,22 +143,22 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
 //        };
 //    }
 
-    private List<AbstractSearchItemDefinition> createPropertiesList() {
-        List<AbstractSearchItemDefinition> list = new ArrayList<>();
-
-        List<ItemPath> specialItemPaths = new ArrayList<>();
-        getModelObject().getSpecialItems().stream().filter(specItem -> (specItem instanceof PropertySearchItem))
-                .forEach(specItem -> specialItemPaths.add(((PropertySearchItem<?>) specItem).getPath()));
-
-        Search search = getModelObject();
-        search.getAllDefinitions().stream().filter((Predicate<AbstractSearchItemDefinition>) def ->
-                (def instanceof PropertySearchItemDefinition) &&
-                !ItemPathCollectionsUtil.containsEquivalent(specialItemPaths, ((PropertySearchItemDefinition)def).getPath()))
-                .forEach((Consumer<AbstractSearchItemDefinition>) def -> list.add(def));
-        Collections.sort(list);
-
-        return list;
-    }
+//    private List<AbstractSearchItemDefinition> createPropertiesList() {
+//        List<AbstractSearchItemDefinition> list = new ArrayList<>();
+//
+//        List<ItemPath> specialItemPaths = new ArrayList<>();
+//        getModelObject().getSpecialItems().stream().filter(specItem -> (specItem instanceof PropertySearchItem))
+//                .forEach(specItem -> specialItemPaths.add(((PropertySearchItem<?>) specItem).getPath()));
+//
+//        Search search = getModelObject();
+//        search.getAllDefinitions().stream().filter((Predicate<AbstractSearchItemDefinition>) def ->
+//                (def instanceof PropertySearchItemDefinition) &&
+//                !ItemPathCollectionsUtil.containsEquivalent(specialItemPaths, ((PropertySearchItemDefinition)def).getPath()))
+//                .forEach((Consumer<AbstractSearchItemDefinition>) def -> list.add(def));
+//        Collections.sort(list);
+//
+//        return list;
+//    }
 
     private <S extends SearchItem, T extends Serializable> void initLayout() {
         setOutputMarkupId(true);
@@ -340,8 +334,8 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
         refreshSearchForm(target);
     }
 
-    private void addOneItemPerformed(AbstractSearchItemDefinition searchItemDef, AjaxRequestTarget target) {
-        searchItemDef.setSearchItemDisplayed(true);
+    private void addOneItemPerformed(SearchItem searchItem, AjaxRequestTarget target) {
+        searchItem.setSearchItemDisplayed(true);
 //        Search search = getModelObject();
 //        SearchItem item = search.addItem(property);
 //        item.setEditWhenVisible(true);
@@ -350,10 +344,10 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
     }
 
     private void addItemPerformed(AjaxRequestTarget target) {
-        getModelObject().getAllDefinitions().forEach(def -> {
-            if (def.isSelected()) {
-                def.setSearchItemDisplayed(true);
-                def.setSelected(false);
+        getModelObject().getSearchItems().forEach(searchItem -> {
+            if (searchItem.isSelected()) {
+                searchItem.setSearchItemDisplayed(true);
+                searchItem.setSelected(false);
             }
         });
 //        Search search = getModelObject();
@@ -512,7 +506,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
                 @Override
                 public boolean isVisible() {
                     Search search = getModelObject();
-                    return !search.getAllDefinitions().isEmpty();
+                    return !search.getSearchItems().isEmpty();
                 }
             });
             more.setOutputMarkupId(true);
@@ -546,12 +540,12 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
             });
             popover.add(addText);
 
-            ListView properties = new ListView<AbstractSearchItemDefinition>(ID_PROPERTIES,
-                    Model.ofList(getModelObject().getAllDefinitions())) {
+            ListView properties = new ListView<SearchItem>(ID_PROPERTIES,
+                    Model.ofList(getModelObject().getSearchItems())) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
-                protected void populateItem(final ListItem<AbstractSearchItemDefinition> item) {
+                protected void populateItem(final ListItem<SearchItem> item) {
                     CheckBox check = new CheckBox(ID_CHECK,
                             new PropertyModel<>(item.getModel(), SearchItemDefinition.F_SELECTED));
                     check.add(new AjaxFormComponentUpdatingBehavior("change") {
@@ -631,10 +625,10 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
 //                    });
                 }
 
-                private boolean isPropertyItemVisible(AbstractSearchItemDefinition def, String propertySearchText) {
-                    return !def.isSearchItemDisplayed() &&
+                private boolean isPropertyItemVisible(SearchItem searchItem, String propertySearchText) {
+                    return !searchItem.isSearchItemDisplayed() &&
                             (StringUtils.isEmpty(propertySearchText)
-                                    || def.getName().toLowerCase().contains(propertySearchText.toLowerCase()));
+                                    || searchItem.getName().toLowerCase().contains(propertySearchText.toLowerCase()));
                 }
             };
             propList.add(properties);

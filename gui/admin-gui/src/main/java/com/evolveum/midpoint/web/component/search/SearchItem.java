@@ -27,9 +27,11 @@ public abstract class SearchItem<D extends AbstractSearchItemDefinition> impleme
     private final Search<Containerable> search;
     private D searchItemDefinition;
 
+    private boolean searchItemDisplayed;
     private boolean fixed;
     private boolean editWhenVisible;
     private boolean applyFilter = true;
+    private boolean selected = false;
 
     public SearchItem(Search search) {
         this.search = search;
@@ -78,6 +80,22 @@ public abstract class SearchItem<D extends AbstractSearchItemDefinition> impleme
 
     public void setEditWhenVisible(boolean editWhenVisible) {
         this.editWhenVisible = editWhenVisible;
+    }
+
+    public boolean isSearchItemDisplayed() {
+        return searchItemDisplayed;
+    }
+
+    public void setSearchItemDisplayed(boolean searchItemDisplayed) {
+        this.searchItemDisplayed = searchItemDisplayed;
+    }
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
     }
 
     public boolean isApplyFilter() {

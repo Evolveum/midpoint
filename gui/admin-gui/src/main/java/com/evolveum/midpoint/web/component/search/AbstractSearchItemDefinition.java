@@ -12,12 +12,10 @@ import java.io.Serializable;
 
 public abstract class AbstractSearchItemDefinition implements Serializable, Comparable<AbstractSearchItemDefinition> {
 
-    protected boolean searchItemDisplayed;
     protected boolean visibleByDefault = true;
     private PolyStringType displayName;
     private String description;
     private boolean fixed;
-    private boolean selected = false;
 
     public abstract String getName();
 
@@ -49,28 +47,12 @@ public abstract class AbstractSearchItemDefinition implements Serializable, Comp
         this.description = description;
     }
 
-    public boolean isSearchItemDisplayed() {
-        return searchItemDisplayed;
-    }
-
-    public void setSearchItemDisplayed(boolean searchItemDisplayed) {
-        this.searchItemDisplayed = searchItemDisplayed;
-    }
-
     public boolean isFixed() {
         return fixed;
     }
 
     public void setFixed(boolean fixed) {
         this.fixed = fixed;
-    }
-
-    public boolean isSelected() {
-        return selected;
-    }
-
-    public void setSelected(boolean selected) {
-        this.selected = selected;
     }
 
     @Override

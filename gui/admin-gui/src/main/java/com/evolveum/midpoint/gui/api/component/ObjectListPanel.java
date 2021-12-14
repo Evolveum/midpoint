@@ -79,7 +79,11 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         ContainerTypeSearchItem<O> typeSearchItem = new ContainerTypeSearchItem<>(new SearchValue<>(type, ""));
         String collectionName = isCollectionViewPanelForCompiledView() ? getCollectionNameParameterValue().toString() : null;
         return SearchFactory.createSearch(typeSearchItem, collectionName, getFixedSearchItems(), null, getPageBase(),
-                null, true, true, Search.PanelType.DEFAULT);
+                null, getSpecialSearchItemDefs(), true, true, Search.PanelType.DEFAULT);
+    }
+
+    protected List<SearchItem> getSpecialSearchItemDefs() {
+        return new ArrayList<>();
     }
 
     protected List<ItemPath> getFixedSearchItems() {
