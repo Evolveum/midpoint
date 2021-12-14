@@ -5,6 +5,7 @@
 :page-replaced-by: ../native-postgresql/
 :page-moved-from: /midpoint/reference/repository/db/*
 :page-display-order: 50
+:page-deprecated-since: "4.4"
 :page-toc: top
 
 MidPoint stores its data in a relational database.

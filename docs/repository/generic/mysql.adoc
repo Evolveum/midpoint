@@ -6,6 +6,7 @@
 :page-wiki-metadata-modify-user: virgo
 :page-wiki-metadata-modify-date: 2020-09-10T22:25:13.190+02:00
 :page-upkeep-status: orange
+:page-deprecated-since: "4.4"
 
 // TODO: disclaimer that MySQL is deprecated
 

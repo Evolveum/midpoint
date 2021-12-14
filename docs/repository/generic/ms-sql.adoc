@@ -6,6 +6,7 @@
 :page-wiki-metadata-create-date: 2014-06-26T17:05:59.962+02:00
 :page-wiki-metadata-modify-user: virgo
 :page-wiki-metadata-modify-date: 2020-07-28T13:51:49.292+02:00
+:page-deprecated-since: "4.4"
 :page-upkeep-status: orange
 
 // TODO: disclaimer that MySQL is deprecated
