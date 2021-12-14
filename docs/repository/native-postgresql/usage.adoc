@@ -14,7 +14,7 @@ The setup for Postgres is fairly similar to the old repo, just different schema 
 * Most of the repository configuration in `config.xml` works as before.
 New repo doesn't use Hibernate, so any Hibernate related configuration is ignored.
 See this xref:/midpoint/reference/repository/configuration/[Repository Configuration] document for details.
-* Main difference in `config.xml` is to use `<type>generic</type>` instead of
+* Main difference in `config.xml` is to use `<type>native</type>` instead of
 `<repositoryServiceFactoryClass>` element (which does not work with new repo).
 Definitely don't try to use both `<repositoryServiceFactoryClass>` and `<type>` simultaneously!
 * For the xref:../../native-audit/[SQL audit] replace old repository value in `auditServiceFactoryClass`
