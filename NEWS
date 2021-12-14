@@ -1,13 +1,13 @@
-midPoint 4.3.1 "Faraday" Update 1
+midPoint 4.3.2 "Faraday" Update 2
 ----------------------------------
 
-Release 4.3.1 is a thirty-sixth midPoint release.
-It is a first maintenance update for 4.3.x version family code-named _Faraday_.
-The 4.3.1 release brings miscellaneous bugfixes.
+Release 4.3.2 is a thirty-ninth midPoint release.
+It is a second maintenance update for 4.3.x version family code-named _Faraday_.
+The 4.3.2 release brings miscellaneous bugfixes for upgrade to midPoint 4.4 LTS.
 
-Release date: 11th May 2021
+Release date: 14th December 2021
 Release type: Maintenance release
 End of support: 9th April 2022
 
 Please see the release notes for detailed list of changes:
-https://docs.evolveum.com/midpoint/release/4.3.1/
+https://docs.evolveum.com/midpoint/release/4.3.2/
