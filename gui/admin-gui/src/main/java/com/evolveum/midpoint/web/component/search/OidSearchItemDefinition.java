@@ -26,7 +26,7 @@ public class OidSearchItemDefinition extends SpecialSearchItemDefinition {
 
     @Override
     public SearchItem<OidSearchItemDefinition> createSearchItem() {
-        return new OidSearchItem(null, getValueModel());
+        return new OidSearchItem(null, getValueModel(), this);
     }
 
 }

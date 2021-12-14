@@ -457,8 +457,8 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
             @Override
             public IModel<Boolean> getVisible() {
-                return Model.of(getModelObject().isOidSearchEnabled()
-                        && getModelObject().isAllowedSearchMode(SearchBoxModeType.OID));
+//                return Model.of(getModelObject().isOidSearchEnabled() && getModelObject().isAllowedSearchMode(SearchBoxModeType.OID));
+                return Model.of(getModelObject().isAllowedSearchMode(SearchBoxModeType.OID));
             }
         };
         searchItems.add(searchItem);

@@ -11,8 +11,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class OidSearchItem extends SpecialSearchItem<OidSearchItemDefinition, String> {
 
-    public OidSearchItem(Search search, IModel<String> valueModel) {
-        super(search, valueModel);
+    public OidSearchItem(Search search, IModel<String> valueModel, OidSearchItemDefinition def) {
+        super(search, valueModel, def);
     }
 
     public OidSearchPanel createSearchItemPanel(String id) {

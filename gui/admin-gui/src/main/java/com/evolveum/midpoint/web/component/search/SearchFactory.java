@@ -231,22 +231,21 @@ public class SearchFactory {
                 null, modelServiceLocator, null, true, true, Search.PanelType.DEFAULT);
     }
 
-    public static <T extends ObjectType> Search createSearch(ContainerTypeSearchItem<T> type, ModelServiceLocator modelServiceLocator, boolean isOidSearchEnabled) {
+    public static <T extends ObjectType> Search createSearch(ContainerTypeSearchItem<T> type, ModelServiceLocator modelServiceLocator) {
         return createSearch(type, null, null, null, modelServiceLocator, null, true,
-                true, Search.PanelType.DEFAULT, isOidSearchEnabled);
+                true, Search.PanelType.DEFAULT);
     }
+
+//    public static <T extends ObjectType> Search<T> createSearch(
+//            ContainerTypeSearchItem<T> type, String collectionViewName, List<ItemPath> fixedSearchItems, ResourceShadowDiscriminator discriminator,
+//            ModelServiceLocator modelServiceLocator, List<ItemPath> availableItemPath, boolean useDefsFromSuperclass, boolean useObjectCollection, Search.PanelType panelType) {
+//        return createSearch(type, collectionViewName, fixedSearchItems, discriminator, modelServiceLocator, availableItemPath, useDefsFromSuperclass, useObjectCollection,
+//                panelType);
+//    }
 
     public static <T extends ObjectType> Search<T> createSearch(
             ContainerTypeSearchItem<T> type, String collectionViewName, List<ItemPath> fixedSearchItems, ResourceShadowDiscriminator discriminator,
             ModelServiceLocator modelServiceLocator, List<ItemPath> availableItemPath, boolean useDefsFromSuperclass, boolean useObjectCollection, Search.PanelType panelType) {
-        return createSearch(type, collectionViewName, fixedSearchItems, discriminator, modelServiceLocator, availableItemPath, useDefsFromSuperclass, useObjectCollection,
-                panelType, false);
-    }
-
-    private static <T extends ObjectType> Search<T> createSearch(
-            ContainerTypeSearchItem<T> type, String collectionViewName, List<ItemPath> fixedSearchItems, ResourceShadowDiscriminator discriminator,
-            ModelServiceLocator modelServiceLocator, List<ItemPath> availableItemPath, boolean useDefsFromSuperclass, boolean useObjectCollection, Search.PanelType panelType,
-            boolean isOidSearchEnabled) {
 
         PrismObjectDefinition<?> objectDef = findObjectDefinition(type.getTypeClass(), discriminator, modelServiceLocator);
         List<AbstractSearchItemDefinition> availableDefs = getAvailableAttributeDefinitions(objectDef, availableItemPath,
@@ -289,14 +288,14 @@ public class SearchFactory {
 //                }
 //            });
 //        }
-        Search<T> search = new Search<>(type, availableDefs, isFullTextSearchEnabled, searchMode, allowedSearchModes, isOidSearchEnabled);
+        Search<T> search = new Search<>(type, availableDefs, isFullTextSearchEnabled, searchMode, allowedSearchModes);
         search.setConfigurable(isAllowToConfigureSearchItems(modelServiceLocator, qNametype, collectionViewName, panelType));
         return search;
     }
 
     public static <C extends Containerable> Search<C> createSearchForReport(Class<C> type, List<SearchFilterParameterType> parameters, ModelServiceLocator modelServiceLocator) {
         ContainerTypeSearchItem<C> typeItem = new ContainerTypeSearchItem<>(new SearchValue<>(type, ""));
-        Search<C> search = new Search<>(typeItem, new ArrayList<>(), false, SearchBoxModeType.BASIC, Collections.singletonList(SearchBoxModeType.BASIC), false);
+        Search<C> search = new Search<>(typeItem, new ArrayList<>(), false, SearchBoxModeType.BASIC, Collections.singletonList(SearchBoxModeType.BASIC));
 
         SchemaRegistry registry = modelServiceLocator.getPrismContext().getSchemaRegistry();
         PrismContainerDefinition objDef = registry.findContainerDefinitionByCompileTimeClass(type);

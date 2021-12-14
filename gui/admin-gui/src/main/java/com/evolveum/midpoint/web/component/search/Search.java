@@ -15,6 +15,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -89,26 +90,26 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     private ObjectCollectionSearchItem objectCollectionSearchItem;
     private boolean isCollectionItemVisible = false;
-    private boolean isOidSearchEnabled = false;
+//    private boolean isOidSearchEnabled = false;
 
     public Search(ContainerTypeSearchItem<C> typeSearchItem, List<AbstractSearchItemDefinition> allDefinitions) {
-        this(typeSearchItem, allDefinitions, false, null, null, false);
+        this(typeSearchItem, allDefinitions, false, null, null);
     }
 
     public Search(ContainerTypeSearchItem<C> typeSearchItem, List<AbstractSearchItemDefinition> allDefinitions, boolean isFullTextSearchEnabled,
-            SearchBoxModeType searchBoxModeType, List<SearchBoxModeType> allowedSearchType, boolean isOidSearchenabled) {
+            SearchBoxModeType searchBoxModeType, List<SearchBoxModeType> allowedSearchType) {
         this.typeSearchItem = typeSearchItem;
         this.allDefinitions = allDefinitions;
-        this.isOidSearchEnabled = isOidSearchenabled;
+//        this.isOidSearchEnabled = isOidSearchenabled;
 
         this.isFullTextSearchEnabled = isFullTextSearchEnabled;
 
         if (searchBoxModeType != null) {
-            if (!isOidSearchenabled && SearchBoxModeType.OID.equals(searchBoxModeType)) {
-                searchType = SearchBoxModeType.BASIC;
-            } else {
+//            if (!isOidSearchenabled && SearchBoxModeType.OID.equals(searchBoxModeType)) {
+//                searchType = SearchBoxModeType.BASIC;
+//            } else {
                 searchType = searchBoxModeType;
-            }
+//            }
         } else if (isFullTextSearchEnabled) {
             searchType = SearchBoxModeType.FULLTEXT;
         } else {
@@ -153,7 +154,9 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     public List<SearchItem> getAllSearchItems() {
         List<SearchItem> items = itemsModel.getObject();
         items.addAll(specialItems);
-        items.add(compositedSpecialItems);
+        if (compositedSpecialItems != null) {
+            items.add(compositedSpecialItems);
+        }
         return items;
     }
 
@@ -902,9 +905,9 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         this.oid = oid;
     }
 
-    public boolean isOidSearchEnabled() {
-        return isOidSearchEnabled;
-    }
+//    public boolean isOidSearchEnabled() {
+//        return isOidSearchEnabled;
+//    }
 
     public boolean isOidSearchMode() {
         return SearchBoxModeType.OID.equals(getSearchType());
@@ -933,7 +936,11 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         if (SearchBoxModeType.FULLTEXT.equals(searchBoxModeType)) {
             return isFullTextSearchEnabled;
         }
-        return true;
+        return !SearchBoxModeType.OID.equals(searchBoxModeType) || isOidSearchItemPresent();
+    }
+
+    private boolean isOidSearchItemPresent() {
+        return CollectionUtils.isNotEmpty(getAllSearchItems().stream().filter(item -> item instanceof OidSearchItem).collect(Collectors.toList()));
     }
 
     public List<SearchBoxModeType> getAllowedSearchType() {

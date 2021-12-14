@@ -127,7 +127,7 @@ public class PageDebugList extends PageAdminConfiguration {
                                     new SearchValue<Class>(SystemConfigurationType.class, "ObjectType." + SystemConfigurationType.COMPLEX_TYPE.getLocalPart()),
                                     getAllowedTypes());
                     defaultType.setVisible(true);
-                    search = SearchFactory.createSearch(defaultType, PageDebugList.this, true);
+                    search = SearchFactory.createSearch(defaultType, PageDebugList.this);
                     configureSearch(search);
                 }
                 return search;
@@ -493,7 +493,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private void listObjectsPerformed(AjaxRequestTarget target) {
         Table table = getListTable();
         if (searchModel.getObject().isTypeChanged()) {
-            Search search = SearchFactory.createSearch(getTypeItem(), PageDebugList.this, true);
+            Search search = SearchFactory.createSearch(getTypeItem(), PageDebugList.this);
             searchModel.setObject(search); //TODO: this is veeery ugly, available definitions should refresh when the type changed
             configureSearch(search);
             table.getDataTable().getColumns().clear();
