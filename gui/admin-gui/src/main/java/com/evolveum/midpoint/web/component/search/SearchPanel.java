@@ -798,7 +798,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 //                            return false;
 //                        }
 
-                        for (SearchItem searchItem : search.getItems()) {
+                        for (SearchItem searchItem : search.getAllSearchItems()) {
                             if (searchItem.getSearchItemDefinition().equals(property)) {
                                 return false;
                             }

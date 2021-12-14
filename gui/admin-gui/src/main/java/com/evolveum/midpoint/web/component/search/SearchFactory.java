@@ -212,7 +212,7 @@ public class SearchFactory {
             availableDefs.addAll(configuredSearchItemDefs);
         }
 
-        Search<C> search = new Search<>(type, createSearchItemsList(availableDefs));
+        Search<C> search = new Search<>(type, availableDefs);
 
 //        if (!CollectionUtils.isEmpty(configuredSearchItemDefs)) {
 //            processSearchItemDefFromCompiledView(configuredSearchItemDefs, search, containerDef);
@@ -243,26 +243,10 @@ public class SearchFactory {
                 panelType, false);
     }
 
-    public static <T extends ObjectType> Search<T> createSearch(
-            ContainerTypeSearchItem<T> type, String collectionViewName, List<ItemPath> fixedSearchItems, ResourceShadowDiscriminator discriminator,
-            ModelServiceLocator modelServiceLocator, List<ItemPath> availableItemPath, List<SearchItem> specialItems,
-            boolean useDefsFromSuperclass, boolean useObjectCollection, Search.PanelType panelType) {
-        return createSearch(type, collectionViewName, fixedSearchItems, discriminator, modelServiceLocator, availableItemPath,
-                specialItems, useDefsFromSuperclass, useObjectCollection, panelType, false);
-    }
-
     private static <T extends ObjectType> Search<T> createSearch(
             ContainerTypeSearchItem<T> type, String collectionViewName, List<ItemPath> fixedSearchItems, ResourceShadowDiscriminator discriminator,
             ModelServiceLocator modelServiceLocator, List<ItemPath> availableItemPath, boolean useDefsFromSuperclass, boolean useObjectCollection, Search.PanelType panelType,
             boolean isOidSearchEnabled) {
-        return createSearch(type, collectionViewName, fixedSearchItems, discriminator, modelServiceLocator, availableItemPath,
-                new ArrayList<>(), useDefsFromSuperclass, useObjectCollection, panelType, isOidSearchEnabled);
-    }
-
-    private static <T extends ObjectType> Search<T> createSearch(
-            ContainerTypeSearchItem<T> type, String collectionViewName, List<ItemPath> fixedSearchItems, ResourceShadowDiscriminator discriminator,
-            ModelServiceLocator modelServiceLocator, List<ItemPath> availableItemPath, List<SearchItem> specialItems, boolean useDefsFromSuperclass,
-            boolean useObjectCollection, Search.PanelType panelType, boolean isOidSearchEnabled) {
 
         PrismObjectDefinition<?> objectDef = findObjectDefinition(type.getTypeClass(), discriminator, modelServiceLocator);
         List<AbstractSearchItemDefinition> availableDefs = getAvailableAttributeDefinitions(objectDef, availableItemPath,
@@ -305,12 +289,7 @@ public class SearchFactory {
 //                }
 //            });
 //        }
-        List<SearchItem> searchItems = createSearchItemsList(availableDefs);
-        if (CollectionUtils.isNotEmpty(specialItems)) {
-            searchItems.addAll(specialItems);
-        }
-
-        Search<T> search = new Search<>(type, searchItems, isFullTextSearchEnabled, searchMode, allowedSearchModes, isOidSearchEnabled);
+        Search<T> search = new Search<>(type, availableDefs, isFullTextSearchEnabled, searchMode, allowedSearchModes, isOidSearchEnabled);
         search.setConfigurable(isAllowToConfigureSearchItems(modelServiceLocator, qNametype, collectionViewName, panelType));
         return search;
     }
@@ -365,12 +344,6 @@ public class SearchFactory {
 //            }
 //        });
 //    }
-    private static List<SearchItem> createSearchItemsList(List<AbstractSearchItemDefinition> allDefinitions) {
-        List<SearchItem> items = new ArrayList<>();
-        allDefinitions.forEach(def -> items.add(def.createSearchItem()));
-        return items;
-    }
-
     public static <T extends ObjectType> PrismObjectDefinition findObjectDefinition(
             Class<T> type, ResourceShadowDiscriminator discriminator,
             ModelServiceLocator modelServiceLocator) {
@@ -428,6 +401,7 @@ public class SearchFactory {
                 def.setDisplayName(searchItem.getDisplayName());
                 def.setDescription(searchItem.getDescription());
                 def.setVisibleByDefault(!Boolean.FALSE.equals(searchItem.isVisibleByDefault()));
+                def.setSearchItemDisplayed(def.isVisibleByDefault());
                 configuredSearchItemList.add(def);
             }
         });
@@ -465,6 +439,7 @@ public class SearchFactory {
                         PropertySearchItemDefinition searchItemDef = new PropertySearchItemDefinition(path, def, getAllowedValues(path));
                         if (ItemPathCollectionsUtil.containsEquivalent(fixedSearchItems, path)) {
                             searchItemDef.setFixed(true);
+                            searchItemDef.setSearchItemDisplayed(true);
                         }
                         definitions.add(searchItemDef);
                     }

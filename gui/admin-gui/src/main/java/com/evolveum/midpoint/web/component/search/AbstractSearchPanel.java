@@ -13,7 +13,10 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -222,7 +225,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
                 Search search = getModelObject();
                 if (search.getAllowedSearchType().size() == 1
                         && SearchBoxModeType.BASIC.equals(search.getAllowedSearchType().get(0))) {
-                    return !search.getItems().isEmpty(); //|| !search.getAvailableDefinitions().isEmpty();
+                    return !search.getAllSearchItems().isEmpty(); //|| !search.getAvailableDefinitions().isEmpty();
                 }
                 return true;
             }
@@ -257,7 +260,11 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
     }
 
     protected void initSearchItemsPanel(RepeatingView searchItemsRepeatingView) {
-        addOrReplaceBasicSearchFragment(searchItemsRepeatingView);
+        BasicSearchFragment basicSearchFragment = new BasicSearchFragment(searchItemsRepeatingView.newChildId(), ID_BASIC_SEARCH_FRAGMENT,
+                AbstractSearchPanel.this);
+        basicSearchFragment.setOutputMarkupId(true);
+        basicSearchFragment.add(new VisibleBehaviour(() -> getModelObject().isBasicSearchMode()));
+        searchItemsRepeatingView.add(basicSearchFragment);
 
         AdvancedSearchFragment advancedSearchFragment = new AdvancedSearchFragment(searchItemsRepeatingView.newChildId(), ID_ADVANCED_SEARCH_FRAGMENT,
                 AbstractSearchPanel.this);
@@ -271,14 +278,6 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
         fulltextSearchFragment.add(new VisibleBehaviour(() -> getModelObject().isFullTextSearchEnabled()
                 && getModelObject().getSearchType().equals(SearchBoxModeType.FULLTEXT)));
         searchItemsRepeatingView.add(fulltextSearchFragment);
-    }
-
-    private void addOrReplaceBasicSearchFragment(RepeatingView searchItemsRepeatingView){
-        BasicSearchFragment basicSearchFragment = new BasicSearchFragment(searchItemsRepeatingView.newChildId(), ID_BASIC_SEARCH_FRAGMENT,
-                AbstractSearchPanel.this);
-        basicSearchFragment.setOutputMarkupId(true);
-        basicSearchFragment.add(new VisibleBehaviour(() -> getModelObject().isBasicSearchMode()));
-        searchItemsRepeatingView.addOrReplace(basicSearchFragment);
     }
 
     private CompositedIcon getSubmitSearchButtonBuilder() {
@@ -334,8 +333,8 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
         refreshSearchForm(target);
     }
 
-    private void addOneItemPerformed(SearchItem searchItem, AjaxRequestTarget target) {
-        searchItem.setSearchItemDisplayed(true);
+    private void addOneItemPerformed(AbstractSearchItemDefinition searchItemDef, AjaxRequestTarget target) {
+        searchItemDef.setSearchItemDisplayed(true);
 //        Search search = getModelObject();
 //        SearchItem item = search.addItem(property);
 //        item.setEditWhenVisible(true);
@@ -344,10 +343,10 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
     }
 
     private void addItemPerformed(AjaxRequestTarget target) {
-        getModelObject().getSearchItems().forEach(searchItem -> {
-            if (searchItem.isSelected()) {
-                searchItem.setSearchItemDisplayed(true);
-                searchItem.setSelected(false);
+        getModelObject().getAllDefinitions().forEach(def -> {
+            if (def.isSelected()) {
+                def.setSearchItemDisplayed(true);
+                def.setSelected(false);
             }
         });
 //        Search search = getModelObject();
@@ -441,7 +440,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
 
         private <T extends Serializable> void initBasicSearchLayout() {
 
-            ListView<SearchItem> items = new ListView<>(ID_ITEMS, getModelObject().getItemsModel()) {
+            ListView<SearchItem> items = new ListView<>(ID_ITEMS, Model.ofList(getModelObject().getAllSearchItems())) {
 
                 private static final long serialVersionUID = 1L;
 
@@ -506,13 +505,23 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
                 @Override
                 public boolean isVisible() {
                     Search search = getModelObject();
-                    return !search.getSearchItems().isEmpty();
+                    return !search.getAllDefinitions().isEmpty();
                 }
             });
             more.setOutputMarkupId(true);
             moreGroup.add(more);
 
             initPopover();
+        }
+
+        private LoadableModel<List<SearchItem>> getDisplayedSearchItemsModel() {
+            return new LoadableModel<List<SearchItem>>() {
+                @Override
+                protected List<SearchItem> load() {
+                    return AbstractSearchPanel.this.getModelObject().getAllSearchItems().stream().filter(item -> item.getSearchItemDefinition().isSearchItemDisplayed())
+                            .collect(Collectors.toList());
+                }
+            };
         }
 
         private void initPopover() {
@@ -540,12 +549,11 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
             });
             popover.add(addText);
 
-            ListView properties = new ListView<SearchItem>(ID_PROPERTIES,
-                    Model.ofList(getModelObject().getSearchItems())) {
+            ListView properties = new ListView<AbstractSearchItemDefinition>(ID_PROPERTIES, getModelObject().getAllDefinitions()) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
-                protected void populateItem(final ListItem<SearchItem> item) {
+                protected void populateItem(final ListItem<AbstractSearchItemDefinition> item) {
                     CheckBox check = new CheckBox(ID_CHECK,
                             new PropertyModel<>(item.getModel(), SearchItemDefinition.F_SELECTED));
                     check.add(new AjaxFormComponentUpdatingBehavior("change") {
@@ -625,10 +633,10 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
 //                    });
                 }
 
-                private boolean isPropertyItemVisible(SearchItem searchItem, String propertySearchText) {
-                    return !searchItem.isSearchItemDisplayed() &&
+                private boolean isPropertyItemVisible(AbstractSearchItemDefinition searchItemDef, String propertySearchText) {
+                    return !searchItemDef.isSearchItemDisplayed() &&
                             (StringUtils.isEmpty(propertySearchText)
-                                    || searchItem.getName().toLowerCase().contains(propertySearchText.toLowerCase()));
+                                    || searchItemDef.getName().toLowerCase().contains(propertySearchText.toLowerCase()));
                 }
             };
             propList.add(properties);

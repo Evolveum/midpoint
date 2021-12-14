@@ -80,7 +80,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     private String oid;
 
     private final ContainerTypeSearchItem typeSearchItem;
-    private final List<SearchItem> searchItems;
+    private final List<AbstractSearchItemDefinition> allDefinitions;
 
 //    private final List<AbstractSearchItemDefinition> availableDefinitions = new ArrayList<>();
     private LoadableModel<List<SearchItem>> itemsModel;
@@ -91,14 +91,14 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     private boolean isCollectionItemVisible = false;
     private boolean isOidSearchEnabled = false;
 
-    public Search(ContainerTypeSearchItem<C> typeSearchItem, List<SearchItem> searchItems) {
-        this(typeSearchItem, searchItems, false, null, null, false);
+    public Search(ContainerTypeSearchItem<C> typeSearchItem, List<AbstractSearchItemDefinition> allDefinitions) {
+        this(typeSearchItem, allDefinitions, false, null, null, false);
     }
 
-    public Search(ContainerTypeSearchItem<C> typeSearchItem, List<SearchItem> searchItems, boolean isFullTextSearchEnabled,
+    public Search(ContainerTypeSearchItem<C> typeSearchItem, List<AbstractSearchItemDefinition> allDefinitions, boolean isFullTextSearchEnabled,
             SearchBoxModeType searchBoxModeType, List<SearchBoxModeType> allowedSearchType, boolean isOidSearchenabled) {
         this.typeSearchItem = typeSearchItem;
-        this.searchItems = searchItems;
+        this.allDefinitions = allDefinitions;
         this.isOidSearchEnabled = isOidSearchenabled;
 
         this.isFullTextSearchEnabled = isFullTextSearchEnabled;
@@ -137,8 +137,11 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         itemsModel = new LoadableModel<List<SearchItem>>() {
             @Override
             protected List<SearchItem> load() {
-                return searchItems.stream().filter(searchItem -> searchItem.isSearchItemDisplayed())
+                List<SearchItem> items = new ArrayList<>();
+                List<AbstractSearchItemDefinition> defs = allDefinitions.stream().filter(def -> def.isSearchItemDisplayed())
                         .collect(Collectors.toList());
+                defs.forEach(def -> items.add(def.createSearchItem()));
+                return items;
             }
         };
     }
@@ -147,8 +150,11 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return itemsModel;
     }
 
-    public List<SearchItem> getItems() {
-        return itemsModel.getObject();
+    public List<SearchItem> getAllSearchItems() {
+        List<SearchItem> items = itemsModel.getObject();
+        items.addAll(specialItems);
+        items.add(compositedSpecialItems);
+        return items;
     }
 
     public List<SearchItem> getSpecialItems() {
@@ -207,8 +213,8 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 //        return Collections.unmodifiableList(availableDefinitions);
 //    }
 
-    public List<SearchItem> getSearchItems() {
-        return Collections.unmodifiableList(searchItems);
+    public List<AbstractSearchItemDefinition> getAllDefinitions() {
+        return Collections.unmodifiableList(allDefinitions);
     }
 
 //    public AttributeSearchItem addItem(ItemDefinition def) {
@@ -327,7 +333,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 //    }
 
     public void delete(SearchItem item) {
-        item.setSearchItemDisplayed(false);
+        item.getSearchItemDefinition().setSearchItemDisplayed(false);
 //        if (items.remove(item)) {
 //            availableDefinitions.add(item.getSearchItemDefinition());
 //        }
@@ -862,7 +868,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         DebugUtil.debugDumpWithLabelLn(sb, "advancedQuery", advancedQuery, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "advancedError", advancedError, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "type", getTypeClass(), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "allDefinitions", searchItems, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "allDefinitions", allDefinitions, indent + 1);
 //        DebugUtil.debugDumpWithLabelLn(sb, "availableDefinitions", availableDefinitions, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "items", itemsModel.getObject(), indent + 1);
         return sb.toString();

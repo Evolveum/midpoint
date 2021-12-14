@@ -139,7 +139,7 @@ public class SearchItemPanel<S extends SearchItem> extends BasePanel<S> {
 
     private void deletePerformed(AjaxRequestTarget target) {
         SearchItem item = getModelObject();
-        item.setSearchItemDisplayed(false);
+        item.getSearchItemDefinition().setSearchItemDisplayed(false);
 //        Search search = item.getSearch();
 //        search.delete(item);
 

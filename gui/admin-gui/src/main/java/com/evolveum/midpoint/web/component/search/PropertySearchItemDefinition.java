@@ -63,7 +63,7 @@ public class PropertySearchItemDefinition extends AbstractSearchItemDefinition {
     @Override
     public PropertySearchItem<PropertySearchItemDefinition> createSearchItem() {
         PropertySearchItem<PropertySearchItemDefinition> item = new PropertySearchItem<>(null, PropertySearchItemDefinition.this);
-        item.setSearchItemDisplayed(isVisibleByDefault());
+        item.getSearchItemDefinition().setSearchItemDisplayed(isVisibleByDefault());
         return item;
     }
 
