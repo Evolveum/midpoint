@@ -13,22 +13,10 @@ import org.apache.wicket.model.Model;
 
 public class OidSearchItem extends SpecialSearchItem<OidSearchItemDefinition, String> {
 
-    private static String oid = "";
+//    private static String oid = "";
 
     public OidSearchItem(Search search, OidSearchItemDefinition def) {
-        super(search, new IModel<String>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void setObject(String value) {
-                oid = value;
-            }
-
-            @Override
-            public String getObject() {
-                return oid;
-            }
-        }, def);
+        super(search, def);
     }
 
     public OidSearchPanel createSearchItemPanel(String id) {
@@ -41,7 +29,7 @@ public class OidSearchItem extends SpecialSearchItem<OidSearchItemDefinition, St
 
     @Override
     public ObjectFilter transformToFilter(PageBase pageBase, VariablesMap variables) {
-//        String oid = getValueModel().getObject();
+        String oid = getValueModel().getObject();
         if (StringUtils.isEmpty(oid)) {
             return null;
         }

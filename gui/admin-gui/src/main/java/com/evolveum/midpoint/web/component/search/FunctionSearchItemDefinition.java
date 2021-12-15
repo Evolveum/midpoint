@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.component.search;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 

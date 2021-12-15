@@ -16,8 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -43,6 +42,7 @@ import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
@@ -84,6 +84,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
     private static final String ID_BASIC_SEARCH_FRAGMENT = "basicSearchFragment";
     private static final String ID_ADVANCED_SEARCH_FRAGMENT = "advancedSearchFragment";
     private static final String ID_FULLTEXT_SEARCH_FRAGMENT = "fulltextSearchFragment";
+    private static final String ID_OID_SEARCH_FRAGMENT = "oidSearchFragment";
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
     private static final String ID_MORE_GROUP = "moreGroup";
@@ -107,6 +108,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
     private static final String ID_ADVANCED_ERROR = "advancedError";
     private static final String ID_FULL_TEXT_CONTAINER = "fullTextContainer";
     private static final String ID_FULL_TEXT_FIELD = "fullTextField";
+    private static final String ID_OID_ITEM = "oidItem";
 
     private static final Trace LOG = TraceManager.getTrace(AbstractSearchPanel.class);
 
@@ -225,7 +227,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
                 Search search = getModelObject();
                 if (search.getAllowedSearchType().size() == 1
                         && SearchBoxModeType.BASIC.equals(search.getAllowedSearchType().get(0))) {
-                    return !search.getAllSearchItems().isEmpty(); //|| !search.getAvailableDefinitions().isEmpty();
+                    return !search.getItems().isEmpty(); //|| !search.getAvailableDefinitions().isEmpty();
                 }
                 return true;
             }
@@ -278,6 +280,12 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
         fulltextSearchFragment.add(new VisibleBehaviour(() -> getModelObject().isFullTextSearchEnabled()
                 && getModelObject().getSearchType().equals(SearchBoxModeType.FULLTEXT)));
         searchItemsRepeatingView.add(fulltextSearchFragment);
+
+        OidSearchFragment oidSearchFragment = new OidSearchFragment(searchItemsRepeatingView.newChildId(), ID_OID_SEARCH_FRAGMENT,
+                AbstractSearchPanel.this);
+        oidSearchFragment.setOutputMarkupId(true);
+        oidSearchFragment.add(new VisibleBehaviour(() -> getModelObject().findOidSearchItem() != null && getModelObject().getSearchType().equals(SearchBoxModeType.OID)));
+        searchItemsRepeatingView.add(oidSearchFragment);
     }
 
     private CompositedIcon getSubmitSearchButtonBuilder() {
@@ -440,7 +448,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
 
         private <T extends Serializable> void initBasicSearchLayout() {
 
-            ListView<SearchItem> items = new ListView<>(ID_ITEMS, Model.ofList(getModelObject().getAllSearchItems())) {
+            ListView<SearchItem> items = new ListView<>(ID_ITEMS, getModelObject().getItemsModel()) {
 
                 private static final long serialVersionUID = 1L;
 
@@ -518,7 +526,8 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
             return new LoadableModel<List<SearchItem>>() {
                 @Override
                 protected List<SearchItem> load() {
-                    return AbstractSearchPanel.this.getModelObject().getAllSearchItems().stream().filter(item -> item.getSearchItemDefinition().isSearchItemDisplayed())
+                    return AbstractSearchPanel.this.getModelObject().getItemsModel().getObject().stream().filter(item
+                            -> item.getSearchItemDefinition().isSearchItemDisplayed())
                             .collect(Collectors.toList());
                 }
             };
@@ -881,6 +890,20 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
                     createStringResource("SearchPanel.fullTextSearch")));
             fullTextContainer.add(fullTextInput);
 
+        }
+    }
+
+    class OidSearchFragment extends Fragment {
+        private static final long serialVersionUID = 1L;
+
+        public OidSearchFragment(String id, String markupId, AbstractSearchPanel markupProvider) {
+            super(id, markupId, markupProvider);
+            initOidSearchLayout();
+        }
+
+        private void initOidSearchLayout() {
+            OidSearchItem item = getModelObject().findOidSearchItem();
+            add(item != null ? item.createSearchItemPanel(ID_OID_ITEM) : new WebMarkupContainer(ID_OID_ITEM));
         }
     }
 }

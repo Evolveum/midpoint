@@ -27,17 +27,17 @@ public abstract class SpecialSearchItem<S extends SpecialSearchItemDefinition, T
         this(search, null);
     }
 
-    public SpecialSearchItem(Search search, IModel<T> valueModel) {
-        this(search, valueModel, null);
+    public SpecialSearchItem(Search search, S def) {
+        super(search, def);
     }
 
-    public SpecialSearchItem(Search search, IModel<T> valueModel, S def) {
-        super(search, def);
-        this.valueModel = valueModel;
-    }
+//    public SpecialSearchItem(Search search, IModel<T> valueModel, S def) {
+//        super(search, def);
+//        this.valueModel = valueModel;
+//    }
 
     public IModel<T> getValueModel() {
-        return valueModel;
+        return getSearchItemDefinition().getValueModel();
     }
 
     @Override

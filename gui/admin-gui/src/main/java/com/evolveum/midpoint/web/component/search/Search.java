@@ -135,13 +135,23 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     private void initItemsModel() {
-        itemsModel = new LoadableModel<List<SearchItem>>() {
+        itemsModel = new LoadableModel<>() {
             @Override
             protected List<SearchItem> load() {
                 List<SearchItem> items = new ArrayList<>();
                 List<AbstractSearchItemDefinition> defs = allDefinitions.stream().filter(def -> def.isSearchItemDisplayed())
                         .collect(Collectors.toList());
                 defs.forEach(def -> items.add(def.createSearchItem()));
+//                if (CollectionUtils.isNotEmpty(specialItems)) {
+//                    specialItems.forEach(item -> {
+//                            if (item.getSearchItemDefinition().isSearchItemDisplayed()) {
+//                                items.add(item);
+//                            }
+//                    });
+//                }
+//                if (compositedSpecialItems != null) {
+//                    items.add(compositedSpecialItems);
+//                }
                 return items;
             }
         };
@@ -151,13 +161,8 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return itemsModel;
     }
 
-    public List<SearchItem> getAllSearchItems() {
-        List<SearchItem> items = itemsModel.getObject();
-        items.addAll(specialItems);
-        if (compositedSpecialItems != null) {
-            items.add(compositedSpecialItems);
-        }
-        return items;
+    public List<SearchItem> getItems() {
+        return itemsModel.getObject();
     }
 
     public List<SearchItem> getSpecialItems() {
@@ -170,6 +175,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public void addSpecialItem(SearchItem item) {
         specialItems.add(item);
+        allDefinitions.add(item.getSearchItemDefinition());
     }
 
     public void addCompositedSpecialItem(SearchItem item) {
@@ -354,6 +360,12 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return typeSearchItem;
     }
 
+    public OidSearchItem findOidSearchItem() {
+        List<SearchItem> oidItems = itemsModel.getObject().stream().filter(item -> item instanceof OidSearchItem)
+                .collect(Collectors.toList());
+        return CollectionUtils.isNotEmpty(oidItems) ? (OidSearchItem)oidItems.get(0) : null;
+    }
+
     public ObjectQuery createObjectQuery(PageBase pageBase) {
         return this.createObjectQuery(null, pageBase);
     }
@@ -365,9 +377,11 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     public ObjectQuery createObjectQuery(VariablesMap variables, PageBase pageBase, ObjectQuery customizeContentQuery) {
         LOGGER.debug("Creating query from {}", this);
         ObjectQuery query;
-//        if (SearchBoxModeType.OID.equals(searchType)) {
-//            query = createObjectQueryOid(pageBase);
-//        } else {
+        if (SearchBoxModeType.OID.equals(searchType)) {
+            OidSearchItem item = findOidSearchItem();
+            query = pageBase.getPrismContext().queryFor(ObjectType.class).build();
+            query.addFilter(item.transformToFilter(pageBase, null));
+        } else {
             query = createQueryFromDefaultItems(pageBase, variables);
             ObjectQuery searchTypeQuery = null;
             if (SearchBoxModeType.ADVANCED.equals(searchType) || SearchBoxModeType.AXIOM_QUERY.equals(searchType)) {
@@ -385,19 +399,19 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
             ObjectQuery archetypeQuery = getArchetypeQuery(pageBase);
             query = mergeQueries(query, archetypeQuery);
-//        }
+        }
         query = mergeQueries(query, customizeContentQuery);
         LOGGER.debug("Created query: {}", query);
         return query;
     }
 
     private ObjectQuery createQueryFromDefaultItems(PageBase pageBase, VariablesMap variables) {
-        List<SearchItem> specialItems = getSpecialItems();
-        if (specialItems.isEmpty()) {
-            if (compositedSpecialItems == null) {
-                return null;
-            }
-        }
+//        List<SearchItem> specialItems = getSpecialItems();
+//        if (specialItems.isEmpty()) {
+//            if (compositedSpecialItems == null) {
+//                return null;
+//            }
+//        }
 
         List<ObjectFilter> conditions = new ArrayList<>();
         if (compositedSpecialItems instanceof AbstractRoleCompositedSearchItem) {
@@ -948,7 +962,8 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     private boolean isOidSearchItemPresent() {
-        return CollectionUtils.isNotEmpty(getAllSearchItems().stream().filter(item -> item instanceof OidSearchItem).collect(Collectors.toList()));
+        return CollectionUtils.isNotEmpty(allDefinitions.stream().filter(def -> def instanceof OidSearchItemDefinition)
+                .collect(Collectors.toList()));
     }
 
     public List<SearchBoxModeType> getAllowedSearchType() {

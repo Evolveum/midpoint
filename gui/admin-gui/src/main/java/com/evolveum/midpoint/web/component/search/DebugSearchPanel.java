@@ -14,7 +14,7 @@ import org.apache.wicket.model.IModel;
 /**
  * @author honchar
  */
-public class DebugSearchPanel<O extends ObjectType> extends TypeSearchPanel<O> {
+public class DebugSearchPanel<O extends ObjectType> extends AbstractSearchPanel<O> {
 
     IModel<Boolean> showAllItemsModel;
     private static final String ID_DEBUG_SEARCH_FRAGMENT = "debugSearchFragment";
