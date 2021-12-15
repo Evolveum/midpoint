@@ -361,7 +361,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     public OidSearchItem findOidSearchItem() {
-        List<SearchItem> oidItems = itemsModel.getObject().stream().filter(item -> item instanceof OidSearchItem)
+        List<SearchItem> oidItems = specialItems.stream().filter(item -> item instanceof OidSearchItem)
                 .collect(Collectors.toList());
         return CollectionUtils.isNotEmpty(oidItems) ? (OidSearchItem)oidItems.get(0) : null;
     }
@@ -961,7 +961,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return !SearchBoxModeType.OID.equals(searchBoxModeType) || isOidSearchItemPresent();
     }
 
-    private boolean isOidSearchItemPresent() {
+    public boolean isOidSearchItemPresent() {
         return CollectionUtils.isNotEmpty(allDefinitions.stream().filter(def -> def instanceof OidSearchItemDefinition)
                 .collect(Collectors.toList()));
     }

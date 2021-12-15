@@ -281,11 +281,13 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
                 && getModelObject().getSearchType().equals(SearchBoxModeType.FULLTEXT)));
         searchItemsRepeatingView.add(fulltextSearchFragment);
 
-        OidSearchFragment oidSearchFragment = new OidSearchFragment(searchItemsRepeatingView.newChildId(), ID_OID_SEARCH_FRAGMENT,
-                AbstractSearchPanel.this);
-        oidSearchFragment.setOutputMarkupId(true);
-        oidSearchFragment.add(new VisibleBehaviour(() -> getModelObject().findOidSearchItem() != null && getModelObject().getSearchType().equals(SearchBoxModeType.OID)));
-        searchItemsRepeatingView.add(oidSearchFragment);
+        if (getModelObject().isOidSearchItemPresent()) {
+            OidSearchFragment oidSearchFragment = new OidSearchFragment(searchItemsRepeatingView.newChildId(), ID_OID_SEARCH_FRAGMENT,
+                    AbstractSearchPanel.this);
+            oidSearchFragment.setOutputMarkupId(true);
+            oidSearchFragment.add(new VisibleBehaviour(() -> getModelObject().getSearchType().equals(SearchBoxModeType.OID)));
+            searchItemsRepeatingView.add(oidSearchFragment);
+        }
     }
 
     private CompositedIcon getSubmitSearchButtonBuilder() {
@@ -903,7 +905,7 @@ public abstract class AbstractSearchPanel<C extends Containerable> extends BaseP
 
         private void initOidSearchLayout() {
             OidSearchItem item = getModelObject().findOidSearchItem();
-            add(item != null ? item.createSearchItemPanel(ID_OID_ITEM) : new WebMarkupContainer(ID_OID_ITEM));
+            add(item.createSearchItemPanel(ID_OID_ITEM));
         }
     }
 }
