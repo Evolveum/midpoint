@@ -51,7 +51,7 @@ The things mentioned above are cleaned up regularly by the *Cleanup* task.
 
 There are other clean-up settings, but these are consulted only when the relevant structures are worked with:
 
-* `objectResults` clean-up policy for object execution results - used as a default when the following settins are not specified,
+* `objectResults` clean-up policy for object execution results - used as a default when the following settings are not specified,
 * `simpleOperationExecutions` is used to clean up simple execution results,
 * `complexOperationExecutions` is used to clean up complex execution results.
 
