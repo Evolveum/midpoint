@@ -24,12 +24,13 @@ Each policy rule has the following parts:
 The rule name will be displayed in the log files when the rule is processed.
 
 * *xref:/midpoint/reference/schema/focus-and-projections/[Focal object]* that the rule applies to.
-This defines that object that is being changed.
+This defines the object that is being changed.
 E.g. this is the user that receives a new assignment.
 Or it is the role that is being created.
 
 * *Target object* (optional).
-This is used when applying the rule to the xref:/midpoint/reference/roles-policies/assignment/[assignment]. The target object represents the target of the assignment, which is usually a role, org or a service.
+This is used when applying the rule to the xref:/midpoint/reference/roles-policies/assignment/[assignment].
+The target object represents the target of the assignment, which is usually a role, org or a service.
 
 * *Condition* (optional) when the rule should be applied.
 If the condition is not specified it is assumed to be true.
@@ -59,9 +60,7 @@ The policy situation may be used in reports to identify the objects that violate
 
 * Flexible notifications, ad-hoc recertification and other governance and compliance features that are planned for future midPoint versions.
 
-
 == Rule Content
-
 
 === Policy Constraints
 
@@ -69,10 +68,10 @@ The policy situation may be used in reports to identify the objects that violate
 .TODO
 ====
 This section needs to be expanded.
-However, documentation work is similar to the development work in that it takes time and that it needs funding. +
+However, documentation work is similar to the development work in that it takes time and that it needs funding.
+
 If you are midPoint link:https://evolveum.com/services/[subscriber], you can request that we complete this section and we will do that as soon as possible.
 Or you may use the option to xref:/support/subscription-sponsoring/[sponsor] completion of midPoint documentation.
-
 ====
 
 In case that several policy rule constraints are specified at the same time then logical AND is assumed between them.
@@ -86,19 +85,17 @@ It is just a matter of getting used to.
 In case that you need a logical OR between several constraints you just need to re-formulate them into several policy rules.
 Each of the policy rules is triggered individually, therefore implementing logical OR operation.
 
-
 === Policy Situation
 
 [TIP]
 .TODO
 ====
 This section needs to be expanded.
-However, documentation work is similar to the development work in that it takes time and that it needs funding. +
+However, documentation work is similar to the development work in that it takes time and that it needs funding.
+
 If you are midPoint link:https://evolveum.com/services/[subscriber], you can request that we complete this section and we will do that as soon as possible.
 Or you may use the option to xref:/support/subscription-sponsoring/[sponsor] completion of midPoint documentation.
-
 ====
-
 
 === Policy Actions
 
@@ -106,12 +103,12 @@ Or you may use the option to xref:/support/subscription-sponsoring/[sponsor] com
 .TODO
 ====
 This section needs to be expanded.
-However, documentation work is similar to the development work in that it takes time and that it needs funding. +
+However, documentation work is similar to the development work in that it takes time and that it needs funding.
+
 If you are midPoint link:https://evolveum.com/services/[subscriber], you can request that we complete this section and we will do that as soon as possible.
 Or you may use the option to xref:/support/subscription-sponsoring/[sponsor] completion of midPoint documentation.
 
 ====
-
 
 == Rule Definition
 
@@ -122,7 +119,8 @@ However all the rules are evaluated in the same way regardless of the specific m
 
 === Global Policy Rules
 
-Policy rules can be defined in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object]. In this case the rule is evaluated for every operation and it applies to all objects that are matched by the rule focus and target selectors.
+Policy rules can be defined in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object].
+In this case the rule is evaluated for every operation and it applies to all objects that are matched by the rule focus and target selectors.
 This method of rule specification has a global scope and therefore the administrator can have high confidence that the rule is applied to all objects to which it should be applied.
 However it may have scalability impact if not used properly.
 Evaluation of the focus and target selectors is usually very fast, therefore a reasonable number of global rules with simple selectors should have only negligible impact on system performance.
@@ -163,7 +161,6 @@ The rule enforces the modification constraint.
 This simply prohibits any role modification.
 An attempt to modify such role will result in an error (policy violation).
 
-
 === Direct Rule Definition
 
 The rules may also be defined directly in the objects to which they apply.
@@ -199,11 +196,11 @@ It is difficult to manage large number of roles when the rules are specified in 
 Therefore this approach is not recommended for production use.
 The metarole-base approach is recommended instead.
 
-
 === Metarole-Based Rule Definition
 
 Policy rules can be defined in the assignments.
-Which means they can be taken to the meta-level using the usual midPoint mechanism of xref:/midpoint/reference/roles-policies/metaroles/gensync/[metaroles]. If all the sensitive roles have the same meta-role assigned then the rule can be easily defined in the metarole as (high-order) inducement.
+Which means they can be taken to the meta-level using the usual midPoint mechanism of xref:/midpoint/reference/roles-policies/metaroles/gensync/[metaroles].
+If all the sensitive roles have the same meta-role assigned then the rule can be easily defined in the metarole as (high-order) inducement.
 Like this:
 
 [source,xml]
@@ -230,7 +227,6 @@ It will apply to all the roles that have this role assigned.
 This is simple and scalable way how to define policies that apply only to some role types, organizational hierarchies, services and so on.
 See the xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization'] page for more details about the meta-role mechanism.
 
-
 == Policy Rule Exceptions
 
 They say that there is always an exception to any rule.
@@ -240,7 +236,7 @@ But if the request goes through a special approval then it may be allowed.
 This may seem like a straightforward mechanism.
 But it is not.
 It is not enough to simply override the policy and allow assignment of conflicting roles.
-Such assignment will the appear in every review, compliance report, the approver will be asked for re-approval after even a minor change in the assignment and so on.
+Such assignment will then appear in every review, compliance report, the approver will be asked for re-approval after even a minor change in the assignment and so on.
 It is necessary to remember the decision to fully support this scenario: to create an exception.
 
 MidPoint has a mechanism how to support exceptions from the policy rules.
@@ -250,12 +246,12 @@ It will not be subject to re-approvals, it will not be raised as an issue in com
 However, the record of the exception is maintained in the assignment.
 In the future that information can be used e.g. to report approved rule exceptions, to re-certify then and so on.
 
-
 == History
 
 This feature is available only in midPoint 3.6 and later.
 
-This feature was also available in midPoint 3.5. However even in midPoint 3.5 this feature was considered *EXPERIMENTAL* except when used for xref:/midpoint/reference/roles-policies/role-lifecycle/[Role Lifecycle] and assignment-based xref:/midpoint/reference/cases/approval/[approvals].
+This feature was also available in midPoint 3.5.
+However even in midPoint 3.5 this feature was considered *EXPERIMENTAL* except when used for xref:/midpoint/reference/roles-policies/role-lifecycle/[Role Lifecycle] and assignment-based xref:/midpoint/reference/cases/approval/[approvals].
 This mechanism was only partially implemented in midPoint 3.5.
 
 == See Also

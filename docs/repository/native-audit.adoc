@@ -458,7 +458,18 @@ MIDPOINT_HOME='/var/new-mp-home' bin/ninja.sh -v importAudit -i audit-export.xml
 
 ==== Iterative audit migration
 
-// TODO
+////
+TODO
+Audit times on percentile boundaries, perhaps id is even better:
+SELECT unnest(percentile_disc(
+        (
+        SELECT array_agg(x)
+        FROM generate_series(0, 1, (1::numeric) / 10) as g(x)
+        )
+    ) WITHIN GROUP (ORDER BY timestamp)
+    ) as l
+FROM ma_audit_event;
+////
 
 == Custom column
 
