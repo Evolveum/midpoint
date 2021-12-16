@@ -12,6 +12,8 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
 
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -98,10 +99,9 @@ public class ShadowManager {
      */
     public SearchResultMetadata searchShadowsIterative(ProvisioningContext ctx, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> repoHandler,
-            OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, ExpressionEvaluationException {
+            OperationResult result) throws SchemaException {
 
-        ObjectQuery repoQuery = queryHelper.applyMatchingRules(query, ctx.getObjectClassDefinition());
+        ObjectQuery repoQuery = queryHelper.applyMatchingRules(query, ctx.getObjectDefinition());
         return repositoryService.searchObjectsIterative(ShadowType.class, repoQuery, repoHandler, options, true, result);
     }
 
@@ -112,7 +112,7 @@ public class ShadowManager {
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException,
             ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
-        ObjectQuery repoQuery = queryHelper.applyMatchingRules(query, ctx.getObjectClassDefinition());
+        ObjectQuery repoQuery = queryHelper.applyMatchingRules(query, ctx.getObjectDefinition());
         return repositoryService.searchObjects(ShadowType.class, repoQuery, options, parentResult);
     }
 
@@ -121,7 +121,7 @@ public class ShadowManager {
             OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, ExpressionEvaluationException {
 
-        ObjectQuery repoQuery = queryHelper.applyMatchingRules(query, ctx.getObjectClassDefinition());
+        ObjectQuery repoQuery = queryHelper.applyMatchingRules(query, ctx.getObjectDefinition());
         return repositoryService.countObjects(ShadowType.class, repoQuery, options, result);
     }
 
@@ -281,7 +281,7 @@ public class ShadowManager {
         shadowUpdater.updatePendingOperations(ctx, shadow, opState, pendingExecutionOperations, now, result);
     }
 
-    public String determinePrimaryIdentifierValue(ProvisioningContext ctx, PrismObject<ShadowType> shadow)
+    public <T> T determinePrimaryIdentifierValue(ProvisioningContext ctx, PrismObject<ShadowType> shadow)
             throws SchemaException {
         return helper.determinePrimaryIdentifierValue(ctx, shadow);
     }
@@ -344,10 +344,13 @@ public class ShadowManager {
         return shadowUpdater.recordDeleteResult(ctx, opState, options, parentResult);
     }
 
-    public void deleteShadow(ProvisioningContext ctx, PrismObject<ShadowType> oldRepoShadow, OperationResult result)
+    public void deleteShadow(
+            @NotNull PrismObject<ShadowType> oldRepoShadow,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
-        shadowUpdater.deleteShadow(ctx, oldRepoShadow, result);
+        shadowUpdater.deleteShadow(oldRepoShadow, task, result);
     }
 
     public PrismObject<ShadowType> markShadowTombstone(PrismObject<ShadowType> repoShadow, Task task,
@@ -356,27 +359,35 @@ public class ShadowManager {
     }
 
     /**
-     * Re-reads the shadow, re-evaluates the identifiers and stored values, updates them if necessary. Returns
-     * fixed shadow.
+     * Re-reads the shadow, re-evaluates the identifiers and stored values
+     * (including their normalization under matching rules), updates them if necessary.
+     *
+     * Returns fixed shadow.
      */
-    public @NotNull PrismObject<ShadowType> fixShadow(ProvisioningContext ctx, PrismObject<ShadowType> origRepoShadow,
-            OperationResult result) throws ObjectNotFoundException, SchemaException, ConfigurationException,
-            CommunicationException, ExpressionEvaluationException {
+    public @NotNull PrismObject<ShadowType> fixShadow(
+            @NotNull ProvisioningContext ctx,
+            @NotNull PrismObject<ShadowType> origRepoShadow,
+            @NotNull OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException {
         return shadowUpdater.fixShadow(ctx, origRepoShadow, result);
     }
 
-    public void setKindIfNecessary(ShadowType repoShadowType, RefinedObjectClassDefinition objectClassDefinition) {
+    public void setKindIfNecessary(ShadowType repoShadowType, ResourceObjectTypeDefinition objectClassDefinition) {
         helper.setKindIfNecessary(repoShadowType, objectClassDefinition);
     }
 
-    @SafeVarargs
-    public final <T> boolean compareAttribute(RefinedObjectClassDefinition refinedObjectClassDefinition,
-            ResourceAttribute<T> attributeA, T... valuesB) throws SchemaException {
-        return helper.compareAttribute(refinedObjectClassDefinition, attributeA, valuesB);
+    public void setKindIfNecessary(ShadowType repoShadowType, ProvisioningContext ctx) {
+        helper.setKindIfNecessary(repoShadowType, ctx);
     }
 
-    public <T> boolean compareAttribute(RefinedObjectClassDefinition refinedObjectClassDefinition,
+    @SafeVarargs
+    public final <T> boolean compareAttribute(ResourceObjectDefinition objectDefinition,
+            ResourceAttribute<T> attributeA, T... valuesB) throws SchemaException {
+        return helper.compareAttribute(objectDefinition, attributeA, valuesB);
+    }
+
+    public <T> boolean compareAttribute(ResourceObjectDefinition objectDefinition,
             ResourceAttribute<T> attributeA, ResourceAttribute<T> attributeB) throws SchemaException {
-        return helper.compareAttribute(refinedObjectClassDefinition, attributeA, attributeB);
+        return helper.compareAttribute(objectDefinition, attributeA, attributeB);
     }
 }

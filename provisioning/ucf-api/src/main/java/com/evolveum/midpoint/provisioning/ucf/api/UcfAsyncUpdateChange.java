@@ -10,7 +10,7 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.AcknowledgementSink;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -39,7 +39,7 @@ public class UcfAsyncUpdateChange extends UcfChange implements AcknowledgementSi
     private final AcknowledgementSink acknowledgeSink;
 
     public UcfAsyncUpdateChange(int localSequenceNumber, @NotNull Object primaryIdentifierRealValue,
-            ObjectClassComplexTypeDefinition objectClassDefinition,
+            ResourceObjectClassDefinition objectClassDefinition,
             @NotNull Collection<ResourceAttribute<?>> identifiers,
             ObjectDelta<ShadowType> objectDelta, PrismObject<ShadowType> currentResourceObject,
             boolean notificationOnly, AcknowledgementSink acknowledgeSink) {
@@ -79,7 +79,7 @@ public class UcfAsyncUpdateChange extends UcfChange implements AcknowledgementSi
     @Override
     protected void checkObjectClassDefinitionPresence() {
         if (errorState.isSuccess()) {
-            stateCheck(objectClassDefinition != null, "No object class definition");
+            stateCheck(resourceObjectDefinition != null, "No object class definition");
         }
     }
 }

@@ -213,8 +213,7 @@ public class LocalScheduler {
                 if (oid.equals(oid1)) {
                     Job job = jec.getJobInstance();
                     if (job instanceof JobExecutor) {
-                        JobExecutor jobExecutor = (JobExecutor) job;
-                        jobExecutor.sendThreadInterrupt();
+                        ((JobExecutor) job).sendThreadInterrupt();
                     }
                     break;
                 }

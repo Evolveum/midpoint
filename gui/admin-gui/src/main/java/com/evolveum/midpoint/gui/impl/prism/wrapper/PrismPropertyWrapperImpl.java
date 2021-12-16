@@ -48,12 +48,6 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
     }
 
     @Override
-    @Deprecated
-    public QName getValueType() {
-        return getItemDefinition().getValueType();
-    }
-
-    @Override
     public Boolean isIndexed() {
         return getItemDefinition().isIndexed();
     }
@@ -65,7 +59,7 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
 
 
     @Override
-    public PropertyDelta<T> createEmptyDelta(ItemPath path) {
+    public @NotNull PropertyDelta<T> createEmptyDelta(ItemPath path) {
         return getItemDefinition().createEmptyDelta(path);
     }
 
@@ -116,6 +110,7 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
         return allEmpty;
     }
 
+    @SuppressWarnings("unchecked")
     public PrismPropertyDefinition<T> getItemDefinition() {
         return super.getItemDefinition();
     }
@@ -142,8 +137,21 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
         // TODO
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected PrismPropertyValue<T> createNewEmptyValue(ModelServiceLocator locator) {
         return locator.getPrismContext().itemFactory().createPropertyValue();
+    }
+
+    @Override
+    public Class<T> getTypeClassIfKnown() {
+        //noinspection unchecked
+        return (Class<T>) super.getTypeClassIfKnown();
+    }
+
+    @Override
+    public Class<T> getTypeClass() {
+        //noinspection unchecked
+        return (Class<T>) super.getTypeClass();
     }
 }

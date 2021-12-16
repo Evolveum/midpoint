@@ -320,7 +320,7 @@
 
                         if (!shadow.getName()) return false;
 
-                        return shadow.getName().startsWith("priv");
+                        return shadow.getName().getOrig().startsWith("priv");
                     </code>
                 </script>
             </condition>
@@ -361,7 +361,7 @@
         <objectSynchronization>
             <name>group group type</name>
             <kind>entitlement</kind>
-            <intent>privilege</intent>
+            <intent>group</intent>
             <enabled>true</enabled>
             <condition>
                 <script>
@@ -370,7 +370,7 @@
 
                         if (!shadow.getName()) return false;
 
-                        return !shadow.getName().startsWith("priv");
+                        return !shadow.getName().getOrig().startsWith("priv");
                     </code>
                 </script>
             </condition>

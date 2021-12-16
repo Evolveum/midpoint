@@ -70,7 +70,7 @@ public final class ImportActivityRun
     private Synchronizer createSynchronizer() {
         return new Synchronizer(
                 resourceObjectClass.getResource(),
-                resourceObjectClass.getObjectClassDefinitionRequired(),
+                resourceObjectClass.getResourceObjectDefinitionRequired(),
                 resourceObjectClass.getObjectFilter(),
                 getModelBeans().eventDispatcher,
                 SchemaConstants.CHANNEL_IMPORT,

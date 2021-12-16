@@ -15,6 +15,8 @@ import java.io.File;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.springframework.test.annotation.DirtiesContext;
@@ -22,7 +24,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -272,7 +273,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
         // apply appropriate schema
         PrismObject<ResourceType> resource = prismContext.parseObject(new File(FOLDER_BASIC, "resource-opendj.xml"));
-        ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
         ShadowUtil.applyResourceSchema(fileAccount, resourceSchema);
 
         OperationResult result = new OperationResult("ADD");
@@ -444,7 +445,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
             // apply appropriate schema
             PrismObject<ResourceType> resource = prismContext.parseObject(new File(FOLDER_BASIC, "resource-opendj.xml"));
-            ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
+            ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
             ShadowUtil.applyResourceSchema(account, resourceSchema);
 
             repositoryService.addObject(account, null, result);

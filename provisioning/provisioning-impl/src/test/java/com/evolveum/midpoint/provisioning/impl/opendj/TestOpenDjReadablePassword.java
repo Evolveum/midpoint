@@ -6,10 +6,6 @@
  */
 package com.evolveum.midpoint.provisioning.impl.opendj;
 
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertFalse;
-
 import java.io.File;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -23,6 +19,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import static org.testng.AssertJUnit.*;
+
 /**
  * Test for provisioning service implementation using embedded OpenDj instance.
  * This is the same test as TestOpenDj, but the configuration allows password reading.
@@ -33,7 +31,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 @DirtiesContext
 public class TestOpenDjReadablePassword extends TestOpenDj {
 
-    protected static final File RESOURCE_OPENDJ_READABLE_PASSWORD_FILE = new File(TEST_DIR, "resource-opendj-readable-password.xml");
+    private static final File RESOURCE_OPENDJ_READABLE_PASSWORD_FILE = new File(TEST_DIR, "resource-opendj-readable-password.xml");
 
     @Override
     protected File getResourceOpenDjFile() {
@@ -42,8 +40,8 @@ public class TestOpenDjReadablePassword extends TestOpenDj {
 
     @Override
     protected void assertPasswordCapability(PasswordCapabilityType capPassword) {
-        assertTrue("Wrong password capability readable flag: "+capPassword.isReadable(),
-                capPassword.isReadable() == Boolean.TRUE);
+        assertEquals("Wrong password capability readable flag: " + capPassword.isReadable(),
+                capPassword.isReadable(), Boolean.TRUE);
     }
 
     @Override
@@ -62,6 +60,7 @@ public class TestOpenDjReadablePassword extends TestOpenDj {
         String clearPassword = protector.decryptString(passwordValue);
         display("Clear password of "+provisioningShadow+": "+clearPassword);
 
+        //noinspection unchecked
         PrismContainerValue<PasswordType> passwordContainer = passwordType.asPrismContainerValue();
         PrismProperty<ProtectedStringType> valueProp = passwordContainer.findProperty(PasswordType.F_VALUE);
         assertFalse("Incomplete password value in "+provisioningShadow, valueProp.isIncomplete());

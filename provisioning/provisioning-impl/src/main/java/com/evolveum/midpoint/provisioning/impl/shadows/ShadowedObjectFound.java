@@ -214,7 +214,7 @@ public class ShadowedObjectFound implements InitializableMixin {
     private PrismObject<ShadowType> shadowResourceObjectInUltraEmergency(OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
-        PrismObject<ShadowType> minimalResourceObject = Util.minimize(resourceObject, ictx.ctx.getObjectClassDefinition());
+        PrismObject<ShadowType> minimalResourceObject = Util.minimize(resourceObject, ictx.ctx.getObjectDefinitionRequired());
         LOGGER.trace("Minimal resource object to acquire a shadow for:\n{}",
                 DebugUtil.debugDumpLazily(minimalResourceObject, 1));
         if (minimalResourceObject != null) {

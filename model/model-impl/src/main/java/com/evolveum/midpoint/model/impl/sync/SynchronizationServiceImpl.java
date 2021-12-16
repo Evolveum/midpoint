@@ -30,8 +30,8 @@ import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.SynchronizationUtils;
-import com.evolveum.midpoint.common.refinery.RefinedDefinitionUtil;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.RefinedDefinitionUtil;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
@@ -265,12 +265,12 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         if (applicableShadow.asObjectable().getTag() != null) {
             return;
         }
-        RefinedObjectClassDefinition rOcd = syncCtx.findRefinedObjectClassDefinition();
+        ResourceObjectTypeDefinition rOcd = syncCtx.findRefinedObjectClassDefinition();
         if (rOcd == null) {
             // We probably do not have kind/intent yet.
             return;
         }
-        ResourceObjectMultiplicityType multiplicity = rOcd.getMultiplicity();
+        ResourceObjectMultiplicityType multiplicity = rOcd.getObjectMultiplicity();
         if (!RefinedDefinitionUtil.isMultiaccount(multiplicity)) {
             return;
         }

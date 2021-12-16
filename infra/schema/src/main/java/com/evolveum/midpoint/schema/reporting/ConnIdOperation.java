@@ -10,7 +10,7 @@ package com.evolveum.midpoint.schema.reporting;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 
@@ -30,7 +30,7 @@ public class ConnIdOperation {
     @NotNull private final String identifier;
     @NotNull private final ProvisioningOperation operation;
     @NotNull private final ObjectReferenceType resourceRef;
-    private final ObjectClassComplexTypeDefinition objectClassDef;
+    private final ResourceObjectClassDefinition objectClassDef;
     private String uid;
     private final long startTimestamp;
     private long endTimestamp;
@@ -41,7 +41,7 @@ public class ConnIdOperation {
     private String message;
 
     private ConnIdOperation(@NotNull String identifier, @NotNull ProvisioningOperation operation,
-            @NotNull ObjectReferenceType resourceRef, ObjectClassComplexTypeDefinition objectClassDef,
+            @NotNull ObjectReferenceType resourceRef, ResourceObjectClassDefinition objectClassDef,
             String uid, long startTimestamp) {
         this.identifier = identifier;
         this.operation = operation;
@@ -77,7 +77,7 @@ public class ConnIdOperation {
                 resourceRef.getTargetName());
     }
 
-    public ObjectClassComplexTypeDefinition getObjectClassDef() {
+    public ResourceObjectClassDefinition getObjectClassDef() {
         return objectClassDef;
     }
 
@@ -196,7 +196,7 @@ public class ConnIdOperation {
         private String identifier;
         private ProvisioningOperation operation;
         private ObjectReferenceType resourceRef;
-        private ObjectClassComplexTypeDefinition objectClassDef;
+        private ResourceObjectClassDefinition objectClassDef;
         private String uid;
         private long startTimestamp;
         private long endTimestamp;
@@ -225,7 +225,7 @@ public class ConnIdOperation {
             return this;
         }
 
-        public ConnIdOperationBuilder withObjectClassDef(ObjectClassComplexTypeDefinition objectClassDef) {
+        public ConnIdOperationBuilder withObjectClassDef(ResourceObjectClassDefinition objectClassDef) {
             this.objectClassDef = objectClassDef;
             return this;
         }

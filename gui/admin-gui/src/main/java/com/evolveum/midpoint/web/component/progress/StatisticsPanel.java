@@ -52,7 +52,7 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
     private static final String ID_PROVISIONING_TITLE = "provisioningTitle";
     private static final String ID_PROVISIONING_STATISTICS_LINES = "provisioningStatisticsLines";
     private static final String ID_PROVISIONING_RESOURCE = "Provisioning.Resource";
-    private static final String ID_PROVISIONING_OBJECT_CLASS = "Provisioning.ObjectClass";
+    private static final String ID_PROVISIONING_OBJECT_CLASS = "Provisioning.ResourceObjectClass";
 
 
     private static final String ID_MAPPINGS_TITLE = "mappingsTitle";

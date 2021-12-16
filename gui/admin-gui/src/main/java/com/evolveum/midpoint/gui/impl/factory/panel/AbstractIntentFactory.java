@@ -9,13 +9,8 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -23,7 +18,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.StringAutoCompleteRenderer;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Iterator;
@@ -49,7 +43,7 @@ public abstract class AbstractIntentFactory extends AbstractInputGuiComponentFac
                 if (kindPropValue == null) {
                     return Collections.emptyIterator();
                 }
-                return WebComponentUtil.getIntensForKind(resourceType, kindPropValue.getRealValue(), panelCtx.getPageBase()).iterator();
+                return WebComponentUtil.getIntentsForKind(resourceType, kindPropValue.getRealValue()).iterator();
             }
         };
     }

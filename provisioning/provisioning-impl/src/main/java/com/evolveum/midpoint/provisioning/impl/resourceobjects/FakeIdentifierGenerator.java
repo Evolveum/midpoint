@@ -11,13 +11,11 @@ import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.selectPri
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.*;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -30,30 +28,30 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 class FakeIdentifierGenerator {
 
     void addFakePrimaryIdentifierIfNeeded(Collection<ResourceAttribute<?>> identifiers, Object primaryIdentifierRealValue,
-            ObjectClassComplexTypeDefinition objectClassDef) throws SchemaException {
-        if (primaryIdentifierRealValue != null && objectClassDef != null &&
-                selectPrimaryIdentifiers(identifiers, objectClassDef).isEmpty()) {
-            identifiers.add(createFakePrimaryIdentifier(primaryIdentifierRealValue, objectClassDef));
+            ResourceObjectDefinition definition) throws SchemaException {
+        if (primaryIdentifierRealValue != null && definition != null &&
+                selectPrimaryIdentifiers(identifiers, definition).isEmpty()) {
+            identifiers.add(createFakePrimaryIdentifier(primaryIdentifierRealValue, definition));
         }
     }
 
     void addFakePrimaryIdentifierIfNeeded(ResourceAttributeContainer attrContainer, Object primaryIdentifierRealValue,
-            ObjectClassComplexTypeDefinition objectClassDef) throws SchemaException {
+            @NotNull ResourceObjectDefinition objectClassDef) throws SchemaException {
         // TODO or should we use simply attrContainer.getPrimaryIdentifiers() ?
         //  It refers to the definition attached to the attrContainer.
         //  Let us be consistent with the Change-based version and use definition from the caller provisioning context.
-        if (primaryIdentifierRealValue != null && objectClassDef != null &&
-                selectPrimaryIdentifiers(attrContainer.getAllIdentifiers(), objectClassDef).isEmpty()) {
+        if (primaryIdentifierRealValue != null
+                && selectPrimaryIdentifiers(attrContainer.getAllIdentifiers(), objectClassDef).isEmpty()) {
             attrContainer.add(createFakePrimaryIdentifier(primaryIdentifierRealValue, objectClassDef));
         }
     }
 
     private ResourceAttribute<?> createFakePrimaryIdentifier(Object primaryIdentifierRealValue,
-            ObjectClassComplexTypeDefinition objectClassDef) throws SchemaException {
-        Collection<? extends ResourceAttributeDefinition<?>> primaryIdDefs = objectClassDef.getPrimaryIdentifiers();
+            ResourceObjectDefinition definition) throws SchemaException {
+        Collection<? extends ResourceAttributeDefinition<?>> primaryIdDefs = definition.getPrimaryIdentifiers();
         ResourceAttributeDefinition<?> primaryIdDef = MiscUtil.extractSingletonRequired(primaryIdDefs,
-                () -> new SchemaException("Multiple primary identifier definitions in " + objectClassDef),
-                () -> new SchemaException("No primary identifier definition in " + objectClassDef));
+                () -> new SchemaException("Multiple primary identifier definitions in " + definition),
+                () -> new SchemaException("No primary identifier definition in " + definition));
         ResourceAttribute<?> primaryId = primaryIdDef.instantiate();
         //noinspection unchecked
         ((ResourceAttribute<Object>) primaryId).setRealValue(primaryIdentifierRealValue);

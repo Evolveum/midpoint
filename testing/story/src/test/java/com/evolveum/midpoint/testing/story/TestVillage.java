@@ -12,6 +12,8 @@ import java.io.File;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.test.annotation.DirtiesContext;
@@ -24,7 +26,6 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
@@ -323,8 +324,8 @@ public class TestVillage extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resourceBefore = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result);
-        ResourceSchema resourceSchemaBefore = RefinedResourceSchema.getResourceSchema(resourceBefore, prismContext);
-        RefinedResourceSchema refinedSchemaBefore = RefinedResourceSchema.getRefinedSchema(resourceBefore);
+        ResourceSchema resourceSchemaBefore = ResourceSchemaFactory.getRawSchema(resourceBefore);
+        ResourceSchema refinedSchemaBefore = ResourceSchemaFactory.getCompleteSchema(resourceBefore);
 
         rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
         rememberCounter(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
@@ -346,9 +347,9 @@ public class TestVillage extends AbstractStoryTest {
         TestUtil.assertSuccess(result);
 
         long t2 = System.currentTimeMillis();
-        ResourceSchema resourceSchemaAfter = RefinedResourceSchema.getResourceSchema(resourceAfter, prismContext);
+        ResourceSchema resourceSchemaAfter = ResourceSchemaFactory.getRawSchema(resourceAfter);
         long t3 = System.currentTimeMillis();
-        RefinedResourceSchema refinedSchemaAfter = RefinedResourceSchema.getRefinedSchema(resourceAfter);
+        ResourceSchema refinedSchemaAfter = ResourceSchemaFactory.getCompleteSchema(resourceAfter);
         long t4 = System.currentTimeMillis();
 
         displayValue("Times", "getObject(RESOURCE_OPENDJ_OID): " + (t1 - t0) + "ms\ngetResourceSchema: " + (t3 - t2)

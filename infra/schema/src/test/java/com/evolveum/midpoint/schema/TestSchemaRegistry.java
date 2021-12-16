@@ -143,8 +143,8 @@ public class TestSchemaRegistry extends AbstractUnitTest {
 
         // Just make sure this does not end with NPE or stack overflow
         userDefinition.clone();
-        userDefinition.deepClone(false, null);
-        userDefinition.deepClone(true, null);
+        userDefinition.deepClone(DeepCloneOperation.notUltraDeep());
+        userDefinition.deepClone(DeepCloneOperation.ultraDeep());
     }
 
     @Test
@@ -211,8 +211,8 @@ public class TestSchemaRegistry extends AbstractUnitTest {
 
         // Just make sure this does not end with NPE or stack overflow
         roleDefinition.clone();
-        roleDefinition.deepClone(false, null);
-        roleDefinition.deepClone(true, null);
+        roleDefinition.deepClone(DeepCloneOperation.notUltraDeep());
+        roleDefinition.deepClone(DeepCloneOperation.ultraDeep());
     }
 
     @Test
@@ -247,8 +247,8 @@ public class TestSchemaRegistry extends AbstractUnitTest {
 
         // Just make sure this does not end with NPE or stack overflow
         abstractRoleDefinition.clone();
-        abstractRoleDefinition.deepClone(false, null);
-        abstractRoleDefinition.deepClone(true, null);
+        abstractRoleDefinition.deepClone(DeepCloneOperation.notUltraDeep());
+        abstractRoleDefinition.deepClone(DeepCloneOperation.ultraDeep());
     }
 
     @Test

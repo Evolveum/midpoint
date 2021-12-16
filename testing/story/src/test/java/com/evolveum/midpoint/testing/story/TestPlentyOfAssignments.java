@@ -15,6 +15,10 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -22,7 +26,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -34,9 +37,6 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -300,8 +300,9 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
         PrismObjectDefinition<ShadowType> shadowDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
         PrismObjectDefinition<RoleType> roleDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class);
-        RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(getDummyResourceObject());
-        ObjectClassComplexTypeDefinition rOcDef = rSchema.findObjectClassDefinition(getDummyResourceController().getGroupObjectClass());
+        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(getDummyResourceObject());
+        ResourceObjectClassDefinition rOcDef =
+                rSchema.findObjectClassDefinition(getDummyResourceController().getGroupObjectClass());
 
         ObjectFactory objectFactory = new ObjectFactory();
         ItemPath nameAttributePath = ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME);

@@ -60,7 +60,7 @@ public interface ConnectorFactory {
      * @throws ObjectNotFoundException if the specified connector was not found
      * @throws SchemaException if there's any schema issue
      */
-    ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace, String instanceName, String desc)
+    ConnectorInstance createConnectorInstance(ConnectorType connectorType, String instanceName, String desc)
             throws ObjectNotFoundException, SchemaException;
 
     /**

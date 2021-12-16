@@ -98,15 +98,21 @@ public class ExtensionTest extends BaseSQLRepoTest {
     }
 
     private void createShadowDefinition() {
-        ObjectClassComplexTypeDefinitionImpl ctd = new ObjectClassComplexTypeDefinitionImpl(RI_ACCOUNT_OBJECT_CLASS, prismContext);
-        attrGroupNameDefinition = ctd.createAttributeDefinition(ATTR_GROUP_NAME, DOMUtil.XSD_STRING);
-        attrGroupNameDefinition.toMutable().setMaxOccurs(1);
-        attrMemberDefinition = ctd.createAttributeDefinition(ATTR_MEMBER, DOMUtil.XSD_STRING);
-        attrMemberDefinition.toMutable().setMaxOccurs(-1);
-        attrMemberDefinition.toMutable().setIndexOnly(true);
-        attrManagerDefinition = ctd.createAttributeDefinition(ATTR_MANAGER, DOMUtil.XSD_STRING);
-        attrManagerDefinition.toMutable().setMaxOccurs(-1);
-        shadowAttributesDefinition = new ResourceAttributeContainerDefinitionImpl(ShadowType.F_ATTRIBUTES, ctd, prismContext);
+        ResourceObjectClassDefinitionImpl ctd = new ResourceObjectClassDefinitionImpl(RI_ACCOUNT_OBJECT_CLASS);
+        attrGroupNameDefinition = ctd.createAttributeDefinition(
+                ATTR_GROUP_NAME, DOMUtil.XSD_STRING,
+                def -> def.setMaxOccurs(1));
+        attrMemberDefinition = ctd.createAttributeDefinition(
+                ATTR_MEMBER, DOMUtil.XSD_STRING,
+                def -> {
+                    def.setMaxOccurs(-1);
+                    def.setIndexOnly(true);
+                });
+        attrManagerDefinition = ctd.createAttributeDefinition(
+                ATTR_MANAGER, DOMUtil.XSD_STRING,
+                def -> def.setMaxOccurs(-1));
+
+        shadowAttributesDefinition = new ResourceAttributeContainerDefinitionImpl(ShadowType.F_ATTRIBUTES, ctd);
         shadowDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class)
                 .cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES, shadowAttributesDefinition);
         itemGroupName = extItemDictionary.createOrFindItemDefinition(attrGroupNameDefinition, false);

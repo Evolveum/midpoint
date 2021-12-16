@@ -13,40 +13,34 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * @author semancik
  */
-public class RefinedObjectTypeChoicePanel extends DropDownChoicePanel<RefinedObjectClassDefinition> {
+public class RefinedObjectTypeChoicePanel extends DropDownChoicePanel<ResourceObjectTypeDefinition> {
 
-    public RefinedObjectTypeChoicePanel(String id, IModel<RefinedObjectClassDefinition> model, IModel<PrismObject<ResourceType>> resourceModel) {
+    public RefinedObjectTypeChoicePanel(String id, IModel<ResourceObjectTypeDefinition> model, IModel<PrismObject<ResourceType>> resourceModel) {
         super(id, model, createChoiceModel(resourceModel), createRenderer(), false);
     }
 
-    private static IModel<? extends List<? extends RefinedObjectClassDefinition>> createChoiceModel(final IModel<PrismObject<ResourceType>> resourceModel) {
-        return new IModel<List<? extends RefinedObjectClassDefinition>>() {
+    private static IModel<? extends List<? extends ResourceObjectTypeDefinition>> createChoiceModel(final IModel<PrismObject<ResourceType>> resourceModel) {
+        return new IModel<List<? extends ResourceObjectTypeDefinition>>() {
             @Override
-            public List<? extends RefinedObjectClassDefinition> getObject() {
-                RefinedResourceSchema refinedSchema;
+            public List<? extends ResourceObjectTypeDefinition> getObject() {
+                ResourceSchema refinedSchema;
                 try {
-                    refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceModel.getObject());
+                    refinedSchema = ResourceSchemaFactory.getCompleteSchema(resourceModel.getObject());
                 } catch (SchemaException e) {
                     throw new IllegalArgumentException(e.getMessage(), e);
                 }
-                List<? extends RefinedObjectClassDefinition> refinedDefinitions = refinedSchema.getRefinedDefinitions();
-                List<? extends RefinedObjectClassDefinition> defs = new ArrayList<>();
-                for (RefinedObjectClassDefinition rdef : refinedDefinitions) {
-                    if (rdef.getKind() != null) {
-                        ((List) defs).add(rdef);
-                    }
-                }
-                return defs;
+                return new ArrayList<>(
+                        refinedSchema.getObjectTypeDefinitions());
             }
 
             @Override
@@ -54,17 +48,17 @@ public class RefinedObjectTypeChoicePanel extends DropDownChoicePanel<RefinedObj
             }
 
             @Override
-            public void setObject(List<? extends RefinedObjectClassDefinition> object) {
+            public void setObject(List<? extends ResourceObjectTypeDefinition> object) {
                 throw new UnsupportedOperationException();
             }
         };
     }
 
-    private static IChoiceRenderer<RefinedObjectClassDefinition> createRenderer() {
-        return new IChoiceRenderer<RefinedObjectClassDefinition>() {
+    private static IChoiceRenderer<ResourceObjectTypeDefinition> createRenderer() {
+        return new IChoiceRenderer<ResourceObjectTypeDefinition>() {
 
             @Override
-            public Object getDisplayValue(RefinedObjectClassDefinition object) {
+            public Object getDisplayValue(ResourceObjectTypeDefinition object) {
                 if (object.getDisplayName() != null) {
                     return object.getDisplayName();
                 }
@@ -72,12 +66,12 @@ public class RefinedObjectTypeChoicePanel extends DropDownChoicePanel<RefinedObj
             }
 
             @Override
-            public String getIdValue(RefinedObjectClassDefinition object, int index) {
+            public String getIdValue(ResourceObjectTypeDefinition object, int index) {
                 return Integer.toString(index);
             }
 
             @Override
-            public RefinedObjectClassDefinition getObject(String id, IModel<? extends List<? extends RefinedObjectClassDefinition>> choices) {
+            public ResourceObjectTypeDefinition getObject(String id, IModel<? extends List<? extends ResourceObjectTypeDefinition>> choices) {
                 return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
             }
         };

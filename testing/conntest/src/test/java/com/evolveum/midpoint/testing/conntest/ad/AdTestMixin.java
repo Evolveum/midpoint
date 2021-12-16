@@ -10,17 +10,12 @@ import static org.testng.AssertJUnit.*;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrimitiveType;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -73,29 +68,29 @@ public interface AdTestMixin extends InfraTestMixin {
                 + hexValue.substring(20, 32);
     }
 
-    default ObjectClassComplexTypeDefinition assertAdResourceSchema(
-            PrismObject<ResourceType> resource, QName accountObjectClass, PrismContext prismContext)
+    default ResourceObjectDefinition assertAdResourceSchema(
+            PrismObject<ResourceType> resource, QName accountObjectClass)
             throws SchemaException {
-        ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
         displayDumpable("Resource schema", resourceSchema);
         ResourceTypeUtil.validateSchema(resourceSchema, resource);
         return assertAdSchema(resource, accountObjectClass);
     }
 
-    default ObjectClassComplexTypeDefinition assertAdRefinedSchema(
+    default ResourceObjectDefinition assertAdRefinedSchema(
             PrismObject<ResourceType> resource, QName accountObjectClass) throws SchemaException {
-        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         displayDumpable("Refined schema", refinedSchema);
-        RefinedResourceSchemaImpl.validateRefinedSchema(refinedSchema, resource);
+        refinedSchema.validate(resource);
         return assertAdSchema(resource, accountObjectClass);
     }
 
     // Assumes string timestamp
-    default ObjectClassComplexTypeDefinition assertAdSchema(
+    default ResourceObjectDefinition assertAdSchema(
             PrismObject<ResourceType> resource, QName accountObjectClass) throws SchemaException {
-        ObjectClassComplexTypeDefinition accountObjectClassDefinition = assertAdSchemaBase(resource, accountObjectClass);
+        ResourceObjectDefinition accountObjectClassDefinition = assertAdSchemaBase(resource, accountObjectClass);
 
-        ResourceAttributeDefinition<Long> createTimestampDef =
+        ResourceAttributeDefinition<?> createTimestampDef =
                 accountObjectClassDefinition.findAttributeDefinition("createTimeStamp");
         PrismAsserts.assertDefinition(createTimestampDef,
                 new QName(MidPointConstants.NS_RI, "createTimeStamp"), DOMUtil.XSD_DATETIME, 0, 1);
@@ -103,7 +98,7 @@ public interface AdTestMixin extends InfraTestMixin {
         assertFalse("createTimeStampDef modify", createTimestampDef.canModify());
         assertFalse("createTimeStampDef add", createTimestampDef.canAdd());
 
-        ResourceAttributeDefinition<Long> whenChangedDef =
+        ResourceAttributeDefinition<?> whenChangedDef =
                 accountObjectClassDefinition.findAttributeDefinition("whenChanged");
         PrismAsserts.assertDefinition(whenChangedDef,
                 new QName(MidPointConstants.NS_RI, "createTimeStamp"), DOMUtil.XSD_DATETIME, 0, 1);
@@ -114,63 +109,63 @@ public interface AdTestMixin extends InfraTestMixin {
         return accountObjectClassDefinition;
     }
 
-    private ObjectClassComplexTypeDefinition assertAdSchemaBase(
+    private ResourceObjectDefinition assertAdSchemaBase(
             PrismObject<ResourceType> resource, QName accountObjectClass) throws SchemaException {
 
-        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         displayDumpable("Refined schema", refinedSchema);
-        ObjectClassComplexTypeDefinition accountObjectClassDefinition = refinedSchema.findObjectClassDefinition(accountObjectClass);
+        ResourceObjectDefinition accountObjectClassDefinition = refinedSchema.findDefinitionForObjectClass(accountObjectClass);
         assertNotNull("No definition for object class " + accountObjectClass, accountObjectClassDefinition);
         displayDumpable("Account object class def", accountObjectClassDefinition);
 
-        ResourceAttributeDefinition<String> cnDef = accountObjectClassDefinition.findAttributeDefinition("cn");
+        ResourceAttributeDefinition<?> cnDef = accountObjectClassDefinition.findAttributeDefinition("cn");
         PrismAsserts.assertDefinition(cnDef, new QName(MidPointConstants.NS_RI, "cn"), DOMUtil.XSD_STRING, 0, 1);
         assertTrue("cn read", cnDef.canRead());
         assertTrue("cn modify", cnDef.canModify());
         assertTrue("cn add", cnDef.canAdd());
 
-        ResourceAttributeDefinition<String> samAccountNameDef = accountObjectClassDefinition.findAttributeDefinition(ATTRIBUTE_SAM_ACCOUNT_NAME_NAME);
+        ResourceAttributeDefinition<?> samAccountNameDef = accountObjectClassDefinition.findAttributeDefinition(ATTRIBUTE_SAM_ACCOUNT_NAME_NAME);
         PrismAsserts.assertDefinition(samAccountNameDef,
                 new QName(MidPointConstants.NS_RI, ATTRIBUTE_SAM_ACCOUNT_NAME_NAME), DOMUtil.XSD_STRING, 0, 1);
         assertTrue("samAccountNameDef read", samAccountNameDef.canRead());
         assertTrue("samAccountNameDef modify", samAccountNameDef.canModify());
         assertTrue("samAccountNameDef add", samAccountNameDef.canAdd());
 
-        ResourceAttributeDefinition<String> oDef = accountObjectClassDefinition.findAttributeDefinition("o");
+        ResourceAttributeDefinition<?> oDef = accountObjectClassDefinition.findAttributeDefinition("o");
         PrismAsserts.assertDefinition(oDef, new QName(MidPointConstants.NS_RI, "o"), DOMUtil.XSD_STRING, 0, -1);
         assertTrue("o read", oDef.canRead());
         assertTrue("o modify", oDef.canModify());
         assertTrue("o add", oDef.canAdd());
 
-        ResourceAttributeDefinition<Long> isCriticalSystemObjectDef = accountObjectClassDefinition.findAttributeDefinition("isCriticalSystemObject");
+        ResourceAttributeDefinition<?> isCriticalSystemObjectDef = accountObjectClassDefinition.findAttributeDefinition("isCriticalSystemObject");
         PrismAsserts.assertDefinition(isCriticalSystemObjectDef, new QName(MidPointConstants.NS_RI, "isCriticalSystemObject"),
                 PrimitiveType.XSD_BOOLEAN, 0, 1);
         assertTrue("isCriticalSystemObject read", isCriticalSystemObjectDef.canRead());
         assertTrue("isCriticalSystemObject modify", isCriticalSystemObjectDef.canModify());
         assertTrue("isCriticalSystemObject add", isCriticalSystemObjectDef.canAdd());
 
-        ResourceAttributeDefinition<Long> nTSecurityDescriptorDef = accountObjectClassDefinition.findAttributeDefinition("nTSecurityDescriptor");
+        ResourceAttributeDefinition<?> nTSecurityDescriptorDef = accountObjectClassDefinition.findAttributeDefinition("nTSecurityDescriptor");
         PrismAsserts.assertDefinition(nTSecurityDescriptorDef, new QName(MidPointConstants.NS_RI, "nTSecurityDescriptor"),
                 PrimitiveType.XSD_BASE64BINARY, 0, 1);
         assertTrue("nTSecurityDescriptor read", nTSecurityDescriptorDef.canRead());
         assertTrue("nTSecurityDescriptor modify", nTSecurityDescriptorDef.canModify());
         assertTrue("nTSecurityDescriptor add", nTSecurityDescriptorDef.canAdd());
 
-        ResourceAttributeDefinition<Long> objectSidDef = accountObjectClassDefinition.findAttributeDefinition(ATTRIBUTE_OBJECT_SID_NAME);
+        ResourceAttributeDefinition<?> objectSidDef = accountObjectClassDefinition.findAttributeDefinition(ATTRIBUTE_OBJECT_SID_NAME);
         PrismAsserts.assertDefinition(objectSidDef, new QName(MidPointConstants.NS_RI, ATTRIBUTE_OBJECT_SID_NAME),
                 PrimitiveType.XSD_STRING, 0, 1);
         assertTrue("objectSid read", objectSidDef.canRead());
         assertFalse("objectSid modify", objectSidDef.canModify());
         assertFalse("objectSid add", objectSidDef.canAdd());
 
-        ResourceAttributeDefinition<Long> lastLogonDef = accountObjectClassDefinition.findAttributeDefinition("lastLogon");
+        ResourceAttributeDefinition<?> lastLogonDef = accountObjectClassDefinition.findAttributeDefinition("lastLogon");
         PrismAsserts.assertDefinition(lastLogonDef, new QName(MidPointConstants.NS_RI, "lastLogon"),
                 PrimitiveType.XSD_LONG, 0, 1);
         assertTrue("lastLogonDef read", lastLogonDef.canRead());
         assertTrue("lastLogonDef modify", lastLogonDef.canModify());
         assertTrue("lastLogonDef add", lastLogonDef.canAdd());
 
-        ResourceAttributeDefinition<Long> proxyAddressesDef = accountObjectClassDefinition.findAttributeDefinition(ATTRIBUTE_PROXY_ADDRESSES_NAME);
+        ResourceAttributeDefinition<?> proxyAddressesDef = accountObjectClassDefinition.findAttributeDefinition(ATTRIBUTE_PROXY_ADDRESSES_NAME);
         PrismAsserts.assertDefinition(proxyAddressesDef, new QName(MidPointConstants.NS_RI, ATTRIBUTE_PROXY_ADDRESSES_NAME),
                 PrimitiveType.XSD_STRING, 0, -1);
         assertTrue("proxyAddressesDef read", proxyAddressesDef.canRead());
@@ -181,31 +176,31 @@ public interface AdTestMixin extends InfraTestMixin {
         return accountObjectClassDefinition;
     }
 
-    default void assertExchangeSchema(PrismObject<ResourceType> resource, QName accountObjectClassQName, PrismContext prismContext) throws SchemaException {
+    default void assertExchangeSchema(PrismObject<ResourceType> resource, QName accountObjectClassQName) throws SchemaException {
 
-        ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
         assertExchangeSchema(resourceSchema, accountObjectClassQName);
 
-        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         assertExchangeSchema(refinedSchema, accountObjectClassQName);
     }
 
     default void assertExchangeSchema(ResourceSchema resourceSchema, QName accountObjectClassQName) {
-        ObjectClassComplexTypeDefinition msExchBaseClassObjectClassDefinition = resourceSchema.findObjectClassDefinition(OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME);
+        ResourceObjectDefinition msExchBaseClassObjectClassDefinition = resourceSchema.findDefinitionForObjectClass(OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME);
         assertNotNull("No definition for object class " + OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME, msExchBaseClassObjectClassDefinition);
         displayDumpable("Object class " + OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME + " def", msExchBaseClassObjectClassDefinition);
 
-        ResourceAttributeDefinition<String> msExchHideFromAddressListsDef = msExchBaseClassObjectClassDefinition.findAttributeDefinition(ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME);
+        ResourceAttributeDefinition<?> msExchHideFromAddressListsDef = msExchBaseClassObjectClassDefinition.findAttributeDefinition(ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME);
         PrismAsserts.assertDefinition(msExchHideFromAddressListsDef, new QName(MidPointConstants.NS_RI, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME), DOMUtil.XSD_BOOLEAN, 0, 1);
         assertTrue("msExchHideFromAddressLists read", msExchHideFromAddressListsDef.canRead());
         assertTrue("msExchHideFromAddressLists modify", msExchHideFromAddressListsDef.canModify());
         assertTrue("msExchHideFromAddressLists add", msExchHideFromAddressListsDef.canAdd());
 
-        ObjectClassComplexTypeDefinition accountObjectClassDef = resourceSchema.findObjectClassDefinition(accountObjectClassQName);
+        ResourceObjectDefinition accountObjectClassDef = resourceSchema.findDefinitionForObjectClass(accountObjectClassQName);
         assertNotNull("No definition for object class " + accountObjectClassQName, accountObjectClassDef);
         displayDumpable("Object class " + accountObjectClassQName + " def", accountObjectClassDef);
 
-        ResourceAttributeDefinition<String> accountMsExchHideFromAddressListsDef = accountObjectClassDef.findAttributeDefinition(ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME);
+        ResourceAttributeDefinition<?> accountMsExchHideFromAddressListsDef = accountObjectClassDef.findAttributeDefinition(ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME);
         PrismAsserts.assertDefinition(accountMsExchHideFromAddressListsDef, new QName(MidPointConstants.NS_RI, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME), DOMUtil.XSD_BOOLEAN, 0, 1);
         assertTrue("msExchHideFromAddressLists read", accountMsExchHideFromAddressListsDef.canRead());
         assertTrue("msExchHideFromAddressLists modify", accountMsExchHideFromAddressListsDef.canModify());

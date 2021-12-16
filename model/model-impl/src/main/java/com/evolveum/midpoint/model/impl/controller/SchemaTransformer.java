@@ -249,7 +249,7 @@ public class SchemaTransformer {
 
         result.computeStatus();
         result.recordSuccessIfUnknown();
-        LOGGER.trace("applySchemasAndSecurity finishing");            // to allow folding in log viewer
+        LOGGER.trace("applySchemasAndSecurity finishing");
     }
 
     private void transform(Item<?,?> object, ItemDefinitionTransformer transformation) {
@@ -341,12 +341,6 @@ public class SchemaTransformer {
                     globalReadDecision, globalAddDecision, globalModifyDecision));
 
         return securityConstraints;
-    }
-
-    public void setFullAccessFlags(ItemDefinition<?> itemDef) {
-        itemDef.toMutable().setCanRead(true);
-        itemDef.toMutable().setCanAdd(true);
-        itemDef.toMutable().setCanModify(true);
     }
 
     private <O extends ObjectType> void applySchemasAndSecurityPhase(PrismObject<O> object, ObjectSecurityConstraints securityConstraints, PrismObjectDefinition<O> objectDefinition,
@@ -782,7 +776,7 @@ public class SchemaTransformer {
 
         List<PropertyLimitationsType> limitations = templateItemDefType.getLimitations();
         if (limitations != null) {
-            PropertyLimitationsType limitationsType = MiscSchemaUtil.getLimitationsType(limitations, LayerType.PRESENTATION);
+            PropertyLimitationsType limitationsType = MiscSchemaUtil.getLimitationsForLayer(limitations, LayerType.PRESENTATION);
             if (limitationsType != null) {
                 if (limitationsType.getMinOccurs() != null) {
                     mutableDef.setMinOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMinOccurs()));

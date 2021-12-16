@@ -52,6 +52,9 @@ import javax.xml.namespace.QName;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+
 import org.apache.commons.lang.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,10 +79,7 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.LocalizationServiceImpl;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -211,7 +211,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     /**
      * Fast and simple way how to enable tracing of test methods.
-     * (Assuming that auto task management is enabled.)
      */
     protected PredefinedTestMethodTracing predefinedTestMethodTracing;
 
@@ -232,6 +231,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
      */
     @PostConstruct
     public void initSystem() throws Exception {
+        TestSpringBeans.setApplicationContext(
+                Objects.requireNonNull(applicationContext, "No Spring application context present"));
         displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
         if (initSystemExecuted) {
             logger.trace("initSystem: already called for class {} - IGNORING", getClass().getName());
@@ -350,7 +351,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .addReportCallback(SqlRepoTestUtil.reportCallbackQueryList(queryListener));
     }
 
-    protected TracingProfileType getTestMethodTracingProfile() {
+    /**
+     * Returns tracing profile for a test method, based on {@link #predefinedTestMethodTracing} setting.
+     */
+    private TracingProfileType getTestMethodTracingProfile() {
         if (predefinedTestMethodTracing == null || predefinedTestMethodTracing == OFF) {
             return null;
         } else {
@@ -366,7 +370,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                     profile = createModelAndProvisioningLoggingTracingProfile();
                     break;
                 default:
-                    throw new AssertionError(predefinedTestMethodTracing.toString());
+                    throw new AssertionError(predefinedTestMethodTracing);
             }
             return profile
                     .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
@@ -541,8 +545,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         PrismContainer<Containerable> attrCont = object.findContainer(ShadowType.F_ATTRIBUTES);
         for (PrismProperty<?> attr : attrCont.getValue().getProperties()) {
             if (attr.getDefinition() == null) {
-                ResourceAttributeDefinition<String> attrDef = ObjectFactory.createResourceAttributeDefinition(attr.getElementName(),
-                        DOMUtil.XSD_STRING, prismContext);
+                RawResourceAttributeDefinition<String> attrDef =
+                        ObjectFactory.createResourceAttributeDefinition(attr.getElementName(), DOMUtil.XSD_STRING);
                 attr.setDefinition((PrismPropertyDefinition) attrDef);
             }
         }
@@ -726,7 +730,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     @NotNull
-    protected PrismObject<ResourceType> addResourceFromObject(PrismObject<ResourceType> resource, List<String> connectorTypes,
+    private PrismObject<ResourceType> addResourceFromObject(PrismObject<ResourceType> resource, List<String> connectorTypes,
             boolean overwrite, OperationResult result)
             throws SchemaException, EncryptionException,
             ObjectAlreadyExistsException {
@@ -1013,11 +1017,11 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected QName getAccountObjectClass(ResourceType resourceType) {
-        return new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
+        return new QName(MidPointConstants.NS_RI, "AccountObjectClass");
     }
 
     protected QName getGroupObjectClass(ResourceType resourceType) {
-        return new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "GroupObjectClass");
+        return new QName(MidPointConstants.NS_RI, "GroupObjectClass");
     }
 
     protected void assertShadowCommon(PrismObject<ShadowType> shadow, String oid, String username, ResourceType resourceType,
@@ -1076,8 +1080,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             PrismAsserts.assertPropertyValue(shadow, ShadowType.F_NAME, PrismTestUtil.createPolyString(username));
         }
 
-        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
-        ObjectClassComplexTypeDefinition ocDef = rSchema.findObjectClassDefinition(objectClass);
+        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resourceType);
+        ResourceObjectDefinition ocDef = rSchema.findDefinitionForObjectClass(objectClass);
         if (ocDef.getSecondaryIdentifiers().isEmpty()) {
             ResourceAttributeDefinition idDef = ocDef.getPrimaryIdentifiers().iterator().next();
             PrismProperty<String> idProp = attributesContainer.findProperty(idDef.getItemName());
@@ -1126,8 +1130,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertShadowSecondaryIdentifier(PrismObject<ShadowType> shadow, String expectedIdentifier, ResourceType resourceType, MatchingRule<String> nameMatchingRule) throws SchemaException {
-        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
-        ObjectClassComplexTypeDefinition ocDef = rSchema.findObjectClassDefinition(shadow.asObjectable().getObjectClass());
+        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resourceType);
+        ResourceObjectDefinition ocDef = rSchema.findDefinitionForObjectClass(shadow.asObjectable().getObjectClass());
         ResourceAttributeDefinition idSecDef = ocDef.getSecondaryIdentifiers().iterator().next();
         PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
         PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getItemName());
@@ -1184,14 +1188,15 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule, requireNormalizedIdentifiers, useMatchingRuleForShadowName);
         PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ShadowType.F_ATTRIBUTES);
         Collection<Item<?, ?>> attributes = attributesContainer.getValue().getItems();
-        RefinedResourceSchema refinedSchema = null;
+        ResourceSchema refinedSchema = null;
         try {
-            refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
+            refinedSchema = ResourceSchemaFactory.getCompleteSchema(resourceType);
         } catch (SchemaException e) {
             AssertJUnit.fail(e.getMessage());
         }
-        ObjectClassComplexTypeDefinition objClassDef = refinedSchema.getRefinedDefinition(objectClass);
-        Collection secIdentifiers = objClassDef.getSecondaryIdentifiers();
+        // FIXME use kind / intent from the shadow!!!
+        ResourceObjectDefinition objTypeDef = refinedSchema.findDefinitionForObjectClass(objectClass);
+        Collection secIdentifiers = objTypeDef.getSecondaryIdentifiers();
         // repo shadow should contains all secondary identifiers + ICF_UID
         assertRepoShadowAttributes(attributes, secIdentifiers.size() + 1);
     }
@@ -1328,18 +1333,22 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         resourceRef.setOid(resource.getOid());
         shadowType.setResourceRef(resourceRef);
         shadowType.setKind(ShadowKindType.ACCOUNT);
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-        RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ResourceObjectTypeDefinition objectClassDefinition = refinedSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
         shadowType.setObjectClass(objectClassDefinition.getTypeName());
         ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
         if (uid != null) {
-            RefinedAttributeDefinition<String> uidAttrDef = objectClassDefinition.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "uid"));
+            //noinspection unchecked
+            ResourceAttributeDefinition<String> uidAttrDef =
+                    (ResourceAttributeDefinition<String>) objectClassDefinition.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "uid"));
             ResourceAttribute<String> uidAttr = uidAttrDef.instantiate();
             uidAttr.setRealValue(uid);
             attrContainer.add(uidAttr);
         }
         if (name != null) {
-            RefinedAttributeDefinition<String> nameAttrDef = objectClassDefinition.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
+            //noinspection unchecked
+            ResourceAttributeDefinition<String> nameAttrDef =
+                    (ResourceAttributeDefinition<String>) objectClassDefinition.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
             ResourceAttribute<String> nameAttr = nameAttrDef.instantiate();
             nameAttr.setRealValue(name);
             attrContainer.add(nameAttr);
@@ -1351,13 +1360,15 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected final <T> void addAttributeValue(PrismObject<ResourceType> resource, PrismObject<ShadowType> shadow,
             QName attributeName, T... values) throws SchemaException {
         ShadowType shadowBean = shadow.asObjectable();
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-        RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getDefaultRefinedDefinition(shadowBean.getKind());
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ResourceObjectTypeDefinition objectClassDefinition = refinedSchema.findDefaultOrAnyObjectTypeDefinition(shadowBean.getKind());
         shadowBean.setObjectClass(objectClassDefinition.getTypeName());
         ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
-        RefinedAttributeDefinition<T> attrDef = requireNonNull(
-                objectClassDefinition.findAttributeDefinition(attributeName),
-                () -> "No attribute " + attributeName + " in " + objectClassDefinition);
+        //noinspection unchecked
+        ResourceAttributeDefinition<T> attrDef =
+                (ResourceAttributeDefinition<T>) requireNonNull(
+                        objectClassDefinition.findAttributeDefinition(attributeName),
+                        () -> "No attribute " + attributeName + " in " + objectClassDefinition);
         ResourceAttribute<T> attr = attrDef.instantiate();
         attr.addRealValues(values);
         attrContainer.add(attr);
@@ -1376,8 +1387,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected PrismObject<ShadowType> findShadowByName(ShadowKindType kind, String intent, String name, PrismObject<ResourceType> resource, OperationResult result) throws SchemaException {
-        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-        RefinedObjectClassDefinition rOcDef = rSchema.getRefinedDefinition(kind, intent);
+        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ResourceObjectDefinition rOcDef = rSchema.findObjectDefinitionRequired(kind, intent);
         ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource);
         List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
         if (shadows.isEmpty()) {
@@ -1388,8 +1399,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected PrismObject<ShadowType> findShadowByName(QName objectClass, String name, PrismObject<ResourceType> resource, OperationResult result) throws SchemaException {
-        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-        RefinedObjectClassDefinition rOcDef = rSchema.getRefinedDefinition(objectClass);
+        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ResourceObjectDefinition rOcDef = rSchema.findDefinitionForObjectClassRequired(objectClass);
         ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource);
         List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
         if (shadows.isEmpty()) {
@@ -1414,8 +1425,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected ObjectQuery createAccountShadowQuery(String identifier, PrismObject<ResourceType> resource) throws SchemaException {
-        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-        RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ResourceObjectTypeDefinition rAccount = rSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
         Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getPrimaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in " + resource + " refined schema: " + identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
@@ -1429,19 +1440,16 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected ObjectQuery createAccountShadowQuerySecondaryIdentifier(
             String identifier, PrismObject<ResourceType> resource) throws SchemaException {
-        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-        RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-        assertThat(rAccount)
-                .withFailMessage("No RefinedObjectClassDefinition for %s", rSchema)
-                .isNotNull();
-        return createShadowQuerySecondaryIdentifier(rAccount, identifier, resource);
+        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ResourceObjectDefinition accountDefinition = rSchema.findObjectDefinitionRequired(ShadowKindType.ACCOUNT, null);
+        return createShadowQuerySecondaryIdentifier(accountDefinition, identifier, resource);
     }
 
     protected ObjectQuery createShadowQuerySecondaryIdentifier(
-            ObjectClassComplexTypeDefinition rAccount, String identifier, PrismObject<ResourceType> resource) {
-        Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getSecondaryIdentifiers();
+            ResourceObjectDefinition rAccount, String identifier, PrismObject<ResourceType> resource) {
+        Collection<? extends ResourceAttributeDefinition<?>> identifierDefs = rAccount.getSecondaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in " + resource + " refined schema: " + identifierDefs;
-        ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
+        ResourceAttributeDefinition<?> identifierDef = identifierDefs.iterator().next();
         //TODO: set matching rule instead of null
         return prismContext.queryFor(ShadowType.class)
                 .itemWithDef(identifierDef, ShadowType.F_ATTRIBUTES, identifierDef.getItemName()).eq(identifier)
@@ -1451,13 +1459,15 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected ObjectQuery createAccountShadowQueryByAttribute(String attributeName, String attributeValue, PrismObject<ResourceType> resource) throws SchemaException {
-        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-        RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-        return createShadowQueryByAttribute(rAccount, attributeName, attributeValue, resource);
+        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ResourceObjectTypeDefinition rAccount = rSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
+        return createShadowQueryByAttribute(rAccount.getObjectClassDefinition(), attributeName, attributeValue, resource);
     }
 
-    protected ObjectQuery createShadowQueryByAttribute(ObjectClassComplexTypeDefinition rAccount, String attributeName, String attributeValue, PrismObject<ResourceType> resource) {
-        ResourceAttributeDefinition<Object> attrDef = rAccount.findAttributeDefinition(attributeName);
+    protected ObjectQuery createShadowQueryByAttribute(ResourceObjectClassDefinition rAccount, String attributeName, String attributeValue, PrismObject<ResourceType> resource) {
+        //noinspection RedundantExplicitVariableType
+        ResourceAttributeDefinition<Object> attrDef =
+                (ResourceAttributeDefinition<Object>) rAccount.findAttributeDefinition(attributeName);
         return prismContext.queryFor(ShadowType.class)
                 .itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(attributeValue)
                 .and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getTypeName())
@@ -1487,14 +1497,14 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return getObjectDefinition(ShadowType.class);
     }
 
-    // objectClassName may be null
-    protected <T> RefinedAttributeDefinition<T> getAttributeDefinition(ResourceType resourceType,
-            ShadowKindType kind, QName objectClassName, String attributeLocalName)
-            throws SchemaException {
-        RefinedResourceSchema refinedResourceSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
-        RefinedObjectClassDefinition refinedObjectClassDefinition =
-                refinedResourceSchema.findRefinedDefinitionByObjectClassQName(kind, objectClassName);
-        return refinedObjectClassDefinition.findAttributeDefinition(attributeLocalName);
+    protected @NotNull <T> ResourceAttributeDefinition<T> getAttributeDefinitionRequired(
+            ResourceType resource, ShadowKindType kind, String attributeLocalName)
+            throws SchemaException, ConfigurationException {
+        //noinspection unchecked
+        return (ResourceAttributeDefinition<T>) ResourceSchemaFactory
+                .getCompleteSchemaRequired(resource)
+                .findObjectDefinitionRequired(kind, null)
+                .findAttributeDefinitionRequired(new ItemName(MidPointConstants.NS_RI, attributeLocalName));
     }
 
     protected void assertPassword(ShadowType shadow, String expectedPassword) throws SchemaException, EncryptionException {
@@ -2769,11 +2779,11 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected ResourceAttributeDefinition getAttributeDefinition(PrismObject<ResourceType> resource, QName attributeName) throws SchemaException {
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         if (refinedSchema == null) {
             throw new SchemaException("No refined schema for " + resource);
         }
-        RefinedObjectClassDefinition accountDefinition = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectTypeDefinition accountDefinition = refinedSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
         return accountDefinition.findAttributeDefinition(attributeName);
     }
 
@@ -2912,7 +2922,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected RefinedResourceSchemaAsserter<Void> assertRefinedResourceSchema(PrismObject<ResourceType> resource, String details) throws SchemaException {
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, prismContext);
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         assertNotNull("No refined schema for " + resource + " (" + details + ")", refinedSchema);
         RefinedResourceSchemaAsserter<Void> asserter = new RefinedResourceSchemaAsserter<>(
                 refinedSchema, resource.toString() + " (" + details + ")");
@@ -3604,15 +3614,15 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return waitForTaskFinish(taskOid, checkSubresult, timeout, false);
     }
 
-    protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout, final boolean errorOk) throws CommonException {
+    protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, final long timeout, final boolean errorOk) throws CommonException {
         return waitForTaskFinish(taskOid, checkSubresult, 0, timeout, errorOk);
     }
 
-    protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, long startTime, final int timeout, final boolean errorOk) throws CommonException {
+    protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, long startTime, final long timeout, final boolean errorOk) throws CommonException {
         return waitForTaskFinish(taskOid, checkSubresult, startTime, timeout, errorOk, 0, null);
     }
 
-    protected Task waitForTaskFinish(String taskOid, boolean checkSubresult, long startTime, int timeout, boolean errorOk,
+    protected Task waitForTaskFinish(String taskOid, boolean checkSubresult, long startTime, long timeout, boolean errorOk,
             int showProgressEach, Function<TaskFinishChecker.Builder, TaskFinishChecker.Builder> customizer) throws CommonException {
         long realStartTime = startTime != 0 ? startTime : System.currentTimeMillis();
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskFinish");

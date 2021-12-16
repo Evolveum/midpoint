@@ -6,20 +6,44 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchHierarchyScopeType;
+
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Arrays;
+
 /**
  * @author semancik
  */
 public enum SearchHierarchyScope {
-    ONE("one"), SUB("sub");
+    ONE("one", SearchHierarchyScopeType.ONE),
+    SUB("sub", SearchHierarchyScopeType.SUB);
 
-    private final String scopeString;
+    @NotNull private final String string;
+    @NotNull private final SearchHierarchyScopeType beanValue;
 
-    SearchHierarchyScope(String scopeString) {
-        this.scopeString = scopeString;
+    SearchHierarchyScope(@NotNull String string, @NotNull SearchHierarchyScopeType beanValue) {
+        this.string = string;
+        this.beanValue = beanValue;
     }
 
-    public String getScopeString() {
-        return scopeString;
+    public @NotNull String getString() {
+        return string;
     }
 
+    public @NotNull SearchHierarchyScopeType getBeanValue() {
+        return beanValue;
+    }
+
+    @Contract("null -> null; !null -> !null")
+    public static SearchHierarchyScope fromBeanValue(SearchHierarchyScopeType beanValue) {
+        if (beanValue == null) {
+            return null;
+        }
+        return Arrays.stream(values())
+                .filter(v -> v.beanValue == beanValue)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown value " + beanValue));
+    }
 }

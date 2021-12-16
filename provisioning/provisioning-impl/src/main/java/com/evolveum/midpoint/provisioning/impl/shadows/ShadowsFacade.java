@@ -104,25 +104,25 @@ public class ShadowsFacade {
     }
 
     public void applyDefinition(ObjectDelta<ShadowType> delta, ShadowType repoShadow,
-            OperationResult result) throws SchemaException, ObjectNotFoundException,
+            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException,
                     CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        definitionsHelper.applyDefinition(delta, repoShadow, result);
+        definitionsHelper.applyDefinition(delta, repoShadow, task, result);
     }
 
-    public void applyDefinition(PrismObject<ShadowType> shadow, OperationResult result)
+    public void applyDefinition(PrismObject<ShadowType> shadow, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        definitionsHelper.applyDefinition(shadow, result);
+        definitionsHelper.applyDefinition(shadow, task, result);
     }
 
-    public void applyDefinition(ObjectQuery query, OperationResult result)
+    public void applyDefinition(ObjectQuery query, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        definitionsHelper.applyDefinition(query, result);
+        definitionsHelper.applyDefinition(query, task, result);
     }
 
-    public void determineShadowState(PrismObject<ShadowType> shadow, Task task, OperationResult result)
+    public void determineShadowState(ProvisioningContext ctx, PrismObject<ShadowType> shadow)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
-        stateHelper.determineShadowState(shadow, task, result);
+        stateHelper.determineShadowState(ctx, shadow);
     }
 
     public SearchResultMetadata searchObjectsIterative(ObjectQuery query,
@@ -170,7 +170,7 @@ public class ShadowsFacade {
         propagateHelper.propagateOperations(resource, shadow, task, result);
     }
 
-    public <T> ItemComparisonResult compare(PrismObject<ShadowType> repositoryShadow, ItemPath path, T expectedValue, Task task,
+    public <T> ItemComparisonResult compare(@NotNull PrismObject<ShadowType> repositoryShadow, ItemPath path, T expectedValue, Task task,
             OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
         return compareHelper.compare(repositoryShadow, path, expectedValue, task, result);

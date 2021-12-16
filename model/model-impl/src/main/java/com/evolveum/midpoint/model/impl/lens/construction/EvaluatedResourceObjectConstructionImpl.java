@@ -10,9 +10,9 @@ package com.evolveum.midpoint.model.impl.lens.construction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -113,7 +113,9 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
 
     @Override
     public @NotNull ShadowKindType getKind() {
-        return rsd.getKind();
+        return Objects.requireNonNullElse( // TODO is this OK?
+                rsd.getKind(),
+                ShadowKindType.ACCOUNT);
     }
 
     @Override

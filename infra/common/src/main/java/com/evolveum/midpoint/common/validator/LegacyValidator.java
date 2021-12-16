@@ -22,6 +22,8 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.staxmate.dom.DOMConverter;
 import org.w3c.dom.Document;
@@ -35,7 +37,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismParserNoIO;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -478,13 +479,6 @@ public class LegacyValidator {
 
         checkBasics(object, objectResult);
 
-        // Type-specific checks
-
-        if (object instanceof ResourceType) {
-            ResourceType resource = (ResourceType) object;
-            checkResource(resource, objectResult);
-        }
-
         // TODO: more checks
 
         objectResult.recomputeStatus("Object validation has failed", "Validation warning");
@@ -499,12 +493,6 @@ public class LegacyValidator {
         if (validateName) {
             checkName(object, object.getName(), "name", subresult);
         }
-        subresult.recordSuccessIfUnknown();
-    }
-
-    private void checkResource(ResourceType resource, OperationResult objectResult) {
-        OperationResult subresult = objectResult.createSubresult(OPERATION_RESOURCE_NAMESPACE_CHECK);
-        checkUri(resource, ResourceTypeUtil.getResourceNamespace(resource), "namespace", subresult);
         subresult.recordSuccessIfUnknown();
     }
 

@@ -14,7 +14,6 @@ package com.evolveum.midpoint.schema.processor;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
@@ -34,7 +33,6 @@ import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
@@ -47,8 +45,6 @@ public class TestResourceSchema extends AbstractSchemaTest {
 
     private static final String RESOURCE_SCHEMA_SIMPLE_FILENAME = TEST_DIR + "resource-schema-simple.xsd";
 
-    private static final String SCHEMA_NAMESPACE = "http://schema.foo.com/bar";
-
     @Test
     public void testParseSchema() throws Exception {
         // GIVEN
@@ -57,8 +53,7 @@ public class TestResourceSchema extends AbstractSchemaTest {
 
         // WHEN
 
-        ResourceSchema schema = ResourceSchemaImpl.parse(DOMUtil.getFirstChildElement(schemaDom),
-                "http://schema.foo.com/bar", RESOURCE_SCHEMA_SIMPLE_FILENAME, PrismTestUtil.getPrismContext());
+        ResourceSchema schema = ResourceSchemaParser.parse(DOMUtil.getFirstChildElement(schemaDom), RESOURCE_SCHEMA_SIMPLE_FILENAME);
 
         // THEN
         assertSimpleSchema(schema, RESOURCE_SCHEMA_SIMPLE_FILENAME);
@@ -69,31 +64,27 @@ public class TestResourceSchema extends AbstractSchemaTest {
         System.out.println("Parsed schema from " + filename + ":");
         System.out.println(schema.debugDump());
 
-        ObjectClassComplexTypeDefinition accDef = schema.findObjectClassDefinition(new ItemName(SCHEMA_NAMESPACE, "AccountObjectClass"));
-        assertEquals("Wrong account objectclass", new ItemName(SCHEMA_NAMESPACE, "AccountObjectClass"), accDef.getTypeName());
-        assertEquals("Wrong account kind", ShadowKindType.ACCOUNT, accDef.getKind());
-        assertEquals("Wrong account intent", "admin", accDef.getIntent());
-        assertTrue("Not a default account", accDef.isDefaultInAKind());
+        ResourceObjectClassDefinition accDef = schema.findObjectClassDefinition(new ItemName(MidPointConstants.NS_RI, "AccountObjectClass"));
+        assertEquals("Wrong account objectclass", new ItemName(MidPointConstants.NS_RI, "AccountObjectClass"), accDef.getTypeName());
+        assertTrue("Not a default account", accDef.isDefaultAccountDefinition());
 
-        PrismPropertyDefinition<String> loginAttrDef = accDef.findPropertyDefinition(new ItemName(SCHEMA_NAMESPACE, "login"));
-        assertEquals(new ItemName(SCHEMA_NAMESPACE, "login"), loginAttrDef.getItemName());
+        PrismPropertyDefinition<String> loginAttrDef = accDef.findPropertyDefinition(new ItemName(MidPointConstants.NS_RI, "login"));
+        assertEquals(new ItemName(MidPointConstants.NS_RI, "login"), loginAttrDef.getItemName());
         assertEquals(DOMUtil.XSD_STRING, loginAttrDef.getTypeName());
         assertFalse("Ignored while it should not be", loginAttrDef.isIgnored());
 
-        PrismPropertyDefinition<Integer> groupAttrDef = accDef.findPropertyDefinition(new ItemName(SCHEMA_NAMESPACE, "group"));
-        assertEquals(new ItemName(SCHEMA_NAMESPACE, "group"), groupAttrDef.getItemName());
+        PrismPropertyDefinition<Integer> groupAttrDef = accDef.findPropertyDefinition(new ItemName(MidPointConstants.NS_RI, "group"));
+        assertEquals(new ItemName(MidPointConstants.NS_RI, "group"), groupAttrDef.getItemName());
         assertEquals(DOMUtil.XSD_INT, groupAttrDef.getTypeName());
         assertFalse("Ignored while it should not be", groupAttrDef.isIgnored());
 
-        PrismPropertyDefinition<String> ufoAttrDef = accDef.findPropertyDefinition(new ItemName(SCHEMA_NAMESPACE, "ufo"));
-        assertEquals(new ItemName(SCHEMA_NAMESPACE, "ufo"), ufoAttrDef.getItemName());
+        PrismPropertyDefinition<String> ufoAttrDef = accDef.findPropertyDefinition(new ItemName(MidPointConstants.NS_RI, "ufo"));
+        assertEquals(new ItemName(MidPointConstants.NS_RI, "ufo"), ufoAttrDef.getItemName());
         assertTrue("Not ignored as it should be", ufoAttrDef.isIgnored());
 
-        ObjectClassComplexTypeDefinition groupDef = schema.findObjectClassDefinition(new ItemName(SCHEMA_NAMESPACE, "GroupObjectClass"));
-        assertEquals("Wrong group objectclass", new ItemName(SCHEMA_NAMESPACE, "GroupObjectClass"), groupDef.getTypeName());
-        assertEquals("Wrong group kind", ShadowKindType.ENTITLEMENT, groupDef.getKind());
-        assertEquals("Wrong group intent", null, groupDef.getIntent());
-        assertFalse("Default group but it should not be", groupDef.isDefaultInAKind());
+        ResourceObjectClassDefinition groupDef = schema.findObjectClassDefinition(new ItemName(MidPointConstants.NS_RI, "GroupObjectClass"));
+        assertEquals("Wrong group objectclass", new ItemName(MidPointConstants.NS_RI, "GroupObjectClass"), groupDef.getTypeName());
+        assertFalse("Default group but it should not be", groupDef.isDefaultAccountDefinition());
     }
 
     // The support for the xsd:any properties is missing in JAXB generator. Otherwise this test should work.
@@ -125,7 +116,7 @@ public class TestResourceSchema extends AbstractSchemaTest {
         System.out.println(ObjectTypeUtil.dump(unmarshalledResource));
         XmlSchemaType unXmlSchemaType = unmarshalledResource.getSchema();
         Element unXsd = unXmlSchemaType.getDefinition().getAny().get(0);
-        ResourceSchema unSchema = ResourceSchemaImpl.parse(unXsd, "unmarshalled resource", PrismTestUtil.getPrismContext());
+        ResourceSchema unSchema = ResourceSchemaParser.parse(unXsd, "unmarshalled resource");
 
         System.out.println("unmarshalled schema");
         System.out.println(unSchema.debugDump());
@@ -170,7 +161,7 @@ public class TestResourceSchema extends AbstractSchemaTest {
         System.out.println("unmarshalled resource schema");
         System.out.println(DOMUtil.serializeDOMToString(unXsd));
 
-        ResourceSchema unSchema = ResourceSchemaImpl.parse(unXsd, "unmarshalled resource schema", PrismTestUtil.getPrismContext());
+        ResourceSchema unSchema = ResourceSchemaParser.parse(unXsd, "unmarshalled resource schema");
 
         System.out.println("unmarshalled parsed schema");
         System.out.println(unSchema.debugDump());
@@ -180,18 +171,17 @@ public class TestResourceSchema extends AbstractSchemaTest {
     }
 
     private void assertResourceSchema(ResourceSchema unSchema) {
-        ObjectClassComplexTypeDefinition objectClassDef = unSchema.findObjectClassDefinition(new ItemName(SCHEMA_NAMESPACE, "AccountObjectClass"));
+        ResourceObjectClassDefinition objectClassDef = unSchema.findObjectClassDefinition(new ItemName(MidPointConstants.NS_RI, "AccountObjectClass"));
         assertNotNull("No object class def", objectClassDef);
-        assertEquals(new ItemName(SCHEMA_NAMESPACE, "AccountObjectClass"), objectClassDef.getTypeName());
-        assertEquals("AccountObjectClass class not an account", ShadowKindType.ACCOUNT, objectClassDef.getKind());
-        assertTrue("AccountObjectClass class not a DEFAULT account", objectClassDef.isDefaultInAKind());
+        assertEquals(new ItemName(MidPointConstants.NS_RI, "AccountObjectClass"), objectClassDef.getTypeName());
+        assertTrue("AccountObjectClass class not a DEFAULT account", objectClassDef.isDefaultAccountDefinition());
 
-        PrismPropertyDefinition<String> loginDef = objectClassDef.findPropertyDefinition(new ItemName(SCHEMA_NAMESPACE, "login"));
-        assertEquals(new ItemName(SCHEMA_NAMESPACE, "login"), loginDef.getItemName());
+        PrismPropertyDefinition<String> loginDef = objectClassDef.findPropertyDefinition(new ItemName(MidPointConstants.NS_RI, "login"));
+        assertEquals(new ItemName(MidPointConstants.NS_RI, "login"), loginDef.getItemName());
         assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
 
-        PrismPropertyDefinition<ProtectedStringType> passwdDef = objectClassDef.findPropertyDefinition(new ItemName(SCHEMA_NAMESPACE, "password"));
-        assertEquals(new ItemName(SCHEMA_NAMESPACE, "password"), passwdDef.getItemName());
+        PrismPropertyDefinition<ProtectedStringType> passwdDef = objectClassDef.findPropertyDefinition(new ItemName(MidPointConstants.NS_RI, "password"));
+        assertEquals(new ItemName(MidPointConstants.NS_RI, "password"), passwdDef.getItemName());
         assertEquals(ProtectedStringType.COMPLEX_TYPE, passwdDef.getTypeName());
     }
 
@@ -251,9 +241,6 @@ public class TestResourceSchema extends AbstractSchemaTest {
         assertPrefix("xsd", xsdElement);
         Element displayNameAnnotationElement = DOMUtil.findElementRecursive(xsdElement, PrismConstants.A_DISPLAY_NAME);
         assertPrefix(PrismConstants.PREFIX_NS_ANNOTATION, displayNameAnnotationElement);
-        Element kindAnnotationElement = DOMUtil.findElementRecursive(xsdElement, MidPointConstants.RA_KIND);
-        assertPrefix("ra", kindAnnotationElement);
-        assertEquals(ShadowKindType.ACCOUNT.value(), kindAnnotationElement.getTextContent());
         Element identifierAnnotationElement = DOMUtil.findElementRecursive(xsdElement, MidPointConstants.RA_IDENTIFIER);
         assertPrefix("ra", identifierAnnotationElement);
         QName identifier = DOMUtil.getQNameValue(identifierAnnotationElement);
@@ -265,31 +252,33 @@ public class TestResourceSchema extends AbstractSchemaTest {
         QName dna = DOMUtil.getQNameValue(dnaAnnotationElement);
         assertEquals("Wrong <a:identifier> value prefix", "tns", dna.getPrefix());
 
-        assertEquals("Wrong 'tns' prefix declaration", SCHEMA_NAMESPACE, xsdElement.lookupNamespaceURI("tns"));
+        assertEquals("Wrong 'tns' prefix declaration", MidPointConstants.NS_RI, xsdElement.lookupNamespaceURI("tns"));
     }
 
     private ResourceSchema createResourceSchema() {
-        ResourceSchemaImpl schema = new ResourceSchemaImpl(SCHEMA_NAMESPACE, PrismTestUtil.getPrismContext());
+        ResourceSchemaImpl schema = new ResourceSchemaImpl();
 
         // Property container
-        ObjectClassComplexTypeDefinitionImpl containerDefinition = (ObjectClassComplexTypeDefinitionImpl) schema.createObjectClassDefinition("AccountObjectClass");
-        containerDefinition.setKind(ShadowKindType.ACCOUNT);
-        containerDefinition.setDefaultInAKind(true);
-        containerDefinition.setDisplayName("The Account");
+        ResourceObjectClassDefinitionImpl containerDefinition = (ResourceObjectClassDefinitionImpl)
+                schema.createObjectClassDefinition(new QName(MidPointConstants.NS_RI, "AccountObjectClass"));
+        containerDefinition.setDefaultAccountDefinition(true);
+        //containerDefinition.setDisplayName("The Account"); // currently not supported
         containerDefinition.setNativeObjectClass("ACCOUNT");
+
         // ... in it ordinary attribute - an identifier
-        ResourceAttributeDefinition<String> icfUidDef = containerDefinition.createAttributeDefinition(
-                SchemaTestConstants.ICFS_UID, DOMUtil.XSD_STRING);
-        ((Collection) containerDefinition.getPrimaryIdentifiers()).add(icfUidDef);
-        ResourceAttributeDefinitionImpl<String> xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
-        xloginDef.setNativeAttributeName("LOGIN");
-        containerDefinition.setDisplayNameAttribute(xloginDef.getItemName());
+        ResourceAttributeDefinition<?> icfUidDef =
+                containerDefinition.createAttributeDefinition(
+                        SchemaTestConstants.ICFS_UID, DOMUtil.XSD_STRING, def -> {});
+        containerDefinition.addPrimaryIdentifierName(icfUidDef.getItemName());
+
+        ResourceAttributeDefinition<?> xLoginDef =
+                containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING,
+                        def -> def.setNativeAttributeName("LOGIN"));
+        containerDefinition.setDisplayNameAttributeName(xLoginDef.getItemName());
+
         // ... and local property with a type from another schema
-        ResourceAttributeDefinitionImpl<String> xpasswdDef = containerDefinition.createAttributeDefinition("password", ProtectedStringType.COMPLEX_TYPE);
-        xpasswdDef.setNativeAttributeName("PASSWORD");
-        // ... property reference
-        // TODO this should not go here, as it is not a ResourceAttributeDefinition
-        //containerDefinition.createAttributeDefinition(SchemaConstants.C_CREDENTIALS, SchemaConstants.C_CREDENTIALS_TYPE);
+        containerDefinition.createAttributeDefinition("password", ProtectedStringType.COMPLEX_TYPE,
+                def -> def.setNativeAttributeName("PASSWORD"));
 
         return schema;
     }

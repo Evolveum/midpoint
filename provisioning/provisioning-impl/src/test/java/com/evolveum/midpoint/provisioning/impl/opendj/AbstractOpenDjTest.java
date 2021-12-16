@@ -25,7 +25,6 @@ import com.evolveum.midpoint.provisioning.impl.ResourceManager;
 import com.evolveum.midpoint.provisioning.impl.mock.SynchronizationServiceMock;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
@@ -158,7 +157,7 @@ public abstract class AbstractOpenDjTest extends AbstractProvisioningIntegration
     protected MatchingRule<String> dnMatchingRule;
 
     protected PrismObject<ResourceType> resource;
-    protected ResourceType resourceType;
+    protected ResourceType resourceBean;
     protected PrismObject<ConnectorType> connector;
 
     @Autowired
@@ -199,10 +198,10 @@ public abstract class AbstractOpenDjTest extends AbstractProvisioningIntegration
     }
 
     protected ItemName getPrimaryIdentifierQName() {
-        return new ItemName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME);
+        return new ItemName(MidPointConstants.NS_RI, OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME);
     }
 
     protected ItemName getSecondaryIdentifierQName() {
-        return new ItemName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME);
+        return OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER;
     }
 }

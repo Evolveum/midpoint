@@ -8,7 +8,6 @@ package com.evolveum.midpoint.web.page.self.component;
 
 import java.util.*;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -23,6 +22,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -529,7 +529,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         return accountDto;
     }
 
-    private CredentialsPolicyType getPasswordCredentialsPolicy(RefinedObjectClassDefinition rOCDef) {
+    private CredentialsPolicyType getPasswordCredentialsPolicy(ResourceObjectDefinition rOCDef) {
         LOGGER.debug("Getting credentials policy");
         Task task = getPageBase().createSimpleTask(OPERATION_GET_CREDENTIALS_POLICY);
         OperationResult result = new OperationResult(OPERATION_GET_CREDENTIALS_POLICY);
@@ -598,7 +598,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
             passwordAccountDto.setPasswordCapabilityEnabled(ResourceTypeUtil.isPasswordCapabilityEnabled(resource, resourceObjectTypeDefinitionType));
             passwordAccountDto.setMaintenanceState(ResourceTypeUtil.isInMaintenance(resource));
             try {
-                RefinedObjectClassDefinition rOCDef = getPageBase().getModelInteractionService().getEditObjectClassDefinition(account,
+                ResourceObjectDefinition rOCDef = getPageBase().getModelInteractionService().getEditObjectClassDefinition(account,
                         resource.asPrismObject(), AuthorizationPhaseType.REQUEST, task, result);
 
                 if (rOCDef != null) {
@@ -618,8 +618,8 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                 }
 
             } catch (Exception e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Fail to get RefinedObjectClassDefinition for {} ", e, account);
-                result.recordFatalError("Fail to get RefinedObjectClassDefinition for " + account, e);
+                LoggingUtils.logUnexpectedException(LOGGER, "Fail to get ResourceObjectTypeDefinition for {} ", e, account);
+                result.recordFatalError("Fail to get ResourceObjectTypeDefinition for " + account, e);
                 getPageBase().showResult(result);
                 passwordAccountDto.setPasswordOutbound(false);
             }
@@ -632,7 +632,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         return passwordAccountDto;
     }
 
-    private boolean getPasswordOutbound(PrismObject<ShadowType> shadow, ResourceType resource, RefinedObjectClassDefinition rOCDef) {
+    private boolean getPasswordOutbound(PrismObject<ShadowType> shadow, ResourceType resource, ResourceObjectDefinition rOCDef) {
         List<MappingType> passwordOutbound = rOCDef.getPasswordOutbound();
         if (passwordOutbound == null) {
             return false;

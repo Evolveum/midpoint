@@ -13,9 +13,10 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -72,7 +73,7 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
     private boolean profiling;
     private String contextDescription;
     private QName mappingQName;
-    private RefinedObjectClassDefinition refinedObjectClassDefinition;
+    private ResourceObjectDefinition resourceObjectDefinition;
     private ModelCommonBeans beans;
 
     public abstract AbstractMappingImpl<V, D, MBT> build();
@@ -206,8 +207,8 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
         return typedThis();
     }
 
-    public RT refinedObjectClassDefinition(RefinedObjectClassDefinition val) {
-        refinedObjectClassDefinition = val;
+    public RT resourceObjectDefinition(ResourceObjectDefinition val) {
+        resourceObjectDefinition = val;
         return typedThis();
     }
 
@@ -325,6 +326,7 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
         return variables.containsKey(varName);
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isApplicableToChannel(String channel) {
         return MappingImpl.isApplicableToChannel(mappingBean, channel);
     }
@@ -447,8 +449,8 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
         return mappingQName;
     }
 
-    public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
-        return refinedObjectClassDefinition;
+    public ResourceObjectDefinition getResourceObjectDefinition() {
+        return resourceObjectDefinition;
     }
     //endregion
 

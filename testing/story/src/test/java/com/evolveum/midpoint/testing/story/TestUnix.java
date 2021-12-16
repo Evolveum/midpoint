@@ -15,6 +15,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationActivityHandler;
 
+import com.evolveum.midpoint.schema.processor.*;
+
 import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -26,8 +28,6 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.impl.sync.tasks.recon.DebugReconciliationResultListener;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -43,9 +43,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -262,27 +259,31 @@ public class TestUnix extends AbstractStoryTest {
 
         IntegrationTestTools.displayXml("Initialized resource", resourceOpenDj);
 
-        ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceOpenDj, prismContext);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(resourceOpenDj.asObjectable());
         displayDumpable("OpenDJ schema (resource)", resourceSchema);
 
-        ObjectClassComplexTypeDefinition ocDefPosixAccount = resourceSchema.findObjectClassDefinition(OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME);
+        ResourceObjectClassDefinition ocDefPosixAccount =
+                resourceSchema.findObjectClassDefinition(OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME);
         assertNotNull("No objectclass " + OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME + " in resource schema", ocDefPosixAccount);
         assertTrue("Objectclass " + OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME + " is not auxiliary", ocDefPosixAccount.isAuxiliary());
 
-        ObjectClassComplexTypeDefinition ocDefPosixGroup = resourceSchema.findObjectClassDefinition(OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME);
+        ResourceObjectClassDefinition ocDefPosixGroup =
+                resourceSchema.findObjectClassDefinition(OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME);
         assertNotNull("No objectclass " + OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME + " in resource schema", ocDefPosixGroup);
         assertTrue("Objectclass " + OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME + " is not auxiliary", ocDefPosixGroup.isAuxiliary());
 
-        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceOpenDj);
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resourceOpenDj);
         displayDumpable("OpenDJ schema (refined)", refinedSchema);
 
-        RefinedObjectClassDefinition rOcDefPosixAccount = refinedSchema.getRefinedDefinition(OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME);
+        ResourceObjectDefinition rOcDefPosixAccount = refinedSchema.findDefinitionForObjectClass(OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME);
         assertNotNull("No refined objectclass " + OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME + " in resource schema", rOcDefPosixAccount);
-        assertTrue("Refined objectclass " + OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME + " is not auxiliary", rOcDefPosixAccount.isAuxiliary());
+        assertTrue("Refined objectclass " + OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME + " is not auxiliary",
+                rOcDefPosixAccount.getObjectClassDefinition().isAuxiliary());
 
-        RefinedObjectClassDefinition rOcDefPosixGroup = refinedSchema.getRefinedDefinition(OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME);
+        ResourceObjectDefinition rOcDefPosixGroup = refinedSchema.findDefinitionForObjectClass(OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME);
         assertNotNull("No refined objectclass " + OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME + " in resource schema", rOcDefPosixGroup);
-        assertTrue("Refined objectclass " + OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME + " is not auxiliary", rOcDefPosixGroup.isAuxiliary());
+        assertTrue("Refined objectclass " + OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME + " is not auxiliary",
+                rOcDefPosixGroup.getObjectClassDefinition().isAuxiliary());
 
     }
 
@@ -348,7 +349,7 @@ public class TestUnix extends AbstractStoryTest {
 
         // WHEN
         when();
-        RefinedObjectClassDefinition editObjectClassDefinition = modelInteractionService.getEditObjectClassDefinition(shadow, resourceOpenDj, AuthorizationPhaseType.REQUEST, task, result);
+        ResourceObjectDefinition editObjectClassDefinition = modelInteractionService.getEditObjectClassDefinition(shadow, resourceOpenDj, AuthorizationPhaseType.REQUEST, task, result);
 
         // THEN
         then();
@@ -1635,7 +1636,7 @@ public class TestUnix extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(getResourceOid(),
-                ShadowKindType.ACCOUNT, "default", prismContext);
+                ShadowKindType.ACCOUNT, "default");
         displayDumpable("query", query);
 
         // WHEN
@@ -1657,7 +1658,7 @@ public class TestUnix extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(getResourceOid(),
-                ShadowKindType.ENTITLEMENT, "ldapGroup", prismContext);
+                ShadowKindType.ENTITLEMENT, "ldapGroup");
         displayDumpable("query", query);
 
         // WHEN
@@ -1679,7 +1680,7 @@ public class TestUnix extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(getResourceOid(),
-                ShadowKindType.ENTITLEMENT, "unixGroup", prismContext);
+                ShadowKindType.ENTITLEMENT, "unixGroup");
         displayDumpable("query", query);
 
         // WHEN

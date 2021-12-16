@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.lens.projector.credentials;
 import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerable;
 import static com.evolveum.midpoint.prism.delta.ChangeType.MODIFY;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -24,13 +26,13 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
 import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.stringpolicy.ObjectValuePolicyEvaluator;
 import com.evolveum.midpoint.model.common.stringpolicy.ShadowValuePolicyOriginResolver;
@@ -105,13 +107,13 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
             OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
                     SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        SecurityPolicyType securityPolicy = determineSecurityPolicy(context, projectionContext, now, task, result);
+        SecurityPolicyType securityPolicy = determineSecurityPolicy(context, projectionContext);
 
         processProjectionPasswordMapping(context, projectionContext, securityPolicy, now, task, result);
 
-        validateProjectionPassword(context, projectionContext, securityPolicy, now, task, result);
+        validateProjectionPassword(projectionContext, securityPolicy, now, task, result);
 
-        applyMetadata(context, projectionContext, now, task, result);
+        applyMetadata(context, projectionContext, now, task);
     }
 
     private <F extends FocusType> void processProjectionPasswordMapping(LensContext<F> context,
@@ -133,14 +135,15 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
 
         ResourceShadowDiscriminator rsd = projCtx.getResourceShadowDiscriminator();
 
-        RefinedObjectClassDefinition refinedProjDef = projCtx.getStructuralObjectClassDefinition();
-        if (refinedProjDef == null) {
-            LOGGER.trace("No RefinedObjectClassDefinition, therefore also no password outbound definition, skipping credentials processing for projection {}", rsd);
+        ResourceObjectDefinition objectDefinition = projCtx.getStructuralObjectDefinition();
+        if (objectDefinition == null) {
+            LOGGER.trace("No ResourceObjectTypeDefinition, therefore also no password outbound definition,"
+                    + " skipping credentials processing for projection {}", rsd);
             return;
         }
 
-        List<MappingType> outboundMappingBeans = refinedProjDef.getPasswordOutbound();
-        if (outboundMappingBeans == null || outboundMappingBeans.isEmpty()) {
+        List<MappingType> outboundMappingBeans = objectDefinition.getPasswordOutbound();
+        if (outboundMappingBeans.isEmpty()) {
             LOGGER.trace("No outbound password mapping for {}, skipping credentials processing", rsd);
             return;
         }
@@ -148,7 +151,9 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
         ObjectDeltaObject<F> objectDeltaObject = focusContext.getObjectDeltaObjectAbsolute();
 
         // HACK
-        if (!projCtx.isDoReconciliation() && !projCtx.isAdd() && !isActivated(outboundMappingBeans, objectDeltaObject.getObjectDelta())) {
+        if (!projCtx.isDoReconciliation()
+                && !projCtx.isAdd()
+                && !isActivated(outboundMappingBeans, objectDeltaObject.getObjectDelta())) {
             LOGGER.trace("Outbound password mappings not activated for type {}, skipping credentials processing", rsd);
             return;
         }
@@ -216,7 +221,7 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
                     }
 
                     Collection<PrismPropertyValue<ProtectedStringType>> minusSet = outputTriple.getMinusSet();
-                    if (minusSet != null && !minusSet.isEmpty()) {
+                    if (!minusSet.isEmpty()) {
                         if (!canGetCleartext(minusSet)) {
                             // We have hashed values in minus set. That is not great, we won't be able to get
                             // cleartext from that if we need it (e.g. for runAs in provisioning).
@@ -226,7 +231,8 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
                             PropertyDelta<ProtectedStringType> focusPasswordDelta = (PropertyDelta<ProtectedStringType>) focusPasswordIdi.getDelta();
                             Collection<PrismPropertyValue<ProtectedStringType>> focusPasswordDeltaOldValues = focusPasswordDelta.getEstimatedOldValues();
                             if (focusPasswordDeltaOldValues != null && !focusPasswordDeltaOldValues.isEmpty()) {
-                                ProtectedStringType oldFocusPassword = focusPasswordDeltaOldValues.iterator().next().getRealValue();
+                                ProtectedStringType oldFocusPassword =
+                                        requireNonNull(focusPasswordDeltaOldValues.iterator().next().getRealValue());
                                 try {
                                     if (oldFocusPassword.canGetCleartext() && protector.compareCleartext(oldFocusPassword, oldProjectionPassword)) {
                                         outputTriple.clearMinusSet();
@@ -295,9 +301,14 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
         return projCtx.isAdd();
     }
 
-    private <F extends FocusType> void validateProjectionPassword(LensContext<F> context,
-            final LensProjectionContext projectionContext, final SecurityPolicyType securityPolicy, XMLGregorianCalendar now, Task task, OperationResult result)
-                    throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private <F extends FocusType> void validateProjectionPassword(
+            LensProjectionContext projectionContext,
+            SecurityPolicyType securityPolicy,
+            XMLGregorianCalendar now,
+            Task task,
+            OperationResult result)
+                    throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
 
         if (securityPolicy == null) {
             LOGGER.trace("Skipping processing password policies. Security policy not specified.");
@@ -374,9 +385,8 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
         return new ShadowValuePolicyOriginResolver(accountShadow, modelObjectResolver);
     }
 
-    private <F extends FocusType> void applyMetadata(LensContext<F> context,
-            final LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task, OperationResult result)
-                    throws SchemaException {
+    private <F extends FocusType> void applyMetadata(LensContext<F> context, LensProjectionContext projectionContext,
+            XMLGregorianCalendar now, Task task) throws SchemaException {
 
         if (projectionContext.isDelete()) {
             return;
@@ -399,7 +409,7 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
             MetadataType metadataType = operationalDataManager.createCreateMetadata(context, now, task);
             ContainerDelta<MetadataType> metadataDelta = prismContext.deltaFactory().container()
                     .createDelta(SchemaConstants.PATH_PASSWORD_METADATA, projectionContext.getObjectDefinition());
-            PrismContainerValue cval = metadataType.asPrismContainerValue();
+            PrismContainerValue<?> cval = metadataType.asPrismContainerValue();
             cval.setOriginTypeRecursive(OriginType.OUTBOUND);
             metadataDelta.addValuesToAdd(metadataType.asPrismContainerValue());
             projectionContext.swallowToSecondaryDelta(metadataDelta);
@@ -411,7 +421,7 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
                 Collection<? extends ItemDelta<?,?>> modifyMetadataDeltas = operationalDataManager.createModifyMetadataDeltas(
                         context, currentMetadata, SchemaConstants.PATH_PASSWORD_METADATA, projectionContext.getObjectTypeClass(),
                         now, task);
-                for (ItemDelta itemDelta: modifyMetadataDeltas) {
+                for (ItemDelta<?, ?> itemDelta: modifyMetadataDeltas) {
                     itemDelta.setOriginTypeRecursive(OriginType.OUTBOUND);
                     projectionContext.swallowToSecondaryDelta(itemDelta);
                 }
@@ -430,13 +440,14 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
         }
     }
 
-    private <F extends FocusType> SecurityPolicyType determineSecurityPolicy(LensContext<F> context,
-            final LensProjectionContext projCtx, XMLGregorianCalendar now, Task task, OperationResult result) {
+    private <F extends FocusType> SecurityPolicyType determineSecurityPolicy(
+            LensContext<F> context, LensProjectionContext projCtx) {
         SecurityPolicyType securityPolicy = projCtx.getProjectionSecurityPolicy();
         if (securityPolicy != null) {
             return securityPolicy;
+        } else {
+            return context.getGlobalSecurityPolicy();
         }
-        return context.getGlobalSecurityPolicy();
     }
 
     // On missing password this returns empty string (""). It is then up to password policy whether it allows empty passwords or not.

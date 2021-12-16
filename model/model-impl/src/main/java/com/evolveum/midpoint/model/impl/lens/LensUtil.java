@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
@@ -29,10 +29,14 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
@@ -44,8 +48,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.BooleanUtils;
 
 import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -121,20 +123,26 @@ public class LensUtil {
     }
 
     public static String refineProjectionIntent(ShadowKindType kind, String intent, ResourceType resource) throws SchemaException {
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, PrismContext.get());
-        RefinedObjectClassDefinition rObjClassDef = refinedSchema.getRefinedDefinition(kind, intent);
+        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource, LayerType.MODEL);
+        ResourceObjectDefinition rObjClassDef = schema.findObjectDefinition(kind, intent);
         if (rObjClassDef == null) {
             LOGGER.error("No projection definition for kind={}, intent={} in {}", kind, intent, resource);
             LOGGER.error("Diagnostic output follows:\n\nResource:\n{}\n\nRefined resource schema:\n{}",
-                    resource.asPrismObject().debugDump(), refinedSchema.debugDump());
+                    resource.asPrismObject().debugDump(), schema.debugDump());
             throw new SchemaException("No projection definition for kind="+kind+" intent="+intent+" in "+resource);
         }
-        return rObjClassDef.getIntent();
+        return getIntent(rObjClassDef);
+    }
+
+    @Experimental // Quite a hack. We should not ask for an intent from raw OC definition.
+    private static String getIntent(ResourceObjectDefinition definition) {
+        return definition instanceof ResourceObjectTypeDefinition ?
+                ((ResourceObjectTypeDefinition) definition).getIntent() : SchemaConstants.INTENT_DEFAULT; // brutal hack
     }
 
     public static <F extends FocusType> LensProjectionContext getProjectionContext(LensContext<F> context, PrismObject<ShadowType> equivalentAccount,
-                                                                                   ProvisioningService provisioningService, PrismContext prismContext,
-                                                                                   Task task, OperationResult result) throws ObjectNotFoundException,
+            ProvisioningService provisioningService, PrismContext prismContext,
+            Task task, OperationResult result) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ShadowType equivalentAccountType = equivalentAccount.asObjectable();
         ShadowKindType kind = ShadowUtil.getKind(equivalentAccountType);
@@ -143,10 +151,11 @@ public class LensUtil {
                 prismContext, task, result);
     }
 
-    private static <F extends FocusType> LensProjectionContext getProjectionContext(LensContext<F> context, String resourceOid,
-                                                                                   ShadowKindType kind, String intent, String tag,
-                                                                                   ProvisioningService provisioningService, PrismContext prismContext,
-                                                                                   Task task, OperationResult result) throws ObjectNotFoundException,
+    private static <F extends FocusType> LensProjectionContext getProjectionContext(
+            LensContext<F> context, String resourceOid,
+            ShadowKindType kind, String intent, String tag,
+            ProvisioningService provisioningService, PrismContext prismContext,
+            Task task, OperationResult result) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ResourceType resource = getResourceReadOnly(context, resourceOid, provisioningService, task, result);
         String refinedIntent = refineProjectionIntent(kind, intent, resource);
@@ -969,17 +978,13 @@ public class LensUtil {
     }
 
     public static boolean needsFullShadowForCredentialProcessing(LensProjectionContext projCtx) throws SchemaException {
-        RefinedObjectClassDefinition refinedProjDef = projCtx.getStructuralObjectClassDefinition();
+        ResourceObjectDefinition refinedProjDef = projCtx.getStructuralObjectDefinition();
         if (refinedProjDef == null) {
             return false;
         }
 
-        List<MappingType> outboundMappingType = refinedProjDef.getPasswordOutbound();
-        if (outboundMappingType == null) {
-            return false;
-        }
-        for (MappingType mappingType: outboundMappingType) {
-            if (mappingType.getStrength() == MappingStrengthType.STRONG || mappingType.getStrength() == MappingStrengthType.WEAK) {
+        for (MappingType mappingBean : refinedProjDef.getPasswordOutbound()) {
+            if (mappingBean.getStrength() == MappingStrengthType.STRONG || mappingBean.getStrength() == MappingStrengthType.WEAK) {
                 return true;
             }
         }

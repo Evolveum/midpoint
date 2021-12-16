@@ -8,9 +8,9 @@ package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
 import java.io.Serializable;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author lazyman

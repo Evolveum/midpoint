@@ -44,7 +44,7 @@ class ShadowAcquisition {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowAcquisition.class);
 
-    /** The provisioning context. */
+    /** The provisioning context. Not updated after (eventual) shadow classification. */
     @NotNull private final ProvisioningContext ctx;
 
     /** Primary identifier of the shadow. */

@@ -8,11 +8,11 @@ package com.evolveum.midpoint.model.impl.util.mock;
 
 import java.util.*;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -54,8 +54,8 @@ public class MockFactory {
             }
 
             @Override
-            public void processAsynchronousUpdates(@NotNull ResourceShadowDiscriminator shadowCoordinates, @NotNull AsyncUpdateEventHandler handler, @NotNull Task task,
-                    @NotNull OperationResult parentResult) {
+            public void processAsynchronousUpdates(@NotNull ResourceShadowCoordinates shadowCoordinates, @NotNull AsyncUpdateEventHandler handler, @NotNull Task task,
+                                                   @NotNull OperationResult parentResult) {
             }
 
             @NotNull
@@ -148,7 +148,7 @@ public class MockFactory {
             }
 
             @Override
-            public ConstraintsCheckingResult checkConstraints(RefinedObjectClassDefinition shadowDefinition, PrismObject<ShadowType> shadowObject, PrismObject<ShadowType> shadowObjectOld, ResourceType resourceType, String shadowOid, ResourceShadowDiscriminator resourceShadowDiscriminator, ConstraintViolationConfirmer constraintViolationConfirmer, ConstraintsCheckingStrategyType strategy, Task task, OperationResult parentResult) {
+            public ConstraintsCheckingResult checkConstraints(ResourceObjectDefinition objectTypeDefinition, PrismObject<ShadowType> shadowObject, PrismObject<ShadowType> shadowObjectOld, ResourceType resource, String shadowOid, ResourceShadowCoordinates shadowCoordinates, ConstraintViolationConfirmer constraintViolationConfirmer, ConstraintsCheckingStrategyType strategy, @NotNull Task task, @NotNull OperationResult parentResult) {
                 return null;
             }
 

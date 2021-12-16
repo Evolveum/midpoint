@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.loader;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -21,6 +20,7 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -173,11 +173,11 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
     private void setProjectionSecurityPolicy(OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
-        RefinedObjectClassDefinition structuralObjectClassDef = projectionContext.getStructuralObjectClassDefinition();
-        if (structuralObjectClassDef != null) {
-            LOGGER.trace("setProjectionSecurityPolicy: structural object class def = {}", structuralObjectClassDef);
+        ResourceObjectDefinition structuralObjectDefinition = projectionContext.getStructuralObjectDefinition();
+        if (structuralObjectDefinition != null) {
+            LOGGER.trace("setProjectionSecurityPolicy: structural object class def = {}", structuralObjectDefinition);
             SecurityPolicyType projectionSecurityPolicy =
-                    beans.securityHelper.locateProjectionSecurityPolicy(structuralObjectClassDef, task, result);
+                    beans.securityHelper.locateProjectionSecurityPolicy(structuralObjectDefinition, task, result);
             LOGGER.trace("Located security policy for: {},\n {}", projectionContext, projectionSecurityPolicy);
             projectionContext.setProjectionSecurityPolicy(projectionSecurityPolicy);
         } else {

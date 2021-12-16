@@ -15,11 +15,12 @@ import java.io.File;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -73,11 +74,11 @@ public class TestCsvGuid extends AbstractCsvTest {
     }
 
     @Override
-    protected void assertAccountDefinition(ObjectClassComplexTypeDefinition accountDef) {
+    protected void assertAccountDefinition(ResourceObjectClassDefinition accountDef) {
 
         assertEquals("Unexpected number of definitions", 5, accountDef.getDefinitions().size());
 
-        ResourceAttributeDefinition<String> guidDef = accountDef.findAttributeDefinition(ATTR_GUID);
+        ResourceAttributeDefinition<?> guidDef = accountDef.findAttributeDefinition(ATTR_GUID);
         assertNotNull("No definition for guid", guidDef);
         assertEquals(1, guidDef.getMaxOccurs());
         assertEquals(1, guidDef.getMinOccurs());
@@ -85,7 +86,7 @@ public class TestCsvGuid extends AbstractCsvTest {
         assertTrue("No guid update", guidDef.canModify());
         assertTrue("No guid read", guidDef.canRead());
 
-        ResourceAttributeDefinition<String> unameDef = accountDef.findAttributeDefinition(ATTR_UNAME);
+        ResourceAttributeDefinition<?> unameDef = accountDef.findAttributeDefinition(ATTR_UNAME);
         assertNotNull("No definition for uname", unameDef);
         assertEquals(1, unameDef.getMaxOccurs());
         assertEquals(0, unameDef.getMinOccurs()); // TODO: should be 1

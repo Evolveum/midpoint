@@ -20,11 +20,12 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.Checks;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import org.jetbrains.annotations.NotNull;
 
 /**
+ * TODO review docs
+ *
  * Resource Object.
  *
  * Resource Object understands resource-specific annotations, such as
@@ -34,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
  * PropertyContainer)
  *
  * @author Radovan Semancik
- *
  */
 @SuppressWarnings("rawtypes")
 public final class ResourceAttributeContainerImpl extends PrismContainerImpl<ShadowAttributesType> implements ResourceAttributeContainer {
@@ -42,10 +42,10 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
 
     /**
      * The constructors should be used only occasionally (if used at all).
-     * Use the factory methods in the ResourceObjectDefintion instead.
+     * Use the factory methods in the ResourceObjectDefinition instead.
      */
-    public ResourceAttributeContainerImpl(QName name, ResourceAttributeContainerDefinition definition, PrismContext prismContext) {
-        super(name, definition, prismContext);
+    ResourceAttributeContainerImpl(QName name, ResourceAttributeContainerDefinition definition) {
+        super(name, definition, PrismContext.get());
     }
 
     @Override
@@ -61,20 +61,11 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
         }
     }
 
-    /**
-     * Returns set of resource object attributes.
-     *
-     * The order of attributes is insignificant.
-     *
-     * The returned set is imutable! Any change to it will be ignored.
-     *
-     * @return set of resource object attributes.
-     */
     @Override
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public Collection<ResourceAttribute<?>> getAttributes() {
+    public @NotNull Collection<ResourceAttribute<?>> getAttributes() {
         // TODO: Iterate over the list to assert correct types
-        return (Set) getValue().getProperties();
+        return (Collection) getValue().getProperties();
     }
 
     @Override
@@ -82,24 +73,6 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
         super.add(attribute);
     }
 
-    /**
-     * Returns a (single) primary identifier.
-     *
-     * This method returns a property that acts as an (primary) identifier for
-     * the resource object. Primary identifiers are used to access the resource
-     * objects, retrieve them from resource, identify objects for modifications,
-     * etc.
-     *
-     * Returns null if no identifier is defined.
-     *
-     * Resource objects may have multiple (composite) identifiers, but this
-     * method assumes that there is only a single identifier. The method will
-     * throw exception if that assumption is not satisfied.
-     *
-     * @return identifier property
-     * @throws IllegalStateException
-     *             if resource object has multiple identifiers
-     */
     @Override
     public PrismProperty<?> getPrimaryIdentifier() {
         Collection<ResourceAttribute<?>> attrDefs = getPrimaryIdentifiers();
@@ -114,45 +87,11 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
         return null;
     }
 
-    /**
-     * Returns primary identifiers.
-     *
-     * This method returns properties that act as (primary) identifiers for the
-     * resource object. Primary identifiers are used to access the resource
-     * objects, retrieve them from resource, identify objects for modifications,
-     * etc.
-     *
-     * Returns empty set if no identifier is defined. Must not return null.
-     *
-     * Resource objects may have multiple (composite) identifiers, all of them
-     * are returned.
-     *
-     * The returned set it immutable! Any modifications will be lost.
-     *
-     * @return set of identifier properties
-     */
     @Override
     public Collection<ResourceAttribute<?>> getPrimaryIdentifiers() {
         return extractAttributesByDefinitions(getDefinition().getPrimaryIdentifiers());
     }
 
-    /**
-     * Returns a (single) secondary identifier.
-     *
-     * This method returns a property that acts as an secondary identifier for
-     * the resource object. Secondary identifiers are used to confirm primary
-     * identification of resource object.
-     *
-     * Returns null if no secondary identifier is defined.
-     *
-     * Resource objects may have multiple (composite) identifiers, but this
-     * method assumes that there is only a single identifier. The method will
-     * throw exception if that assumption is not satisfied.
-     *
-     * @return secondary identifier property
-     * @throws IllegalStateException
-     *             if resource object has multiple secondary identifiers
-     */
     @Override
     public <T> PrismProperty<T> getSecondaryIdentifier() {
         Collection<ResourceAttribute<?>> secondaryIdentifiers = getSecondaryIdentifiers();
@@ -165,20 +104,6 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
         return null;
     }
 
-    /**
-     * Returns secondary identifiers.
-     *
-     * This method returns properties that act as secondary identifiers for the
-     * resource object. Secondary identifiers are used to confirm primary
-     * identification of resource object.
-     *
-     * Returns empty set if no identifier is defined. Must not return null.
-     *
-     * Resource objects may have multiple (composite) identifiers, all of them
-     * are returned.
-     *
-     * @return set of secondary identifier properties
-     */
     @Override
     public Collection<ResourceAttribute<?>> getSecondaryIdentifiers() {
         return extractAttributesByDefinitions(getDefinition().getSecondaryIdentifiers());
@@ -204,42 +129,14 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
         return attributes;
     }
 
-    /**
-     * Returns description attribute of a resource object.
-     *
-     * Returns null if there is no description attribute or the attribute is not
-     * known.
-     *
-     * The exception should be never thrown unless there is some bug in the
-     * code. The validation of model consistency should be done at the time of
-     * schema parsing.
-     *
-     * @return description attribute of a resource object.
-     * @throws IllegalStateException
-     *             if there is no definition for the referenced attributed
-     */
     @Override
     public ResourceAttribute<String> getDescriptionAttribute() {
         if (getDefinition() == null) {
             return null;
         }
-        return findAttribute(getDefinition().getDisplayNameAttribute());
+        return findAttribute(getDefinition().getDescriptionAttribute());
     }
 
-    /**
-     * Specifies which resource attribute should be used as a "technical" name
-     * for the account. This name will appear in log files and other troubleshooting
-     * tools. The name should be a form of unique identifier that can be used to
-     * locate the resource object for diagnostics. It should not contain white chars and
-     * special chars if that can be avoided and it should be reasonable short.
-
-     * It is different from a display name attribute. Display name is intended for a
-     * common user or non-technical administrator (such as role administrator). The
-     * naming attribute is intended for technical IDM administrators and developers.
-     *
-     * @return attribute that should be used as a "technical" name
-     *                 for the account.
-     */
     @Override
     public ResourceAttribute<String> getNamingAttribute() {
         if (getDefinition() == null) {
@@ -251,20 +148,6 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
         return findAttribute(getDefinition().getNamingAttribute());
     }
 
-    /**
-     * Returns display name attribute of a resource object.
-     *
-     * Returns null if there is no display name attribute or the attribute is
-     * not known.
-     *
-     * The exception should be never thrown unless there is some bug in the
-     * code. The validation of model consistency should be done at the time of
-     * schema parsing.
-     *
-     * @return display name attribute of a resource object.
-     * @throws IllegalStateException
-     *             if there is no definition for the referenced attributed
-     */
     @Override
     public ResourceAttribute getDisplayNameAttribute() {
         if (getDefinition() == null) {
@@ -273,88 +156,23 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
         return findAttribute(getDefinition().getDisplayNameAttribute());
     }
 
-    /**
-     * Returns the native object class string for the resource object.
-     *
-     * Native object class is the name of the Resource Object Definition (Object
-     * Class) as it is seen by the resource itself. The name of the Resource
-     * Object Definition may be constrained by XSD or other syntax and therefore
-     * may be "mangled" to conform to such syntax. The <i>native object
-     * class</i> value will contain unmangled name (if available).
-     *
-     * Returns null if there is no native object class or the native object
-     * class is not known.
-     *
-     * The exception should be never thrown unless there is some bug in the
-     * code. The validation of model consistency should be done at the time of
-     * schema parsing.
-     *
-     * @return native object class
-     * @throws IllegalStateException
-     *             if there is more than one description attribute.
-     */
     @Override
     public String getNativeObjectClass() {
         return getDefinition() == null ? null : getDefinition().getNativeObjectClass();
     }
 
     @Override
-    public ShadowKindType getKind() {
-        ResourceAttributeContainerDefinition definition = getDefinition();
-        return (definition != null ? definition.getKind() : null);
-    }
-
-    /**
-     * Indicates whether definition is should be used as default account type.
-     *
-     * If true value is returned then the definition should be used as a default
-     * account type definition. This is a way how a resource connector may
-     * suggest applicable object classes (resource object definitions) for
-     * accounts.
-     *
-     * If no information about account type is present, false should be
-     * returned. This method must return true only if isAccountType() returns
-     * true.
-     *
-     * The exception should be never thrown unless there is some bug in the
-     * code. The validation of at-most-one value should be done at the time of
-     * schema parsing. The exception may not even be thrown at all if the
-     * implementation is not able to determine duplicity.
-     *
-     * @return true if the definition should be used as account type.
-     * @throws IllegalStateException
-     *             if more than one default account is suggested in the schema.
-     */
-    @Override
     public boolean isDefaultInAKind() {
         ResourceAttributeContainerDefinition definition = getDefinition();
-        return (definition != null ? definition.isDefaultInAKind() : null);
+        return definition != null && definition.isDefaultAccountDefinition();
     }
 
-    /**
-     * Finds a specific attribute in the resource object by name.
-     *
-     * Returns null if nothing is found.
-     *
-     * @param attributeQName
-     *            attribute name to find.
-     * @return found attribute or null
-     */
     @Override
     @SuppressWarnings("unchecked")
     public <X> ResourceAttribute<X> findAttribute(QName attributeQName) {
         return (ResourceAttribute<X>) super.findProperty(ItemName.fromQName(attributeQName));
     }
 
-    /**
-     * Finds a specific attribute in the resource object by definition.
-     *
-     * Returns null if nothing is found.
-     *
-     * @param attributeDefinition
-     *            attribute definition to find.
-     * @return found attribute or null
-     */
     @Override
     public <X> ResourceAttribute<X> findAttribute(ResourceAttributeDefinition attributeDefinition) {
         return (ResourceAttribute<X>) getValue().findProperty(attributeDefinition);
@@ -382,7 +200,7 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
 
     @Override
     public ResourceAttributeContainerImpl cloneComplex(CloneStrategy strategy) {
-        ResourceAttributeContainerImpl clone = new ResourceAttributeContainerImpl(getElementName(), getDefinition(), getPrismContext());
+        ResourceAttributeContainerImpl clone = new ResourceAttributeContainerImpl(getElementName(), getDefinition());
         copyValues(strategy, clone);
         return clone;
     }
@@ -426,9 +244,6 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
         super.applyDefinition(definition, force);
     }
 
-    /**
-     * Return a human readable name of this class suitable for logs.
-     */
     @Override
     protected String getDebugDumpClassName() {
         return "RAC";

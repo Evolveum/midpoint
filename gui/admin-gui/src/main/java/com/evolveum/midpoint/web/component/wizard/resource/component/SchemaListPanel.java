@@ -7,13 +7,13 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -326,12 +326,12 @@ public class SchemaListPanel extends BasePanel<PrismObject<ResourceType>> {
     private List<ObjectClassDto> loadAllClasses() {
         List<ObjectClassDto> list = new ArrayList<>();
 
-        RefinedResourceSchema schema = loadResourceSchema();
+        ResourceSchema schema = loadResourceSchema();
         if (schema == null) {
             return list;
         }
 
-        for(RefinedObjectClassDefinition definition: schema.getRefinedDefinitions()){
+        for(ResourceObjectTypeDefinition definition: schema.getObjectTypeDefinitions()){
             list.add(new ObjectClassDto(definition));
         }
 
@@ -340,7 +340,7 @@ public class SchemaListPanel extends BasePanel<PrismObject<ResourceType>> {
         return list;
     }
 
-    private RefinedResourceSchema loadResourceSchema() {
+    private ResourceSchema loadResourceSchema() {
         PrismObject<ResourceType> resource = getModel().getObject();
 
         try {
@@ -349,7 +349,7 @@ public class SchemaListPanel extends BasePanel<PrismObject<ResourceType>> {
                 return null;
             }
 
-            return RefinedResourceSchemaImpl.getRefinedSchema(resource, getPageBase().getPrismContext());
+            return ResourceSchemaFactory.getCompleteSchema(resource);
         } catch (SchemaException|RuntimeException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse resource schema.", ex);
             getSession().error(getString("SchemaListPanel.message.couldntParseSchema") + " " + ex.getMessage());

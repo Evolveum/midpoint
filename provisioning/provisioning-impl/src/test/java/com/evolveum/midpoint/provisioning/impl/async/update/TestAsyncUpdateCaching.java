@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class TestAsyncUpdateCaching extends TestAsyncUpdate {
 
-    static final File RESOURCE_ASYNC_CACHING_FILE = new File(TEST_DIR, "resource-async-caching.xml");
+    private static final File RESOURCE_ASYNC_CACHING_FILE = new File(TEST_DIR, "resource-async-caching.xml");
 
     @Override
     protected File getResourceFile() {

@@ -8,7 +8,11 @@
 package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import com.google.common.annotations.VisibleForTesting;
 
 import javax.xml.namespace.QName;
 
@@ -18,26 +22,46 @@ import javax.xml.namespace.QName;
 @Experimental
 public class ObjectFactory {
 
-    public static <T> ResourceAttribute<T> createResourceAttribute(QName name, ResourceAttributeDefinition<T> definition, PrismContext prismContext) {
-        return new ResourceAttributeImpl<>(name, definition, prismContext);
+    public static <T> ResourceAttribute<T> createResourceAttribute(QName name, ResourceAttributeDefinition<T> definition) {
+        return new ResourceAttributeImpl<>(name, definition);
     }
 
-    public static <T> MutableResourceAttributeDefinition<T> createResourceAttributeDefinition(QName name, QName typeName,
-            PrismContext prismContext) {
-        return new ResourceAttributeDefinitionImpl<T>(name, typeName, prismContext);
+    /**
+     * Creates {@link ResourceAttributeDefinition} with given parameters.
+     *
+     * The created definition is effectively immutable.
+     */
+    @VisibleForTesting
+    public static <T> ResourceAttributeDefinition<T> createResourceAttributeDefinition(QName name, QName typeName) {
+        return ResourceAttributeDefinitionImpl.create(
+                createRawResourceAttributeDefinition(name, typeName));
     }
 
-    public static ResourceAttributeContainer createResourceAttributeContainer(QName name, ResourceAttributeContainerDefinition definition,
-            PrismContext prismContext) {
-        return new ResourceAttributeContainerImpl(name, definition, prismContext);
+    /**
+     * Creates {@link RawResourceAttributeDefinition}. It is mutable but not directly instantiable.
+     */
+    public static <T> MutableRawResourceAttributeDefinition<T> createRawResourceAttributeDefinition(QName name, QName typeName) {
+        return new RawResourceAttributeDefinitionImpl<>(name, typeName);
     }
 
-    public static ResourceAttributeContainerDefinition createResourceAttributeContainerDefinition(QName name,
-            ObjectClassComplexTypeDefinition complexTypeDefinition, PrismContext prismContext) {
-        return new ResourceAttributeContainerDefinitionImpl(name, complexTypeDefinition, prismContext);
+    public static ResourceAttributeContainer createResourceAttributeContainer(
+            QName name, ResourceAttributeContainerDefinition definition) {
+        return new ResourceAttributeContainerImpl(name, definition);
     }
 
-    public static MutableResourceSchema createResourceSchema(String namespace, PrismContext prismContext) {
-        return new ResourceSchemaImpl(namespace, prismContext);
+    public static ResourceAttributeContainerDefinition createResourceAttributeContainerDefinition(
+            QName name, ResourceObjectDefinition resourceObjectDefinition) {
+        return new ResourceAttributeContainerDefinitionImpl(name, resourceObjectDefinition);
+    }
+
+    public static MutableResourceSchema createResourceSchema() {
+        return new ResourceSchemaImpl();
+    }
+
+    public static PrismObjectDefinition<ShadowType> constructObjectDefinition(ResourceAttributeContainerDefinition rACD) {
+        // Almost-shallow clone of object definition and complex type
+        PrismObjectDefinition<ShadowType> shadowDefinition =
+                PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+        return shadowDefinition.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES, rACD);
     }
 }

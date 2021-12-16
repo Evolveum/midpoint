@@ -60,7 +60,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificatio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * @author mederly
+ * Testing approval of association "add" operation.
  */
 @ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

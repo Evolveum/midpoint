@@ -125,7 +125,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
 
         ResourceObjectConstruction<UserType, EvaluatedAssignedResourceObjectConstructionImpl<UserType>> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
         displayDumpable("Evaluated construction", construction);
-        assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
+        assertNotNull("No object class definition in construction", construction.getResourceObjectDefinition());
 
         assertEquals("Wrong number of admin GUI configs", 0, evaluatedAssignment.getAdminGuiConfigurations().size());
     }
@@ -162,7 +162,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
         ResourceObjectConstruction<UserType, EvaluatedAssignedResourceObjectConstructionImpl<UserType>> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
-        assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
+        assertNotNull("No object class definition in construction", construction.getResourceObjectDefinition());
 
         assertEquals("Wrong number of admin GUI configs", 0, evaluatedAssignment.getAdminGuiConfigurations().size());
     }
@@ -207,7 +207,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         PrismAsserts.assertParentConsistency(user);
 
         ResourceObjectConstruction<UserType, EvaluatedAssignedResourceObjectConstructionImpl<UserType>> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
-        assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
+        assertNotNull("No object class definition in construction", construction.getResourceObjectDefinition());
         DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<UserType>> evaluatedConstructionTriple = construction.getEvaluatedConstructionTriple();
         assertEquals(1, evaluatedConstructionTriple.size());
         EvaluatedAssignedResourceObjectConstructionImpl<UserType> evaluatedConstruction = evaluatedConstructionTriple.getZeroSet().iterator().next();
@@ -271,7 +271,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         PrismAsserts.assertParentConsistency(user);
 
         ResourceObjectConstruction<UserType, EvaluatedAssignedResourceObjectConstructionImpl<UserType>> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
-        assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
+        assertNotNull("No object class definition in construction", construction.getResourceObjectDefinition());
         DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<UserType>> evaluatedConstructionTriple = construction.getEvaluatedConstructionTriple();
         assertEquals(1, evaluatedConstructionTriple.size());
         EvaluatedAssignedResourceObjectConstructionImpl<UserType> evaluatedConstruction = evaluatedConstructionTriple.getZeroSet().iterator().next();

@@ -32,8 +32,8 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -150,7 +150,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
     }
 
     @Override
-    protected String createTicketModify(ObjectClassComplexTypeDefinition objectClass,
+    protected String createTicketModify(ResourceObjectDefinition objectDefinition,
             PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, Collection<Operation> changes,
             Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
         LOGGER.debug("Creating case to modify account {}:\n{}", identifiers, DebugUtil.debugDumpLazily(changes, 1));
@@ -175,7 +175,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
     }
 
     @Override
-    protected String createTicketDelete(ObjectClassComplexTypeDefinition objectClass, PrismObject<ShadowType> shadow,
+    protected String createTicketDelete(ResourceObjectDefinition objectDefinition, PrismObject<ShadowType> shadow,
             Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, Task task, OperationResult result)
             throws SchemaException {
         LOGGER.debug("Creating case to delete account {}", identifiers);

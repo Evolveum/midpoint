@@ -980,7 +980,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(MappingTestEvaluator.TEST_DIR, "account-inbound-mapping.xml"));
         // We need to provide some definitions for account attributes here,
         // otherwise the tests will fail on unknown data types
-        PrismObjectDefinition<ShadowType> shadowDef = account.getDefinition().deepClone(true, null);
+        PrismObjectDefinition<ShadowType> shadowDef = account.getDefinition().deepClone(DeepCloneOperation.ultraDeep());
         PrismContainerDefinition<Containerable> attrsDef = shadowDef.findContainerDefinition(ShadowType.F_ATTRIBUTES);
         attrsDef.toMutable().createPropertyDefinition(new QName(MidPointConstants.NS_RI, "uid"), PrimitiveType.STRING.getQname());
         attrsDef.toMutable().createPropertyDefinition(SchemaConstants.ICFS_NAME, PrimitiveType.STRING.getQname());
