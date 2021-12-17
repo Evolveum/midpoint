@@ -182,7 +182,7 @@ Conceptually, this stores multimap (name -> references) for each record.
 * Audit event `changedItem` and `resourceOid` are stored as arrays of `TEXT` directly in `ma_audit_event` table.
 * Item `property`, which is a multimap (name -> strings), is stored in JSONB column directly in `ma_audit_event` table.
 * Custom properties (`customColumnProperty`) are stored each in dedicated column of `TEXT` type.
-See section link:#custom-column[Custom columns] below for details.
+See the section link:#custom-column[Custom columns] below for details.
 
 Audit event record should be uniquely identified by its `id` column (matching `recordId` in the related tables).
 However, for technical reasons related to the partitioning support, only uniqueness of `id`+`timestamp` combination is enforced.
@@ -247,12 +247,14 @@ whether your removal is executed monthly, quarterly or yearly.
 See also the discussion on the Cleanup task in the section below.
 
 To create partitions for the next 5 years, simply run this SQL command:
+
 [source,sql]
 ----
 call audit_create_monthly_partitions(60);
 ----
 
 If you have anything in the default partition, the command will likely fail with the following error:
+
 ----
 [23514] ERROR: updated partition constraint for default partition "ma_audit_event_default" would be violated by some row
 ----
@@ -262,6 +264,7 @@ Alternatively, you may only detach the partition if you want to do something wit
 However, this likely indicates that the partitioning is done too late in the process.
 
 If you're planning to link:#audit-migration-from-other-database[migrate the old audit], don't forget to create partitions into the past too:
+
 [source,sql]
 ----
 call audit_create_monthly_partitions(-60);
@@ -271,6 +274,7 @@ Of course, investigate your old audit to find out how many partitions are needed
 Alternatively, decide on the earliest date and use a filter for the audit export (example in the section on migration).
 
 To check existing audit partitions, including estimated row count, you can use the following SQL query:
+
 [source,sql]
 ----
 select i.inhrelid::regclass::text as partition, t.reltuples rows_estimate
@@ -329,6 +333,7 @@ That means that if it's December 2021, you may drop partition for November 2020,
 Partitions created by the `audit_create_monthly_partitions` procedure are named with a specific suffix, so you know exactly what partitions they are.
 
 To drop these partitions, you simply drop their tables (first the dependent ones):
+
 [source,sql]
 ----
 drop table ma_audit_ref_202009;
@@ -338,6 +343,7 @@ drop table ma_audit_event_202009;
 
 Alternatively, just detach them, which makes them invisible for midPoint and you can later decide what to do with them
 (here the order does not matter):
+
 [source,sql]
 ----
 alter table ma_audit_event detach partition ma_audit_event_202011;
@@ -396,6 +402,10 @@ or simply use much higher number to set the `id` in the new audit database (it i
 select setval(pg_get_serial_sequence('ma_audit_event', 'id'), 100000000);
 ----
 
+. If you used any custom columns in the audit table, create them in the `ma_audit_event` table as well.
+Use the type `TEXT` for these columns.
+See the section link:#custom-column[Custom columns] below for details.
+
 . If you want to use partitioning, *prepare the partitions before you start using the audit for real!*
 It is possible to migrate data later, but it can be extremely cumbersome, so get ready before going live.
 Check the link:#partitioning[Partitioning] section above.
@@ -427,11 +437,11 @@ If you don't need XML, do not set anything, default JSON format takes much less 
 
 ==== Single roundtrip audit migration
 
-To do it all at once just run the following command (add `-z` to zip the file):
+To do it all at once just run the following command (use `-z` for manageable file sizes):
 
 [source,bash]
 ----
-MIDPOINT_HOME='/var/old-mp-home' bin/ninja.sh -v exportAudit -O audit-export.xml
+MIDPOINT_HOME='/var/old-mp-home' bin/ninja.sh -v exportAudit -z -O audit-export.zip
 ----
 
 [NOTE]
@@ -442,7 +452,7 @@ Following example uses Axiom language filter preceded by `%` (different paramete
 
 [source,bash]
 ----
-MIDPOINT_HOME='/var/old-mp-home' bin/ninja.sh -v exportAudit -O audit-export.xml -f '% timestamp >= "2019-01-01"'
+MIDPOINT_HOME='/var/old-mp-home' bin/ninja.sh -v exportAudit -z -O audit-export.zip -f '% timestamp >= "2019-01-01"'
 ----
 
 Be sure to check the first audit records and add the timezone if needed, e.g. the proper value
@@ -453,23 +463,109 @@ Now you can move the file to a new environment, if necessary, and import the aud
 
 [source,bash]
 ----
-MIDPOINT_HOME='/var/new-mp-home' bin/ninja.sh -v importAudit -i audit-export.xml
+MIDPOINT_HOME='/var/new-mp-home' bin/ninja.sh -v importAudit -z -i audit-export.zip
 ----
 
-==== Iterative audit migration
+Be sure there is enough free disk space on the target database server.
 
-////
-TODO
-Audit times on percentile boundaries, perhaps id is even better:
-SELECT unnest(percentile_disc(
-        (
-        SELECT array_agg(x)
-        FROM generate_series(0, 1, (1::numeric) / 10) as g(x)
-        )
-    ) WITHIN GROUP (ORDER BY timestamp)
-    ) as l
-FROM ma_audit_event;
-////
+[NOTE]
+You may ask: "What if I tweak the `iterativeSearchByPagingBatchSize` setting in the `config.xml` for the export?"
+Based on our tests the effect is little to none, probably because the page searches are based on the indexed `ID` column.
+So you probably don't have to worry about this at all.
+
+==== Chunked audit migration
+
+If you need to migrate more than a million audit records, it's better to split the work into smaller chunks.
+If anything goes wrong, it's always better to know exactly what batch of audit records caused the problem.
+The following examples use PostgreSQL as both the source database (Generic repo) and the target database (Native repo).
+You need to adopt the SQL commands to your database, if you use different RDBMS.
+Ninja commands will work regardless of the source RDBMS, as long as the repo is upgraded
+to version 4.4 and Ninja 4.4.1 is used (audit import/export didn't make it to the first 4.4 release).
+
+First find the total amount of audit events for migration, then decide into how many chunks you want to split them.
+As an example, we have an audit trail with around 10 million rows and we want to split it into 10 export files.
+Audit event IDs are typically assigned as a continuous series so we can easily eyeball the boundaries
+after we find out what is the minimimum and maximum ID.
+Alternatively we can use database tools to do it for us.
+
+When we take it to an extreme, we can even let the database generate the shell commands for us.
+Note, that the query has the first interval closed, just in case the commented `WHERE` is used,
+but the last interval is open, because we don't expect that some newest audits are to be skipped.
+
+[source,sql]
+----
+with defs (threads, files) as (values (5, 10))
+select 'bin/ninja.sh -v exportAudit -O audit-export-' || lpad(num::text, 2, '0') || '.zip -z -ow' ||
+    ' -f ''% ' || case when goe is not null then 'repoId >= ' || goe else '' end ||
+    case when goe is not null and lt is not null then ' and ' else '' end ||
+    case when lt is not null then 'repoId < ' || lt else '' end || '''' ||
+    -- adding & to run the command in background, lt check to avoid & for the last command
+    -- -2 because first row is 2, because of the offset 1
+    case when (num - 2) % threads < threads - 1 and lt is not null then ' &' else '' end
+from (
+    -- this generates the ranges, leaving the fist goe and last lt null
+    select row_number() over () num,
+           lag(id) OVER (ORDER BY id) as goe,
+           case when id = max then null else id end as lt
+    from (
+        -- this generates the id percentiles
+        select max(id) max, unnest(percentile_disc(
+            (select array_agg(x) from generate_series(
+                0, 1, (1::numeric) / (select files from defs)) as g(x)))
+            within group (order by id)) as id
+        from m_audit_event
+        -- optional: where timestamp > 'yyyy-mm-dd' -- or other filter
+    ) percentiles
+-- offset removes the first open interval, which is critical if where above is used
+offset 1) boundaries, defs;
+----
+
+Just change the values for `threads` (how many paralel Ninjas for export) and `files` (number of chunks)
+at the first line as you wish and add optinal timestamp condtition to elimiate very old entries.
+
+Run the query and paste the result into an `export.sh` script after the designated line:
+
+[source,bash]
+----
+#!/bin/bash
+export MIDPOINT_HOME=/var/old-mp-home
+
+### THIS PART IS PASTED FROM THE SQL OUTPUT
+bin/ninja.sh -v exportAudit -O audit-export-02.zip -z -ow -f '% repoId >= 1 and repoId < 20004' &
+bin/ninja.sh -v exportAudit -O audit-export-03.zip -z -ow -f '% repoId >= 20004 and repoId < 40008' &
+bin/ninja.sh -v exportAudit -O audit-export-04.zip -z -ow -f '% repoId >= 40008 and repoId < 60011' &
+bin/ninja.sh -v exportAudit -O audit-export-05.zip -z -ow -f '% repoId >= 60011 and repoId < 80015' &
+bin/ninja.sh -v exportAudit -O audit-export-06.zip -z -ow -f '% repoId >= 80015 and repoId < 100018'
+bin/ninja.sh -v exportAudit -O audit-export-07.zip -z -ow -f '% repoId >= 100018 and repoId < 120022' &
+bin/ninja.sh -v exportAudit -O audit-export-08.zip -z -ow -f '% repoId >= 120022 and repoId < 140026' &
+bin/ninja.sh -v exportAudit -O audit-export-09.zip -z -ow -f '% repoId >= 140026 and repoId < 160029' &
+bin/ninja.sh -v exportAudit -O audit-export-10.zip -z -ow -f '% repoId >= 160029 and repoId < 180033' &
+bin/ninja.sh -v exportAudit -O audit-export-11.zip -z -ow -f '% repoId >= 180033'
+----
+
+Notice that some ninjas are to be run in the background (`&` suffix) and some not, working as a barrier.
+Each Ninja requires some memory (~1G), so don't run many of them on a confined server.
+Going over 5 Ninjas brings diminishing returns in speed anyway.
+
+After you move the files to your new environment, you import them with a bash loop:
+
+[source,bash]
+----
+$ for i in audit-export-*zip; do
+  MIDPOINT_HOME=/var/old-mp-home bin/ninja.sh -v importAudit -i $i -l 4 -z
+done
+----
+
+Here we instruct Ninja to use 4 threads to push the audit entries to the target database.
+
+Performance of export/import may vary depending on the infrastructure and the audit itself,
+but with the setup from the example export wrote over 1000 records per second to a file
+accessing a remote database and import wrote over 400 records per second to a local database.
+
+As the audit export/import can be executed while the rest of the midPoint is up and running,
+this can run on the background and there should be no need to push the speed too much.
+MidPoint application itself is not affected at all, but it may not be a good idea to push
+the underlying database too hard.
 
 == Custom column
 
