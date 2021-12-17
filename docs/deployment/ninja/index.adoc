@@ -18,32 +18,54 @@ Access through DB layer can be very powerful, especially in cases when UI fails.
 For example when midPoint fails to start because of configuration issue or objects data corruption.
 Another great example is "administrator" user lockout.
 
-Users of this tool need to be aware that using repository layer, access is not validated using authorisations, model component is not used during processing and changes are not audited.
+Users of this tool need to be aware that using repository layer, access is not validated using
+authorisations, model component is not used during processing and changes are not audited.
 It allows you to obtain or modify data in an otherwise unusable midPoint.
-Ninja also plan to support some other operations like listing keys from keystore, enforcing objects reencryption with new key, DB schema validation, password reset or user unlock.
+Ninja also plan to support some other operations like listing keys from keystore, enforcing objects
+reencryption with new key, DB schema validation, password reset or user unlock.
 
-Ninja comes with also with shell and bat scripts located in midPoint installation directory, e.g.
-`<midpoint>/bin/ninja.sh`.
-These scripts use `MIDPOINT_HOME` environment variable pointing to xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home],
-otherwise they will preset `midpoint.home` to a default value, e.g. `<midpoint>/var`.
+Ninja can be started using standard `java -jar` or via bundled shell/bat script.
+Bundled shell and bat scripts are located in the midPoint installation directory, e.g. `<midpoint>/bin/ninja.sh`.
+Bundled scripts will automatically fill in path to for xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home]
+option `-m` using `MIDPOINT_HOME` environment variable, defaulting to the `<midpoint>/var`.
 
 == Connecting to midPoint
 
 Connection options:
 
 * using `midpoint.home`
-
 * using REST service (not yet implemented)
-
 
 === midpoint.home connection
 
-This type of connection initialises repository layer of midpoint and operates on top of DB as new midPoint node.
+This type of connection initialises repository layer of midPoint and operates on top of the database as a new midPoint node.
 Mostly only one option is needed and that's specification of `midpoint.home` directory using `-m` option.
 This is not sufficient if `config.xml` uses datasource definition.
 Ninja then doesn't know how to connect to DB.
-For this case one have to use options to specify url ( `-U` ), username ( `-u` ) and password ( `-p` or `-P` ).
-These options can also be used to override JDBC url, username and password specified in `config.xml`.
+For this case one have to use options to specify URL (`-U`), username (`-u`) and password (`-p` or `-P`).
+These options can also be used to override JDBC URL, username and password specified in `config.xml`.
+
+With bash, you can provide `MIDPOINT_HOME` for the `ninja.sh` command with this shortcut:
+[source,bash]
+----
+MIDPOINT_HOME=/var/other-mp-home <midpoint>/bin/ninja.sh [general options] [command] [command options]
+----
+
+If unbundled JDBC driver is used, it will not be picked up automatically from the midPoint home directory
+and you must point Ninja to it explicitly.
+Example when using `java -jar`:
+
+[source,bash]
+----
+java -Dloader.path=<jdbc_driver_jar_path> -jar ninja.jar [general options] [command] [command options]
+----
+
+If the bundled scripts are used, you can specify the path to the driver with `-j` option, for example:
+
+[source,bash]
+----
+<midpoint>/bin/ninja.sh -j <JDBC_DRIVER_JAR> [general options] [command] [command options]
+----
 
 === REST connection
 
@@ -59,33 +81,13 @@ Not yet implemented.
 Ninja currently supports these operations:
 
 * import
-
 * export
-
 * verify (midPoint 3.9 or later)
-
 * keys
-
 * count
-
 * delete
-
-Ninja can be started using standard `java -jar` or via bundled shell/bat script.
-Bundled scripts will automatically fill in path to for midPoint home option `-m`.
-There's also a difference between usage when pointing ninja to correct JDBC drivers.
-Example use with `java -jar` option:
-
-[source]
-----
-java -Dloader.path=<jdbc_driver_jar_path> -jar ninja.jar [general options] [command] [command options]
-----
-
-Example use with bundled shell script:
-
-[source]
-----
-<MIDPOINT_INSTALLATION_PATH>/bin/ninja.sh -j <JDBC_DRIVER_JAR> [general options] [command] [command options]
-----
+* importAudit (midPoint 4.4.1 or later)
+* exportAudit (midPoint 4.4.1 or later)
 
 === Import
 
@@ -153,6 +155,29 @@ List keys in with aliases from keystore located in `midpoint.home`.
 java -jar ninja.jar -m /opt/midpoint-home keys -K
 ----
 
+=== Audit export/import
+
+[NOTE]
+Audit export/import uses the same format as objects, even utilizing `<objects>` element,
+but audit records are *containers, not objects*.
+These files are only useful for Ninja import/export, do not try to use them in Studio or otherwise.
+
+.Example: audit export to a zipped file, overwriting any existing file, using an Axiom filter
+[source,bash]
+----
+ninja.sh exportAudit -O audit-export.xml.zip -z -ow -f '%timestamp < "2021-12-01"'
+----
+
+Now you can move the exported file to a new environment and run the import:
+
+.Example: audit import
+[source,bash]
+----
+ninja.sh importAudit -i audit-export.xml.zip -z
+----
+
+Check also the xref:/midpoint/reference/repository/native-audit/#audit-migration-from-other-database[migration guide for the Native audit].
+
 == Full help
 
 .Full help
@@ -168,6 +193,9 @@ Usage: java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar [options] [com
       Print this help
     -m, --midpoint-home
       Path to MidPoint home folder. If relative path is specified, it will be translated to absolute path.
+    --offline
+      Do not use repository (local nor via webservice)
+      Default: false
     -p, --password
       Password for rest/jdbc connection
     -P, --password-ask
@@ -176,8 +204,9 @@ Usage: java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar [options] [com
       No output at all
       Default: false
     -U, --url
-      Url to MidPoint model webservice endpoint or JDBC url to database. If '-m' option is used url will be used to connect to JDBC database. If '-m'
-      is not specified then this parameter is used as MidPoint REST url endpoint.
+      URL to MidPoint model webservice endpoint or JDBC URL to database. If '-m' option is used URL will be
+      used to connect to JDBC database. If '-m' is not specified then this parameter is used as MidPoint REST
+      URL endpoint.
     -u, --username
       Username for rest/jdbc connection
     -v, --verbose
@@ -194,22 +223,23 @@ Usage: java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar [options] [com
             Allow unencrypted values
             Default: false
           -f, --filter
-            Value of object filter used to search objects. If you start the filter with the letter @, the rest should be a filename.
+            Value of object filter used to search objects. If you start the filter with the letter @, the
+            rest should be a filename. Start the filter with % to use Axiom query language.
           -i, --input
-
+            Input file for import
           -l, --multi-thread
             How many threads to use for operation.
             Default: 1
           -o, --oid
-            Object oid
+            Object OID
           -O, --overwrite
-            Use overwrite option
+            Overwrite input file
             Default: false
           -r, --raw
             Use raw option
             Default: false
           -t, --type
-            Object type, case insensitive value. Rest type name can be used as well.
+            Object type, case insensitive value, e.g. "user". Do not use "Type" suffix.
             Default: []
           -z, --zip
             Use zip/unzip compression
@@ -219,22 +249,26 @@ Usage: java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar [options] [com
       Usage: export [options]
         Options:
           -f, --filter
-            Value of object filter used to search objects. If you start the filter with the letter @, the rest should be a filename.
+            Value of object filter used to search objects. If you start the filter with the letter @, the
+            rest should be a filename. Start the filter with % to use Axiom query language.
           -l, --multi-thread
             How many threads to use for operation.
             Default: 1
+          -ni, --no-container-ids
+            Skips container ids
+            Default: false
           -o, --oid
-            Object oid
+            Object OID
           -O, --output
-
+            Output file for export
           -ow, --overwrite
-
+            Overwrite output file
             Default: false
           -r, --raw
             Use raw option
             Default: false
           -t, --type
-            Object type, case insensitive value. Rest type name can be used as well.
+            Object type, case insensitive value, e.g. "user". Do not use "Type" suffix.
             Default: []
           -z, --zip
             Use zip/unzip compression
@@ -244,54 +278,60 @@ Usage: java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar [options] [com
       Usage: delete [options]
         Options:
           -a, --ask
-
+            Ask before object deletion
             Default: false
           -f, --filter
-
+            Value of object filter used to search objects. If you start the filter with the letter @, the
+            rest should be a filename. Start the filter with % to use Axiom query language.
           -F, --force
             Force option
             Default: false
           -o, --oid
-            Object oid
+            Object OID
           -r, --raw
             Raw option
             Default: false
           -t, --type
+            Object type, case insensitive value, e.g. "user". Do not use "Type" suffix.
+            Possible Values: [CONNECTOR, CONNECTOR_HOST, GENERIC_OBJECT, RESOURCE, USER, OBJECT_TEMPLATE, SYSTEM_CONFIGURATION, TASK, SHADOW, ROLE, PASSWORD_POLICY, NODE, FORM, ORG, ABSTRACT_ROLE, FOCUS_TYPE, ASSIGNMENT_HOLDER_TYPE, REPORT, REPORT_DATA, SECURITY_POLICY, LOOKUP_TABLE, ACCESS_CERTIFICATION_DEFINITION, ACCESS_CERTIFICATION_CAMPAIGN, SEQUENCE, SERVICE, CASE, FUNCTION_LIBRARY, OBJECT_COLLECTION, ARCHETYPE, DASHBOARD, OBJECT]
 
-            Possible Values: [CONNECTOR, CONNECTOR_HOST, GENERIC_OBJECT, RESOURCE, USER, OBJECT_TEMPLATE, SYSTEM_CONFIGURATION, TASK, SHADOW, ROLE, PASSWORD_POLICY, NODE, FORM, ORG, ABSTRACT_ROLE, FOCUS_TYPE, ASSIGNMENT_HOLDER_TYPE, REPORT, REPORT_OUTPUT, SECURITY_POLICY, LOOKUP_TABLE, ACCESS_CERTIFICATION_DEFINITION, ACCESS_CERTIFICATION_CAMPAIGN, SEQUENCE, SERVICE, CASE, FUNCTION_LIBRARY, OBJECT_COLLECTION, ARCHETYPE, DASHBOARD, OBJECT]
-
-    count
+    count      Count objects in midPoint repository
       Usage: count [options]
         Options:
           -f, --filter
-
+            Value of object filter used to search objects. If you start the filter with the letter @, the
+            rest should be a filename. Start the filter with % to use Axiom query language.
           -t, --type
-
+            Object type, case insensitive value, e.g. "user". Do not use "Type" suffix.
             Default: []
 
     verify      Verify objects in midPoint repository
       Usage: verify [options]
         Options:
           -f, --filter
-            Value of object filter used to search objects. If you start the filter with the letter @, the rest should be a filename.
+            Value of object filter used to search objects. If you start the filter with the letter @, the
+            rest should be a filename. Start the filter with % to use Axiom query language.
           -l, --multi-thread
             How many threads to use for operation.
             Default: 1
+          -ni, --no-container-ids
+            Skips container ids
+            Default: false
           -o, --oid
-            Object oid
+            Object OID
           -O, --output
-
+            Output file for export
           -ow, --overwrite
-
+            Overwrite output file
             Default: false
           -r, --raw
             Use raw option
             Default: false
           -t, --type
-            Object type, case insensitive value. Rest type name can be used as well.
+            Object type, case insensitive value, e.g. "user". Do not use "Type" suffix.
             Default: []
           -w, --warn
-            List of displayed warning categories, e.g. deprecated, plannedRemoval
+            List of displayed warning categories, e.g. deprecated, plannedRemoval, uuid
           -z, --zip
             Use zip/unzip compression
             Default: false
@@ -303,4 +343,59 @@ Usage: java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar [options] [com
             Key password
           -K
             Please write key password
+
+    importAudit      Imports audit records into MidPoint
+      Usage: importAudit [options]
+        Options:
+          -f, --filter
+            Value of object filter used to search objects. If you start the filter with the letter @, the
+            rest should be a filename. Start the filter with % to use Axiom query language.
+          -i, --input
+            Input file for import
+          -l, --multi-thread
+            How many threads to use for operation.
+            Default: 1
+          -O, --overwrite
+            Overwrite input file
+            Default: false
+          -z, --zip
+            Use zip/unzip compression
+            Default: false
+
+    exportAudit      Exports audit records from MidPoint
+      Usage: exportAudit [options]
+        Options:
+          -f, --filter
+            Value of object filter used to search objects. If you start the filter with the letter @, the
+            rest should be a filename. Start the filter with % to use Axiom query language.
+          -l, --multi-thread
+            How many threads to use for operation.
+            Default: 1
+          -O, --output
+            Output file for export
+          -ow, --overwrite
+            Overwrite output file
+            Default: false
+          -z, --zip
+            Use zip/unzip compression
+            Default: false
+
+    trace      Edit trace file
+      Usage: trace [options]
+        Options:
+          --input
+            Input trace file
+          --keep
+            Operation results to be kept (with their children). Asterisk is allowed. All above them will be
+            removed.
+          --kill
+            Operation results to be removed (with their children). Asterisk is allowed.
+          --output
+            Output trace file (default is "output.zip")
+          --print-stat
+            Print statistics
+            Default: false
+          --print-stat-extra
+            Print extra statistics i.e. the node size. Takes longer time.
+            Default: false
 ----

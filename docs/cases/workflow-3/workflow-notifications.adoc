@@ -26,11 +26,8 @@ Workflow module provides the following notifications:
 
 | Work item creation
 .3+| The work item actor (i.e. assignee) (as of 3.4).
-All assignees (as of 3.6). +
- +
 
-
-
+All assignees (as of 3.6).
 | Work item escalation, delegation, or other event
 
 
@@ -65,14 +62,18 @@ The variable might be null if the object does not exist yet.
 
 | (all)
 | changeType
-| ADD = process instance start or work item creationDELETE = process instance end or work item completion
+| ADD = process instance start or work item creation
+
+DELETE = process instance end or work item completion
 |
 
 
 | (all)
 | status
-| SUCCESS = result is 'approved' (you can use also isApproved() method to determine this) +
-FAILURE = result is 'rejected' (also isRejected() method) +
+| SUCCESS = result is 'approved' (you can use also isApproved() method to determine this)
+
+FAILURE = result is 'rejected' (also isRejected() method)
+
 IN_PROGRESS = result is not yet known (you can also use isResultKnown() to determine this)
 |
 

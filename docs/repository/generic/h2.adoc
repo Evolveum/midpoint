@@ -7,6 +7,7 @@
 :page-wiki-metadata-modify-date: 2020-10-01T15:19:23.231+02:00
 :page-toc: top
 :page-upkeep-status: orange
+:page-deprecated-since: "4.4"
 
 == Usage
 

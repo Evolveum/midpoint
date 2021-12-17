@@ -1,7 +1,7 @@
 = Generic SQL Audit Trail
 :page-nav-title: SQL Audit
 :page-display-order: 15
-:page-since: "4.4"
+:page-deprecated-since: "4.4"
 :page-toc: top
 
 [IMPORTANT]

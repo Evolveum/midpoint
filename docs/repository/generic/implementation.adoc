@@ -8,6 +8,7 @@
 :page-wiki-metadata-modify-user: virgo
 :page-wiki-metadata-modify-date: 2020-10-30T16:45:12.599+01:00
 :page-upkeep-status: green
+:page-deprecated-since: "4.4"
 :page-toc: top
 
 [NOTE]

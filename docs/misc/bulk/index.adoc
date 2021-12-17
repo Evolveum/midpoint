@@ -72,7 +72,6 @@ Hoping its time will come it is described xref:/midpoint/devel/design/bulk-actio
 </s:search>
 ----
 
-
 .Example 3: Disabling selected users
 [source,xml]
 ----
@@ -173,9 +172,7 @@ It is possible to specify the target resource by OID (example 4a). In the future
 </s:search>
 ----
 
-
 == The language and its execution model
-
 
 === Scripting expressions
 
@@ -221,7 +218,6 @@ Output of the last expression is considered to be the output of the whole sequen
 |===
 
 Other planned expression types: are constant expressions, initialization and use of variables, or filtering input values.
-
 
 === Actions
 
@@ -418,16 +414,13 @@ Some simple examples of scripts in XML form can be found in *resources/scripting
 Since 3.6, `executeScript` action and `notify` action (that contains custom handler) require superuser authorization, because they allow direct execution of user-supplied scripts (groovy, JavaScript, and so on).
 ====
 
-
 == Other features
-
 
 === Embedding in tasks
 
 Scripts can be run within tasks.
 That is extremely useful for long-running scripts.
 More information is on this page.
-
 
 === Data being passed
 
@@ -439,7 +432,6 @@ So, for example, after selecting 100 users and attempting to disable them, one c
 
 Serialization of the data is described here.
 (TODO)
-
 
 === Console output
 
@@ -453,7 +445,6 @@ However, the "console output" feature is meant to be a quick and easy way to con
 In current implementation, each action puts there information on actions taken (users enabled, disabled, deleted, modified, ...), along with warnings and errors.
 For any other information, the operation result should be analyzed and displayed.
 
-
 === Error handling
 
 Currently, the policy is "stop on any exception".
@@ -465,7 +456,6 @@ TODO configuration
 Note that actions themselves are also a bit picky.
 When they get an object they cannot act upon (e.g. a PrismPropertyValue in situations where they expect PrismObjectValue, or a ResourceType when they expect UserType), they treat this like a fatal error and stop the execution of the whole script.
 Also this behavior could be made configurable in the future.
-
 
 == Tools
 

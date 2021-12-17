@@ -70,10 +70,10 @@ one can simply write
 
 Moreover, we can rely on all the auto-completion and schema-checking features of modern IDEs, because the definition of `s:execute` element and its parameters is fully described in relevant XML schema document.
 
-
 == Actions
 
-The actions themselves are the same as they were before midPoint 4.2. In some cases, the action names were clarified.
+The actions themselves are the same as they were before midPoint 4.2.
+In some cases, the action names were clarified.
 In other ones, parameters were reorganized into more logical way.
 But the backward compatibility is fully ensured: the old way of specifying actions is still possible; although it will be probably deprecated (and removed) in the future.
 
@@ -84,66 +84,50 @@ But the backward compatibility is fully ensured: the old way of specifying actio
 | add
 | Adds object(s) to the repository.
 
-
 | modify
 | Modifies object(s).
-
 
 | delete
 | Deletes object(s).
 
-
 | enable, disable
 | Enables or disables object(s).
-
 
 | assign
 | Assigns an abstract role or a resource to object(s).
 
-
 | unassign
 | Removes assignment(s) from object(s).
-
 
 | xref:/midpoint/reference/misc/bulk/actions/recompute/[recompute]
 | Recomputes object(s) (or schedules the recomputation to the future).
 
-
 | execute
 | Executes a script against the input data.
-
 
 | resumeTask
 | Resumes suspended task(s).
 
-
 | resolveReference
 | Resolves reference(s).
-
 
 | applyDefinition
 | Applies definition to shadows or resources.
 
-
 | purgeSchema
 | Removes all schema information from given resource(s).
-
 
 | testResource
 | Tests resource(s).
 
-
 | generateValue
 | Generates value(s) for object(s).
-
 
 | notify
 | Sends a custom notification event for objects.
 
-
 | log
 | Logs the input data.
-
 
 |===
 
@@ -156,9 +140,7 @@ The following actions were not changed and are accessible only in the traditiona
 | discover-connectors
 | Discovers all connectors on given connector host(s).
 
-
 | validate
 | Validates resource(s) - i.e. provides a set of issues just like in Resource Wizard (since 3.5)
-
 
 |===

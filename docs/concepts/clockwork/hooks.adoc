@@ -8,7 +8,7 @@
 :page-wiki-metadata-modify-date: 2016-02-20T15:39:58.533+01:00
 
 Hooks are midPoint mechanism for injecting a code to or intercepting of normal midPoint flows.
-E.g. a hook can be used to inset custom notification after an operation is complete, modify the operation request before it is even processed, redirect processing to a workflow or trouble-ticket system or do any other kind of advanced customization magic.
+E.g. a hook can be used to insert custom notification after an operation is complete, modify the operation request before it is even processed, redirect processing to a workflow or trouble-ticket system or do any other kind of advanced customization magic.
 Hooks are invoked by xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[Clockwork] component at appropriate stages of midPoint computation.
 
 Hooks are typically pieces of Java code that has to be compiled and assembled into midPoint.

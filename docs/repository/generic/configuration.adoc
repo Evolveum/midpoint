@@ -7,6 +7,7 @@
 :page-wiki-metadata-create-date: 2012-08-06T14:55:55.920+02:00
 :page-wiki-metadata-modify-user: virgo
 :page-wiki-metadata-modify-date: 2020-12-03T19:19:37.315+01:00
+:page-deprecated-since: "4.4"
 :page-toc: top
 
 [NOTE]
@@ -120,7 +121,7 @@ the scenes or even in addition to this setting which is likely undesired.
 | useZipAudit
 | (Since 4.0.3, 4.1.1, 4.2.1, 4.3.) Property controlling whether serialized delta and its operation result in audit is compressed (*m_audit_delta.delta*/*fullResult*). +
 *Important:* Because this was on by default since 3.8 and the option was introduced much later, its default (`true`) reflects the situation in 3.8 and later. +
-If xref:/midpoint/reference/security/audit/configuration/#audit-to-separate-repository[separate audit repository] is used, this option must be used there.
+If xref:/midpoint/reference/security/audit/#separate-repository-configuration-for-audit[separate audit repository] is used, this option must be used there.
 If single repository is used (by default), it must be used in main repository configuration.
 
 Please, consult also your RDBMS documentation to see if this is necessary and not useless or harmful.

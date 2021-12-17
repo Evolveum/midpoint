@@ -9,7 +9,7 @@
 == Introduction
 
 xref:hooks.adoc[Hooks] are midPoint mechanism for injecting a code to or intercepting of normal midPoint flows.
-E.g. a hook can be used to inset custom notification after an operation is complete, modify the operation request before it is even processed, redirect processing to a workflow or trouble-ticket system or do any other kind of advanced customization magic.
+E.g. a hook can be used to insert custom notification after an operation is complete, modify the operation request before it is even processed, redirect processing to a workflow or trouble-ticket system or do any other kind of advanced customization magic.
 
 Hooks are typically pieces of Java code that has to be compiled and assembled into midPoint.
 However there is also a lightweight way to create a hook using a scripting code.
