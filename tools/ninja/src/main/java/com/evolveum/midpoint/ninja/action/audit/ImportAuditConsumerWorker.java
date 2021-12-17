@@ -60,7 +60,8 @@ public class ImportAuditConsumerWorker extends BaseWorker<ImportAuditOptions, Au
                 } catch (Exception ex) {
                     Throwable cause = ExceptionUtil.findRootCause(ex);
                     // Short message for existing audit event conflict, but only for new repo
-                    if (cause.toString().contains("duplicate key value violates unique constraint \"ma_audit_event_default_pkey\"")) {
+                    if (cause.toString().contains("duplicate key value violates unique constraint \"ma_audit_event_")
+                            && cause.toString().contains("Detail: Key (id, \"timestamp\")")) {
                         context.getLog().info("Audit already exists, skipping ({}, {})",
                                 auditRecord.getRepoId(), auditRecord.getTimestamp());
                         operation.incrementSkipped(); // TODO: skipped or still error? also, info or error?
