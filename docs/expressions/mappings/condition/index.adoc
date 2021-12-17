@@ -1,0 +1,15 @@
+= Mapping Condition
+
+
+TODO: intro
+
+TODO: condition applied to expression, not to entire mapping.
+Condition does not turn mapping "off".
+
+== Condition and Range
+
+TODO
+
+== See Also
+
+* xref:../[]

@@ -250,7 +250,24 @@ It is perhaps quite intuitive that there cannot be more than one fully authorita
 
 == Other Cases
 
-TODO: Mapping producing a value that is not part of the range.
+Theoretically, mapping should produce only the values that belong to its range.
+This rule should hold for all authoritative mappings, otherwise some of the values produced by the mapping may not be removed.
+However, there are non-authoritative mappings.
+Non-authoritative mappings routinely produce values that do not belong to their range.
+An extreme case is a mapping with empty range (range set to `none`).
+Any value that such a mapping produces is outside of its range.
+Such mapping will work reasonably well.
+Values produced by the mapping will be added to the target item.
+The values may even be removed, as long as xref:../mapping-relativity/[mapping relativity] mechanism takes place.
+However, there is no guarantee that the value will be properly removed in all cases.
+
+Mapping range is applied, even if expression xref:../condition/[condition] is false.
+The condition does not "turn off" the mapping, it simply controls the expression.
+Even if condition is false, the mapping is still applied.
+Which means that mapping range is still applied as well.
+This may lead to some counter-intuitive situations.
+
+TODO
 
 TODO: range is still applied, even if condition is false. Why?
 
