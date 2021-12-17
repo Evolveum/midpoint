@@ -8,9 +8,11 @@ package com.evolveum.midpoint.web.component.search;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import org.apache.cxf.common.util.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -21,6 +23,7 @@ import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -28,6 +31,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -172,6 +176,29 @@ public class SearchFactory {
                 ItemPath.create(AuditEventRecordType.F_REQUEST_IDENTIFIER),
                 ItemPath.create(AuditEventRecordType.F_REFERENCE),
                 ItemPath.create(AuditEventRecordType.F_TASK_IDENTIFIER)
+        ));
+    }
+
+    private static final Map<Class<?>, List<ItemPath>> FIXED_SEARCH_ITEMS = new HashMap<>();
+    static {
+        FIXED_SEARCH_ITEMS.put(ObjectType.class, Arrays.asList(
+                ItemPath.create(ObjectType.F_NAME))
+        );
+        FIXED_SEARCH_ITEMS.put(UserType.class, Arrays.asList(
+                ItemPath.create(UserType.F_GIVEN_NAME),
+                ItemPath.create(UserType.F_FAMILY_NAME)
+        ));
+        FIXED_SEARCH_ITEMS.put(AbstractRoleType.class, Arrays.asList(
+                ItemPath.create(RoleType.F_DISPLAY_NAME)
+        ));
+        FIXED_SEARCH_ITEMS.put(RoleType.class, Arrays.asList(
+                ItemPath.create(RoleType.F_IDENTIFIER)
+        ));
+        FIXED_SEARCH_ITEMS.put(ServiceType.class, Arrays.asList(
+                ItemPath.create(ServiceType.F_IDENTIFIER)
+        ));
+        FIXED_SEARCH_ITEMS.put(OrgType.class, Arrays.asList(
+                ItemPath.create(OrgType.F_PARENT_ORG_REF)
         ));
     }
 
@@ -327,6 +354,251 @@ public class SearchFactory {
                 }
             }
         });
+    }
+
+    public static <C extends Containerable> Search<C> createSearch(Class<C> type, String collectionViewName,  ModelServiceLocator modelServiceLocator) {
+        return createSearch(type, collectionViewName, null, modelServiceLocator);
+    }
+
+    public static <C extends Containerable> Search<C> createSearch(Class<C> type, String collectionViewName,
+            SearchBoxConfigurationType config, ModelServiceLocator modelServiceLocator) {
+        return createSearch(type, collectionViewName, config, null, modelServiceLocator, Search.PanelType.DEFAULT);
+    }
+
+    public static <C extends Containerable> Search<C> createMemberPanelSearch(Class<C> type, String collectionViewName,
+            ModelServiceLocator modelServiceLocator) {
+        return createMemberPanelSearch(type, collectionViewName, null, modelServiceLocator);
+    }
+
+    public static <C extends Containerable> Search<C> createMemberPanelSearch(Class<C> type, String collectionViewName,
+            SearchBoxConfigurationType config, ModelServiceLocator modelServiceLocator) {
+        return createSearch(type, collectionViewName, config, null, modelServiceLocator, Search.PanelType.MEMBER_PANEL);
+    }
+
+    private static <C extends Containerable> Search<C> createSearch(Class<C> type, String collectionViewName, SearchBoxConfigurationType panelConfig,
+            ResourceShadowDiscriminator discriminator, ModelServiceLocator modelServiceLocator, Search.PanelType panelType) {
+        SearchBoxConfigurationType defaultSearchBoxConfig = createDefaultSearchBoxConfiguration(type, discriminator, modelServiceLocator);
+
+        SearchBoxConfigurationType configuredSearchBoxConfig = null;
+        if (type.isAssignableFrom(ObjectType.class)) {
+            configuredSearchBoxConfig = getSearchBoxConfiguration(modelServiceLocator,
+                    WebComponentUtil.classToQName(PrismContext.get(), (Class<? extends ObjectType>) type), collectionViewName, panelType);
+        }
+        //merge search box configs
+        return null;
+    }
+
+    private static SearchBoxConfigurationType combineSearchBoxConfiguration(SearchBoxConfigurationType config, SearchBoxConfigurationType customConfig) {
+        if (config == null) {
+            return customConfig;
+        }
+        if (customConfig == null) {
+            return config;
+        }
+        if (customConfig.getDefaultMode() != null) {
+            config.setDefaultMode(customConfig.getDefaultMode());
+        }
+        if (CollectionUtils.isNotEmpty(customConfig.getAllowedMode())) {
+            if (config.getAllowedMode() == null) {
+                config.createAllowedModeList();
+            }
+            config.getAllowedMode().clear();
+            config.getAllowedMode().addAll(customConfig.getAllowedMode());
+        }
+        if (customConfig.getScopeConfiguration() != null) {
+            ScopeSearchItemConfigurationType scopeConfig = combineCustomUserInterfaceFeatureType(config.getScopeConfiguration(), customConfig.getScopeConfiguration());
+            if (customConfig.getScopeConfiguration().getDefaultValue() != null) {
+                scopeConfig.setDefaultValue(customConfig.getScopeConfiguration().getDefaultValue());
+            } else {
+                scopeConfig.setDefaultValue(config.getScopeConfiguration().getDefaultValue());
+            }
+            config.setScopeConfiguration(scopeConfig);
+        }
+        if (customConfig.getObjectTypeConfiguration() != null) {
+            ObjectTypeSearchItemConfigurationType objectTypeConfig = combineCustomUserInterfaceFeatureType(config.getObjectTypeConfiguration(), customConfig.getObjectTypeConfiguration());
+            if (customConfig.getObjectTypeConfiguration().getDefaultValue() != null) {
+                objectTypeConfig.setDefaultValue(customConfig.getObjectTypeConfiguration().getDefaultValue());
+            } else {
+                objectTypeConfig.setDefaultValue(config.getObjectTypeConfiguration().getDefaultValue());
+            }
+            if (CollectionUtils.isNotEmpty(customConfig.getObjectTypeConfiguration().getSupportedTypes())) {
+                objectTypeConfig.createSupportedTypesList().addAll(customConfig.getObjectTypeConfiguration().getSupportedTypes());
+            } else {
+                objectTypeConfig.createSupportedTypesList().addAll(config.getObjectTypeConfiguration().getSupportedTypes());
+            }
+            config.setObjectTypeConfiguration(objectTypeConfig);
+        }
+        if (customConfig.getRelationConfiguration() != null) {
+            RelationSearchItemConfigurationType relationConfig = combineCustomUserInterfaceFeatureType(config.getRelationConfiguration(),
+                    customConfig.getRelationConfiguration());
+            if (customConfig.getRelationConfiguration().getDefaultValue() != null) {
+                relationConfig.setDefaultValue(customConfig.getRelationConfiguration().getDefaultValue());
+            } else {
+                relationConfig.setDefaultValue(config.getRelationConfiguration().getDefaultValue());
+            }
+            if (CollectionUtils.isNotEmpty(customConfig.getRelationConfiguration().getSupportedRelations())) {
+                relationConfig.createSupportedRelationsList().addAll(customConfig.getRelationConfiguration().getSupportedRelations());
+            } else {
+                relationConfig.createSupportedRelationsList().addAll(config.getRelationConfiguration().getSupportedRelations());
+            }
+            config.setRelationConfiguration(relationConfig);
+        }
+        if (customConfig.getIndirectConfiguration() != null) {
+            IndirectSearchItemConfigurationType indirectConfig = combineCustomUserInterfaceFeatureType(config.getIndirectConfiguration(),
+                    customConfig.getIndirectConfiguration());
+            if (customConfig.getIndirectConfiguration().isIndirect() != null) {
+                indirectConfig.setIndirect(customConfig.getIndirectConfiguration().isIndirect());
+            } else {
+                indirectConfig.setIndirect(config.getIndirectConfiguration().isIndirect());
+            }
+            config.setIndirectConfiguration(indirectConfig);
+        }
+        if (customConfig.getProjectConfiguration() != null) {
+            config.setProjectConfiguration(combineCustomUserInterfaceFeatureType(config.getProjectConfiguration(),
+                    customConfig.getProjectConfiguration()));
+        }
+        if (customConfig.getTenantConfiguration() != null) {
+            config.setProjectConfiguration(combineCustomUserInterfaceFeatureType(config.getTenantConfiguration(),
+                    customConfig.getTenantConfiguration()));
+        }
+        if (customConfig.getDefaultScope() != null) {
+            config.setDefaultScope(customConfig.getDefaultScope());
+        }
+        if (customConfig.getDefaultObjectType() != null) {
+            config.setDefaultObjectType(customConfig.getDefaultObjectType());
+        }
+        if (customConfig.getSearchItems() != null && CollectionUtils.isNotEmpty(customConfig.getSearchItems().getSearchItem())) {
+            config.setSearchItems(combineSearchItems(config.getSearchItems(), customConfig.getSearchItems()));
+            config.setDefaultObjectType(customConfig.getDefaultObjectType());
+        }
+        if (customConfig.isAllowToConfigureSearchItems() != null) {
+            config.setAllowToConfigureSearchItems(customConfig.isAllowToConfigureSearchItems());
+        }
+
+        return config;
+    }
+
+    private static <F extends UserInterfaceFeatureType> F combineCustomUserInterfaceFeatureType(F feature, F customFeature) {
+        if (feature == null) {
+            return customFeature;
+        }
+        if (customFeature == null) {
+            return feature;
+        }
+        if (StringUtils.isNotEmpty(customFeature.getDescription())) {
+            feature.description(customFeature.getDescription());
+        }
+        if (StringUtils.isNotEmpty(customFeature.getDocumentation())) {
+            feature.documentation(customFeature.getDocumentation());
+        }
+        feature.setDisplay(WebComponentUtil.combineDisplay(feature.getDisplay(), customFeature.getDisplay()));
+        if (customFeature.getVisibility() != null) {
+            feature.setVisibility(customFeature.getVisibility());
+        }
+        if (customFeature.getDisplayOrder() != null) {
+            feature.setDisplayOrder(customFeature.getDisplayOrder());
+        }
+        if (customFeature.getApplicableForOperation() != null) {
+            feature.setApplicableForOperation(customFeature.getApplicableForOperation());
+        }
+        return feature;
+    }
+
+    private static SearchItemsType combineSearchItems(SearchItemsType searchItems, SearchItemsType customSearchItems) {
+        if (searchItems == null || CollectionUtils.isEmpty(searchItems.getSearchItem())) {
+            return customSearchItems;
+        }
+        if (customSearchItems == null || CollectionUtils.isEmpty(customSearchItems.getSearchItem())) {
+            return searchItems;
+        }
+        customSearchItems.getSearchItem().forEach(customItem -> {
+            SearchItemType item = findSearchItemByPath(searchItems.getSearchItem(), customItem.getPath());
+            if (item != null) {
+                combineSearchItem(item, customItem);
+            } else {
+                searchItems.getSearchItem().add(customItem);
+            }
+        });
+        return searchItems;
+    }
+
+    private static SearchItemType findSearchItemByPath(List<SearchItemType> itemList, ItemPathType path) {
+        if (path == null) {
+            return null;
+        }
+        for (SearchItemType item : itemList) {
+            if (path.equivalent(item.getPath())) {
+                return item;
+            }
+        }
+        return null;
+    }
+
+    private static SearchItemType combineSearchItem(SearchItemType item, SearchItemType customItem) {
+        if (item == null) {
+             return customItem;
+        }
+        if (customItem == null) {
+            return item;
+        }
+        if (customItem.getPath() != null) {
+            item.setPath(customItem.getPath());
+        }
+        if (customItem.getFilter() != null) {
+            item.setFilter(customItem.getFilter());
+        }
+        if (customItem.getFilterExpression() != null) {
+            item.setFilterExpression(customItem.getFilterExpression());
+        }
+        if (customItem.getDescription() != null) {
+            item.setDescription(customItem.getDescription());
+        }
+        if (customItem.getDisplayName() != null) {
+            item.setDisplayName(customItem.getDisplayName());
+        }
+        if (customItem.getParameter() != null) {
+            item.setParameter(customItem.getParameter());
+        }
+        if (customItem.isVisibleByDefault() != null) {
+            item.setVisibleByDefault(customItem.isVisibleByDefault());
+        }
+        return item;
+    }
+
+    private static <C extends Containerable> SearchBoxConfigurationType createDefaultSearchBoxConfiguration(Class<C> type,
+            ResourceShadowDiscriminator discriminator, ModelServiceLocator modelServiceLocator) {
+        SearchBoxConfigurationType config = new SearchBoxConfigurationType();
+        PrismContainerDefinition<C> def = null;
+        if (type.isAssignableFrom(ObjectType.class)) {
+            def = findObjectDefinition((Class<? extends ObjectType>) type, discriminator, modelServiceLocator);
+        } else {
+            def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
+        }
+
+        List<ItemDefinition<?>> availableDefs = getSearchableDefinitionList(def, modelServiceLocator);
+
+        SearchItemsType searchItems = new SearchItemsType();
+        availableDefs.forEach(item -> {
+            SearchItemType searchItem = new SearchItemType();
+            searchItem
+                    .path(new ItemPathType(item.getItemName()))
+                    .visibleByDefault(isFixedItem(type, item.getItemName()))
+                    .displayName(WebComponentUtil.getItemDefinitionDisplayNameOrName(item, null))
+                    .description(item.getHelp());
+
+            config.defaultObjectType(WebComponentUtil.classToQName(PrismContext.get(), (Class<? extends ObjectType>) type));
+
+            searchItems.getSearchItem().add(searchItem);
+        });
+        config.searchItems(searchItems)
+                .defaultMode(SearchBoxModeType.BASIC)
+                .allowedMode(SearchBoxModeType.BASIC)
+                .allowedMode(SearchBoxModeType.ADVANCED);
+
+        if (type.isAssignableFrom(ObjectType.class) && isFullTextSearchEnabled(modelServiceLocator, (Class<? extends ObjectType>) type)) {
+            config.allowedMode(SearchBoxModeType.FULLTEXT);
+        }
+        return config;
     }
 
     public static <T extends ObjectType> PrismObjectDefinition findObjectDefinition(
@@ -524,6 +796,63 @@ public class SearchFactory {
         }
 
         return searchItemDefinitions;
+    }
+
+    public static <C extends Containerable> List<ItemDefinition<?>> getSearchableDefinitionList(
+            PrismContainerDefinition<C> containerDef, ModelServiceLocator modelServiceLocator) {
+        return getSearchableDefinitionList(containerDef, modelServiceLocator, true);
+    }
+
+    /**
+         *
+         * @param containerDef
+         * @param useDefsFromSuperclass leave it here for a while; seems that it is always true
+         * @param <C>
+         * @return
+         */
+    public static <C extends Containerable> List<ItemDefinition<?>> getSearchableDefinitionList(
+            PrismContainerDefinition<C> containerDef, ModelServiceLocator modelServiceLocator, boolean useDefsFromSuperclass) {
+
+        List<ItemDefinition<?>> searchableDefinitions = new ArrayList<>();
+
+        PrismContainerDefinition ext = containerDef.findContainerDefinition(ObjectType.F_EXTENSION);
+        if (ext != null && ext.getDefinitions() != null) {
+            searchableDefinitions.addAll(((List<ItemDefinition<?>>) ext.getDefinitions()).stream()
+                    .filter(def -> (def instanceof PrismReferenceDefinition || def instanceof PrismPropertyDefinition)
+                            && isIndexed(def)).collect(Collectors.toList()));
+        }
+        Class<C> typeClass = containerDef.getCompileTimeClass();
+        while (typeClass != null && !com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(typeClass)) {
+            List<ItemPath> paths = getAvailableSearchableItems(typeClass, modelServiceLocator);
+            if (paths != null) {
+                for (ItemPath path : paths) {
+                    ItemDefinition<?> def = containerDef.findItemDefinition(path);
+                    if (def != null) {
+                        searchableDefinitions.add(def);
+                    }
+                }
+            }
+            if (!useDefsFromSuperclass) {
+                break;
+            }
+
+            typeClass = (Class<C>) typeClass.getSuperclass();
+        }
+
+        return searchableDefinitions;
+    }
+
+    public static <C extends Containerable> boolean isFixedItem(Class<C> typeClass, ItemPath path) {
+
+        while (typeClass != null && !com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(typeClass)) {
+            if (FIXED_SEARCH_ITEMS.get(typeClass) != null &&
+                    ItemPathCollectionsUtil.containsEquivalent(FIXED_SEARCH_ITEMS.get(typeClass), path)) {
+                return true;
+            }
+            typeClass = (Class<C>) typeClass.getSuperclass();
+        }
+
+        return false;
     }
 
     public static <C extends Containerable> void addSearchRefDef(
