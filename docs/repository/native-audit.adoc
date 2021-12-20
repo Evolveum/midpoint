@@ -228,9 +228,9 @@ In that case you don't need to do anything as the default partition is already p
 and audit rows have a place to go to.
 
 You should not consider partitioning for the search performance alone.
-The main benefit of audit partitioning is *fast audit removal*.
+The main benefit of audit partitioning is *fast audit cleanup*.
 You should consider partitioning if you struggled with audit cleanup previously.
-With partitioning you can virtually instantly drop or detach partitions from the active table which makes the audit data removal or archival much easier.
+With partitioning you can virtually instantly drop or detach partitions from the active table which makes the audit data cleanup and/or archival much easier.
 
 [NOTE]
 With partitions or not (BTW, there is always the default one), outside this section you do not need to consider partitions.
@@ -242,7 +242,7 @@ The whole point of _declarative partitioning_ is that you do not need to care ab
 MidPoint offers an SQL procedure `audit_create_monthly_partitions` that is declared in `postgres-new-audit.sql`
 (current version https://github.com/Evolveum/midpoint/blob/master/config/sql/native-new/postgres-new-audit.sql[here]).
 As the name suggests, it creates monthly partitions which is quite fine-grained and is easy to utilize,
-whether your removal is executed monthly, quarterly or yearly.
+whether your cleanup is executed monthly, quarterly or yearly.
 
 See also the discussion on the Cleanup task in the section below.
 
@@ -305,7 +305,7 @@ but it's not so trivial with https://www.postgresql.org/docs/current/functions-d
 used in the procedure.
 Adopting different supported interval, however, should be easy.
 
-Just remember that this way you're changing the granularity for your data removal procedure as well.
+Just remember that this way you're changing the granularity for your data cleanup procedure as well.
 ====
 
 === Cleanup task vs partitions
@@ -327,7 +327,7 @@ That would make writing into audit impossible during the operation, and full vac
 This makes partitions attractive, even if you want to use these traditional cleanup methods based on `DELETE`.
 Non-vacuumed partition still needs vacuuming, but only locks that partition - which likely is not the partition for current time, used for inserting the new audit entries.
 
-However, if you don't need to remove data daily, you may utilize full potential of the partitions.
+However, if you don't need to cleanup data daily, you may utilize full potential of the partitions.
 Let's say, you don't need audit events older than 12 months, but can tolerate 13 months.
 That means that if it's December 2021, you may drop partition for November 2020, just like you dropped the one for October 2020 the previous month.
 Partitions created by the `audit_create_monthly_partitions` procedure are named with a specific suffix, so you know exactly what partitions they are.
@@ -341,8 +341,8 @@ drop table ma_audit_delta_202009;
 drop table ma_audit_event_202009;
 ----
 
-Alternatively, just detach them, which makes them invisible for midPoint and you can later decide what to do with them
-(here the order does not matter):
+Alternatively, just detach them, which makes them invisible for midPoint
+and you can later decide what to do with them (here the order does not matter):
 
 [source,sql]
 ----
@@ -485,8 +485,9 @@ to version 4.4 and Ninja 4.4.1 is used (audit import/export didn't make it to th
 First find the total amount of audit events for migration, then decide into how many chunks you want to split them.
 As an example, we have an audit trail with around 10 million rows and we want to split it into 10 export files.
 Audit event IDs are typically assigned as a continuous series so we can easily eyeball the boundaries
-after we find out what is the minimimum and maximum ID.
-Alternatively we can use database tools to do it for us.
+after we find out what the minimimum and maximum ID are.
+Because the IDs have mostly no "holes" in the sequence whatsoever, it should be quite easy.
+Alternatively we can use the database tools to do it for us.
 
 When we take it to an extreme, we can even let the database generate the shell commands for us.
 Note, that the query has the first interval closed, just in case the commented `WHERE` is used,
