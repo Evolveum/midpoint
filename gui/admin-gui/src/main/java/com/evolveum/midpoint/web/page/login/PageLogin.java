@@ -71,10 +71,11 @@ public class PageLogin extends AbstractPageLogin {
         add(form);
 
         BookmarkablePageLink<String> link = new BookmarkablePageLink<>(ID_FORGET_PASSWORD, PageForgotPassword.class);
+        Task task = createAnonymousTask(OPERATION_LOAD_RESET_PASSWORD_POLICY);
         OperationResult parentResult = new OperationResult(OPERATION_LOAD_RESET_PASSWORD_POLICY);
         SecurityPolicyType securityPolicy = null;
         try {
-            securityPolicy = getModelInteractionService().getSecurityPolicy((PrismObject<? extends FocusType>) null, null, parentResult);
+            securityPolicy = getModelInteractionService().getSecurityPolicy((PrismObject<? extends FocusType>) null, task, parentResult);
         } catch (CommonException e) {
             LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
         }
