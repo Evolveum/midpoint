@@ -487,11 +487,11 @@ CREATE TABLE m_generic_object (
     INHERITS (m_focus);
 
 CREATE TRIGGER m_generic_object_oid_insert_tr BEFORE INSERT ON m_generic_object
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_generic_object_update_tr BEFORE UPDATE ON m_generic_object
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_generic_object_oid_delete_tr AFTER DELETE ON m_generic_object
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_generic_object_nameOrig_idx ON m_generic_object (nameOrig);
 CREATE UNIQUE INDEX m_generic_object_nameNorm_key ON m_generic_object (nameNorm);
@@ -533,11 +533,11 @@ CREATE TABLE m_user (
     INHERITS (m_focus);
 
 CREATE TRIGGER m_user_oid_insert_tr BEFORE INSERT ON m_user
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_user_update_tr BEFORE UPDATE ON m_user
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_user_oid_delete_tr AFTER DELETE ON m_user
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_user_nameOrig_idx ON m_user (nameOrig);
 CREATE UNIQUE INDEX m_user_nameNorm_key ON m_user (nameNorm);
@@ -590,11 +590,11 @@ CREATE TABLE m_role (
     INHERITS (m_abstract_role);
 
 CREATE TRIGGER m_role_oid_insert_tr BEFORE INSERT ON m_role
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_role_update_tr BEFORE UPDATE ON m_role
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_role_oid_delete_tr AFTER DELETE ON m_role
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_role_nameOrig_idx ON m_role (nameOrig);
 CREATE UNIQUE INDEX m_role_nameNorm_key ON m_role (nameNorm);
@@ -616,11 +616,11 @@ CREATE TABLE m_service (
     INHERITS (m_abstract_role);
 
 CREATE TRIGGER m_service_oid_insert_tr BEFORE INSERT ON m_service
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_service_update_tr BEFORE UPDATE ON m_service
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_service_oid_delete_tr AFTER DELETE ON m_service
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_service_nameOrig_idx ON m_service (nameOrig);
 CREATE UNIQUE INDEX m_service_nameNorm_key ON m_service (nameNorm);
@@ -641,11 +641,11 @@ CREATE TABLE m_archetype (
     INHERITS (m_abstract_role);
 
 CREATE TRIGGER m_archetype_oid_insert_tr BEFORE INSERT ON m_archetype
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_archetype_update_tr BEFORE UPDATE ON m_archetype
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_archetype_oid_delete_tr AFTER DELETE ON m_archetype
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_archetype_nameOrig_idx ON m_archetype (nameOrig);
 CREATE UNIQUE INDEX m_archetype_nameNorm_key ON m_archetype (nameNorm);
@@ -670,11 +670,11 @@ CREATE TABLE m_org (
     INHERITS (m_abstract_role);
 
 CREATE TRIGGER m_org_oid_insert_tr BEFORE INSERT ON m_org
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_org_update_tr BEFORE UPDATE ON m_org
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_org_oid_delete_tr AFTER DELETE ON m_org
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_org_nameOrig_idx ON m_org (nameOrig);
 CREATE UNIQUE INDEX m_org_nameNorm_key ON m_org (nameNorm);
@@ -756,10 +756,10 @@ END $$;
 
 CREATE TRIGGER m_ref_object_parent_mark_refresh_tr
     AFTER INSERT OR UPDATE OR DELETE ON m_ref_object_parent_org
-    FOR EACH ROW EXECUTE PROCEDURE mark_org_closure_for_refresh();
+    FOR EACH ROW EXECUTE FUNCTION mark_org_closure_for_refresh();
 CREATE TRIGGER m_ref_object_parent_mark_refresh_trunc_tr
     AFTER TRUNCATE ON m_ref_object_parent_org
-    FOR EACH STATEMENT EXECUTE PROCEDURE mark_org_closure_for_refresh();
+    FOR EACH STATEMENT EXECUTE FUNCTION mark_org_closure_for_refresh();
 
 -- This procedure for conditional refresh when needed is called from the application code.
 -- The refresh can be forced, e.g. after many changes with triggers off (or just to be sure).
@@ -806,11 +806,11 @@ CREATE TABLE m_resource (
     INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_resource_oid_insert_tr BEFORE INSERT ON m_resource
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_resource_update_tr BEFORE UPDATE ON m_resource
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_resource_oid_delete_tr AFTER DELETE ON m_resource
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_resource_nameOrig_idx ON m_resource (nameOrig);
 CREATE UNIQUE INDEX m_resource_nameNorm_key ON m_resource (nameNorm);
@@ -857,11 +857,11 @@ CREATE TABLE m_shadow (
     INHERITS (m_object);
 
 CREATE TRIGGER m_shadow_oid_insert_tr BEFORE INSERT ON m_shadow
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_shadow_update_tr BEFORE UPDATE ON m_shadow
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_shadow_oid_delete_tr AFTER DELETE ON m_shadow
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_shadow_nameOrig_idx ON m_shadow (nameOrig);
 CREATE INDEX m_shadow_nameNorm_idx ON m_shadow (nameNorm); -- may not be unique for shadows!
@@ -899,11 +899,11 @@ CREATE TABLE m_node (
     INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_node_oid_insert_tr BEFORE INSERT ON m_node
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_node_update_tr BEFORE UPDATE ON m_node
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_node_oid_delete_tr AFTER DELETE ON m_node
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_node_nameOrig_idx ON m_node (nameOrig);
 CREATE UNIQUE INDEX m_node_nameNorm_key ON m_node (nameNorm);
@@ -918,11 +918,11 @@ CREATE TABLE m_system_configuration (
     INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_system_configuration_oid_insert_tr BEFORE INSERT ON m_system_configuration
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_system_configuration_update_tr BEFORE UPDATE ON m_system_configuration
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_system_configuration_oid_delete_tr AFTER DELETE ON m_system_configuration
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE UNIQUE INDEX m_system_configuration_nameNorm_key ON m_system_configuration (nameNorm);
 -- no need for the name index, m_system_configuration table is very small
@@ -936,11 +936,11 @@ CREATE TABLE m_security_policy (
     INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_security_policy_oid_insert_tr BEFORE INSERT ON m_security_policy
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_security_policy_update_tr BEFORE UPDATE ON m_security_policy
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_security_policy_oid_delete_tr AFTER DELETE ON m_security_policy
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_security_policy_nameOrig_idx ON m_security_policy (nameOrig);
 CREATE UNIQUE INDEX m_security_policy_nameNorm_key ON m_security_policy (nameNorm);
@@ -961,11 +961,11 @@ CREATE TABLE m_object_collection (
     INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_object_collection_oid_insert_tr BEFORE INSERT ON m_object_collection
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_object_collection_update_tr BEFORE UPDATE ON m_object_collection
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_object_collection_oid_delete_tr AFTER DELETE ON m_object_collection
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_object_collection_nameOrig_idx ON m_object_collection (nameOrig);
 CREATE UNIQUE INDEX m_object_collection_nameNorm_key ON m_object_collection (nameNorm);
@@ -986,11 +986,11 @@ CREATE TABLE m_dashboard (
     INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_dashboard_oid_insert_tr BEFORE INSERT ON m_dashboard
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_dashboard_update_tr BEFORE UPDATE ON m_dashboard
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_dashboard_oid_delete_tr AFTER DELETE ON m_dashboard
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_dashboard_nameOrig_idx ON m_dashboard (nameOrig);
 CREATE UNIQUE INDEX m_dashboard_nameNorm_key ON m_dashboard (nameNorm);
@@ -1009,11 +1009,11 @@ CREATE TABLE m_value_policy (
     INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_value_policy_oid_insert_tr BEFORE INSERT ON m_value_policy
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_value_policy_update_tr BEFORE UPDATE ON m_value_policy
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_value_policy_oid_delete_tr AFTER DELETE ON m_value_policy
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_value_policy_nameOrig_idx ON m_value_policy (nameOrig);
 CREATE UNIQUE INDEX m_value_policy_nameNorm_key ON m_value_policy (nameNorm);
@@ -1032,11 +1032,11 @@ CREATE TABLE m_report (
     INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_report_oid_insert_tr BEFORE INSERT ON m_report
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_report_update_tr BEFORE UPDATE ON m_report
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_report_oid_delete_tr AFTER DELETE ON m_report
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_report_nameOrig_idx ON m_report (nameOrig);
 CREATE UNIQUE INDEX m_report_nameNorm_key ON m_report (nameNorm);
@@ -1057,11 +1057,11 @@ CREATE TABLE m_report_data (
     INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_report_data_oid_insert_tr BEFORE INSERT ON m_report_data
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_report_data_update_tr BEFORE UPDATE ON m_report_data
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_report_data_oid_delete_tr AFTER DELETE ON m_report_data
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_report_data_nameOrig_idx ON m_report_data (nameOrig);
 CREATE INDEX m_report_data_nameNorm_idx ON m_report_data (nameNorm); -- not unique
@@ -1080,11 +1080,11 @@ CREATE TABLE m_lookup_table (
     INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_lookup_table_oid_insert_tr BEFORE INSERT ON m_lookup_table
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_lookup_table_update_tr BEFORE UPDATE ON m_lookup_table
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_lookup_table_oid_delete_tr AFTER DELETE ON m_lookup_table
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_lookup_table_nameOrig_idx ON m_lookup_table (nameOrig);
 CREATE UNIQUE INDEX m_lookup_table_nameNorm_key ON m_lookup_table (nameNorm);
@@ -1128,11 +1128,11 @@ CREATE TABLE m_connector (
     INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_connector_oid_insert_tr BEFORE INSERT ON m_connector
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_connector_update_tr BEFORE UPDATE ON m_connector
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_connector_oid_delete_tr AFTER DELETE ON m_connector
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE UNIQUE INDEX m_connector_typeVersion_key
     ON m_connector (connectorType, connectorVersion)
@@ -1160,11 +1160,11 @@ CREATE TABLE m_connector_host (
     INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_connector_host_oid_insert_tr BEFORE INSERT ON m_connector_host
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_connector_host_update_tr BEFORE UPDATE ON m_connector_host
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_connector_host_oid_delete_tr AFTER DELETE ON m_connector_host
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_connector_host_nameOrig_idx ON m_connector_host (nameOrig);
 CREATE UNIQUE INDEX m_connector_host_nameNorm_key ON m_connector_host (nameNorm);
@@ -1208,11 +1208,11 @@ CREATE TABLE m_task (
     INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_task_oid_insert_tr BEFORE INSERT ON m_task
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_task_update_tr BEFORE UPDATE ON m_task
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_task_oid_delete_tr AFTER DELETE ON m_task
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_task_nameOrig_idx ON m_task (nameOrig);
 CREATE INDEX m_task_nameNorm_idx ON m_task (nameNorm); -- can have duplicates
@@ -1252,11 +1252,11 @@ CREATE TABLE m_case (
     INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_case_oid_insert_tr BEFORE INSERT ON m_case
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_case_update_tr BEFORE UPDATE ON m_case
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_case_oid_delete_tr AFTER DELETE ON m_case
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_case_nameOrig_idx ON m_case (nameOrig);
 CREATE INDEX m_case_nameNorm_idx ON m_case (nameNorm);
@@ -1349,11 +1349,11 @@ CREATE TABLE m_access_cert_definition (
     INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_access_cert_definition_oid_insert_tr BEFORE INSERT ON m_access_cert_definition
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_access_cert_definition_update_tr BEFORE UPDATE ON m_access_cert_definition
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_access_cert_definition_oid_delete_tr AFTER DELETE ON m_access_cert_definition
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_access_cert_definition_nameOrig_idx ON m_access_cert_definition (nameOrig);
 CREATE UNIQUE INDEX m_access_cert_definition_nameNorm_key ON m_access_cert_definition (nameNorm);
@@ -1386,11 +1386,11 @@ CREATE TABLE m_access_cert_campaign (
     INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_access_cert_campaign_oid_insert_tr BEFORE INSERT ON m_access_cert_campaign
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_access_cert_campaign_update_tr BEFORE UPDATE ON m_access_cert_campaign
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_access_cert_campaign_oid_delete_tr AFTER DELETE ON m_access_cert_campaign
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_access_cert_campaign_nameOrig_idx ON m_access_cert_campaign (nameOrig);
 CREATE UNIQUE INDEX m_access_cert_campaign_nameNorm_key ON m_access_cert_campaign (nameNorm);
@@ -1526,11 +1526,11 @@ CREATE TABLE m_object_template (
     INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_object_template_oid_insert_tr BEFORE INSERT ON m_object_template
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_object_template_update_tr BEFORE UPDATE ON m_object_template
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_object_template_oid_delete_tr AFTER DELETE ON m_object_template
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_object_template_nameOrig_idx ON m_object_template (nameOrig);
 ALTER TABLE m_object_template ADD CONSTRAINT m_object_template_nameNorm_key UNIQUE (nameNorm);
@@ -1564,11 +1564,11 @@ CREATE TABLE m_function_library (
     INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_function_library_oid_insert_tr BEFORE INSERT ON m_function_library
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_function_library_update_tr BEFORE UPDATE ON m_function_library
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_function_library_oid_delete_tr AFTER DELETE ON m_function_library
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_function_library_nameOrig_idx ON m_function_library (nameOrig);
 ALTER TABLE m_function_library ADD CONSTRAINT m_function_library_nameNorm_key UNIQUE (nameNorm);
@@ -1585,11 +1585,11 @@ CREATE TABLE m_sequence (
     INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_sequence_oid_insert_tr BEFORE INSERT ON m_sequence
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_sequence_update_tr BEFORE UPDATE ON m_sequence
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_sequence_oid_delete_tr AFTER DELETE ON m_sequence
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_sequence_nameOrig_idx ON m_sequence (nameOrig);
 ALTER TABLE m_sequence ADD CONSTRAINT m_sequence_nameNorm_key UNIQUE (nameNorm);
@@ -1607,11 +1607,11 @@ CREATE TABLE m_form (
     INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_form_oid_insert_tr BEFORE INSERT ON m_form
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_form_update_tr BEFORE UPDATE ON m_form
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_form_oid_delete_tr AFTER DELETE ON m_form
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 CREATE INDEX m_form_nameOrig_idx ON m_form (nameOrig);
 ALTER TABLE m_form ADD CONSTRAINT m_form_nameNorm_key UNIQUE (nameNorm);

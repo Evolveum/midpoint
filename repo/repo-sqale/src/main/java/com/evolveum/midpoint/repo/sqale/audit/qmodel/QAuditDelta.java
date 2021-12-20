@@ -12,10 +12,10 @@ import java.time.Instant;
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
 
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 /**
  * Querydsl query type for `MA_AUDIT_DELTA` table.
@@ -59,8 +59,8 @@ public class QAuditDelta extends FlexibleRelationalPathBase<MAuditDelta> {
     public final StringPath checksum = createString("checksum", CHECKSUM);
     public final ArrayPath<byte[], Byte> delta = createByteArray("delta", DELTA);
     public final UuidPath deltaOid = createUuid("deltaOid", DELTA_OID);
-    public final EnumPath<ChangeType> deltaType =
-            createEnum("deltaType", ChangeType.class, DELTA_TYPE);
+    public final EnumPath<ChangeTypeType> deltaType =
+            createEnum("deltaType", ChangeTypeType.class, DELTA_TYPE);
     public final ArrayPath<byte[], Byte> fullResult = createByteArray("fullResult", FULL_RESULT);
     public final StringPath objectNameNorm = createString("objectNameNorm", OBJECT_NAME_NORM);
     public final StringPath objectNameOrig = createString("objectNameOrig", OBJECT_NAME_ORIG);

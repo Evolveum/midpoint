@@ -42,6 +42,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -276,6 +277,77 @@ public class QAuditEventRecordMapping
             row.properties = Jsonb.fromMap(properties);
         }
         // changedItemPaths are later extracted from deltas
+
+        return row;
+    }
+
+    /**
+     * Transforms {@link AuditEventRecordType} to {@link MAuditEventRecord} without any subentities.
+     */
+    public MAuditEventRecord toRowObject(AuditEventRecordType record) {
+        MAuditEventRecord row = new MAuditEventRecord();
+        row.id = record.getRepoId(); // this better be null if we want to insert
+        row.eventIdentifier = record.getEventIdentifier();
+        // Timestamp should be set, but this is last resort, as partitioning key it MUST be set.
+        row.timestamp = Objects.requireNonNullElse(
+                MiscUtil.asInstant(record.getTimestamp()), Instant.now());
+        row.channel = record.getChannel();
+        row.eventStage = record.getEventStage();
+        row.eventType = record.getEventType();
+        row.hostIdentifier = record.getHostIdentifier();
+
+        ObjectReferenceType attorney = record.getAttorneyRef();
+        if (attorney != null) {
+            row.attorneyOid = SqaleUtils.oidToUUid(attorney.getOid());
+            row.attorneyName = attorney.getDescription();
+        }
+
+        ObjectReferenceType initiator = record.getInitiatorRef();
+        if (initiator != null) {
+            row.initiatorOid = SqaleUtils.oidToUUid(initiator.getOid());
+            row.initiatorType = Objects.requireNonNullElse(
+                    MObjectType.fromTypeQName(initiator.getType()),
+                    MObjectType.FOCUS);
+            row.initiatorName = initiator.getDescription();
+        }
+
+        row.message = record.getMessage();
+        row.nodeIdentifier = record.getNodeIdentifier();
+        row.outcome = record.getOutcome();
+        row.parameter = record.getParameter();
+        row.remoteHostAddress = record.getRemoteHostAddress();
+        row.requestIdentifier = record.getRequestIdentifier();
+        row.result = record.getResult();
+        row.sessionIdentifier = record.getSessionIdentifier();
+
+        ObjectReferenceType target = record.getTargetRef();
+        if (target != null) {
+            row.targetOid = SqaleUtils.oidToUUid(target.getOid());
+            row.targetType = MObjectType.fromTypeQName(target.getType());
+            row.targetName = target.getDescription();
+        }
+        ObjectReferenceType targetOwner = record.getTargetOwnerRef();
+        if (targetOwner != null) {
+            row.targetOwnerOid = SqaleUtils.oidToUUid(targetOwner.getOid());
+            row.targetOwnerType = MObjectType.fromTypeQName(targetOwner.getType());
+            row.targetOwnerName = targetOwner.getDescription();
+        }
+        row.taskIdentifier = record.getTaskIdentifier();
+        row.taskOid = SqaleUtils.oidToUUid(record.getTaskOID());
+
+        row.resourceOids = stringsToArray(record.getResourceOid());
+
+        List<AuditEventRecordPropertyType> properties = record.getProperty();
+        if (properties != null) {
+            Map<String, List<String>> propertiesMap = new HashMap<>();
+            for (AuditEventRecordPropertyType property : properties) {
+                propertiesMap.put(property.getName(), property.getValue());
+            }
+            row.properties = Jsonb.fromMap(propertiesMap);
+        }
+
+        // changedItemPaths are later extracted from deltas
+        // custom properties are treated specially elsewhere
 
         return row;
     }

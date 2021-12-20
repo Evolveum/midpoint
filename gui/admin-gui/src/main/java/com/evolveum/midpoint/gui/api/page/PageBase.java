@@ -159,9 +159,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private static final String DOT_CLASS = PageBase.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
-    protected static final String OPERATION_LOAD_VIEW_COLLECTION_REF = DOT_CLASS + "loadViewCollectionRef";
-    private static final String OPERATION_LOAD_WORK_ITEM_COUNT = DOT_CLASS + "loadWorkItemCount";
-    private static final String OPERATION_LOAD_CERT_WORK_ITEM_COUNT = DOT_CLASS + "loadCertificationWorkItemCount";
 
     private static final String ID_TITLE = "title";
     private static final String ID_MAIN_HEADER = "mainHeader";
@@ -1056,7 +1053,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             public boolean isVisible() {
                 return !isErrorPage() && isSideMenuVisible() &&
                         (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SELF_REQUESTS_ASSIGNMENTS_URL, PageSelf.AUTH_SELF_ALL_URI)
-                        && getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() > 0);
+                                && getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() > 0);
             }
         };
     }
@@ -1454,8 +1451,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         if (isListOfObjects) {
             objectHolder.setValue((T) list);
         }
-        EventHandler handler = new EventHandler() {
-
+        EventHandler<Objectable> handler = new EventHandler<>() {
             @Override
             public EventResult preMarshall(Element objectElement, Node postValidationTree,
                     OperationResult objectResult) {
@@ -1463,14 +1459,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
 
             @Override
-            public <O extends Objectable> EventResult postMarshall(PrismObject<O> object, Element objectElement,
-                    OperationResult objectResult) {
+            public EventResult postMarshall(
+                    Objectable object, Element objectElement, OperationResult objectResult) {
                 if (isListOfObjects) {
-                    list.add(object);
+                    list.add(object.asPrismObject());
                 } else {
-                    @SuppressWarnings({ "unchecked", "raw" })
-                    T value = (T) object.asObjectable();
-                    objectHolder.setValue(value);
+                    //noinspection unchecked
+                    objectHolder.setValue((T) object);
                 }
                 return EventResult.cont();
             }
@@ -1479,10 +1474,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             public void handleGlobalError(OperationResult currentResult) {
             }
         };
-        LegacyValidator validator = new LegacyValidator(getPrismContext(), handler);
+        LegacyValidator<?> validator = new LegacyValidator<>(getPrismContext(), handler);
         validator.setVerbose(true);
         validator.setValidateSchema(validateSchema);
-        validator.validate(lexicalRepresentation, result, OperationConstants.IMPORT_OBJECT);        // TODO the operation name
+        validator.validate(lexicalRepresentation, result, OperationConstants.IMPORT_OBJECT); // TODO the operation name
 
         result.computeStatus();
     }

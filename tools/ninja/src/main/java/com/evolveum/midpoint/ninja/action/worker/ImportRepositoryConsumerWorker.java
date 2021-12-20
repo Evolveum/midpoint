@@ -1,11 +1,16 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.ninja.action.worker;
+
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.context.ApplicationContext;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
@@ -16,19 +21,16 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import org.springframework.context.ApplicationContext;
-
-import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ImportConsumerWorker extends BaseWorker<ImportOptions, PrismObject> {
+public class ImportRepositoryConsumerWorker extends BaseWorker<ImportOptions, ObjectType> {
 
-    public ImportConsumerWorker(NinjaContext context, ImportOptions options, BlockingQueue<PrismObject> queue,
-                                OperationStatus operation, List<ImportConsumerWorker> consumers) {
+    public ImportRepositoryConsumerWorker(
+            NinjaContext context, ImportOptions options, BlockingQueue<ObjectType> queue,
+            OperationStatus operation, List<ImportRepositoryConsumerWorker> consumers) {
         super(context, options, queue, operation, consumers);
     }
 
@@ -39,21 +41,22 @@ public class ImportConsumerWorker extends BaseWorker<ImportOptions, PrismObject>
 
         try {
             while (!shouldConsumerStop()) {
-                PrismObject object = null;
+                ObjectType object = null;
                 try {
                     object = queue.poll(CONSUMER_POLL_TIMEOUT, TimeUnit.SECONDS);
                     if (object == null) {
                         continue;
                     }
+                    PrismObject<? extends ObjectType> prismObject = object.asPrismObject();
 
                     RepoAddOptions opts = createRepoAddOptions(options);
 
                     if (!opts.isAllowUnencryptedValues()) {
-                        CryptoUtil.encryptValues(protector, object);
+                        CryptoUtil.encryptValues(protector, prismObject);
                     }
 
                     RepositoryService repository = context.getRepository();
-                    repository.addObject(object, opts, new OperationResult("Import object"));
+                    repository.addObject(prismObject, opts, new OperationResult("Import object"));
 
                     operation.incrementTotal();
                 } catch (Exception ex) {

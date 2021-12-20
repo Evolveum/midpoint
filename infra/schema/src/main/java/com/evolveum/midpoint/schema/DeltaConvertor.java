@@ -252,6 +252,12 @@ public class DeltaConvertor {
             @NotNull String language)
             throws SchemaException {
         ObjectDeltaType objectDeltaType = toObjectDeltaType(delta, options);
+        return serializeDelta(objectDeltaType, options, language);
+    }
+
+    public static String serializeDelta(
+            ObjectDeltaType objectDeltaType, DeltaConversionOptions options, @NotNull String language)
+            throws SchemaException {
         SerializationOptions serializationOptions = new SerializationOptions()
                 .skipTransient(true)
                 .skipWhitespaces(true)

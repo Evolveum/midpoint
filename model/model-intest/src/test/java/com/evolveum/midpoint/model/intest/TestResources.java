@@ -931,7 +931,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     public void test767ModifyConfigurationDiffExpressionRawValidatorParse() throws Exception {
         modifyConfigurationDiffExpressionRaw(xml -> {
             final Holder<PrismObject<ResourceType>> objectHolder = new Holder<>();
-            EventHandler handler = new EventHandler() {
+            EventHandler<ResourceType> handler = new EventHandler<>() {
 
                 @Override
                 public EventResult preMarshall(Element objectElement, Node postValidationTree,
@@ -940,9 +940,9 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
                 }
 
                 @Override
-                public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
-                        OperationResult objectResult) {
-                    objectHolder.setValue((PrismObject<ResourceType>) object);
+                public EventResult postMarshall(
+                        ResourceType object, Element objectElement, OperationResult objectResult) {
+                    objectHolder.setValue(object.asPrismObject());
                     return EventResult.cont();
                 }
 
@@ -950,7 +950,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
                 public void handleGlobalError(OperationResult currentResult) {
                 }
             };
-            LegacyValidator validator = new LegacyValidator(prismContext, handler);
+            LegacyValidator<ResourceType> validator = new LegacyValidator<>(prismContext, handler);
             validator.setVerbose(true);
             validator.setValidateSchema(false);
             OperationResult result = createOperationResult("validator");

@@ -4,54 +4,47 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.ninja.action;
+package com.evolveum.midpoint.ninja.action.audit;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
+import com.evolveum.midpoint.ninja.action.RepositoryAction;
 import com.evolveum.midpoint.ninja.action.worker.ImportProducerWorker;
-import com.evolveum.midpoint.ninja.action.worker.ImportRepositoryConsumerWorker;
 import com.evolveum.midpoint.ninja.action.worker.ProgressReporterWorker;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
-import com.evolveum.midpoint.ninja.opts.ImportOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 /**
- * Created by Viliam Repan (lazyman).
+ * Action for importing audit event records to the repository.
  */
-public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
-
-    private static final String DOT_CLASS = ImportProducerWorker.class.getName() + ".";
-
-    private static final String OPERATION_IMPORT = DOT_CLASS + "import";
+public class ImportAuditRepositoryAction extends RepositoryAction<ImportAuditOptions> {
 
     private static final int QUEUE_CAPACITY_PER_THREAD = 100;
     private static final long CONSUMERS_WAIT_FOR_START = 2000L;
 
+    public static final String OPERATION_SHORT_NAME = "importAudit";
+    public static final String OPERATION_NAME = ImportAuditRepositoryAction.class.getName() + "." + OPERATION_SHORT_NAME;
+
     @Override
     public void execute() throws Exception {
-        OperationResult result = new OperationResult(OPERATION_IMPORT);
+        OperationResult result = new OperationResult(OPERATION_NAME);
         OperationStatus progress = new OperationStatus(context, result);
 
-        BlockingQueue<ObjectType> queue = new LinkedBlockingQueue<>(QUEUE_CAPACITY_PER_THREAD * options.getMultiThread());
+        BlockingQueue<AuditEventRecordType> queue =
+                new LinkedBlockingQueue<>(QUEUE_CAPACITY_PER_THREAD * options.getMultiThread());
 
         // "+ 2" will be used for producer and progress reporter
         ExecutorService executor = Executors.newFixedThreadPool(options.getMultiThread() + 2);
 
-        ImportProducerWorker<ObjectType> producer;
-        if (options.getOid() != null) {
-            InOidFilter filter = context.getPrismContext().queryFactory().createInOid(options.getOid());
-            producer = importByFilter(filter, true, queue, progress);
-        } else {
-            ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context, ObjectType.class);
-            producer = importByFilter(filter, false, queue, progress);
-        }
+        ImportProducerWorker<AuditEventRecordType> producer;
+        ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context, AuditEventRecordType.class);
+        producer = importByFilter(filter, false, queue, progress);
 
         executor.execute(producer);
 
@@ -59,7 +52,7 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
 
         executor.execute(new ProgressReporterWorker<>(context, options, queue, progress));
 
-        List<ImportRepositoryConsumerWorker> consumers = createConsumers(queue, progress);
+        List<ImportAuditConsumerWorker> consumers = createConsumers(queue, progress);
         consumers.forEach(c -> executor.execute(c));
 
         executor.shutdown();
@@ -68,7 +61,7 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
             log.error("Executor did not finish before timeout");
         }
 
-        handleResultOnFinish(progress, "Import finished");
+        handleResultOnFinish(progress, "Audit import finished");
     }
 
     @Override
@@ -80,17 +73,18 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
         return LogTarget.SYSTEM_ERR;
     }
 
-    private ImportProducerWorker<ObjectType> importByFilter(ObjectFilter filter,
-            boolean stopAfterFound, BlockingQueue<ObjectType> queue, OperationStatus status) {
+    private ImportProducerWorker<AuditEventRecordType> importByFilter(
+            ObjectFilter filter, boolean stopAfterFound,
+            BlockingQueue<AuditEventRecordType> queue, OperationStatus status) {
         return new ImportProducerWorker<>(context, options, queue, status, filter, stopAfterFound);
     }
 
-    private List<ImportRepositoryConsumerWorker> createConsumers(
-            BlockingQueue<ObjectType> queue, OperationStatus operation) {
-        List<ImportRepositoryConsumerWorker> consumers = new ArrayList<>();
+    private List<ImportAuditConsumerWorker> createConsumers(
+            BlockingQueue<AuditEventRecordType> queue, OperationStatus operation) {
+        List<ImportAuditConsumerWorker> consumers = new ArrayList<>();
 
         for (int i = 0; i < options.getMultiThread(); i++) {
-            consumers.add(new ImportRepositoryConsumerWorker(context, options, queue, operation, consumers));
+            consumers.add(new ImportAuditConsumerWorker(context, options, queue, operation, consumers));
         }
 
         return consumers;
