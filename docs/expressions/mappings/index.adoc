@@ -333,8 +333,6 @@ Unlike mapping sources, there can be only one mapping target.
 
 === Mapping Range
 
-// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-
 ++++
 {% include since.html since="3.6" %}
 ++++
@@ -347,77 +345,18 @@ The mapping is considered to be authoritative for all values in its range.
 If the target item contains values that belong to the mapping range, it is assumed that the values were created by the mapping.
 I.e. if the mapping contains any values that belong to the mapping range, and the mapping does not produce such values as its output, the values are removed.
 
-Please see xref:range/[] for detailed explanation of mapping range concepts.
-
-
 The range defines what are the possible outputs of the mapping.
 The xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[projector] can use this information to determine what values to remove when the mapping is authoritative.
 
 The range definition does *not* influence mapping inputs or expression.
 The range is used when the mapping outputs are processed.
 
-
-Range specification makes sense only for authoritative mappings.
-If the range is specified then the mapping will scan existing values of the target property.
-It will look for values that are there and that are also in the range of the mapping.
-If such values are not in the expression results, then such values will be removed (placed in the minus set).
-
-The mapping range can be specified by using a `set` declaration in its target:
-
-[source,xml]
-----
-        <mapping>
-            <expression>
-                ...
-            </expression>
-            <target>
-                <set>
-                    <condition>
-                        <script>
-                            <code>
-                                import com.evolveum.midpoint.schema.constants.*
-                                input.targetRef != null &amp;&amp; input.targetRef.relation == SchemaConstants.ORG_MANAGER
-                            </code>
-                        </script>
-                    </condition>
-                </set>
-            </target>
-----
-
-Above mapping is an assignment mapping.
-The range definition tells that the mapping is authoritative for all assignments where target relation is _manager_. Therefore if there is any manager assignment that is not result of this mapping then midPoint knows that such assignment may be removed.
-
-See also discussion about removing values below.
-
-Since midPoint 4.0 there is also an option to define sets using pre-defined specifications:
-
-[source,xml]
-----
-        <mapping>
-            <expression>
-                ...
-            </expression>
-            <target>
-                <set>
-                    <predefined>all</predefined>
-                </set>
-            </target>
-----
-
-The `predefined` element can take following values:
-
-* `all`: All possible elements will be part of the range.
-Which means that all other values (those not given by mappings) will be removed.
-This is also known as _non-tolerant_ behavior.
-
-* `none`: No value will be part of the range.
-The range is empty.
-Which means that no values will be removed.
-This is also known as _tolerant_ behavior.
-
-
+Please see xref:range/[] for detailed explanation of mapping range concepts.
 
 == Variables
+
+// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+
 
 Secondary input to mapping.
 
@@ -1253,62 +1192,7 @@ The source code is the most precise documentation anyway.
 
 == Replacing Values
 
-Mappings are designed in such a way so that it is easy to merge output from several mappings.
-This is ideal method to support multi-valued data in a relativistic way (as described above).
-But there are cases when we need to do more than just relativistically transform input to output.
-MidPoint also needs a way how to _reconcile_ values.
-E.g. midPoint needs a method how to say which values of a resource attribute are legal and which are illegal.
-For that we need to compute a state of attribute values as it _should be_. This is reconciliation, therefore in this case there is no delta, no change to process in a relativistic way.
-But there are also similar cases that apply even in a case of relativistic processing, e.g. if a mapping won't produce a value that it has produced before.
-
-There cases are all about removing existing values.
-Currently midPoint does not record xref:/midpoint/features/planned/data-provenance/[data provenance], therefore we do not know whether a specific value was produced by the mapping or entered by the user.
-Therefore we do not have a simple and reliable way how to decide whether to remove a particular value or not.
-But even if we had support for data provenance there would always be corner cases such as migrations, connecting of a new resources, data errors and so on.
-Therefore a mechanism is needed for a mapping to decide when to remove a particular value and when to keep it.
-And indeed, there is such a mechanism: mapping _range_.
-
-As described above, mapping _range_ is used to define a set of value that the mapping is supposed to produce.
-This can be used to define whether mapping should remove particular existing value or whether the value should be kept unchanged.
-Let's demonstrate that using an example.
-Let's have a property with existing values [ A, B ]. And let's have a mapping that targets this property.
-The mapping will produce values [ B, C ]. It is quite clear that values B and C should be in the output.
-But what about value A? Should it be removed or should it be kept? The answer depends on how mapping range is defined.
-
-Mapping range is empty by default.
-Strictly speaking, empty range would mean that mapping is not supposed to produce any values at all, but we are not mathematicians and therefore we are not that strict.
-We allow mapping to produce values that are not part of its range.
-Empty range really means that mapping is not "authoritative" for any value.
-In our case mapping is not authoritative for value A, therefore it is not removed.
-And the result will be [ A, B, C ].
-
-However, the result will be different if we change range definition to include all the values.
-This can be done simply by changing the range expression to always return `true`. In that case the mapping is considered authoritative for all values.
-In that case mapping is considered to be authoritative for value A. And since value A was not produced as mapping output it will be removed.
-And the result is [ B, C ].
-
-Clever definition of ranges can be a very powerful tool how to merge results of mappings that are overlapping - mappings that may produce the same values.
-Clever reader will undoubtedly find a lot of examples for this.
-
-Most applications of ranges apply to multi-valued properties.
-However, there is one more consequence of using ranges that apply particularly to single-valued case.
-And that is a case when mapping output is empty.
-In a single value case the mapping usually overwrites existing value.
-Although this may be not entirely correct from a mathematical point of view, but it is very practical.
-The target can have only one value.
-Therefore it makes perfect sense to replace that value with a value produces by (relativistic) mapping as that value is almost certain to be fresher and more relevant.
-However, what should happen in case that mapping produces nothing? Should the existing value of the property be kept? Or should it be removed? In fact, both cases are valid.
-We may want to keep the old value.
-Maybe it is a value set by the user.
-Maybe it is a reasonable default.
-Maybe we want to give another mapping a chance to produce the value.
-But on the other hand, we may want to remove the value.
-We may want to clear existing value to restore a "clean slate" state.
-Both cases are valid and both cases are possible.
-It is a range definition that makes the difference.
-By default the range is empty, therefore the mapping will not remove existing value.
-But if the range definition is change to include the old value then such value will be removed.
-
+See xref:practices/removing-values/[].
 
 == Absolute Script Evaluation Mode
 

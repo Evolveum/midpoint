@@ -8,8 +8,67 @@ The mapping is considered to be authoritative for all values in its range.
 If the target item contains values that belong to the mapping range, it is assumed that the values were created by the mapping.
 I.e. if the mapping contains any values that belong to the mapping range, and the mapping does not produce such values as its output, the values are removed.
 
+The range defines what are the possible outputs of the mapping.
+The xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[projector] can use this information to determine what values to remove when the mapping is authoritative.
 
-TODO: intro
+== Range Definition
+
+
+The mapping range can be specified by using a `set` declaration in its target:
+
+
+[source,xml]
+----
+        <mapping>
+            <expression>
+                ...
+            </expression>
+            <target>
+                <set>
+                    <predefined>all</predefined>
+                </set>
+            </target>
+----
+
+Since midPoint 4.0 there is also an option to define sets using pre-defined specifications.
+The `predefined` element can take following values:
+
+* `all`: All possible elements will be part of the range.
+Which means that all other values (those not given by mappings) will be removed.
+This is also known as _non-tolerant_ behavior.
+
+* `none`: No value will be part of the range.
+The range is empty.
+Which means that no values will be removed.
+This is also known as _tolerant_ behavior.
+
+The pre-defined specifications can be used for the extreme cases.
+A finer specification can be created by using a condition:
+
+[source,xml]
+----
+        <mapping>
+            <expression>
+                ...
+            </expression>
+            <target>
+                <set>
+                    <condition>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.schema.constants.*
+                                input.targetRef != null &amp;&amp; input.targetRef.relation == SchemaConstants.ORG_MANAGER
+                            </code>
+                        </script>
+                    </condition>
+                </set>
+            </target>
+----
+
+Above mapping is an assignment mapping, target of the mapping is an `assignment` container.
+The range definition specifies that the mapping is authoritative for all assignments where target relation is _manager_.
+Therefore, if there is any manager assignment that is not result of this mapping then midPoint knows that such assignment may be removed.
+
 
 == Single Mapping
 
@@ -228,7 +287,7 @@ When using mappings with overlapping ranges, *it is absolutely crucial to make s
 Two inbound mappings for the same resource will work, as they are evaluated together.
 Inbound mappings for _different_ resources are *not* guaranteed to work, as there may be a reconciliation process that is limited to one of the resources, not evaluating the other mapping.
 An inbound mapping and object template mapping with overlapping ranges will *not* work either.
-Such mappings are evaluated in diffirent phases of xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[projector computation], which may lead to incorrect results.
+Such mappings are evaluated in different phases of xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[projector computation], which may lead to incorrect results.
 Moreover, user may be recomputed without re-evaluating inbound mappings.
 Simply speaking, it is not straightforward to determine whether evaluation of mappings with overlapping changes is safe or note safe.
 
@@ -250,6 +309,8 @@ It is perhaps quite intuitive that there cannot be more than one fully authorita
 
 == Other Cases
 
+Mapping range is empty by default, making the mapping non-authoritative (tolerant).
+
 Theoretically, mapping should produce only the values that belong to its range.
 This rule should hold for all authoritative mappings, otherwise some of the values produced by the mapping may not be removed.
 However, there are non-authoritative mappings.
@@ -267,19 +328,45 @@ Even if condition is false, the mapping is still applied.
 Which means that mapping range is still applied as well.
 This may lead to some counter-intuitive situations.
 
-TODO
+The range is applied, as the condition controls evaluation of mapping _expression_.
+Even if condition is false, only the expression is affected.
+Other parts of the mapping work normally.
+Please see xref:../condition/[] page for the details.
 
-TODO: range is still applied, even if condition is false. Why?
+Please see xref:../practices/removing-values/[] for guidance of range usage in practical cases.
 
 == Terminology
 
-TODO: why is it called "range"?
+The term _range_ was derived from mathematical terminology.
+In mathematics, functions have _domain_ (set of input values) and _range_ (set of output values).
+_Domain_ and _range_ was a good metaphor at the beginning.
+However, the _range_ does not describe mapping behavior perfectly, as mapping can produce values that are not part of its _range_.
+The term _range_ is also confusing and non-intuitive for many people.
+Therefore, we may consider using another term instead of _range_.
 
 == Range and Metadata
 
-TODO
+As of midPoint 4.4, the default range is empty (`none`).
+This makes the mapping non-authoritative (tolerant), not removing any values due to range application.
+This is a conservative default, yet it is perhaps not very smart.
+
+Ideally, the mapping should remove and replace values that were produced by the same mapping.
+This behavior requires that midPoint keeps track of the origin of all values.
+Such functionality was prototyped as part of xref:/midpoint/projects/midprivacy/phases/01-data-provenance-prototype[midPrivacy initiative].
+However, this functionality is still experimental, and there are few missing pieces.
+
+Future midPoint versions should handle the range automatically by default, relying on metadata.
+However, this would be possible only if the metadata functionality is finished and fully productized.
 
 == Notes
+
+The range definition does *not* influence mapping inputs or expression.
+The range is used when the mapping outputs are processed.
+
+Range specification makes sense only for authoritative mappings.
+If the range is specified then the mapping will scan existing values of the target property.
+It will look for values that are there and that are also in the range of the mapping.
+If such values are not in the expression results, then such values will be removed (placed in the minus set).
 
 In the explanations and examples above, we are somehow neglecting xref:../mapping-relativity/[relativity of mappings].
 In fact, the entire mechanisms of _mapping range_ is designed especially for the cases where _mapping relativity_ does not work.
@@ -293,3 +380,5 @@ However, this is not a significant difference for the purpose of this explanatio
 == See Also
 
 * xref:../[]
+
+* xref:../practices/removing-values/[]

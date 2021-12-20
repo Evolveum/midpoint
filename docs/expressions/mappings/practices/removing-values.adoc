@@ -1,0 +1,64 @@
+= Mappings: Replacing and Removing Values
+:page-nav-title: Replacing and Removing Values
+:page-upkeep-status: orange
+
+Mappings are designed in such a way so that it is easy to merge output from several mappings.
+This is ideal method to support multi-valued data in a relativistic way (as described above).
+But there are cases when we need to do more than just relativistically transform input to output.
+MidPoint also needs a way how to _reconcile_ values.
+E.g. midPoint needs a method how to say which values of a resource attribute are legal and which are illegal.
+For that we need to compute a state of attribute values as it _should be_. This is reconciliation, therefore in this case there is no delta, no change to process in a relativistic way.
+But there are also similar cases that apply even in a case of relativistic processing, e.g. if a mapping won't produce a value that it has produced before.
+
+There cases are all about removing existing values.
+Currently midPoint does not record xref:/midpoint/features/planned/data-provenance/[data provenance], therefore we do not know whether a specific value was produced by the mapping or entered by the user.
+Therefore we do not have a simple and reliable way how to decide whether to remove a particular value or not.
+But even if we had support for data provenance there would always be corner cases such as migrations, connecting of a new resources, data errors and so on.
+Therefore a mechanism is needed for a mapping to decide when to remove a particular value and when to keep it.
+And indeed, there is such a mechanism: mapping _range_.
+
+As described above, mapping _range_ is used to define a set of value that the mapping is supposed to produce.
+This can be used to define whether mapping should remove particular existing value or whether the value should be kept unchanged.
+Let's demonstrate that using an example.
+Let's have a property with existing values [ A, B ]. And let's have a mapping that targets this property.
+The mapping will produce values [ B, C ]. It is quite clear that values B and C should be in the output.
+But what about value A? Should it be removed or should it be kept? The answer depends on how mapping range is defined.
+
+Mapping range is empty by default.
+Strictly speaking, empty range would mean that mapping is not supposed to produce any values at all, but we are not mathematicians and therefore we are not that strict.
+We allow mapping to produce values that are not part of its range.
+Empty range really means that mapping is not "authoritative" for any value.
+In our case mapping is not authoritative for value A, therefore it is not removed.
+And the result will be [ A, B, C ].
+
+However, the result will be different if we change range definition to include all the values.
+This can be done simply by changing the range expression to always return `true`. In that case the mapping is considered authoritative for all values.
+In that case mapping is considered to be authoritative for value A. And since value A was not produced as mapping output it will be removed.
+And the result is [ B, C ].
+
+Clever definition of ranges can be a very powerful tool how to merge results of mappings that are overlapping - mappings that may produce the same values.
+Clever reader will undoubtedly find a lot of examples for this.
+
+Most applications of ranges apply to multi-valued properties.
+However, there is one more consequence of using ranges that apply particularly to single-valued case.
+And that is a case when mapping output is empty.
+In a single value case the mapping usually overwrites existing value.
+Although this may be not entirely correct from a mathematical point of view, but it is very practical.
+The target can have only one value.
+Therefore it makes perfect sense to replace that value with a value produces by (relativistic) mapping as that value is almost certain to be fresher and more relevant.
+However, what should happen in case that mapping produces nothing? Should the existing value of the property be kept? Or should it be removed? In fact, both cases are valid.
+We may want to keep the old value.
+Maybe it is a value set by the user.
+Maybe it is a reasonable default.
+Maybe we want to give another mapping a chance to produce the value.
+But on the other hand, we may want to remove the value.
+We may want to clear existing value to restore a "clean slate" state.
+Both cases are valid and both cases are possible.
+It is a range definition that makes the difference.
+By default the range is empty, therefore the mapping will not remove existing value.
+But if the range definition is change to include the old value then such value will be removed.
+
+
+==  See Also
+
+* xref:../../range/[]

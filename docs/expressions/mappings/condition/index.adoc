@@ -6,6 +6,12 @@ TODO: intro
 TODO: condition applied to expression, not to entire mapping.
 Condition does not turn mapping "off".
 
+Condition does not means that the expression is skipped.
+The expression may still be evaluated, e.g. to get negative values for the delta.
+
+
+TODO: good and bad examples for condition use.
+
 == Condition and Range
 
 TODO
