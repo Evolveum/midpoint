@@ -9,6 +9,12 @@ This page will contain some tips how to configure PostgreSQL DB (e.g. sizing).
 
 TODO
 
+For orientation:
+
+* 1M of audit records takes ~5 GB of disk space, depending on the delta and execution result complexity.
+* 1M of user objects takes ~3-10 GB of disk space, depending on the number of assignments, refernces and extension data.
+* 1M of shadows takes ~2-3 GB of disk space, depending on the attribute data complexity.
+
 == Connections
 
 TODO
