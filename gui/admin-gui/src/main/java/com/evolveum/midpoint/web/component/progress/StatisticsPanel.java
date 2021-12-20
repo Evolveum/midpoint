@@ -24,8 +24,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisti
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -41,9 +39,6 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class StatisticsPanel extends BasePanel<StatisticsDto> {
     private static final long serialVersionUID = 1L;
 
@@ -52,7 +47,7 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
     private static final String ID_PROVISIONING_TITLE = "provisioningTitle";
     private static final String ID_PROVISIONING_STATISTICS_LINES = "provisioningStatisticsLines";
     private static final String ID_PROVISIONING_RESOURCE = "Provisioning.Resource";
-    private static final String ID_PROVISIONING_OBJECT_CLASS = "Provisioning.ResourceObjectClass";
+    private static final String ID_PROVISIONING_OBJECT_CLASS = "Provisioning.ObjectClass";
 
 
     private static final String ID_MAPPINGS_TITLE = "mappingsTitle";
