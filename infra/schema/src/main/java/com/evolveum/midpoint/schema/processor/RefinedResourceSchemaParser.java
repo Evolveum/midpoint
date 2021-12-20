@@ -237,6 +237,7 @@ public class RefinedResourceSchemaParser {
             for (ResourceAttributeDefinitionType attrDefBean : definitionBean.getAttribute()) {
                 QName attrName = ItemPathTypeUtil.asSingleName(
                         Objects.requireNonNull(attrDefBean.getRef(), () -> "No attribute name in " + attrDefBean));
+                // TODO check that we really look into aux object classes
                 if (!definition.containsAttributeDefinition(attrName) && !ResourceSchemaUtil.isIgnored(attrDefBean)) {
                     throw new SchemaException("Definition of attribute " + attrName + " not found in object class " +
                             definition.getObjectClassName() + " nor auxiliary object classes for " + definition +
