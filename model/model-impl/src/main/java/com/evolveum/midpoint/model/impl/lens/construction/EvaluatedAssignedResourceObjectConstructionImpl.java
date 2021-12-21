@@ -11,10 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -62,7 +63,7 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
                         + " in account construction in " + construction.getSource());
             }
 
-            RefinedAttributeDefinition<Object> refinedAttributeDefinition = construction.findAttributeDefinition(attrName);
+            ResourceAttributeDefinition<?> refinedAttributeDefinition = construction.findAttributeDefinition(attrName);
             if (refinedAttributeDefinition == null) {
                 throw new SchemaException("Attribute " + attrName + " not found in schema for resource object type "
                         + getIntent() + ", " + construction.getResolvedResource().resource
@@ -91,13 +92,13 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
                         + " in construction in " + construction.getSource());
             }
 
-            RefinedAssociationDefinition refinedAssociationDefinition = construction.findAssociationDefinition(assocName);
-            if (refinedAssociationDefinition == null) {
+            ResourceAssociationDefinition resourceAssociationDefinition = construction.findAssociationDefinition(assocName);
+            if (resourceAssociationDefinition == null) {
                 throw new SchemaException("Association " + assocName + " not found in schema for resource object type "
                         + getIntent() + ", " + construction.getResolvedResource().resource
                         + " as defined in " + construction.getSource(), assocName);
             }
-            associationsToEvaluate.add(new AssociationEvaluation<>(constructionEvaluation, refinedAssociationDefinition,
+            associationsToEvaluate.add(new AssociationEvaluation<>(constructionEvaluation, resourceAssociationDefinition,
                     outboundMappingBean, OriginType.ASSIGNMENTS, MappingKindType.CONSTRUCTION));
         }
         return associationsToEvaluate;

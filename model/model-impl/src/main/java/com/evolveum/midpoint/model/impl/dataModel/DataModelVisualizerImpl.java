@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.model.impl.dataModel;
 
-import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.api.DataModelVisualizer;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.dataModel.dot.DotModel;
@@ -19,11 +18,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -109,31 +107,31 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
     private void processResourceMappings(DataModel model, List<PrismObject<ResourceType>> resources) throws SchemaException {
         for (PrismObject<ResourceType> resource : resources) {
             LOGGER.debug("Processing {}", ObjectTypeUtil.toShortString(resource));
-            RefinedResourceSchema refinedResourceSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
+            ResourceSchema refinedResourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
             if (refinedResourceSchema == null) {
                 LOGGER.debug("Refined resource schema is null, skipping the resource.");
                 continue;
             }
-            List<? extends RefinedObjectClassDefinition> refinedDefinitions = refinedResourceSchema.getRefinedDefinitions();
-            for (RefinedObjectClassDefinition refinedDefinition : refinedDefinitions) {
+            Collection<? extends ResourceObjectTypeDefinition> refinedDefinitions = refinedResourceSchema.getObjectTypeDefinitions();
+            for (ResourceObjectTypeDefinition refinedDefinition : refinedDefinitions) {
                 LOGGER.debug("Processing refined definition {}", refinedDefinition);
-                Collection<? extends RefinedAttributeDefinition<?>> attributeDefinitions = refinedDefinition.getAttributeDefinitions();
+                Collection<? extends ResourceAttributeDefinition<?>> attributeDefinitions = refinedDefinition.getAttributeDefinitions();
                 final ShadowKindType kind = def(refinedDefinition.getKind());
                 final String intent = def(refinedDefinition.getIntent());
-                for (RefinedAttributeDefinition<?> attributeDefinition : attributeDefinitions) {
+                for (ResourceAttributeDefinition<?> attributeDefinition : attributeDefinitions) {
                     if (attributeDefinition.isIgnored()) {
                         continue;
                     }
                     LOGGER.debug("Processing refined attribute definition for {}", attributeDefinition.getItemName());
                     ResourceDataItem attrItem = model.findResourceItem(resource.getOid(), kind, intent, getObjectClassName(refinedDefinition),
                             ItemPath.create(attributeDefinition.getItemName()));
-                    if (attributeDefinition.getOutboundMappingType() != null) {
-                        processOutboundMapping(model, attrItem, attributeDefinition.getOutboundMappingType(), null);
+                    if (attributeDefinition.getOutboundMappingBean() != null) {
+                        processOutboundMapping(model, attrItem, attributeDefinition.getOutboundMappingBean(), null);
                     }
-                    processInboundMappings(model, attrItem, attributeDefinition.getInboundMappingTypes());
+                    processInboundMappings(model, attrItem, attributeDefinition.getInboundMappingBeans());
                 }
-                Collection<RefinedAssociationDefinition> associationDefinitions = refinedDefinition.getAssociationDefinitions();
-                for (RefinedAssociationDefinition associationDefinition : associationDefinitions) {
+                Collection<ResourceAssociationDefinition> associationDefinitions = refinedDefinition.getAssociationDefinitions();
+                for (ResourceAssociationDefinition associationDefinition : associationDefinitions) {
                     if (associationDefinition.isIgnored()) {
                         continue;
                     }
@@ -144,7 +142,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
                         processOutboundMapping(model, assocItem, associationDefinition.getOutboundMappingType(), null);
                     }
 //                    if (associationDefinition.getAssociationTarget() != null) {
-//                        RefinedObjectClassDefinition target = associationDefinition.getAssociationTarget();
+//                        ResourceObjectTypeDefinition target = associationDefinition.getAssociationTarget();
 //                        boolean objectToSubject = associationDefinition.getResourceObjectAssociationType().getDirection() == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT;
 //                        associationDefinition.getResourceObjectAssociationType().getAssociationAttribute()
 //                    }
@@ -198,12 +196,12 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
     private void createDataItems(DataModel model, List<PrismObject<ResourceType>> resources) throws SchemaException {
         LOGGER.debug("createDataItems starting");
         for (PrismObject<ResourceType> resource : resources) {
-            final ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
+            final ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
             if (resourceSchema == null) {
                 LOGGER.debug("Resource schema is null, skipping the resource.");
                 continue;
             }
-            RefinedResourceSchema refinedResourceSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
+            ResourceSchema refinedResourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
             if (refinedResourceSchema == null) {
                 LOGGER.debug("Refined resource schema is null, skipping the resource.");        // actually shouldn't be null if resource schema exists
                 continue;
@@ -211,26 +209,26 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 
             model.registerResource(resource);
 
-            List<? extends RefinedObjectClassDefinition> refinedDefinitions = refinedResourceSchema.getRefinedDefinitions();
-            for (RefinedObjectClassDefinition refinedDefinition : refinedDefinitions) {
+            Collection<? extends ResourceObjectTypeDefinition> refinedDefinitions = refinedResourceSchema.getObjectTypeDefinitions();
+            for (ResourceObjectTypeDefinition refinedDefinition : refinedDefinitions) {
                 LOGGER.debug("Processing refined definition {} in {}", refinedDefinition, resource);
-                Collection<? extends RefinedAttributeDefinition<?>> attributeDefinitions = refinedDefinition.getAttributeDefinitions();
+                Collection<? extends ResourceAttributeDefinition<?>> attributeDefinitions = refinedDefinition.getAttributeDefinitions();
                 //Collection<? extends ResourceAttributeDefinition> rawAttributeDefinitions = refinedDefinition.getObjectClassDefinition().getAttributeDefinitions();
                 final ShadowKindType kind = def(refinedDefinition.getKind());
                 final String intent = def(refinedDefinition.getIntent());
-                for (RefinedAttributeDefinition<?> attributeDefinition : attributeDefinitions) {
+                for (ResourceAttributeDefinition<?> attributeDefinition : attributeDefinitions) {
                     if (attributeDefinition.isIgnored()) {
                         continue;
                     }
                     LOGGER.debug("Registering refined attribute definition for {}", attributeDefinition.getItemName());
                     ResourceDataItem attrItem = new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, attributeDefinition.getItemName());
-                    attrItem.setRefinedAttributeDefinition(attributeDefinition);
+                    attrItem.setAttributeDefinition(attributeDefinition);
                     // TODO check the name
                     model.registerDataItem(attrItem);
                 }
                 // TODO check attributes not mentioned in schema handling
-                Collection<RefinedAssociationDefinition> associationDefinitions = refinedDefinition.getAssociationDefinitions();
-                for (RefinedAssociationDefinition associationDefinition : associationDefinitions) {
+                Collection<ResourceAssociationDefinition> associationDefinitions = refinedDefinition.getAssociationDefinitions();
+                for (ResourceAssociationDefinition associationDefinition : associationDefinitions) {
                     if (associationDefinition.isIgnored()) {
                         continue;
                     }
@@ -440,7 +438,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
     }
 
     // TODO move to appropriate place
-    private QName getObjectClassName(RefinedObjectClassDefinition def) {
+    private QName getObjectClassName(ResourceObjectTypeDefinition def) {
         return def != null ? def.getTypeName() : null;
     }
 

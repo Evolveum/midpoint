@@ -1,26 +1,28 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.ninja.action.worker;
-
-import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.util.OperationStatus;
 
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
+import com.evolveum.midpoint.ninja.impl.NinjaContext;
+import com.evolveum.midpoint.ninja.util.OperationStatus;
+
 /**
- * Created by Viliam Repan (lazyman).
+ * Base worker class that either produces or consumes {@link T} object for/from queue.
+ *
+ * @param <O> options class
+ * @param <T> type of objects in the queue
  */
-public abstract class BaseWorker<O extends Object, T extends Object> implements Runnable {
+public abstract class BaseWorker<O, T> implements Runnable {
 
     public static final int CONSUMER_POLL_TIMEOUT = 2;
 
-    private List<? extends BaseWorker> workers;
+    private final List<? extends BaseWorker<?, ?>> workers;
 
     protected BlockingQueue<T> queue;
     protected NinjaContext context;
@@ -35,7 +37,7 @@ public abstract class BaseWorker<O extends Object, T extends Object> implements 
     }
 
     public BaseWorker(NinjaContext context, O options, BlockingQueue<T> queue, OperationStatus operation,
-                      List<? extends BaseWorker> workers) {
+            List<? extends BaseWorker<?, ?>> workers) {
         this.queue = queue;
         this.context = context;
         this.options = options;
@@ -72,7 +74,7 @@ public abstract class BaseWorker<O extends Object, T extends Object> implements 
             return true;
         }
 
-        for (BaseWorker worker : workers) {
+        for (BaseWorker<?, ?> worker : workers) {
             if (!worker.isDone()) {
                 return false;
             }

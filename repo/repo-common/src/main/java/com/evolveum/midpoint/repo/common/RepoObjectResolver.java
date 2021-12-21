@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.common;
 
 import java.util.Collection;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -61,8 +63,12 @@ public class RepoObjectResolver implements ObjectResolver {
     }
 
     @Override
-    public <O extends ObjectType> O getObject(Class<O> expectedType, String oid,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+    public <O extends ObjectType> O getObject(
+            @NotNull Class<O> expectedType,
+            @NotNull String oid,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable Task task, // not needed here
+            @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
         return cacheRepositoryService.getObject(expectedType, oid, options, parentResult).asObjectable();
     }

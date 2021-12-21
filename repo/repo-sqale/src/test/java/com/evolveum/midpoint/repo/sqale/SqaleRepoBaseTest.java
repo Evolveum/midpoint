@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
 
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -72,6 +73,8 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     @Autowired protected SqaleRepositoryConfiguration repositoryConfiguration;
     @Autowired protected PrismContext prismContext;
     @Autowired protected RelationRegistry relationRegistry;
+
+    @Autowired protected AuditService auditService;
 
     protected SqlRecorder queryRecorder;
 

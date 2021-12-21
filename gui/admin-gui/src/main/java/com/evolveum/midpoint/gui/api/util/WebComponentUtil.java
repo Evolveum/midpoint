@@ -29,6 +29,8 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.authentication.api.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.schema.processor.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -71,7 +73,6 @@ import org.jetbrains.annotations.Nullable;
 import org.joda.time.format.DateTimeFormat;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -120,7 +121,6 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
@@ -452,21 +452,21 @@ public final class WebComponentUtil {
 
         ObjectQuery query = prismContext.queryFactory().createQuery();
         try {
-            RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
-            RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(construction.getKind(), construction.getIntent());
+            ResourceSchema refinedResourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+            ResourceObjectDefinition oc = refinedResourceSchema.findObjectDefinition(construction.getKind(), construction.getIntent());
             if (oc == null) {
                 return null;
             }
-            Collection<RefinedAssociationDefinition> refinedAssociationDefinitions = oc.getAssociationDefinitions();
+            Collection<ResourceAssociationDefinition> resourceAssociationDefinitions = oc.getAssociationDefinitions();
 
-            for (RefinedAssociationDefinition refinedAssociationDefinition : refinedAssociationDefinitions) {
+            for (ResourceAssociationDefinition resourceAssociationDefinition : resourceAssociationDefinitions) {
                 S_FilterEntryOrEmpty atomicFilter = prismContext.queryFor(ShadowType.class);
                 List<ObjectFilter> orFilterClauses = new ArrayList<>();
-                refinedAssociationDefinition.getIntents()
+                resourceAssociationDefinition.getIntents()
                         .forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
                 OrFilter intentFilter = prismContext.queryFactory().createOr(orFilterClauses);
 
-                AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssociationDefinition.getKind()).and()
+                AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(resourceAssociationDefinition.getKind()).and()
                         .item(ShadowType.F_RESOURCE_REF).ref(resource.getOid(), ResourceType.COMPLEX_TYPE).buildFilter();
                 filter.addCondition(intentFilter);
                 query.setFilter(filter);        // TODO this overwrites existing filter (created in previous cycle iteration)... is it OK? [med]
@@ -1381,7 +1381,7 @@ public final class WebComponentUtil {
                 return nameModel.getString();
             }
         }
-        if (def instanceof RefinedAttributeDefinition && StringUtils.isNotEmpty(def.getDisplayName())) {
+        if (def instanceof ResourceAttributeDefinition && StringUtils.isNotEmpty(def.getDisplayName())) {
             return def.getDisplayName();
         }
         return def.getItemName().getLocalPart();
@@ -2903,15 +2903,16 @@ public final class WebComponentUtil {
         }
         ResourceType resourceType = resource.asObjectable();
 
-        CompositeRefinedObjectClassDefinition ocd = null;
+        ResourceObjectDefinition ocd = null;
 
         try {
-            RefinedResourceSchema resourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
-            ocd = resourceSchema.determineCompositeObjectClassDefinition(shadowType.asPrismObject());
+            ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+            ocd = ResourceObjectDefinitionResolver.getDefinitionForShadow(resourceSchema, shadowType);
         } catch (SchemaException e) {
             LOGGER.error("Cannot find refined definition for {} in {}", shadowType, resource);
         }
-        ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource, shadowType.getKind(), shadowType.getIntent());
+        ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType =
+                ResourceTypeUtil.findObjectTypeDefinition(resource, shadowType.getKind(), shadowType.getIntent());
 
         if (SchemaConstants.PATH_ACTIVATION.equivalent(itemWrapper.getPath())) {
             if (ResourceTypeUtil.isActivationCapabilityEnabled(resourceType, resourceObjectTypeDefinitionType)) {
@@ -3003,11 +3004,11 @@ public final class WebComponentUtil {
             return true; //TODO should be true?
         }
 
-        CompositeRefinedObjectClassDefinition ocd = null;
+        ResourceObjectDefinition ocd = null;
 
         try {
-            RefinedResourceSchema resourceSchema = RefinedResourceSchema.getRefinedSchema(resource.asPrismObject());
-            ocd = resourceSchema.determineCompositeObjectClassDefinition(shadowType.asPrismObject());
+            ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchema(resource.asPrismObject());
+            ocd = ResourceObjectDefinitionResolver.getDefinitionForShadow(resourceSchema, shadowType);
         } catch (SchemaException e) {
             LOGGER.error("Cannot find refined definition for {} in {}", shadowType, resource);
         }
@@ -3247,15 +3248,15 @@ public final class WebComponentUtil {
     }
 
     public static ObjectFilter createAssociationShadowRefFilter(
-            RefinedAssociationDefinition refinedAssociationDefinition,
+            ResourceAssociationDefinition resourceAssociationDefinition,
             PrismContext prismContext, String resourceOid) {
         S_FilterEntryOrEmpty atomicFilter = prismContext.queryFor(ShadowType.class);
         List<ObjectFilter> orFilterClauses = new ArrayList<>();
-        refinedAssociationDefinition.getIntents()
+        resourceAssociationDefinition.getIntents()
                 .forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
         OrFilter intentFilter = prismContext.queryFactory().createOr(orFilterClauses);
 
-        AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssociationDefinition.getKind()).and()
+        AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(resourceAssociationDefinition.getKind()).and()
                 .item(ShadowType.F_RESOURCE_REF).ref(resourceOid, ResourceType.COMPLEX_TYPE).buildFilter();
         filter.addCondition(intentFilter);
         return filter;
@@ -3583,11 +3584,11 @@ public final class WebComponentUtil {
         return duration;
     }
 
-    public static List<QName> loadResourceObjectClassValues(ResourceType resource, PageBase pageBase) {
+    public static Collection<QName> loadResourceObjectClassValues(ResourceType resource, PageBase pageBase) {
         try {
-            ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resource, pageBase.getPrismContext());
+            ResourceSchema schema = ResourceSchemaFactory.getRawSchema(resource);
             if (schema != null) {
-                return schema.getObjectClassList();
+                return schema.getObjectClassNames();
             }
         } catch (SchemaException | RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object class list from resource.", e);
@@ -3596,16 +3597,16 @@ public final class WebComponentUtil {
         return new ArrayList<>();
     }
 
-    public static List<RefinedAssociationDefinition> getRefinedAssociationDefinition(ResourceType resource, ShadowKindType kind, String intent) {
-        List<RefinedAssociationDefinition> associationDefinitions = new ArrayList<>();
+    public static List<ResourceAssociationDefinition> getRefinedAssociationDefinition(ResourceType resource, ShadowKindType kind, String intent) {
+        List<ResourceAssociationDefinition> associationDefinitions = new ArrayList<>();
 
         try {
 
             if (resource == null) {
                 return associationDefinitions;
             }
-            RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource.asPrismObject());
-            RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(kind, intent);
+            ResourceSchema refinedResourceSchema = ResourceSchemaFactory.getCompleteSchema(resource.asPrismObject());
+            ResourceObjectDefinition oc = refinedResourceSchema.findObjectDefinition(kind, intent);
             if (oc == null) {
                 LOGGER.debug("Association for {}/{} not supported by resource {}", kind, intent, resource);
                 return associationDefinitions;
@@ -3622,7 +3623,7 @@ public final class WebComponentUtil {
         return associationDefinitions;
     }
 
-    public static String getAssociationDisplayName(RefinedAssociationDefinition assocDef) {
+    public static String getAssociationDisplayName(ResourceAssociationDefinition assocDef) {
         if (assocDef == null) {
             return "";
         }
@@ -3630,8 +3631,8 @@ public final class WebComponentUtil {
         if (assocDef.getDisplayName() != null) {
             sb.append(assocDef.getDisplayName()).append(", ");
         }
-        if (assocDef.getResourceObjectAssociationType() != null && assocDef.getResourceObjectAssociationType().getRef() != null) {
-            sb.append("ref: ").append(assocDef.getResourceObjectAssociationType().getRef().getItemPath().toString());
+        if (assocDef.getDefinitionBean() != null && assocDef.getDefinitionBean().getRef() != null) {
+            sb.append("ref: ").append(assocDef.getDefinitionBean().getRef().getItemPath().toString());
         }
         return sb.toString();
     }
@@ -4838,22 +4839,23 @@ public final class WebComponentUtil {
         return chanelUri.substring(i + 1);
     }
 
-    public static List<String> getIntensForKind(PrismObject<ResourceType> resource, ShadowKindType kind, PageBase parentPage) {
-
-        RefinedResourceSchema refinedSchema = null;
-        try {
-            refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource,
-                    parentPage.getPrismContext());
-
-        } catch (SchemaException e) {
-            return Collections.emptyList();
-        }
+    public static Collection<String> getIntentsForKind(PrismObject<ResourceType> resource, ShadowKindType kind) {
 
         if (kind == null) {
             return Collections.emptyList();
         }
 
-        return RefinedResourceSchemaImpl.getIntentsForKind(refinedSchema, kind);
+        ResourceSchema refinedSchema;
+        try {
+            refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+            if (refinedSchema != null) {
+                return refinedSchema.getIntentsForKind(kind);
+            } else {
+                return List.of();
+            }
+        } catch (SchemaException e) {
+            return List.of();
+        }
     }
 
     public static Class<? extends PageBase> resolveSelfPage() {

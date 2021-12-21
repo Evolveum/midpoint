@@ -531,35 +531,31 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         ObjectDeltaOperation.checkConsistence(deltas);
     }
 
-    @Deprecated // should go away with the old audit listRecord
-    public AuditEventRecordType createAuditEventRecordType() {
-        return createAuditEventRecordType(false);
-    }
-
+    // TODO: currently unused (2021), but if audit(AERType) will be reused as part of audit(AER) it can still be useful
     public AuditEventRecordType createAuditEventRecordType(boolean tolerateInconsistencies) {
-        AuditEventRecordType auditRecordType = new AuditEventRecordType();
-        auditRecordType.setRepoId(repoId);
-        auditRecordType.setChannel(channel);
-        auditRecordType.setEventIdentifier(eventIdentifier);
-        auditRecordType.setEventStage(AuditEventStage.toSchemaValue(eventStage));
-        auditRecordType.setEventType(AuditEventType.toSchemaValue(eventType));
-        auditRecordType.setHostIdentifier(hostIdentifier);
-        auditRecordType.setRemoteHostAddress(remoteHostAddress);
-        auditRecordType.setNodeIdentifier(nodeIdentifier);
-        auditRecordType.setInitiatorRef(ObjectTypeUtil.createObjectRef(initiatorRef, true));
-        auditRecordType.setAttorneyRef(ObjectTypeUtil.createObjectRef(attorneyRef, true));
-        auditRecordType.setMessage(message);
-        auditRecordType.setOutcome(OperationResultStatus.createStatusType(outcome));
-        auditRecordType.setParameter(parameter);
-        auditRecordType.setResult(result);
-        auditRecordType.setSessionIdentifier(sessionIdentifier);
-        auditRecordType.setTargetOwnerRef(ObjectTypeUtil.createObjectRef(targetOwnerRef, true));
-        auditRecordType.setTargetRef(ObjectTypeUtil.createObjectRef(targetRef, true));
-        auditRecordType.setRequestIdentifier(requestIdentifier);
-        auditRecordType.setTaskIdentifier(taskIdentifier);
-        auditRecordType.setTaskOID(taskOid);
-        auditRecordType.getResourceOid().addAll(resourceOids);
-        auditRecordType.setTimestamp(MiscUtil.asXMLGregorianCalendar(timestamp));
+        AuditEventRecordType auditRecord = new AuditEventRecordType();
+        auditRecord.setRepoId(repoId);
+        auditRecord.setChannel(channel);
+        auditRecord.setEventIdentifier(eventIdentifier);
+        auditRecord.setEventStage(AuditEventStage.toSchemaValue(eventStage));
+        auditRecord.setEventType(AuditEventType.toSchemaValue(eventType));
+        auditRecord.setHostIdentifier(hostIdentifier);
+        auditRecord.setRemoteHostAddress(remoteHostAddress);
+        auditRecord.setNodeIdentifier(nodeIdentifier);
+        auditRecord.setInitiatorRef(ObjectTypeUtil.createObjectRef(initiatorRef, true));
+        auditRecord.setAttorneyRef(ObjectTypeUtil.createObjectRef(attorneyRef, true));
+        auditRecord.setMessage(message);
+        auditRecord.setOutcome(OperationResultStatus.createStatusType(outcome));
+        auditRecord.setParameter(parameter);
+        auditRecord.setResult(result);
+        auditRecord.setSessionIdentifier(sessionIdentifier);
+        auditRecord.setTargetOwnerRef(ObjectTypeUtil.createObjectRef(targetOwnerRef, true));
+        auditRecord.setTargetRef(ObjectTypeUtil.createObjectRef(targetRef, true));
+        auditRecord.setRequestIdentifier(requestIdentifier);
+        auditRecord.setTaskIdentifier(taskIdentifier);
+        auditRecord.setTaskOID(taskOid);
+        auditRecord.getResourceOid().addAll(resourceOids);
+        auditRecord.setTimestamp(MiscUtil.asXMLGregorianCalendar(timestamp));
         for (ObjectDeltaOperation<?> delta : deltas) {
             ObjectDeltaOperationType odo = new ObjectDeltaOperationType();
             try {
@@ -569,7 +565,7 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
                 // used only in GUI and reports, so we are safe here.
                 options.setEscapeInvalidCharacters(true);
                 DeltaConvertor.toObjectDeltaOperationType(delta, odo, options);
-                auditRecordType.getDelta().add(odo);
+                auditRecord.getDelta().add(odo);
             } catch (Exception e) {
                 if (tolerateInconsistencies) {
                     if (delta.getExecutionResult() != null) {
@@ -589,24 +585,24 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
             AuditEventRecordPropertyType propertyType = new AuditEventRecordPropertyType();
             propertyType.setName(propertyEntry.getKey());
             propertyType.getValue().addAll(propertyEntry.getValue());
-            auditRecordType.getProperty().add(propertyType);
+            auditRecord.getProperty().add(propertyType);
         }
         for (Map.Entry<String, Set<AuditReferenceValue>> referenceEntry : references.entrySet()) {
             AuditEventRecordReferenceType referenceType = new AuditEventRecordReferenceType();
             referenceType.setName(referenceEntry.getKey());
             referenceEntry.getValue().forEach(v -> referenceType.getValue().add(v.toXml()));
-            auditRecordType.getReference().add(referenceType);
+            auditRecord.getReference().add(referenceType);
         }
 
         for (Map.Entry<String, String> customColumnEntry : customColumnProperty.entrySet()) {
             AuditEventRecordCustomColumnPropertyType customColumn = new AuditEventRecordCustomColumnPropertyType();
             customColumn.setName(customColumnEntry.getKey());
             customColumn.setValue(customColumnEntry.getValue());
-            auditRecordType.getCustomColumnProperty().add(customColumn);
+            auditRecord.getCustomColumnProperty().add(customColumn);
         }
 
         // TODO MID-5531 convert custom properties too? What about other than string types?
-        return auditRecordType;
+        return auditRecord;
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod") // it's wrong, but intended

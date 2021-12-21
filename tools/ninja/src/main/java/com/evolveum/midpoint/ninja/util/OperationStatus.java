@@ -7,11 +7,11 @@
 
 package com.evolveum.midpoint.ninja.util;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.schema.result.OperationResult;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -22,21 +22,20 @@ public class OperationStatus {
         NOT_STARTED, STARTED, PRODUCER_FINISHED, FINISHED;
     }
 
-    private NinjaContext context;
+    private final NinjaContext context;
 
     private State state = State.NOT_STARTED;
 
-    private AtomicInteger totalCount = new AtomicInteger(0);
-    private AtomicInteger errorCount = new AtomicInteger(0);
-    private AtomicInteger skippedCount = new AtomicInteger(0);
+    private final AtomicInteger totalCount = new AtomicInteger(0);
+    private final AtomicInteger errorCount = new AtomicInteger(0);
+    private final AtomicInteger skippedCount = new AtomicInteger(0);
 
     private long startTime;
     private long finishTime;
 
-    private long lastPrintoutTime;
     private int lastPrintoutCount;
 
-    private OperationResult result;
+    private final OperationResult result;
 
     public OperationStatus(NinjaContext context, OperationResult result) {
         this.context = context;
@@ -122,7 +121,7 @@ public class OperationStatus {
     }
 
     public double getTotalTime() {
-        return ((double) (finishTime - startTime)) / 1000;
+        return (finishTime - startTime) / 1000d;
     }
 
     public double getAvgRequestPerSecond() {
@@ -130,24 +129,23 @@ public class OperationStatus {
             return 0d;
         }
 
-        long span = (System.currentTimeMillis() - startTime) / 1000;
+        double span = state == State.FINISHED
+                ? (finishTime - startTime) / 1000d
+                : (System.currentTimeMillis() - startTime) / 1000d;
 
-        return ((double) totalCount.get()) / span;
+        return totalCount.get() / span;
     }
 
     public String print() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Processed: ");
-        sb.append(totalCount.get());
-        sb.append(", error: ");
-        sb.append(errorCount.get());
-        sb.append(", skipped: ");
-        sb.append(skippedCount.get());
-        sb.append(", avg: ");
-        sb.append(NinjaUtils.DECIMAL_FORMAT.format(getAvgRequestPerSecond()));
-        sb.append("obj/s");
-
-        return sb.toString();
+        return "Processed: "
+                + totalCount.get()
+                + ", error: "
+                + errorCount.get()
+                + ", skipped: "
+                + skippedCount.get()
+                + ", avg processed: "
+                + NinjaUtils.DECIMAL_FORMAT.format(getAvgRequestPerSecond())
+                + "obj/s";
     }
 
     public void print(Log log) {
@@ -157,7 +155,6 @@ public class OperationStatus {
     }
 
     public void lastPrintoutNow() {
-        this.lastPrintoutTime = System.currentTimeMillis();
         this.lastPrintoutCount = totalCount.get() - lastPrintoutCount;
     }
 

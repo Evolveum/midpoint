@@ -16,12 +16,10 @@ import org.assertj.core.api.Assertions;
 import org.assertj.core.api.InstanceOfAssertFactory;
 import org.assertj.core.api.ListAssert;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.audit.qmodel.*;
@@ -36,8 +34,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Tests the System Configuration audit/eventRecording/deltaSuccessExecutionResult setting.
  */
 public class AuditDeltaOperationResultTest extends SqaleRepoBaseTest {
-
-    @Autowired private AuditService auditService;
 
     @AfterClass
     public void resetAuditConfig() {

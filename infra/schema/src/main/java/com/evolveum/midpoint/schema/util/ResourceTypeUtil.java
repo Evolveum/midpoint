@@ -15,6 +15,8 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -30,8 +32,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
@@ -178,8 +179,8 @@ public class ResourceTypeUtil {
      * Assumes that native capabilities are already cached.
      */
     public static <T extends CapabilityType> T getEffectiveCapability(ResourceType resource,
-                                                                      ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType,
-                                                                      Class<T> capabilityClass) {
+            ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType,
+            Class<T> capabilityClass) {
         T capability = getEffectiveCapabilityInternal(resource, resourceObjectTypeDefinitionType, capabilityClass);
         if (CapabilityUtil.isCapabilityEnabled(capability)) {
             return capability;
@@ -190,8 +191,8 @@ public class ResourceTypeUtil {
     }
 
     private static <T extends CapabilityType> T getEffectiveCapabilityInternal(ResourceType resource,
-                                                                               ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType,
-                                                                               Class<T> capabilityClass) {
+            ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType,
+            Class<T> capabilityClass) {
         if (resourceObjectTypeDefinitionType != null && resourceObjectTypeDefinitionType.getConfiguredCapabilities() != null) {
             T configuredCapability = CapabilityUtil.getCapability(resourceObjectTypeDefinitionType.getConfiguredCapabilities().getAny(), capabilityClass);
             if (configuredCapability != null) {
@@ -478,11 +479,6 @@ public class ResourceTypeUtil {
 
     @NotNull
     public static String getResourceNamespace(PrismObject<ResourceType> resource) {
-        return getResourceNamespace(resource.asObjectable());
-    }
-
-    @NotNull
-    public static String getResourceNamespace(ResourceType resourceType) {
         return MidPointConstants.NS_RI;
     }
 
@@ -674,7 +670,7 @@ public class ResourceTypeUtil {
 
         Set<QName> objectClassNames = new HashSet<>();
 
-        for (ObjectClassComplexTypeDefinition objectClassDefinition: resourceSchema.getObjectClassDefinitions()) {
+        for (ResourceObjectClassDefinition objectClassDefinition: resourceSchema.getObjectClassDefinitions()) {
             QName typeName = objectClassDefinition.getTypeName();
             if (objectClassNames.contains(typeName)) {
                 throw new SchemaException("Duplicate definition of object class "+typeName+" in resource schema of "+resource);
@@ -685,7 +681,8 @@ public class ResourceTypeUtil {
         }
     }
 
-    public static void validateObjectClassDefinition(ObjectClassComplexTypeDefinition objectClassDefinition,
+    // TODO move to ResourceObjectDefinition?
+    public static void validateObjectClassDefinition(ResourceObjectDefinition objectClassDefinition,
             PrismObject<ResourceType> resource) throws SchemaException {
         Set<QName> attributeNames = new HashSet<>();
         for (ResourceAttributeDefinition<?> attributeDefinition: objectClassDefinition.getAttributeDefinitions()) {

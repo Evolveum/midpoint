@@ -7,8 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -23,6 +22,8 @@ import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -225,7 +226,7 @@ class ShadowFinder {
             // For the search to succeed we need all attribute to have "attributes" parent path.
             secondaryIdentifier = ShadowUtil.fixAttributePath(secondaryIdentifier);
             q = q.item(secondaryIdentifier.getPath(), secondaryIdentifier.getDefinition())
-                    .eq(getNormalizedValue(secondaryIdentifier, ctx.getObjectClassDefinition()))
+                    .eq(getNormalizedValue(secondaryIdentifier, ctx.getObjectDefinitionRequired()))
                     .or();
         }
         ObjectQuery query = q.none().endBlock()
@@ -241,10 +242,11 @@ class ShadowFinder {
         ProvisioningUtil.checkShadowActivationConsistency(shadow);
     }
 
-    private <T> List<PrismPropertyValue<T>> getNormalizedValue(PrismProperty<T> attr, RefinedObjectClassDefinition rObjClassDef) throws SchemaException {
-        RefinedAttributeDefinition<T> refinedAttributeDefinition = rObjClassDef.findAttributeDefinition(attr.getElementName());
-        QName matchingRuleQName = requireNonNull(refinedAttributeDefinition).getMatchingRuleQName();
-        MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, refinedAttributeDefinition.getTypeName());
+    private <T> List<PrismPropertyValue<T>> getNormalizedValue(PrismProperty<T> attr, ResourceObjectDefinition objDef)
+            throws SchemaException {
+        ResourceAttributeDefinition<?> attrDef = objDef.findAttributeDefinition(attr.getElementName());
+        QName matchingRuleQName = requireNonNull(attrDef).getMatchingRuleQName();
+        MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, attrDef.getTypeName());
         List<PrismPropertyValue<T>> normalized = new ArrayList<>();
         for (PrismPropertyValue<T> origPValue : attr.getValues()) {
             T normalizedValue = matchingRule.normalize(origPValue.getValue());
@@ -263,7 +265,8 @@ class ShadowFinder {
             // If the query is to be used against the repository, we should not provide matching rules here. See MID-5547.
             PrismPropertyDefinition<?> def = identifier.getDefinition();
             return prismContext.queryFor(ShadowType.class)
-                    .itemWithDef(def, ShadowType.F_ATTRIBUTES, def.getItemName()).eq(getNormalizedValue(identifier, ctx.getObjectClassDefinition()))
+                    .itemWithDef(def, ShadowType.F_ATTRIBUTES, def.getItemName())
+                        .eq(getNormalizedValue(identifier, ctx.getObjectDefinitionRequired()))
                     .and().item(ShadowType.F_OBJECT_CLASS).eq(objectClass)
                     .and().item(ShadowType.F_RESOURCE_REF).ref(ctx.getResourceOid())
                     .build();
@@ -273,36 +276,29 @@ class ShadowFinder {
     }
 
     private ObjectQuery createQueryByPrimaryIdValue(ProvisioningContext ctx, String primaryIdentifierValue) throws SchemaException {
-        try {
-            return prismContext.queryFor(ShadowType.class)
-                    .item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).eq(primaryIdentifierValue)
-                    .and().item(ShadowType.F_OBJECT_CLASS).eq(ctx.getObjectClassDefinition().getTypeName())
-                    .and().item(ShadowType.F_RESOURCE_REF).ref(ctx.getResourceOid())
-                    .build();
-
-        } catch (ExpressionEvaluationException | CommunicationException | ConfigurationException | ObjectNotFoundException e) {
-            // Should not happen at this stage. And we do not want to pollute throws clauses all the way up.
-            throw new SystemException(e.getMessage(), e);
-        }
+        return prismContext.queryFor(ShadowType.class)
+                .item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).eq(primaryIdentifierValue)
+                .and().item(ShadowType.F_OBJECT_CLASS).eq(ctx.getObjectClassNameRequired())
+                .and().item(ShadowType.F_RESOURCE_REF).ref(ctx.getResourceOid())
+                .build();
     }
 
     private ObjectQuery createQueryBySelectedIds(ProvisioningContext ctx, Collection<ResourceAttribute<?>> identifiers,
-            boolean primaryIdentifiersOnly) throws SchemaException, ConfigurationException,
-            ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+            boolean primaryIdentifiersOnly) throws SchemaException, ConfigurationException {
 
         boolean identifierFound = false;
 
         S_AtomicFilterEntry q = prismContext.queryFor(ShadowType.class);
 
-        RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
+        ResourceObjectDefinition objectClassDefinition = ctx.getObjectDefinition();
         for (PrismProperty<?> identifier : identifiers) {
-            RefinedAttributeDefinition<?> rAttrDef;
+            ResourceAttributeDefinition<?> rAttrDef;
             PrismPropertyValue<?> identifierValue = identifier.getValue();
             if (objectClassDefinition == null) {
                 // If there is no specific object class definition then the identifier definition
                 // must be the same in all object classes and that means that we can use
                 // definition from any of them.
-                RefinedObjectClassDefinition anyDefinition = ctx.getRefinedSchema().getRefinedDefinitions().iterator().next();
+                ResourceObjectTypeDefinition anyDefinition = ctx.getResourceSchema().getObjectTypeDefinitions().iterator().next();
                 rAttrDef = anyDefinition.findAttributeDefinition(identifier.getElementName());
                 if (primaryIdentifiersOnly && !anyDefinition.isPrimaryIdentifier(identifier.getElementName())) {
                     continue;

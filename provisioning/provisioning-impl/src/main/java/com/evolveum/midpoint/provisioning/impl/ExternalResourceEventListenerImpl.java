@@ -21,8 +21,6 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectCon
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 import com.evolveum.midpoint.provisioning.util.InitializationState;
 
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -85,10 +83,10 @@ public class ExternalResourceEventListenerImpl implements ExternalResourceEventL
         }
 
         try {
-            applyDefinitions(event, result);
+            applyDefinitions(event, task, result);
 
             PrismObject<ShadowType> anyShadow = getAnyShadow(event);
-            ProvisioningContext ctx = provisioningContextFactory.create(anyShadow, task, result);
+            ProvisioningContext ctx = provisioningContextFactory.createForShadow(anyShadow, task, result);
             ctx.assertDefinition();
 
             Object primaryIdentifierRealValue = getPrimaryIdentifierRealValue(anyShadow, event);
@@ -97,13 +95,15 @@ public class ExternalResourceEventListenerImpl implements ExternalResourceEventL
                 throw new SchemaException("No identifiers");
             }
 
-            ObjectClassComplexTypeDefinition objectClassDefinition = ctx.getObjectClassDefinition().getObjectClassDefinition();
-
             ExternalResourceObjectChange resourceObjectChange = new ExternalResourceObjectChange(
                     currentSequenceNumber.getAndIncrement(),
-                    primaryIdentifierRealValue, objectClassDefinition, identifiers,
+                    primaryIdentifierRealValue,
+                    ctx.getObjectClassDefinition(),
+                    identifiers,
                     getResourceObject(event),
-                    event.getObjectDelta(), ctx, resourceObjectConverter);
+                    event.getObjectDelta(),
+                    ctx,
+                    resourceObjectConverter);
             resourceObjectChange.initialize(task, result);
 
             ShadowedExternalChange adoptedChange = new ShadowedExternalChange(resourceObjectChange, changeProcessingBeans);
@@ -158,17 +158,17 @@ public class ExternalResourceEventListenerImpl implements ExternalResourceEventL
     }
 
     private void applyDefinitions(ExternalResourceEvent eventDescription,
-            OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         if (eventDescription.getResourceObject() != null) {
-            shadowsFacade.applyDefinition(eventDescription.getResourceObject(), parentResult);
+            shadowsFacade.applyDefinition(eventDescription.getResourceObject(), task, parentResult);
         }
 
         if (eventDescription.getOldRepoShadow() != null){
-            shadowsFacade.applyDefinition(eventDescription.getOldRepoShadow(), parentResult);
+            shadowsFacade.applyDefinition(eventDescription.getOldRepoShadow(), task, parentResult);
         }
 
         if (eventDescription.getObjectDelta() != null) {
-            shadowsFacade.applyDefinition(eventDescription.getObjectDelta(), null, parentResult);
+            shadowsFacade.applyDefinition(eventDescription.getObjectDelta(), null, task, parentResult);
         }
     }
 

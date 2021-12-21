@@ -13,12 +13,14 @@ import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -266,23 +268,22 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
 
         try {
             PrismContext prismContext = pageBase.getPrismContext();
-            RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource,
-                    LayerType.PRESENTATION, prismContext);
-            RefinedObjectClassDefinition objectClassDefinition = refinedSchema
-                    .getRefinedDefinition(ShadowKindType.ACCOUNT, construction.getIntent());
+            ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource, LayerType.PRESENTATION);
+            ResourceObjectDefinition objectClassDefinition = refinedSchema
+                    .findObjectDefinition(ShadowKindType.ACCOUNT, construction.getIntent());
 
             if (objectClassDefinition == null) {
                 return attributes;
             }
 
-            PrismContainerDefinition definition = objectClassDefinition
+            PrismContainerDefinition<?> definition = objectClassDefinition
                     .toResourceAttributeContainerDefinition();
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Refined definition for {}\n{}", construction, definition.debugDump());
             }
 
-            Collection<ItemDefinition> definitions = definition.getDefinitions();
+            Collection<? extends ItemDefinition<?>> definitions = definition.getDefinitions();
             for (ResourceAttributeDefinitionType attribute : assignment.getConstruction().getAttribute()) {
 
                 for (ItemDefinition attrDef : definitions) {

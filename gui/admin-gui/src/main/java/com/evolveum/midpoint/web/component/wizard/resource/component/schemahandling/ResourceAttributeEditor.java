@@ -31,12 +31,10 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -399,7 +397,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
             return references;
         }
 
-        for (ObjectClassComplexTypeDefinition def : schema.getObjectClassDefinitions()) {
+        for (ResourceObjectClassDefinition def : schema.getObjectClassDefinitions()) {
             if (objectType.getObjectClass().equals(def.getTypeName()) ||
                     objectType.getAuxiliaryObjectClass().contains(def.getTypeName())) {
                 for (ResourceAttributeDefinition<?> attributeDefinition : def.getAttributeDefinitions()) {
@@ -420,7 +418,6 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
     }
 
     private ResourceSchema loadResourceSchema() {
-        PrismContext prismContext = getPageBase().getPrismContext();
         if (resource != null) {
             Element xsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
             if (xsdSchema == null) {
@@ -428,10 +425,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
             }
 
             try {
-                MutableResourceSchema schema = ObjectFactory.createResourceSchema(
-                        ResourceTypeUtil.getResourceNamespace(resource), prismContext);
-                schema.parseThis(xsdSchema, resource.toString(), prismContext);
-                return schema;
+                return ResourceSchemaParser.parse(xsdSchema, resource.toString());
             } catch (SchemaException | RuntimeException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse resource schema.", e);
                 getSession().error(getString("ResourceAttributeEditor.message.cantParseSchema") + " " + e.getMessage());

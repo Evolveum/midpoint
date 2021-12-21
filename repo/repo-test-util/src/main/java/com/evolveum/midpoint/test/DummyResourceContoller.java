@@ -17,15 +17,13 @@ import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.time.ZonedDateTime;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.commons.lang.StringUtils;
@@ -43,16 +41,10 @@ import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
 import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
 import com.evolveum.midpoint.test.asserter.DummyGroupAsserter;
@@ -271,15 +263,18 @@ public class DummyResourceContoller extends AbstractResourceController {
         assert isExtendedSchema : "Resource "+resource+" does not have extended schema yet an extended attribute was requested";
     }
 
-    public void assertDummyResourceSchemaSanity(ResourceSchema resourceSchema) {
+    public void assertDummyResourceSchemaSanity(ResourceSchema resourceSchema) throws SchemaException {
         assertDummyResourceSchemaSanity(resourceSchema, resource.asObjectable(), true);
     }
 
-    public void assertDummyResourceSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType, boolean checkDisplayOrder) {
+    public void assertDummyResourceSchemaSanity(
+            ResourceSchema resourceSchema, ResourceType resourceType, boolean checkDisplayOrder)
+            throws SchemaException {
         IntegrationTestTools.assertIcfResourceSchemaSanity(resourceSchema, resourceType);
 
         // ACCOUNT
-        ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectDefinition accountDef =
+                resourceSchema.findDefinitionForObjectClass(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_NAME);
         assertNotNull("No ACCOUNT kind definition", accountDef);
 
         ResourceAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
@@ -296,7 +291,8 @@ public class DummyResourceContoller extends AbstractResourceController {
         }
 
         // GROUP
-        ObjectClassComplexTypeDefinition groupObjectClass = resourceSchema.findObjectClassDefinition(SchemaTestConstants.GROUP_OBJECT_CLASS_LOCAL_NAME);
+        ResourceObjectDefinition groupObjectClass =
+                resourceSchema.findDefinitionForObjectClass(SchemaTestConstants.GROUP_OBJECT_CLASS_NAME);
         assertNotNull("No group objectClass", groupObjectClass);
 
         ResourceAttributeDefinition membersDef = groupObjectClass.findAttributeDefinition(DUMMY_GROUP_MEMBERS_ATTRIBUTE_NAME);
@@ -310,7 +306,7 @@ public class DummyResourceContoller extends AbstractResourceController {
         assertEquals("Unexpected number of schema definitions in "+getName()+" dummy resource", dummyResource.getNumberOfObjectclasses(), resourceSchema.getDefinitions().size());
 
         for (Definition def: resourceSchema.getDefinitions()) {
-            if (def instanceof RefinedObjectClassDefinition) {
+            if (def instanceof ResourceObjectTypeDefinition) {
                 AssertJUnit.fail("Refined definition sneaked into resource schema of "+getName()+" dummy resource: "+def);
             }
         }
@@ -319,60 +315,63 @@ public class DummyResourceContoller extends AbstractResourceController {
     /**
      * @return default account definition
      */
-    public ObjectClassComplexTypeDefinition assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema) {
+    public ResourceObjectDefinition assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema)
+            throws SchemaException {
         return assertDummyResourceSchemaSanityExtended(resourceSchema, resource.asObjectable(), true);
     }
 
     /**
      * @return default account definition
      */
-    public ObjectClassComplexTypeDefinition assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema, ResourceType resourceType, boolean checkDisplayOrder) {
+    public ResourceObjectDefinition assertDummyResourceSchemaSanityExtended(
+            ResourceSchema resourceSchema, ResourceType resourceType, boolean checkDisplayOrder) throws SchemaException {
         return assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, checkDisplayOrder, PIRATE_SCHEMA_NUMBER_OF_DEFINITIONS);
     }
 
     /**
      * @return default account definition
      */
-    public ObjectClassComplexTypeDefinition assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema, ResourceType resourceType, boolean checkDisplayOrder, int numberOfAccountDefinitions) {
+    public ResourceObjectDefinition assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema, ResourceType resourceType, boolean checkDisplayOrder, int numberOfAccountDefinitions) throws SchemaException {
         assertDummyResourceSchemaSanity(resourceSchema, resourceType, checkDisplayOrder);
 
-        ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectDefinition accountDef =
+                resourceSchema.findDefinitionForObjectClass(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_NAME);
         assertNotNull("No default account definition", accountDef);
-        ObjectClassComplexTypeDefinition accountObjectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
+        ResourceObjectClassDefinition accountObjectClassDef =
+                resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_NAME);
         assertNotNull("No AccountObjectClass definition", accountObjectClassDef);
         assertTrue("Default account definition is not same as AccountObjectClass", accountDef == accountObjectClassDef);
         assertEquals("Unexpected number of definitions", numberOfAccountDefinitions, accountDef.getDefinitions().size());
 
-        ResourceAttributeDefinition<String> treasureDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME);
+        ResourceAttributeDefinition<?> treasureDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME);
         assertFalse("Treasure IS returned by default and should not be", treasureDef.isReturnedByDefault());
 
         // MID-4751
-        ResourceAttributeDefinition<XMLGregorianCalendar> enlistTimestampDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME);
+        ResourceAttributeDefinition<?> enlistTimestampDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME);
         PrismAsserts.assertDefinition(enlistTimestampDef,
-                new QName(ResourceTypeUtil.getResourceNamespace(resourceType), DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME),
+                new QName(MidPointConstants.NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME),
                 DOMUtil.XSD_DATETIME, 0, 1);
 
-        assertEquals("Unexpected kind in account definition", ShadowKindType.ACCOUNT, accountDef.getKind());
-        assertTrue("Account definition in not default", accountDef.isDefaultInAKind());
-        assertNull("Non-null intent in account definition", accountDef.getIntent());
-        assertFalse("Account definition is deprecated", accountDef.isDeprecated());
-        assertFalse("Account definition is auxiliary", accountDef.isAuxiliary());
+        assertTrue("Account definition in not default", accountObjectClassDef.isDefaultAccountDefinition());
+        assertFalse("Account definition is deprecated", accountObjectClassDef.isDeprecated());
+        assertFalse("Account definition is auxiliary", accountObjectClassDef.isAuxiliary());
 
         return accountDef;
     }
 
-    public void assertRefinedSchemaSanity(RefinedResourceSchema refinedSchema) {
+    public void assertRefinedSchemaSanity(ResourceSchema refinedSchema) {
 
-        RefinedObjectClassDefinition accountDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectTypeDefinition accountDef = refinedSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
         assertNotNull("Account definition is missing", accountDef);
         assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
         assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
         assertNotNull("Null secondary identifiers in account", accountDef.getSecondaryIdentifiers());
         assertFalse("Empty secondary identifiers in account", accountDef.getSecondaryIdentifiers().isEmpty());
         assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
-        assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClass()));
+        assertFalse("No nativeObjectClass in account",
+                StringUtils.isEmpty(accountDef.getObjectClassDefinition().getNativeObjectClass()));
 
-        RefinedAttributeDefinition uidDef = accountDef.findAttributeDefinition(SchemaTestConstants.ICFS_UID);
+        ResourceAttributeDefinition<?> uidDef = accountDef.findAttributeDefinition(SchemaTestConstants.ICFS_UID);
         assertEquals(1, uidDef.getMaxOccurs());
         assertEquals(0, uidDef.getMinOccurs());
         assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
@@ -381,7 +380,7 @@ public class DummyResourceContoller extends AbstractResourceController {
         assertTrue("No UID read",uidDef.canRead());
         assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(uidDef));
 
-        RefinedAttributeDefinition nameDef = accountDef.findAttributeDefinition(SchemaTestConstants.ICFS_NAME);
+        ResourceAttributeDefinition<?> nameDef = accountDef.findAttributeDefinition(SchemaTestConstants.ICFS_NAME);
         assertEquals(1, nameDef.getMaxOccurs());
         assertEquals(1, nameDef.getMinOccurs());
         assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
@@ -390,7 +389,7 @@ public class DummyResourceContoller extends AbstractResourceController {
         assertTrue("No NAME read",nameDef.canRead());
         assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
 
-        RefinedAttributeDefinition fullnameDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME);
+        ResourceAttributeDefinition<?> fullnameDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME);
         assertNotNull("No definition for fullname", fullnameDef);
         assertEquals(1, fullnameDef.getMaxOccurs());
         assertEquals(1, fullnameDef.getMinOccurs());
@@ -403,11 +402,13 @@ public class DummyResourceContoller extends AbstractResourceController {
     }
 
     public QName getAccountObjectClass() {
-        return new QName(ResourceTypeUtil.getResourceNamespace(getResourceType()), "AccountObjectClass");
+        getResourceType();
+        return new QName(MidPointConstants.NS_RI, "AccountObjectClass");
     }
 
     public QName getGroupObjectClass() {
-        return new QName(ResourceTypeUtil.getResourceNamespace(getResourceType()), "GroupObjectClass");
+        getResourceType();
+        return new QName(MidPointConstants.NS_RI, "GroupObjectClass");
     }
 
     public DummyOrg addOrgTop() throws ConnectException, FileNotFoundException, ObjectAlreadyExistsException, SchemaViolationException, ConflictException, InterruptedException {
@@ -505,18 +506,18 @@ public class DummyResourceContoller extends AbstractResourceController {
     }
 
     public <T> ResourceAttribute<T> createAccountAttribute(ItemName attrName) throws SchemaException {
-        RefinedObjectClassDefinition accountDef = getRefinedAccountDefinition();
+        ResourceObjectTypeDefinition accountDef = getRefinedAccountDefinition();
         //noinspection unchecked
         return (ResourceAttribute<T>) requireNonNull(accountDef.findAttributeDefinition(attrName),
                 () -> "No attribute " + attrName + " found in " + accountDef)
                 .instantiate();
     }
 
-    public RefinedObjectClassDefinition getRefinedAccountDefinition() throws SchemaException {
-        return getRefinedSchema().getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+    public ResourceObjectTypeDefinition getRefinedAccountDefinition() throws SchemaException {
+        return getRefinedSchema().findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
     }
 
-    public RefinedResourceSchema getRefinedSchema() throws SchemaException {
-        return RefinedResourceSchemaImpl.getRefinedSchema(getResourceType());
+    public ResourceSchema getRefinedSchema() throws SchemaException {
+        return ResourceSchemaFactory.getCompleteSchema(getResourceType());
     }
 }

@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.DefinitionUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,244 +35,106 @@ import org.jetbrains.annotations.NotNull;
  * This class represents schema definition for resource object (object class).
  * See {@link Definition} for more details.
  *
- * Resource Object Definition is immutable. TODO: This will probably need to be
- * changed to a mutable object.
+ * Resource Object Definition is immutable. TODO: This will probably need to be changed to a mutable object.
  *
  * @author Radovan Semancik
  *
  */
-public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefinitionImpl<ShadowAttributesType> implements
-        ResourceAttributeContainerDefinition {
+public class ResourceAttributeContainerDefinitionImpl
+        extends PrismContainerDefinitionImpl<ShadowAttributesType>
+        implements ResourceAttributeContainerDefinition {
 
     private static final long serialVersionUID = 3943909626639924429L;
 
-    public ResourceAttributeContainerDefinitionImpl(QName name, ObjectClassComplexTypeDefinition complexTypeDefinition,  PrismContext prismContext) {
-        super(name, complexTypeDefinition, prismContext);
+    public ResourceAttributeContainerDefinitionImpl(QName name, ComplexTypeDefinition complexTypeDefinition) {
+        super(name, complexTypeDefinition);
         super.setCompileTimeClass(ShadowAttributesType.class);
         isRuntimeSchema = true;
     }
 
     @Override
-    public ObjectClassComplexTypeDefinition getComplexTypeDefinition() {
-        return (ObjectClassComplexTypeDefinition)super.getComplexTypeDefinition();
+    public ResourceObjectDefinition getComplexTypeDefinition() {
+        return (ResourceObjectDefinition) super.getComplexTypeDefinition();
     }
 
-    /**
-     * Returns the definition of primary identifier attributes of a resource object.
-     *
-     * May return empty set if there are no identifier attributes. Must not
-     * return null.
-     *
-     * The exception should be never thrown unless there is some bug in the
-     * code. The validation of model consistency should be done at the time of
-     * schema parsing.
-     *
-     * @return definition of identifier attributes
-     * @throws IllegalStateException
-     *             if there is no definition for the referenced attributed
-     */
     @Override
-    public Collection<? extends ResourceAttributeDefinition> getPrimaryIdentifiers() {
+    public Collection<? extends ResourceAttributeDefinition<?>> getPrimaryIdentifiers() {
         return getComplexTypeDefinition().getPrimaryIdentifiers();
     }
 
-    /**
-     * Returns the definition of secondary identifier attributes of a resource
-     * object.
-     *
-     * May return empty set if there are no secondary identifier attributes.
-     * Must not return null.
-     *
-     * The exception should be never thrown unless there is some bug in the
-     * code. The validation of model consistency should be done at the time of
-     * schema parsing.
-     *
-     * @return definition of secondary identifier attributes
-     * @throws IllegalStateException
-     *             if there is no definition for the referenced attributed
-     */
     @Override
-    public Collection<? extends ResourceAttributeDefinition> getSecondaryIdentifiers() {
+    public Collection<? extends ResourceAttributeDefinition<?>> getSecondaryIdentifiers() {
         return getComplexTypeDefinition().getSecondaryIdentifiers();
     }
 
     @Override
-    public Collection<? extends ResourceAttributeDefinition> getAllIdentifiers() {
+    public Collection<? extends ResourceAttributeDefinition<?>> getAllIdentifiers() {
         return getComplexTypeDefinition().getAllIdentifiers();
     }
 
-    /**
-     * Returns the definition of description attribute of a resource object.
-     *
-     * Returns null if there is no description attribute.
-     *
-     * The exception should be never thrown unless there is some bug in the
-     * code. The validation of model consistency should be done at the time of
-     * schema parsing.
-     *
-     * @return definition of secondary identifier attributes
-     * @throws IllegalStateException
-     *             if there is more than one description attribute. But this
-     *             should never happen.
-     * @throws IllegalStateException
-     *             if there is no definition for the referenced attributed
-     */
     @Override
-    public ResourceAttributeDefinition getDescriptionAttribute() {
+    public ResourceAttributeDefinition<?> getDescriptionAttribute() {
         return getComplexTypeDefinition().getDescriptionAttribute();
     }
 
-    public void setDescriptionAttribute(ResourceAttributeDefinition descriptionAttribute) {
+    public void setDescriptionAttribute(QName name) {
         // We can afford to delegate a set here as we know that there is one-to-one correspondence between
         // object class definition and attribute container
-        ((ObjectClassComplexTypeDefinitionImpl) getComplexTypeDefinition()).setDescriptionAttribute(descriptionAttribute);
+        ((ResourceObjectClassDefinitionImpl) getComplexTypeDefinition())
+                .setDescriptionAttributeName(name);
     }
 
-    /**
-     * Specifies which resource attribute should be used as a "technical" name
-     * for the account. This name will appear in log files and other troubleshooting
-     * tools. The name should be a form of unique identifier that can be used to
-     * locate the resource object for diagnostics. It should not contain white chars and
-     * special chars if that can be avoided and it should be reasonable short.
-
-     * It is different from a display name attribute. Display name is intended for a
-     * common user or non-technical administrator (such as role administrator). The
-     * naming attribute is intended for technical IDM administrators and developers.
-     *
-     * @return resource attribute definition that should be used as a "technical" name
-     *                     for the account.
-     */
     @Override
-    public ResourceAttributeDefinition getNamingAttribute() {
+    public ResourceAttributeDefinition<?> getNamingAttribute() {
         return getComplexTypeDefinition().getNamingAttribute();
     }
 
-    public void setNamingAttribute(ResourceAttributeDefinition namingAttribute) {
+    public void setNamingAttribute(ResourceAttributeDefinition<?> namingAttribute) {
         // We can afford to delegate a set here as we know that there is one-to-one correspondence between
         // object class definition and attribute container
-        ((ObjectClassComplexTypeDefinitionImpl) getComplexTypeDefinition()).setNamingAttribute(namingAttribute);
+        ((ResourceObjectClassDefinitionImpl) getComplexTypeDefinition()).setNamingAttributeName(namingAttribute.getItemName());
     }
 
     public void setNamingAttribute(QName namingAttribute) {
-        ((ObjectClassComplexTypeDefinitionImpl) getComplexTypeDefinition()).setNamingAttribute(namingAttribute);
+        ((ResourceObjectClassDefinitionImpl) getComplexTypeDefinition()).setNamingAttributeName(namingAttribute);
     }
 
-    /**
-     * Returns the native object class string for the resource object.
-     *
-     * Native object class is the name of the Resource Object Definition (Object
-     * Class) as it is seen by the resource itself. The name of the Resource
-     * Object Definition may be constrained by XSD or other syntax and therefore
-     * may be "mangled" to conform to such syntax. The <i>native object
-     * class</i> value will contain unmangled name (if available).
-     *
-     * Returns null if there is no native object class.
-     *
-     * The exception should be never thrown unless there is some bug in the
-     * code. The validation of model consistency should be done at the time of
-     * schema parsing.
-     *
-     * @return native object class
-     * @throws IllegalStateException
-     *             if there is more than one description attribute.
-     */
     @Override
     public String getNativeObjectClass() {
-        return getComplexTypeDefinition().getNativeObjectClass();
+        return getComplexTypeDefinition()
+                .getObjectClassDefinition()
+                .getNativeObjectClass();
     }
 
     public void setNativeObjectClass(String nativeObjectClass) {
         // We can afford to delegate a set here as we know that there is one-to-one correspondence between
         // object class definition and attribute container
-        ((ObjectClassComplexTypeDefinitionImpl) getComplexTypeDefinition()).setNativeObjectClass(nativeObjectClass);
-    }
-
-    /**
-     * Indicates whether definition is should be used as default account type.
-     *
-     * If true value is returned then the definition should be used as a default
-     * account type definition. This is a way how a resource connector may
-     * suggest applicable object classes (resource object definitions) for
-     * accounts.
-     *
-     * If no information about account type is present, false should be
-     * returned. This method must return true only if isAccountType() returns
-     * true.
-     *
-     * The exception should be never thrown unless there is some bug in the
-     * code. The validation of at-most-one value should be done at the time of
-     * schema parsing. The exception may not even be thrown at all if the
-     * implementation is not able to determine duplicity.
-     *
-     * @return true if the definition should be used as account type.
-     * @throws IllegalStateException
-     *             if more than one default account is suggested in the schema.
-     */
-    @Override
-    public boolean isDefaultInAKind() {
-        return getComplexTypeDefinition().isDefaultInAKind();
-    }
-
-    public void setDefaultInAKind(boolean defaultAccountType) {
-        ((ObjectClassComplexTypeDefinitionImpl) getComplexTypeDefinition()).setDefaultInAKind(defaultAccountType);
+        ((ResourceObjectClassDefinitionImpl) getComplexTypeDefinition()).setNativeObjectClass(nativeObjectClass);
     }
 
     @Override
-    public String getIntent() {
-        return getComplexTypeDefinition().getIntent();
-    }
-
-    public void setIntent(String accountTypeName) {
-        ((ObjectClassComplexTypeDefinitionImpl) getComplexTypeDefinition()).setIntent(accountTypeName);
+    public boolean isDefaultAccountDefinition() {
+        return getComplexTypeDefinition()
+                .getObjectClassDefinition()
+                .isDefaultAccountDefinition();
     }
 
     @Override
-    public ShadowKindType getKind() {
-        return getComplexTypeDefinition().getKind();
-    }
-
-    public void setKind(ShadowKindType kind) {
-        ((ObjectClassComplexTypeDefinitionImpl) getComplexTypeDefinition()).setKind(kind);
-    }
-
-    /**
-     * Returns the definition of display name attribute.
-     *
-     * Display name attribute specifies which resource attribute should be used
-     * as title when displaying objects of a specific resource object class. It
-     * must point to an attribute of String type. If not present, primary
-     * identifier should be used instead (but this method does not handle this
-     * default behavior).
-     *
-     * Returns null if there is no display name attribute.
-     *
-     * The exception should be never thrown unless there is some bug in the
-     * code. The validation of model consistency should be done at the time of
-     * schema parsing.
-     *
-     * @return native object class
-     * @throws IllegalStateException
-     *             if there is more than one display name attribute or the
-     *             definition of the referenced attribute does not exist.
-     */
-    @Override
-    public ResourceAttributeDefinition getDisplayNameAttribute() {
+    public ResourceAttributeDefinition<?> getDisplayNameAttribute() {
         return getComplexTypeDefinition().getDisplayNameAttribute();
     }
 
-    public void setDisplayNameAttribute(ResourceAttributeDefinition displayName) {
-        ((ObjectClassComplexTypeDefinitionImpl) getComplexTypeDefinition()).setDisplayNameAttribute(displayName);
+    public void setDisplayNameAttribute(ResourceAttributeDefinition<?> displayName) {
+        ((ResourceObjectClassDefinitionImpl) getComplexTypeDefinition()).setDisplayNameAttributeName(displayName.getItemName());
     }
 
     /**
      * TODO
      *
      * Convenience method. It will internally look up the correct definition.
-     *
-     * @param displayName
      */
     public void setDisplayNameAttribute(QName displayName) {
-        ((ObjectClassComplexTypeDefinitionImpl) getComplexTypeDefinition()).setDisplayNameAttribute(displayName);
+        ((ResourceObjectClassDefinitionImpl) getComplexTypeDefinition()).setDisplayNameAttributeName(displayName);
     }
 
     @NotNull
@@ -286,20 +147,22 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
     @Override
     public ResourceAttributeContainer instantiate(QName name) {
         name = DefinitionUtil.addNamespaceIfApplicable(name, this.itemName);
-        return new ResourceAttributeContainerImpl(name, this, getPrismContext());
+        return new ResourceAttributeContainerImpl(name, this);
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     @NotNull
     @Override
     public ResourceAttributeContainerDefinitionImpl clone() {
-        ResourceAttributeContainerDefinitionImpl clone = new ResourceAttributeContainerDefinitionImpl(itemName,
-                (ObjectClassComplexTypeDefinition)complexTypeDefinition.clone(), getPrismContext());
-        copyDefinitionData(clone);
+        ResourceAttributeContainerDefinitionImpl clone =
+                new ResourceAttributeContainerDefinitionImpl(itemName, complexTypeDefinition);
+        clone.copyDefinitionDataFrom(this);
         return clone;
     }
 
-    protected void copyDefinitionData(ResourceAttributeContainerDefinitionImpl clone) {
-        super.copyDefinitionData(clone);
+    @SuppressWarnings("WeakerAccess") // open for subclassing
+    protected void copyDefinitionDataFrom(ResourceAttributeContainerDefinition source) {
+        super.copyDefinitionDataFrom(source);
     }
 
     @Override
@@ -309,7 +172,7 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
     }
 
     @Override
-    public ResourceAttributeDefinition findAttributeDefinition(ItemPath elementPath) {
+    public ResourceAttributeDefinition<?> findAttributeDefinition(ItemPath elementPath) {
         if (elementPath.isSingleName()) {
             // this is a bit of hack
             return findLocalItemDefinition(elementPath.asSingleNameOrFail(), ResourceAttributeDefinition.class, false);
@@ -319,28 +182,22 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
     }
 
     @Override
-    public ResourceAttributeDefinition findAttributeDefinition(String elementLocalname) {
-        ItemName elementQName = new ItemName(getItemName().getNamespaceURI(),elementLocalname);
+    public ResourceAttributeDefinition<?> findAttributeDefinition(String localName) {
+        ItemName elementQName = new ItemName(getItemName().getNamespaceURI(), localName);
         return findAttributeDefinition(elementQName);
     }
 
     @Override
-    public List<? extends ResourceAttributeDefinition> getAttributeDefinitions() {
-        List<ResourceAttributeDefinition> attrs = new ArrayList<>();
-        for (ItemDefinition def: complexTypeDefinition.getDefinitions()) {
+    public List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
+        List<ResourceAttributeDefinition<?>> attrs = new ArrayList<>();
+        for (ItemDefinition<?> def: complexTypeDefinition.getDefinitions()) {
             if (def instanceof ResourceAttributeDefinition) {
-                attrs.add((ResourceAttributeDefinition)def);
+                attrs.add((ResourceAttributeDefinition<?>)def);
             } else {
                 throw new IllegalStateException("Found "+def+" in resource attribute container, only attribute definitions are expected here");
             }
         }
         return attrs;
-    }
-
-    // Only attribute definitions should be here.
-    @Override
-    public List<? extends ResourceAttributeDefinition> getDefinitions() {
-        return getAttributeDefinitions();
     }
 
     @Override
@@ -354,21 +211,15 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        for (int i=0; i<indent; i++) {
-            sb.append(DebugDumpable.INDENT_STRING);
-        }
-        sb.append(toString());
-        for (Definition def : getDefinitions()) {
+        sb.append(DebugDumpable.INDENT_STRING.repeat(Math.max(0, indent)));
+        sb.append(this);
+        for (ResourceAttributeDefinition<?> def : getDefinitions()) {
             sb.append("\n");
-            if (def instanceof ResourceAttributeDefinition) {
-                ResourceAttributeDefinition attrDef = (ResourceAttributeDefinition)def;
-                sb.append(attrDef.debugDump(indent+1));
-                if (attrDef.isPrimaryIdentifier(this)) {
-                    sb.deleteCharAt(sb.length()-1);
-                    sb.append(" id");
-                }
-            } else {
-                sb.append(def.debugDump(indent+1));
+            sb.append(def.debugDump(indent+1));
+            if (((ResourceObjectDefinition) super.getComplexTypeDefinition())
+                    .isPrimaryIdentifier(def.getItemName())) {
+                sb.deleteCharAt(sb.length()-1);
+                sb.append(" id");
             }
         }
         return sb.toString();
@@ -378,11 +229,8 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(getClass().getSimpleName()).append(":").append(getItemName()).append(" (").append(getTypeName()).append(")");
-        if (isDefaultInAKind()) {
+        if (isDefaultAccountDefinition()) {
             sb.append(" def");
-        }
-        if (getKind() != null) {
-            sb.append(" ").append(getKind());
         }
         if (getNativeObjectClass()!=null) {
             sb.append(" native=");
@@ -391,5 +239,9 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
         return sb.toString();
     }
 
-
+    // Only attribute definitions should be here.
+    @Override
+    public @NotNull List<? extends ResourceAttributeDefinition<?>> getDefinitions() {
+        return getAttributeDefinitions();
+    }
 }

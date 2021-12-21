@@ -57,7 +57,7 @@ public class AutoCompleteReferencePanelFactory
     @Override
     public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
         return QNameUtil.match(ObjectReferenceType.COMPLEX_TYPE, wrapper.getTypeName())
-                && ReportConstants.NS_EXTENSION.equals(wrapper.getNamespace())
+                && ReportConstants.NS_EXTENSION.equals(wrapper.getItemName().getNamespaceURI())
                 && wrapper.getParent() == null;
     }
 

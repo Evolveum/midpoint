@@ -176,7 +176,7 @@ public class ExpressionFactory implements Cache {
                     if (outputDefinition instanceof PrismContainerDefinition) {
                         PERFORMANCE_ADVISOR.info("Deep clone of container definition: {}. This can harm performance.", outputDefinition);
                     }
-                    ItemDefinition clone = outputDefinition.deepClone(false, null);
+                    ItemDefinition clone = outputDefinition.deepClone(DeepCloneOperation.notUltraDeep());
                     clone.freeze();
                     return clone;
                 }

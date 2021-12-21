@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.impl;
 
+import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -31,7 +33,7 @@ public class MockAsyncUpdateTaskHandler {
     @Autowired private ProvisioningService provisioningService;
     @Autowired private SynchronizationServiceMock syncServiceMock;
 
-    public void processUpdates(ResourceShadowDiscriminator coords, Task task, OperationResult result)
+    public void processUpdates(ResourceShadowCoordinates coords, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             ExpressionEvaluationException {
 

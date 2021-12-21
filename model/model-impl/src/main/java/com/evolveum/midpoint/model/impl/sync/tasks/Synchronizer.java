@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.impl.sync.tasks;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -18,7 +20,6 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -40,7 +41,7 @@ public class Synchronizer {
     private static final Trace LOGGER = TraceManager.getTrace(Synchronizer.class);
 
     @NotNull private final ResourceType resource;
-    @NotNull private final ObjectClassComplexTypeDefinition objectClassDef;
+    @NotNull private final ResourceObjectDefinition resourceObjectDefinition;
     @NotNull private final SynchronizationObjectsFilter objectsFilter;
     @NotNull private final ResourceObjectChangeListener objectChangeListener;
     @NotNull private final QName sourceChannel;
@@ -48,23 +49,19 @@ public class Synchronizer {
     private final boolean forceAdd;
 
     public Synchronizer(@NotNull ResourceType resource,
-            @NotNull ObjectClassComplexTypeDefinition objectClassDef,
+            @NotNull ResourceObjectDefinition resourceObjectDefinition,
             @NotNull SynchronizationObjectsFilter objectsFilter,
             @NotNull ResourceObjectChangeListener objectChangeListener,
             @NotNull QName sourceChannel,
             boolean simulate,
             boolean forceAdd) {
         this.resource = resource;
-        this.objectClassDef = objectClassDef;
+        this.resourceObjectDefinition = resourceObjectDefinition;
         this.objectsFilter = objectsFilter;
         this.objectChangeListener = objectChangeListener;
         this.sourceChannel = sourceChannel;
         this.simulate = simulate;
         this.forceAdd = forceAdd;
-    }
-
-    public ObjectClassComplexTypeDefinition getObjectClass() {
-        return objectClassDef;
     }
 
     /**

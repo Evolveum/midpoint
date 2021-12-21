@@ -111,6 +111,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
+        assertSuccess(result);
+
         LensContext<UserType> context = cleanDebugListener();
 
         displayDumpable("Resulting context (as seen by debug listener)", context);
@@ -136,8 +138,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowJackDummyOid);
         assertIteration(shadow, 0, "");
         assertSituation(shadow, SynchronizationSituationType.LINKED);
-
-        assertSuccess(result);
     }
 
     @Test

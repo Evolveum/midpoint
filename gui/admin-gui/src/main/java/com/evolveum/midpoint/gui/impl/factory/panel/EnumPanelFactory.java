@@ -33,7 +33,7 @@ public class EnumPanelFactory<T extends Enum<?>> extends AbstractInputGuiCompone
         }
 
         //noinspection unchecked
-        Class<T> valueType = property.getTypeClass();
+        Class<T> valueType = (Class<T>) property.getTypeClass();
         if (valueType == null) {
             valueType = property.getPrismContext() != null ?
                     property.getPrismContext().getSchemaRegistry().getCompileTimeClass(property.getTypeName()) : null;

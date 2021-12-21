@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,7 +11,7 @@ import java.util.concurrent.BlockingQueue;
 import com.evolveum.midpoint.ninja.action.worker.VerifyConsumerWorker;
 import com.evolveum.midpoint.ninja.opts.VerifyOptions;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -24,8 +24,7 @@ public class VerifyRepositoryAction extends AbstractRepositorySearchAction<Verif
     }
 
     @Override
-    protected Runnable createConsumer(BlockingQueue<PrismObject> queue, OperationStatus operation) {
+    protected Runnable createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation) {
         return new VerifyConsumerWorker(context, options, queue, operation);
     }
-
 }

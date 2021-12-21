@@ -48,7 +48,8 @@ public class TestSchemaImmutability extends AbstractSchemaTest {
         PrismAsserts.assertImmutable(testConnection.getDefinition());
 
         // WHEN
-        PrismObjectDefinition<ResourceType> deepCloneResult = resource.deepCloneDefinition(true, null);
+        PrismObjectDefinition<ResourceType> deepCloneResult =
+                resource.deepCloneDefinition(DeepCloneOperation.operation(true, null));
         System.out.println("Definition from deep clone:\n" + deepCloneResult.debugDump());
 
         // THEN

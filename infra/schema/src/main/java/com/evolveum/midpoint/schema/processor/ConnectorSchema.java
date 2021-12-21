@@ -19,17 +19,17 @@ import java.util.Collection;
  */
 public interface ConnectorSchema extends PrismSchema {
 
-    Collection<ObjectClassComplexTypeDefinition> getObjectClassDefinitions();
+    Collection<ResourceObjectClassDefinition> getObjectClassDefinitions();
 
-    default ObjectClassComplexTypeDefinition findObjectClassDefinition(@NotNull ShadowType shadow) {
+    default ResourceObjectClassDefinition findObjectClassDefinition(@NotNull ShadowType shadow) {
         return findObjectClassDefinition(shadow.getObjectClass());
     }
 
-    default ObjectClassComplexTypeDefinition findObjectClassDefinition(@NotNull String localName) {
+    default ResourceObjectClassDefinition findObjectClassDefinition(@NotNull String localName) {
         return findObjectClassDefinition(new QName(getNamespace(), localName));
     }
 
-    ObjectClassComplexTypeDefinition findObjectClassDefinition(QName qName);
+    ResourceObjectClassDefinition findObjectClassDefinition(QName qName);
 
     String getUsualNamespacePrefix();
 }

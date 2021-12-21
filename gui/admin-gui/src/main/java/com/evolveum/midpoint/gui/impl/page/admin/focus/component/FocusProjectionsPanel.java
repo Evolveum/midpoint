@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -28,9 +31,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
@@ -546,13 +546,13 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
         for (ResourceType resource : newResources) {
             try {
-                RefinedResourceSchema refinedSchema = getRefinedSchema(resource);
+                ResourceSchema refinedSchema = getRefinedSchema(resource);
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Refined schema for {}\n{}", resource, refinedSchema.debugDump());
                 }
 
-                RefinedObjectClassDefinition accountDefinition = refinedSchema
-                        .getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+                ResourceObjectTypeDefinition accountDefinition = refinedSchema
+                        .findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
                 if (accountDefinition == null) {
                     error(getString("pageAdminFocus.message.couldntCreateAccountNoAccountSchema",
                             resource.getName()));
@@ -574,7 +574,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         target.add(getMultivalueContainerListPanel());
     }
 
-    private ShadowType createNewShadow(ResourceType resource, RefinedObjectClassDefinition accountDefinition) {
+    private ShadowType createNewShadow(ResourceType resource, ResourceObjectTypeDefinition accountDefinition) {
         ShadowType shadow = new ShadowType(getPrismContext());
         shadow.setResourceRef(ObjectTypeUtil.createObjectRef(resource, SchemaConstants.ORG_DEFAULT));
         QName objectClass = accountDefinition.getTypeName();
@@ -584,17 +584,15 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         return shadow;
     }
 
-    private RefinedResourceSchema getRefinedSchema(ResourceType resource) throws SchemaException {
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(
-                resource.asPrismObject(), LayerType.PRESENTATION, getPrismContext());
+    private ResourceSchema getRefinedSchema(ResourceType resource) throws SchemaException {
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource.asPrismObject(), LayerType.PRESENTATION);
         if (refinedSchema == null) {
             Task task = getPageBase().createSimpleTask(FocusPersonasTabPanel.class.getSimpleName() + ".loadResource");
             OperationResult result = task.getResult();
             resource = WebModelServiceUtils.loadObject(ResourceType.class, resource.getOid(), getPageBase(), task, result).asObjectable();
             result.recomputeStatus();
 
-            refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(
-                    resource, LayerType.PRESENTATION, getPrismContext());
+            refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource, LayerType.PRESENTATION);
 
             if (refinedSchema == null) {
                 error(getString("pageAdminFocus.message.couldntCreateAccountNoSchema",

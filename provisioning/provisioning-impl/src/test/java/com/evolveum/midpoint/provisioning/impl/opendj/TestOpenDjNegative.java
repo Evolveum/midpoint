@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.impl.DummyTokenStorageImpl;
 
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -20,7 +22,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -120,7 +121,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         TestUtil.assertFailure(result);
         TestUtil.assertFailure(resource.asObjectable().getFetchResult());
 
-        ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
         assertNull("Resource schema found", resourceSchema);
 
         // WHEN
@@ -141,7 +142,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         assertTrue("Configurations not equivalent", configurationContainer.equivalent(configurationContainerAgain));
         assertTrue("Configurations not equals", configurationContainer.equals(configurationContainerAgain));
 
-        ResourceSchema resourceSchemaAgain = RefinedResourceSchemaImpl.getResourceSchema(resourceAgain, prismContext);
+        ResourceSchema resourceSchemaAgain = ResourceSchemaFactory.getRawSchema(resourceAgain);
         assertNull("Resource schema (again)", resourceSchemaAgain);
     }
 
@@ -192,6 +193,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     @Test
     public void test121SearchAccounts() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
         final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
@@ -202,7 +204,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         try {
 
             // WHEN
-            provisioningService.searchObjects(ShadowType.class, query, null, null, result);
+            provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
             AssertJUnit.fail("searchObjectsIterative succeeded unexpectedly");
         } catch (ConfigurationException e) {
@@ -218,6 +220,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     public void test122SearchAccountsIterative() throws SchemaException, ObjectNotFoundException,
             CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
         final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
@@ -225,18 +228,15 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);
 
-        ResultHandler handler = new ResultHandler<ObjectType>() {
-            @Override
-            public boolean handle(PrismObject<ObjectType> prismObject, OperationResult parentResult) {
-                AssertJUnit.fail("handler called unexpectedly");
-                return false;
-            }
+        ResultHandler<ShadowType> handler = (shadow, lResult) -> {
+            AssertJUnit.fail("handler called unexpectedly");
+            return false;
         };
 
         try {
 
             // WHEN
-            provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, null, result);
+            provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, task, result);
 
             AssertJUnit.fail("searchObjectsIterative succeeded unexpectedly");
         } catch (ConfigurationException e) {
@@ -258,7 +258,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 
         try {
             // WHEN
-            String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
+            provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 
             AssertJUnit.fail("addObject succeeded unexpectedly");
         } catch (ConfigurationException e) {
@@ -318,14 +318,38 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_OPENDJ_OID,
-                new QName(RESOURCE_NS, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
+                new QName(RESOURCE_NS, OBJECT_CLASS_INETORGPERSON_NAME));
 
         try {
 
             mockLiveSyncTaskHandler.synchronize(coords, new DummyTokenStorageImpl(), task, result);
 
-            AssertJUnit.fail("addObject succeeded unexpectedly");
+            AssertJUnit.fail("synchronize succeeded unexpectedly");
+        } catch (ConfigurationException e) {
+            // When asking for specific object class, we expect configuration exception.
+            // (Because there's no schema.)
+            displayExpectedException(e);
+        }
+
+        result.computeStatus();
+        TestUtil.assertFailure(result);
+    }
+
+    @Test
+    public void test195SynchronizeAllClasses() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_OPENDJ_OID, null, null, null);
+
+        try {
+
+            mockLiveSyncTaskHandler.synchronize(coords, new DummyTokenStorageImpl(), task, result);
+
+            AssertJUnit.fail("synchronize succeeded unexpectedly");
         } catch (CommunicationException e) {
+            // Now the problem is right in the sync ConnId call.
             displayExpectedException(e);
         }
 
@@ -365,7 +389,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         OperationResult result = getTestOperationResult();
 
         try {
-            ShadowType acct = provisioningService.getObject(ShadowType.class, NON_EXISTENT_OID, null, taskManager.createTaskInstance(), result).asObjectable();
+            provisioningService.getObject(ShadowType.class, NON_EXISTENT_OID, null, taskManager.createTaskInstance(), result).asObjectable();
 
             AssertJUnit.fail("getObject succeeded unexpectedly");
         } catch (ObjectNotFoundException e) {
@@ -406,6 +430,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     public void test521SearchAccounts() throws SchemaException, ObjectNotFoundException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
         final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
@@ -416,7 +441,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         try {
 
             // WHEN
-            provisioningService.searchObjects(ShadowType.class, query, null, null, result);
+            provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
             AssertJUnit.fail("searchObjectsIterative succeeded unexpectedly");
         } catch (CommunicationException e) {
@@ -430,6 +455,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     @Test
     public void test522SearchAccountsIterative() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
         final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
@@ -437,18 +463,15 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);
 
-        ResultHandler handler = new ResultHandler<ObjectType>() {
-            @Override
-            public boolean handle(PrismObject<ObjectType> prismObject, OperationResult parentResult) {
-                AssertJUnit.fail("handler called unexpectedly");
-                return false;
-            }
+        ResultHandler<ShadowType> handler = (shadow, lResult) -> {
+            AssertJUnit.fail("handler called unexpectedly");
+            return false;
         };
 
         try {
 
             // WHEN
-            provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, null, result);
+            provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, task, result);
 
             AssertJUnit.fail("searchObjectsIterative succeeded unexpectedly");
         } catch (CommunicationException e) {
@@ -589,7 +612,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_OPENDJ_OID,
-                new QName(RESOURCE_NS, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
+                new QName(RESOURCE_NS, OBJECT_CLASS_INETORGPERSON_NAME));
 
         try {
 
@@ -597,6 +620,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 
             AssertJUnit.fail("addObject succeeded unexpectedly");
         } catch (CommunicationException e) {
+            // The schema is there. So we expect the exception when contacting the resource.
             displayExpectedException(e);
         }
 

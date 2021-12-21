@@ -76,7 +76,7 @@ public class TestEnergy extends AbstractStoryTest {
 
         addObject(TASK_RECONCILE_AD, initTask, initResult);
 
-        predefinedTestMethodTracing = PredefinedTestMethodTracing.MODEL_PROVISIONING_LOGGING;
+//        predefinedTestMethodTracing = PredefinedTestMethodTracing.MODEL_PROVISIONING_LOGGING;
     }
 
     @Override

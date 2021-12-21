@@ -59,7 +59,7 @@ public final class ResourceObjectsReconciliationActivityRun
     private Synchronizer createSynchronizer() {
         return new Synchronizer(
                 resourceObjectClass.getResource(),
-                resourceObjectClass.getObjectClassDefinitionRequired(),
+                resourceObjectClass.getResourceObjectDefinitionRequired(),
                 objectsFilter,
                 getModelBeans().eventDispatcher,
                 SchemaConstants.CHANNEL_RECON,

@@ -12,6 +12,10 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+
+import org.opensaml.xmlsec.signature.Q;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -20,12 +24,11 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -36,6 +39,8 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
+
+import javax.xml.namespace.QName;
 
 /**
  * Test with legacy "ICF" schema.
@@ -159,7 +164,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
         assertSuccess(result);
         resourceTypeNative = resourceNative.asObjectable();
 
-        ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceTypeNative, prismContext);
+        ResourceSchema returnedSchema = ResourceSchemaFactory.getRawSchema(resourceTypeNative);
         displayDumpable("Parsed resource schema", returnedSchema);
         assertNotNull("No parsed schema", returnedSchema);
 
@@ -236,7 +241,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
         assertSuccess(result);
         resourceTypeLegacy = resourceLegacy.asObjectable();
 
-        ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceTypeLegacy, prismContext);
+        ResourceSchema returnedSchema = ResourceSchemaFactory.getRawSchema(resourceTypeLegacy);
         displayDumpable("Parsed resource schema", returnedSchema);
         assertNotNull("No parsed schema", returnedSchema);
 
@@ -249,12 +254,14 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
     }
 
     private void assertObjectClass(ResourceSchema schema, String objectClassLocalName) {
-        ObjectClassComplexTypeDefinition ocDef = schema.findObjectClassDefinition(objectClassLocalName);
+        ResourceObjectClassDefinition ocDef =
+                schema.findObjectClassDefinition(new QName(MidPointConstants.NS_RI, objectClassLocalName));
         assertNotNull("No objectclass " + objectClassLocalName + " found in schema", ocDef);
     }
 
     private void assertNoObjectClass(ResourceSchema schema, String objectClassLocalName) {
-        ObjectClassComplexTypeDefinition ocDef = schema.findObjectClassDefinition(objectClassLocalName);
+        ResourceObjectClassDefinition ocDef =
+                schema.findObjectClassDefinition(new QName(MidPointConstants.NS_RI, objectClassLocalName));
         assertNull("Objectclass " + objectClassLocalName + " found in schema while not expecting it", ocDef);
     }
 

@@ -1,18 +1,16 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.common.validator;
-
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.schema.result.OperationResult;
 
 /**
  * Set of callback methods used to convey information from the validator to the "working" code.
@@ -23,7 +21,7 @@ import org.w3c.dom.Node;
  *
  * @author Radovan Semancik
  */
-public interface EventHandler {
+public interface EventHandler<T extends Containerable> {
 
     /**
      * Call-back called after deserializing to DOM and static schema validation but before unmarshal to JAXB.
@@ -47,7 +45,7 @@ public interface EventHandler {
      * @param objectResult Operation result for this object
      * @return true if the process should continue, false if it should stop
      */
-    <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement, OperationResult objectResult);
+    EventResult postMarshall(T object, Element objectElement, OperationResult objectResult);
 
     /**
      * Call-back to handle global errors.
@@ -55,8 +53,6 @@ public interface EventHandler {
      * This callback will be called with any error that cannot be attributed to any particular object.
      *
      * @param currentResult Operation result pointing to the particular error.
-     * @return true if the process should continue, false if it should stop
      */
     void handleGlobalError(OperationResult currentResult);
-
 }

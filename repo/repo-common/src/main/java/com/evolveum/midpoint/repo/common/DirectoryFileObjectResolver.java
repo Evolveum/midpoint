@@ -31,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Object resolver that works on files in a directory.
@@ -80,8 +81,12 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
 
     @Override
     @NotNull
-    public <T extends ObjectType> T getObject(Class<T> clazz, String oid,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
+    public <T extends ObjectType> T getObject(
+            @NotNull Class<T> clazz,
+            @NotNull String oid,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable Task task,
+            @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         File file = new File( directory, oidToFilename(oid));
         if (file.exists()) {

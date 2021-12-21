@@ -6,12 +6,17 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static com.evolveum.midpoint.schema.util.SchemaTestConstants.ACCOUNT_OBJECT_CLASS_NAME;
+
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.processor.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +28,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -43,10 +47,6 @@ import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -139,7 +139,8 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 
         OperationResult result = createOperationResult();
 
-        ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, null, result)
+        ResourceType resource = repositoryService
+                .getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, null, result)
                 .asObjectable();
         String connectorOid = resource.getConnectorRef().getOid();
 
@@ -164,14 +165,15 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         // Check that there is no schema before test (pre-condition)
-        ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, null, result)
+        ResourceType resourceBefore = repositoryService
+                .getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, null, result)
                 .asObjectable();
         assertNotNull("No connector ref", resourceBefore.getConnectorRef());
         assertNotNull("No connector ref OID", resourceBefore.getConnectorRef().getOid());
-        ConnectorType connector = repositoryService.getObject(ConnectorType.class,
-                resourceBefore.getConnectorRef().getOid(), null, result).asObjectable();
+        ConnectorType connector = repositoryService
+                .getObject(ConnectorType.class, resourceBefore.getConnectorRef().getOid(), null, result)
+                .asObjectable();
         assertNotNull(connector);
-        XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
         Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
         AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
@@ -203,22 +205,20 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         // GIVEN
 
         // THEN
-        // The returned type should have the schema pre-parsed
-        assertNotNull(RefinedResourceSchemaImpl.hasParsedSchema(resourceTypeSchemaless));
 
         // Also test if the utility method returns the same thing
-        ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceTypeSchemaless, prismContext);
-
+        ResourceSchema returnedSchema = ResourceSchemaFactory.getRawSchema(resourceTypeSchemaless);
         displayDumpable("Parsed resource schema", returnedSchema);
-
         assertNull("Unexpected schema after parsing", returnedSchema);
     }
 
     @Test
     public void test006GetObjectSchemaless() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
-        PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, null, null, result);
+        PrismObject<ResourceType> resource =
+                provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, null, task, result);
         assertNotNull("Resource is null", resource);
         ResourceType resourceType = resource.asObjectable();
         assertNotNull("No connector ref", resourceType.getConnectorRef());
@@ -292,7 +292,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         assertNotNull("No serialNumber", cachingMetadata.getSerialNumber());
 
         Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-        ResourceSchema parsedSchema = ResourceSchemaImpl.parse(xsdElement, resourceTypeBefore.toString(), prismContext);
+        ResourceSchema parsedSchema = ResourceSchemaParser.parse(xsdElement, resourceTypeBefore.toString());
         assertNotNull("No schema after parsing", parsedSchema);
 
         // schema will be checked in next test
@@ -321,10 +321,12 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 
     private void resourceStaticSchemaResourceAndConnectorCaching() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         // re-read the resource before tests so we have a clean slate, e.g. configuration properly parsed (no raw elements)
-        resourceStaticSchema = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, null, result);
+        resourceStaticSchema =
+                provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, task, result);
         ConnectorInstance currentConnectorInstance = resourceManager.getConfiguredConnectorInstance(
                 resourceStaticSchema, ReadCapabilityType.class, false, result);
 
@@ -343,14 +345,14 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         ConnectorInstance configuredConnectorInstance = resourceManager.getConfiguredConnectorInstance(
                 resourceStaticSchema, ReadCapabilityType.class, false, result);
         assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
-        ResourceSchema resourceSchemaBefore = RefinedResourceSchemaImpl.getResourceSchema(resourceStaticSchema, prismContext);
+        ResourceSchema resourceSchemaBefore = ResourceSchemaFactory.getRawSchema(resourceStaticSchema);
         assertNotNull("No resource schema", resourceSchemaBefore);
         assertStaticSchemaSanity(resourceSchemaBefore);
 
         // WHEN
         when();
         PrismObject<ResourceType> resourceAgain = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID,
-                null, null, result);
+                null, task, result);
 
         // THEN
         then();
@@ -366,7 +368,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         assertTrue("Configurations not equivalent", configurationContainer.equivalent(configurationContainerAgain));
 
         // Check resource schema caching
-        ResourceSchema resourceSchemaAgain = RefinedResourceSchemaImpl.getResourceSchema(resourceAgain, prismContext);
+        ResourceSchema resourceSchemaAgain = ResourceSchemaFactory.getRawSchema(resourceAgain);
         assertNotNull("No resource schema (again)", resourceSchemaAgain);
         assertSame("Resource schema was not cached", resourceSchemaBefore, resourceSchemaAgain);
 
@@ -508,10 +510,10 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 
         // THEN
         // The returned type should have the schema pre-parsed
-        assertNotNull(RefinedResourceSchemaImpl.hasParsedSchema(resourceStaticSchema.asObjectable()));
+        assertTrue(ResourceSchemaFactory.hasParsedSchema(resourceStaticSchema.asObjectable()));
 
         // Also test if the utility method returns the same thing
-        ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceStaticSchema.asObjectable(), prismContext);
+        ResourceSchema returnedSchema = ResourceSchemaFactory.getRawSchema(resourceStaticSchema.asObjectable());
 
         displayDumpable("Parsed resource schema", returnedSchema);
         assertNotNull("Null resource schema", returnedSchema);
@@ -522,15 +524,17 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
     @Test
     public void test106GetObjectStaticSchema() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
-        PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, null, result);
+        PrismObject<ResourceType> resource =
+                provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, task, result);
         assertNotNull("Resource is null", resource);
         ResourceType resourceType = resource.asObjectable();
         assertNotNull("No connector ref", resourceType.getConnectorRef());
         assertNotNull("No connector ref OID", resourceType.getConnectorRef().getOid());
 
-        ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
+        ResourceSchema returnedSchema = ResourceSchemaFactory.getRawSchema(resource);
 
         displayDumpable("Parsed resource schema", returnedSchema);
         assertNotNull("Null resource schema", returnedSchema);
@@ -538,18 +542,18 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         assertStaticSchemaSanity(returnedSchema);
     }
 
-    private void assertStaticSchemaSanity(ResourceSchema resorceSchema) {
+    private void assertStaticSchemaSanity(ResourceSchema resourceSchema) {
         ResourceType resourceType = resourceStaticSchema.asObjectable();
-        assertNotNull("No resource schema in " + resourceType, resorceSchema);
-        QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
-        ObjectClassComplexTypeDefinition accountDefinition = resorceSchema.findObjectClassDefinition(objectClassQname);
+        assertNotNull("No resource schema in " + resourceType, resourceSchema);
+        QName objectClassQname = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
+        ResourceObjectClassDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
         assertNotNull("No object class definition for " + objectClassQname + " in resource schema", accountDefinition);
-        ObjectClassComplexTypeDefinition accountDef1 = resorceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectClassDefinition accountDef1 =
+                resourceSchema.findObjectClassDefinition(ACCOUNT_OBJECT_CLASS_NAME);
         assertSame("Mismatched account definition: " + accountDefinition + " <-> " + accountDef1, accountDefinition, accountDef1);
 
         assertNotNull("No object class definition " + objectClassQname, accountDefinition);
-        assertEquals("Object class " + objectClassQname + " is not account", ShadowKindType.ACCOUNT, accountDefinition.getKind());
-        assertTrue("Object class " + objectClassQname + " is not default account", accountDefinition.isDefaultInAKind());
+        assertTrue("Object class " + objectClassQname + " is not default account", accountDefinition.isDefaultAccountDefinition());
         assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isEmpty());
         assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isIgnored());
 
@@ -559,7 +563,9 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 
         ResourceAttributeDefinition uidAttributeDefinition = accountDefinition.findAttributeDefinition(SchemaTestConstants.ICFS_UID);
         assertNotNull("No definition for attribute " + SchemaTestConstants.ICFS_UID, uidAttributeDefinition);
-        assertTrue("Attribute " + SchemaTestConstants.ICFS_UID + " in not an identifier", uidAttributeDefinition.isPrimaryIdentifier(accountDefinition));
+        assertTrue("Attribute " + SchemaTestConstants.ICFS_UID + " in not an identifier",
+                accountDefinition.isPrimaryIdentifier(
+                        uidAttributeDefinition.getItemName()));
         assertTrue("Attribute " + SchemaTestConstants.ICFS_UID + " in not in identifiers list", identifiers.contains(uidAttributeDefinition));
         assertEquals("Wrong displayName for attribute " + SchemaTestConstants.ICFS_UID, "Modified ConnId UID", uidAttributeDefinition.getDisplayName());
         assertEquals("Wrong displayOrder for attribute " + SchemaTestConstants.ICFS_UID, (Integer) 100, uidAttributeDefinition.getDisplayOrder());
@@ -570,7 +576,9 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 
         ResourceAttributeDefinition nameAttributeDefinition = accountDefinition.findAttributeDefinition(SchemaTestConstants.ICFS_NAME);
         assertNotNull("No definition for attribute " + SchemaTestConstants.ICFS_NAME, nameAttributeDefinition);
-        assertTrue("Attribute " + SchemaTestConstants.ICFS_NAME + " in not an identifier", nameAttributeDefinition.isSecondaryIdentifier(accountDefinition));
+        assertTrue("Attribute " + SchemaTestConstants.ICFS_NAME + " in not an identifier",
+                accountDefinition.isSecondaryIdentifier(
+                        nameAttributeDefinition.getItemName()));
         assertTrue("Attribute " + SchemaTestConstants.ICFS_NAME + " in not in identifiers list", secondaryIdentifiers.contains(nameAttributeDefinition));
         assertEquals("Wrong displayName for attribute " + SchemaTestConstants.ICFS_NAME, "Modified ConnId Name", nameAttributeDefinition.getDisplayName());
         assertEquals("Wrong displayOrder for attribute " + SchemaTestConstants.ICFS_NAME, (Integer) 110, nameAttributeDefinition.getDisplayOrder());
@@ -609,7 +617,8 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef1.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS, "password")));
 
         // ACCOUNT
-        ObjectClassComplexTypeDefinition accountDef = resorceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectClassDefinition accountDef =
+                resourceSchema.findObjectClassDefinition(ACCOUNT_OBJECT_CLASS_NAME);
         assertNotNull("No ACCOUNT kind definition", accountDef);
 
         ResourceAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
@@ -623,7 +632,8 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
                 fullnameDef.getDisplayOrder() == 200 || fullnameDef.getDisplayOrder() == 250 || fullnameDef.getDisplayOrder() == 260);
 
         // GROUP
-        ObjectClassComplexTypeDefinition groupObjectClass = resorceSchema.findObjectClassDefinition(SchemaTestConstants.GROUP_OBJECT_CLASS_LOCAL_NAME);
+        ResourceObjectClassDefinition groupObjectClass =
+                resourceSchema.findObjectClassDefinition(SchemaTestConstants.GROUP_OBJECT_CLASS_NAME);
         assertNotNull("No group objectClass", groupObjectClass);
 
         ResourceAttributeDefinition membersDef = groupObjectClass.findAttributeDefinition(DummyResourceContoller.DUMMY_GROUP_MEMBERS_ATTRIBUTE_NAME);
@@ -634,10 +644,10 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         assertTrue("No members update", membersDef.canModify());
         assertTrue("No members read", membersDef.canRead());
 
-        assertEquals("Unexpected number of schema definitions in " + dummyResourceSchemalessCtl.getName() + " dummy resource", dummyResourceStaticSchema.getNumberOfObjectclasses(), resorceSchema.getDefinitions().size());
+        assertEquals("Unexpected number of schema definitions in " + dummyResourceSchemalessCtl.getName() + " dummy resource", dummyResourceStaticSchema.getNumberOfObjectclasses(), resourceSchema.getDefinitions().size());
 
-        for (Definition def : resorceSchema.getDefinitions()) {
-            if (def instanceof RefinedObjectClassDefinition) {
+        for (Definition def : resourceSchema.getDefinitions()) {
+            if (def instanceof ResourceObjectTypeDefinition) {
                 AssertJUnit.fail("Refined definition sneaked into resource schema of " + dummyResourceSchemalessCtl.getName() + " dummy resource: " + def);
             }
         }
@@ -646,12 +656,15 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
     @Test
     public void test107Capabilities() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         // WHEN
         when();
-        ResourceType resourceType = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, null, result)
-                .asObjectable();
+        ResourceType resourceType =
+                provisioningService
+                        .getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, task, result)
+                        .asObjectable();
 
         // THEN
         then();
@@ -706,6 +719,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
     @Test
     public void test200AddAccount() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         ShadowType account = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
@@ -714,7 +728,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         display("Adding shadow", account.asPrismObject());
 
         // WHEN
-        String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
+        String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, null, task, result);
 
         // THEN
         assertSuccess("addObject has failed (result)", result);
@@ -727,7 +741,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         PrismAsserts.assertEqualsPolyString("Wrong name", "will", accountType.getName());
 
         ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class,
-                ACCOUNT_WILL_OID, null, null, result).asObjectable();
+                ACCOUNT_WILL_OID, null, task, result).asObjectable();
         display("account from provisioning", provisioningAccountType);
         PrismAsserts.assertEqualsPolyString("Wrong name", "will", provisioningAccountType.getName());
 

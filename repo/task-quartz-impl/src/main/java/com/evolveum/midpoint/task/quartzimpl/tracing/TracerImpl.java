@@ -66,7 +66,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 
     // To be used during tests to check for MID-5851
     @VisibleForTesting
-    public static boolean checkHashCodeEqualsRelation = false;
+    static boolean checkHashCodeEqualsRelation = false;
 
     @Autowired private PrismContext prismContext;
     @Autowired private TaskManager taskManager;

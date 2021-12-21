@@ -8,8 +8,6 @@
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -21,6 +19,8 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -150,9 +150,12 @@ public class ShadowDeltaComputer {
         }
     }
 
-    private void processAttributes(ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceObject,
-            ObjectDelta<ShadowType> resourceObjectDelta, CachingStategyType cachingStrategy,
+    private void processAttributes(
+            ProvisioningContext ctx,
+            PrismObject<ShadowType> repoShadow,
+            PrismObject<ShadowType> resourceObject,
+            ObjectDelta<ShadowType> resourceObjectDelta,
+            CachingStategyType cachingStrategy,
             Collection<QName> incompleteCacheableAttributes,
             ObjectDelta<ShadowType> computedShadowDelta)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException,
@@ -160,10 +163,10 @@ public class ShadowDeltaComputer {
 
         PrismContainer<Containerable> resourceObjectAttributes = resourceObject.findContainer(ShadowType.F_ATTRIBUTES);
         PrismContainer<Containerable> repoShadowAttributes = repoShadow.findContainer(ShadowType.F_ATTRIBUTES);
-        RefinedObjectClassDefinition ocDef = ctx.computeCompositeObjectClassDefinition(resourceObject);
+        ResourceObjectDefinition ocDef = ctx.computeCompositeObjectDefinition(resourceObject);
 
         // For complete attributes we can proceed as before: take resourceObjectAttributes as authoritative.
-        // If not obtained from the resource, they were created from object delta anyway. :)
+        // If not obtained from the resource, they were created from object delta anyway.
         // However, for incomplete (e.g. index-only) attributes we have to rely on object delta, if present.
         // TODO clean this up! MID-5834
 
@@ -171,10 +174,8 @@ public class ShadowDeltaComputer {
             if (currentResourceAttrItem instanceof PrismProperty<?>) {
                 //noinspection unchecked
                 PrismProperty<Object> currentResourceAttrProperty = (PrismProperty<Object>) currentResourceAttrItem;
-                RefinedAttributeDefinition<Object> attrDef = ocDef.findAttributeDefinition(currentResourceAttrProperty.getElementName());
-                if (attrDef == null) {
-                    throw new SchemaException("No definition of " + currentResourceAttrProperty.getElementName() + " in " + ocDef);
-                }
+                ResourceAttributeDefinition<?> attrDef =
+                        ocDef.findAttributeDefinitionRequired(currentResourceAttrProperty.getElementName());
                 if (ProvisioningUtil.shouldStoreAttributeInShadow(ocDef, attrDef.getItemName(), cachingStrategy)) {
                     if (!currentResourceAttrItem.isIncomplete()) {
                         processResourceAttribute(computedShadowDelta, repoShadowAttributes, currentResourceAttrProperty, attrDef);
@@ -203,7 +204,7 @@ public class ShadowDeltaComputer {
             if (oldRepoItem instanceof PrismProperty<?>) {
                 //noinspection unchecked
                 PrismProperty<Object> oldRepoAttrProperty = (PrismProperty<Object>) oldRepoItem;
-                RefinedAttributeDefinition<Object> attrDef = ocDef.findAttributeDefinition(oldRepoAttrProperty.getElementName());
+                ResourceAttributeDefinition<?> attrDef = ocDef.findAttributeDefinition(oldRepoAttrProperty.getElementName());
                 PrismProperty<Object> currentAttribute = resourceObjectAttributes.findProperty(oldRepoAttrProperty.getElementName());
                 // note: incomplete attributes with no values are not here: they are found in resourceObjectAttributes container
                 if (attrDef == null || !ProvisioningUtil.shouldStoreAttributeInShadow(ocDef, attrDef.getItemName(), cachingStrategy) ||
@@ -235,7 +236,7 @@ public class ShadowDeltaComputer {
 
     private void processResourceAttribute(ObjectDelta<ShadowType> computedShadowDelta,
             PrismContainer<Containerable> oldRepoAttributes, PrismProperty<Object> currentResourceAttrProperty,
-            RefinedAttributeDefinition<Object> attrDef)
+            ResourceAttributeDefinition<?> attrDef)
             throws SchemaException {
         MatchingRule<Object> matchingRule = matchingRuleRegistry.getMatchingRule(attrDef.getMatchingRuleQName(), attrDef.getTypeName());
         PrismProperty<Object> oldRepoAttributeProperty = oldRepoAttributes.findProperty(attrDef.getItemName());

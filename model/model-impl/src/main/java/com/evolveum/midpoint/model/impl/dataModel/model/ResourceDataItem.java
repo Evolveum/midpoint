@@ -10,11 +10,14 @@ package com.evolveum.midpoint.model.impl.dataModel.model;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.impl.dataModel.DataModel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -30,15 +33,19 @@ public class ResourceDataItem extends DataItem {
     @NotNull private final ShadowKindType kind;
     @NotNull private final String intent; // TODO or more intents?
     @NotNull private final ItemPath itemPath;
-    private final boolean hasItemDefinition;
 
-    private RefinedResourceSchema refinedResourceSchema;
-    private RefinedObjectClassDefinition refinedObjectClassDefinition;
-    private RefinedAttributeDefinition<?> refinedAttributeDefinition;
+    private ResourceSchema refinedResourceSchema;
+    private ResourceObjectDefinition objectDefinition;
+    private ResourceAttributeDefinition<?> attributeDefinition;
 
-    public ResourceDataItem(@NotNull DataModel ctx, @NotNull String resourceOid, @NotNull ShadowKindType kind,
-            @NotNull String intent, RefinedResourceSchema refinedResourceSchema,
-            RefinedObjectClassDefinition refinedDefinition, @NotNull ItemPath itemPath) {
+    public ResourceDataItem(
+            @NotNull DataModel ctx,
+            @NotNull String resourceOid,
+            @NotNull ShadowKindType kind,
+            @NotNull String intent,
+            ResourceSchema refinedResourceSchema,
+            ResourceObjectTypeDefinition refinedDefinition,
+            @NotNull ItemPath itemPath) {
         this.ctx = ctx;
         this.resourceOid = resourceOid;
         this.kind = kind;
@@ -47,9 +54,8 @@ public class ResourceDataItem extends DataItem {
         if (itemPath.lastName() == null) {
             throw new IllegalArgumentException("Wrong itemPath (have a named segment): " + itemPath);
         }
-        this.hasItemDefinition = itemPath.size() == 1; // TODO... TODO what?
         this.refinedResourceSchema = refinedResourceSchema;
-        this.refinedObjectClassDefinition = refinedDefinition;
+        this.objectDefinition = refinedDefinition;
     }
 
     @NotNull
@@ -77,39 +83,35 @@ public class ResourceDataItem extends DataItem {
         return itemPath;
     }
 
-    public boolean isHasItemDefinition() {
-        return hasItemDefinition;
-    }
-
-    public RefinedResourceSchema getRefinedResourceSchema() {
+    public ResourceSchema getRefinedResourceSchema() {
         if (refinedResourceSchema == null) {
             refinedResourceSchema = ctx.getRefinedResourceSchema(resourceOid);
         }
         return refinedResourceSchema;
     }
 
-    public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
-        if (refinedObjectClassDefinition == null) {
-            RefinedResourceSchema schema = getRefinedResourceSchema();
+    public ResourceObjectDefinition getObjectDefinition() {
+        if (objectDefinition == null) {
+            ResourceSchema schema = getRefinedResourceSchema();
             if (schema != null) {
-                refinedObjectClassDefinition = schema.getRefinedDefinition(kind, intent);
+                objectDefinition = schema.findObjectDefinition(kind, intent);
             }
         }
-        return refinedObjectClassDefinition;
+        return objectDefinition;
     }
 
-    public RefinedAttributeDefinition<?> getRefinedAttributeDefinition() {
-        if (refinedAttributeDefinition == null) {
-            RefinedObjectClassDefinition def = getRefinedObjectClassDefinition();
-            if (def != null && hasItemDefinition) {
-                refinedAttributeDefinition = def.findAttributeDefinition(getLastItemName());
+    public ResourceAttributeDefinition<?> getAttributeDefinition() {
+        if (attributeDefinition == null) {
+            ResourceObjectDefinition def = getObjectDefinition();
+            if (def != null && itemPath.size() == 1) {
+                attributeDefinition = def.findAttributeDefinition(getLastItemName());
             }
         }
-        return refinedAttributeDefinition;
+        return attributeDefinition;
     }
 
-    public void setRefinedAttributeDefinition(RefinedAttributeDefinition<?> refinedAttributeDefinition) {
-        this.refinedAttributeDefinition = refinedAttributeDefinition;
+    public void setAttributeDefinition(ResourceAttributeDefinition<?> attributeDefinition) {
+        this.attributeDefinition = attributeDefinition;
     }
 
     @Override
@@ -123,7 +125,7 @@ public class ResourceDataItem extends DataItem {
     }
 
     public QName getObjectClassName() {
-        return refinedObjectClassDefinition != null ? refinedObjectClassDefinition.getTypeName() : null;
+        return objectDefinition != null ? objectDefinition.getTypeName() : null;
     }
 
     public boolean matches(String resourceOid, ShadowKindType kind, String intent, QName objectClassName,

@@ -17,8 +17,8 @@ import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManualConne
 import com.evolveum.midpoint.provisioning.ucf.impl.builtin.ManualConnectorInstance;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -102,7 +102,7 @@ public class DummyItsmIntegrationConnectorInstance extends AbstractManualConnect
     }
 
     @Override
-    protected String createTicketModify(ObjectClassComplexTypeDefinition objectClass,
+    protected String createTicketModify(ResourceObjectDefinition objectDefinition,
             PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers,
             String resourceOid, Collection<Operation> changes, Task task, OperationResult result)
             throws CommunicationException, GenericFrameworkException,
@@ -123,7 +123,7 @@ public class DummyItsmIntegrationConnectorInstance extends AbstractManualConnect
     }
 
     @Override
-    protected String createTicketDelete(ObjectClassComplexTypeDefinition objectClass,
+    protected String createTicketDelete(ResourceObjectDefinition objectDefinition,
             PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers,
             String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException,
             CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {

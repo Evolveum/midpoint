@@ -10,13 +10,15 @@ import static java.util.Objects.requireNonNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
@@ -403,14 +405,14 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             return false;
         }
         LOGGER.trace("willResetIterationCounter: projectionDelta is\n{}", projectionDelta.debugDumpLazily());
-        RefinedObjectClassDefinition oOcDef = projectionContext.getCompositeObjectClassDefinition();
-        for (RefinedAttributeDefinition<?> identifierDef: oOcDef.getPrimaryIdentifiers()) {
+        ResourceObjectDefinition oOcDef = projectionContext.getCompositeObjectDefinition();
+        for (ResourceAttributeDefinition<?> identifierDef: oOcDef.getPrimaryIdentifiers()) {
             ItemPath identifierPath = ItemPath.create(ShadowType.F_ATTRIBUTES, identifierDef.getItemName());
             if (projectionDelta.findPropertyDelta(identifierPath) != null) {
                 return true;
             }
         }
-        for (RefinedAttributeDefinition<?> identifierDef: oOcDef.getSecondaryIdentifiers()) {
+        for (ResourceAttributeDefinition<?> identifierDef: oOcDef.getSecondaryIdentifiers()) {
             ItemPath identifierPath = ItemPath.create(ShadowType.F_ATTRIBUTES, identifierDef.getItemName());
             if (projectionDelta.findPropertyDelta(identifierPath) != null) {
                 return true;
@@ -496,7 +498,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             return;
         }
 
-        RefinedObjectClassDefinition rAccountDef = accountContext.getCompositeObjectClassDefinition();
+        ResourceObjectDefinition rAccountDef = accountContext.getCompositeObjectDefinition();
         if (rAccountDef == null) {
             throw new SchemaException("No definition for account type '"
                     +accountContext.getResourceShadowDiscriminator()+"' in "+accountContext.getResource());
@@ -507,7 +509,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(accountToAdd);
             if (attributesContainer != null) {
                 for (ResourceAttribute<?> attribute: attributesContainer.getAttributes()) {
-                    RefinedAttributeDefinition<?> rAttrDef = requireNonNull(rAccountDef.findAttributeDefinition(attribute.getElementName()));
+                    ResourceAttributeDefinition<?> rAttrDef = requireNonNull(rAccountDef.findAttributeDefinition(attribute.getElementName()));
                     if (!rAttrDef.isTolerant()) {
                         throw new PolicyViolationException("Attempt to add object with non-tolerant attribute "+attribute.getElementName()+" in "+
                                 "account "+accountContext.getResourceShadowDiscriminator()+" during "+activityDescription);
@@ -518,7 +520,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             for(ItemDelta<?,?> modification: primaryDelta.getModifications()) {
                 if (modification.getParentPath().equivalent(SchemaConstants.PATH_ATTRIBUTES)) {
                     PropertyDelta<?> attrDelta = (PropertyDelta<?>) modification;
-                    RefinedAttributeDefinition<?> rAttrDef = requireNonNull(rAccountDef.findAttributeDefinition(attrDelta.getElementName()));
+                    ResourceAttributeDefinition<?> rAttrDef = requireNonNull(rAccountDef.findAttributeDefinition(attrDelta.getElementName()));
                     if (!rAttrDef.isTolerant()) {
                         throw new PolicyViolationException("Attempt to modify non-tolerant attribute "+attrDelta.getElementName()+" in "+
                                 "account "+accountContext.getResourceShadowDiscriminator()+" during "+activityDescription);

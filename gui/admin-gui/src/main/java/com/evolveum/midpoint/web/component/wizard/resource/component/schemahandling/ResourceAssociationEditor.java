@@ -10,10 +10,8 @@ package com.evolveum.midpoint.web.component.wizard.resource.component.schemahand
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -431,7 +429,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
             return references;
         }
 
-        for(ObjectClassComplexTypeDefinition def: schema.getObjectClassDefinitions()){
+        for(ResourceObjectClassDefinition def: schema.getObjectClassDefinitions()){
             if(restrictObjectClass){
                 if(objectType != null && def.getTypeName().equals(objectType.getObjectClass())){
 
@@ -451,18 +449,14 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
     }
 
     private ResourceSchema loadResourceSchema() {
-        if(resource != null){
+        if(resource != null) {
             Element xsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
             if (xsdSchema == null) {
                 return null;
             }
 
             try {
-                PrismContext prismContext = getPageBase().getPrismContext();
-                MutableResourceSchema schema = ObjectFactory.createResourceSchema(
-                        ResourceTypeUtil.getResourceNamespace(resource), prismContext);
-                schema.parseThis(xsdSchema, resource.toString(), prismContext);
-                return schema;
+                return ResourceSchemaParser.parse(xsdSchema, resource.toString());
             } catch (SchemaException|RuntimeException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse resource schema.", e);
                 getSession().error(getString("ResourceAssociationEditor.message.cantParseSchema") + " " + e.getMessage());

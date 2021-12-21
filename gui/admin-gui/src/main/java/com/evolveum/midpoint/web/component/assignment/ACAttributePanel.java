@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -15,7 +17,6 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -79,11 +80,10 @@ public class ACAttributePanel extends BasePanel<ACAttributeDto> {
     private boolean hasOutbound() {
         ACAttributeDto dto = getModel().getObject();
         PrismPropertyDefinition<?> def = dto.getDefinition();
-        if (!(def instanceof RefinedAttributeDefinition)) {
+        if (def instanceof ResourceAttributeDefinition) {
+            return ((ResourceAttributeDefinition<?>) def).hasOutboundMapping();
+        } else {
             return false;
         }
-
-        RefinedAttributeDefinition<?> refinedDef = (RefinedAttributeDefinition<?>) def;
-        return refinedDef.hasOutboundMapping();
     }
 }

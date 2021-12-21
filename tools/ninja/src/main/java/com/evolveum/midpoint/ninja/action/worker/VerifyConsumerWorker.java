@@ -1,10 +1,14 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.ninja.action.worker;
+
+import java.io.IOException;
+import java.io.Writer;
+import java.util.concurrent.BlockingQueue;
 
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.opts.VerifyOptions;
@@ -14,22 +18,17 @@ import com.evolveum.midpoint.schema.validator.ObjectValidator;
 import com.evolveum.midpoint.schema.validator.ValidationItem;
 import com.evolveum.midpoint.schema.validator.ValidationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import java.io.IOException;
-import java.io.Writer;
-import java.util.concurrent.BlockingQueue;
 
 /**
  * @author Radovan Semancik
  */
-public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOptions> {
+public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOptions, ObjectType> {
 
     private ObjectValidator validator;
 
-    public VerifyConsumerWorker(NinjaContext context, VerifyOptions options, BlockingQueue<PrismObject> queue,
-                                OperationStatus operation) {
+    public VerifyConsumerWorker(NinjaContext context, VerifyOptions options,
+            BlockingQueue<ObjectType> queue, OperationStatus operation) {
         super(context, options, queue, operation);
     }
 
@@ -41,7 +40,7 @@ public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOpt
             validator.setAllWarnings();
         } else {
             String[] warnCategories = warnOption.split(",");
-            for (String warnCategory: warnCategories) {
+            for (String warnCategory : warnCategories) {
                 switch (warnCategory) {
                     case "deprecated":
                         validator.setWarnDeprecated(true);
@@ -53,7 +52,7 @@ public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOpt
                         validator.setWarnIncorrectOids(true);
                         break;
                     default:
-                        System.err.println("Unknown warn option '"+warnCategory+"'");
+                        System.err.println("Unknown warn option '" + warnCategory + "'");
                         break;
                 }
             }
@@ -66,15 +65,15 @@ public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOpt
     }
 
     @Override
-    protected <O extends ObjectType> void write(Writer writer, PrismObject<O> object)
-            throws SchemaException, IOException {
-        ValidationResult validationResult = validator.validate(object);
+    protected void write(Writer writer, ObjectType object) throws IOException {
+        PrismObject<?> prismObject = object.asPrismObject();
+        ValidationResult validationResult = validator.validate(prismObject);
         for (ValidationItem validationItem : validationResult.getItems()) {
-            writeValidationItem(writer, object, validationItem);
+            writeValidationItem(writer, prismObject, validationItem);
         }
     }
 
-    private <O extends ObjectType> void writeValidationItem(Writer writer, PrismObject<O> object, ValidationItem validationItem) throws IOException {
+    private void writeValidationItem(Writer writer, PrismObject<?> object, ValidationItem validationItem) throws IOException {
         if (validationItem.getStatus() != null) {
             writer.append(validationItem.getStatus().toString());
             writer.append(" ");

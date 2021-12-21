@@ -23,7 +23,7 @@ public enum ItemComparisonResult {
     MISMATCH,
 
     /**
-     * Cannot compare.  Comparison is not applicable.
+     * Cannot compare. Comparison is not applicable.
      */
     NOT_APPLICABLE
 

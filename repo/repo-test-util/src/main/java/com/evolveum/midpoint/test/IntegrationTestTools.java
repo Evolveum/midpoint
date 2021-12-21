@@ -14,6 +14,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.cache.local.LocalRepoCacheCollection;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
@@ -23,8 +25,6 @@ import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.ScriptHistoryEntry;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -168,14 +168,14 @@ public class IntegrationTestTools {
     public static <T> void assertAttribute(
             ShadowType shadow, ResourceType resource, String name, T... expectedValues) {
         assertAttribute("Wrong attribute " + name + " in " + shadow, shadow,
-                new QName(ResourceTypeUtil.getResourceNamespace(resource), name), expectedValues);
+                new QName(MidPointConstants.NS_RI, name), expectedValues);
     }
 
     @SafeVarargs
     public static <T> void assertAttribute(PrismObject<? extends ShadowType> shadow,
             ResourceType resource, String name, T... expectedValues) {
         assertAttribute("Wrong attribute " + name + " in " + shadow, shadow,
-                new QName(ResourceTypeUtil.getResourceNamespace(resource), name), expectedValues);
+                new QName(MidPointConstants.NS_RI, name), expectedValues);
     }
 
     @SafeVarargs
@@ -314,7 +314,7 @@ public class IntegrationTestTools {
             Class<?> expetcedAttributeDefinitionClass) {
 
         assertProvisioningShadow(account, expetcedAttributeDefinitionClass,
-                new QName(ResourceTypeUtil.getResourceNamespace(resourceType), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
+                new QName(MidPointConstants.NS_RI, SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
     }
 
     public static void assertProvisioningShadow(PrismObject<ShadowType> account,
@@ -327,7 +327,7 @@ public class IntegrationTestTools {
         assertNotNull("No attributes container definition", attrsDef);
         assertTrue("Wrong attributes definition class " + attrsDef.getClass().getName(), attrsDef instanceof ResourceAttributeContainerDefinition);
         ResourceAttributeContainerDefinition rAttrsDef = (ResourceAttributeContainerDefinition) attrsDef;
-        ObjectClassComplexTypeDefinition objectClassDef = rAttrsDef.getComplexTypeDefinition();
+        ResourceObjectClassDefinition objectClassDef = rAttrsDef.getComplexTypeDefinition().getObjectClassDefinition();
         assertNotNull("No object class definition in attributes definition", objectClassDef);
         assertEquals("Wrong object class in attributes definition", objectClass, objectClassDef.getTypeName());
         ResourceAttributeDefinition primaryIdDef = objectClassDef.getPrimaryIdentifiers().iterator().next();
@@ -628,7 +628,7 @@ public class IntegrationTestTools {
 
     public static ObjectQuery createAllShadowsQuery(
             ResourceType resourceType, String objectClassLocalName, PrismContext prismContext) {
-        return createAllShadowsQuery(resourceType, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), objectClassLocalName), prismContext);
+        return createAllShadowsQuery(resourceType, new QName(MidPointConstants.NS_RI, objectClassLocalName), prismContext);
     }
 
     @UnusedTestElement
@@ -640,7 +640,7 @@ public class IntegrationTestTools {
     public static void checkAccountShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService,
             ObjectChecker<ShadowType> checker, MatchingRule<String> uidMatchingRule, PrismContext prismContext, OperationResult parentResult) throws SchemaException {
         checkShadow(shadowType, resourceType, repositoryService, checker, uidMatchingRule, prismContext, parentResult);
-        assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME),
+        assertEquals(new QName(MidPointConstants.NS_RI, SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME),
                 shadowType.getObjectClass());
     }
 
@@ -653,7 +653,7 @@ public class IntegrationTestTools {
     public static void checkEntitlementShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService,
             ObjectChecker<ShadowType> checker, String objectClassLocalName, MatchingRule<String> uidMatchingRule, PrismContext prismContext, OperationResult parentResult) throws SchemaException {
         checkShadow(shadowType, resourceType, repositoryService, checker, uidMatchingRule, prismContext, parentResult);
-        assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), objectClassLocalName),
+        assertEquals(new QName(MidPointConstants.NS_RI, objectClassLocalName),
                 shadowType.getObjectClass());
     }
 
@@ -673,8 +673,8 @@ public class IntegrationTestTools {
         assertNotNull("no attributes", attrs);
         assertFalse("empty attributes", attrs.isEmpty());
 
-        RefinedResourceSchema rschema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
-        ObjectClassComplexTypeDefinition objectClassDef = rschema.findObjectClassDefinition(shadowType);
+        ResourceSchema rschema = ResourceSchemaFactory.getCompleteSchema(resourceType);
+        ResourceObjectDefinition objectClassDef = rschema.findDefinitionForObjectClass(shadowType.getObjectClass());
         assertNotNull("cannot determine object class for " + shadowType, objectClassDef);
 
         String icfUid = ShadowUtil.getSingleStringAttributeValue(shadowType, SchemaTestConstants.ICFS_UID);
@@ -720,7 +720,8 @@ public class IntegrationTestTools {
     /**
      * Checks i there is only a single shadow in repo for this account.
      */
-    private static void checkShadowUniqueness(ShadowType resourceShadow, ObjectClassComplexTypeDefinition objectClassDef, RepositoryService repositoryService,
+    private static void checkShadowUniqueness(
+            ShadowType resourceShadow, ResourceObjectDefinition objectClassDef, RepositoryService repositoryService,
             MatchingRule<String> uidMatchingRule, PrismContext prismContext, OperationResult parentResult) {
         try {
             ObjectQuery query = createShadowQuery(resourceShadow, objectClassDef, uidMatchingRule, prismContext);
@@ -746,7 +747,7 @@ public class IntegrationTestTools {
     }
 
     private static ObjectQuery createShadowQuery(
-            ShadowType resourceShadow, ObjectClassComplexTypeDefinition objectClassDef,
+            ShadowType resourceShadow, ResourceObjectDefinition objectClassDef,
             MatchingRule<String> uidMatchingRule, PrismContext prismContext)
             throws SchemaException {
 
@@ -768,8 +769,8 @@ public class IntegrationTestTools {
                 .build();
     }
 
-    public static void applyResourceSchema(ShadowType accountType, ResourceType resourceType, PrismContext prismContext) throws SchemaException {
-        ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
+    public static void applyResourceSchema(ShadowType accountType, ResourceType resourceType) throws SchemaException {
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resourceType);
         ShadowUtil.applyResourceSchema(accountType.asPrismObject(), resourceSchema);
     }
 
@@ -840,17 +841,15 @@ public class IntegrationTestTools {
         PrismAsserts.assertNoItem(extension, ItemName.fromQName(propertyName));
     }
 
-    public static void assertIcfResourceSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
+    public static void assertIcfResourceSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType)
+            throws SchemaException {
         assertNotNull("No resource schema in " + resourceType, resourceSchema);
-        QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
-        ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
+        QName objectClassQname = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
+        ResourceObjectClassDefinition accountDefinition = resourceSchema.findObjectClassDefinitionRequired(objectClassQname);
         assertNotNull("No object class definition for " + objectClassQname + " in resource schema", accountDefinition);
-        ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
-        assertSame("Mismatched account definition: " + accountDefinition + " <-> " + accountDef, accountDefinition, accountDef);
 
         assertNotNull("No object class definition " + objectClassQname, accountDefinition);
-        assertEquals("Object class " + objectClassQname + " is not account", ShadowKindType.ACCOUNT, accountDefinition.getKind());
-        assertTrue("Object class " + objectClassQname + " is not default account", accountDefinition.isDefaultInAKind());
+        assertTrue("Object class " + objectClassQname + " is not default account", accountDefinition.isDefaultAccountDefinition());
         assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isEmpty());
         assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isIgnored());
 
@@ -860,7 +859,8 @@ public class IntegrationTestTools {
 
         ResourceAttributeDefinition uidAttributeDefinition = accountDefinition.findAttributeDefinition(SchemaTestConstants.ICFS_UID);
         assertNotNull("No definition for attribute " + SchemaTestConstants.ICFS_UID, uidAttributeDefinition);
-        assertTrue("Attribute " + SchemaTestConstants.ICFS_UID + " in not an identifier", uidAttributeDefinition.isPrimaryIdentifier(accountDefinition));
+        assertTrue("Attribute " + SchemaTestConstants.ICFS_UID + " in not an identifier",
+                accountDefinition.isPrimaryIdentifier(uidAttributeDefinition.getItemName()));
         assertTrue("Attribute " + SchemaTestConstants.ICFS_UID + " in not in identifiers list", identifiers.contains(uidAttributeDefinition));
         assertEquals("Wrong displayName for attribute " + SchemaTestConstants.ICFS_UID, "ConnId UID", uidAttributeDefinition.getDisplayName());
         assertEquals("Wrong displayOrder for attribute " + SchemaTestConstants.ICFS_UID, (Integer) 100, uidAttributeDefinition.getDisplayOrder());
@@ -871,19 +871,21 @@ public class IntegrationTestTools {
 
         ResourceAttributeDefinition nameAttributeDefinition = accountDefinition.findAttributeDefinition(SchemaTestConstants.ICFS_NAME);
         assertNotNull("No definition for attribute " + SchemaTestConstants.ICFS_NAME, nameAttributeDefinition);
-        assertTrue("Attribute " + SchemaTestConstants.ICFS_NAME + " in not an identifier", nameAttributeDefinition.isSecondaryIdentifier(accountDefinition));
+        assertTrue("Attribute " + SchemaTestConstants.ICFS_NAME + " in not an identifier",
+                accountDefinition.isSecondaryIdentifier(
+                        nameAttributeDefinition.getItemName()));
         assertTrue("Attribute " + SchemaTestConstants.ICFS_NAME + " in not in identifiers list", secondaryIdentifiers.contains(nameAttributeDefinition));
         assertEquals("Wrong displayName for attribute " + SchemaTestConstants.ICFS_NAME, "ConnId Name", nameAttributeDefinition.getDisplayName());
         assertEquals("Wrong displayOrder for attribute " + SchemaTestConstants.ICFS_NAME, (Integer) 110, nameAttributeDefinition.getDisplayOrder());
 
-        assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
-        assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
-        assertNotNull("Null secondary identifiers in account", accountDef.getSecondaryIdentifiers());
-        assertFalse("Empty secondary identifiers in account", accountDef.getSecondaryIdentifiers().isEmpty());
-        assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
-        assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClass()));
+        assertNotNull("Null identifiers in account", accountDefinition.getPrimaryIdentifiers());
+        assertFalse("Empty identifiers in account", accountDefinition.getPrimaryIdentifiers().isEmpty());
+        assertNotNull("Null secondary identifiers in account", accountDefinition.getSecondaryIdentifiers());
+        assertFalse("Empty secondary identifiers in account", accountDefinition.getSecondaryIdentifiers().isEmpty());
+        assertNotNull("No naming attribute in account", accountDefinition.getNamingAttribute());
+        assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDefinition.getNativeObjectClass()));
 
-        ResourceAttributeDefinition uidDef = accountDef
+        ResourceAttributeDefinition uidDef = accountDefinition
                 .findAttributeDefinition(SchemaTestConstants.ICFS_UID);
         assertEquals(1, uidDef.getMaxOccurs());
         assertEquals(0, uidDef.getMinOccurs());
@@ -891,11 +893,11 @@ public class IntegrationTestTools {
         assertFalse("UID has create", uidDef.canAdd());
         assertFalse("UID has update", uidDef.canModify());
         assertTrue("No UID read", uidDef.canRead());
-        assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(uidDef));
+        assertTrue("UID definition not in identifiers", accountDefinition.getPrimaryIdentifiers().contains(uidDef));
         assertEquals("Wrong refined displayName for attribute " + SchemaTestConstants.ICFS_UID, "ConnId UID", uidDef.getDisplayName());
         assertEquals("Wrong refined displayOrder for attribute " + SchemaTestConstants.ICFS_UID, (Integer) 100, uidDef.getDisplayOrder());
 
-        ResourceAttributeDefinition nameDef = accountDef
+        ResourceAttributeDefinition nameDef = accountDefinition
                 .findAttributeDefinition(SchemaTestConstants.ICFS_NAME);
         assertEquals(1, nameDef.getMaxOccurs());
         assertEquals(1, nameDef.getMinOccurs());
@@ -903,11 +905,11 @@ public class IntegrationTestTools {
         assertTrue("No NAME create", nameDef.canAdd());
         assertTrue("No NAME update", nameDef.canModify());
         assertTrue("No NAME read", nameDef.canRead());
-        assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
+        assertTrue("NAME definition not in identifiers", accountDefinition.getSecondaryIdentifiers().contains(nameDef));
         assertEquals("Wrong refined displayName for attribute " + SchemaTestConstants.ICFS_NAME, "ConnId Name", nameDef.getDisplayName());
         assertEquals("Wrong refined displayOrder for attribute " + SchemaTestConstants.ICFS_NAME, (Integer) 110, nameDef.getDisplayOrder());
 
-        assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS, "password")));
+        assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDefinition.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS, "password")));
     }
 
     //TODO: add language parameter..for now, use xml serialization

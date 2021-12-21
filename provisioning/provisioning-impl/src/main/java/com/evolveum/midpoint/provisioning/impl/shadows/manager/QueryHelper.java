@@ -11,13 +11,15 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -46,7 +48,7 @@ class QueryHelper {
      * Visit the query and normalize values (or set matching rules) as needed
      */
     @Contract("null, _ -> null; !null, _ -> !null")
-    ObjectQuery applyMatchingRules(ObjectQuery originalQuery, RefinedObjectClassDefinition objectClassDef) {
+    ObjectQuery applyMatchingRules(ObjectQuery originalQuery, ResourceObjectDefinition objectDef) {
         if (originalQuery == null) {
             return null;
         }
@@ -56,7 +58,7 @@ class QueryHelper {
         Visitor visitor = f -> {
             try {
                 if (f instanceof EqualFilter) {
-                    applyMatchingRuleToEqFilter((EqualFilter<?>) f, objectClassDef);
+                    applyMatchingRuleToEqFilter((EqualFilter<?>) f, objectDef);
                 }
             } catch (SchemaException e) {
                 throw new SystemException(e);
@@ -66,15 +68,15 @@ class QueryHelper {
         return processedQuery;
     }
 
-    private <T> void applyMatchingRuleToEqFilter(EqualFilter<T> eqFilter, RefinedObjectClassDefinition objectClassDef)
+    private <T> void applyMatchingRuleToEqFilter(EqualFilter<T> eqFilter, ResourceObjectDefinition objectDef)
             throws SchemaException {
         if (!eqFilter.getParentPath().equivalent(SchemaConstants.PATH_ATTRIBUTES)) {
             return;
         }
 
         QName attrName = eqFilter.getElementName();
-        RefinedAttributeDefinition<?> rAttrDef = MiscUtil.requireNonNull(
-                objectClassDef.findAttributeDefinition(attrName),
+        ResourceAttributeDefinition<?> rAttrDef = MiscUtil.requireNonNull(
+                objectDef.findAttributeDefinition(attrName),
                 () -> "Unknown attribute " + attrName + " in filter " + eqFilter);
 
         QName matchingRuleQName = rAttrDef.getMatchingRuleQName();

@@ -19,14 +19,10 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.ResourceObjectPattern;
+import com.evolveum.midpoint.schema.processor.ResourceObjectPattern;
 import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -122,8 +118,16 @@ public class ProvisioningUtil {
         return scriptOperation;
     }
 
-    public static AttributesToReturn createAttributesToReturn(ProvisioningContext ctx) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-        RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
+    public static AttributesToReturn createAttributesToReturn(ProvisioningContext ctx)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+            ExpressionEvaluationException {
+
+        ResourceObjectDefinition resourceObjectDefinition = ctx.getObjectDefinitionRequired();
+
+        // The following can be empty if the definition is raw
+        Collection<? extends ResourceAttributeDefinition<?>> refinedAttributeDefinitions =
+                resourceObjectDefinition.getAttributeDefinitions();
+
         ResourceType resource = ctx.getResource();
 
         boolean apply = false;
@@ -131,28 +135,10 @@ public class ProvisioningUtil {
 
         // Attributes
 
-        boolean hasMinimal = false;
-        for (RefinedAttributeDefinition attributeDefinition : objectClassDefinition.getAttributeDefinitions()) {
-            if (attributeDefinition.getFetchStrategy() == AttributeFetchStrategyType.MINIMAL) {
-                hasMinimal = true;
-                break;
-            }
-        }
-
+        boolean hasMinimal = checkForMinimalFetchStrategy(ctx);
         attributesToReturn.setReturnDefaultAttributes(!hasMinimal);
 
-        Collection<ResourceAttributeDefinition> explicit = new ArrayList<>();
-        for (RefinedAttributeDefinition attributeDefinition : objectClassDefinition.getAttributeDefinitions()) {
-            AttributeFetchStrategyType fetchStrategy = attributeDefinition.getFetchStrategy();
-            if (fetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-                explicit.add(attributeDefinition);
-            } else if (hasMinimal && (fetchStrategy != AttributeFetchStrategyType.MINIMAL ||
-                    (SelectorOptions.hasToLoadPath(ctx.getPrismContext().path(ShadowType.F_ATTRIBUTES, attributeDefinition.getItemName()), ctx.getGetOperationOptions(), false) ||
-                            // Following clause is legacy (MID-5838)
-                            SelectorOptions.hasToLoadPath(ctx.getPrismContext().toUniformPath(attributeDefinition.getItemName()), ctx.getGetOperationOptions(), false)))) {
-                explicit.add(attributeDefinition);
-            }
-        }
+        Collection<ResourceAttributeDefinition<?>> explicit = getExplicitlyFetchedAttributes(ctx, !hasMinimal);
 
         if (!explicit.isEmpty()) {
             attributesToReturn.setAttributesToReturn(explicit);
@@ -160,18 +146,16 @@ public class ProvisioningUtil {
         }
 
         // Password
-        CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(
-                resource, CredentialsCapabilityType.class);
-        if (credentialsCapabilityType != null) {
-            if (SelectorOptions.hasToLoadPath(ctx.getPrismContext().toUniformPath(SchemaConstants.PATH_PASSWORD_VALUE), ctx.getGetOperationOptions())) {
+        CredentialsCapabilityType credentialsCapability =
+                ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);
+        if (credentialsCapability != null) {
+            if (ctx.isFetchingNotDisabled(SchemaConstants.PATH_PASSWORD_VALUE)) {
                 attributesToReturn.setReturnPasswordExplicit(true);
                 apply = true;
             } else {
-                if (!CapabilityUtil.isPasswordReturnedByDefault(credentialsCapabilityType)) {
-                    // There resource is capable of returning password but it does not
-                    // do it by default
-                    AttributeFetchStrategyType passwordFetchStrategy = objectClassDefinition
-                            .getPasswordFetchStrategy();
+                if (!CapabilityUtil.isPasswordReturnedByDefault(credentialsCapability)) {
+                    // The resource is capable of returning password but it does not do it by default.
+                    AttributeFetchStrategyType passwordFetchStrategy = resourceObjectDefinition.getPasswordFetchStrategy();
                     if (passwordFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
                         attributesToReturn.setReturnPasswordExplicit(true);
                         apply = true;
@@ -181,18 +165,17 @@ public class ProvisioningUtil {
         }
 
         // Activation
-        ActivationCapabilityType activationCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource,
+        ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
                 ActivationCapabilityType.class);
-        if (activationCapabilityType != null) {
-            if (CapabilityUtil.isCapabilityEnabled(activationCapabilityType.getStatus())) {
-                if (!CapabilityUtil.isActivationStatusReturnedByDefault(activationCapabilityType)) {
-                    // There resource is capable of returning enable flag but it does
-                    // not do it by default
-                    if (SelectorOptions.hasToLoadPath(ctx.path(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS), ctx.getGetOperationOptions())) {
+        if (activationCapability != null) {
+            if (CapabilityUtil.isCapabilityEnabled(activationCapability.getStatus())) {
+                if (!CapabilityUtil.isActivationStatusReturnedByDefault(activationCapability)) {
+                    // The resource is capable of returning enable flag but it does not do it by default.
+                    if (ctx.isFetchingNotDisabled(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)) {
                         attributesToReturn.setReturnAdministrativeStatusExplicit(true);
                         apply = true;
                     } else {
-                        AttributeFetchStrategyType administrativeStatusFetchStrategy = objectClassDefinition
+                        AttributeFetchStrategyType administrativeStatusFetchStrategy = resourceObjectDefinition
                                 .getActivationFetchStrategy(ActivationType.F_ADMINISTRATIVE_STATUS);
                         if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
                             attributesToReturn.setReturnAdministrativeStatusExplicit(true);
@@ -201,13 +184,13 @@ public class ProvisioningUtil {
                     }
                 }
             }
-            if (CapabilityUtil.isCapabilityEnabled(activationCapabilityType.getValidFrom())) {
-                if (!CapabilityUtil.isActivationValidFromReturnedByDefault(activationCapabilityType)) {
-                    if (SelectorOptions.hasToLoadPath(ctx.path(SchemaConstants.PATH_ACTIVATION_VALID_FROM), ctx.getGetOperationOptions())) {
+            if (CapabilityUtil.isCapabilityEnabled(activationCapability.getValidFrom())) {
+                if (!CapabilityUtil.isActivationValidFromReturnedByDefault(activationCapability)) {
+                    if (ctx.isFetchingNotDisabled(SchemaConstants.PATH_ACTIVATION_VALID_FROM)) {
                         attributesToReturn.setReturnValidFromExplicit(true);
                         apply = true;
                     } else {
-                        AttributeFetchStrategyType administrativeStatusFetchStrategy = objectClassDefinition
+                        AttributeFetchStrategyType administrativeStatusFetchStrategy = resourceObjectDefinition
                                 .getActivationFetchStrategy(ActivationType.F_VALID_FROM);
                         if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
                             attributesToReturn.setReturnValidFromExplicit(true);
@@ -216,13 +199,13 @@ public class ProvisioningUtil {
                     }
                 }
             }
-            if (CapabilityUtil.isCapabilityEnabled(activationCapabilityType.getValidTo())) {
-                if (!CapabilityUtil.isActivationValidToReturnedByDefault(activationCapabilityType)) {
-                    if (SelectorOptions.hasToLoadPath(ctx.path(SchemaConstants.PATH_ACTIVATION_VALID_TO), ctx.getGetOperationOptions())) {
+            if (CapabilityUtil.isCapabilityEnabled(activationCapability.getValidTo())) {
+                if (!CapabilityUtil.isActivationValidToReturnedByDefault(activationCapability)) {
+                    if (ctx.isFetchingNotDisabled(SchemaConstants.PATH_ACTIVATION_VALID_TO)) {
                         attributesToReturn.setReturnValidToExplicit(true);
                         apply = true;
                     } else {
-                        AttributeFetchStrategyType administrativeStatusFetchStrategy = objectClassDefinition
+                        AttributeFetchStrategyType administrativeStatusFetchStrategy = resourceObjectDefinition
                                 .getActivationFetchStrategy(ActivationType.F_VALID_TO);
                         if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
                             attributesToReturn.setReturnValidToExplicit(true);
@@ -231,15 +214,14 @@ public class ProvisioningUtil {
                     }
                 }
             }
-            if (CapabilityUtil.isCapabilityEnabled(activationCapabilityType.getLockoutStatus())) {
-                if (!CapabilityUtil.isActivationLockoutStatusReturnedByDefault(activationCapabilityType)) {
-                    // There resource is capable of returning lockout flag but it does
-                    // not do it by default
-                    if (SelectorOptions.hasToLoadPath(ctx.path(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS), ctx.getGetOperationOptions())) {
+            if (CapabilityUtil.isCapabilityEnabled(activationCapability.getLockoutStatus())) {
+                if (!CapabilityUtil.isActivationLockoutStatusReturnedByDefault(activationCapability)) {
+                    // The resource is capable of returning lockout flag but it does not do it by default.
+                    if (ctx.isFetchingNotDisabled(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS)) {
                         attributesToReturn.setReturnAdministrativeStatusExplicit(true);
                         apply = true;
                     } else {
-                        AttributeFetchStrategyType statusFetchStrategy = objectClassDefinition
+                        AttributeFetchStrategyType statusFetchStrategy = resourceObjectDefinition
                                 .getActivationFetchStrategy(ActivationType.F_LOCKOUT_STATUS);
                         if (statusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
                             attributesToReturn.setReturnLockoutStatusExplicit(true);
@@ -257,6 +239,58 @@ public class ProvisioningUtil {
         }
     }
 
+    @NotNull
+    private static Collection<ResourceAttributeDefinition<?>> getExplicitlyFetchedAttributes(
+            ProvisioningContext ctx, boolean returnsDefaultAttributes) {
+
+        if (ctx.isTypeBased()) {
+            return ctx.getObjectTypeDefinitionRequired().getAttributeDefinitions().stream()
+                    .filter(attributeDefinition -> shouldExplicitlyFetch(attributeDefinition, returnsDefaultAttributes, ctx))
+                    .collect(Collectors.toList());
+        } else {
+            return List.of();
+        }
+    }
+
+    private static boolean shouldExplicitlyFetch(
+            ResourceAttributeDefinition<?> attributeDefinition,
+            boolean returnsDefaultAttributes, ProvisioningContext ctx) {
+        AttributeFetchStrategyType fetchStrategy = attributeDefinition.getFetchStrategy();
+        if (fetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+            return true;
+        } else if (returnsDefaultAttributes) {
+            // Normal attributes are returned by default. So there's no need to explicitly request this attribute.
+            return false;
+        } else if (isFetchingRequested(ctx, attributeDefinition)) {
+            // Client wants this attribute.
+            return true;
+        } else {
+            // If the fetch strategy is MINIMAL, we want to skip. Otherwise, request it.
+            return fetchStrategy != AttributeFetchStrategyType.MINIMAL;
+        }
+    }
+
+    private static boolean isFetchingRequested(ProvisioningContext ctx, ResourceAttributeDefinition<?> attributeDefinition) {
+        ItemPath attributePath = ShadowType.F_ATTRIBUTES.append(attributeDefinition.getItemName());
+        ItemPath legacyPath = attributeDefinition.getItemName(); // See MID-5838
+        return ctx.isFetchingRequested(attributePath) || ctx.isFetchingRequested(legacyPath);
+    }
+
+    private static boolean checkForMinimalFetchStrategy(ProvisioningContext ctx) {
+        if (!ctx.isTypeBased()) {
+            // no refined definitions, so no minimal fetch strategy for any
+            return false;
+        }
+
+        for (ResourceAttributeDefinition<?> attributeDefinition :
+                ctx.getObjectTypeDefinitionRequired().getAttributeDefinitions()) {
+            if (attributeDefinition.getFetchStrategy() == AttributeFetchStrategyType.MINIMAL) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static <T> PropertyDelta<T> narrowPropertyDelta(PropertyDelta<T> propertyDelta,
             PrismObject<ShadowType> currentShadow, QName overridingMatchingRuleQName, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
         ItemDefinition propertyDef = propertyDelta.getDefinition();
@@ -264,8 +298,8 @@ public class ProvisioningUtil {
         QName matchingRuleQName;
         if (overridingMatchingRuleQName != null) {
             matchingRuleQName = overridingMatchingRuleQName;
-        } else if (propertyDef instanceof RefinedAttributeDefinition) {
-            matchingRuleQName = ((RefinedAttributeDefinition<?>) propertyDef).getMatchingRuleQName();
+        } else if (propertyDef instanceof ResourceAttributeDefinition) {
+            matchingRuleQName = ((ResourceAttributeDefinition<?>) propertyDef).getMatchingRuleQName();
         } else {
             matchingRuleQName = null;
         }
@@ -295,15 +329,16 @@ public class ProvisioningUtil {
         return filteredDelta;
     }
 
-    public static RefinedResourceSchema getRefinedSchema(ResourceType resourceType) throws SchemaException, ConfigurationException {
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
+    public static @NotNull ResourceSchema getResourceSchema(@NotNull ResourceType resource)
+            throws SchemaException, ConfigurationException {
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         if (refinedSchema == null) {
-            throw new ConfigurationException("No schema for " + resourceType);
+            throw new ConfigurationException("No schema for " + resource);
         }
         return refinedSchema;
     }
 
-//    public static boolean isProtectedShadow(RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow,
+//    public static boolean isProtectedShadow(ResourceObjectTypeDefinition objectClassDefinition, PrismObject<ShadowType> shadow,
 //            MatchingRuleRegistry matchingRuleRegistry, RelationRegistry relationRegistry) throws SchemaException {
 //        boolean isProtected;
 //        if (objectClassDefinition == null) {
@@ -336,8 +371,9 @@ public class ProvisioningUtil {
         }
     }
 
-    public static RefinedResourceSchema getRefinedSchema(PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
+    // TODO resource or refined?
+    public static ResourceSchema getResourceSchema(PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         if (refinedSchema == null) {
             throw new ConfigurationException("No schema for " + resource);
         }
@@ -359,15 +395,15 @@ public class ProvisioningUtil {
         opResult.recordWarning(message, ex);
     }
 
-    public static boolean shouldStoreAttributeInShadow(RefinedObjectClassDefinition objectClassDefinition, QName attributeName,
+    public static boolean shouldStoreAttributeInShadow(ResourceObjectDefinition objectDefinition, QName attributeName,
             CachingStategyType cachingStrategy) throws ConfigurationException {
         if (cachingStrategy == null || cachingStrategy == CachingStategyType.NONE) {
-            if (objectClassDefinition.isPrimaryIdentifier(attributeName) || objectClassDefinition.isSecondaryIdentifier(attributeName)) {
+            if (objectDefinition.isPrimaryIdentifier(attributeName) || objectDefinition.isSecondaryIdentifier(attributeName)) {
                 return true;
             }
-            for (RefinedAssociationDefinition associationDef : objectClassDefinition.getAssociationDefinitions()) {
-                if (associationDef.getResourceObjectAssociationType().getDirection() == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
-                    QName valueAttributeName = associationDef.getResourceObjectAssociationType().getValueAttribute();
+            for (ResourceAssociationDefinition associationDef : objectDefinition.getAssociationDefinitions()) {
+                if (associationDef.getDirection() == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
+                    QName valueAttributeName = associationDef.getDefinitionBean().getValueAttribute();
                     if (QNameUtil.match(attributeName, valueAttributeName)) {
                         return true;
                     }
@@ -376,8 +412,7 @@ public class ProvisioningUtil {
             return false;
 
         } else if (cachingStrategy == CachingStategyType.PASSIVE) {
-            RefinedAttributeDefinition<Object> attrDef = objectClassDefinition.findAttributeDefinition(attributeName);
-            return attrDef != null;
+            return objectDefinition.findAttributeDefinition(attributeName) != null;
 
         } else {
             throw new ConfigurationException("Unknown caching strategy " + cachingStrategy);
@@ -828,8 +863,8 @@ public class ProvisioningUtil {
     }
 
     // TODO better place?
-    public static CachingStategyType getPasswordCachingStrategy(RefinedObjectClassDefinition objectClassDefinition) {
-        ResourcePasswordDefinitionType passwordDefinition = objectClassDefinition.getPasswordDefinition();
+    public static CachingStategyType getPasswordCachingStrategy(ResourceObjectDefinition objectDefinition) {
+        ResourcePasswordDefinitionType passwordDefinition = objectDefinition.getPasswordDefinition();
         if (passwordDefinition == null) {
             return null;
         }
@@ -850,10 +885,10 @@ public class ProvisioningUtil {
         }
     }
 
-    public static Collection<ResourceAttribute<?>> selectPrimaryIdentifiers(Collection<ResourceAttribute<?>> identifiers,
-            ObjectClassComplexTypeDefinition ocDef) {
+    public static Collection<ResourceAttribute<?>> selectPrimaryIdentifiers(
+            Collection<ResourceAttribute<?>> identifiers, ResourceObjectDefinition def) {
 
-        Collection<ItemName> primaryIdentifiers = ocDef.getPrimaryIdentifiers().stream()
+        Collection<ItemName> primaryIdentifiers = def.getPrimaryIdentifiers().stream()
                 .map(ItemDefinition::getItemName)
                 .collect(Collectors.toSet());
 

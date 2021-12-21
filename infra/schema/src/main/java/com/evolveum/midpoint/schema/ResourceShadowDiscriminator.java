@@ -12,6 +12,7 @@ import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -20,38 +21,34 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.jetbrains.annotations.NotNull;
 
 /**
+ * TODO Review this
+ *
  * Aggregate bean containing resource OID, intent and tombstone flag.
  * It uniquely identifies an shadow projection (usually account) for a specific user regardless whether it has OID, does not have
  * OID yet, it exists of was deleted.
  *
  * This is used mostly as a key in hashes and for searches.
  *
- * TODO: split to two objects:
- * 1: ResourceShadowCoordinates which will stay in common
- * 2: ResourceShadowDiscriminator (subclass) which will go to model. This will contains tombstone and order.
- *
  * @author Radovan Semancik
  */
-public class ResourceShadowDiscriminator
+public class ResourceShadowDiscriminator extends ResourceShadowCoordinates
         implements Serializable, DebugDumpable, ShortDumpable, HumanReadableDescribable, Cloneable {
 
     private static final long serialVersionUID = 346600684011645741L;
 
-    private final String resourceOid;
-    private final ShadowKindType kind;
-    private final String intent;
-    private final String tag;
-    private QName objectClass;
     private boolean gone;
     private int order = 0;
 
+    public ResourceShadowDiscriminator(String resourceOid, ResourceObjectDefinition definition, String tag, boolean gone) {
+        super(resourceOid, definition, tag);
+        this.gone = gone;
+    }
+
     public ResourceShadowDiscriminator(String resourceOid, ShadowKindType kind, String intent, String tag, boolean gone) {
-        this.resourceOid = resourceOid;
-        this.kind = kind;
-        this.intent = intent;
-        this.tag = tag;
+        super(resourceOid, kind, intent, tag);
         this.gone = gone;
     }
 
@@ -60,62 +57,24 @@ public class ResourceShadowDiscriminator
     }
 
     public ResourceShadowDiscriminator(ShadowDiscriminatorType accRefType, String defaultResourceOid, ShadowKindType defaultKind) {
-        if (accRefType.getResourceRef() == null) {
-            this.resourceOid = defaultResourceOid;
-        } else {
-            this.resourceOid = accRefType.getResourceRef().getOid();
-        }
+        super(accRefType, defaultResourceOid, defaultKind);
         this.gone = false;
-        this.kind = Objects.requireNonNullElse(accRefType.getKind(), defaultKind);
-        this.intent = accRefType.getIntent();
-        this.tag = null;
     }
 
     public ResourceShadowDiscriminator(String resourceOid) {
-        this.resourceOid = resourceOid;
-        this.kind = ShadowKindType.ACCOUNT;
-        this.intent = null;
-        this.tag = null;
+        super(resourceOid);
     }
 
     public ResourceShadowDiscriminator(String resourceOid, QName objectClass) {
-        this.resourceOid = resourceOid;
-        this.objectClass = objectClass;
-        this.kind = null;
-        this.intent = null;
-        this.tag = null;
+        super(resourceOid, objectClass);
     }
 
     public ResourceShadowDiscriminator(String resourceOid, ShadowKindType kind, String intent, QName objectClass) {
-        this.resourceOid = resourceOid;
-        this.objectClass = objectClass;
-        this.kind = kind;
-        this.intent = intent;
-        this.tag = null;
+        super(resourceOid, kind, intent, objectClass);
     }
 
-    public String getResourceOid() {
-        return resourceOid;
-    }
-
-    public ShadowKindType getKind() {
-        return kind;
-    }
-
-    public String getIntent() {
-        return intent;
-    }
-
-    public String getTag() {
-        return tag;
-    }
-
-    public QName getObjectClass() {
-        return objectClass;
-    }
-
-    public void setObjectClass(QName objectClass) {
-        this.objectClass = objectClass;
+    public ResourceShadowDiscriminator(@NotNull ResourceShadowCoordinates coordinates) {
+        super(coordinates);
     }
 
     public int getOrder() {
@@ -141,10 +100,6 @@ public class ResourceShadowDiscriminator
 
     public void setGone(boolean gone) {
         this.gone = gone;
-    }
-
-    public boolean isWildcard() {
-        return kind == null && objectClass == null;
     }
 
     public ShadowDiscriminatorType toResourceShadowDiscriminatorType() {
@@ -186,70 +141,25 @@ public class ResourceShadowDiscriminator
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((intent == null) ? 0 : intent.hashCode());
-        result = prime * result + ((kind == null) ? 0 : kind.hashCode());
-        result = prime * result + ((objectClass == null) ? 0 : objectClass.hashCode());
-        result = prime * result + order;
-        result = prime * result + ((resourceOid == null) ? 0 : resourceOid.hashCode());
-        result = prime * result + ((tag == null) ? 0 : tag.hashCode());
-        result = prime * result + (gone ? 1231 : 1237);
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        ResourceShadowDiscriminator that = (ResourceShadowDiscriminator) o;
+        return gone == that.gone && order == that.order;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        ResourceShadowDiscriminator other = (ResourceShadowDiscriminator) obj;
-        if (intent == null) {
-            if (other.intent != null) {
-                return false;
-            }
-        } else if (!intent.equals(other.intent)) {
-            return false;
-        }
-        if (kind != other.kind) {
-            return false;
-        }
-        if (objectClass == null) {
-            if (other.objectClass != null) {
-                return false;
-            }
-        } else if (!objectClass.equals(other.objectClass)) {
-            return false;
-        }
-        if (order != other.order) {
-            return false;
-        }
-        if (resourceOid == null) {
-            if (other.resourceOid != null) {
-                return false;
-            }
-        } else if (!resourceOid.equals(other.resourceOid)) {
-            return false;
-        }
-        if (tag == null) {
-            if (other.tag != null) {
-                return false;
-            }
-        } else if (!tag.equals(other.tag)) {
-            return false;
-        }
-        if (gone != other.gone) {
-            return false;
-        }
-        return true;
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), gone, order);
     }
+
 
     /**
      * Similar to equals but ignores the order.
@@ -259,21 +169,10 @@ public class ResourceShadowDiscriminator
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
         ResourceShadowDiscriminator other = (ResourceShadowDiscriminator) obj;
-        if (intent == null) {
-            if (other.intent != null) return false;
-        } else if (!equalsIntent(this.intent, other.intent)) {
+        if (!super.equivalent(obj)) {
             return false;
         }
-        if (!Objects.equals(this.tag, other.tag)) {
-            return false;
-        }
-        if (resourceOid == null) {
-            if (other.resourceOid != null) return false;
-        } else if (!resourceOid.equals(other.resourceOid)) {
-            return false;
-        }
-        if (gone != other.gone) return false;
-        return true;
+        return gone == other.gone;
     }
 
     // FIXME what if a == b == null ? The method should (most probably) return true in such case.
@@ -346,11 +245,7 @@ public class ResourceShadowDiscriminator
 
     @Override
     public ResourceShadowDiscriminator clone() {
-        try {
-            return (ResourceShadowDiscriminator) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError();
-        }
+        return (ResourceShadowDiscriminator) super.clone();
     }
 
     /** Copies everything except for object class name and order. */

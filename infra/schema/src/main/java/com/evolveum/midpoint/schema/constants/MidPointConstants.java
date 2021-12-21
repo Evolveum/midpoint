@@ -23,8 +23,6 @@ public class MidPointConstants {
     public static final String NS_RA = NS_MIDPOINT_PUBLIC_PREFIX+"/resource/annotation-3";
     public static final String PREFIX_NS_RA = "ra";
     public static final QName RA_RESOURCE_OBJECT = new QName(NS_RA, "resourceObject");
-    public static final QName RA_KIND = new QName(NS_RA, "kind");
-    public static final QName RA_INTENT = new QName(NS_RA, "intent");
     public static final QName RA_NATIVE_OBJECT_CLASS = new QName(NS_RA, "nativeObjectClass");
     public static final QName RA_NATIVE_ATTRIBUTE_NAME = new QName(NS_RA, "nativeAttributeName");
     public static final QName RA_FRAMEWORK_ATTRIBUTE_NAME = new QName(NS_RA, "frameworkAttributeName");

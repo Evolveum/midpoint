@@ -3884,9 +3884,8 @@
     <xsd:complexType name="ResourceObjectTypeDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Defines a type from the resource schema (object class)
-                that can be used for creating accounts, entitlements and possible other concepts.
-                This is abstract supertype for other types.
+                Defines a type of resource objects. By pointing to this kind of definition (by specifying kind
+                and intent) resource objects can be created and searched for.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -3903,14 +3902,50 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0"/>
-            <xsd:element name="intent" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0" default="account">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Kind of objects covered by this type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="intent" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Intent of objects covered by this type.
+                        If not specified, then XXXXXXXXXXXX.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element ref="tns:displayName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0"/>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
             <xsd:element name="default" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
+                        FIXME
+
+                        Default value for both defaultForKind and defaultForObjectClass.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="defaultForKind" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        FIXME
+
+                        Specifies whether this type is the default type for the resource.
+                        Only one type for each class can be default. Setting this flag to true for more than one type is
+                        an error. If the flag is not set, the value is inherited from resource schema. If the resource
+                        schema does not have this flag set, the default value is false.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="defaultForObjectClass" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        FIXME
+
                         Specifies whether this type is the default type for the resource.
                         Only one type for each class can be default. Setting this flag to true for more than one type is
                         an error. If the flag is not set, the value is inherited from resource schema. If the resource

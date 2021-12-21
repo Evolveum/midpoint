@@ -18,6 +18,9 @@ import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.Validate;
@@ -38,6 +41,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import javax.xml.namespace.QName;
+
 /**
  * This class controls embedded OpenDJ instance.
  * <p>
@@ -57,8 +62,12 @@ public class OpenDJController extends AbstractResourceController {
     public static final String RI_TEMPLATE_NAME = "opendj.template.ri";
 
     public static final String OBJECT_CLASS_INETORGPERSON_NAME = "inetOrgPerson";
+    public static final QName OBJECT_CLASS_INETORGPERSON_QNAME =
+            new QName(MidPointConstants.NS_RI, OBJECT_CLASS_INETORGPERSON_NAME);
     public static final String RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME = "entryUUID";
     public static final String RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME = "dn";
+    public static final ItemName RESOURCE_OPENDJ_SECONDARY_IDENTIFIER =
+            new ItemName(MidPointConstants.NS_RI, RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME);
 
     protected File serverRoot = new File(serverRootDirectoryName);
     protected File configFile = null;

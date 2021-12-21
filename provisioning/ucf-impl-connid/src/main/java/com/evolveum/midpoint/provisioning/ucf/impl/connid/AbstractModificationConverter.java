@@ -10,6 +10,10 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
 import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.ObjectClass;
@@ -26,8 +30,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -48,8 +50,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
     private Collection<Operation> changes;
     private ConnectorType connectorType;
     private ResourceSchema resourceSchema;
-    private String resourceSchemaNamespace;
-    private ObjectClassComplexTypeDefinition objectClassDef;
+    private ResourceObjectDefinition objectDefinition;
     private String connectorDescription;
     private ConnectorOperationOptions options;
 
@@ -80,20 +81,12 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
         this.resourceSchema = resourceSchema;
     }
 
-    public String getResourceSchemaNamespace() {
-        return resourceSchemaNamespace;
+    public ResourceObjectDefinition getObjectDefinition() {
+        return objectDefinition;
     }
 
-    public void setResourceSchemaNamespace(String resourceSchemaNamespace) {
-        this.resourceSchemaNamespace = resourceSchemaNamespace;
-    }
-
-    public ObjectClassComplexTypeDefinition getObjectClassDef() {
-        return objectClassDef;
-    }
-
-    public void setObjectClassDef(ObjectClassComplexTypeDefinition objectClassDef) {
-        this.objectClassDef = objectClassDef;
+    public void setObjectDefinition(ResourceObjectDefinition objectDefinition) {
+        this.objectDefinition = objectDefinition;
     }
 
     public String getConnectorDescription() {
@@ -150,15 +143,16 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
 
         PropertyDelta<QName> auxiliaryObjectClassDelta = determineAuxilaryObjectClassDelta(changes);
 
-        ObjectClassComplexTypeDefinition structuralObjectClassDefinition = resourceSchema.findObjectClassDefinition(objectClassDef.getTypeName());
+        ResourceObjectDefinition structuralObjectClassDefinition = resourceSchema.findDefinitionForObjectClass(objectDefinition.getTypeName());
         if (structuralObjectClassDefinition == null) {
-            throw new SchemaException("No definition of structural object class " + objectClassDef.getTypeName() + " in " + connectorDescription);
+            throw new SchemaException("No definition of structural object class " + objectDefinition.getTypeName() + " in " + connectorDescription);
         }
-        Map<QName, ObjectClassComplexTypeDefinition> auxiliaryObjectClassMap = new HashMap<>();
+        Map<QName, ResourceObjectDefinition> auxiliaryObjectClassMap = new HashMap<>();
         if (auxiliaryObjectClassDelta != null) {
             // Auxiliary object class change means modification of __AUXILIARY_OBJECT_CLASS__ attribute
             collect(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME, auxiliaryObjectClassDelta, null,
-                    (pvals, midPointAttributeName) -> covertAuxiliaryObjectClassValuesToConnId(pvals, midPointAttributeName, auxiliaryObjectClassMap));
+                    (pvals, midPointAttributeName) ->
+                            covertAuxiliaryObjectClassValuesToConnId(pvals, midPointAttributeName, auxiliaryObjectClassMap));
         }
 
         for (Operation operation : changes) {
@@ -168,7 +162,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
 
                 if (delta.getParentPath().equivalent(ShadowType.F_ATTRIBUTES)) {
                     if (delta.getDefinition() == null || !(delta.getDefinition() instanceof ResourceAttributeDefinition)) {
-                        ResourceAttributeDefinition def = objectClassDef
+                        ResourceAttributeDefinition def = objectDefinition
                                 .findAttributeDefinition(delta.getElementName());
                         if (def == null) {
                             String message = "No definition for attribute " + delta.getElementName() + " used in modification delta";
@@ -181,7 +175,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
                         }
                     }
                     PlusMinusZero isInModifiedAuxilaryClass = null;
-                    ResourceAttributeDefinition<Object> structAttrDef = structuralObjectClassDefinition.findAttributeDefinition(delta.getElementName());
+                    ResourceAttributeDefinition<?> structAttrDef = structuralObjectClassDefinition.findAttributeDefinition(delta.getElementName());
                     // if this attribute is also in the structural object class. It does not matter if it is in
                     // aux object class, we cannot add/remove it with the object class unless it is normally requested
                     if (structAttrDef == null) {
@@ -192,8 +186,8 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
                             // one operation. Otherwise we get schema error. And as auxiliary object class
                             // is removed, the attributes must be removed as well.
                             for (PrismPropertyValue<QName> auxPval : auxiliaryObjectClassDelta.getValuesToDelete()) {
-                                ObjectClassComplexTypeDefinition auxDef = auxiliaryObjectClassMap.get(auxPval.getValue());
-                                ResourceAttributeDefinition<Object> attrDef = auxDef.findAttributeDefinition(delta.getElementName());
+                                ResourceObjectDefinition auxDef = auxiliaryObjectClassMap.get(auxPval.getValue());
+                                ResourceAttributeDefinition<?> attrDef = auxDef.findAttributeDefinition(delta.getElementName());
                                 if (attrDef != null) {
                                     // means: is in removed auxiliary class
                                     isInModifiedAuxilaryClass = PlusMinusZero.MINUS;
@@ -208,8 +202,8 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
                             // one operation. Otherwise we get schema error. And as auxiliary object class
                             // is added, the attributes must be added as well.
                             for (PrismPropertyValue<QName> auxPval : auxiliaryObjectClassDelta.getValuesToAdd()) {
-                                ObjectClassComplexTypeDefinition auxOcDef = auxiliaryObjectClassMap.get(auxPval.getValue());
-                                ResourceAttributeDefinition<Object> auxAttrDef = auxOcDef.findAttributeDefinition(delta.getElementName());
+                                ResourceObjectDefinition auxOcDef = auxiliaryObjectClassMap.get(auxPval.getValue());
+                                ResourceAttributeDefinition<?> auxAttrDef = auxOcDef.findAttributeDefinition(delta.getElementName());
                                 if (auxAttrDef != null) {
                                     // means: is in added auxiliary class
                                     isInModifiedAuxilaryClass = PlusMinusZero.PLUS;
@@ -220,7 +214,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
                     }
 
                     // Change in (ordinary) attributes. Transform to the ConnId attributes.
-                    String connIdAttrName = connIdNameMapper.convertAttributeNameToConnId(delta, objectClassDef);
+                    String connIdAttrName = connIdNameMapper.convertAttributeNameToConnId(delta, objectDefinition);
                     collect(connIdAttrName, delta, isInModifiedAuxilaryClass);
 
                 } else if (delta.getParentPath().equivalent(ShadowType.F_ACTIVATION)) {
@@ -331,16 +325,19 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
         return ConnIdUtil.convertValueToConnId(pval, protector, midPointAttributeName);
     }
 
-    private <T> List<Object> covertAuxiliaryObjectClassValuesToConnId(Collection<PrismPropertyValue<QName>> pvals, QName midPointAttributeName, Map<QName, ObjectClassComplexTypeDefinition> auxiliaryObjectClassMap) throws SchemaException {
+    private <T> List<Object> covertAuxiliaryObjectClassValuesToConnId(
+            Collection<PrismPropertyValue<QName>> pvals,
+            QName midPointAttributeName,
+            Map<QName, ResourceObjectDefinition> auxiliaryObjectClassMap) throws SchemaException {
         List<Object> connIdVals = new ArrayList<>(pvals.size());
         for (PrismPropertyValue<QName> pval : pvals) {
             QName auxQName = pval.getValue();
-            ObjectClassComplexTypeDefinition auxDef = resourceSchema.findObjectClassDefinition(auxQName);
+            ResourceObjectDefinition auxDef = resourceSchema.findDefinitionForObjectClass(auxQName);
             if (auxDef == null) {
                 throw new SchemaException("Auxiliary object class " + auxQName + " not found in the schema");
             }
             auxiliaryObjectClassMap.put(auxQName, auxDef);
-            ObjectClass icfOc = connIdNameMapper.objectClassToConnId(pval.getValue(), resourceSchemaNamespace, connectorType, false);
+            ObjectClass icfOc = connIdNameMapper.objectClassToConnId(pval.getValue(), connectorType, false);
             connIdVals.add(icfOc.getObjectClassValue());
         }
         return connIdVals;

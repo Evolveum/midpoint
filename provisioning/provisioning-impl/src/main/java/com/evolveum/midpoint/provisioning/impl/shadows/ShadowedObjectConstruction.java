@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
-
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 
 import java.util.ArrayList;
@@ -16,13 +14,14 @@ import java.util.Collection;
 import java.util.Iterator;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -42,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * Construction of an object that is being returned from the shadows facade to a client.
+ * Represents a shadowed object construction process for an object that is being returned from the shadows facade to a client.
  *
  * Data in the resulting object come from two sources:
  *
@@ -286,9 +285,9 @@ public class ShadowedObjectConstruction {
     }
 
     /** The real definition may be different than that of repo shadow (e.g. because of different auxiliary object classes). */
-    private void applyDefinition() throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, ExpressionEvaluationException {
-        resultingShadowedObject.applyDefinition(ctx.getObjectClassDefinition().getObjectDefinition(), true);
+    private void applyDefinition() throws SchemaException {
+        resultingShadowedObject.applyDefinition(
+                ctx.getObjectDefinitionRequired().getPrismObjectDefinition(), true);
     }
 
     private void assertPrismContext() {
@@ -301,16 +300,15 @@ public class ShadowedObjectConstruction {
         resultingShadowedObject.removeContainer(ShadowType.F_ATTRIBUTES);
         ResourceAttributeContainer resultAttributes = resourceObjectAttributes.clone();
 
-        CompositeRefinedObjectClassDefinition compositeObjectClassDef = computeCompositeObjectClassDefinition();
+        ResourceObjectDefinition compositeObjectClassDef = computeCompositeObjectClassDefinition();
         localBeans.accessChecker.filterGetAttributes(resultAttributes, compositeObjectClassDef, result);
 
         resultingShadowedObject.add(resultAttributes);
     }
 
-    private CompositeRefinedObjectClassDefinition computeCompositeObjectClassDefinition() throws SchemaException,
-            ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-        Collection<QName> auxObjectClassQNames = getAuxiliaryObjectClasses();
-        return ctx.computeCompositeObjectClassDefinition(auxObjectClassQNames);
+    private ResourceObjectDefinition computeCompositeObjectClassDefinition() throws SchemaException, ConfigurationException {
+        return ctx.computeCompositeObjectDefinition(
+                getAuxiliaryObjectClasses());
     }
 
     /**
@@ -345,12 +343,12 @@ public class ShadowedObjectConstruction {
 
         ShadowAssociationType associationValueBean = associationValue.asContainerable();
         QName associationName = associationValueBean.getName();
-        RefinedAssociationDefinition rAssociationDef = getAssociationDefinition(associationName);
-        ShadowKindType entitlementKind = firstNonNull(rAssociationDef.getKind(), ShadowKindType.ENTITLEMENT);
+        ResourceAssociationDefinition rAssociationDef = getAssociationDefinition(associationName);
+        ShadowKindType entitlementKind = rAssociationDef.getKind();
 
         for (String entitlementIntent : rAssociationDef.getIntents()) {
             LOGGER.trace("Processing kind={}, intent={} (from the definition)", entitlementKind, entitlementIntent);
-            ProvisioningContext ctxEntitlement = ctx.spawn(entitlementKind, entitlementIntent);
+            ProvisioningContext ctxEntitlement = ctx.spawnForKindIntent(entitlementKind, entitlementIntent);
 
             PrismObject<ShadowType> entitlementRepoShadow = acquireEntitlementRepoShadow(associationValue, identifierContainer,
                     ctxEntitlement, result);
@@ -386,8 +384,10 @@ public class ShadowedObjectConstruction {
         }
 
         try {
-            PrismObject<ShadowType> existingRepoShadow = beans.shadowManager.lookupShadowByAllIds(ctxEntitlement,
-                    identifierContainer, result);
+            PrismObject<ShadowType> existingRepoShadow =
+                    beans.shadowManager.lookupShadowByAllIds(
+                            ctxEntitlement, identifierContainer, result);
+
             if (existingRepoShadow != null) {
                 return existingRepoShadow;
             }
@@ -417,18 +417,16 @@ public class ShadowedObjectConstruction {
     }
 
     @NotNull
-    private RefinedAssociationDefinition getAssociationDefinition(QName associationName) throws SchemaException,
-            ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-        RefinedAssociationDefinition rEntitlementAssociationDef = ctx.getObjectClassDefinition()
-                .findAssociationDefinition(associationName);
+    private ResourceAssociationDefinition getAssociationDefinition(QName associationName) throws SchemaException {
+        ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired();
+        ResourceAssociationDefinition rEntitlementAssociationDef = objectDefinition.findAssociationDefinition(associationName);
         if (rEntitlementAssociationDef == null) {
             LOGGER.trace("Entitlement association with name {} couldn't be found in {} {}\nresource shadow:\n{}\nrepo shadow:\n{}",
-                    associationName, ctx.getObjectClassDefinition(), ctx.getDesc(),
+                    associationName, objectDefinition, ctx.getDesc(),
                     resourceObject.debugDumpLazily(1), repoShadow.debugDumpLazily(1));
-            LOGGER.trace("Full refined definition: {}", ctx.getObjectClassDefinition().debugDumpLazily());
+            LOGGER.trace("Full [refined] definition: {}", objectDefinition.debugDumpLazily());
             throw new SchemaException("Entitlement association with name " + associationName
-                    + " couldn't be found in " + ctx.getObjectClassDefinition() + " " + ctx.getDesc()
-                    + ", with using shadow coordinates " + ctx.isUseRefinedDefinition());
+                    + " couldn't be found in " + ctx);
         }
         return rEntitlementAssociationDef;
     }
@@ -444,8 +442,8 @@ public class ShadowedObjectConstruction {
         return entitlementIdentifiers;
     }
 
-    private boolean doesAssociationMatch(RefinedAssociationDefinition rEntitlementAssociationDef,
-            @NotNull PrismObject<ShadowType> entitlementRepoShadow) {
+    private boolean doesAssociationMatch(ResourceAssociationDefinition rEntitlementAssociationDef,
+                                         @NotNull PrismObject<ShadowType> entitlementRepoShadow) {
 
         ShadowKindType shadowKind = ShadowUtil.getKind(entitlementRepoShadow.asObjectable());
         String shadowIntent = ShadowUtil.getIntent(entitlementRepoShadow.asObjectable());
@@ -457,9 +455,7 @@ public class ShadowedObjectConstruction {
             // for debugging.
             return true;
         }
-        ShadowKindType defKind = firstNonNull(rEntitlementAssociationDef.getKind(), ShadowKindType.ENTITLEMENT);
-        return defKind.equals(shadowKind) &&
+        return rEntitlementAssociationDef.getKind() == shadowKind &&
                 rEntitlementAssociationDef.getIntents().contains(shadowIntent);
     }
-
 }

@@ -7,10 +7,12 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -42,20 +44,25 @@ class CompareHelper {
     @Autowired private ShadowCaretaker shadowCaretaker;
     @Autowired private Protector protector;
 
-    public <T> ItemComparisonResult compare(PrismObject<ShadowType> repositoryShadow, ItemPath path, T expectedValue, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+    public <T> ItemComparisonResult compare(
+            @NotNull PrismObject<ShadowType> repositoryShadow,
+            ItemPath path,
+            T expectedValue,
+            Task task,
+            OperationResult result)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, EncryptionException {
 
         if (!path.equivalent(SchemaConstants.PATH_PASSWORD_VALUE)) {
             throw new UnsupportedOperationException("Only password comparison is supported");
         }
 
-        ProvisioningContext ctx = ctxFactory.create(repositoryShadow, task, parentResult);
-        ctx.assertDefinition();
+        ProvisioningContext ctx = ctxFactory.createForShadow(repositoryShadow, task, result);
         shadowCaretaker.applyAttributesDefinition(ctx, repositoryShadow);
 
         ResourceType resource = ctx.getResource();
 
-        PasswordCompareStrategyType passwordCompareStrategy = getPasswordCompareStrategy(ctx.getObjectClassDefinition());
+        PasswordCompareStrategyType passwordCompareStrategy = getPasswordCompareStrategy(ctx.getObjectDefinitionRequired());
         if (passwordCompareStrategy == PasswordCompareStrategyType.ERROR) {
             throw new UnsupportedOperationException("Password comparison is not supported on "+resource);
         }
@@ -89,12 +96,8 @@ class CompareHelper {
         }
     }
 
-    private PasswordCompareStrategyType getPasswordCompareStrategy(RefinedObjectClassDefinition objectClassDefinition) {
-        ResourcePasswordDefinitionType passwordDefinition = objectClassDefinition.getPasswordDefinition();
-        if (passwordDefinition == null) {
-            return null;
-        }
-        return passwordDefinition.getCompareStrategy();
+    private PasswordCompareStrategyType getPasswordCompareStrategy(ResourceObjectDefinition definition) {
+        ResourcePasswordDefinitionType passwordDefinition = definition.getPasswordDefinition();
+        return passwordDefinition != null ? passwordDefinition.getCompareStrategy() : null;
     }
-
 }

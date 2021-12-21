@@ -44,11 +44,11 @@ public class BaseImportExportOptions {
     @Parameter(names = {P_OID, P_OID_LONG}, descriptionKey = "baseImportExport.oid")
     private String oid;
 
-    @Parameter(names = {P_TYPE, P_TYPE_LONG}, descriptionKey = "baseImportExport.type",
+    @Parameter(names = {P_TYPE, P_TYPE_LONG}, descriptionKey = "base.type",
             validateWith = ObjectTypesConverter.class, converter = ObjectTypesConverter.class)
     private Set<ObjectTypes> type = new HashSet<>();
 
-    @Parameter(names = {P_FILTER, P_FILTER_LONG}, descriptionKey = "baseImportExport.filter",
+    @Parameter(names = {P_FILTER, P_FILTER_LONG}, descriptionKey = "base.filter",
             converter = FileReferenceConverter.class, validateWith = FileReferenceConverter.class)
     private FileReference filter;
 

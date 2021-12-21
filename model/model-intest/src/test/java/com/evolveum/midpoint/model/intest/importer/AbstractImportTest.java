@@ -44,7 +44,6 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -916,7 +915,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         ResourceType resourceType = resource.asObjectable();
         assertNotNull(resourceType);
         PrismAsserts.assertEqualsPolyString("Wrong resource name", resourceName, resourceType.getName());
-        assertEquals("Wrong namespace of " + resource, namespace, ResourceTypeUtil.getResourceNamespace(resourceType));
+        assertEquals("Wrong namespace of " + resource, namespace, MidPointConstants.NS_RI);
         assertEquals("Wrong connector OID in " + resource, connectorOid, resourceType.getConnectorRef().getOid());
 
         // The password in the resource configuration should be encrypted after import

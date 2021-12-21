@@ -9,12 +9,11 @@
 
 <!-- The name of the root element is not meaningful. This is resource object (object class), therefore
      it does not have an element name defined. The important part is the xsi:type definition. -->
-<account xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-        xmlns="http://schema.foo.com/bar"
+<ri:account xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:type="AccountObjectClass">
+        xsi:type="ri:AccountObjectClass">
 
-        <login>barbar</login>
-        <group>123456</group>
-        <ufo>Mars attacks!</ufo>
-</account>
+        <ri:login>barbar</ri:login>
+        <ri:group>123456</ri:group>
+        <ri:ufo>Mars attacks!</ri:ufo>
+</ri:account>

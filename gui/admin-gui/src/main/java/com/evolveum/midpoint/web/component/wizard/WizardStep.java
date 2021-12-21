@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -21,7 +23,6 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -98,17 +99,17 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
 
     @NotNull
     protected List<QName> loadResourceObjectClassList(IModel<PrismObject<ResourceType>> model, Trace LOGGER, String message) {
-        List<QName> list = new ArrayList<>();
         try {
-            ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(model.getObject(), getPageBase().getPrismContext());
+            ResourceSchema schema = ResourceSchemaFactory.getRawSchema(model.getObject());
             if (schema != null) {
-                return schema.getObjectClassList();
+                return new ArrayList<>(
+                        schema.getObjectClassNames());
             }
         } catch (SchemaException | RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, message, e);
             error(message + " " + e.getMessage());
         }
-        return list;
+        return new ArrayList<>();
     }
 
     protected IValidator<String> createObjectClassValidator(final IModel<List<QName>> model) {

@@ -32,12 +32,12 @@ public class ConnectorSchemaImpl extends PrismSchemaImpl implements ConnectorSch
 
     private String usualNamespacePrefix;
 
-    public ConnectorSchemaImpl(String namespace, PrismContext prismContext) {
-        super(namespace, prismContext);
+    public ConnectorSchemaImpl(String namespace) {
+        super(namespace);
     }
 
     private ConnectorSchemaImpl(Element element, String shortDesc, PrismContext prismContext) throws SchemaException {
-        super(DOMUtil.getSchemaTargetNamespace(element), prismContext);
+        super(DOMUtil.getSchemaTargetNamespace(element));
         parseThis(element, true, shortDesc, prismContext);
     }
 
@@ -57,8 +57,8 @@ public class ConnectorSchemaImpl extends PrismSchemaImpl implements ConnectorSch
     }
 
     @Override
-    public Collection<ObjectClassComplexTypeDefinition> getObjectClassDefinitions() {
-        return getDefinitions(ObjectClassComplexTypeDefinition.class);
+    public Collection<ResourceObjectClassDefinition> getObjectClassDefinitions() {
+        return getDefinitions(ResourceObjectClassDefinition.class);
     }
 
 //    /**
@@ -70,7 +70,7 @@ public class ConnectorSchemaImpl extends PrismSchemaImpl implements ConnectorSch
 //     *            type name "relative" to schema namespace
 //     * @return new resource object definition
 //     */
-//    public ObjectClassComplexTypeDefinition createObjectClassDefinition(String localTypeName) {
+//    public ResourceObjectClassDefinition createObjectClassDefinition(String localTypeName) {
 //        QName typeName = new QName(getNamespace(), localTypeName);
 //        return createObjectClassDefinition(typeName);
 //    }
@@ -84,24 +84,24 @@ public class ConnectorSchemaImpl extends PrismSchemaImpl implements ConnectorSch
 //     *            type QName
 //     * @return new resource object definition
 //     */
-//    public ObjectClassComplexTypeDefinition createObjectClassDefinition(QName typeName) {
-//        ObjectClassComplexTypeDefinition cTypeDef = new ObjectClassComplexTypeDefinitionImpl(typeName, getPrismContext());
+//    public ResourceObjectClassDefinition createObjectClassDefinition(QName typeName) {
+//        ResourceObjectClassDefinition cTypeDef = new ResourceObjectClassDefinitionImpl(typeName, getPrismContext());
 //        add(cTypeDef);
 //        return cTypeDef;
 //    }
 
 
     @Override
-    public ObjectClassComplexTypeDefinition findObjectClassDefinition(QName qName) {
+    public ResourceObjectClassDefinition findObjectClassDefinition(QName qName) {
         ComplexTypeDefinition complexTypeDefinition = findComplexTypeDefinitionByType(qName);
         if (complexTypeDefinition == null) {
             return null;
         }
-        if (complexTypeDefinition instanceof ObjectClassComplexTypeDefinition) {
-            return (ObjectClassComplexTypeDefinition)complexTypeDefinition;
+        if (complexTypeDefinition instanceof ResourceObjectClassDefinition) {
+            return (ResourceObjectClassDefinition)complexTypeDefinition;
         } else {
             throw new IllegalStateException("Expected the definition "+qName+" to be of type "+
-                    ObjectClassComplexTypeDefinition.class+" but it was "+complexTypeDefinition.getClass());
+                    ResourceObjectClassDefinition.class+" but it was "+complexTypeDefinition.getClass());
         }
     }
 
@@ -113,5 +113,13 @@ public class ConnectorSchemaImpl extends PrismSchemaImpl implements ConnectorSch
     @Override
     public String getUsualNamespacePrefix() {
         return usualNamespacePrefix;
+    }
+
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    public ConnectorSchemaImpl clone() {
+        ConnectorSchemaImpl clone = new ConnectorSchemaImpl(namespace);
+        super.copyContent(clone);
+        clone.usualNamespacePrefix = usualNamespacePrefix;
+        return clone;
     }
 }

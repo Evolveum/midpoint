@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -29,11 +29,11 @@ public class CountOptions {
     public static final String P_FILTER = "-f";
     public static final String P_FILTER_LONG = "--filter";
 
-    @Parameter(names = {P_TYPE, P_TYPE_LONG}, descriptionKey = "count.type",
+    @Parameter(names = {P_TYPE, P_TYPE_LONG}, descriptionKey = "base.type",
             validateWith = ObjectTypesConverter.class, converter = ObjectTypesConverter.class)
     private Set<ObjectTypes> type = new HashSet<>();
 
-    @Parameter(names = {P_FILTER, P_FILTER_LONG}, descriptionKey = "count.filter",
+    @Parameter(names = {P_FILTER, P_FILTER_LONG}, descriptionKey = "base.filter",
             converter = FileReferenceConverter.class, validateWith = FileReferenceConverter.class)
     private FileReference filter;
 

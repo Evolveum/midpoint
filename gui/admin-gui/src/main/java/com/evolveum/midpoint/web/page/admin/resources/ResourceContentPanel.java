@@ -11,6 +11,9 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -27,9 +30,6 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
@@ -166,24 +166,22 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         return objectClass;
     }
 
-    public RefinedObjectClassDefinition getDefinitionByKind() throws SchemaException {
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl
-                .getRefinedSchema(resourceModel.getObject(), getPageBase().getPrismContext());
+    public ResourceObjectDefinition getDefinitionByKind() throws SchemaException {
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resourceModel.getObject());
         if (refinedSchema == null) {
             warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");
             return null;
         }
-        return refinedSchema.getRefinedDefinition(getKind(), getIntent());
+        return refinedSchema.findObjectDefinition(getKind(), getIntent());
     }
 
-    public RefinedObjectClassDefinition getDefinitionByObjectClass() throws SchemaException {
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl
-                .getRefinedSchema(resourceModel.getObject(), getPageBase().getPrismContext());
+    public ResourceObjectDefinition getDefinitionByObjectClass() throws SchemaException {
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resourceModel.getObject());
         if (refinedSchema == null) {
             warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");
             return null;
         }
-        return refinedSchema.getRefinedDefinition(getObjectClass());
+        return refinedSchema.findDefinitionForObjectClass(getObjectClass());
 
     }
 
@@ -512,7 +510,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                     QName objectClass = getObjectClass();
                     if (Objects.isNull(objectClass)) {
                         LOGGER.trace("Trying to determine objectClass for kind: {}, intent: {}", getKind(), getIntent());
-                        RefinedObjectClassDefinition objectClassDef = null;
+                        ResourceObjectDefinition objectClassDef = null;
                         try {
                             objectClassDef = getDefinitionByKind();
                         } catch (SchemaException e) {
@@ -562,17 +560,9 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                         objectClass, getPageBase().getPrismContext());
             }
 
-            RefinedObjectClassDefinition rOcDef = getDefinitionByKind();
+            ResourceObjectDefinition rOcDef = getDefinitionByKind();
             if (rOcDef != null) {
-                if (rOcDef.getKind() != null) {
-                    baseQuery = ObjectQueryUtil.createResourceAndKindIntent(
-                            resourceModel.getObject().getOid(), rOcDef.getKind(), rOcDef.getIntent(),
-                            getPageBase().getPrismContext());
-                } else {
-                    baseQuery = ObjectQueryUtil.createResourceAndObjectClassQuery(
-                            resourceModel.getObject().getOid(), rOcDef.getTypeName(),
-                            getPageBase().getPrismContext());
-                }
+                baseQuery = rOcDef.createShadowSearchQuery(resourceModel.getObject().getOid());
             }
         } catch (SchemaException ex) {
             LoggingUtils.logUnexpectedException(LOGGER,

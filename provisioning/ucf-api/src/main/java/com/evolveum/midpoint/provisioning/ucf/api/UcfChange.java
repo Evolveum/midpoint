@@ -10,8 +10,8 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -47,7 +47,7 @@ public abstract class UcfChange implements DebugDumpable {
     private final Object primaryIdentifierRealValue;
 
     /**
-     * Definition of the object class. Constraints:
+     * Definition of the resource object. Constraints:
      *
      * 1. errorState.isSuccess:
      *    a. LiveSync: if delta is not DELETE or if object class was specified at request -> not null
@@ -56,7 +56,7 @@ public abstract class UcfChange implements DebugDumpable {
      * 2. errorState.isError: Can be null but only if it cannot be reasonably determined.
      *    (Unfortunately, current AsyncUpdate implementation always provides null value here.)
      */
-    protected final ObjectClassComplexTypeDefinition objectClassDefinition;
+    protected final ResourceObjectDefinition resourceObjectDefinition;
 
     /**
      * All identifiers of the object. Constraints:
@@ -93,13 +93,13 @@ public abstract class UcfChange implements DebugDumpable {
     @NotNull protected final UcfErrorState errorState;
 
     UcfChange(int localSequenceNumber, Object primaryIdentifierRealValue,
-            ObjectClassComplexTypeDefinition objectClassDefinition,
+            ResourceObjectDefinition objectDefinition,
             @NotNull Collection<ResourceAttribute<?>> identifiers,
             ObjectDelta<ShadowType> objectDelta,
             PrismObject<ShadowType> resourceObject, @NotNull UcfErrorState errorState) {
         this.localSequenceNumber = localSequenceNumber;
         this.primaryIdentifierRealValue = primaryIdentifierRealValue;
-        this.objectClassDefinition = objectClassDefinition;
+        this.resourceObjectDefinition = objectDefinition;
         this.identifiers = Collections.unmodifiableCollection(identifiers);
         this.resourceObject = resourceObject;
         this.objectDelta = objectDelta;
@@ -115,8 +115,8 @@ public abstract class UcfChange implements DebugDumpable {
         return primaryIdentifierRealValue;
     }
 
-    public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
-        return objectClassDefinition;
+    public ResourceObjectDefinition getResourceObjectDefinition() {
+        return resourceObjectDefinition;
     }
 
     public @NotNull Collection<ResourceAttribute<?>> getIdentifiers() {
@@ -149,7 +149,7 @@ public abstract class UcfChange implements DebugDumpable {
     }
 
     private String getObjectClassLocalName() {
-        return objectClassDefinition != null ? objectClassDefinition.getTypeName().getLocalPart() : null;
+        return resourceObjectDefinition != null ? resourceObjectDefinition.getTypeName().getLocalPart() : null;
     }
 
     protected abstract String toStringExtra();
@@ -163,7 +163,7 @@ public abstract class UcfChange implements DebugDumpable {
         sb.append("\n");
         DebugUtil.debugDumpWithLabelLn(sb, "localSequenceNumber", localSequenceNumber, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "primaryIdentifierValue", String.valueOf(primaryIdentifierRealValue), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "objectClassDefinition", objectClassDefinition, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "objectClassDefinition", resourceObjectDefinition, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "identifiers", identifiers, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "objectDelta", objectDelta, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);

@@ -100,7 +100,7 @@ public class ProfilingClassLoggerContainerWrapperImpl<C extends Containerable> e
     }
 
     @Override
-    public ContainerDelta<C> createEmptyDelta(ItemPath path) {
+    public @NotNull ContainerDelta<C> createEmptyDelta(ItemPath path) {
         path = ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER);
         return getItemDefinition().createEmptyDelta(path);
     }

@@ -97,6 +97,7 @@ public class TestDummyCaching extends TestDummy {
     @Override
     public void test107AGetModifiedAccountFromCacheMax() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
@@ -113,7 +114,7 @@ public class TestDummyCaching extends TestDummy {
         // WHEN
         when();
 
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, result);
+        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, task, result);
 
         // THEN
         then();
@@ -161,6 +162,7 @@ public class TestDummyCaching extends TestDummy {
     @Override
     public void test107BGetModifiedAccountFromCacheHighStaleness() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
@@ -176,7 +178,7 @@ public class TestDummyCaching extends TestDummy {
         // WHEN
         when();
 
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, result);
+        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, task, result);
 
         // THEN
         then();
@@ -219,6 +221,7 @@ public class TestDummyCaching extends TestDummy {
     @Test
     public void test107CSkipCachingForIncompleteAttributes() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
@@ -235,7 +238,7 @@ public class TestDummyCaching extends TestDummy {
             when();
 
             PrismObject<ShadowType> shadow = provisioningService
-                    .getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, result);
+                    .getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 
             // THEN
             then();
@@ -288,8 +291,9 @@ public class TestDummyCaching extends TestDummy {
     @Override
     public void test119SearchAllAccountsMaxStaleness() throws Exception {
         given();
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
-        ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
+        ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceBean,
                 SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
         displayDumpable("All shadows query", query);
 
@@ -301,8 +305,8 @@ public class TestDummyCaching extends TestDummy {
                 SelectorOptions.createCollection(GetOperationOptions.createMaxStaleness());
 
         when();
-        List<PrismObject<ShadowType>> allShadows = provisioningService.searchObjects(ShadowType.class,
-                query, options, null, result);
+        List<PrismObject<ShadowType>> allShadows =
+                provisioningService.searchObjects(ShadowType.class, query, options, task, result);
 
         then();
         display("searchObjects result", result);

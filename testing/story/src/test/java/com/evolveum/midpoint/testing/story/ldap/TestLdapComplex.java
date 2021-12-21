@@ -877,7 +877,7 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test310SearchLdapAccounts() throws Exception {
-        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
 
         // WHEN
         when();
@@ -940,7 +940,7 @@ public class TestLdapComplex extends AbstractLdapTest {
                 "objectclass: organizationalPerson\n" +
                 "objectclass: inetOrgPerson");
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
 
         // WHEN
         when();
@@ -954,7 +954,7 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test400SearchLdapProjectGroups() throws Exception {
-        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_PROJECT_GROUP, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_PROJECT_GROUP);
 
         // WHEN
         when();
@@ -968,7 +968,7 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test401SearchLdapOrgGroups() throws Exception {
-        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_ORG_GROUP, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_ORG_GROUP);
 
         // WHEN
         when();
@@ -998,7 +998,7 @@ public class TestLdapComplex extends AbstractLdapTest {
                 .singleAny()
                 .getOid();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_PROJECT_GROUP, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_PROJECT_GROUP);
         searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 2);
     }
 
@@ -1025,10 +1025,10 @@ public class TestLdapComplex extends AbstractLdapTest {
                 .singleAny()
                 .getOid();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_PROJECT_GROUP, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_PROJECT_GROUP);
         searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 3);
 
-        query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_ORG_GROUP, prismContext);
+        query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_ORG_GROUP);
         searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 0);
     }
 
@@ -1056,10 +1056,10 @@ public class TestLdapComplex extends AbstractLdapTest {
                 .singleAny()
                 .getOid();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_PROJECT_GROUP, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_PROJECT_GROUP);
         searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 3);
 
-        query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_ORG_GROUP, prismContext);
+        query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_ORG_GROUP);
         searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 1);
     }
 

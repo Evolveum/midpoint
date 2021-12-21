@@ -16,11 +16,12 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -88,9 +89,8 @@ class SearchHelper {
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
-        ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query != null ? query.getFilter() : null,
-                prismContext);
-        final ProvisioningContext ctx = ctxFactory.create(coordinates, task, parentResult);
+        ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query != null ? query.getFilter() : null);
+        ProvisioningContext ctx = ctxFactory.createForCoordinates(coordinates, task, parentResult);
         ctx.setGetOperationOptions(options);
         ctx.assertDefinition();
         return ctx;
@@ -152,8 +152,8 @@ class SearchHelper {
         ObjectQuery attributeQuery = createAttributeQuery(query);
         boolean fetchAssociations = SelectorOptions.hasToLoadPath(ShadowType.F_ASSOCIATION, options);
         try {
-            return resourceObjectConverter.searchResourceObjects(ctx, resultHandler, attributeQuery,
-                    fetchAssociations, ucfErrorReportingMethod, parentResult);
+            return resourceObjectConverter.searchResourceObjects(
+                    ctx, resultHandler, attributeQuery, fetchAssociations, ucfErrorReportingMethod, parentResult);
         } catch (TunnelException e) {
             unwrapAndThrowSearchingTunnelException(e);
             throw new AssertionError();
@@ -283,14 +283,14 @@ class SearchHelper {
             SecurityViolationException, ExpressionEvaluationException {
 
         ObjectFilter filter = query != null ? query.getFilter() : null;
-        ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(filter, prismContext);
+        ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(filter);
         assert query != null; // otherwise coordinates couldn't be found
 
-        ProvisioningContext ctx = ctxFactory.create(coordinates, null, result);
+        ProvisioningContext ctx = ctxFactory.createForCoordinates(coordinates, task, result);
         ctx.assertDefinition();
         definitionsHelper.applyDefinition(ctx, query);
 
-        RefinedObjectClassDefinition objectClassDef = ctx.getObjectClassDefinition();
+        ResourceObjectDefinition objectClassDef = ctx.getObjectDefinitionRequired();
         ResourceType resourceType = ctx.getResource();
         CountObjectsCapabilityType countObjectsCapabilityType = objectClassDef
                 .getEffectiveCapability(CountObjectsCapabilityType.class, resourceType);
@@ -311,7 +311,7 @@ class SearchHelper {
                     int count;
                     try {
                         count = connector.count(objectClassDef.getObjectClassDefinition(), attributeQuery,
-                                objectClassDef.getPagedSearches(resourceType), ctx, result);
+                                objectClassDef.getPagedSearches(resourceType), ctx.getUcfExecutionContext(), result);
                     } catch (CommunicationException | GenericFrameworkException | SchemaException
                             | UnsupportedOperationException e) {
                         result.recordFatalError(e);

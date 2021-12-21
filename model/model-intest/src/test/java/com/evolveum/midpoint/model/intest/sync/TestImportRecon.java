@@ -23,6 +23,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationActivityHandler;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+
 import org.apache.commons.lang.mutable.MutableInt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -36,8 +39,6 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.sync.tasks.recon.DebugReconciliationResultListener;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
@@ -53,7 +54,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -275,28 +275,30 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         displayDumpable("Dummy resource azure", dummyResourceAzure);
 
         // WHEN
-        ResourceSchema resourceSchemaAzure = RefinedResourceSchemaImpl.getResourceSchema(resourceDummyAzureType, prismContext);
+        ResourceSchema resourceSchemaAzure = ResourceSchemaFactory.getRawSchema(resourceDummyAzureType);
 
         displayDumpable("Dummy azure resource schema", resourceSchemaAzure);
 
         // THEN
         dummyResourceCtlAzure.assertDummyResourceSchemaSanityExtended(resourceSchemaAzure);
 
-        ObjectClassComplexTypeDefinition orgOcDef = resourceSchemaAzure.findObjectClassDefinition(dummyResourceCtlAzure.getOrgObjectClassQName());
+        ResourceObjectClassDefinition orgOcDef =
+                resourceSchemaAzure.findObjectClassDefinition(dummyResourceCtlAzure.getOrgObjectClassQName());
         assertNotNull("No org object class def in azure resource schema", orgOcDef);
     }
 
     @Test
     public void test002SanityAzureRefined() throws Exception {
         // WHEN
-        RefinedResourceSchema refinedSchemaAzure = RefinedResourceSchemaImpl.getRefinedSchema(resourceDummyAzureType, prismContext);
+        ResourceSchema refinedSchemaAzure = ResourceSchemaFactory.getCompleteSchema(resourceDummyAzureType);
 
         displayDumpable("Dummy azure refined schema", refinedSchemaAzure);
 
         // THEN
         dummyResourceCtlAzure.assertRefinedSchemaSanity(refinedSchemaAzure);
 
-        ObjectClassComplexTypeDefinition orgOcDef = refinedSchemaAzure.findObjectClassDefinition(dummyResourceCtlAzure.getOrgObjectClassQName());
+        ResourceObjectClassDefinition orgOcDef =
+                refinedSchemaAzure.findObjectClassDefinition(dummyResourceCtlAzure.getOrgObjectClassQName());
         assertNotNull("No org object class def in azure refined schema", orgOcDef);
     }
 
@@ -2748,8 +2750,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         ObjectQuery query =
                 ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_DUMMY_OID, DUMMY_ACCOUNT_OBJECT_CLASS, prismContext)
-                        .and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
-                        ObjectFactory.createResourceAttributeDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext))
+                        .and().item(
+                                ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
+                                ObjectFactory.createResourceAttributeDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING))
                         .contains("s")
                         .build();
 

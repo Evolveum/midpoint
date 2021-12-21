@@ -164,7 +164,7 @@ class EntitlementsHelper {
         if (identifiersContainer == null) {
             ResourceAttributeContainer origContainer = ShadowUtil.getAttributesContainer(repoShadow);
             identifiersContainer = ObjectFactory.createResourceAttributeContainer(ShadowAssociationType.F_IDENTIFIERS,
-                    origContainer.getDefinition(), prismContext);
+                    origContainer.getDefinition());
             association.add(identifiersContainer);
         }
         Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(repoShadow);

@@ -12,23 +12,16 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 
+import com.evolveum.midpoint.schema.processor.*;
+
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.PropertyLimitations;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -44,24 +37,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @Component
 class AccessChecker {
 
-    private static final String OPERATION_NAME = AccessChecker.class.getName()+".accessCheck";
+    private static final String OP_ACCESS_CHECK = AccessChecker.class.getName() + ".accessCheck";
+
     private static final Trace LOGGER = TraceManager.getTrace(AccessChecker.class);
 
     void checkAdd(ProvisioningContext ctx, PrismObject<ShadowType> shadow, OperationResult parentResult)
-            throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-        OperationResult result = parentResult.createMinorSubresult(OPERATION_NAME);
+            throws SecurityViolationException, SchemaException {
+        OperationResult result = parentResult.createMinorSubresult(OP_ACCESS_CHECK);
         try {
             ResourceAttributeContainer attributeCont = ShadowUtil.getAttributesContainer(shadow);
 
             for (ResourceAttribute<?> attribute : attributeCont.getAttributes()) {
-                RefinedAttributeDefinition attrDef = ctx.getObjectClassDefinition().findAttributeDefinition(attribute.getElementName());
-                // Need to check model layer, not schema. Model means IDM logic which can be overridden in schemaHandling,
-                // schema layer is the original one.
-                if (attrDef == null) {
-                    String msg = "No definition for attribute " + attribute.getElementName() + " in " + ctx.getObjectClassDefinition();
-                    result.recordFatalError(msg);
-                    throw new SchemaException(msg);
-                }
+                ResourceAttributeDefinition<?> attrDef = ctx.getObjectDefinitionRequired()
+                        .findAttributeDefinitionRequired(attribute.getElementName());
                 PropertyLimitations limitations = attrDef.getLimitations(LayerType.MODEL);
                 if (limitations == null) {
                     continue;
@@ -80,10 +68,8 @@ class AccessChecker {
                     continue;
                 }
                 if (access.isAdd() == null || !access.isAdd()) {
-                    String message = "Attempt to add shadow with non-creatable attribute " + attribute.getElementName();
-                    LOGGER.error(message);
-                    result.recordFatalError(message);
-                    throw new SecurityViolationException(message);
+                    throw new SecurityViolationException(
+                            "Attempt to add shadow with non-creatable attribute " + attribute.getElementName());
                 }
             }
             result.recordSuccess();
@@ -95,92 +81,103 @@ class AccessChecker {
         }
     }
 
-    void checkModify(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
-            Collection<? extends ItemDelta> modifications,
-            OperationResult parentResult) throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+    void checkModify(
+            ProvisioningContext ctx,
+            Collection<? extends ItemDelta<?, ?>> modifications,
+            OperationResult parentResult)
+            throws SecurityViolationException, SchemaException {
 
-        RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
+        ResourceObjectDefinition resourceObjectDefinition = ctx.getObjectDefinitionRequired();
 
-        OperationResult result = parentResult.createMinorSubresult(OPERATION_NAME);
-        for (ItemDelta<?,?> modification: modifications) {
-            if (!(modification instanceof PropertyDelta<?>)) {
-                continue;
-            }
-            PropertyDelta<?> attrDelta = (PropertyDelta<?>)modification;
-            if (!SchemaConstants.PATH_ATTRIBUTES.equivalent(attrDelta.getParentPath())) {
-                // Not an attribute
-                continue;
-            }
-            QName attrName = attrDelta.getElementName();
-            LOGGER.trace("Checking attribute {} definition present in {}", attrName, objectClassDefinition);
-            RefinedAttributeDefinition attrDef = objectClassDefinition.findAttributeDefinition(attrName);
-            if (attrDef == null) {
-                throw new SchemaException("Cannot find definition of attribute "+attrName+" in "+objectClassDefinition);
-            }
-            PropertyLimitations limitations = attrDef.getLimitations(LayerType.MODEL);
-            if (limitations == null) {
-                continue;
-            }
-            // We cannot throw error here. At least not now. Provisioning will internally use ignored attributes
-            // e.g. for simulated capabilities. This is not a problem for normal operations, but it is a problem
-            // for delayed operations (e.g. consistency) that are passing through this code again.
-            // TODO: we need to figure a way how to avoid this loop
+        OperationResult result = parentResult.createMinorSubresult(OP_ACCESS_CHECK);
+        try {
+            for (ItemDelta<?, ?> modification : modifications) {
+                if (!(modification instanceof PropertyDelta<?>)) {
+                    continue;
+                }
+                PropertyDelta<?> attrDelta = (PropertyDelta<?>) modification;
+                if (!SchemaConstants.PATH_ATTRIBUTES.equivalent(attrDelta.getParentPath())) {
+                    // Not an attribute
+                    continue;
+                }
+                QName attrName = attrDelta.getElementName();
+                LOGGER.trace("Checking attribute {} definition present in {}", attrName, resourceObjectDefinition);
+                ResourceAttributeDefinition<?> attrDef = resourceObjectDefinition.findAttributeDefinitionRequired(attrName);
+                PropertyLimitations limitations = attrDef.getLimitations(LayerType.MODEL);
+                if (limitations == null) {
+                    continue;
+                }
+                // We cannot throw error here. At least not now. Provisioning will internally use ignored attributes
+                // e.g. for simulated capabilities. This is not a problem for normal operations, but it is a problem
+                // for delayed operations (e.g. consistency) that are passing through this code again.
+                // TODO: we need to figure a way how to avoid this loop
 //            if (limitations.isIgnore()) {
 //                String message = "Attempt to create shadow with ignored attribute "+attribute.getName();
 //                LOGGER.error(message);
 //                throw new SchemaException(message);
 //            }
-            PropertyAccessType access = limitations.getAccess();
-            if (access == null) {
-                continue;
+                PropertyAccessType access = limitations.getAccess();
+                if (access == null) {
+                    continue;
+                }
+                if (access.isModify() == null || !access.isModify()) {
+                    String message = "Attempt to modify non-updateable attribute " + attrName;
+                    LOGGER.error(message);
+                    result.recordFatalError(message);
+                    throw new SecurityViolationException(message);
+                }
             }
-            if (access.isModify() == null || !access.isModify()) {
-                String message = "Attempt to modify non-updateable attribute "+attrName;
-                LOGGER.error(message);
-                result.recordFatalError(message);
-                throw new SecurityViolationException(message);
-            }
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
         }
-        result.recordSuccess();
-
     }
 
-    void filterGetAttributes(ResourceAttributeContainer attributeContainer, RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) throws SchemaException {
-        OperationResult result = parentResult.createMinorSubresult(OPERATION_NAME);
-
-
-        for (ResourceAttribute<?> attribute: attributeContainer.getAttributes()) {
-            QName attrName = attribute.getElementName();
-            RefinedAttributeDefinition attrDef = objectClassDefinition.findAttributeDefinition(attrName);
-            if (attrDef == null) {
-                String message = "Unknown attribute " + attrName + " in objectclass " + objectClassDefinition;
-                result.recordFatalError(message);
-                throw new SchemaException(message);
-            }
-            // Need to check model layer, not schema. Model means IDM logic which can be overridden in schemaHandling,
-            // schema layer is the original one.
-            PropertyLimitations limitations = attrDef.getLimitations(LayerType.MODEL);
-            if (limitations == null) {
-                continue;
-            }
-            // We cannot throw error here. At least not now. Provisioning will internally use ignored attributes
-            // e.g. for simulated capabilities. This is not a problem for normal operations, but it is a problem
-            // for delayed operations (e.g. consistency) that are passing through this code again.
-            // TODO: we need to figure a way how to avoid this loop
+    void filterGetAttributes(
+            ResourceAttributeContainer attributeContainer,
+            ResourceObjectDefinition objectDefinition,
+            OperationResult parentResult) throws SchemaException {
+        OperationResult result = parentResult.createMinorSubresult(OP_ACCESS_CHECK);
+        try {
+            for (ResourceAttribute<?> attribute : attributeContainer.getAttributes()) {
+                QName attrName = attribute.getElementName();
+                ResourceAttributeDefinition<?> attrDef = objectDefinition.findAttributeDefinition(attrName);
+                if (attrDef == null) { // TODO
+                    String message = "Unknown attribute " + attrName + " in objectclass " + objectDefinition;
+                    result.recordFatalError(message);
+                    throw new SchemaException(message);
+                }
+                // Need to check model layer, not schema. Model means IDM logic which can be overridden in schemaHandling,
+                // schema layer is the original one.
+                PropertyLimitations limitations = attrDef.getLimitations(LayerType.MODEL);
+                if (limitations == null) {
+                    continue;
+                }
+                // We cannot throw error here. At least not now. Provisioning will internally use ignored attributes
+                // e.g. for simulated capabilities. This is not a problem for normal operations, but it is a problem
+                // for delayed operations (e.g. consistency) that are passing through this code again.
+                // TODO: we need to figure a way how to avoid this loop
 //            if (limitations.isIgnore()) {
 //                String message = "Attempt to create shadow with ignored attribute "+attribute.getName();
 //                LOGGER.error(message);
 //                throw new SchemaException(message);
 //            }
-            PropertyAccessType access = limitations.getAccess();
-            if (access == null) {
-                continue;
+                PropertyAccessType access = limitations.getAccess();
+                if (access == null) {
+                    continue;
+                }
+                if (access.isRead() == null || !access.isRead()) {
+                    LOGGER.trace("Removing non-readable attribute {}", attrName);
+                    attributeContainer.remove(attribute);
+                }
             }
-            if (access.isRead() == null || !access.isRead()) {
-                LOGGER.trace("Removing non-readable attribute {}", attrName);
-                attributeContainer.remove(attribute);
-            }
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
         }
-        result.recordSuccess();
     }
 }

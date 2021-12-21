@@ -9,8 +9,8 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -30,12 +30,17 @@ public class UcfLiveSyncChange extends UcfChange {
      */
     @NotNull private final UcfSyncToken token;
 
-    public UcfLiveSyncChange(int localSequenceNumber, @NotNull Object primaryIdentifierRealValue,
-            @NotNull Collection<ResourceAttribute<?>> identifiers, ObjectClassComplexTypeDefinition objectClassDefinition,
-            ObjectDelta<ShadowType> objectDelta, PrismObject<ShadowType> resourceObject,
-            @NotNull UcfSyncToken token, UcfErrorState errorState) {
-        super(localSequenceNumber, primaryIdentifierRealValue, objectClassDefinition, identifiers, objectDelta, resourceObject,
-                errorState);
+    public UcfLiveSyncChange(
+            int localSequenceNumber,
+            @NotNull Object primaryIdentifierRealValue,
+            @NotNull Collection<ResourceAttribute<?>> identifiers,
+            ResourceObjectDefinition objectDefinition,
+            ObjectDelta<ShadowType> objectDelta,
+            PrismObject<ShadowType> resourceObject,
+            @NotNull UcfSyncToken token,
+            UcfErrorState errorState) {
+        super(localSequenceNumber, primaryIdentifierRealValue, objectDefinition, identifiers,
+                objectDelta, resourceObject, errorState);
         this.token = token;
     }
 
@@ -57,7 +62,7 @@ public class UcfLiveSyncChange extends UcfChange {
     @Override
     protected void checkObjectClassDefinitionPresence() {
         if (errorState.isSuccess()) {
-            stateCheck(isDelete() || objectClassDefinition != null, "No object class definition for non-delete LS change");
+            stateCheck(isDelete() || resourceObjectDefinition != null, "No object class definition for non-delete LS change");
         }
     }
 }

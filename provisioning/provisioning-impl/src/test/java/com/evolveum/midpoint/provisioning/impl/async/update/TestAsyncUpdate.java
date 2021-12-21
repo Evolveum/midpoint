@@ -19,6 +19,9 @@ import java.util.List;
 import java.util.concurrent.TimeoutException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
+import com.evolveum.midpoint.schema.processor.*;
+
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -27,7 +30,6 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -40,9 +42,6 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -161,7 +160,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         assertNotNull("No serialNumber", cachingMetadata.getSerialNumber());
 
         Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-        ResourceSchema parsedSchema = ResourceSchemaImpl.parse(xsdElement, resourceBefore.toString(), prismContext);
+        ResourceSchema parsedSchema = ResourceSchemaParser.parse(xsdElement, resourceBefore.toString());
         assertNotNull("No schema after parsing", parsedSchema);
 
         // schema will be checked in next test
@@ -169,9 +168,10 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test004Configuration() throws Exception {
+        Task task = getTestTask();
         OperationResult result = getTestOperationResult();
         // WHEN
-        resource = provisioningService.getObject(ResourceType.class, RESOURCE_ASYNC_OID, null, null, result);
+        resource = provisioningService.getObject(ResourceType.class, RESOURCE_ASYNC_OID, null, task, result);
 
         PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
         assertNotNull("No configuration container", configurationContainer);
@@ -185,10 +185,10 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
         // THEN
         // The returned type should have the schema pre-parsed
-        assertTrue(RefinedResourceSchemaImpl.hasParsedSchema(resource.asObjectable()));
+        assertTrue(ResourceSchemaFactory.hasParsedSchema(resource.asObjectable()));
 
         // Also test if the utility method returns the same thing
-        ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource.asObjectable(), prismContext);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource.asObjectable());
 
         displayDumpable("Parsed resource schema", resourceSchema);
 
@@ -196,9 +196,9 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         // Not equals() but == ... we want to really know if exactly the same
         // object instance is returned
         assertSame("Broken caching", resourceSchema,
-                RefinedResourceSchemaImpl.getResourceSchema(resource.asObjectable(), prismContext));
+                ResourceSchemaFactory.getRawSchema(resource.asObjectable()));
 
-        ObjectClassComplexTypeDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_ACCOUNT_OBJECTCLASS);
+        ResourceObjectClassDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_ACCOUNT_OBJECTCLASS);
         assertNotNull("Account definition is missing", accountDef);
         assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
         assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
@@ -220,7 +220,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
         addDummyAccount("banderson");
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
+        ResourceShadowCoordinates coords = new ResourceShadowCoordinates(RESOURCE_ASYNC_OID);
         mockAsyncUpdateTaskHandler.processUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();

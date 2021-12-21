@@ -11,13 +11,13 @@ import static java.util.Objects.requireNonNull;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.LiveSyncEventHandler;
 import com.evolveum.midpoint.provisioning.api.LiveSyncOptions;
 import com.evolveum.midpoint.provisioning.api.LiveSyncTokenStorage;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.ItemDefinitionProvider;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -63,7 +63,7 @@ public class ResourceObjectClass implements DebugDumpable {
      *
      * The definition can be raw or refined. The {@link #createBareQuery()} method returns different queries in these cases.
      */
-    @Nullable private final ObjectClassComplexTypeDefinition objectClassDefinition;
+    @Nullable private final ResourceObjectDefinition resourceObjectDefinition;
 
     /** Shadow kind - if specified. */
     @Nullable private final ShadowKindType kind;
@@ -73,13 +73,13 @@ public class ResourceObjectClass implements DebugDumpable {
 
     ResourceObjectClass(
             @NotNull ResourceType resource,
-            @Nullable ObjectClassComplexTypeDefinition objectClassDefinition,
+            @Nullable ResourceObjectDefinition resourceObjectDefinition,
             @Nullable ShadowKindType kind,
             @Nullable String intent) {
         this.resource = resource;
         this.kind = kind;
         this.intent = intent;
-        this.objectClassDefinition = objectClassDefinition;
+        this.resourceObjectDefinition = resourceObjectDefinition;
     }
 
     @Override
@@ -88,13 +88,13 @@ public class ResourceObjectClass implements DebugDumpable {
                 ", resource=" + resource +
                 ", kind=" + kind +
                 ", intent=" + intent +
-                ", objectClassDefinition=" + objectClassDefinition +
+                ", objectClassDefinition=" + resourceObjectDefinition +
                 '}';
     }
 
     public @NotNull ResourceShadowDiscriminator getCoords() {
         return new ResourceShadowDiscriminator(resource.getOid(), kind, intent,
-                objectClassDefinition != null ? objectClassDefinition.getTypeName() : null);
+                resourceObjectDefinition != null ? resourceObjectDefinition.getTypeName() : null);
     }
 
     public @NotNull ResourceType getResource() {
@@ -105,20 +105,26 @@ public class ResourceObjectClass implements DebugDumpable {
         return ObjectTypeUtil.createObjectRef(resource);
     }
 
-    public @Nullable ObjectClassComplexTypeDefinition getObjectClassDefinition() {
-        return objectClassDefinition;
+    public @Nullable ResourceObjectDefinition getResourceObjectDefinition() {
+        return resourceObjectDefinition;
     }
 
-    public @NotNull ObjectClassComplexTypeDefinition getObjectClassDefinitionRequired() {
-        return requireNonNull(objectClassDefinition);
+    public @NotNull ResourceObjectDefinition getResourceObjectDefinitionRequired() {
+        return requireNonNull(resourceObjectDefinition);
     }
 
     public @NotNull QName getObjectClassName() {
-        return getObjectClassDefinitionRequired().getTypeName();
+        return getResourceObjectDefinitionRequired().getTypeName();
+    }
+
+    @Nullable
+    private QName getObjectClassNameIfKnown() {
+        return resourceObjectDefinition != null ?
+                resourceObjectDefinition.getObjectClassName() : null;
     }
 
     public @NotNull SynchronizationObjectsFilterImpl getObjectFilter() {
-        return new SynchronizationObjectsFilterImpl(objectClassDefinition, kind, intent);
+        return new SynchronizationObjectsFilterImpl(getObjectClassNameIfKnown(), kind, intent);
     }
 
     public String getContextDescription() {
@@ -137,23 +143,22 @@ public class ResourceObjectClass implements DebugDumpable {
 
     /**
      * Creates a query covering the specified resource + object class, or resource + kind + intent.
-     * (Depending on whether provided {@link #objectClassDefinition} is raw or refined.) See:
+     * (Depending on whether provided {@link #resourceObjectDefinition} is raw or refined.) See:
      *
-     * * {@link ObjectClassComplexTypeDefinition#createShadowSearchQuery(String)}
+     * * {@link ResourceObjectClassDefinition#createShadowSearchQuery(String)}
      *
      * The query is interpreted by provisioning module - see:
      *
      * * {@link ProvisioningService#searchObjects(Class, ObjectQuery, Collection, Task, OperationResult)},
      * * {@link ProvisioningService#synchronize(ResourceShadowDiscriminator, LiveSyncOptions, LiveSyncTokenStorage,
      * LiveSyncEventHandler, Task, OperationResult)},
-     * * {@link RefinedResourceSchema#determineCompositeObjectClassDefinition(ResourceShadowDiscriminator)}
      *
      * The handling of kind/intent pair is quite straightforward. But when using object class name only,
      * one should be careful, because the provisioning module will internally search for the default refined definition
      * with the given object class name. See also MID-7470.
      */
     @NotNull ObjectQuery createBareQuery() throws SchemaException {
-        return getObjectClassDefinitionRequired()
+        return getResourceObjectDefinitionRequired()
                 .createShadowSearchQuery(getResourceOid());
     }
 
@@ -161,8 +166,8 @@ public class ResourceObjectClass implements DebugDumpable {
      * Returns {@link ItemDefinitionProvider} for bucketing over objects in this object class.
      */
     public ItemDefinitionProvider createItemDefinitionProvider() {
-        if (objectClassDefinition != null) {
-            return ItemDefinitionProvider.forObjectClassAttributes(objectClassDefinition);
+        if (resourceObjectDefinition != null) {
+            return ItemDefinitionProvider.forResourceObjectAttributes(resourceObjectDefinition);
         } else {
             // Should never occur
             return null;
@@ -173,7 +178,7 @@ public class ResourceObjectClass implements DebugDumpable {
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "resource", String.valueOf(resource), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "objectClassDefinition", String.valueOf(objectClassDefinition), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "objectClassDefinition", String.valueOf(resourceObjectDefinition), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "kind", kind, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "intent", intent, indent + 1);
         return sb.toString();
