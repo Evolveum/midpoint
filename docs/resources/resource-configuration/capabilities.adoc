@@ -99,6 +99,7 @@ Keep in mind the capabilities section works as override. For example if you expl
 ----
 <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
     <cap:update>
+      <cap:enabled>true</cap:enabled>
       <cap:delta>true</cap:delta>
       <cap:addRemoveAttributeValues>true</cap:addRemoveAttributeValues>
     </cap:update>
