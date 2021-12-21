@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-import com.evolveum.midpoint.authentication.api.Url;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -42,8 +42,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.authentication.api.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;

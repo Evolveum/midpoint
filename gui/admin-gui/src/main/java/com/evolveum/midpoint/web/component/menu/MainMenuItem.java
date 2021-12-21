@@ -9,7 +9,7 @@ package com.evolveum.midpoint.web.component.menu;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.authentication.api.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 
 import org.apache.wicket.markup.html.WebPage;
 

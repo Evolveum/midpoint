@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.evaluator;
 
-import com.evolveum.midpoint.authentication.api.authentication.AuthenticationEvaluator;
+import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.context.NonceAuthenticationContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;

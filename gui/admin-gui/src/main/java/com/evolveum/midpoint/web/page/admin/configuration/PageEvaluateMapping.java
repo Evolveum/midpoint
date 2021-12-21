@@ -18,7 +18,7 @@ import java.util.List;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
-import com.evolveum.midpoint.authentication.api.Url;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -39,8 +39,8 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.authentication.api.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;

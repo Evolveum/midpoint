@@ -31,10 +31,10 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.api.StateOfModule;
+import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.security.api.*;
-import com.evolveum.midpoint.authentication.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
@@ -4436,12 +4436,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
 
             @Override
-            public StateOfModule getState() {
-                return StateOfModule.SUCCESSFULLY;
+            public AuthenticationModuleState getState() {
+                return AuthenticationModuleState.SUCCESSFULLY;
             }
 
             @Override
-            public void setState(StateOfModule state) {
+            public void setState(AuthenticationModuleState state) {
             }
 
             @Override

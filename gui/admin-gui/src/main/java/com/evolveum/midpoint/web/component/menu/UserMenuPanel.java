@@ -11,7 +11,7 @@ import java.net.URL;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.AttributeModifier;

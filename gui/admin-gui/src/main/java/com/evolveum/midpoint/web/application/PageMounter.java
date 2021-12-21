@@ -8,9 +8,9 @@ package com.evolveum.midpoint.web.application;
 
 import java.util.*;
 
-import com.evolveum.midpoint.authentication.api.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 
-import com.evolveum.midpoint.authentication.api.Url;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.IPageParametersEncoder;

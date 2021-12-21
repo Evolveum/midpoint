@@ -8,9 +8,9 @@ package com.evolveum.midpoint.authentication.api.util;
 
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.authentication.api.StateOfModule;
-import com.evolveum.midpoint.authentication.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -101,7 +101,7 @@ public class AuthUtil {
         if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
             for (ModuleAuthentication moduleAuthentication : mpAuthentication.getAuthentications()) {
-                if (StateOfModule.SUCCESSFULLY.equals(moduleAuthentication.getState())) {
+                if (AuthenticationModuleState.SUCCESSFULLY.equals(moduleAuthentication.getState())) {
                     return moduleAuthentication;
                 }
             }

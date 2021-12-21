@@ -10,8 +10,9 @@ package com.evolveum.midpoint.web.page.self;
 import java.util.Arrays;
 import java.util.List;
 
-import com.evolveum.midpoint.authentication.api.*;
-
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import org.apache.wicket.RestartResponseException;

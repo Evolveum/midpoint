@@ -17,7 +17,9 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.authentication.api.*;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;

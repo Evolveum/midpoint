@@ -10,7 +10,7 @@ import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuAuthzUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -26,8 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.security.web.csrf.CsrfToken;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.authentication.api.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.web.component.menu.MainMenuItem;
 import com.evolveum.midpoint.web.component.menu.MenuItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;

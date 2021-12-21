@@ -6,12 +6,12 @@
  */
 package com.evolveum.midpoint.web.page.forgetpassword;
 
-import com.evolveum.midpoint.authentication.api.Url;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import org.apache.wicket.markup.html.basic.Label;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.authentication.api.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 
 @PageDescriptor(
         urls = {

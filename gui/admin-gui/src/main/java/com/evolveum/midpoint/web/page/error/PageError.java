@@ -10,8 +10,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.authentication.api.Url;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -27,7 +27,7 @@ import org.springframework.http.HttpStatus;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.authentication.api.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;

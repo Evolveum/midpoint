@@ -8,7 +8,7 @@ package com.evolveum.midpoint.authentication;
 
 import static org.testng.AssertJUnit.assertEquals;
 
-import com.evolveum.midpoint.authentication.impl.security.util.AuthSequenceUtil;
+import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import com.evolveum.midpoint.test.AbstractHigherUnitTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;

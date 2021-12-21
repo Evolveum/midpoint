@@ -32,7 +32,7 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.api.util.ClusterServiceConsts;
-import com.evolveum.midpoint.authentication.api.authentication.NodeAuthenticationToken;
+import com.evolveum.midpoint.authentication.api.config.NodeAuthenticationToken;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;

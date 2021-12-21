@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;

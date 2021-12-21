@@ -62,10 +62,6 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.ldap</groupId>
-            <artifactId>spring-ldap-core</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>org.apache.wicket</groupId>

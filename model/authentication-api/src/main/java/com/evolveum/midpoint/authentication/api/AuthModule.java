@@ -6,9 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.api;
 
-import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;
-
-import org.springframework.security.web.SecurityFilterChain;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 
 /**
  * Define authentication module created by module configuration, with all filters and configuration

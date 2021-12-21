@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.orgs;
 
-import com.evolveum.midpoint.authentication.api.Url;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import org.apache.wicket.model.IModel;
 
@@ -17,8 +17,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.authentication.api.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 

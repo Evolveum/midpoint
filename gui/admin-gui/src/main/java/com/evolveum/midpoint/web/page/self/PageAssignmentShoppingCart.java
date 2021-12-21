@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.authentication.api.Url;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -28,8 +28,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.authentication.api.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.form.MidpointForm;

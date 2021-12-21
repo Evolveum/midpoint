@@ -11,8 +11,8 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.security.api.*;
-import com.evolveum.midpoint.authentication.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 

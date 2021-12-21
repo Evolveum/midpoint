@@ -10,7 +10,7 @@ import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.evolveum.midpoint.authentication.api.authentication.AuthenticationEvaluator;
+import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
