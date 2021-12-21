@@ -114,7 +114,7 @@ Keep in mind the capabilities section works as override. For example if you expl
 
 As another example let's consider `preciseTokenValue` property in `cap:liveSync`  capability:
 
-[source]
+[source,xml]
 ----
 <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
     <configured>
