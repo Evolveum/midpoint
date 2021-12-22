@@ -11,7 +11,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * Definition of authorization
+ * Definition of authorization. Contains action url which define needed authorization for page containing this annotation.
  * @author lazyman
  */
 @Retention(RetentionPolicy.RUNTIME)

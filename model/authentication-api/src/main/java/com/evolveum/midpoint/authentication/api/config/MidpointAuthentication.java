@@ -14,11 +14,14 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.security.api.AuthenticationAnonymousChecker;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 
@@ -33,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequen
  * @author skublik
  */
 
-public class MidpointAuthentication extends AbstractAuthenticationToken {
+public class MidpointAuthentication extends AbstractAuthenticationToken implements AuthenticationAnonymousChecker {
 
     /**
      * Configuration of sequence from xml
@@ -330,5 +333,18 @@ public class MidpointAuthentication extends AbstractAuthenticationToken {
             return true;
         }
         return getModules().get(index).getOrder().equals(getModules().get(getModules().size() - 1).getOrder());
+    }
+
+    @Override
+    public boolean isAnonymous() {
+        List<ModuleAuthentication> moduleAuthentications = getAuthentications();
+        if (moduleAuthentications == null || moduleAuthentications.size() != 1) {
+            return false;
+        }
+        Authentication moduleAuthentication = moduleAuthentications.get(0).getAuthentication();
+        if (moduleAuthentication instanceof AnonymousAuthenticationToken) {
+            return true;
+        }
+        return false;
     }
 }

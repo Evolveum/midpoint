@@ -14,7 +14,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * Define urls and authorization for page
+ * Annotation for the page which contains url address, on which the page is available,
+ * and authorization urls for page, which logged user have to have.
  *
  * @author lazyman
  */
