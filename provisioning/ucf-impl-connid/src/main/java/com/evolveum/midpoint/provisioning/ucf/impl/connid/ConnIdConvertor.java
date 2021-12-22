@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfFetchErrorReportingMethod;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfObjectFound;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfErrorState;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import org.identityconnectors.framework.common.objects.Attribute;
@@ -28,7 +29,6 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -45,15 +45,12 @@ import org.jetbrains.annotations.NotNull;
  */
 class ConnIdConvertor {
 
-    final String resourceSchemaNamespace;
     final Protector protector;
     final LocalizationService localizationService;
     final ConnIdNameMapper connIdNameMapper;
 
-    ConnIdConvertor(Protector protector, String resourceSchemaNamespace, LocalizationService localizationService,
-            ConnIdNameMapper connIdNameMapper) {
+    ConnIdConvertor(Protector protector, LocalizationService localizationService, ConnIdNameMapper connIdNameMapper) {
         this.protector = protector;
-        this.resourceSchemaNamespace = resourceSchemaNamespace;
         this.localizationService = localizationService;
         this.connIdNameMapper = connIdNameMapper;
     }
@@ -137,14 +134,15 @@ class ConnIdConvertor {
                 + co.getName() + ", class=" + co.getObjectClass() + ": " + t.getMessage();
     }
 
-    @NotNull Set<Attribute> convertFromResourceObjectToConnIdAttributes(@NotNull ResourceAttributeContainer attributesPrism,
-            ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
+    @NotNull Set<Attribute> convertFromResourceObjectToConnIdAttributes(
+            @NotNull ResourceAttributeContainer attributesPrism,
+            ResourceObjectDefinition ocDef) throws SchemaException {
         Collection<ResourceAttribute<?>> resourceAttributes = attributesPrism.getAttributes();
         return convertFromResourceObjectToConnIdAttributes(resourceAttributes, ocDef);
     }
 
     private @NotNull Set<Attribute> convertFromResourceObjectToConnIdAttributes(
-            Collection<ResourceAttribute<?>> mpResourceAttributes, ObjectClassComplexTypeDefinition ocDef)
+            Collection<ResourceAttribute<?>> mpResourceAttributes, ResourceObjectDefinition ocDef)
             throws SchemaException {
         Set<Attribute> attributes = new HashSet<>();
         for (ResourceAttribute<?> attribute : emptyIfNull(mpResourceAttributes)) {
@@ -153,7 +151,8 @@ class ConnIdConvertor {
         return attributes;
     }
 
-    private Attribute convertToConnIdAttribute(ResourceAttribute<?> mpAttribute, ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
+    private Attribute convertToConnIdAttribute(ResourceAttribute<?> mpAttribute, ResourceObjectDefinition ocDef)
+            throws SchemaException {
         QName midPointAttrQName = mpAttribute.getElementName();
         if (midPointAttrQName.equals(SchemaConstants.ICFS_UID)) {
             throw new SchemaException("ICF UID explicitly specified in attributes");

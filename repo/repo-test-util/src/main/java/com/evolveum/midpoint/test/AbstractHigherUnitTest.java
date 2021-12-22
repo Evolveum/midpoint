@@ -18,6 +18,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
@@ -26,10 +28,6 @@ import org.testng.annotations.BeforeSuite;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
@@ -43,8 +41,6 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
@@ -183,20 +179,20 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
     }
 
     protected void assertAccountShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) throws SchemaException {
-        assertShadowCommon(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), null, false);
+        assertShadowCommon(accountShadow, oid, username, resourceType, getAccountObjectClass(), null, false);
     }
 
     protected void assertAccountShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
             MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers) throws SchemaException {
-        assertShadowCommon(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), nameMatchingRule, requireNormalizedIdentfiers);
+        assertShadowCommon(accountShadow, oid, username, resourceType, getAccountObjectClass(), nameMatchingRule, requireNormalizedIdentfiers);
     }
 
-    protected QName getAccountObjectClass(ResourceType resourceType) {
-        return new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
+    protected QName getAccountObjectClass() {
+        return new QName(MidPointConstants.NS_RI, "AccountObjectClass");
     }
 
-    protected QName getGroupObjectClass(ResourceType resourceType) {
-        return new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "GroupObjectClass");
+    protected QName getGroupObjectClass() {
+        return new QName(MidPointConstants.NS_RI, "GroupObjectClass");
     }
 
     protected void assertShadowCommon(PrismObject<ShadowType> shadow, String oid, String username, ResourceType resourceType,
@@ -254,8 +250,8 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
             PrismAsserts.assertPropertyValue(shadow, ShadowType.F_NAME, PrismTestUtil.createPolyString(username));
         }
 
-        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
-        ObjectClassComplexTypeDefinition ocDef = rSchema.findObjectClassDefinition(objectClass);
+        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resourceType);
+        ResourceObjectDefinition ocDef = rSchema.findDefinitionForObjectClass(objectClass);
         if (ocDef.getSecondaryIdentifiers().isEmpty()) {
             ResourceAttributeDefinition idDef = ocDef.getPrimaryIdentifiers().iterator().next();
             PrismProperty<String> idProp = attributesContainer.findProperty(idDef.getItemName());
@@ -304,8 +300,8 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
     }
 
     protected void assertShadowSecondaryIdentifier(PrismObject<ShadowType> shadow, String expectedIdentifier, ResourceType resourceType, MatchingRule<String> nameMatchingRule) throws SchemaException {
-        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
-        ObjectClassComplexTypeDefinition ocDef = rSchema.findObjectClassDefinition(shadow.asObjectable().getObjectClass());
+        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resourceType);
+        ResourceObjectDefinition ocDef = rSchema.findDefinitionForObjectClass(shadow.asObjectable().getObjectClass());
         ResourceAttributeDefinition idSecDef = ocDef.getSecondaryIdentifiers().iterator().next();
         PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
         PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getItemName());
@@ -342,16 +338,16 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
         return getObjectDefinition(ShadowType.class);
     }
 
-    // objectClassName may be null
-    protected RefinedAttributeDefinition getAttributeDefinition(ResourceType resourceType,
-            ShadowKindType kind,
-            QName objectClassName,
-            String attributeLocalName) throws SchemaException {
-        RefinedResourceSchema refinedResourceSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
-        RefinedObjectClassDefinition refinedObjectClassDefinition =
-                refinedResourceSchema.findRefinedDefinitionByObjectClassQName(kind, objectClassName);
-        return refinedObjectClassDefinition.findAttributeDefinition(attributeLocalName);
-    }
+//    // objectClassName may be null
+//    protected ResourceAttributeDefinition<?> getAttributeDefinition(ResourceType resourceType,
+//            ShadowKindType kind,
+//            QName objectClassName,
+//            String attributeLocalName) throws SchemaException {
+//        ResourceSchema refinedResourceSchema = ResourceSchemaFactory.getRefinedSchema(resourceType);
+//        ResourceObjectTypeDefinition refinedObjectClassDefinition =
+//                refinedResourceSchema.findRefinedDefinitionByObjectClassQName(kind, objectClassName);
+//        return refinedObjectClassDefinition.findAttributeDefinition(attributeLocalName);
+//    }
 
     protected void assertFilter(ObjectFilter filter, Class<? extends ObjectFilter> expectedClass) {
         if (expectedClass == null) {

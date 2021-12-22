@@ -13,11 +13,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -43,14 +47,17 @@ class Helper {
 
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
 
-    <T> T getNormalizedAttributeValue(PrismPropertyValue<T> pval, RefinedAttributeDefinition<?> rAttrDef) throws SchemaException {
+    <T> T getNormalizedAttributeValue(PrismPropertyValue<T> pval, ResourceAttributeDefinition<?> rAttrDef) throws SchemaException {
         return matchingRuleRegistry
                 .<T>getMatchingRule(rAttrDef.getMatchingRuleQName(), rAttrDef.getTypeName())
                 .normalize(pval.getValue());
     }
 
-    <T> Collection<T> getNormalizedAttributeValues(ResourceAttribute<T> attribute, RefinedAttributeDefinition<T> rAttrDef) throws SchemaException {
-        MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(rAttrDef.getMatchingRuleQName(), rAttrDef.getTypeName());
+    private <T> Collection<T> getNormalizedAttributeValues(
+            ResourceAttribute<T> attribute,
+            ResourceAttributeDefinition<T> attrDef)
+            throws SchemaException {
+        MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(attrDef.getMatchingRuleQName(), attrDef.getTypeName());
         Collection<T> normalizedValues = new ArrayList<>();
         for (PrismPropertyValue<T> pval : attribute.getValues()) {
             T normalizedRealValue = matchingRule.normalize(pval.getValue());
@@ -59,29 +66,29 @@ class Helper {
         return normalizedValues;
     }
 
-    <T> T getNormalizedAttributeValue(RefinedAttributeDefinition<T> rAttrDef, T value) throws SchemaException {
+    <T> T getNormalizedAttributeValue(ResourceAttributeDefinition<T> rAttrDef, T value) throws SchemaException {
         return matchingRuleRegistry
                 .<T>getMatchingRule(rAttrDef.getMatchingRuleQName(), rAttrDef.getTypeName())
                 .normalize(value);
     }
 
-    String determinePrimaryIdentifierValue(ProvisioningContext ctx, PrismObject<ShadowType> shadow) throws SchemaException {
+    <T> T determinePrimaryIdentifierValue(ProvisioningContext ctx, PrismObject<ShadowType> shadow) throws SchemaException {
         if (ShadowUtil.isDead(shadow)) {
             return null;
         }
-        ResourceAttribute<String> primaryIdentifier = getPrimaryIdentifier(shadow);
+        //noinspection unchecked
+        ResourceAttribute<T> primaryIdentifier =
+                (ResourceAttribute<T>) getPrimaryIdentifier(shadow);
         if (primaryIdentifier == null) {
             return null;
         }
-        RefinedAttributeDefinition<String> rDef;
-        try {
-            rDef = ctx.getObjectClassDefinition().findAttributeDefinition(primaryIdentifier.getElementName());
-        } catch (ConfigurationException | ObjectNotFoundException | CommunicationException
-                | ExpressionEvaluationException e) {
-            // Should not happen at this stage. And we do not want to pollute throws clauses all the way up.
-            throw new SystemException(e.getMessage(), e);
-        }
-        Collection<String> normalizedPrimaryIdentifierValues = getNormalizedAttributeValues(primaryIdentifier, rDef);
+        //noinspection unchecked
+        ResourceAttributeDefinition<T> rDef =
+                (ResourceAttributeDefinition<T>)
+                        ctx.getObjectDefinitionRequired()
+                                .findAttributeDefinitionRequired(primaryIdentifier.getElementName());
+
+        Collection<T> normalizedPrimaryIdentifierValues = getNormalizedAttributeValues(primaryIdentifier, rDef);
         if (normalizedPrimaryIdentifierValues.isEmpty()) {
             throw new SchemaException("No primary identifier values in " + shadow);
         }
@@ -106,27 +113,36 @@ class Helper {
         return (ResourceAttribute<String>) primaryIdentifiers.iterator().next();
     }
 
-    public void setKindIfNecessary(ShadowType repoShadowType, RefinedObjectClassDefinition objectClassDefinition) {
+    void setKindIfNecessary(ShadowType repoShadowType, ResourceObjectTypeDefinition objectClassDefinition) {
         if (repoShadowType.getKind() == null && objectClassDefinition != null) {
             repoShadowType.setKind(objectClassDefinition.getKind());
         }
     }
 
-    public void setIntentIfNecessary(ShadowType repoShadowType, RefinedObjectClassDefinition objectClassDefinition) {
+    void setKindIfNecessary(@NotNull ShadowType shadow, @NotNull ProvisioningContext ctx) {
+        if (shadow.getKind() == null && ctx.isTypeBased()) {
+            shadow.setKind(ctx.getObjectTypeDefinitionRequired().getKind());
+        }
+    }
+
+    public void setIntentIfNecessary(ShadowType repoShadowType, ResourceObjectTypeDefinition objectClassDefinition) {
         if (repoShadowType.getIntent() == null && objectClassDefinition.getIntent() != null) {
             repoShadowType.setIntent(objectClassDefinition.getIntent());
         }
     }
 
-    public void normalizeAttributes(PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
+    public void normalizeAttributes(
+            PrismObject<ShadowType> shadow, ResourceObjectDefinition objectClassDefinition) throws SchemaException {
         for (ResourceAttribute<?> attribute : ShadowUtil.getAttributes(shadow)) {
-            RefinedAttributeDefinition rAttrDef = objectClassDefinition.findAttributeDefinition(attribute.getElementName());
-            normalizeAttribute(attribute, rAttrDef);
+            normalizeAttribute(attribute, objectClassDefinition.findAttributeDefinitionRequired(attribute.getElementName()));
         }
     }
 
-    <T> void normalizeAttribute(ResourceAttribute<T> attribute, RefinedAttributeDefinition rAttrDef) throws SchemaException {
-        MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(rAttrDef.getMatchingRuleQName(), rAttrDef.getTypeName());
+    <T> void normalizeAttribute(
+            @NotNull ResourceAttribute<T> attribute,
+            @NotNull ResourceAttributeDefinition<?> attrDef) throws SchemaException {
+        MatchingRule<T> matchingRule =
+                matchingRuleRegistry.getMatchingRule(attrDef.getMatchingRuleQName(), attrDef.getTypeName());
         for (PrismPropertyValue<T> pval : attribute.getValues()) {
             T normalizedRealValue = matchingRule.normalize(pval.getValue());
             pval.setValue(normalizedRealValue);
@@ -134,25 +150,25 @@ class Helper {
     }
 
     public <T> void normalizeDeltas(Collection<? extends ItemDelta<PrismPropertyValue<T>, PrismPropertyDefinition<T>>> deltas,
-            RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
+            ResourceObjectTypeDefinition objectClassDefinition) throws SchemaException {
         for (ItemDelta<PrismPropertyValue<T>, PrismPropertyDefinition<T>> delta : deltas) {
             normalizeDelta(delta, objectClassDefinition);
         }
     }
 
     public <T> void normalizeDelta(ItemDelta<PrismPropertyValue<T>, PrismPropertyDefinition<T>> delta,
-            RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
+            ResourceObjectDefinition objectDefinition) throws SchemaException {
         if (!delta.getPath().startsWithName(ShadowType.F_ATTRIBUTES)) {
             return;
         }
-        RefinedAttributeDefinition rAttrDef = objectClassDefinition.findAttributeDefinition(delta.getElementName());
+        ResourceAttributeDefinition<?> rAttrDef = objectDefinition.findAttributeDefinition(delta.getElementName());
         if (rAttrDef == null) {
             throw new SchemaException("Failed to normalize attribute: " + delta.getElementName() + ". Definition for this attribute doesn't exist.");
         }
         normalizeDelta(delta, rAttrDef);
     }
 
-    <T> void normalizeDelta(ItemDelta<PrismPropertyValue<T>, PrismPropertyDefinition<T>> delta, RefinedAttributeDefinition rAttrDef) throws SchemaException {
+    <T> void normalizeDelta(ItemDelta<PrismPropertyValue<T>, PrismPropertyDefinition<T>> delta, ResourceAttributeDefinition<?> rAttrDef) throws SchemaException {
         MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(rAttrDef.getMatchingRuleQName(), rAttrDef.getTypeName());
         if (delta.getValuesToReplace() != null) {
             normalizeValues(delta.getValuesToReplace(), matchingRule);
@@ -173,20 +189,28 @@ class Helper {
         }
     }
 
-    public <T> boolean compareAttribute(RefinedObjectClassDefinition refinedObjectClassDefinition,
+    public <T> boolean compareAttribute(ResourceObjectDefinition objectDefinition,
             ResourceAttribute<T> attributeA, T... valuesB) throws SchemaException {
-        RefinedAttributeDefinition refinedAttributeDefinition = refinedObjectClassDefinition.findAttributeDefinition(attributeA.getElementName());
+        //noinspection unchecked
+        ResourceAttributeDefinition<T> refinedAttributeDefinition =
+                (ResourceAttributeDefinition<T>) objectDefinition.findAttributeDefinitionRequired(attributeA.getElementName());
         Collection<T> valuesA = getNormalizedAttributeValues(attributeA, refinedAttributeDefinition);
         return MiscUtil.unorderedCollectionEquals(valuesA, Arrays.asList(valuesB));
     }
 
-    public <T> boolean compareAttribute(RefinedObjectClassDefinition refinedObjectClassDefinition,
+    public <T> boolean compareAttribute(ResourceObjectDefinition objectDefinition,
             ResourceAttribute<T> attributeA, ResourceAttribute<T> attributeB) throws SchemaException {
-        RefinedAttributeDefinition refinedAttributeDefinition = refinedObjectClassDefinition.findAttributeDefinition(attributeA.getElementName());
-        Collection<T> valuesA = getNormalizedAttributeValues(attributeA, refinedAttributeDefinition);
 
-        refinedAttributeDefinition = refinedObjectClassDefinition.findAttributeDefinition(attributeA.getElementName());
-        Collection<T> valuesB = getNormalizedAttributeValues(attributeB, refinedAttributeDefinition);
+        //noinspection unchecked
+        ResourceAttributeDefinition<T> refinedAttributeDefinitionA =
+                (ResourceAttributeDefinition<T>) objectDefinition.findAttributeDefinitionRequired(attributeA.getElementName());
+        Collection<T> valuesA = getNormalizedAttributeValues(attributeA, refinedAttributeDefinitionA);
+
+        //noinspection unchecked
+        ResourceAttributeDefinition<T> refinedAttributeDefinitionB =
+                (ResourceAttributeDefinition<T>) objectDefinition.findAttributeDefinitionRequired(attributeB.getElementName());
+        Collection<T> valuesB = getNormalizedAttributeValues(attributeB, refinedAttributeDefinitionB);
+
         return MiscUtil.unorderedCollectionEquals(valuesA, valuesB);
     }
 

@@ -31,8 +31,13 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.path.ItemName;
+
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+
+import com.evolveum.midpoint.schema.processor.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -43,10 +48,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
@@ -80,9 +81,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
@@ -593,7 +591,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + "countAccounts");
-        QName attributeQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeName);
+        QName attributeQName = new QName(MidPointConstants.NS_RI, attributeName);
         return countAccounts(resourceType, attributeQName, attributeValue, getCurrentTask(), result);
     }
 
@@ -698,7 +696,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             SecurityViolationException, ExpressionEvaluationException {
         Validate.notEmpty(attributeName, "Empty attribute name");
         OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + "isUniqueAccountValue");
-        QName attributeQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeName);
+        QName attributeQName = new QName(MidPointConstants.NS_RI, attributeName);
         return isUniqueAccountValue(resourceType, shadowType, attributeQName, attributeValue, getCurrentTask(), result);
     }
 
@@ -738,9 +736,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     private <T> ObjectQuery createAttributeQuery(ResourceType resourceType, QName attributeName, T attributeValue) throws SchemaException {
-        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
-        RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-        RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
+        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resourceType);
+        ResourceObjectTypeDefinition rAccountDef = rSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
+        ResourceAttributeDefinition<?> attrDef = rAccountDef.findAttributeDefinition(attributeName);
         if (attrDef == null) {
             throw new SchemaException("No attribute '" + attributeName + "' in " + rAccountDef);
         }
@@ -2018,20 +2016,21 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Override
     public <T> ResourceAttributeDefinition<T> getAttributeDefinition(PrismObject<ResourceType> resource, QName objectClassName,
             QName attributeName) throws SchemaException {
-        ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
         if (resourceSchema == null) {
             throw new SchemaException("No resource schema in " + resource);
         }
-        ObjectClassComplexTypeDefinition ocDef = resourceSchema.findObjectClassDefinition(objectClassName);
+        ResourceObjectDefinition ocDef = resourceSchema.findDefinitionForObjectClass(objectClassName);
         if (ocDef == null) {
             throw new SchemaException("No definition of object class " + objectClassName + " in " + resource);
         }
-        ResourceAttributeDefinition<T> attrDef = ocDef.findAttributeDefinition(attributeName);
+        ResourceAttributeDefinition<?> attrDef = ocDef.findAttributeDefinition(attributeName);
         if (attrDef == null) {
             throw new SchemaException("No definition of attribute " + attributeName + " in object class " + objectClassName
                     + " in " + resource);
         }
-        return attrDef;
+        //noinspection unchecked
+        return (ResourceAttributeDefinition<T>) attrDef;
     }
 
     @NotNull

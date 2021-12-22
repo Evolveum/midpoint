@@ -9,11 +9,11 @@ package com.evolveum.midpoint.web.component.wizard.resource.dto;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.web.component.util.Selectable;
 
 /**
@@ -24,9 +24,9 @@ public class ObjectClassDto extends Selectable<ObjectClassDto>
 
     public static final String F_DISPLAY_NAME = "displayName";
 
-    @NotNull private final RefinedObjectClassDefinition refinedDefinition;
+    @NotNull private final ResourceObjectTypeDefinition refinedDefinition;
 
-    public ObjectClassDto(@NotNull RefinedObjectClassDefinition definition) {
+    public ObjectClassDto(@NotNull ResourceObjectTypeDefinition definition) {
         Validate.notNull(definition, "Refined object class definition must not be null.");
         this.refinedDefinition = definition;
     }
@@ -46,7 +46,7 @@ public class ObjectClassDto extends Selectable<ObjectClassDto>
         return builder.toString().trim();
     }
 
-    public RefinedObjectClassDefinition getDefinition() {
+    public ResourceObjectTypeDefinition getDefinition() {
         return refinedDefinition;
     }
 

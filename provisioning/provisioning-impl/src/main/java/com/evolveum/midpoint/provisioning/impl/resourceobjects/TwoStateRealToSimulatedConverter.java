@@ -10,6 +10,8 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,7 +25,6 @@ import com.evolveum.midpoint.provisioning.impl.CommonBeans;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -186,20 +187,20 @@ class TwoStateRealToSimulatedConverter<N> {
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         LOGGER.trace("Name of the simulating attribute for {}: {}", description, simulatingAttributeName);
 
-        ResourceAttributeDefinition<S> attributeDefinition = ctx.getObjectClassDefinition()
-                .findAttributeDefinition(simulatingAttributeName);
+        ResourceAttributeDefinition<?> attributeDefinition = ctx.findAttributeDefinition(simulatingAttributeName);
         if (attributeDefinition == null) {
             // Warning is appropriate here. Attribute is defined, but that attribute is not known.
             ResourceType resource = ctx.getResource();
             result.recordWarning("Resource " + ObjectTypeUtil.toShortString(resource)
                     + "  attribute for simulated " + description + " capability" + simulatingAttributeName
-                    + " in not present in the schema for objectclass " + ctx.getObjectClassDefinition() + ". Processing of "
+                    + " in not present in the schema for objectclass " + ctx + ". Processing of "
                     + description + " for " + ObjectTypeUtil.toShortString(shadow) + " was skipped");
             shadow.setFetchResult(result.createOperationResultType());
             return null;
         }
 
-        return attributeDefinition.instantiate(simulatingAttributeName);
+        //noinspection unchecked
+        return (ResourceAttribute<S>) attributeDefinition.instantiate(simulatingAttributeName);
     }
 
     private <S> S getPositiveSimulationValue(ResourceAttribute<S> simulatingAttribute)
@@ -228,10 +229,10 @@ class TwoStateRealToSimulatedConverter<N> {
     private <T> Class<T> getAttributeValueClass(ResourceAttribute<T> attribute)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         ResourceAttributeDefinition<T> attributeDefinition = attribute.getDefinition();
-        //noinspection unchecked
-        Class<T> attributeValueClass = attributeDefinition != null ? attributeDefinition.getTypeClassIfKnown() : null;
+        Class<?> attributeValueClass = attributeDefinition != null ? attributeDefinition.getTypeClassIfKnown() : null;
         if (attributeValueClass != null) {
-            return attributeValueClass;
+            //noinspection unchecked
+            return (Class<T>) attributeValueClass;
         } else {
             LOGGER.warn("No definition for simulated administrative status attribute {} for {}, assuming String",
                     attribute, ctx.getResource());

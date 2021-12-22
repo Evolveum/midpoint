@@ -99,10 +99,10 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
         return itemDelta;
     }
 
-    private ItemDelta<IV, ID> createDelta() {
+    private @NotNull ItemDelta<IV, ID> createDelta() {
         if (itemDefinition != null) {
             //noinspection unchecked
-            return itemDefinition.createEmptyDelta(itemPath);
+            return (ItemDelta<IV, ID>) itemDefinition.createEmptyDelta(itemPath);
         } else {
             PrismProperty<?> property = new PrismPropertyImpl<>(itemName, parentDefinition.getPrismContext());
             //noinspection unchecked

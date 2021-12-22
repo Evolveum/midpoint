@@ -7,6 +7,7 @@
 
 -- USAGE NOTES: You can apply this to the main repository schema.
 -- For separate audit use this in a separate database.
+-- See the docs here: https://docs.evolveum.com/midpoint/reference/repository/native-audit
 --
 -- @formatter:off because of terribly unreliable IDEA reformat for SQL
 -- Naming conventions:
@@ -86,6 +87,8 @@ CREATE TABLE IF NOT EXISTS m_global_metadata (
 
 -- region AUDIT
 CREATE TABLE ma_audit_event (
+    -- ID is generated as unique, but if provided, it is checked for uniqueness
+    -- only in combination with timestamp because of partitioning.
     id BIGSERIAL NOT NULL,
     timestamp TIMESTAMPTZ NOT NULL,
     eventIdentifier TEXT,
@@ -158,6 +161,8 @@ CREATE TABLE ma_audit_delta (
 ALTER TABLE ma_audit_delta ADD CONSTRAINT ma_audit_delta_fk
     FOREIGN KEY (recordId, timestamp) REFERENCES ma_audit_event (id, timestamp)
         ON DELETE CASCADE;
+
+-- Primary key covers the need for FK(recordId, timestamp) as well, no need for explicit index.
 */
 
 -- TODO: any unique combination within single recordId? name+oid+type perhaps?
@@ -174,11 +179,13 @@ CREATE TABLE ma_audit_ref (
     PRIMARY KEY (id, timestamp) -- real PK must contain partition key (timestamp)
 ) PARTITION BY RANGE (timestamp);
 
-/* Similar FK is created PER PARTITION only
+/* Similar FK is created PER PARTITION only:
 ALTER TABLE ma_audit_ref ADD CONSTRAINT ma_audit_ref_fk
     FOREIGN KEY (recordId, timestamp) REFERENCES ma_audit_event (id, timestamp)
         ON DELETE CASCADE;
 */
+-- Index for FK mentioned above.
+-- Index can be declared for partitioned table and will be partitioned automatically.
 CREATE INDEX ma_audit_ref_recordId_timestamp_idx ON ma_audit_ref (recordId, timestamp);
 
 -- Default tables used when no timestamp range partitions are created:
@@ -237,18 +244,14 @@ BEGIN
 END $$;
 -- endregion
 
--- Initializing the last change number used in postgres-new-upgrade.sql.
-call apply_audit_change(0, $$ SELECT 1 $$, true);
-
----------------------------------------------------------------------------------
--- The rest of the file can be omitted if partitioning is not required or desired
-
 -- https://www.postgresql.org/docs/current/runtime-config-query.html#GUC-ENABLE-PARTITIONWISE-JOIN
 DO $$ BEGIN
     EXECUTE 'ALTER DATABASE ' || current_database() || ' SET enable_partitionwise_join TO on';
 END; $$;
 
 -- region partition creation procedures
+-- Use negative futureCount for creating partitions for the past months if needed.
+-- See also the comment below the procedure for more details.
 CREATE OR REPLACE PROCEDURE audit_create_monthly_partitions(futureCount int)
     LANGUAGE plpgsql
 AS $$
@@ -258,7 +261,7 @@ DECLARE
     tableSuffix TEXT;
 BEGIN
     -- noinspection SqlUnused
-    FOR i IN 1..futureCount loop
+    FOR i IN 1..abs(futureCount) loop
         dateTo := dateFrom + interval '1 month';
         tableSuffix := to_char(dateFrom, 'YYYYMM');
 
@@ -294,23 +297,37 @@ BEGIN
                     'ma_audit_event_' || tableSuffix);
         END;
 
-        dateFrom := dateTo;
+        IF futureCount < 0 THEN
+            -- going to the past
+            dateFrom := dateFrom - interval '1 month';
+        ELSE
+            dateFrom := dateTo;
+        END IF;
+
     END loop;
 END $$;
 -- endregion
 
 /*
 IMPORTANT: Only default partitions are created in this script!
-Use something like this, if you desire monthly partitioning:
-call audit_create_monthly_partitions(12);
+Consider, whether you need partitioning before doing anything, for more read the docs:
+https://docs.evolveum.com/midpoint/reference/repository/native-audit/#partitioning
 
-This creates 12 monthly partitions into the future.
+Use something like this, if you desire monthly partitioning:
+call audit_create_monthly_partitions(120);
+
+This creates 120 monthly partitions into the future (10 years).
 It can be safely called multiple times, so you can run it again anytime in the future.
 If you forget to run, audit events will go to default partition so no data is lost,
 however it may be complicated to organize it into proper partitions after the fact.
 
-For Quartz tables see:
-repo/task-quartz-impl/src/main/resources/com/evolveum/midpoint/task/quartzimpl/execution/tables_postgres.sql
+Create past partitions if needed, e.g. for migration. E.g., for last 12 months (including current):
+call audit_create_monthly_partitions(-12);
+
+Check the existing partitions with this SQL query:
+select inhrelid::regclass as partition
+from pg_inherits
+where inhparent = 'ma_audit_event'::regclass;
 
 Try this to see recent audit events with the real table where they are stored:
 select tableoid::regclass::text AS table_name, *
@@ -318,3 +335,6 @@ from ma_audit_event
 order by id desc
 limit 50;
 */
+
+-- Initializing the last change number used in postgres-new-upgrade.sql.
+call apply_audit_change(1, $$ SELECT 1 $$, true);

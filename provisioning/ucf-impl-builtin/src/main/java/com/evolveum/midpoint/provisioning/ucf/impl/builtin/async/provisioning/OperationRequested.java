@@ -17,8 +17,9 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -78,7 +79,7 @@ public abstract class OperationRequested {
 
         @Override
         public QName getObjectClassName() {
-            ObjectClassComplexTypeDefinition ocd = ShadowUtil.getObjectClassDefinition(shadow);
+            ResourceObjectClassDefinition ocd = ShadowUtil.getObjectClassDefinition(shadow);
             return ocd != null ? ocd.getTypeName() : null;
         }
     }
@@ -100,7 +101,7 @@ public abstract class OperationRequested {
         @Override
         public AsyncProvisioningOperationRequestedType asBeanWithoutShadow() throws SchemaException {
             AsyncProvisioningModifyOperationRequestedType bean = new AsyncProvisioningModifyOperationRequestedType(prismContext)
-                    .identification(identification.asBean(prismContext));
+                    .identification(identification.asBean());
             for (Operation operation : operations) {
                 bean.getOperation().add(operation.asBean(prismContext));
             }
@@ -139,8 +140,8 @@ public abstract class OperationRequested {
 
         @Override
         public QName getObjectClassName() {
-            return identification.getObjectClassDefinition() != null ?
-                    identification.getObjectClassDefinition().getTypeName() : null;
+            return identification.getResourceObjectDefinition() != null ?
+                    identification.getResourceObjectDefinition().getTypeName() : null;
         }
     }
 
@@ -148,7 +149,7 @@ public abstract class OperationRequested {
 
         public final ResourceObjectIdentification identification;
 
-        public Delete(ObjectClassComplexTypeDefinition objectClass, ShadowType shadow,
+        public Delete(ResourceObjectDefinition objectClass, ShadowType shadow,
                 Collection<? extends ResourceAttribute<?>> identifiers, PrismContext prismContext) throws SchemaException {
             super(prismContext, shadow);
             this.identification = ResourceObjectIdentification.create(objectClass, identifiers);
@@ -157,7 +158,7 @@ public abstract class OperationRequested {
         @Override
         public AsyncProvisioningOperationRequestedType asBeanWithoutShadow() throws SchemaException {
             return new AsyncProvisioningDeleteOperationRequestedType(prismContext)
-                    .identification(identification.asBean(prismContext));
+                    .identification(identification.asBean());
         }
 
         @Override
@@ -178,8 +179,8 @@ public abstract class OperationRequested {
 
         @Override
         public QName getObjectClassName() {
-            return identification.getObjectClassDefinition() != null ?
-                    identification.getObjectClassDefinition().getTypeName() : null;
+            return identification.getResourceObjectDefinition() != null ?
+                    identification.getResourceObjectDefinition().getTypeName() : null;
         }
     }
 

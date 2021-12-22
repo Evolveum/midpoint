@@ -7,31 +7,9 @@
 package com.evolveum.midpoint.web.page.login;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.evolveum.midpoint.authentication.api.IdentityProvider;
-import com.evolveum.midpoint.authentication.api.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.Url;
-import com.evolveum.midpoint.authentication.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.link.ExternalLink;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
 
 /**
  * @author skublik

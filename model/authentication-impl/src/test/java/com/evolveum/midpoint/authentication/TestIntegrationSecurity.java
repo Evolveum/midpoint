@@ -6,9 +6,9 @@
  */
 package com.evolveum.midpoint.authentication;
 
-import com.evolveum.midpoint.authentication.impl.security.authorization.MidPointGuiAuthorizationEvaluator;
-import com.evolveum.midpoint.authentication.impl.security.authorization.AuthorizationActionValue;
-import com.evolveum.midpoint.authentication.impl.security.authorization.DescriptorLoaderImpl;
+import com.evolveum.midpoint.authentication.impl.authorization.evaluator.MidPointGuiAuthorizationEvaluator;
+import com.evolveum.midpoint.authentication.impl.authorization.AuthorizationActionValue;
+import com.evolveum.midpoint.authentication.impl.authorization.DescriptorLoaderImpl;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -19,7 +19,6 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;

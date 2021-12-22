@@ -14,11 +14,15 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.Clock;
 
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -28,7 +32,6 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -82,15 +85,11 @@ public class ShadowCaretaker {
             return; // should never occur
         }
         PrismContainerValue<ShadowAttributesType> pcv = (PrismContainerValue<ShadowAttributesType>) value;
-        for (Item item : pcv.getItems()) {
-            ItemDefinition itemDef = item.getDefinition();
+        for (Item<?, ?> item : pcv.getItems()) {
+            ItemDefinition<?> itemDef = item.getDefinition();
             if (!(itemDef instanceof ResourceAttributeDefinition)) {
                 QName attributeName = item.getElementName();
-                ResourceAttributeDefinition attributeDefinition = ctx.getObjectClassDefinition()
-                        .findAttributeDefinition(attributeName);
-                if (attributeDefinition == null) {
-                    throw new SchemaException("No definition for attribute " + attributeName);
-                }
+                ResourceAttributeDefinition<?> attributeDefinition = ctx.findAttributeDefinitionRequired(attributeName);
                 if (itemDef != null) {
                     // We are going to rewrite the definition anyway. Let's just
                     // do some basic checks first
@@ -100,7 +99,8 @@ public class ShadowCaretaker {
                                 + attributeDefinition.getTypeName());
                     }
                 }
-                item.applyDefinition(attributeDefinition);
+                //noinspection unchecked,rawtypes
+                ((Item) item).applyDefinition(attributeDefinition);
             }
         }
     }
@@ -114,14 +114,10 @@ public class ShadowCaretaker {
             return;
         }
         D itemDef = itemDelta.getDefinition();
-        if (itemDef == null || !(itemDef instanceof ResourceAttributeDefinition)) {
+        if (!(itemDef instanceof ResourceAttributeDefinition)) {
             QName attributeName = itemDelta.getElementName();
-            ResourceAttributeDefinition attributeDefinition = ctx.getObjectClassDefinition()
-                    .findAttributeDefinition(attributeName);
-            if (attributeDefinition == null) {
-                throw new SchemaException(
-                        "No definition for attribute " + attributeName + " in object delta " + delta);
-            }
+            ResourceAttributeDefinition<?> attributeDefinition =
+                    ctx.findAttributeDefinitionRequired(attributeName, () -> " in object delta " + delta);
             if (itemDef != null) {
                 // We are going to rewrite the definition anyway. Let's just do
                 // some basic checks first
@@ -131,6 +127,7 @@ public class ShadowCaretaker {
                             + attributeDefinition.getTypeName());
                 }
             }
+            //noinspection unchecked
             itemDelta.applyDefinition((D) attributeDefinition);
         }
     }
@@ -146,9 +143,9 @@ public class ShadowCaretaker {
     public ProvisioningContext applyAttributesDefinition(ProvisioningContext ctx,
             PrismObject<ShadowType> shadow) throws SchemaException, ConfigurationException,
             ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-        ProvisioningContext subctx = ctx.spawn(shadow);
+        ProvisioningContext subctx = ctx.spawnForShadow(shadow);
         subctx.assertDefinition();
-        RefinedObjectClassDefinition objectClassDefinition = subctx.getObjectClassDefinition();
+        ResourceObjectDefinition objectDefinition = subctx.getObjectDefinitionRequired();
 
         PrismContainer<ShadowAttributesType> attributesContainer = shadow
                 .findContainer(ShadowType.F_ATTRIBUTES);
@@ -156,14 +153,14 @@ public class ShadowCaretaker {
             if (attributesContainer instanceof ResourceAttributeContainer) {
                 if (attributesContainer.getDefinition() == null) {
                     attributesContainer
-                            .applyDefinition(objectClassDefinition.toResourceAttributeContainerDefinition());
+                            .applyDefinition(objectDefinition.toResourceAttributeContainerDefinition());
                 }
             } else {
                 try {
                     // We need to convert <attributes> to
                     // ResourceAttributeContainer
                     ResourceAttributeContainer convertedContainer = ResourceAttributeContainer
-                            .convertFromContainer(attributesContainer, objectClassDefinition);
+                            .convertFromContainer(attributesContainer, objectDefinition);
                     shadow.getValue().replace(attributesContainer, convertedContainer);
                 } catch (SchemaException e) {
                     throw new SchemaException(e.getMessage() + " in " + shadow, e);
@@ -177,12 +174,13 @@ public class ShadowCaretaker {
         // correctly because it will not be able to
         // create the attribute container if needed.
 
-        PrismObjectDefinition<ShadowType> objectDefinition = shadow.getDefinition();
-        PrismContainerDefinition<ShadowAttributesType> origAttrContainerDef = objectDefinition
+        PrismObjectDefinition<ShadowType> prismShadowDefinition = shadow.getDefinition();
+        PrismContainerDefinition<ShadowAttributesType> origAttrContainerDef = prismShadowDefinition
                 .findContainerDefinition(ShadowType.F_ATTRIBUTES);
         if (!(origAttrContainerDef instanceof ResourceAttributeContainerDefinition)) {
-            PrismObjectDefinition<ShadowType> clonedDefinition = objectDefinition.cloneWithReplacedDefinition(
-                    ShadowType.F_ATTRIBUTES, objectClassDefinition.toResourceAttributeContainerDefinition());
+            PrismObjectDefinition<ShadowType> clonedDefinition =
+                    prismShadowDefinition.cloneWithReplacedDefinition(
+                            ShadowType.F_ATTRIBUTES, objectDefinition.toResourceAttributeContainerDefinition());
             shadow.setDefinition(clonedDefinition);
             clonedDefinition.freeze();
         }
@@ -202,15 +200,16 @@ public class ShadowCaretaker {
         QName objectClassQName = rawResourceObjectBean.getObjectClass();
         List<QName> auxiliaryObjectClassQNames = rawResourceObjectBean.getAuxiliaryObjectClass();
         if (auxiliaryObjectClassQNames.isEmpty()
-                && objectClassQName.equals(ctx.getObjectClassDefinition().getTypeName())) {
+                && objectClassQName.equals(ctx.getObjectClassDefinitionRequired().getTypeName())) {
             // shortcut, no need to reapply anything
             return ctx;
         }
-        ProvisioningContext shadowCtx = ctx.spawn(rawResourceObject);
+        ProvisioningContext shadowCtx = ctx.spawnForShadow(rawResourceObject);
         shadowCtx.assertDefinition();
-        RefinedObjectClassDefinition shadowDef = shadowCtx.getObjectClassDefinition();
         ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(rawResourceObject);
-        attributesContainer.applyDefinition(shadowDef.toResourceAttributeContainerDefinition());
+        attributesContainer.applyDefinition(
+                shadowCtx.getObjectDefinitionRequired()
+                        .toResourceAttributeContainerDefinition());
         return shadowCtx;
     }
 
@@ -317,15 +316,17 @@ public class ShadowCaretaker {
         return sortedList;
     }
 
-    public ChangeTypeType findPreviousPendingLifecycleOperationInGracePeriod(ProvisioningContext ctx,
-            PrismObject<ShadowType> shadow, XMLGregorianCalendar now)
+    public ChangeTypeType findPreviousPendingLifecycleOperationInGracePeriod(
+            @Nullable ProvisioningContext ctx,
+            @NotNull PrismObject<ShadowType> shadow,
+            @NotNull XMLGregorianCalendar now)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
         List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
         if (pendingOperations.isEmpty()) {
             return null;
         }
-        Duration gracePeriod = ProvisioningUtil.getGracePeriod(ctx);
+        Duration gracePeriod = ctx != null ? ProvisioningUtil.getGracePeriod(ctx) : null;
         ChangeTypeType found = null;
         for (PendingOperationType pendingOperation : pendingOperations) {
             ObjectDeltaType delta = pendingOperation.getDelta();
@@ -354,7 +355,20 @@ public class ShadowCaretaker {
     // NOTE: detection of quantum states (gestation, corpse) might not be precise. E.g. the shadow may already be
     // tombstone because it is not in the snapshot. But as long as the pending operation is in grace we will still
     // detect it as corpse. But that should not cause any big problems.
-    public @NotNull ShadowLifecycleStateType determineShadowState(ProvisioningContext ctx, PrismObject<ShadowType> shadow, XMLGregorianCalendar now)
+    public @NotNull ShadowLifecycleStateType determineShadowState(
+            @NotNull ProvisioningContext ctx,
+            @NotNull PrismObject<ShadowType> shadow,
+            @NotNull XMLGregorianCalendar now)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        return determineShadowStateInternal(ctx, shadow, now);
+    }
+
+    /** If emergency situations the context can be null. */
+    private @NotNull ShadowLifecycleStateType determineShadowStateInternal(
+            @Nullable ProvisioningContext ctx,
+            @NotNull PrismObject<ShadowType> shadow,
+            @NotNull XMLGregorianCalendar now)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
         ShadowType shadowBean = shadow.asObjectable();
@@ -389,6 +403,14 @@ public class ShadowCaretaker {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
             ObjectNotFoundException {
         ShadowLifecycleStateType state = determineShadowState(ctx, shadow, clock.currentTimeXMLGregorianCalendar());
+        shadow.asObjectable().setShadowLifecycleState(state);
+    }
+
+    /** Determines and updates the shadow state - in situations where we don't have the context. */
+    public void updateShadowStateInEmergency(PrismObject<ShadowType> shadow)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            ObjectNotFoundException {
+        ShadowLifecycleStateType state = determineShadowStateInternal(null, shadow, clock.currentTimeXMLGregorianCalendar());
         shadow.asObjectable().setShadowLifecycleState(state);
     }
 

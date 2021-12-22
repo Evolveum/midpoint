@@ -7,17 +7,19 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
+import com.evolveum.midpoint.schema.processor.ShadowCoordinatesQualifiedObjectDelta;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -28,10 +30,10 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -47,22 +49,21 @@ class DefinitionsHelper {
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
-    @Autowired private PrismContext prismContext;
     @Autowired private ShadowCaretaker shadowCaretaker;
     @Autowired protected ShadowManager shadowManager;
     @Autowired private ProvisioningContextFactory ctxFactory;
 
     public void applyDefinition(ObjectDelta<ShadowType> delta, @Nullable ShadowType repoShadow,
-            OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
+            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<ShadowType> shadow = null;
-        ResourceShadowDiscriminator discriminator = null;
+        ResourceShadowCoordinates coordinates = null;
         if (delta.isAdd()) {
             shadow = delta.getObjectToAdd();
         } else if (delta.isModify()) {
-            if (delta instanceof ShadowDiscriminatorObjectDelta) {
+            if (delta instanceof ShadowCoordinatesQualifiedObjectDelta) {
                 // This one does not have OID, it has to be specially processed
-                discriminator = ((ShadowDiscriminatorObjectDelta<?>) delta).getDiscriminator();
+                coordinates = ((ShadowCoordinatesQualifiedObjectDelta<?>) delta).getCoordinates();
             } else {
                 String shadowOid = delta.getOid();
                 if (shadowOid == null) {
@@ -72,8 +73,8 @@ class DefinitionsHelper {
                     }
                     shadow = repoShadow.asPrismObject();
                 } else {
-                    shadow = repositoryService.getObject(delta.getObjectTypeClass(), shadowOid, null,
-                            parentResult); // TODO consider fetching only when really necessary
+                    // TODO consider fetching only when really necessary
+                    shadow = repositoryService.getObject(delta.getObjectTypeClass(), shadowOid, null, result);
                 }
             }
         } else {
@@ -82,32 +83,32 @@ class DefinitionsHelper {
         }
         ProvisioningContext ctx;
         if (shadow == null) {
-            ctx = ctxFactory.create(discriminator, null, parentResult);
-            ctx.assertDefinition();
+            stateCheck(coordinates != null, "No shadow nor coordinates");
+            ctx = ctxFactory.createForCoordinates(coordinates, task, result);
         } else {
-            ctx = ctxFactory.create(shadow, null, parentResult);
-            ctx.assertDefinition();
+            ctx = ctxFactory.createForShadow(shadow, task, result);
         }
         shadowCaretaker.applyAttributesDefinition(ctx, delta);
     }
 
-    public void applyDefinition(PrismObject<ShadowType> shadow, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        ProvisioningContext ctx = ctxFactory.create(shadow, null, parentResult);
-        ctx.assertDefinition();
+    public void applyDefinition(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        ProvisioningContext ctx = ctxFactory.createForShadow(shadow, task, parentResult);
         shadowCaretaker.applyAttributesDefinition(ctx, shadow);
     }
 
-    public void applyDefinition(final ObjectQuery query, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query.getFilter(), prismContext);
-        ProvisioningContext ctx = ctxFactory.create(coordinates, null, result);
-        ctx.assertDefinition();
+    public void applyDefinition(ObjectQuery query, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        ProvisioningContext ctx = ctxFactory.createForCoordinates(
+                ObjectQueryUtil.getCoordinates(query.getFilter()),
+                task, result);
         applyDefinition(ctx, query);
     }
 
-    void applyDefinition(final ProvisioningContext ctx, final ObjectQuery query)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    void applyDefinition(ProvisioningContext ctx, ObjectQuery query)
+            throws SchemaException {
         if (query == null) {
             return;
         }
@@ -115,24 +116,25 @@ class DefinitionsHelper {
         if (filter == null) {
             return;
         }
-        final RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
-        com.evolveum.midpoint.prism.query.Visitor visitor = subfilter -> {
-            if (subfilter instanceof PropertyValueFilter) {
-                PropertyValueFilter<?> valueFilter = (PropertyValueFilter<?>) subfilter;
-                ItemDefinition definition = valueFilter.getDefinition();
+        com.evolveum.midpoint.prism.query.Visitor visitor = subFilter -> {
+            if (subFilter instanceof PropertyValueFilter) {
+                PropertyValueFilter<?> valueFilter = (PropertyValueFilter<?>) subFilter;
+                ItemDefinition<?> definition = valueFilter.getDefinition();
                 if (definition instanceof ResourceAttributeDefinition) {
-                    return;        // already has a resource-related definition
+                    return; // already has a resource-related definition
                 }
                 if (!ShadowType.F_ATTRIBUTES.equivalent(valueFilter.getParentPath())) {
                     return;
                 }
                 QName attributeName = valueFilter.getElementName();
-                ResourceAttributeDefinition attributeDefinition = objectClassDefinition.findAttributeDefinition(attributeName);
+                ResourceAttributeDefinition<?> attributeDefinition =
+                        ctx.getObjectDefinitionRequired().findAttributeDefinition(attributeName);
                 if (attributeDefinition == null) {
-                    throw new TunnelException(new SchemaException("No definition for attribute "
-                            + attributeName + " in query " + query));
+                    throw new TunnelException(
+                            new SchemaException("No definition for attribute " + attributeName + " in query " + query));
                 }
-                valueFilter.setDefinition(attributeDefinition);
+                //noinspection unchecked,rawtypes
+                valueFilter.setDefinition((ResourceAttributeDefinition) attributeDefinition);
             }
         };
         try {

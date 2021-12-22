@@ -7,9 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.dataModel.dot;
 
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.model.impl.dataModel.DataModel;
 import com.evolveum.midpoint.model.impl.dataModel.DataModelVisualizerImpl;
 import com.evolveum.midpoint.model.impl.dataModel.model.*;
@@ -17,6 +16,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -88,9 +89,9 @@ public class DotModel {
                 // TODO style for resource label
                 indent++;
             }
-            RefinedResourceSchema schema = dataModel.getRefinedResourceSchema(resource.getOid());
+            ResourceSchema schema = dataModel.getRefinedResourceSchema(resource.getOid());
 
-            for (RefinedObjectClassDefinition def : schema.getRefinedDefinitions()) {
+            for (ResourceObjectTypeDefinition def : schema.getObjectTypeDefinitions()) {
                 StringBuilder sb1 = new StringBuilder();
 
                 sb1.append(indent(indent)).append("subgraph cluster_").append(clusterNumber++).append(" {\n");
@@ -110,7 +111,7 @@ public class DotModel {
                     ResourceDataItem item = dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), getObjectClassName(def), attrDef.getItemName());
                     previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName, item);
                 }
-                for (RefinedAssociationDefinition assocDef : def.getAssociationDefinitions()) {
+                for (ResourceAssociationDefinition assocDef : def.getAssociationDefinitions()) {
                     if (assocDef.isIgnored()) {
                         continue;
                     }
@@ -199,7 +200,7 @@ public class DotModel {
         return dot;
     }
 
-    private QName getObjectClassName(RefinedObjectClassDefinition def) {
+    private QName getObjectClassName(ResourceObjectTypeDefinition def) {
         return def != null ? def.getTypeName() : null;
     }
 
@@ -249,21 +250,26 @@ public class DotModel {
     }
 
     @NotNull
-    public String getObjectTypeName(RefinedObjectClassDefinition refinedObjectClassDefinition, boolean formatted) {
-        if (refinedObjectClassDefinition == null) {
+    public String getObjectTypeName(ResourceObjectDefinition definition, boolean formatted) {
+        if (definition == null) {
             return "?";
         }
         StringBuilder sb = new StringBuilder();
-        if (refinedObjectClassDefinition.getDisplayName() != null) {
-            sb.append(refinedObjectClassDefinition.getDisplayName());
+        if (definition.getDisplayName() != null) {
+            sb.append(definition.getDisplayName());
             sb.append(formatted ? LF : "/");
         }
-        sb.append(ResourceTypeUtil.fillDefault(refinedObjectClassDefinition.getKind()));
-        sb.append(formatted ? LF : "/");
-        sb.append(ResourceTypeUtil.fillDefault(refinedObjectClassDefinition.getIntent()));
-        sb.append(formatted ? LF : "/");
+        if (definition instanceof ResourceObjectTypeDefinition) {
+            sb.append(ResourceTypeUtil.fillDefault(((ResourceObjectTypeDefinition) definition).getKind()));
+            sb.append(formatted ? LF : "/");
+            sb.append(ResourceTypeUtil.fillDefault(((ResourceObjectTypeDefinition) definition).getIntent()));
+            sb.append(formatted ? LF : "/");
+        } else {
+            sb.append(definition.getObjectClassName().getLocalPart());
+            sb.append(formatted ? LF : "/");
+        }
         sb.append("(");
-        sb.append(refinedObjectClassDefinition.getObjectClassDefinition().getTypeName().getLocalPart());
+        sb.append(definition.getObjectClassDefinition().getTypeName().getLocalPart());
         sb.append(")");
         return sb.toString();
     }

@@ -25,6 +25,7 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -62,7 +63,7 @@ public class ObjectClassSearchItem extends PropertySearchItem<QName> {
                                 task, task.getResult());
                         if (resource != null) {
                             lastResourceOid = resource.getOid();
-                            List<QName> objectClasses = WebComponentUtil.loadResourceObjectClassValues(resource.asObjectable(), pageBase);
+                            Collection<QName> objectClasses = WebComponentUtil.loadResourceObjectClassValues(resource.asObjectable(), pageBase);
                             for (QName objectClass : objectClasses) {
                                 list.add(new SearchValue(objectClass, pageBase.createStringResource(objectClass.getLocalPart()).getString()));
                             }

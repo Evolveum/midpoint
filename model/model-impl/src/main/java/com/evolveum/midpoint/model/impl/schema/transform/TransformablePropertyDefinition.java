@@ -7,24 +7,18 @@
 
 package com.evolveum.midpoint.model.impl.schema.transform;
 
-import java.util.Map;
-import java.util.function.Consumer;
-
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.deleg.RefinedAttributeDefinitionDelegator;
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.schema.processor.deleg.RefinedAttributeDefinitionDelegator;
 import com.evolveum.midpoint.prism.deleg.PropertyDefinitionDelegator;
-import com.evolveum.midpoint.schema.processor.MutableResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.MutableRawResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.deleg.AttributeDefinitionDelegator;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -42,9 +36,6 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         if (originalItem instanceof TransformablePropertyDefinition) {
             return originalItem;
         }
-        if (originalItem instanceof RefinedAttributeDefinition) {
-            return new RefinedAttribute<>(originalItem);
-        }
         if (originalItem instanceof ResourceAttributeDefinition) {
             return new ResourceAttribute<>(originalItem);
         }
@@ -54,7 +45,6 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
 
     @Override
     public void revive(PrismContext prismContext) {
-
     }
 
     @Override
@@ -97,11 +87,23 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
     }
 
     @Override
+    public @NotNull PropertyDelta<T> createEmptyDelta(ItemPath path) {
+        return PropertyDefinitionDelegator.super.createEmptyDelta(path);
+    }
+
+    @Override
+    public Class<T> getTypeClass() {
+        return PropertyDefinitionDelegator.super.getTypeClass();
+    }
+
+    @Override
     protected PrismPropertyDefinition<T> publicView() {
         return this;
     }
 
-    public static class ResourceAttribute<T> extends TransformablePropertyDefinition<T> implements AttributeDefinitionDelegator<T>, PartiallyMutableItemDefinition.Attribute<T> {
+    public static class ResourceAttribute<T>
+            extends TransformablePropertyDefinition<T>
+            implements AttributeDefinitionDelegator<T>, PartiallyMutableItemDefinition.Attribute<T> {
         private static final long serialVersionUID = 1L;
 
         public ResourceAttribute(PrismPropertyDefinition<T> delegate) {
@@ -119,13 +121,33 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         }
 
         @Override
+        public ResourceAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation) {
+            return copy(); // FIXME
+        }
+
+        @Override
         protected ResourceAttribute<T> copy() {
             return new ResourceAttribute<>(this);
         }
 
         @Override
-        public MutableResourceAttributeDefinition<T> toMutable() {
+        public @NotNull MutableRawResourceAttributeDefinition<T> toMutable() {
             return this;
+        }
+
+        @Override
+        public boolean canAdd() {
+            return delegate().canAdd();
+        }
+
+        @Override
+        public boolean canModify() {
+            return delegate().canModify();
+        }
+
+        @Override
+        public boolean canRead() {
+            return delegate().canRead();
         }
 
         @Override
@@ -148,12 +170,12 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         }
 
         @Override
-        public RefinedAttributeDefinition<T> delegate() {
-            return (RefinedAttributeDefinition<T>) super.delegate();
+        public ResourceAttributeDefinition<T> delegate() {
+            return (ResourceAttributeDefinition<T>) super.delegate();
         }
 
         @Override
-        public @NotNull RefinedAttributeDefinition<T> clone() {
+        public @NotNull ResourceAttributeDefinition<T> clone() {
             return copy();
         }
 
@@ -163,8 +185,7 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         }
 
         @Override
-        public RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap,
-                Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
+        public ResourceAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation) {
             throw new UnsupportedOperationException();
         }
 

@@ -10,6 +10,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
@@ -19,8 +24,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -108,11 +111,11 @@ public class ConstructionDetailsPanelChainedModel extends BasePanel<Construction
                     if (resourceModel.getObject() == null) {
                         return availableIntentValues.toString();
                     }
-                    RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceModel.getObject());
+                    ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resourceModel.getObject());
                     if (refinedSchema != null) {
                         ShadowKindType kind = ((IModel<ShadowKindType>) super.getChainedModel()).getObject();
-                        List<? extends RefinedObjectClassDefinition> definitions = refinedSchema.getRefinedDefinitions(kind);
-                        for (RefinedObjectClassDefinition def : definitions) {
+                        List<? extends ResourceObjectTypeDefinition> definitions = refinedSchema.getObjectTypeDefinitions(kind);
+                        for (ResourceObjectTypeDefinition def : definitions) {
                             if (def.getIntent() != null) {
                                 availableIntentValues.add(def.getIntent());
                             }
@@ -171,12 +174,12 @@ public class ConstructionDetailsPanelChainedModel extends BasePanel<Construction
                     if (resourceModel.getObject() == null) {
                         return availableIntentValues;
                     }
-                    RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceModel.getObject());
+                    ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resourceModel.getObject());
                     if (refinedSchema != null) {
                         ConstructionType m = (ConstructionType) constrModel.getObject();
                         ShadowKindType kind = m.getKind();
-                        List<? extends RefinedObjectClassDefinition> definitions = refinedSchema.getRefinedDefinitions(kind);
-                        for (RefinedObjectClassDefinition def : definitions) {
+                        List<? extends ResourceObjectTypeDefinition> definitions = refinedSchema.getObjectTypeDefinitions(kind);
+                        for (ResourceObjectTypeDefinition def : definitions) {
                             if (def.getIntent() != null) {
                                 availableIntentValues.add(def.getIntent());
                             }

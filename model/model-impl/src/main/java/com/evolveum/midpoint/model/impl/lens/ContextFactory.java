@@ -10,7 +10,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
+import com.evolveum.midpoint.schema.processor.ShadowCoordinatesQualifiedObjectDelta;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.Validate;
@@ -18,7 +20,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -136,9 +137,10 @@ public class ContextFactory {
                 // We try to add the definitions by calling provisioning
                 provisioningService.applyDefinition(projectionDelta, task, result);
 
-                if (projectionDelta instanceof ShadowDiscriminatorObjectDelta) {
-                    ShadowDiscriminatorObjectDelta<ShadowType> shadowDelta = (ShadowDiscriminatorObjectDelta<ShadowType>)projectionDelta;
-                    projectionContext.setResourceShadowDiscriminator(shadowDelta.getDiscriminator());
+                if (projectionDelta instanceof ShadowCoordinatesQualifiedObjectDelta) {
+                    projectionContext.setResourceShadowDiscriminator(
+                            new ResourceShadowDiscriminator(
+                                    ((ShadowCoordinatesQualifiedObjectDelta<ShadowType>)projectionDelta).getCoordinates()));
                 } else {
                     if (!projectionDelta.isAdd() && projectionDelta.getOid() == null) {
                         throw new IllegalArgumentException("Delta "+projectionDelta+" does not have an OID");

@@ -131,6 +131,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 
     private void testGetResourceBrokenSchema(BreakMode breakMode) throws Exception {
         given();
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         // precondition
@@ -143,7 +144,7 @@ public class TestDummyNegative extends AbstractDummyTest {
         try {
 
             when();
-            PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
+            PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 
             then();
             display("Resource with broken schema", resource);
@@ -244,7 +245,7 @@ public class TestDummyNegative extends AbstractDummyTest {
     @Test
     public void test210AddAccountNoObjectClass() throws Exception {
         given();
-        Task task =getTestTask();
+        Task task = getTestTask();
         OperationResult result = getTestOperationResult();
         syncServiceMock.reset();
 
@@ -294,7 +295,8 @@ public class TestDummyNegative extends AbstractDummyTest {
             provisioningService.addObject(account, null, null, task, result);
 
             AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
-        } catch (SchemaException e) {
+        } catch (IllegalArgumentException | NullPointerException e) {
+            // Exception may vary depending on whether we run with @NotNull annotations checked
             displayExpectedException(e);
         }
 
@@ -404,7 +406,8 @@ public class TestDummyNegative extends AbstractDummyTest {
         resource.getAccountByUsername(UNSTORABLE_ACCOUNT).replaceAttributeValue(ATTR_NUMBER, "WRONG");
 
         when(GOOD_ACCOUNT);
-        PrismObject<ShadowType> goodReloaded = provisioningService.getObject(ShadowType.class, goodOid, null, task, result);
+        PrismObject<ShadowType> goodReloaded =
+                provisioningService.getObject(ShadowType.class, goodOid, null, task, result);
 
         then(GOOD_ACCOUNT);
         assertShadow(goodReloaded, GOOD_ACCOUNT)
@@ -484,6 +487,7 @@ public class TestDummyNegative extends AbstractDummyTest {
                     .end();
 
         assertSelectedAccountByName(objects, INCONVERTIBLE_ACCOUNT)
+                .display()
                 .assertOid()
                 .assertKind(ShadowKindType.ACCOUNT)
                 .assertPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT)

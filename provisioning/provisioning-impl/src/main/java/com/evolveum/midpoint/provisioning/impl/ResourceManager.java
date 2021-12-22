@@ -12,19 +12,20 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 
+import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -47,16 +48,12 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -91,8 +88,8 @@ public class ResourceManager {
     /**
      * Completes a resource that has been - we expect - just retrieved from the repository, usually by a search operation.
      */
-    PrismObject<ResourceType> completeResource(PrismObject<ResourceType> repositoryObject, GetOperationOptions options, Task task,
-            OperationResult parentResult)
+    PrismObject<ResourceType> completeResource(
+            PrismObject<ResourceType> repositoryObject, GetOperationOptions options, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         String oid = repositoryObject.getOid();
@@ -112,7 +109,8 @@ public class ResourceManager {
     /**
      * Gets a resource.
      */
-    @NotNull public PrismObject<ResourceType> getResource(String oid, GetOperationOptions options, Task task, OperationResult parentResult)
+    @NotNull public PrismObject<ResourceType> getResource(
+            @NotNull String oid, @Nullable GetOperationOptions options, @NotNull Task task, @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
         boolean readonly = GetOperationOptions.isReadOnly(options);
         PrismObject<ResourceType> cachedResource = resourceCache.getIfLatest(oid, readonly, parentResult);
@@ -274,8 +272,8 @@ public class ResourceManager {
             try {
                 // make sure it has parsed resource and refined schema. We are going to cache
                 // it, so we want to cache it with the parsed schemas
-                RefinedResourceSchemaImpl.getResourceSchema(newResource, prismContext);
-                RefinedResourceSchemaImpl.getRefinedSchema(newResource);
+                ResourceSchemaFactory.getRawSchema(newResource);
+                ResourceSchemaFactory.getCompleteSchema(newResource);
 
             } catch (SchemaException e) {
                 String message = "Schema error while processing schemaHandling section of " + newResource + ": " + e.getMessage();
@@ -314,7 +312,7 @@ public class ResourceManager {
         return ResourceTypeUtil.getResourceXsdSchema(resource) != null;
     }
 
-    private void completeSchemaAndCapabilities(PrismObject<ResourceType> resource, ResourceSchema resourceSchema, boolean fetchedSchema,
+    private void completeSchemaAndCapabilities(PrismObject<ResourceType> resource, ResourceSchema rawResourceSchema, boolean fetchedSchema,
             Map<String, Collection<Object>> capabilityMap, OperationResult result)
                     throws SchemaException, CommunicationException, ObjectNotFoundException, GenericFrameworkException, ConfigurationException {
 
@@ -325,32 +323,32 @@ public class ResourceManager {
         // We need to determine this capability to select the right connector for schema retrieval.
         completeCapabilities(resource, capabilityMap != null, capabilityMap, modifications, result);
 
-        if (resourceSchema == null) {
+        if (rawResourceSchema == null) {
             // Try to get existing schema from resource. We do not want to override this if it exists
             // (but we still want to refresh the capabilities, that happens below)
-            resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
+            rawResourceSchema = ResourceSchemaFactory.getRawSchema(resource);
         }
 
-        if (resourceSchema == null || resourceSchema.isEmpty()) {
+        if (rawResourceSchema == null || rawResourceSchema.isEmpty()) {
 
             LOGGER.trace("Fetching resource schema for {}", resource);
 
-            resourceSchema = fetchResourceSchema(resource, capabilityMap, result);
+            rawResourceSchema = fetchResourceSchema(resource, capabilityMap, result);
 
-            if (resourceSchema == null) {
+            if (rawResourceSchema == null) {
                 LOGGER.warn("No resource schema fetched from {}", resource);
-            } else if (resourceSchema.isEmpty()) {
+            } else if (rawResourceSchema.isEmpty()) {
                 LOGGER.warn("Empty resource schema fetched from {}", resource);
             } else {
-                LOGGER.debug("Fetched resource schema for {}: {} definitions", resource, resourceSchema.getDefinitions().size());
+                LOGGER.debug("Fetched resource schema for {}: {} definitions", resource, rawResourceSchema.getDefinitions().size());
                 fetchedSchema = true;
             }
         }
 
-        if (resourceSchema != null) {
+        if (rawResourceSchema != null) {
             if (fetchedSchema) {
-                adjustSchemaForSimulatedCapabilities(resource, resourceSchema);
-                modifications.add(createSchemaUpdateDelta(resource, resourceSchema));
+                rawResourceSchema = adjustSchemaForSimulatedCapabilities(resource, rawResourceSchema);
+                modifications.add(createSchemaUpdateDelta(resource, rawResourceSchema));
                 AvailabilityStatusType previousStatus = ResourceTypeUtil.getLastAvailabilityStatus(resource.asObjectable());
                 if (previousStatus != AvailabilityStatusType.UP) {
                     modifications.addAll(operationalStateManager.createAndLogOperationalStateDeltas(previousStatus,
@@ -640,8 +638,12 @@ public class ResourceManager {
         return provisioningService.getSystemConfiguration();
     }
 
-    private ResourceSchema fetchResourceSchema(PrismObject<ResourceType> resource, Map<String, Collection<Object>> capabilityMap, OperationResult parentResult)
-            throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException, SchemaException {
+    private ResourceSchema fetchResourceSchema(
+            PrismObject<ResourceType> resource,
+            Map<String, Collection<Object>> capabilityMap,
+            OperationResult parentResult)
+            throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,
+            SchemaException {
         ConnectorSpec connectorSpec = selectConnectorSpec(resource, capabilityMap, SchemaCapabilityType.class);
         if (connectorSpec == null) {
             LOGGER.debug("No connector has schema capability, cannot fetch resource schema");
@@ -652,12 +654,12 @@ public class ResourceManager {
         ConnectorInstance connectorInstance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, parentResult);
 
         LOGGER.debug("Trying to get schema from {}, objectClasses to generate: {}", connectorSpec, generateObjectClasses);
-        ResourceSchema resourceSchema = connectorInstance.fetchResourceSchema(parentResult);
+        ResourceSchema rawResourceSchema = connectorInstance.fetchResourceSchema(parentResult);
 
         if (ResourceTypeUtil.isValidateSchema(resource.asObjectable())) {
-            ResourceTypeUtil.validateSchema(resourceSchema, resource);
+            ResourceTypeUtil.validateSchema(rawResourceSchema, resource);
         }
-        return resourceSchema;
+        return rawResourceSchema;
 
     }
 
@@ -714,10 +716,10 @@ public class ResourceManager {
 
         OperationResult schemaResult = parentResult.createSubresult(ConnectorTestOperation.RESOURCE_SCHEMA.getOperation());
 
-        ResourceSchema schema;
+        ResourceSchema rawSchema;
         try {
 
-            schema = fetchResourceSchema(resource, capabilityMap, schemaResult);
+            rawSchema = fetchResourceSchema(resource, capabilityMap, schemaResult);
 
         } catch (CommunicationException e) {
             String statusChangeReason = operationDesc + " failed while fetching schema: " + e.getMessage();
@@ -737,11 +739,11 @@ public class ResourceManager {
             return;
         }
 
-        if (schema == null || schema.isEmpty()) {
+        if (rawSchema == null || rawSchema.isEmpty()) {
             // Resource does not support schema
             // If there is a static schema in resource definition this may still be OK
             try {
-                schema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
+                rawSchema = ResourceSchemaFactory.getRawSchema(resource);
             } catch (SchemaException e) {
                 String statusChangeReason = operationDesc + " failed while parsing refined schema: " + e.getMessage();
                 if (LOGGER.isTraceEnabled()) {
@@ -752,7 +754,7 @@ public class ResourceManager {
                 return;
             }
 
-            if (schema == null || schema.isEmpty()) {
+            if (rawSchema == null || rawSchema.isEmpty()) {
                 String msg = "Connector does not support schema and no static schema available";
                 String statusChangeReason = operationDesc + ". " + msg;
                 modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, statusChangeReason, task, parentResult, true);
@@ -768,7 +770,7 @@ public class ResourceManager {
         try {
             // Re-fetching from repository to get up-to-date availability status (to avoid phantom state change records).
             PrismObject<ResourceType> repoResource = repositoryService.getObject(ResourceType.class, resourceOid, null, schemaResult);
-            completedResource = completeResourceInternal(repoResource, schema, true, capabilityMap, null, task, schemaResult);
+            completedResource = completeResourceInternal(repoResource, rawSchema, true, capabilityMap, null, task, schemaResult);
         } catch (ObjectNotFoundException e) {
             String msg = "Object not found (unexpected error, probably a bug): " + e.getMessage();
             String statusChangeReason = operationDesc + " failed while completing resource. " + msg;
@@ -821,7 +823,7 @@ public class ResourceManager {
     private void updateResourceSchema(List<ConnectorSpec> allConnectorSpecs, OperationResult parentResult,
             PrismObject<ResourceType> resource)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-        ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
         if (resourceSchema != null) {
             for (ConnectorSpec connectorSpec : allConnectorSpecs) {
                 ConnectorInstance instance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, parentResult);
@@ -899,7 +901,7 @@ public class ResourceManager {
             //       Most connectors will just ignore the schema and capabilities that are provided here.
             //       But some connectors may need it (e.g. CSV connector working with CSV file without a header).
             //
-            ResourceSchema previousResourceSchema = RefinedResourceSchemaImpl.getResourceSchema(connectorSpec.getResource(), prismContext);
+            ResourceSchema previousResourceSchema = ResourceSchemaFactory.getRawSchema(connectorSpec.getResource());
             Collection<Object> previousCapabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(connectorSpec.getResource().asObjectable());
             connector.initialize(previousResourceSchema, previousCapabilities,
                     ResourceTypeUtil.isCaseIgnoreAttributeNames(connectorSpec.getResource().asObjectable()), configResult);
@@ -1067,48 +1069,70 @@ public class ResourceManager {
      * are used for special purpose (such as account activation simulation).
      *
      * TODO treat also objectclass-specific capabilities here
+     *
+     * @return The updated schema (may be cloned if necessary)
      */
-    private void adjustSchemaForSimulatedCapabilities(PrismObject<ResourceType> resource, ResourceSchema resourceSchema) {
+    private ResourceSchema adjustSchemaForSimulatedCapabilities(PrismObject<ResourceType> resource, ResourceSchema rawSchema) {
         ResourceType resourceType = resource.asObjectable();
         if (resourceType.getCapabilities() == null || resourceType.getCapabilities().getConfigured() == null) {
-            return;
+            return rawSchema;
         }
-        ActivationCapabilityType activationCapability = CapabilityUtil.getCapability(resourceType
-                .getCapabilities().getConfigured().getAny(), ActivationCapabilityType.class);
+        ActivationCapabilityType activationCapability =
+                CapabilityUtil.getCapability(
+                        resourceType.getCapabilities().getConfigured().getAny(), ActivationCapabilityType.class);
         if (CapabilityUtil.getEnabledActivationStatus(activationCapability) != null) {
             QName attributeName = activationCapability.getStatus().getAttribute();
             Boolean ignore = activationCapability.getStatus().isIgnoreAttribute();
-            if (attributeName != null) {
-                // The attribute used for enable/disable simulation should be ignored in the schema
-                // otherwise strange things may happen, such as changing the same attribute both from
-                // activation/enable and from the attribute using its native name.
-                for (ObjectClassComplexTypeDefinition objectClassDefinition : resourceSchema
-                        .getDefinitions(ObjectClassComplexTypeDefinition.class)) {
-                    ResourceAttributeDefinition attributeDefinition = objectClassDefinition
-                            .findAttributeDefinition(attributeName);
-                    if (attributeDefinition != null) {
-                        if (ignore == null || ignore) {
-                            ((MutableItemDefinition) attributeDefinition).setProcessing(ItemProcessing.IGNORE);
-                        }
-                    } else {
-                        // simulated activation attribute points to something that is not in the schema
-                        // technically, this is an error. But it looks to be quite common in connectors.
-                        // The enable/disable is using operational attributes that are not exposed in the
-                        // schema, but they work if passed to the connector.
-                        // Therefore we don't want to break anything. We could log an warning here, but the
-                        // warning would be quite frequent. Maybe a better place to warn user would be import
-                        // of the object.
-                        LOGGER.debug("Simulated activation attribute "
-                                + attributeName
-                                + " for objectclass "
-                                + objectClassDefinition.getTypeName()
-                                + " in "
-                                + resource
-                                + " does not exist in the resource schema. This may work well, but it is not clean. Connector exposing such schema should be fixed.");
-                    }
-                }
+            if (attributeName != null && !Boolean.FALSE.equals(ignore)) {
+                rawSchema = setAttributeIgnored(resource, rawSchema, attributeName);
             }
         }
+        return rawSchema;
+    }
+
+    /**
+     * Sets the attribute with a given name as ignored - in all object classes.
+     *
+     * The attribute used for enable/disable simulation should be ignored in the schema
+     * otherwise strange things may happen, such as changing the same attribute both from
+     * activation/enable and from the attribute using its native name.
+     *
+     * TODO Is it OK that we update the attribute in all the object classes?
+     *
+     * @return The updated schema (may be cloned if necessary)
+     */
+    private ResourceSchema setAttributeIgnored(
+            PrismObject<ResourceType> resource, ResourceSchema rawSchema, QName attributeName) {
+
+        if (rawSchema.isImmutable()) {
+            rawSchema = rawSchema.clone();
+        }
+        assert rawSchema.isRaw();
+
+        for (ResourceObjectClassDefinition objectClassDefinition : rawSchema.getObjectClassDefinitions()) {
+            ResourceAttributeDefinition<?> attributeDefinition = objectClassDefinition.findAttributeDefinition(attributeName);
+            if (attributeDefinition != null) {
+                objectClassDefinition.toMutable().replaceDefinition(
+                        attributeDefinition.getItemName(),
+                        attributeDefinition.spawnModifyingRaw(def -> def.setProcessing(ItemProcessing.IGNORE)));
+            } else {
+                // TODO is the following description OK even if we consider multiple object classes?
+                //  For example, the attribute may be present in inetOrgPerson but may be missing in
+                //  organizationalUnit.
+                //
+                // Simulated activation attribute points to something that is not in the schema
+                // technically, this is an error. But it looks to be quite common in connectors.
+                // The enable/disable is using operational attributes that are not exposed in the
+                // schema, but they work if passed to the connector.
+                // Therefore we don't want to break anything. We could log an warning here, but the
+                // warning would be quite frequent. Maybe a better place to warn user would be import
+                // of the object.
+                LOGGER.debug("Simulated activation attribute {} for objectclass {} in {}  does not exist in "
+                        + "the resource schema. This may work well, but it is not clean. Connector exposing "
+                        + "such schema should be fixed.", attributeName, objectClassDefinition.getTypeName(), resource);
+            }
+        }
+        return rawSchema;
     }
 
     public void applyDefinition(ObjectDelta<ResourceType> delta, ResourceType resourceWhenNoOid, GetOperationOptions options, Task task, OperationResult objectResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
@@ -1270,8 +1294,9 @@ public class ResourceManager {
         ConnectorInstance connectorInstance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, result);
         ExecuteProvisioningScriptOperation scriptOperation = ProvisioningUtil.convertToScriptOperation(script, "script on "+resource, prismContext);
         try {
-            StateReporter reporter = new StateReporter(lightweightIdentifierGenerator, resourceOid, task);
-            return connectorInstance.executeScript(scriptOperation, reporter, result);
+            UcfExecutionContext ucfCtx = new UcfExecutionContext(
+                    lightweightIdentifierGenerator, resource.asObjectable(), task);
+            return connectorInstance.executeScript(scriptOperation, ucfCtx, result);
         } catch (GenericFrameworkException e) {
             // Not expected. Transform to system exception
             result.recordFatalError("Generic provisioning framework error", e);
@@ -1320,10 +1345,10 @@ public class ResourceManager {
     }
 
     /**
-     * Returns connector capabilities merged with capabilities defined at object class level.
+     * Returns connector capabilities merged with capabilities defined at object type level.
      */
     <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(ResourceType resource,
-            RefinedObjectClassDefinition objectClassDefinition, Class<T> operationCapabilityClass) {
+            ResourceObjectTypeDefinition objectTypeDefinition, Class<T> operationCapabilityClass) {
         if (resource == null) {
             return null;
         }
@@ -1339,7 +1364,7 @@ public class ResourceManager {
             connectorCapabilities = resource.getCapabilities();
         }
 
-        CapabilitiesType finalCapabilities = applyObjectClassCapabilities(connectorCapabilities, objectClassDefinition);
+        CapabilitiesType finalCapabilities = applyObjectClassCapabilities(connectorCapabilities, objectTypeDefinition);
         LOGGER.trace("Returning final capabilities:\n{} ", finalCapabilities);
         return finalCapabilities;
     }
@@ -1350,22 +1375,22 @@ public class ResourceManager {
      * (A unit of comparison is the whole capability, identified by its root level element.)
      */
     private CapabilitiesType applyObjectClassCapabilities(CapabilitiesType connectorCapabilities,
-            RefinedObjectClassDefinition objectClassDefinition) {
+            ResourceObjectTypeDefinition objectTypeDefinition) {
 
-        if (objectClassDefinition == null) {
-            LOGGER.trace("No object class definition, skipping merge.");
+        if (objectTypeDefinition == null) {
+            LOGGER.trace("No object type definition, skipping merge.");
             return connectorCapabilities;
         }
 
-        CapabilitiesType objectClassCapabilities = objectClassDefinition.getCapabilities();
-        if (objectClassCapabilities == null) {
-            LOGGER.trace("No capabilities for {} specified, skipping merge.", objectClassDefinition);
+        CapabilitiesType objectTypeCapabilities = objectTypeDefinition.getConfiguredCapabilities();
+        if (objectTypeCapabilities == null) {
+            LOGGER.trace("No capabilities for {} specified, skipping merge.", objectTypeDefinition);
             return connectorCapabilities;
         }
 
-        CapabilityCollectionType configuredObjectClassCapabilities = objectClassCapabilities.getConfigured();
-        if (configuredObjectClassCapabilities == null) {
-            LOGGER.trace("No configured capabilities in {} specified, skipping merge", objectClassDefinition);
+        CapabilityCollectionType configuredObjectTypeCapabilities = objectTypeCapabilities.getConfigured();
+        if (configuredObjectTypeCapabilities == null) {
+            LOGGER.trace("No configured capabilities in {} specified, skipping merge", objectTypeDefinition);
             return connectorCapabilities;
         }
 
@@ -1375,18 +1400,19 @@ public class ResourceManager {
         }
 
         if (!hasConfiguredCapabilities(connectorCapabilities)) {
-            LOGGER.trace("No configured capabilities found for connector, replacing with capabilities defined for {}", objectClassDefinition);
-            finalCapabilities.setConfigured(configuredObjectClassCapabilities);
+            LOGGER.trace("No configured capabilities found for connector, replacing with capabilities defined for {}",
+                    objectTypeDefinition);
+            finalCapabilities.setConfigured(configuredObjectTypeCapabilities);
             return finalCapabilities;
         }
 
         for (Object capability : connectorCapabilities.getConfigured().getAny()) {
-            if (!CapabilityUtil.containsCapabilityWithSameElementName(configuredObjectClassCapabilities.getAny(), capability)) {
-                configuredObjectClassCapabilities.getAny().add(capability);
+            if (!CapabilityUtil.containsCapabilityWithSameElementName(configuredObjectTypeCapabilities.getAny(), capability)) {
+                configuredObjectTypeCapabilities.getAny().add(capability);
             }
         }
 
-        finalCapabilities.setConfigured(configuredObjectClassCapabilities);
+        finalCapabilities.setConfigured(configuredObjectTypeCapabilities);
         return finalCapabilities;
     }
 

@@ -11,14 +11,16 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
 
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import com.querydsl.sql.types.Null;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.schema.internals.InternalCounters;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
 import org.testng.annotations.Test;
 
@@ -91,7 +93,7 @@ public class TestOpenDjDumber extends TestOpenDj {
             provisioningService.deleteObject(ShadowType.class, OU_SUPER_OID, null, null, task, result);
 
             assertNotReached();
-        } catch (IllegalArgumentException e) {
+        } catch (NullPointerException | IllegalArgumentException e) {
             // expected
         }
 
@@ -99,5 +101,4 @@ public class TestOpenDjDumber extends TestOpenDj {
         then();
         assertFailure(result);
     }
-
 }

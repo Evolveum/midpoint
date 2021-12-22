@@ -83,14 +83,15 @@ class DeleteHelper {
 
         InternalMonitor.recordCount(InternalCounters.SHADOW_CHANGE_OPERATION_COUNT);
 
-        ProvisioningContext ctx = ctxFactory.create(repoShadow, task, result);
+        ProvisioningContext ctx;
         try {
+            ctx = ctxFactory.createForShadow(repoShadow, task, result);
             ctx.assertDefinition();
         } catch (ObjectNotFoundException ex) {
             // If the force option is set, delete shadow from the repo even if the resource does not exist.
             if (ProvisioningOperationOptions.isForce(options)) {
                 result.muteLastSubresultError();
-                shadowManager.deleteShadow(ctx, repoShadow, result);
+                shadowManager.deleteShadow(repoShadow, task, result);
                 result.recordHandledError(
                         "Resource defined in shadow does not exists. Shadow was deleted from the repository.");
                 return null;

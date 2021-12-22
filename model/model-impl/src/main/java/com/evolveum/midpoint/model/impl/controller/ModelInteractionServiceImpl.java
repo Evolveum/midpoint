@@ -25,7 +25,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.authentication.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
@@ -43,7 +44,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
@@ -274,7 +274,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             } catch (CommunicationException | SecurityViolationException | ExpressionEvaluationException e) {
                 throw new ConfigurationException(e.getMessage(), e);
             }
-            RefinedObjectClassDefinition refinedObjectClassDefinition = getEditObjectClassDefinition(shadow, resource, phase, task, result);
+            ResourceObjectDefinition refinedObjectClassDefinition =
+                    getEditObjectClassDefinition(shadow, resource, phase, task, result);
             if (refinedObjectClassDefinition != null) {
                 objectDefinition.replaceDefinition(ShadowType.F_ATTRIBUTES,
                         refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
@@ -327,17 +328,23 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public RefinedObjectClassDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, AuthorizationPhaseType phase, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public ResourceObjectDefinition getEditObjectClassDefinition(
+            PrismObject<ShadowType> shadow,
+            PrismObject<ResourceType> resource,
+            AuthorizationPhaseType phase,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         Validate.notNull(resource, "Resource must not be null");
 
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-        CompositeRefinedObjectClassDefinition rocd = refinedSchema.determineCompositeObjectClassDefinition(shadow);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ResourceObjectDefinition rocd = ResourceObjectDefinitionResolver.getDefinitionForShadow(resourceSchema, shadow);
         if (rocd == null) {
             LOGGER.debug("No object class definition for shadow {}, returning null", shadow.getOid());
             return null;
         }
-        LayerRefinedObjectClassDefinition layeredROCD = rocd.forLayer(LayerType.PRESENTATION);
+        ResourceObjectDefinition objectDefinition = rocd.forLayer(LayerType.PRESENTATION);
 
         // TODO: maybe we need to expose owner resolver in the interface?
         ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(shadow, null, task, result);
@@ -360,30 +367,41 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         /*
          *  We are going to modify attribute definitions list.
-         *  So let's make a (shallow) clone here, although it is probably not strictly necessary.
+         *  So let's make a (shallow) clone here.
          */
-        layeredROCD = layeredROCD.clone();
-        for (LayerRefinedAttributeDefinition rAttrDef : layeredROCD.getAttributeDefinitions()) {
+        objectDefinition = objectDefinition.clone();
+        // Let's work on the copied list, as we modify (replace = delete+add) the definitions in the object definition.
+        List<? extends ResourceAttributeDefinition<?>> definitionsCopy =
+                new ArrayList<>(objectDefinition.getAttributeDefinitions());
+        for (ResourceAttributeDefinition<?> rAttrDef : definitionsCopy) {
             ItemPath attributePath = ItemPath.create(ShadowType.F_ATTRIBUTES, rAttrDef.getItemName());
             AuthorizationDecisionType attributeReadDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, attributesReadDecision, phase);
             AuthorizationDecisionType attributeAddDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, attributesAddDecision, phase);
             AuthorizationDecisionType attributeModifyDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, attributesModifyDecision, phase);
             LOGGER.trace("Attribute {} access read:{}, add:{}, modify:{}", rAttrDef.getItemName(), attributeReadDecision,
                     attributeAddDecision, attributeModifyDecision);
-            if (attributeReadDecision != AuthorizationDecisionType.ALLOW) {
-                ((LayerRefinedAttributeDefinitionImpl) rAttrDef).setOverrideCanRead(false);
-            }
-            if (attributeAddDecision != AuthorizationDecisionType.ALLOW) {
-                ((LayerRefinedAttributeDefinitionImpl) rAttrDef).setOverrideCanAdd(false);
-            }
-            if (attributeModifyDecision != AuthorizationDecisionType.ALLOW) {
-                ((LayerRefinedAttributeDefinitionImpl) rAttrDef).setOverrideCanModify(false);
+            if (attributeReadDecision != AuthorizationDecisionType.ALLOW
+                    || attributeAddDecision != AuthorizationDecisionType.ALLOW
+                    || attributeModifyDecision != AuthorizationDecisionType.ALLOW) {
+
+                // This opens up flag overriding
+                ResourceAttributeDefinition<?> attrDefClone = rAttrDef.clone();
+                if (attributeReadDecision != AuthorizationDecisionType.ALLOW) {
+                    attrDefClone.setOverrideCanRead(false);
+                }
+                if (attributeAddDecision != AuthorizationDecisionType.ALLOW) {
+                    attrDefClone.setOverrideCanAdd(false);
+                }
+                if (attributeModifyDecision != AuthorizationDecisionType.ALLOW) {
+                    attrDefClone.setOverrideCanModify(false);
+                }
+                objectDefinition.replaceDefinition(rAttrDef.getItemName(), attrDefClone);
             }
         }
 
         // TODO what about activation and credentials?
 
-        return layeredROCD;
+        return objectDefinition;
     }
 
     @Override
@@ -656,7 +674,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public SecurityPolicyType getSecurityPolicy(RefinedObjectClassDefinition rOCDef, Task task, OperationResult parentResult)
+    public SecurityPolicyType getSecurityPolicy(ResourceObjectDefinition rOCDef, Task task, OperationResult parentResult)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException {
         OperationResult result = parentResult.createMinorSubresult(GET_SECURITY_POLICY);
         try {

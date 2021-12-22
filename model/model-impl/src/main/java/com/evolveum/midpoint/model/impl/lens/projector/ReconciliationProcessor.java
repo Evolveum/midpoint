@@ -17,7 +17,7 @@ import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
@@ -27,7 +27,7 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.*;
@@ -37,18 +37,11 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.PropertyLimitations;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -129,7 +122,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
         reconcileAuxiliaryObjectClasses(projCtx);
 
-        RefinedObjectClassDefinition rOcDef = projCtx.getCompositeObjectClassDefinition();
+        ResourceObjectDefinition rOcDef = projCtx.getCompositeObjectDefinition();
 
         Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes = projCtx
                 .getSqueezedAttributes();
@@ -203,7 +196,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
     }
 
     private boolean isTolerantAuxiliaryObjectClasses(LensProjectionContext projCtx) throws SchemaException {
-        ResourceBidirectionalMappingAndDefinitionType auxiliaryObjectClassMappings = projCtx.getStructuralObjectClassDefinition().getAuxiliaryObjectClassMappings();
+        ResourceBidirectionalMappingAndDefinitionType auxiliaryObjectClassMappings = projCtx.getStructuralObjectDefinition().getAuxiliaryObjectClassMappings();
         if (auxiliaryObjectClassMappings == null) {
             return false;
         }
@@ -257,24 +250,25 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
         List<QName> attributesToDelete = new ArrayList<>();
         String projHumanReadableName = projCtx.getHumanReadableName();
-        RefinedResourceSchema refinedResourceSchema = projCtx.getRefinedResourceSchema();
-        RefinedObjectClassDefinition structuralObjectClassDefinition = projCtx.getStructuralObjectClassDefinition();
-        Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions = projCtx.getAuxiliaryObjectClassDefinitions();
+        ResourceSchema refinedResourceSchema = projCtx.getResourceSchema();
+        ResourceObjectDefinition structuralObjectDefinition = projCtx.getStructuralObjectDefinition();
+        Collection<ResourceObjectDefinition> auxiliaryObjectClassDefinitions = projCtx.getAuxiliaryObjectClassDefinitions();
         for (QName deleteAuxOcName: deletedAuxObjectClassNames) {
-            ObjectClassComplexTypeDefinition auxOcDef = refinedResourceSchema.findObjectClassDefinition(deleteAuxOcName);
-            for (ResourceAttributeDefinition auxAttrDef: auxOcDef.getAttributeDefinitions()) {
+            ResourceObjectDefinition auxOcDef = refinedResourceSchema.findDefinitionForObjectClassRequired(deleteAuxOcName);
+            for (ResourceAttributeDefinition<?> auxAttrDef: auxOcDef.getAttributeDefinitions()) {
                 QName auxAttrName = auxAttrDef.getItemName();
                 if (attributesToDelete.contains(auxAttrName)) {
                     continue;
                 }
-                RefinedAttributeDefinition<Object> strucuralAttrDef = structuralObjectClassDefinition.findAttributeDefinition(auxAttrName);
-                if (strucuralAttrDef == null) {
+                ResourceAttributeDefinition<?> structuralAttrDef =
+                        structuralObjectDefinition.findAttributeDefinition(auxAttrName);
+                if (structuralAttrDef == null) {
                     boolean found = false;
-                    for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
+                    for (ResourceObjectDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
                         if (QNameUtil.contains(deletedAuxObjectClassNames, auxiliaryObjectClassDefinition.getTypeName())) {
                             continue;
                         }
-                        RefinedAttributeDefinition<Object> existingAuxAttrDef = auxiliaryObjectClassDefinition.findAttributeDefinition(auxAttrName);
+                        ResourceAttributeDefinition<?> existingAuxAttrDef = auxiliaryObjectClassDefinition.findAttributeDefinition(auxAttrName);
                         if (existingAuxAttrDef != null) {
                             found = true;
                             break;
@@ -311,7 +305,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
         PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
 
-        PrismContainer attributesContainer = shadowNew.findContainer(ShadowType.F_ATTRIBUTES);
+        PrismContainer<?> attributesContainer = shadowNew.findContainer(ShadowType.F_ATTRIBUTES);
         Collection<QName> attributeNames = squeezedAttributes != null ?
                 MiscUtil.union(squeezedAttributes.keySet(), attributesContainer.getValue().getItemNames()) :
                 attributesContainer.getValue().getItemNames();
@@ -328,7 +322,10 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             PrismContainer attributesContainer) throws SchemaException {
 
         LOGGER.trace("Attribute reconciliation processing attribute {}", attrName);
-        RefinedAttributeDefinition<T> attributeDefinition = projCtx.findAttributeDefinition(attrName);
+
+        //noinspection unchecked
+        ResourceAttributeDefinition<T> attributeDefinition =
+                (ResourceAttributeDefinition<T>) projCtx.findAttributeDefinition(attrName);
         if (attributeDefinition == null) {
             throw new SchemaException("No definition for attribute " + attrName + " in " +
                     projCtx.getResourceShadowDiscriminator());
@@ -522,7 +519,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
     private void reconcileProjectionAssociations(
             LensProjectionContext projCtx,
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations,
-            RefinedObjectClassDefinition accountDefinition, Task task, OperationResult result)
+            ResourceObjectDefinition accountDefinition, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException {
 
@@ -537,7 +534,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
         for (QName assocName : associationNames) {
             LOGGER.trace("Association reconciliation processing association {}", assocName);
-            RefinedAssociationDefinition associationDefinition = accountDefinition.findAssociationDefinition(assocName);
+            ResourceAssociationDefinition associationDefinition = accountDefinition.findAssociationDefinition(assocName);
             if (associationDefinition == null) {
                 throw new SchemaException("No definition for association " + assocName + " in "
                         + projCtx.getResourceShadowDiscriminator());
@@ -730,18 +727,18 @@ public class ReconciliationProcessor implements ProjectorProcessor {
     }
 
     private <T> void decideIfTolerate(LensProjectionContext projCtx,
-            RefinedAttributeDefinition<T> attributeDefinition,
+            ResourceAttributeDefinition<T> attributeDefinition,
             Collection<PrismPropertyValue<T>> arePValues,
             Collection<ItemValueWithOrigin<PrismPropertyValue<T>,PrismPropertyDefinition<T>>> shouldBePValues,
             ValueMatcher<T> valueMatcher, boolean hasOtherNonWeakValues) throws SchemaException {
 
         for (PrismPropertyValue<T> isPValue : arePValues) {
-            if (matchPattern(attributeDefinition.getTolerantValuePattern(), isPValue, valueMatcher)) {
+            if (matchPattern(attributeDefinition.getTolerantValuePatterns(), isPValue, valueMatcher)) {
                 LOGGER.trace("Reconciliation: KEEPING value {} of the attribute {}: match with tolerant value pattern." , isPValue, attributeDefinition.getItemName().getLocalPart());
                 continue;
             }
 
-            if (matchPattern(attributeDefinition.getIntolerantValuePattern(), isPValue, valueMatcher)) {
+            if (matchPattern(attributeDefinition.getIntolerantValuePatterns(), isPValue, valueMatcher)) {
                 recordDeleteDelta(isPValue, attributeDefinition, valueMatcher, projCtx, "it has matched with intolerant pattern");
                 continue;
             }
@@ -756,7 +753,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
     }
 
     private void decideIfTolerateAssociation(LensProjectionContext accCtx,
-            RefinedAssociationDefinition assocDef,
+            ResourceAssociationDefinition assocDef,
             Collection<PrismContainerValue<ShadowAssociationType>> areCValues,
             Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> shouldBeCValues,
             ValueMatcher valueMatcher, Task task, OperationResult result)
@@ -806,8 +803,9 @@ public class ReconciliationProcessor implements ProjectorProcessor {
     }
 
     @NotNull
-    private MatchingRule<Object> getMatchingRuleForTargetNamingIdentifier(RefinedAssociationDefinition associationDefinition) throws SchemaException {
-        RefinedAttributeDefinition<Object> targetNamingAttributeDef = associationDefinition.getAssociationTarget().getNamingAttribute();
+    private MatchingRule<Object> getMatchingRuleForTargetNamingIdentifier(ResourceAssociationDefinition associationDefinition) throws SchemaException {
+        // TODO why naming attribute? Why not valueAttribute from the association definition?
+        ResourceAttributeDefinition<?> targetNamingAttributeDef = associationDefinition.getAssociationTarget().getNamingAttribute();
         if (targetNamingAttributeDef != null) {
             QName matchingRuleName = targetNamingAttributeDef.getMatchingRuleQName();
             return matchingRuleRegistry.getMatchingRule(matchingRuleName, null);
@@ -900,7 +898,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         projCtx.swallowToSecondaryDelta(attrDelta);
     }
 
-    private <T> void recordDeleteDelta(PrismPropertyValue<T> isPValue, RefinedAttributeDefinition<T> attributeDefinition,
+    private <T> void recordDeleteDelta(PrismPropertyValue<T> isPValue, ResourceAttributeDefinition<T> attributeDefinition,
             ValueMatcher<T> valueMatcher, LensProjectionContext projCtx, String reason)
             throws SchemaException {
         recordDelta(valueMatcher, projCtx, SchemaConstants.PATH_ATTRIBUTES, attributeDefinition, ModificationType.DELETE,
@@ -908,7 +906,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
     }
 
     private void recordAssociationDelta(ValueMatcher valueMatcher, LensProjectionContext accCtx,
-            RefinedAssociationDefinition assocDef, ModificationType changeType, ShadowAssociationType value,
+            ResourceAssociationDefinition assocDef, ModificationType changeType, ShadowAssociationType value,
             ObjectType originObject, String reason) throws SchemaException {
 
         LOGGER.trace("Reconciliation will {} value of association {}: {} because {}", changeType, assocDef, value, reason);

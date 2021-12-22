@@ -535,7 +535,7 @@ public class JobExecutor implements InterruptableJob {
     // beware: Do not touch task prism here, because this method can be called asynchronously
     private void sendThreadInterrupt(boolean alsoSubtasks) {
         Thread thread = task.getExecutingThread();
-        if (thread != null) {            // in case this method would be (mistakenly?) called after the execution is over
+        if (thread != null) { // in case this method would be (mistakenly?) called after the execution is over
             LOGGER.trace("Calling Thread.interrupt on thread {}.", thread);
             thread.interrupt();
             LOGGER.trace("Thread.interrupt was called on thread {}.", thread);

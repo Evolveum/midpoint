@@ -37,6 +37,7 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -95,7 +96,6 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
     @Override
     public void audit(AuditEventRecord record, Task task, OperationResult parentResult) {
         Objects.requireNonNull(record, "Audit event record must not be null.");
-        Objects.requireNonNull(task, "Task must not be null.");
 
         OperationResult operationResult = parentResult.createSubresult(opNamePrefix + OP_AUDIT);
 
@@ -114,7 +114,9 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
     private void executeAudit(AuditEventRecord record) {
         long opHandle = registerOperationStart(OP_AUDIT);
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            record.setRepoId(null); // we want DB to assign the ID
             MAuditEventRecord auditRow = insertAuditEventRecord(jdbcSession, record);
+            record.setRepoId(auditRow.id);
 
             insertAuditDeltas(jdbcSession, auditRow);
             insertReferences(jdbcSession, auditRow, record.getReferences());
@@ -158,7 +160,9 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             insert.columns(aer.getPath(propertyName)).values(property.getValue());
         }
 
-        row.id = insert.executeWithKey(aer.id);
+        Long returnedId = insert.executeWithKey(aer.id);
+        // If returned ID is null, it was likely provided, so we use that one.
+        row.id = returnedId != null ? returnedId : record.getRepoId();
         return row;
     }
 
@@ -197,7 +201,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                 deltaRow.serializedDelta = serializedDelta;
                 deltaRow.delta = serializedDelta.getBytes(StandardCharsets.UTF_8);
                 deltaRow.deltaOid = SqaleUtils.oidToUUid(delta.getOid());
-                deltaRow.deltaType = delta.getChangeType();
+                deltaRow.deltaType = ChangeType.toChangeTypeType(delta.getChangeType());
             }
 
             OperationResult executionResult = deltaOperation.getExecutionResult();
@@ -358,6 +362,37 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
     }
 
     @Override
+    public void audit(AuditEventRecordType record, OperationResult parentResult) {
+        Objects.requireNonNull(record, "Audit event record must not be null.");
+
+        OperationResult operationResult = parentResult.createSubresult(opNamePrefix + OP_AUDIT);
+
+        try {
+            executeAudit(record);
+        } catch (RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            recordFatalError(operationResult, t);
+            throw t;
+        } finally {
+            operationResult.computeStatusIfUnknown();
+        }
+    }
+
+    private void executeAudit(AuditEventRecordType record) {
+        long opHandle = registerOperationStart(OP_AUDIT);
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            // plenty of parameters, but it's better to have a short-lived stateful worker for it
+            new AuditInsertion(record, jdbcSession, sqlRepoContext, escapeIllegalCharacters, logger)
+                    .execute();
+
+            jdbcSession.commit();
+        } finally {
+            registerOperationFinish(opHandle);
+        }
+    }
+
+    @Override
     public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
         Objects.requireNonNull(policy, "Cleanup policy must not be null.");
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
@@ -445,17 +480,19 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             logger.info("Audit cleanup, deleting to leave only {} records.", maxRecords);
             QAuditEventRecord qae = QAuditEventRecordMapping.get().defaultAlias();
-            Long lastId = jdbcSession.newQuery()
-                    .select(qae.id.max())
+            Long deleteFromId = jdbcSession.newQuery()
+                    .select(qae.id)
                     .from(qae)
-                    .fetchOne();
-            if (lastId == null || lastId < maxRecords) {
-                logger.info("Nothing to delete from audit, {} entries allowed, current max ID is {}.", maxRecords, lastId);
+                    .orderBy(qae.id.desc())
+                    .offset(maxRecords)
+                    .fetchFirst();
+            if (deleteFromId == null) {
+                logger.info("Nothing to delete from audit, {} entries allowed.", maxRecords);
                 return;
             }
 
             deletedCount = jdbcSession.newDelete(qae)
-                    .where(qae.id.loe(lastId - maxRecords))
+                    .where(qae.id.loe(deleteFromId))
                     .execute();
             jdbcSession.commit();
         } finally {

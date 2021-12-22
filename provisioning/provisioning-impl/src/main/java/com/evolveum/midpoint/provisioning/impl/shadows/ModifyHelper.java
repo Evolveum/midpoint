@@ -107,7 +107,7 @@ class ModifyHelper {
             }
         }
 
-        ProvisioningContext ctx = ctxFactory.create(repoShadow, additionalAuxiliaryObjectClassQNames, task, parentResult);
+        ProvisioningContext ctx = ctxFactory.createForShadow(repoShadow, additionalAuxiliaryObjectClassQNames, task, parentResult);
         ctx.assertDefinition();
 
         ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState = new ProvisioningOperationState<>();
@@ -150,7 +150,7 @@ class ModifyHelper {
 
         shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
 
-        accessChecker.checkModify(ctx, repoShadow, modifications, parentResult);
+        accessChecker.checkModify(ctx, modifications, parentResult);
 
         entitlementsHelper.preprocessEntitlements(ctx, modifications, "delta for shadow " + repoShadow.getOid(), parentResult);
 

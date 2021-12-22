@@ -7,40 +7,26 @@
 
 package com.evolveum.midpoint.wf.impl.processes.common;
 
-import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.stereotype.Component;
 
-@Component
-public class SpringApplicationContextHolder implements ApplicationContextAware {
-
-    private static ApplicationContext context;
-
-    public void setApplicationContext(ApplicationContext ctx) throws BeansException {
-        context = ctx;
-    }
+/**
+ * This was years-old hack to provide {@link ApplicationContext} and requested Spring beans to clients
+ * that needed them. We are keeping the hack, but migrated it to a more suitable place.
+ *
+ * @see com.evolveum.midpoint.model.impl.expr.SpringApplicationContextHolder
+ */
+@Deprecated
+public class SpringApplicationContextHolder {
 
     public static ApplicationContext getApplicationContext() {
-        if (context == null) {
-            throw new IllegalStateException("Spring application context could not be determined.");
-        }
-        return context;
+        return com.evolveum.midpoint.model.impl.expr.SpringApplicationContextHolder.getApplicationContext();
     }
 
     public static<T> T getBean(Class<T> aClass) {
-        String className = aClass.getSimpleName();
-        String beanName = Character.toLowerCase(className.charAt(0)) + className.substring(1);
-        return getBean(beanName, aClass);
+        return com.evolveum.midpoint.model.impl.expr.SpringApplicationContextHolder.getBean(aClass);
     }
 
     public static<T> T getBean(String name, Class<T> aClass) {
-        T bean = getApplicationContext().getBean(name, aClass);
-        if (bean == null) {
-            throw new IllegalStateException("Could not find " + name + " bean");
-        }
-        return bean;
+        return com.evolveum.midpoint.model.impl.expr.SpringApplicationContextHolder.getBean(name, aClass);
     }
 }
-
-

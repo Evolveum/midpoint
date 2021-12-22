@@ -7,8 +7,8 @@
 package com.evolveum.midpoint.web.page.error;
 
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
-import com.evolveum.midpoint.authentication.api.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.Url;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;

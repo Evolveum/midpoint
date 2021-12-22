@@ -199,8 +199,7 @@ public class LiveSynchronizer {
             ObjectAlreadyExistsException {
         LiveSyncToken currentToken = resourceObjectConverter.fetchCurrentToken(ctx.context, result);
         if (currentToken == null) {
-            LOGGER.warn("No current token provided by resource: {}. Live sync will not proceed: {}",
-                    ctx.context.getShadowCoordinates(), ctx.task);
+            LOGGER.warn("No current token provided by resource: {}. Live sync will not proceed: {}", ctx.context, ctx.task);
         } else if (!ctx.isPreview()) {
             LOGGER.debug("Setting initial live sync token ({}) in task: {}.", currentToken, ctx.task);
             ctx.tokenStorage.setToken(currentToken, result);
@@ -222,9 +221,10 @@ public class LiveSynchronizer {
 
         private LiveSyncCtx(@NotNull ResourceShadowDiscriminator shadowCoordinates, @NotNull Task task,
                 LiveSyncOptions options, @NotNull LiveSyncTokenStorage tokenStorage, OperationResult result)
-                throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+                throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+                ExpressionEvaluationException {
             this.syncResult = new SynchronizationOperationResult();
-            this.context = ctxFactory.create(shadowCoordinates, task, result);
+            this.context = ctxFactory.createForCoordinates(shadowCoordinates, task, result);
             this.task = task;
             this.options = options != null ? options : new LiveSyncOptions();
             this.tokenStorage = tokenStorage;

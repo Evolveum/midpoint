@@ -1,0 +1,161 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<c:resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+        oid="89d4fce0-f378-453a-a4f7-438efff10cfe">
+
+    <c:name>resource-ais</c:name>
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:equal>
+                <q:path>c:connectorType</q:path>
+                <q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
+            </q:equal>
+        </filter>
+    </connectorRef>
+
+    <c:connectorConfiguration>
+        <icfc:configurationProperties
+                xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
+            <icfccsvfile:filePath>will-be-replaced-by-test-code</icfccsvfile:filePath> <!-- resource-ais.csv -->
+            <icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
+            <icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
+            <icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
+            <icfccsvfile:uniqueAttribute>identifier</icfccsvfile:uniqueAttribute>
+        </icfc:configurationProperties>
+    </c:connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <!--<attribute>-->
+            <!--    &lt;!&ndash; fake attribute - will be replaced by something more serious &ndash;&gt;-->
+            <!--    <c:ref>ri:referenceId</c:ref>-->
+            <!--    <inbound>-->
+            <!--        <strength>strong</strength>-->
+            <!--        <target>-->
+            <!--            <c:path>name</c:path> &lt;!&ndash; temporary &ndash;&gt;-->
+            <!--        </target>-->
+            <!--    </inbound>-->
+            <!--</attribute>-->
+            <attribute>
+                <c:ref>ri:identifier</c:ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <c:path>name</c:path> <!-- temporary -->
+                    </target>
+                </inbound>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <c:path>employeeNumber</c:path> <!-- temporary -->
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:givenName</c:ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <c:path>givenName</c:path> <!-- temporary -->
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:familyName</c:ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <c:path>familyName</c:path> <!-- temporary -->
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:dateOfBirth</c:ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <c:path>description</c:path> <!-- temporary -->
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:emailAddress</c:ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <c:path>emailAddress</c:path> <!-- temporary -->
+                    </target>
+                </inbound>
+            </attribute>
+        </objectType>
+    </schemaHandling>
+
+    <synchronization>
+        <objectSynchronization>
+            <enabled>true</enabled>
+            <condition>
+                <!-- We import only correlated accounts -->
+                <!-- However, this is only a temporary solution, relying on the fact that the correlator injects
+                     the reference ID to the ri:referenceId fake attribute -->
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.schema.constants.MidPointConstants
+                        import com.evolveum.midpoint.schema.constants.SchemaConstants
+                        import org.apache.commons.collections4.CollectionUtils
+
+                        true || CollectionUtils.isNotEmpty(
+                                basic.getAttributeStringValues(projection, MidPointConstants.NS_RI, 'referenceId'))
+                    </code>
+                </script>
+            </condition>
+            <correlation>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <!-- TEMPORARY SOLUTION -->
+                        <!--<path>$projection/attributes/ri:referenceId</path>-->
+                        <path>$projection/attributes/ri:identifier</path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
+</c:resource>

@@ -8,10 +8,10 @@
 package com.evolveum.midpoint.web.page.login;
 
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.api.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.Url;
-import com.evolveum.midpoint.authentication.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -71,10 +71,11 @@ public class PageLogin extends AbstractPageLogin {
         add(form);
 
         BookmarkablePageLink<String> link = new BookmarkablePageLink<>(ID_FORGET_PASSWORD, PageForgotPassword.class);
+        Task task = createAnonymousTask(OPERATION_LOAD_RESET_PASSWORD_POLICY);
         OperationResult parentResult = new OperationResult(OPERATION_LOAD_RESET_PASSWORD_POLICY);
         SecurityPolicyType securityPolicy = null;
         try {
-            securityPolicy = getModelInteractionService().getSecurityPolicy((PrismObject<? extends FocusType>) null, null, parentResult);
+            securityPolicy = getModelInteractionService().getSecurityPolicy((PrismObject<? extends FocusType>) null, task, parentResult);
         } catch (CommonException e) {
             LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
         }

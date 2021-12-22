@@ -6,12 +6,12 @@
  */
 package com.evolveum.midpoint.model.impl.dataModel;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.impl.dataModel.model.*;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -60,13 +60,13 @@ public class DataModel {
         dataItems.add(item);
     }
 
-    public RefinedResourceSchema getRefinedResourceSchema(String resourceOid) {
-        PrismObject resource = resources.get(resourceOid);
+    public ResourceSchema getRefinedResourceSchema(String resourceOid) {
+        PrismObject<ResourceType> resource = resources.get(resourceOid);
         if (resource == null) {
             return null;
         }
         try {
-            return RefinedResourceSchemaImpl.getRefinedSchema(resource, prismContext);
+            return ResourceSchemaFactory.getCompleteSchema(resource);
         } catch (SchemaException e) {
             throw new SystemException("Unexpected exception: " + e.getMessage(), e);
         }

@@ -6,15 +6,15 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -59,10 +59,10 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
     private enum ShadowOperation { KEEP, DELETE, UNLINK, UNLINK_AND_TOMBSTONE }
     private enum ResourceObjectOperation { KEEP, DELETE }
 
-    private ObjectClassComplexTypeDefinition getAccountObjectClassDefinition() throws SchemaException {
-        ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(getDummyResourceObject(), prismContext);
+    private ResourceObjectDefinition getAccountObjectClassDefinition() throws SchemaException {
+        ResourceSchema schema = ResourceSchemaFactory.getRawSchema(getDummyResourceObject());
         assertNotNull(schema);
-        return schema.findObjectClassDefinition(dummyResourceCtl.getAccountObjectClassQName());
+        return schema.findDefinitionForObjectClass(dummyResourceCtl.getAccountObjectClassQName());
     }
 
     @Test

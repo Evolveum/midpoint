@@ -1,21 +1,21 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.ninja.opts;
 
+import java.io.File;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
-import java.io.File;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "import")
-public class ImportOptions extends BaseImportExportOptions {
+public class ImportOptions extends BaseImportExportOptions implements BasicImportOptions {
 
     public static final String P_INPUT = "-i";
     public static final String P_INPUT_LONG = "--input";
@@ -26,20 +26,22 @@ public class ImportOptions extends BaseImportExportOptions {
     public static final String P_ALLOW_UNENCRYPTED_VALUES = "-e";
     public static final String P_ALLOW_UNENCRYPTED_VALUES_LONG = "--allowUnencryptedValues";
 
-    @Parameter(names = {P_INPUT, P_INPUT_LONG}, descriptionKey = "import.input")
+    @Parameter(names = { P_INPUT, P_INPUT_LONG }, descriptionKey = "import.input")
     private File input;
 
-    @Parameter(names = {P_OVERWRITE, P_OVERWRITE_LONG}, descriptionKey = "import.overwrite")
+    @Parameter(names = { P_OVERWRITE, P_OVERWRITE_LONG }, descriptionKey = "import.overwrite")
     private boolean overwrite;
 
-    @Parameter(names = {P_ALLOW_UNENCRYPTED_VALUES, P_ALLOW_UNENCRYPTED_VALUES_LONG},
+    @Parameter(names = { P_ALLOW_UNENCRYPTED_VALUES, P_ALLOW_UNENCRYPTED_VALUES_LONG },
             descriptionKey = "import.allowUnencryptedValues")
     private boolean allowUnencryptedValues;
 
+    @Override
     public File getInput() {
         return input;
     }
 
+    @Override
     public boolean isOverwrite() {
         return overwrite;
     }

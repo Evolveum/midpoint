@@ -31,14 +31,16 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.api.StateOfModule;
+import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.security.api.*;
-import com.evolveum.midpoint.authentication.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.activity.run.reports.ActivityReportUtil;
 import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskHandler;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 
 import com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource;
@@ -70,10 +72,6 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
@@ -116,9 +114,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ProvisioningStatistics;
@@ -450,7 +445,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
      * This is not the real thing. It is just for the tests.
      */
     protected void applyResourceSchema(ShadowType accountType, ResourceType resourceType) throws SchemaException {
-        IntegrationTestTools.applyResourceSchema(accountType, resourceType, prismContext);
+        IntegrationTestTools.applyResourceSchema(accountType, resourceType);
     }
 
     protected void assertUsers(int expectedNumberOfUsers)
@@ -1822,14 +1817,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
-        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-        RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-        Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getPrimaryIdentifiers();
-        assert identifierDefs.size() == 1 : "Unexpected identifier set in " + resource + " refined schema: " + identifierDefs;
-        // TODO any assert about this unused variable?
-        ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
+        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ResourceObjectDefinition accountDef = schema.findObjectDefinitionRequired(ShadowKindType.ACCOUNT, null);
+        assertThat(accountDef.getPrimaryIdentifiers())
+                .as("primary identifiers")
+                .hasSize(1);
         ObjectQuery query = prismContext.queryFor(ShadowType.class)
-                .item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getObjectClassDefinition().getTypeName())
+                .item(ShadowType.F_OBJECT_CLASS).eq(accountDef.getObjectClassDefinition().getTypeName())
                 .and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
                 .build();
         return modelService.searchObjects(ShadowType.class, query, null, task, result);
@@ -1961,8 +1955,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
-        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-        RefinedObjectClassDefinition rOcDef = rSchema.getRefinedDefinition(kind, intent);
+        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ResourceObjectDefinition rOcDef = rSchema.findObjectDefinitionRequired(kind, intent);
         ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource);
         List<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, options, task, result);
         if (shadows.isEmpty()) {
@@ -1975,11 +1969,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Override
     protected ObjectQuery createAccountShadowQuery(
             String username, PrismObject<ResourceType> resource) throws SchemaException {
-        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-        RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-        Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getPrimaryIdentifiers();
+        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ResourceObjectTypeDefinition rAccount = rSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
+        Collection<? extends ResourceAttributeDefinition<?>> identifierDefs = rAccount.getPrimaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in " + resource + " refined schema: " + identifierDefs;
-        ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
+        ResourceAttributeDefinition<?> identifierDef = identifierDefs.iterator().next();
         //TODO: set matching rule instead of null
         return prismContext.queryFor(ShadowType.class)
                 .itemWithDef(identifierDef, ShadowType.F_ATTRIBUTES, identifierDef.getItemName()).eq(username)
@@ -2749,12 +2743,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectReferenceType resourceRef = new ObjectReferenceType();
         resourceRef.setOid(resource.getOid());
         shadowType.setResourceRef(resourceRef);
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-        RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ResourceObjectTypeDefinition objectClassDefinition = refinedSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
         shadowType.setObjectClass(objectClassDefinition.getTypeName());
         shadowType.setKind(ShadowKindType.ACCOUNT);
         ResourceAttributeContainer attrCont = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
-        RefinedAttributeDefinition idSecondaryDef = objectClassDefinition.getSecondaryIdentifiers().iterator().next();
+        ResourceAttributeDefinition<?> idSecondaryDef = objectClassDefinition.getSecondaryIdentifiers().iterator().next();
         ResourceAttribute icfsNameAttr = idSecondaryDef.instantiate();
         icfsNameAttr.setRealValue(name);
         attrCont.add(icfsNameAttr);
@@ -3023,7 +3017,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
             QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException {
         assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule, false);
-        IntegrationTestTools.assertProvisioningShadow(accountShadow, RefinedAttributeDefinition.class, objectClass);
+        IntegrationTestTools.assertProvisioningShadow(accountShadow, ResourceAttributeDefinition.class, objectClass);
     }
 
     protected ObjectDelta<UserType> createModifyUserAddDummyAccount(String userOid, String dummyResourceName) throws SchemaException {
@@ -3039,13 +3033,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectReferenceType resourceRef = new ObjectReferenceType();
         resourceRef.setOid(resource.getOid());
         account.asObjectable().setResourceRef(resourceRef);
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-        RefinedObjectClassDefinition rocd;
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ResourceObjectDefinition rocd;
         if (StringUtils.isNotBlank(intent)) {
-            rocd = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, intent);
+            rocd = refinedSchema.findObjectDefinitionRequired(ShadowKindType.ACCOUNT, intent);
             account.asObjectable().setIntent(intent);
         } else {
-            rocd = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+            // TODO or findObjectDefinitionRequired as well?
+            rocd = refinedSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
         }
         account.asObjectable().setObjectClass(rocd.getObjectClassDefinition().getTypeName());
         account.asObjectable().setKind(ShadowKindType.ACCOUNT);
@@ -4441,12 +4436,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
 
             @Override
-            public StateOfModule getState() {
-                return StateOfModule.SUCCESSFULLY;
+            public AuthenticationModuleState getState() {
+                return AuthenticationModuleState.SUCCESSFULLY;
             }
 
             @Override
-            public void setState(StateOfModule state) {
+            public void setState(AuthenticationModuleState state) {
             }
 
             @Override

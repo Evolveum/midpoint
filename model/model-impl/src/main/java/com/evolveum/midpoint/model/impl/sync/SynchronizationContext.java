@@ -9,8 +9,12 @@ package com.evolveum.midpoint.model.impl.sync;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
@@ -20,9 +24,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -46,6 +47,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+/**
+ * Context of the synchronization operation. It is created in the early stages of {@link ResourceObjectShadowChangeDescription}
+ * progressing in {@link SynchronizationServiceImpl}.
+ *
+ * @param <F> Type of the matching focus object
+ */
 public class SynchronizationContext<F extends FocusType> implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationContext.class);
@@ -142,8 +149,11 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         }
 
         if (intent == null) {
-            RefinedResourceSchema schema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-            intent = schema.findDefaultObjectClassDefinition(getKind()).getIntent();
+            ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
+            ResourceObjectDefinition def = schema.findObjectDefinition(getKind(), null);
+            if (def instanceof ResourceObjectTypeDefinition) {
+                intent = ((ResourceObjectTypeDefinition) def).getIntent(); // TODO ???
+            }
         }
         return intent;
     }
@@ -424,9 +434,21 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return itemProcessingIdentifier;
     }
 
-    RefinedObjectClassDefinition findRefinedObjectClassDefinition() throws SchemaException {
-        RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
-        return refinedResourceSchema.getRefinedDefinition(getKind(), getIntent());
+    ResourceObjectTypeDefinition findRefinedObjectClassDefinition() throws SchemaException {
+        ResourceSchema refinedResourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ShadowKindType kind = getKind();
+
+        // FIXME this hacking
+        String intent = getIntent();
+        if (kind == null || kind == ShadowKindType.UNKNOWN) {
+            return null; // nothing to look for
+        }
+        if (SchemaConstants.INTENT_UNKNOWN.equals(intent)) {
+            intent = null;
+        }
+
+        // FIXME the cast
+        return (ResourceObjectTypeDefinition) refinedResourceSchema.findObjectDefinition(kind, intent);
     }
 
     @Override

@@ -1,10 +1,19 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.ninja.action;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.ninja.opts.DeleteOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
@@ -22,14 +31,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.apache.commons.lang3.StringUtils;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -57,7 +58,7 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
         }
     }
 
-    private void deleteByOid() throws SchemaException, IOException {
+    private void deleteByOid() throws SchemaException {
         QueryFactory queryFactory = context.getPrismContext().queryFactory();
         InOidFilter filter = queryFactory.createInOid(options.getOid());
         ObjectQuery query = queryFactory.createQuery(filter);
@@ -65,7 +66,7 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
         deleteByFilter(query);
     }
 
-    private void deleteByFilter(ObjectQuery query) throws SchemaException, IOException {
+    private void deleteByFilter(ObjectQuery query) throws SchemaException {
         OperationResult result = new OperationResult(OPERATION_DELETE);
 
         OperationStatus operation = new OperationStatus(context, result);
@@ -86,14 +87,14 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
             }
         }
 
+        operation.finish();
         handleResultOnFinish(operation, "Delete finished");
     }
 
     private void deleteByFilter(ObjectTypes type, ObjectQuery query, OperationStatus operation, OperationResult result)
             throws SchemaException {
 
-        ResultHandler handler = (prismObject, operationResult) -> {
-
+        ResultHandler<?> handler = (prismObject, operationResult) -> {
             try {
                 State state = options.isAsk() ? askForState(prismObject) : State.DELETE;
 
@@ -123,7 +124,7 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
 
         Collection<SelectorOptions<GetOperationOptions>> opts = new ArrayList<>();
         if (options.isRaw()) {
-            opts.add(new SelectorOptions(GetOperationOptions.createRaw()));
+            opts.add(new SelectorOptions<>(GetOperationOptions.createRaw()));
         }
 
         RepositoryService repository = context.getRepository();
@@ -144,15 +145,15 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
 
                 strState = strState.toLowerCase();
 
-                if ("y".equals(strState) || "yes".equals(strState)) {
+                if ("y".equalsIgnoreCase(strState) || "yes".equalsIgnoreCase(strState)) {
                     state = State.DELETE;
                 }
 
-                if ("n".equals(strState) || "no".equals(strState)) {
+                if ("n".equalsIgnoreCase(strState) || "no".equalsIgnoreCase(strState)) {
                     state = State.SKIP;
                 }
 
-                if ("c".equals(strState) || "cancel".equals(strState)) {
+                if ("c".equalsIgnoreCase(strState) || "cancel".equalsIgnoreCase(strState)) {
                     state = State.STOP;
                 }
             }

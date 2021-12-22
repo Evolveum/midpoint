@@ -6,17 +6,10 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
+import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -27,19 +20,21 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteQNamePanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.ResourceContentSearchDto;
 import com.evolveum.midpoint.web.session.ResourceContentStorage;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
@@ -131,16 +126,17 @@ public class ResourceContentTabPanel extends BasePanel<PrismObject<ResourceType>
 
             @Override
             public Iterator<String> getIterator(String input) {
-                RefinedResourceSchema refinedSchema = null;
+                ResourceSchema refinedSchema;
                 try {
-                    refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(getModelObject(),
-                            getPageBase().getPrismContext());
-
+                    refinedSchema = ResourceSchemaFactory.getCompleteSchema(getModelObject());
+                    if (refinedSchema != null) {
+                        return refinedSchema.getIntentsForKind(getKind()).iterator();
+                    } else {
+                        return Collections.emptyIterator();
+                    }
                 } catch (SchemaException e) {
-                    return new ArrayList<String>().iterator();
+                    return Collections.emptyIterator();
                 }
-                return RefinedResourceSchemaImpl.getIntentsForKind(refinedSchema, getKind()).iterator();
-
             }
 
         };
@@ -172,14 +168,13 @@ public class ResourceContentTabPanel extends BasePanel<PrismObject<ResourceType>
 
             @Override
             public String getObject() {
-                RefinedObjectClassDefinition ocDef;
+                ResourceObjectDefinition ocDef;
                 try {
-                    RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl
-                            .getRefinedSchema(getModelObject(), getPageBase().getPrismContext());
+                    ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(getModelObject());
                     if (refinedSchema == null) {
                         return "NO SCHEMA DEFINED";
                     }
-                    ocDef = refinedSchema.getRefinedDefinition(getKind(), getIntent());
+                    ocDef = refinedSchema.findObjectDefinition(getKind(), getIntent());
                     if (ocDef != null) {
                         return ocDef.getObjectClassDefinition().getTypeName().getLocalPart();
                     }
@@ -280,20 +275,15 @@ public class ResourceContentTabPanel extends BasePanel<PrismObject<ResourceType>
     }
 
     private List<QName> createObjectClassChoices(IModel<PrismObject<ResourceType>> model) {
-        RefinedResourceSchema refinedSchema;
+        ResourceSchema refinedSchema;
         try {
-            refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(model.getObject(),
-                    getPageBase().getPrismContext());
+            refinedSchema = ResourceSchemaFactory.getCompleteSchema(model.getObject());
         } catch (SchemaException e) {
             warn("Could not determine defined object classes for resource");
             return new ArrayList<>();
         }
-        Collection<ObjectClassComplexTypeDefinition> defs = refinedSchema.getObjectClassDefinitions();
-        List<QName> objectClasses = new ArrayList<>(defs.size());
-        for (ObjectClassComplexTypeDefinition def : defs) {
-            objectClasses.add(def.getTypeName());
-        }
-        return objectClasses;
+        return refinedSchema != null ?
+                new ArrayList<>(refinedSchema.getObjectClassNames()) : List.of();
     }
 
     private ResourceContentPanel initTable(IModel<PrismObject<ResourceType>> model) {

@@ -13,7 +13,6 @@ import java.util.Objects;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -30,13 +29,13 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -95,12 +94,12 @@ public class AssociationFromLinkExpressionEvaluator
         LOGGER.trace("Evaluating association from link {} on: {}", expressionEvaluatorBean.getDescription(), thisRole);
 
         //noinspection unchecked
-        TypedValue<RefinedObjectClassDefinition> rAssocTargetDefTypedValue = context.getVariables()
+        TypedValue<ResourceObjectDefinition> rAssocTargetDefTypedValue = context.getVariables()
                 .get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
         if (rAssocTargetDefTypedValue == null || rAssocTargetDefTypedValue.getValue() == null) {
             throw new ExpressionEvaluationException("No association target object class definition variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to create an association.");
         }
-        RefinedObjectClassDefinition rAssocTargetDef = (RefinedObjectClassDefinition) rAssocTargetDefTypedValue.getValue();
+        ResourceObjectDefinition associationTargetDef = (ResourceObjectDefinition) rAssocTargetDefTypedValue.getValue();
 
         ShadowDiscriminatorType projectionDiscriminator = expressionEvaluatorBean.getProjectionDiscriminator();
         if (projectionDiscriminator == null) {
@@ -115,7 +114,7 @@ public class AssociationFromLinkExpressionEvaluator
         PrismContainer<ShadowAssociationType> output = outputDefinition.instantiate();
 
         QName assocName = context.getMappingQName();
-        String resourceOid = rAssocTargetDef.getResourceOid();
+        String resourceOid = associationTargetDef.getResourceOid();
         List<String> candidateShadowOidList = new ArrayList<>();
         // Always process the first role (myself) regardless of recursion setting
         gatherCandidateShadowsFromAbstractRole(thisRole, candidateShadowOidList);
@@ -221,7 +220,7 @@ public class AssociationFromLinkExpressionEvaluator
         try {
             ResourceAttributeContainer shadowAttributesContainer = ShadowUtil.getAttributesContainer(shadow);
             ResourceAttributeContainer identifiersContainer = ObjectFactory.createResourceAttributeContainer(
-                    ShadowAssociationType.F_IDENTIFIERS, shadowAttributesContainer.getDefinition(), prismContext);
+                    ShadowAssociationType.F_IDENTIFIERS, shadowAttributesContainer.getDefinition());
             shadowAssociationType.asPrismContainerValue().add(identifiersContainer);
             Collection<ResourceAttribute<?>> shadowIdentifiers =
                     Objects.requireNonNull(ShadowUtil.getAllIdentifiers(shadow), "no shadow identifiers");

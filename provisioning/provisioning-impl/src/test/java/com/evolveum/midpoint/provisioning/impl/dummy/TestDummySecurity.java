@@ -80,7 +80,7 @@ public class TestDummySecurity extends AbstractDummyTest {
     private <T> void setAttribute(PrismObject<ShadowType> account, String attrName, T val) throws SchemaException {
         PrismContainer<Containerable> attrsCont = account.findContainer(ShadowType.F_ATTRIBUTES);
         ResourceAttribute<T> attr = ObjectFactory.createResourceAttribute(
-            dummyResourceCtl.getAttributeQName(attrName), null, prismContext);
+            dummyResourceCtl.getAttributeQName(attrName), null);
         attr.setRealValue(val);
         attrsCont.add(attr);
     }
@@ -198,10 +198,12 @@ public class TestDummySecurity extends AbstractDummyTest {
     @Test
     public void test300GetAccount() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         // WHEN
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, result);
+        PrismObject<ShadowType> shadow =
+                provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 
         // THEN
         assertSuccess(result);
@@ -218,14 +220,15 @@ public class TestDummySecurity extends AbstractDummyTest {
     @Test
     public void test310SearchAllShadows() throws Exception {
         // GIVEN
+        Task task = getTestTask();
         OperationResult result = createOperationResult();
-        ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
+        ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceBean,
                 SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
         displayDumpable("All shadows query", query);
 
         // WHEN
         List<PrismObject<ShadowType>> allShadows = provisioningService.searchObjects(ShadowType.class,
-                query, null, null, result);
+                query, null, task, result);
 
         // THEN
         assertSuccess(result);

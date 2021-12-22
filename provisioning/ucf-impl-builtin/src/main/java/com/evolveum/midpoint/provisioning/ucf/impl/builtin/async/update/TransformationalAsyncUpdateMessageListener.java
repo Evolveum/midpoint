@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.update;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -219,7 +218,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
             throw new SchemaException("Object class name is null in " + changeBean);
         }
         ResourceSchema resourceSchema = getResourceSchema(result);
-        ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(objectClassName);
+        ResourceObjectDefinition objectClassDef = resourceSchema.findDefinitionForObjectClass(objectClassName);
         if (objectClassDef == null) {
             throw new SchemaException("Object class " + objectClassName + " not found in " + resourceSchema);
         }
@@ -236,14 +235,15 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         }
         setFromDefaults(changeBean.getObject(), objectClassName);
         Holder<Object> primaryIdentifierRealValueHolder = new Holder<>();
-        Collection<ResourceAttribute<?>> identifiers = getIdentifiers(changeBean, objectClassDef, primaryIdentifierRealValueHolder);
+        Collection<ResourceAttribute<?>> identifiers =
+                getIdentifiers(changeBean, objectClassDef, primaryIdentifierRealValueHolder);
         if (identifiers.isEmpty()) {
             throw new SchemaException("No identifiers in async update change bean " + changeBean);
         }
         boolean notificationOnly = changeBean.getObject() == null && delta == null;
         return new UcfAsyncUpdateChange(
                 changeSequentialNumber, primaryIdentifierRealValueHolder.getValue(),
-                objectClassDef, identifiers,
+                objectClassDef.getObjectClassDefinition(), identifiers,
                 delta, asPrismObject(changeBean.getObject()),
                 notificationOnly, acknowledgeSink);
     }
@@ -257,7 +257,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
     }
 
     @NotNull
-    private Collection<ResourceAttribute<?>> getIdentifiers(UcfChangeType changeBean, ObjectClassComplexTypeDefinition ocDef,
+    private Collection<ResourceAttribute<?>> getIdentifiers(UcfChangeType changeBean, ResourceObjectDefinition ocDef,
             Holder<Object> primaryIdentifierRealValueHolder) throws SchemaException {
         Collection<ResourceAttribute<?>> rv = new ArrayList<>();
         PrismContainerValue<ShadowAttributesType> attributesPcv;
@@ -288,7 +288,9 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
                     //noinspection unchecked
                     resourceAttribute = ((ResourceAttribute) attribute).clone();
                 } else {
-                    ResourceAttributeDefinition<Object> definition = ocDef.findAttributeDefinition(attribute.getElementName());
+                    //noinspection unchecked
+                    ResourceAttributeDefinition<Object> definition =
+                            (ResourceAttributeDefinition<Object>) ocDef.findAttributeDefinition(attribute.getElementName());
                     if (definition == null) {
                         throw new SchemaException("No definition of " + attribute.getElementName() + " in " + ocDef);
                     }
@@ -341,7 +343,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
             throw new SystemException("Resource with OID " + resourceOid + " could not be found in " + connectorInstance + ": "
                     + e.getMessage(), e);
         }
-        ResourceSchema repoResourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, connectorInstance.getPrismContext());
+        ResourceSchema repoResourceSchema = ResourceSchemaFactory.getRawSchema(resource);
         if (repoResourceSchema != null) {
             return repoResourceSchema;
         } else {

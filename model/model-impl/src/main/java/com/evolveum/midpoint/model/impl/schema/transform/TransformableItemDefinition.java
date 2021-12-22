@@ -6,20 +6,10 @@ import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.ItemProcessing;
-import com.evolveum.midpoint.prism.MutableItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismItemAccessDefinition;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.deleg.ItemDefinitionDelegator;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
@@ -177,7 +167,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     protected abstract D publicView();
 
     @Override
-    public ItemDefinition<I> clone() {
+    public @NotNull ItemDefinition<I> clone() {
         throw new UnsupportedOperationException();
     }
 
@@ -331,13 +321,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     }
 
     @Override
-    public ItemDefinition<I> deepClone(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction) {
-        return deepClone(new HashMap<>(), new HashMap<>(), postCloneAction);
-    }
-
-    @Override
-    public ItemDefinition<I> deepClone(Map<QName, ComplexTypeDefinition> ctdMap,
-            Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
+    public ItemDefinition<I> deepClone(@NotNull DeepCloneOperation operation) {
         return copy();
     }
 
@@ -351,7 +335,8 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     @Override
     public @NotNull I instantiate(QName name) throws SchemaException {
         var deleg = delegate().instantiate(name);
-        ((Item<?,ItemDefinition>)deleg).setDefinition(this);
+        //noinspection unchecked
+        ((Item<?,ItemDefinition<?>>)deleg).setDefinition(this);
         return deleg;
     }
 

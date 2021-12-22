@@ -13,10 +13,6 @@ import static java.util.Collections.emptyList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-
-import com.evolveum.midpoint.authentication.api.MidpointDirContextAdapter;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,15 +20,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
 import org.springframework.context.support.MessageSourceAccessor;
-import org.springframework.ldap.core.DirContextAdapter;
-import org.springframework.ldap.core.DirContextOperations;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.TerminateSessionEvent;
@@ -67,7 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author semancik
  */
 @Service(value = "guiProfiledPrincipalManager")
-public class GuiProfiledPrincipalManagerImpl implements GuiProfiledPrincipalManager, UserDetailsService, UserDetailsContextMapper, MessageSourceAware {
+public class GuiProfiledPrincipalManagerImpl implements GuiProfiledPrincipalManager, UserDetailsService, MessageSourceAware {
 
     private static final Trace LOGGER = TraceManager.getTrace(GuiProfiledPrincipalManagerImpl.class);
 
@@ -349,48 +341,6 @@ public class GuiProfiledPrincipalManagerImpl implements GuiProfiledPrincipalMana
         } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
             throw new SystemException(e.getMessage(), e);
         }
-    }
-
-    @Override
-    public UserDetails mapUserFromContext(DirContextOperations ctx, String username,
-            Collection<? extends GrantedAuthority> authorities) {
-
-        String userNameEffective = username;
-        Class<? extends FocusType> focusType = UserType.class;
-        try {
-            if (ctx instanceof MidpointDirContextAdapter && ((MidpointDirContextAdapter) ctx).getNamingAttr() != null) {
-                userNameEffective = resolveLdapName(ctx, username, ((MidpointDirContextAdapter) ctx).getNamingAttr());
-                focusType = ((MidpointDirContextAdapter) ctx).getFocusType();
-            }
-            return getPrincipal(userNameEffective, focusType);
-
-        } catch (ObjectNotFoundException e) {
-            throw new UsernameNotFoundException("UserProfileServiceImpl.unknownUser", e);
-        } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | NamingException e) {
-            throw new SystemException(e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public void mapUserToContext(UserDetails user, DirContextAdapter ctx) {
-        // TODO Auto-generated method stub
-
-    }
-
-    private String resolveLdapName(DirContextOperations ctx, String username, String ldapNamingAttr) throws NamingException, ObjectNotFoundException {
-        Attribute ldapResponse = ctx.getAttributes().get(ldapNamingAttr);
-        if (ldapResponse != null) {
-            if (ldapResponse.size() == 1) {
-                Object namingAttrValue = ldapResponse.get(0);
-
-                if (namingAttrValue != null) {
-                    return namingAttrValue.toString().toLowerCase();
-                }
-            } else {
-                throw new ObjectNotFoundException("Bad response"); // naming attribute contains multiple values
-            }
-        }
-        return username; // fallback to typed-in username in case ldap value is missing
     }
 }
 

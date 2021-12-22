@@ -11,13 +11,11 @@
 <shadow oid="22220000-2200-0000-0000-333300003333"
     xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-    xmlns:piracy="http://pirates.com/xml/ns"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>ht</name>
     <resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
     <objectClass>ri:AccountObjectClass</objectClass>
+    <kind>account</kind>
     <intent>default</intent>
     <attributes>
         <icfs:name>uid=ht, ou=People, dc=example,dc=com</icfs:name>

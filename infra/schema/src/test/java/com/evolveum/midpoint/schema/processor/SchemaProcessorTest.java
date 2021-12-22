@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.IOException;
@@ -33,12 +34,11 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-public class SchemaProcessorTest extends AbstractSchemaTest {
+import javax.xml.namespace.QName;
 
-    private static final String SCHEMA_NS = "http://foo.com/xml/ns/schema";
+public class SchemaProcessorTest extends AbstractSchemaTest {
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -48,14 +48,13 @@ public class SchemaProcessorTest extends AbstractSchemaTest {
 
     @Test
     public void testAccessList() throws Exception {
-        final String defaultNS = "http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
         final String icfNS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
 
         String filename = "src/test/resources/processor/resource-schema-complex.xsd";
         Document schemaDom = DOMUtil.parseFile(filename);
-        ResourceSchema schema = ResourceSchemaImpl.parse(DOMUtil.getFirstChildElement(schemaDom), defaultNS, filename, PrismTestUtil.getPrismContext());
+        ResourceSchema schema = ResourceSchemaParser.parse(DOMUtil.getFirstChildElement(schemaDom), filename);
 
-        ObjectClassComplexTypeDefinition objectDef = schema.findObjectClassDefinition(new ItemName(defaultNS, "AccountObjectClass"));
+        ResourceObjectDefinition objectDef = schema.findDefinitionForObjectClass(new ItemName(MidPointConstants.NS_RI, "AccountObjectClass"));
         assertNotNull("AccountObjectClass definition not found", objectDef);
 
         ResourceAttributeDefinition attrDef = objectDef.findAttributeDefinition(new ItemName(icfNS, "uid"));
@@ -63,12 +62,12 @@ public class SchemaProcessorTest extends AbstractSchemaTest {
         AssertJUnit.assertFalse("uid updateability", attrDef.canModify());
         AssertJUnit.assertFalse("uid createability", attrDef.canAdd());
 
-        attrDef = objectDef.findAttributeDefinition(new ItemName(defaultNS, "title"));
+        attrDef = objectDef.findAttributeDefinition(new ItemName(MidPointConstants.NS_RI, "title"));
         AssertJUnit.assertTrue(attrDef.canRead());
         AssertJUnit.assertTrue(attrDef.canModify());
         AssertJUnit.assertTrue(attrDef.canAdd());
 
-        attrDef = objectDef.findAttributeDefinition(new ItemName(defaultNS, "photo"));
+        attrDef = objectDef.findAttributeDefinition(new ItemName(MidPointConstants.NS_RI, "photo"));
         AssertJUnit.assertFalse(attrDef.canRead());
         AssertJUnit.assertTrue(attrDef.canModify());
         AssertJUnit.assertTrue(attrDef.canAdd());
@@ -77,12 +76,12 @@ public class SchemaProcessorTest extends AbstractSchemaTest {
     @Test
     public void testRoundTripGeneric() throws SchemaException {
         // GIVEN
-        PrismSchemaImpl schema = new PrismSchemaImpl(SCHEMA_NS, PrismTestUtil.getPrismContext());
+        PrismSchemaImpl schema = new PrismSchemaImpl(MidPointConstants.NS_RI);
         // Ordinary property
         schema.createPropertyDefinition("number1", DOMUtil.XSD_INT);
 
         // Property container
-        MutablePrismContainerDefinition<?> containerDefinition = schema.createPropertyContainerDefinition("ContainerType");
+        MutablePrismContainerDefinition<?> containerDefinition = schema.createContainerDefinition("ContainerType");
         // ... in it ordinary property
         containerDefinition.createPropertyDefinition("login", DOMUtil.XSD_STRING);
         // ... and local property with a type from another schema
@@ -117,30 +116,30 @@ public class SchemaProcessorTest extends AbstractSchemaTest {
 
         // THEN
 
-        PrismPropertyDefinition number1def = newSchema.findItemDefinitionByElementName(new ItemName(SCHEMA_NS, "number1"), PrismPropertyDefinition.class);
-        assertEquals(new ItemName(SCHEMA_NS, "number1"), number1def.getItemName());
+        PrismPropertyDefinition number1def = newSchema.findItemDefinitionByElementName(new ItemName(MidPointConstants.NS_RI, "number1"), PrismPropertyDefinition.class);
+        assertEquals(new ItemName(MidPointConstants.NS_RI, "number1"), number1def.getItemName());
         assertEquals(DOMUtil.XSD_INT, number1def.getTypeName());
 
-        PrismContainerDefinition newContainerDef = schema.findContainerDefinitionByType(new ItemName(SCHEMA_NS, "ContainerType"));
-        assertEquals(new ItemName(SCHEMA_NS, "ContainerType"), newContainerDef.getTypeName());
+        PrismContainerDefinition newContainerDef = schema.findContainerDefinitionByType(new ItemName(MidPointConstants.NS_RI, "ContainerType"));
+        assertEquals(new ItemName(MidPointConstants.NS_RI, "ContainerType"), newContainerDef.getTypeName());
 
-        PrismPropertyDefinition loginDef = newContainerDef.findPropertyDefinition(new ItemName(SCHEMA_NS, "login"));
-        assertEquals(new ItemName(SCHEMA_NS, "login"), loginDef.getItemName());
+        PrismPropertyDefinition loginDef = newContainerDef.findPropertyDefinition(new ItemName(MidPointConstants.NS_RI, "login"));
+        assertEquals(new ItemName(MidPointConstants.NS_RI, "login"), loginDef.getItemName());
         assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
         assertTrue("Read flag is wrong", loginDef.canRead());
         assertTrue("Create flag is wrong", loginDef.canAdd());
         assertTrue("Update flag is wrong", loginDef.canModify());
 
-        PrismPropertyDefinition passwdDef = newContainerDef.findPropertyDefinition(new ItemName(SCHEMA_NS, "password"));
-        assertEquals(new ItemName(SCHEMA_NS, "password"), passwdDef.getItemName());
+        PrismPropertyDefinition passwdDef = newContainerDef.findPropertyDefinition(new ItemName(MidPointConstants.NS_RI, "password"));
+        assertEquals(new ItemName(MidPointConstants.NS_RI, "password"), passwdDef.getItemName());
         assertEquals(ProtectedStringType.COMPLEX_TYPE, passwdDef.getTypeName());
 
         PrismPropertyDefinition credDef = newContainerDef.findPropertyDefinition(new ItemName(SchemaConstants.NS_C, "credentials"));
         assertEquals(new ItemName(SchemaConstants.NS_C, "credentials"), credDef.getItemName());
         assertEquals(new ItemName(SchemaConstants.NS_C, "CredentialsType"), credDef.getTypeName());
 
-        PrismPropertyDefinition countDef = newContainerDef.findPropertyDefinition(new ItemName(SCHEMA_NS, "counter"));
-        assertEquals(new ItemName(SCHEMA_NS, "counter"), countDef.getItemName());
+        PrismPropertyDefinition countDef = newContainerDef.findPropertyDefinition(new ItemName(MidPointConstants.NS_RI, "counter"));
+        assertEquals(new ItemName(MidPointConstants.NS_RI, "counter"), countDef.getItemName());
         assertEquals(DOMUtil.XSD_INT, countDef.getTypeName());
         assertTrue("Read flag is wrong", countDef.canRead());
         assertFalse("Create flag is wrong", countDef.canAdd());
@@ -150,27 +149,28 @@ public class SchemaProcessorTest extends AbstractSchemaTest {
     @Test
     public void testRoundTripResource() throws SchemaException {
         // GIVEN
-        ResourceSchemaImpl schema = new ResourceSchemaImpl(SCHEMA_NS, PrismTestUtil.getPrismContext());
+        ResourceSchemaImpl schema = new ResourceSchemaImpl();
 
         // Property container
-        ObjectClassComplexTypeDefinitionImpl containerDefinition = (ObjectClassComplexTypeDefinitionImpl) schema.createObjectClassDefinition("AccountObjectClass");
-        containerDefinition.setKind(ShadowKindType.ACCOUNT);
-        containerDefinition.setDefaultInAKind(true);
-        containerDefinition.setNativeObjectClass("ACCOUNT");
+        ResourceObjectClassDefinitionImpl objectClassDef = (ResourceObjectClassDefinitionImpl)
+                schema.createObjectClassDefinition(new QName(MidPointConstants.NS_RI, "AccountObjectClass"));
+        objectClassDef.setDefaultAccountDefinition(true);
+        objectClassDef.setNativeObjectClass("ACCOUNT");
+
         // ... in it ordinary attribute - an identifier
-        ResourceAttributeDefinitionImpl xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
-        containerDefinition.addPrimaryIdentifier(xloginDef);
-        xloginDef.setNativeAttributeName("LOGIN");
-        containerDefinition.setDisplayNameAttribute(xloginDef.getItemName());
+        ResourceAttributeDefinition<?> xLoginDef =
+                objectClassDef.createAttributeDefinition("login", DOMUtil.XSD_STRING,
+                        def -> def.setNativeAttributeName("LOGIN"));
+        objectClassDef.addPrimaryIdentifierName(xLoginDef.getItemName());
+        objectClassDef.setDisplayNameAttributeName(xLoginDef.getItemName());
+
         // ... and local property with a type from another schema
-        ResourceAttributeDefinitionImpl xpasswdDef = containerDefinition.createAttributeDefinition("password", ProtectedStringType.COMPLEX_TYPE);
-        xpasswdDef.setNativeAttributeName("PASSWORD");
-        // ... property reference
-        // TODO this is not a ResourceAttributeDefinition, it cannot be placed here!
-        //containerDefinition.createAttributeDefinition(SchemaConstants.C_CREDENTIALS, SchemaConstants.C_CREDENTIALS_TYPE);
+        objectClassDef.createAttributeDefinition("password", ProtectedStringType.COMPLEX_TYPE,
+                def -> def.setNativeAttributeName("PASSWORD"));
+
         // ... ignored attribute
-        ResourceAttributeDefinitionImpl xSepDef = containerDefinition.createAttributeDefinition("sep", DOMUtil.XSD_STRING);
-        xSepDef.setProcessing(ItemProcessing.IGNORE);
+        objectClassDef.createAttributeDefinition("sep", DOMUtil.XSD_STRING,
+                def -> def.setProcessing(ItemProcessing.IGNORE));
 
         System.out.println("Resource schema before serializing to XSD: ");
         System.out.println(schema.debugDump());
@@ -188,8 +188,7 @@ public class SchemaProcessorTest extends AbstractSchemaTest {
 
         Document parsedXsd = DOMUtil.parseDocument(stringXmlSchema);
 
-        ResourceSchema newSchema = ResourceSchemaImpl.parse(DOMUtil.getFirstChildElement(parsedXsd), SCHEMA_NS,
-                "serialized schema", PrismTestUtil.getPrismContext());
+        ResourceSchema newSchema = ResourceSchemaParser.parse(DOMUtil.getFirstChildElement(parsedXsd), "serialized schema");
 
         System.out.println("Resource schema after parsing from XSD: ");
         System.out.println(newSchema.debugDump());
@@ -197,31 +196,36 @@ public class SchemaProcessorTest extends AbstractSchemaTest {
 
         // THEN
 
-        ObjectClassComplexTypeDefinition newObjectClassDef = newSchema.findObjectClassDefinition(new ItemName(SCHEMA_NS, "AccountObjectClass"));
-        assertEquals(new ItemName(SCHEMA_NS, "AccountObjectClass"), newObjectClassDef.getTypeName());
-        assertEquals(ShadowKindType.ACCOUNT, newObjectClassDef.getKind());
-        assertTrue(newObjectClassDef.isDefaultInAKind());
+        ResourceObjectClassDefinition newObjectClassDef =
+                newSchema.findObjectClassDefinitionRequired(new ItemName(MidPointConstants.NS_RI, "AccountObjectClass"));
+        assertThat(newObjectClassDef.getTypeName())
+                .isEqualTo(new ItemName(MidPointConstants.NS_RI, "AccountObjectClass"));
+        assertThat(newObjectClassDef.isDefaultAccountDefinition())
+                .isTrue();
+        assertThat(newObjectClassDef.getNativeObjectClass())
+                .isEqualTo("ACCOUNT");
+        assertThat(newObjectClassDef.getPrimaryIdentifiersNames())
+                .containsExactly(xLoginDef.getItemName());
+        assertThat(newObjectClassDef.getDisplayNameAttributeName())
+                .isEqualTo(xLoginDef.getItemName());
 
-        PrismPropertyDefinition loginDef = newObjectClassDef.findPropertyDefinition(new ItemName(SCHEMA_NS, "login"));
-        assertEquals(new ItemName(SCHEMA_NS, "login"), loginDef.getItemName());
+        PrismPropertyDefinition<?> loginDef =
+                newObjectClassDef.findPropertyDefinition(new ItemName(MidPointConstants.NS_RI, "login"));
+        assertEquals(new ItemName(MidPointConstants.NS_RI, "login"), loginDef.getItemName());
         assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
         assertFalse(loginDef.isIgnored());
 
-        PrismPropertyDefinition passwdDef = newObjectClassDef.findPropertyDefinition(new ItemName(SCHEMA_NS, "password"));
-        assertEquals(new ItemName(SCHEMA_NS, "password"), passwdDef.getItemName());
+        PrismPropertyDefinition<?> passwdDef =
+                newObjectClassDef.findPropertyDefinition(new ItemName(MidPointConstants.NS_RI, "password"));
+        assertEquals(new ItemName(MidPointConstants.NS_RI, "password"), passwdDef.getItemName());
         assertEquals(ProtectedStringType.COMPLEX_TYPE, passwdDef.getTypeName());
         assertFalse(passwdDef.isIgnored());
 
-//        PrismContainerDefinition credDef = newObjectClassDef.findContainerDefinition(new SingleNamePath(SchemaConstants.NS_C,"credentials"));
-//        assertEquals(new SingleNamePath(SchemaConstants.NS_C,"credentials"), credDef.getName());
-//        assertEquals(new SingleNamePath(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
-//        assertFalse(credDef.isIgnored());
-
-        PrismPropertyDefinition sepDef = newObjectClassDef.findPropertyDefinition(new ItemName(SCHEMA_NS, "sep"));
-        assertEquals(new ItemName(SCHEMA_NS, "sep"), sepDef.getItemName());
+        PrismPropertyDefinition<?> sepDef =
+                newObjectClassDef.findPropertyDefinition(new ItemName(MidPointConstants.NS_RI, "sep"));
+        assertEquals(new ItemName(MidPointConstants.NS_RI, "sep"), sepDef.getItemName());
         assertEquals(DOMUtil.XSD_STRING, sepDef.getTypeName());
         assertTrue(sepDef.isIgnored());
-
     }
 
 }

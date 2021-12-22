@@ -16,7 +16,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.SchemaMigration;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
-import com.evolveum.midpoint.schema.processor.MutableResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.MutableRawResourceAttributeDefinition;
 
 public interface PartiallyMutableItemDefinition<I extends Item<?,?>> extends MutableItemDefinition<I> {
 
@@ -188,6 +188,12 @@ public interface PartiallyMutableItemDefinition<I extends Item<?,?>> extends Mut
 
     }
 
+    @Override
+    default void setInherited(boolean value) {
+        throw new IllegalStateException("Item Definition is not modifiable");
+
+    }
+
     public interface Container<C extends Containerable> extends PartiallyMutableItemDefinition<PrismContainer<C>>, MutablePrismContainerDefinition<C> {
 
         @Override
@@ -222,12 +228,6 @@ public interface PartiallyMutableItemDefinition<I extends Item<?,?>> extends Mut
 
         @Override
         default MutablePrismContainerDefinition<?> createContainerDefinition(QName name, ComplexTypeDefinition ctd, int minOccurs, int maxOccurs) {
-            throw new IllegalStateException("Item Definition is not modifiable");
-
-        }
-
-        @Override
-        default void setInherited(boolean value) {
             throw new IllegalStateException("Item Definition is not modifiable");
 
         }
@@ -269,7 +269,7 @@ public interface PartiallyMutableItemDefinition<I extends Item<?,?>> extends Mut
         }
     }
 
-    public interface Attribute<T> extends MutableResourceAttributeDefinition<T>, Property<T> {
+    public interface Attribute<T> extends MutableRawResourceAttributeDefinition<T>, Property<T> {
 
         @Override
         default void setReturnedByDefault(Boolean returnedByDefault) {

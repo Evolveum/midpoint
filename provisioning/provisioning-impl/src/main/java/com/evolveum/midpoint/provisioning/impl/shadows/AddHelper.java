@@ -13,7 +13,9 @@ import static com.evolveum.midpoint.provisioning.impl.shadows.Util.*;
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.commons.lang.Validate;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -54,10 +56,6 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowCheckType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 /**
@@ -83,34 +81,41 @@ class AddHelper {
     @Autowired private CommonHelper commonHelper;
     @Autowired private EntitlementsHelper entitlementsHelper;
 
-    String addResourceObject(PrismObject<ShadowType> resourceObjectToAdd, OperationProvisioningScriptsType scripts,
-            ProvisioningOperationOptions options, Task task, OperationResult parentResult)
+    String addResourceObject(
+            @NotNull PrismObject<ShadowType> resourceObjectToAdd,
+            OperationProvisioningScriptsType scripts,
+            ProvisioningOperationOptions options,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
             ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,
             ExpressionEvaluationException, EncryptionException {
 
-        Validate.notNull(resourceObjectToAdd, "Object to add must not be null.");
-
         InternalMonitor.recordCount(InternalCounters.SHADOW_CHANGE_OPERATION_COUNT);
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Start adding shadow object{}:\n{}", getAdditionalOperationDesc(scripts, options), resourceObjectToAdd.debugDump(1));
+            LOGGER.trace("Start adding shadow object{}:\n{}",
+                    getAdditionalOperationDesc(scripts, options), resourceObjectToAdd.debugDump(1));
         }
 
-        ProvisioningContext ctx = ctxFactory.create(resourceObjectToAdd, task, parentResult);
+        ResourceType resource = ctxFactory.getResource(resourceObjectToAdd, task, result);
+        ProvisioningContext ctx;
         try {
+            ctx = ctxFactory.createForShadow(resourceObjectToAdd, resource, task);
             ctx.assertDefinition();
         } catch (SchemaException e) {
-            parentResult.recordFatalError(e);
-            ResourceOperationDescription operationDescription = ProvisioningUtil.createResourceFailureDescription(
-                    resourceObjectToAdd, ctx.getResource(), resourceObjectToAdd.createAddDelta(), parentResult);
-            eventDispatcher.notifyFailure(operationDescription, task, parentResult);
+            result.recordFatalErrorNotFinish(e);
+            ResourceOperationDescription operationDescription =
+                    ProvisioningUtil.createResourceFailureDescription(
+                            resourceObjectToAdd, resource, resourceObjectToAdd.createAddDelta(), result);
+            eventDispatcher.notifyFailure(operationDescription, task, result);
             throw e;
         }
 
-        ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState = new ProvisioningOperationState<>();
+        ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState
+                = new ProvisioningOperationState<>();
 
-        return addShadowAttempt(ctx, resourceObjectToAdd, scripts, opState, options, task, parentResult);
+        return addShadowAttempt(ctx, resourceObjectToAdd, scripts, opState, options, task, result);
     }
 
     String addShadowAttempt(ProvisioningContext ctx,
@@ -144,7 +149,7 @@ class AddHelper {
         entitlementsHelper.preprocessEntitlements(ctx, resourceObjectToAdd, parentResult);
 
         shadowCaretaker.applyAttributesDefinition(ctx, resourceObjectToAdd);
-        shadowManager.setKindIfNecessary(resourceObjectToAdd.asObjectable(), ctx.getObjectClassDefinition());
+        shadowManager.setKindIfNecessary(resourceObjectToAdd.asObjectable(), ctx);
         accessChecker.checkAdd(ctx, resourceObjectToAdd, parentResult);
         PrismObject<ShadowType> addedShadow = null;
         OperationResultStatus finalOperationStatus = null;
@@ -310,13 +315,14 @@ class AddHelper {
             ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
             Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
-        checkConstraints(ctx, resourceObjectToAdd, opState, task, result);
-        validateSchema(ctx, resourceObjectToAdd);
+        checkConstraints(resourceObjectToAdd, opState, ctx, result);
+        ctx.validateSchema(resourceObjectToAdd.asObjectable());
     }
 
-    private void checkConstraints(ProvisioningContext ctx, PrismObject<ShadowType> resourceObjectToAdd,
+    private void checkConstraints(PrismObject<ShadowType> resourceObjectToAdd,
             ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
-            Task task, OperationResult result)
+            ProvisioningContext ctx,
+            OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
         ShadowCheckType shadowConstraintsCheck = ResourceTypeUtil.getShadowConstraintsCheck(ctx.getResource());
@@ -334,26 +340,18 @@ class AddHelper {
         ConstraintsChecker checker = new ConstraintsChecker();
         checker.setCacheConfigurationManager(cacheConfigurationManager);
         checker.setShadowsFacade(shadowsFacade); // TODO ok?
-        checker.setPrismContext(prismContext);
         checker.setProvisioningContext(ctx);
         checker.setShadowObject(resourceObjectToAdd);
         checker.setShadowOid(shadowOid);
         checker.setConstraintViolationConfirmer(ShadowUtil::isNotDead);
         checker.setUseCache(false);
 
-        ConstraintsCheckingResult checkingResult = checker.check(task, result);
+        ConstraintsCheckingResult checkingResult = checker.check(result);
 
         LOGGER.trace("Checked {} constraints, result={}", resourceObjectToAdd.debugDumpLazily(),
                 checkingResult.isSatisfiesConstraints());
         if (!checkingResult.isSatisfiesConstraints()) {
             throw new ObjectAlreadyExistsException("Conflicting shadow already exists on "+ctx.getResource());
-        }
-    }
-
-    private void validateSchema(ProvisioningContext ctx, PrismObject<ShadowType> shadow) throws ObjectNotFoundException,
-            SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        if (ResourceTypeUtil.isValidateSchema(ctx.getResource())) {
-            ShadowUtil.validateAttributeSchema(shadow, ctx.getObjectClassDefinition());
         }
     }
 

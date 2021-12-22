@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.integrity.shadows;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
@@ -17,12 +17,14 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Checker context related to one object type (resource + object class).
+ * TODO update the description + decide whether we want to keep object type definition or object type/class definition
+ *
+ * This is wrong: Checker context related to one object type (resource + object class).
  */
 class ObjectTypeContext {
 
     private PrismObject<ResourceType> resource;
-    private RefinedObjectClassDefinition objectClassDefinition;
+    private ResourceObjectTypeDefinition objectTypeDefinition;
     private final Map<QName, Map<String, Set<String>>> identifierValueMap = new HashMap<>();
 
     public PrismObject<ResourceType> getResource() {
@@ -33,12 +35,12 @@ class ObjectTypeContext {
         this.resource = resource;
     }
 
-    public RefinedObjectClassDefinition getObjectClassDefinition() {
-        return objectClassDefinition;
+    public ResourceObjectTypeDefinition getObjectTypeDefinition() {
+        return objectTypeDefinition;
     }
 
-    public void setObjectClassDefinition(RefinedObjectClassDefinition objectClassDefinition) {
-        this.objectClassDefinition = objectClassDefinition;
+    public void setObjectTypeDefinition(ResourceObjectTypeDefinition objectTypeDefinition) {
+        this.objectTypeDefinition = objectTypeDefinition;
     }
 
     public Map<QName, Map<String, Set<String>>> getIdentifierValueMap() {

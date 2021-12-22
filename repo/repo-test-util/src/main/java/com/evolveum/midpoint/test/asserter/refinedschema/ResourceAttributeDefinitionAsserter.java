@@ -7,8 +7,8 @@
 package com.evolveum.midpoint.test.asserter.refinedschema;
 
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.test.asserter.prism.PrismPropertyDefinitionAsserter;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
@@ -21,7 +21,7 @@ import static org.testng.AssertJUnit.*;
  */
 public class ResourceAttributeDefinitionAsserter<T,RA> extends PrismPropertyDefinitionAsserter<T,RA> {
 
-    private ObjectClassComplexTypeDefinition objectClassDefinition;
+    private ResourceObjectDefinition objectDefinition;
 
     public ResourceAttributeDefinitionAsserter(ResourceAttributeDefinition<T> attrDefinition) {
         super(attrDefinition);
@@ -39,19 +39,24 @@ public class ResourceAttributeDefinitionAsserter<T,RA> extends PrismPropertyDefi
         return new ResourceAttributeDefinitionAsserter<>(attrDefinition);
     }
 
-    public static <T,RA> ResourceAttributeDefinitionAsserter<T,RA> forAttribute(ObjectClassComplexTypeDefinition objectClassDefinition, QName attrName, RA returnAsserter, String desc) {
-        ResourceAttributeDefinition<T> attrDefinition = objectClassDefinition.findAttributeDefinition(attrName);
+    public static <T,RA> ResourceAttributeDefinitionAsserter<T,RA> forAttribute(
+            ResourceObjectDefinition objectDefinition, QName attrName, RA returnAsserter, String desc) {
+        //noinspection unchecked
+        ResourceAttributeDefinition<T> attrDefinition =
+                (ResourceAttributeDefinition<T>) objectDefinition.findAttributeDefinition(attrName);
         assertNotNull("No definition for attribute "+attrName+" in " + desc, attrDefinition);
         ResourceAttributeDefinitionAsserter<T, RA> asserter = new ResourceAttributeDefinitionAsserter<>(attrDefinition, returnAsserter, desc);
-        asserter.objectClassDefinition = objectClassDefinition;
+        asserter.objectDefinition = objectDefinition;
         return asserter;
     }
 
-    public static <T,RA> ResourceAttributeDefinitionAsserter<T,RA> forAttribute(ObjectClassComplexTypeDefinition objectClassDefinition, String attrName, RA returnAsserter, String desc) {
-        ResourceAttributeDefinition<T> attrDefinition = objectClassDefinition.findAttributeDefinition(attrName);
+    public static <T,RA> ResourceAttributeDefinitionAsserter<T,RA> forAttribute(ResourceObjectDefinition objectClassDefinition, String attrName, RA returnAsserter, String desc) {
+        //noinspection unchecked
+        ResourceAttributeDefinition<T> attrDefinition =
+                (ResourceAttributeDefinition<T>) objectClassDefinition.findAttributeDefinition(attrName);
         assertNotNull("No definition for attribute "+attrName+" in " + desc, attrDefinition);
         ResourceAttributeDefinitionAsserter<T, RA> asserter = new ResourceAttributeDefinitionAsserter<>(attrDefinition, returnAsserter, desc);
-        asserter.objectClassDefinition = objectClassDefinition;
+        asserter.objectDefinition = objectClassDefinition;
         return asserter;
     }
 
@@ -60,26 +65,34 @@ public class ResourceAttributeDefinitionAsserter<T,RA> extends PrismPropertyDefi
     }
 
     public ResourceAttributeDefinitionAsserter<T,RA> assertIsPrimaryIdentifier() {
-        assertNotNull("Cannot evaluate whether attribute is identifier because there is no objectClassDefinition set up in asserter", objectClassDefinition);
-        assertTrue("Not a primary identifier:" + desc(), getDefinition().isPrimaryIdentifier(objectClassDefinition));
+        assertNotNull("Cannot evaluate whether attribute is identifier because there is no objectClassDefinition set up in asserter", objectDefinition);
+        assertTrue("Not a primary identifier:" + desc(),
+                objectDefinition.isPrimaryIdentifier(
+                        getDefinition().getItemName()));
         return this;
     }
 
     public ResourceAttributeDefinitionAsserter<T,RA> assertNotPrimaryIdentifier() {
-        assertNotNull("Cannot evaluate whether attribute is identifier because there is no objectClassDefinition set up in asserter", objectClassDefinition);
-        assertFalse("Primary identifier but should not be:" + desc(), getDefinition().isPrimaryIdentifier(objectClassDefinition));
+        assertNotNull("Cannot evaluate whether attribute is identifier because there is no objectClassDefinition set up in asserter", objectDefinition);
+        assertFalse("Primary identifier but should not be:" + desc(),
+                objectDefinition.isPrimaryIdentifier(
+                        getDefinition().getItemName()));
         return this;
     }
 
     public ResourceAttributeDefinitionAsserter<T,RA> assertIsSecondaryIdentifier() {
-        assertNotNull("Cannot evaluate whether attribute is identifier because there is no objectClassDefinition set up in asserter", objectClassDefinition);
-        assertTrue("Not a secondary identifier:" + desc(), getDefinition().isSecondaryIdentifier(objectClassDefinition));
+        assertNotNull("Cannot evaluate whether attribute is identifier because there is no objectClassDefinition set up in asserter", objectDefinition);
+        assertTrue("Not a secondary identifier:" + desc(),
+                objectDefinition.isSecondaryIdentifier(
+                        getDefinition().getItemName()));
         return this;
     }
 
     public ResourceAttributeDefinitionAsserter<T,RA> assertNotSecondaryIdentifier() {
-        assertNotNull("Cannot evaluate whether attribute is identifier because there is no objectClassDefinition set up in asserter", objectClassDefinition);
-        assertFalse("Secondary identifier but should not be:" + desc(), getDefinition().isSecondaryIdentifier(objectClassDefinition));
+        assertNotNull("Cannot evaluate whether attribute is identifier because there is no objectClassDefinition set up in asserter", objectDefinition);
+        assertFalse("Secondary identifier but should not be:" + desc(),
+                objectDefinition.isSecondaryIdentifier(
+                        getDefinition().getItemName()));
         return this;
     }
 

@@ -12,7 +12,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AbstractSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AssociationSearchExpressionEvaluatorCache;
@@ -78,12 +78,13 @@ public class AssociationTargetSearchExpressionEvaluator
     @Override
     protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params) throws SchemaException, ExpressionEvaluationException {
         @SuppressWarnings("unchecked")
-        TypedValue<RefinedObjectClassDefinition> rAssocTargetDefTypedValue = params.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
+        TypedValue<ResourceObjectTypeDefinition> rAssocTargetDefTypedValue =
+                params.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
         if (rAssocTargetDefTypedValue == null || rAssocTargetDefTypedValue.getValue() == null) {
             throw new ExpressionEvaluationException("No association target object class definition variable in "+
                     params.getContextDescription()+"; the expression may be used in a wrong place. It is only supposed to create an association.");
         }
-        RefinedObjectClassDefinition rAssocTargetDef = (RefinedObjectClassDefinition) rAssocTargetDefTypedValue.getValue();
+        ResourceObjectTypeDefinition rAssocTargetDef = (ResourceObjectTypeDefinition) rAssocTargetDefTypedValue.getValue();
         ObjectFilter resourceFilter = ObjectQueryUtil.createResourceFilter(rAssocTargetDef.getResourceOid(), prismContext);
         ObjectFilter objectClassFilter = ObjectQueryUtil.createObjectClassFilter(
                 rAssocTargetDef.getObjectClassDefinition().getTypeName(), prismContext);

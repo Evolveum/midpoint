@@ -36,7 +36,7 @@ public interface SynchronizationEvent extends AcknowledgementSink, DebugDumpable
      *
      * It is unique at least in the context of the current synchronization operation
      * ({@link ProvisioningService#synchronize(ResourceShadowDiscriminator, LiveSyncOptions, LiveSyncTokenStorage, LiveSyncEventHandler, Task, OperationResult)}
-     * or {@link ProvisioningService#processAsynchronousUpdates(ResourceShadowDiscriminator, AsyncUpdateEventHandler, Task, OperationResult)}).
+     * or {@link ProvisioningService#processAsynchronousUpdates(com.evolveum.midpoint.schema.ResourceShadowCoordinates, AsyncUpdateEventHandler, Task, OperationResult)}).
      */
     int getSequentialNumber();
 

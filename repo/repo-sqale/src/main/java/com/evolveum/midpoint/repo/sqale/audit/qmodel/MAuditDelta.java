@@ -11,9 +11,9 @@ import static com.evolveum.midpoint.util.MiscUtil.binaryToHexPreview;
 import java.time.Instant;
 import java.util.UUID;
 
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 /**
  * Querydsl "row bean" type related to {@link QAuditDelta}.
@@ -26,7 +26,7 @@ public class MAuditDelta {
     public String checksum;
     public byte[] delta;
     public UUID deltaOid;
-    public ChangeType deltaType;
+    public ChangeTypeType deltaType;
     public byte[] fullResult; // not just full, can be cleaned-up, top or even none
     public String objectNameNorm;
     public String objectNameOrig;

@@ -17,6 +17,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -24,7 +26,6 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.context.*;
@@ -409,7 +410,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismObject<ShadowType> shadow = getShadowModel(ACCOUNT_SHADOW_GUYBRUSH_OID);
 
         // WHEN
-        RefinedObjectClassDefinition rOCDef = modelInteractionService.getEditObjectClassDefinition(shadow,
+        ResourceObjectDefinition rOCDef = modelInteractionService.getEditObjectClassDefinition(shadow,
                 getDummyResourceObject(), AuthorizationPhaseType.REQUEST, task, result);
 
         // THEN

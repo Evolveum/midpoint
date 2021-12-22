@@ -11,12 +11,13 @@ import com.evolveum.midpoint.prism.PrismObject;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import javax.xml.namespace.QName;
 
 /**
  * Specifies which objects are to be synchronized.
@@ -31,11 +32,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class SynchronizationObjectsFilterImpl implements SynchronizationObjectsFilter {
 
     /**
-     * This is either "simple" OCD or refined OCD.
-     *
-     * FIXME this should be clarified; the current state mirrors objectClassDef information in sync handlers
+     * Name of the object class.
      */
-    private final ObjectClassComplexTypeDefinition objectClassDefinition;
+    private final QName objectClassName;
 
     /**
      * Kind, as specified in the task extension. Null means "any kind".
@@ -47,9 +46,8 @@ public class SynchronizationObjectsFilterImpl implements SynchronizationObjectsF
      */
     private final String intent;
 
-    SynchronizationObjectsFilterImpl(ObjectClassComplexTypeDefinition objectClassDefinition,
-            ShadowKindType kind, String intent) {
-        this.objectClassDefinition = objectClassDefinition;
+    SynchronizationObjectsFilterImpl(QName objectClassName, ShadowKindType kind, String intent) {
+        this.objectClassName = objectClassName;
         this.kind = kind;
         this.intent = intent;
     }
@@ -60,8 +58,8 @@ public class SynchronizationObjectsFilterImpl implements SynchronizationObjectsF
     }
 
     private boolean matchesObjectClassName(@NotNull PrismObject<ShadowType> shadow) {
-        return objectClassDefinition == null ||
-                QNameUtil.match(objectClassDefinition.getTypeName(), shadow.asObjectable().getObjectClass());
+        return objectClassName == null ||
+                QNameUtil.match(objectClassName, shadow.asObjectable().getObjectClass());
     }
 
     /**

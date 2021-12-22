@@ -10,7 +10,8 @@ package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClass;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -22,7 +23,7 @@ public class ReconciliationResult implements DebugDumpable {
 
     private TaskRunResult runResult;
     private PrismObject<ResourceType> resource;
-    private ObjectClassComplexTypeDefinition objectclassDefinition;
+    private ResourceObjectDefinition resourceObjectDefinition;
     private long etime; // seems unused
     private long unOpsTime; // seems unused
     private long resourceReconTime; // seems unused
@@ -39,7 +40,7 @@ public class ReconciliationResult implements DebugDumpable {
         ResourceObjectClass resourceObjectClass = findResourceObjectClass(execution);
         if (resourceObjectClass != null) {
             result.resource = resourceObjectClass.resource.asPrismObject();
-            result.objectclassDefinition = resourceObjectClass.getObjectClassDefinition();
+            result.resourceObjectDefinition = resourceObjectClass.getResourceObjectDefinition();
         }
         OperationCompletionActivityRun operationCompletionExecution = execution.getOperationCompletionExecution();
         if (operationCompletionExecution != null) {
@@ -86,13 +87,13 @@ public class ReconciliationResult implements DebugDumpable {
         this.resource = resource;
     }
 
-    public ObjectClassComplexTypeDefinition getObjectclassDefinition() {
-        return objectclassDefinition;
+    public ResourceObjectDefinition getResourceObjectDefinition() {
+        return resourceObjectDefinition;
     }
 
-    public void setObjectclassDefinition(
-            ObjectClassComplexTypeDefinition refinedObjectclassDefinition) {
-        this.objectclassDefinition = refinedObjectclassDefinition;
+    public void setResourceObjectDefinition(
+            ResourceObjectClassDefinition refinedObjectclassDefinition) {
+        this.resourceObjectDefinition = refinedObjectclassDefinition;
     }
 
     public long getEtime() {
@@ -169,7 +170,7 @@ public class ReconciliationResult implements DebugDumpable {
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "resource", resource.toString(), indent);
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "rOCD", String.valueOf(objectclassDefinition), indent);
+        DebugUtil.debugDumpWithLabel(sb, "rOCD", String.valueOf(resourceObjectDefinition), indent);
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "etime", etime, indent);
         sb.append("\n");

@@ -11,22 +11,20 @@ import com.evolveum.midpoint.model.impl.dataModel.model.ResourceDataItem;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author mederly
- */
 public class DotResourceDataItem implements DotDataItem {
 
     private final ResourceDataItem dataItem;
     private final DotModel dotModel;
 
-    public DotResourceDataItem(ResourceDataItem dataItem, DotModel dotModel) {
+    DotResourceDataItem(ResourceDataItem dataItem, DotModel dotModel) {
         this.dataItem = dataItem;
         this.dotModel = dotModel;
     }
 
     @Override
     public String getNodeName() {
-        return "\"" + getResourceName() + ":" + dotModel.getObjectTypeName(dataItem.getRefinedObjectClassDefinition(), false) + ":" + dataItem.getItemPath() + "\"";
+        return "\"" + getResourceName() + ":" +
+                dotModel.getObjectTypeName(dataItem.getObjectDefinition(), false) + ":" + dataItem.getItemPath() + "\"";
     }
 
     @Override

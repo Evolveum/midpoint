@@ -10,9 +10,11 @@ import java.util.*;
 
 import com.evolveum.midpoint.authentication.api.*;
 
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.security.api.*;
-import com.evolveum.midpoint.authentication.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Session;
@@ -133,7 +135,7 @@ public class PageResetPasswordConfirmation extends PageRegistrationBase {
             mpAuthentication.setSessionId(Session.get().getId());
             ModuleAuthentication moduleAuthentication = authModule.getBaseModuleAuthentication();
             moduleAuthentication.setAuthentication(token);
-            moduleAuthentication.setState(StateOfModule.SUCCESSFULLY);
+            moduleAuthentication.setState(AuthenticationModuleState.SUCCESSFULLY);
             mpAuthentication.addAuthentications(moduleAuthentication);
             mpAuthentication.setPrincipal(principal);
             mpAuthentication.setAuthorities(token.getAuthorities());

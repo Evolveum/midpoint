@@ -30,8 +30,8 @@ import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.SynchronizationUtils;
-import com.evolveum.midpoint.common.refinery.RefinedDefinitionUtil;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.RefinedDefinitionUtil;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
@@ -116,7 +116,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             logStart(change);
             checkConsistence(change);
 
-            SynchronizationContext<?> syncCtx = loadSynchronizationContext(change, task, result);
+            SynchronizationContext<?> syncCtx = loadSynchronizationContextFromChange(change, task, result);
 
             syncCtx.checkNotInMaintenance(result);
 
@@ -182,8 +182,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         return owners.get(0);
     }
 
-    private SynchronizationContext<FocusType> loadSynchronizationContext(@NotNull ResourceObjectShadowChangeDescription change,
-            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+    private SynchronizationContext<FocusType> loadSynchronizationContextFromChange(
+            @NotNull ResourceObjectShadowChangeDescription change, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         SynchronizationContext<FocusType> syncCtx = loadSynchronizationContext(change.getShadowedResourceObject(),
                 change.getObjectDelta(), change.getResource(), change.getSourceChannel(), change.getItemProcessingIdentifier(),
@@ -216,7 +217,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
 
         ObjectSynchronizationDiscriminatorType synchronizationDiscriminator =
-                determineObjectSynchronizationDiscriminator(syncCtx, task, result);
+                evaluateSynchronizationSorter(synchronization, syncCtx, task, result);
         if (synchronizationDiscriminator != null) {
             syncCtx.setForceIntentChange(true);
             LOGGER.trace("Setting synchronization situation to synchronization context: {}",
@@ -264,12 +265,12 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         if (applicableShadow.asObjectable().getTag() != null) {
             return;
         }
-        RefinedObjectClassDefinition rOcd = syncCtx.findRefinedObjectClassDefinition();
+        ResourceObjectTypeDefinition rOcd = syncCtx.findRefinedObjectClassDefinition();
         if (rOcd == null) {
             // We probably do not have kind/intent yet.
             return;
         }
-        ResourceObjectMultiplicityType multiplicity = rOcd.getMultiplicity();
+        ResourceObjectMultiplicityType multiplicity = rOcd.getObjectMultiplicity();
         if (!RefinedDefinitionUtil.isMultiaccount(multiplicity)) {
             return;
         }
@@ -277,24 +278,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                 syncCtx.getResource(), syncCtx.getSystemConfiguration(), "tag expression for " + applicableShadow, syncCtx.getTask(), result);
         LOGGER.debug("SYNCHRONIZATION: TAG generated: {}", tag);
         syncCtx.setTag(tag);
-    }
-
-    private <F extends FocusType> ObjectSynchronizationDiscriminatorType determineObjectSynchronizationDiscriminator(
-            SynchronizationContext<F> syncCtx, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-
-        SynchronizationType synchronization = syncCtx.getResource().asObjectable().getSynchronization();
-        if (synchronization == null) {
-            return null;
-        }
-
-        ObjectSynchronizationSorterType sorter = synchronization.getObjectSynchronizationSorter();
-        if (sorter == null) {
-            return null;
-        }
-
-        return evaluateSynchronizationSorter(sorter, syncCtx, task, result);
     }
 
     private <F extends FocusType> boolean isPolicyApplicable(ObjectSynchronizationType synchronizationPolicy,
@@ -305,14 +288,16 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     }
 
     private <F extends FocusType> ObjectSynchronizationDiscriminatorType evaluateSynchronizationSorter(
-            ObjectSynchronizationSorterType synchronizationSorter, SynchronizationContext<F> syncCtx,
+            @NotNull SynchronizationType synchronization, @NotNull SynchronizationContext<F> syncCtx,
             Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        if (synchronizationSorter.getExpression() == null) {
+        ObjectSynchronizationSorterType synchronizationSorter = synchronization.getObjectSynchronizationSorter();
+        if (synchronizationSorter == null || synchronizationSorter.getExpression() == null) {
             return null;
         }
+
         ExpressionType classificationExpression = synchronizationSorter.getExpression();
         String desc = "synchronization divider type ";
         VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(null, syncCtx.getShadowedResourceObject(), null,
@@ -332,6 +317,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
     }
 
+    /**
+     * Checks for common reasons to skip synchronization:
+     *
+     * - no applicable synchronization policy,
+     * - synchronization disabled,
+     * - protected resource object.
+     */
     private <F extends FocusType> boolean shouldSkipSynchronization(SynchronizationContext<F> syncCtx,
             OperationResult result) throws SchemaException {
         Task task = syncCtx.getTask();

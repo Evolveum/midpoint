@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.web.page.login;
 
-import com.evolveum.midpoint.authentication.api.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.Url;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 
 import java.io.Serializable;

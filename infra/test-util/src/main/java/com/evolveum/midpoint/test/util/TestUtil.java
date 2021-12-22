@@ -27,6 +27,8 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.RawResourceAttributeDefinition;
+
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.testng.AssertJUnit;
 import org.w3c.dom.Element;
@@ -36,7 +38,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -105,11 +106,10 @@ public class TestUtil {
                 MiscUtil.unorderedArrayEquals(actual, expected));
     }
 
-    public static void setAttribute(PrismObject<ShadowType> account, QName attrName, QName typeName,
-            PrismContext prismContext, String value) throws SchemaException {
+    public static void setAttribute(PrismObject<ShadowType> account, QName attrName, QName typeName, String value)
+            throws SchemaException {
         PrismContainer<Containerable> attributesContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
-        ResourceAttributeDefinition<String> attrDef =
-                ObjectFactory.createResourceAttributeDefinition(attrName, typeName, prismContext);
+        RawResourceAttributeDefinition<String> attrDef = ObjectFactory.createResourceAttributeDefinition(attrName, typeName);
         ResourceAttribute<String> attribute = attrDef.instantiate();
         attribute.setRealValue(value);
         attributesContainer.add(attribute);

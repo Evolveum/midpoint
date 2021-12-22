@@ -7,21 +7,23 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import org.w3c.dom.Element;
-
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 
 /**
  *
  */
 public interface MutableResourceSchema extends ResourceSchema, MutablePrismSchema {
 
-    MutableObjectClassComplexTypeDefinition createObjectClassDefinition(String localTypeName);
-
-    MutableObjectClassComplexTypeDefinition createObjectClassDefinition(QName typeName);
-
-    void parseThis(Element xsdSchema, String shortDesc, PrismContext prismContext) throws SchemaException;
+    /**
+     * Creates a new resource object class definition and adds it to the schema.
+     *
+     * This is a preferred way how to create definition in the schema.
+     *
+     * @param typeName
+     *            type QName
+     * @return new resource object definition
+     */
+    MutableResourceObjectClassDefinition createObjectClassDefinition(QName typeName);
 }

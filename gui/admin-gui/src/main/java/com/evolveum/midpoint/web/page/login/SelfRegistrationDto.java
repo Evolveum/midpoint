@@ -10,10 +10,10 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
-import com.evolveum.midpoint.authentication.api.authentication.CredentialModuleAuthentication;
-import com.evolveum.midpoint.authentication.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.config.CredentialModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 
-import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;

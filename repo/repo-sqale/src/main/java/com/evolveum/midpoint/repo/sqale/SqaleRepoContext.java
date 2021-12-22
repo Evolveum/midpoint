@@ -44,6 +44,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 /**
  * SQL repository context adding support for QName cache.
@@ -68,7 +69,8 @@ public class SqaleRepoContext extends SqlRepoContext {
         querydslConfig.register(new EnumAsObjectType<>(AuditEventStageType.class));
         querydslConfig.register(new EnumAsObjectType<>(AuditEventTypeType.class));
         querydslConfig.register(new EnumAsObjectType<>(AvailabilityStatusType.class));
-        querydslConfig.register(new EnumAsObjectType<>(ChangeType.class));
+        querydslConfig.register(new EnumAsObjectType<>(ChangeType.class)); // used in old audit
+        querydslConfig.register(new EnumAsObjectType<>(ChangeTypeType.class));
         querydslConfig.register(new EnumAsObjectType<>(MContainerType.class));
         querydslConfig.register(new EnumAsObjectType<>(MExtItemHolderType.class));
         querydslConfig.register(new EnumAsObjectType<>(MExtItemCardinality.class));

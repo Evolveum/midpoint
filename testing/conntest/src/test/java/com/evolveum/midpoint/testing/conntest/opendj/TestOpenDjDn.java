@@ -50,7 +50,7 @@ public class TestOpenDjDn extends AbstractOpenDjNoiseTest {
 
     @Test
     public void test025SchemaDn() {
-        ResourceAttributeDefinition<String> dnDef = accountObjectClassDefinition.findAttributeDefinition("dn");
+        ResourceAttributeDefinition<?> dnDef = accountObjectClassDefinition.findAttributeDefinition("dn");
         displayDumpable("DN defintion", dnDef);
         PrismAsserts.assertDefinition(dnDef, new QName(MidPointConstants.NS_RI, "dn"), DOMUtil.XSD_STRING, 1, 1);
         assertTrue("dn read", dnDef.canRead());
