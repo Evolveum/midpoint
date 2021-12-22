@@ -4,11 +4,13 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.testing.conntest.ad;
+package com.evolveum.midpoint.testing.conntest.ad.simple;
 
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.Collection;
+
+import com.evolveum.midpoint.testing.conntest.ad.AbstractAdLdapTest;
 
 import org.testng.annotations.Test;
 
@@ -22,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  * @author semancik
  */
-public abstract class AbstractAdLdapCookedTest extends AbstractAdLdapTest {
+public abstract class AbstractAdLdapCookedTest extends AbstractAdLdapSimpleTest {
 
     @Test
     public void test050Capabilities() {

@@ -804,15 +804,17 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
     /**
      * Silent delete. Used to clean up after previous test runs.
+     * @return deleted entry or null
      */
-    protected void cleanupDelete(String dn) throws LdapException, IOException, CursorException {
-        cleanupDelete(null, dn);
+    protected Entry cleanupDelete(String dn) throws LdapException, IOException, CursorException {
+        return cleanupDelete(null, dn);
     }
 
     /**
      * Silent delete. Used to clean up after previous test runs.
+     * @return deleted entry or null
      */
-    protected void cleanupDelete(UserLdapConnectionConfig config, String dn) throws LdapException, IOException, CursorException {
+    protected Entry cleanupDelete(UserLdapConnectionConfig config, String dn) throws LdapException, IOException, CursorException {
         LdapNetworkConnection connection = ldapConnect(config);
         Entry entry = getLdapEntry(connection, dn);
         if (entry != null) {
@@ -820,6 +822,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
             display("Cleaning up LDAP entry: " + dn);
         }
         ldapDisconnect(connection);
+        return entry;
     }
 
     protected String toAccountDn(String username, String fullName) {

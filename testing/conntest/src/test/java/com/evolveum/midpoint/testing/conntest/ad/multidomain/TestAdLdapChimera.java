@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.testing.conntest.ad;
+package com.evolveum.midpoint.testing.conntest.ad.multidomain;
 
 import java.io.File;
 
@@ -18,20 +18,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
+ * Old "chimera/hydra" servers in Lozorno. DEPRECATED.
+ *
  * @author semancik
  */
-@ContextConfiguration(locations = { "classpath:ctx-conntest-test-main.xml" })
+@ContextConfiguration(locations = {"classpath:ctx-conntest-test-main.xml"})
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestAdLdapChimeraRunAs extends AbstractAdLdapMultidomainRunAsTest {
+public class TestAdLdapChimera extends AbstractAdLdapMultidomainTest {
 
     @Override
     protected File getResourceFile() {
-        return new File(getBaseDir(), "resource-chimera-runas.xml");
-    }
-
-    protected String getResourceOid() {
-        return "eced6d24-73e3-11e5-8457-93eff15a6b85";
+        return new File(getBaseDir(), "resource-chimera.xml");
     }
 
     @Override
@@ -40,33 +38,18 @@ public class TestAdLdapChimeraRunAs extends AbstractAdLdapMultidomainRunAsTest {
     }
 
     @Override
-    protected int getLdapServerPort() {
-        return 636;
-    }
-
-    @Override
-    protected String getLdapBindDn() {
-        return null;
-    }
-
-    @Override
     protected String getLdapSubServerHost() {
-        return null;
+        return "hydra.ad.evolveum.com";
+    }
+
+    @Override
+    protected String getLdapSuffix() {
+        return "DC=ad,DC=evolveum,DC=com";
     }
 
     @Override
     protected String getLdapSubSuffix() {
-        return null;
-    }
-
-    @Override
-    protected String getLdapSubBindDn() {
-        return null;
-    }
-
-    @Override
-    protected String getAccountJackSid() {
-        return null;
+        return "DC=sub,DC=ad,DC=evolveum,DC=com";
     }
 
     @Override
@@ -81,7 +64,7 @@ public class TestAdLdapChimeraRunAs extends AbstractAdLdapMultidomainRunAsTest {
 
     @Override
     protected int getNumberOfAllAccounts() {
-        return 0;
+        return 18;
     }
 
     @Override
@@ -95,7 +78,22 @@ public class TestAdLdapChimeraRunAs extends AbstractAdLdapMultidomainRunAsTest {
     }
 
     @Override
+    protected String getAccountJackSid() {
+        return "S-1-5-21-3305462238-3617280118-659738602-4878";
+    }
+
+    @Override
     protected boolean hasExchange() {
         return true;
+    }
+
+    @Override
+    protected boolean isVagueTest() {
+        return true;
+    }
+
+    @Override
+    protected String getExpected182FirstShadow() {
+        return "CN=Adolf Supperior,"+getPeopleLdapSuffix();
     }
 }
