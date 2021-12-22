@@ -70,6 +70,12 @@ For example, midPoint 4.1 can be upgrade to 4.2, but not to 4.3.
 To get from 4.1 to 4.3, you will need to upgrade to 4.2 first.
 The xref:/support/long-term-support/[] page provides general principles of midPoint upgradeability, release notes provide specific details for each particular release.
 
+[IMPORTANT]
+Upgrade to the latest maintenance version available for your release first!
+This is especially important for LTS to LTS upgrade (e.g. 4.0.x to 4.4.x) because pre-upgrade checks (like schema
+deprecation warnings) are likely not available in the maintenance versions before the new LTS (4.4) is released.
+For example, first upgrade your 4.0 LTS to 4.0.4 which was released shortly after 4.4 LTS release.
+
 Use the xref:/midpoint/reference/deployment/ninja/[`ninja`] tool to check for deprecated and removed functionality:
 
 [source,bash]
@@ -77,7 +83,9 @@ Use the xref:/midpoint/reference/deployment/ninja/[`ninja`] tool to check for de
 ninja.sh verify
 ----
 
-There is a `-w` switch that can be used to select specific warnings to display. Valid values are `deprecated` and `plannedRemoval`. Following command will show warnings about planned removal of items used by all objects in the repository:
+There is a `-w` switch that can be used to select specific warnings to display.
+Valid values are `deprecated` and `plannedRemoval`.
+Following command will show warnings about planned removal of items used by all objects in the repository:
 
 [source,bash]
 ----
@@ -167,7 +175,8 @@ Select the upgrade script appropriate for your database and midPoint versions.
 File names should be self-explanatory.
 For example, the `postgresql-upgrade-4.2-4.3.sql` is used to upgrade PostgreSQL database from midPoint 4.2 schema to midPoint 4.3 schema.
 
-Use appropriate tool for your database to run the script. For example, PostgreSQL `psql` tool can be used:
+Use appropriate tool for your database to run the script.
+For example, PostgreSQL `psql` tool can be used:
 
 [source,bash]
 ----
@@ -262,11 +271,12 @@ Also, the steps to upgrade a docker-based deployment are different.
 In such cases the steps needs to be adapted to specific environment.
 
 If there is a maintenance version available for your release, upgrade to the latest maintenance version first.
-For example, if you are running on midPoint 4.0, upgrade to midPoint 4.0.3 first, before upgrading to midPoint 4.4.
+For example, if you are running on midPoint 4.0, upgrade to midPoint 4.0.4 first, before upgrading to midPoint 4.4.
 Maintenance releases usually do not change the database schema at all, therefore the upgrades are very easy to do.
-Also, if a database schema was not changed in midPoint 4.0.1 and 4.0.2, it should be possible to upgrade to midPoint 4.0.3 directly from midPoint 4.0.
+Also, if a database schema was not changed in midPoint 4.0.1 and 4.0.2, it should be possible to upgrade to midPoint 4.0.4 directly from midPoint 4.0.
 Upgrading to the lastest maintenance version will make sure that your pre-upgrade checks give the best possible results.
-For example, `ninja` in midPoint 4.0 may not know about all the deprecated functionality, especially given a long lifetime of LTS releases such as midPoint 4.0. The `ninja` in midPoint 4.0.3 is much more likely to be aware of any upgrade pitfalls.
+For example, `ninja` in midPoint 4.0 may not know about all the deprecated functionality, especially given a long lifetime of LTS releases such as midPoint 4.0.
+The `ninja` in midPoint 4.0.4 is much more likely to be aware of any upgrade pitfalls.
 
 Always make sure that you are upgrading to a *supported* version of midPoint, ideally to a version that has sufficient support lifetime left.
 Do not upgrade to a midPoint version that is in end-of-life (EOL) state already, except when you are using this version as an intermediary in an upgrade path to a supported version.
