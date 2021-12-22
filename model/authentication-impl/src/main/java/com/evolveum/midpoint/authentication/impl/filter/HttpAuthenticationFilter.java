@@ -64,6 +64,11 @@ public abstract class HttpAuthenticationFilter<T> extends BasicAuthenticationFil
         try {
             String header = request.getHeader("Authorization");
 
+            if (header == null) {
+                chain.doFilter(request, response);
+                return;
+            }
+
             int delim = header.indexOf(" ");
 
             if (delim == -1) {
@@ -87,11 +92,9 @@ public abstract class HttpAuthenticationFilter<T> extends BasicAuthenticationFil
                 Authentication authResult = getAuthenticationManager()
                         .authenticate(authRequest);
 
-                AuthSequenceUtil.resolveProxyUserOidHeader(request);
-
-                onSuccessfulAuthentication(request, response, authResult);
-
                 LOGGER.debug("Authentication success: " + authResult);
+
+                AuthSequenceUtil.resolveProxyUserOidHeader(request);
 
                 getRememberMeServices().loginSuccess(request, response, authResult);
 
