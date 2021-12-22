@@ -59,11 +59,6 @@ public class LoginFormModuleWebSecurityConfigurer<C extends LoginFormModuleWebSe
     }
 
     @Override
-    public HttpSecurity getNewHttpSecurity() throws Exception {
-        return getHttp();
-    }
-
-    @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
         http.antMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");

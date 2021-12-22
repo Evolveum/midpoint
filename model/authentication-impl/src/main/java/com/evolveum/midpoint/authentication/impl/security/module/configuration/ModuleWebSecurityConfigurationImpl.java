@@ -81,7 +81,7 @@ public class ModuleWebSecurityConfigurationImpl implements ModuleWebSecurityConf
 
     public String getPrefix() {
         return DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + "/" + AuthUtil.stripSlashes(getPrefixOfSequence())
-                + "/" + AuthUtil.stripSlashes(getNameOfModule() + "/");
+                + "/" + AuthUtil.stripSlashes(getNameOfModule());
     }
 
     public static <T extends ModuleWebSecurityConfiguration> T build(AbstractAuthenticationModuleType module, String prefixOfSequence){

@@ -11,12 +11,12 @@ import com.evolveum.midpoint.authentication.api.IdentityProvider;
 import java.util.List;
 
 /**
- * Interface for authentication module for SAML2
+ * Interface for authentication module for remote authentication module
  *
  * @author skublik
  */
 
-public interface Saml2ModuleAuthentication extends ModuleAuthentication {
+public interface RemoteModuleAuthentication extends ModuleAuthentication {
 
     /**
      * @return identity provider created by configuration

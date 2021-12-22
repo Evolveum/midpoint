@@ -6,9 +6,6 @@
  */
 package com.evolveum.midpoint.authentication.impl.security.module.authentication;
 
-import java.io.Serializable;
-import java.util.Map;
-
 import com.evolveum.midpoint.authentication.api.StateOfModule;
 import com.evolveum.midpoint.authentication.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.authentication.ModuleAuthentication;
@@ -16,23 +13,25 @@ import com.evolveum.midpoint.authentication.api.authentication.RemoteModuleAuthe
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.authentication.impl.security.util.ModuleType;
 import com.evolveum.midpoint.authentication.impl.security.util.RequestState;
-import com.evolveum.midpoint.authentication.impl.security.module.configuration.SamlMidpointAdditionalConfiguration;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
+import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
+
+import java.io.Serializable;
 
 /**
  * @author skublik
  */
 
-public class Saml2ModuleAuthenticationImpl extends RemoteModuleAuthenticationImpl implements RemoteModuleAuthentication, Serializable {
+public class OidcModuleAuthenticationImpl extends RemoteModuleAuthenticationImpl implements RemoteModuleAuthentication, Serializable {
 
-    private Map<String, SamlMidpointAdditionalConfiguration> additionalConfiguration;
+    private InMemoryClientRegistrationRepository clientsRepository;
     private RequestState requestState;
 
-    public Saml2ModuleAuthenticationImpl() {
-        super(AuthenticationModuleNameConstants.SAML_2);
+    public OidcModuleAuthenticationImpl() {
+        super(AuthenticationModuleNameConstants.OIDC);
         setType(ModuleType.REMOTE);
         setState(StateOfModule.LOGIN_PROCESSING);
     }
@@ -45,18 +44,18 @@ public class Saml2ModuleAuthenticationImpl extends RemoteModuleAuthenticationImp
         return requestState;
     }
 
-    public Map<String, SamlMidpointAdditionalConfiguration> getAdditionalConfiguration() {
-        return additionalConfiguration;
+    public InMemoryClientRegistrationRepository getClientsRepository() {
+        return clientsRepository;
     }
 
-    public void setAdditionalConfiguration(Map<String, SamlMidpointAdditionalConfiguration> additionalConfiguration) {
-        this.additionalConfiguration = additionalConfiguration;
+    public void setClientsRepository(InMemoryClientRegistrationRepository clientsRepository) {
+        this.clientsRepository = clientsRepository;
     }
 
     @Override
     public ModuleAuthenticationImpl clone() {
-        Saml2ModuleAuthenticationImpl module = new Saml2ModuleAuthenticationImpl();
-        module.setAdditionalConfiguration(this.getAdditionalConfiguration());
+        OidcModuleAuthenticationImpl module = new OidcModuleAuthenticationImpl();
+        module.setClientsRepository(this.getClientsRepository());
         module.setProviders(this.getProviders());
         Authentication actualAuth = SecurityContextHolder.getContext().getAuthentication();
         Authentication newAuthentication = this.getAuthentication();
@@ -64,8 +63,8 @@ public class Saml2ModuleAuthenticationImpl extends RemoteModuleAuthenticationImp
                 && ((MidpointAuthentication) actualAuth).getAuthentications() != null
                 && !((MidpointAuthentication) actualAuth).getAuthentications().isEmpty()) {
             ModuleAuthentication actualModule = ((MidpointAuthentication) actualAuth).getAuthentications().get(0);
-            if (actualModule instanceof Saml2ModuleAuthenticationImpl
-                    && actualModule.getAuthentication() instanceof Saml2AuthenticationToken) {
+            if (actualModule instanceof OidcModuleAuthenticationImpl
+                    && actualModule.getAuthentication() instanceof OAuth2LoginAuthenticationToken) {
                 newAuthentication = actualModule.getAuthentication();
             }
         }

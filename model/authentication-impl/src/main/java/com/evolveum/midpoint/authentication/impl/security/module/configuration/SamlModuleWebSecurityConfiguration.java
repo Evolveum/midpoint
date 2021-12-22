@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.authentication.impl.security.module.configuration;
 
+import static com.evolveum.midpoint.authentication.impl.security.util.AuthSequenceUtil.getBasePath;
+
 import static java.util.Optional.ofNullable;
 import static org.springframework.util.StringUtils.hasText;
 
@@ -66,7 +68,6 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
 
     public static final String SSO_LOCATION_URL_SUFFIX = "/SSO/alias/{registrationId}";
     public static final String LOGOUT_LOCATION_URL_SUFFIX = "/logout/alias/{registrationId}";
-    public static final String REQUEST_PROCESSING_URL_SUFFIX = "/authenticate/{registrationId}";
 
     private static Protector protector;
     private static final ResourceLoader RESOURCE_LOADER = new DefaultResourceLoader();
@@ -273,20 +274,6 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
     private static String readFile(String path) throws IOException {
         byte[] encoded = Files.readAllBytes(Paths.get(path));
         return new String(encoded);
-    }
-
-    private static String getBasePath(HttpServletRequest request) {
-        boolean includePort = true;
-        if (443 == request.getServerPort() && "https".equals(request.getScheme())) {
-            includePort = false;
-        } else if (80 == request.getServerPort() && "http".equals(request.getScheme())) {
-            includePort = false;
-        }
-        return request.getScheme() +
-                "://" +
-                request.getServerName() +
-                (includePort ? (":" + request.getServerPort()) : "") +
-                request.getContextPath();
     }
 
     public InMemoryRelyingPartyRegistrationRepository getRelyingPartyRegistrationRepository() {

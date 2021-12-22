@@ -544,4 +544,18 @@ public class AuthSequenceUtil {
         }
         return user.asObjectable().getName().getOrig();
     }
+
+    public static String getBasePath(HttpServletRequest request) {
+        boolean includePort = true;
+        if (443 == request.getServerPort() && "https".equals(request.getScheme())) {
+            includePort = false;
+        } else if (80 == request.getServerPort() && "http".equals(request.getScheme())) {
+            includePort = false;
+        }
+        return request.getScheme() +
+                "://" +
+                request.getServerName() +
+                (includePort ? (":" + request.getServerPort()) : "") +
+                request.getContextPath();
+    }
 }

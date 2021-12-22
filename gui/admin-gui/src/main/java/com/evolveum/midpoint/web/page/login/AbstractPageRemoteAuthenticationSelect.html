@@ -11,7 +11,18 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <wicket:message key="PageSamlSelect.select.identity.provider"/>
+    <h4><wicket:child/></h4>
+    <div wicket:id="providers" class="col-md-12">
+        <a wicket:id="provider"/>
+    </div>
+    <div class="pull-right">
+        <form method="post" wicket:id="logoutForm">
+
+            <div wicket:id="csrfField"/>
+
+            <input type="submit" wicket:message="value:UserMenuPanel.logout"/>
+        </form>
+    </div>
 </wicket:extend>
 
 </body>
