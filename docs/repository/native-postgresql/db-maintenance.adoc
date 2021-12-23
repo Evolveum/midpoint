@@ -166,10 +166,10 @@ ORDER BY total_bytes DESC;
 
 -- Sizes of audit tables (partitions summed up)
 select inhparent::regclass,
-    pg_size_pretty(sum(pg_total_relation_size(inhrelid))) total,
-    pg_size_pretty(sum(pg_relation_size(inhrelid))) internal,
-    pg_size_pretty(sum(pg_table_size(inhrelid) - pg_relation_size(inhrelid))) toast,
-    pg_size_pretty(sum(pg_indexes_size(inhrelid))) indexes
+    pg_size_pretty(sum(pg_total_relation_size(inhrelid))) as total,
+    pg_size_pretty(sum(pg_relation_size(inhrelid))) as internal,
+    pg_size_pretty(sum(pg_table_size(inhrelid) - pg_relation_size(inhrelid))) as toast,
+    pg_size_pretty(sum(pg_indexes_size(inhrelid))) as indexes
 from pg_inherits i
 where exists (select from pg_class c where c.oid = i.inhparent
     and c.relname like 'ma_audit_%'
