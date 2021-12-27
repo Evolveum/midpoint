@@ -13,6 +13,7 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 
+import com.evolveum.midpoint.web.component.search.refactored.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -112,6 +113,22 @@ public class PolicyRulesPanel<AR extends AbstractRoleType> extends AssignmentPan
                         PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());
 
         defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
+
+        return defs;
+    }
+
+    @Override
+    protected List<? super AbstractSearchItemWrapper> createSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef) {
+        List<AbstractSearchItemWrapper> defs = new ArrayList<>();
+
+        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
+        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
+        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME), defs, "AssignmentPanel.search.policyRule.name");
+        SearchFactory.addSearchRefWrapper(containerDef,
+                ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS,
+                        PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());
+
+        defs.addAll(SearchFactory.createSearchableExtensionWrapperList(containerDef));
 
         return defs;
     }

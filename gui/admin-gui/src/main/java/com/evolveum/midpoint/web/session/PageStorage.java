@@ -11,7 +11,7 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.refactored.Search;
 
 /**
  *  @author shood

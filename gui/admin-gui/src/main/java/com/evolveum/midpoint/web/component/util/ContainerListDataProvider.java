@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.web.component.data.BaseSearchDataProvider;
-import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.refactored.Search;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;

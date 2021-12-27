@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -26,7 +28,7 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.refactored.Search;
 import com.evolveum.midpoint.web.component.search.SearchItem;
 import com.evolveum.midpoint.web.component.search.SearchSpecialItemPanel;
 import com.evolveum.midpoint.web.component.search.SpecialSearchItem;
@@ -160,41 +162,48 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
 
     @Override
     protected Search createSearch() {
-        Search search = super.createSearch();
-        search.addSpecialItem(createScopeItem(search));
-        return search;
+//        Search search = super.createSearch();
+//        search.addSpecialItem(createScopeItem(search));
+//        return search;
+        return SearchFactory.createSearchNew(getQueryClass(), null, createSearchConfig(), getPageBase());
     }
 
-    private SearchItem createScopeItem(Search search) {
-        return new SpecialSearchItem(search) {
-            @Override
-            public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
-                return null;
-            }
+//    private SearchItem createScopeItem(Search search) {
+//        return new SpecialSearchItem(search) {
+//            @Override
+//            public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
+//                return null;
+//            }
+//
+//            @Override
+//            public SearchSpecialItemPanel createSpecialSearchPanel(String id){
+//                return new SearchSpecialItemPanel(id, new PropertyModel(getRoleCatalogStorage(), RoleCatalogStorage.F_ORG_SEARCH_SCOPE)) {
+//                    @Override
+//                    protected WebMarkupContainer initSearchItemField(String id) {
+//                        DropDownChoicePanel inputPanel = new DropDownChoicePanel(id, getModelValue(), Model.of(Arrays.asList(SearchBoxScopeType.values())), new EnumChoiceRenderer(), false);
+//                        inputPanel.getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
+//                        inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 88px; max-width: 400px !important;"));
+//                        inputPanel.setOutputMarkupId(true);
+//                        return inputPanel;
+//                    }
+//
+//                    @Override
+//                    protected IModel<String> createLabelModel() {
+//                        return getPageBase().createStringResource("abstractRoleMemberPanel.searchScope");
+//                    }
+//
+//                    @Override
+//                    protected IModel<String> createHelpModel() {
+//                        return getPageBase().createStringResource("abstractRoleMemberPanel.searchScope.tooltip");
+//                    }
+//                };
+//            }
+//        };
+//    }
 
-            @Override
-            public SearchSpecialItemPanel createSpecialSearchPanel(String id){
-                return new SearchSpecialItemPanel(id, new PropertyModel(getRoleCatalogStorage(), RoleCatalogStorage.F_ORG_SEARCH_SCOPE)) {
-                    @Override
-                    protected WebMarkupContainer initSearchItemField(String id) {
-                        DropDownChoicePanel inputPanel = new DropDownChoicePanel(id, getModelValue(), Model.of(Arrays.asList(SearchBoxScopeType.values())), new EnumChoiceRenderer(), false);
-                        inputPanel.getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
-                        inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 88px; max-width: 400px !important;"));
-                        inputPanel.setOutputMarkupId(true);
-                        return inputPanel;
-                    }
-
-                    @Override
-                    protected IModel<String> createLabelModel() {
-                        return getPageBase().createStringResource("abstractRoleMemberPanel.searchScope");
-                    }
-
-                    @Override
-                    protected IModel<String> createHelpModel() {
-                        return getPageBase().createStringResource("abstractRoleMemberPanel.searchScope.tooltip");
-                    }
-                };
-            }
-        };
+    private SearchBoxConfigurationType createSearchConfig() {
+        SearchBoxConfigurationType config = new SearchBoxConfigurationType();
+        config.setScopeConfiguration(SearchFactory.createScopeSearchItem());
+        return config;
     }
 }

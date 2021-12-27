@@ -18,7 +18,8 @@ import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.AssignmentsDetailsPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.refactored.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.web.component.search.refactored.Search;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
@@ -236,6 +237,11 @@ public class AssignmentPanel<AH extends AssignmentHolderType> extends BasePanel<
                     }
 
                     @Override
+                    protected List<? super AbstractSearchItemWrapper> initSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef) {
+                        return createSearchableItemWrappers(containerDef);
+                    }
+
+                    @Override
                     public void refreshTable(AjaxRequestTarget ajaxRequestTarget) {
                         super.refreshTable(ajaxRequestTarget);
                         AssignmentPanel.this.refreshTable(ajaxRequestTarget);
@@ -343,6 +349,7 @@ public class AssignmentPanel<AH extends AssignmentHolderType> extends BasePanel<
         }
     }
 
+    @Deprecated
     protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
         List<SearchItemDefinition> defs = new ArrayList<>();
 
@@ -358,6 +365,26 @@ public class AssignmentPanel<AH extends AssignmentHolderType> extends BasePanel<
         SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
 
         defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
+
+        return defs;
+
+    }
+
+    protected List<? super AbstractSearchItemWrapper> createSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef) {
+        List<AbstractSearchItemWrapper> defs = new ArrayList<>();
+
+        if (getAssignmentType() == null) {
+            SearchFactory.addSearchRefWrapper(containerDef, ItemPath.create(AssignmentType.F_TARGET_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+            SearchFactory.addSearchRefWrapper(containerDef, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+            SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME), defs, "AssignmentPanel.search.policyRule.name");
+            SearchFactory.addSearchRefWrapper(containerDef,
+                    ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS,
+                            PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());
+        }
+        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
+        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
+
+        defs.addAll(SearchFactory.createSearchableExtensionWrapperList(containerDef));
 
         return defs;
 

@@ -11,9 +11,14 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.search.ContainerTypeSearchItem;
 
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.refactored.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -30,7 +35,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinitionImpl;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.refactored.Search;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
@@ -56,14 +61,46 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 
     @Override
     protected Search createSearch() {
-        List<SearchItemDefinition> availableDefs = new ArrayList<>();
-        availableDefs.addAll(createAttributeDefinitionList());
-        return new Search(new ContainerTypeSearchItem(ShadowType.class), availableDefs);
+//        List<SearchItemDefinition> availableDefs = new ArrayList<>();
+//        availableDefs.addAll(createAttributeDefinitionList());
+//        return new Search(new ContainerTypeSearchItem(ShadowType.class), availableDefs);
+        return SearchFactory.createSearchNew(ShadowType.class, null, createAttributeSearchItemWrappers(), getPageBase());
     }
 
-    private <T extends ObjectType> List<SearchItemDefinition> createAttributeDefinitionList() {
+//    private <T extends ObjectType> List<SearchItemDefinition> createAttributeDefinitionList() {
+//
+//        List<SearchItemDefinition> map = new ArrayList<>();
+//
+//        RefinedObjectClassDefinition ocDef = null;
+//        try {
+//
+//            if (getKind() != null) {
+//
+//                ocDef = getDefinitionByKind();
+//
+//            } else if (getObjectClass() != null) {
+//                ocDef = getDefinitionByObjectClass();
+//
+//            }
+//        } catch (SchemaException e) {
+//            warn("Could not get determine object class definition");
+//            return map;
+//        }
+//
+//        if (ocDef == null) {
+//            return map;
+//        }
+//
+//        for (ResourceAttributeDefinition def : ocDef.getAttributeDefinitions()) {
+//            map.add(new SearchItemDefinition(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)), def, null));
+//        }
+//
+//        return map;
+//    }
 
-        List<SearchItemDefinition> map = new ArrayList<>();
+    private <T extends ObjectType> List<? super AbstractSearchItemWrapper> createAttributeSearchItemWrappers() {
+
+        List<? super AbstractSearchItemWrapper> map = new ArrayList<>();
 
         RefinedObjectClassDefinition ocDef = null;
         try {
@@ -86,7 +123,10 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
         }
 
         for (ResourceAttributeDefinition def : ocDef.getAttributeDefinitions()) {
-            map.add(new SearchItemDefinition(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)), def, null));
+            SearchItemType searchItem = new SearchItemType()
+                    .path(new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def))))
+                    .displayName(WebComponentUtil.getItemDefinitionDisplayNameOrName(def, ResourceContentResourcePanel.this));
+            map.add(SearchFactory.createPropertySearchItemWrapper(ShadowType.class, def, searchItem, null));
         }
 
         return map;

@@ -12,6 +12,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.web.component.search.refactored.AbstractSearchItemWrapper;
+
+import com.evolveum.midpoint.web.component.search.refactored.ObjectCollectionSearchItemWrapper;
+import com.evolveum.midpoint.web.component.search.refactored.PropertySearchItemWrapper;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -62,7 +68,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -76,6 +81,7 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.*;
+import com.evolveum.midpoint.web.component.search.refactored.Search;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -178,19 +184,24 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                     search = storage.getSearch();
                 }
 
-                if (search == null ||
-                        (!SearchBoxModeType.ADVANCED.equals(search.getSearchType()) && !search.getAllDefinitions().containsAll(newSearch.getAllDefinitions()))
-                        || search.isTypeChanged()) {
+                if (search == null
+//                ||
+//                        (!SearchBoxModeType.ADVANCED.equals(search.getSearchMode()) && !search.getItems().containsAll(newSearch.getItems()))
+//                        || search.isTypeChanged()
+                        ) {
                     search = newSearch;
-                    search.searchWasReload();
+//                    search.searchWasReload();
                 }
 
                 if (searchByName != null) {
-                    if (SearchBoxModeType.FULLTEXT.equals(search.getSearchType())) {
+                    if (SearchBoxModeType.FULLTEXT.equals(search.getSearchMode())) {
                         search.setFullText(searchByName);
                     } else {
-                        for (PropertySearchItem<String> item : search.getPropertyItems()) {
-                            if (ItemPath.create(ObjectType.F_NAME).equivalent(item.getPath())) {
+                        for (AbstractSearchItemWrapper item : search.getItems()) {
+                            if (!(item instanceof PropertySearchItemWrapper)) {
+                                continue;
+                            }
+                            if (ItemPath.create(ObjectType.F_NAME).equivalent(((PropertySearchItemWrapper)item).getSearchItem().getPath().getItemPath())) {
                                 item.setValue(new SearchValue<>(searchByName));
                             }
                         }
@@ -200,8 +211,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
                 if (isCollectionViewPanel()) {
                     CompiledObjectCollectionView view = getObjectCollectionView();
-                    search.setCollectionSearchItem(new ObjectCollectionSearchItem(search, view));
-                    search.setCollectionItemVisible(isCollectionViewPanelForWidget());
+//                    search.setCollectionSearchItem(new ObjectCollectionSearchItem(search, view));
+//                    search.setCollectionItemVisible(isCollectionViewPanelForWidget());
+                    search.getItems().add(new ObjectCollectionSearchItemWrapper(view));
                     if (storage != null && view.getPaging() != null) {
                         ObjectPaging paging = ObjectQueryUtil.convertToObjectPaging(view.getPaging(), getPrismContext());
                         if (storage.getPaging() == null) {
@@ -226,7 +238,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected Search<C> createSearch(Class<C> type) {
-        return SearchFactory.createContainerSearch(new ContainerTypeSearchItem<>(new SearchValue<>(type, "")), getPageBase());
+//        return SearchFactory.createContainerSearch(new ContainerTypeSearchItem<>(new SearchValue<>(type, "")), getPageBase());
+        return SearchFactory.createSearchNew(type, getPageBase());
     }
 
     private void initLayout() {
@@ -1082,11 +1095,12 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     public void refreshTable(AjaxRequestTarget target) {
         BoxedTablePanel<PO> table = getTable();
-        if (searchModel.getObject().isTypeChanged()){
-            resetTable(target);
-        } else {
+        //todo implement isTypeChanged for new search
+//        if (searchModel.getObject().isTypeChanged()){
+//            resetTable(target);
+//        } else {
             saveSearchModel(getCurrentTablePaging());
-        }
+//        }
         target.add(table);
         target.add(getFeedbackPanel());
     }

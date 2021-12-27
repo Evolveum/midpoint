@@ -13,7 +13,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.web.component.dialog.*;
+
+import com.evolveum.midpoint.web.component.search.refactored.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.web.component.search.refactored.PropertySearchItemWrapper;
 
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.wicket.AttributeModifier;
@@ -64,6 +68,7 @@ import com.evolveum.midpoint.web.component.data.column.TwoValueLinkPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.search.refactored.Search;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.page.admin.configuration.component.DebugButtonPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.DebugSearchFragment;
@@ -104,14 +109,22 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String ID_TABLE_HEADER = "tableHeader";
 
     // search form model;
-    private final LoadableModel<Search<? extends ObjectType>> searchModel;
+    private LoadableModel<Search<? extends ObjectType>> searchModel = null;
     // todo make this persistent (in user session)
     private final IModel<Boolean> showAllItemsModel = Model.of(true);
     // confirmation dialog model
-    private final IModel<DebugConfDialogDto> confDialogModel;
+    private IModel<DebugConfDialogDto> confDialogModel = null;
 
 
     public PageDebugList() {
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        DebugConfDialogDto searchDto = new DebugConfDialogDto();
+        searchDto.setType(SystemConfigurationType.class);
+        confDialogModel = Model.of(searchDto);
 
         searchModel = new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
@@ -122,38 +135,48 @@ public class PageDebugList extends PageAdminConfiguration {
                 Search search = storage.getSearch();
 
                 if (search == null) {
-                    ContainerTypeSearchItem<? extends ObjectType> defaultType =
-                            new ContainerTypeSearchItem(
-                                    new SearchValue<Class>(SystemConfigurationType.class, "ObjectType." + SystemConfigurationType.COMPLEX_TYPE.getLocalPart()),
-                                    getAllowedTypes());
-                    defaultType.setVisible(true);
-                    search = SearchFactory.createSearch(defaultType, PageDebugList.this, true);
-                    configureSearch(search);
+//                    ContainerTypeSearchItem<? extends ObjectType> defaultType =
+//                            new ContainerTypeSearchItem(
+//                                    new SearchValue<Class>(SystemConfigurationType.class, "ObjectType." + SystemConfigurationType.COMPLEX_TYPE.getLocalPart()),
+//                                    getAllowedTypes());
+//                    defaultType.setVisible(true);
+//                    search = SearchFactory.createSearch(defaultType, PageDebugList.this, true);
+//                    configureSearch(search);
+                    search = SearchFactory.createSearchNew(confDialogModel.getObject().getType(), null, createSearchConfig(), PageDebugList.this);
                 }
                 return search;
             }
         };
-
-        confDialogModel = new LoadableModel<>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected DebugConfDialogDto load() {
-                return new DebugConfDialogDto();
-            }
-        };
-
         initLayout();
     }
 
-    private List<DisplayableValue<Class<? extends ObjectType>>> getAllowedTypes() {
-        List<DisplayableValue<Class<? extends ObjectType>>> choices = new ArrayList<>();
-        List<ObjectTypes> objectTypes = WebComponentUtil.createObjectTypesList();
+    private SearchBoxConfigurationType createSearchConfig() {
+        SearchBoxConfigurationType config = new SearchBoxConfigurationType();
+        config.createAllowedModeList().add(SearchBoxModeType.BASIC);
+        config.createAllowedModeList().add(SearchBoxModeType.ADVANCED);
+        config.createAllowedModeList().add(SearchBoxModeType.OID);
+        ObjectTypeSearchItemConfigurationType objectTypeConfig = new ObjectTypeSearchItemConfigurationType()
+                .defaultValue(SystemConfigurationType.COMPLEX_TYPE);
+        objectTypeConfig.getSupportedTypes().addAll(getAllowedTypes());
+        config.setObjectTypeConfiguration(objectTypeConfig);
+        return config;
+    }
 
-        for (ObjectTypes objectType : objectTypes) {
-            String key = "ObjectType." + objectType.getTypeQName().getLocalPart();
-            choices.add(new SearchValue<>(objectType.getClassDefinition(), key));
-        }
+//    private List<DisplayableValue<Class<? extends ObjectType>>> getAllowedTypes() {
+//        List<DisplayableValue<Class<? extends ObjectType>>> choices = new ArrayList<>();
+//        List<ObjectTypes> objectTypes = WebComponentUtil.createObjectTypesList();
+//
+//        for (ObjectTypes objectType : objectTypes) {
+//            String key = "ObjectType." + objectType.getTypeQName().getLocalPart();
+//            choices.add(new SearchValue<>(objectType.getClassDefinition(), key));
+//        }
+//        return choices;
+//    }
+
+    private List<QName> getAllowedTypes() {
+        List<QName> choices = new ArrayList<>();
+        WebComponentUtil.createObjectTypesList().stream()
+                .forEach(type -> choices.add(WebComponentUtil.classToQName(PrismContext.get(), type.getClassDefinition())));
         return choices;
     }
 
@@ -327,9 +350,9 @@ public class PageDebugList extends PageAdminConfiguration {
         return searchModel.isLoaded() ? searchModel.getObject().getTypeClass() : SystemConfigurationType.class;
     }
 
-    private ContainerTypeSearchItem<? extends ObjectType> getTypeItem() {
-        return searchModel.isLoaded() ? searchModel.getObject().getType() : null;
-    }
+//    private ContainerTypeSearchItem<? extends ObjectType> getTypeItem() {
+//        return searchModel.isLoaded() ? searchModel.getObject().getType() : null;
+//    }
 
     private List<InlineMenuItem> initInlineMenu() {
         List<InlineMenuItem> headerMenuItems = new ArrayList<>();
@@ -492,14 +515,14 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private void listObjectsPerformed(AjaxRequestTarget target) {
         Table table = getListTable();
-        if (searchModel.getObject().isTypeChanged()) {
-            Search search = SearchFactory.createSearch(getTypeItem(), PageDebugList.this, true);
-            searchModel.setObject(search); //TODO: this is veeery ugly, available definitions should refresh when the type changed
-            configureSearch(search);
-            table.getDataTable().getColumns().clear();
-            //noinspection unchecked
-            table.getDataTable().getColumns().addAll(createColumns());
-        }
+//        if (searchModel.getObject().isTypeChanged()) {
+//            Search search = SearchFactory.createSearch(getTypeItem(), PageDebugList.this, true);
+//            searchModel.setObject(search); //TODO: this is veeery ugly, available definitions should refresh when the type changed
+//            configureSearch(search);
+//            table.getDataTable().getColumns().clear();
+//            //noinspection unchecked
+//            table.getDataTable().getColumns().addAll(createColumns());
+//        }
 
         // save object type category to session storage, used by back button
         ConfigurationStorage storage = getSessionStorage().getConfiguration();
@@ -509,54 +532,54 @@ public class PageDebugList extends PageAdminConfiguration {
         target.add(getFeedbackPanel());
     }
 
-    private void configureSearch(@NotNull Search search) {
-        if (search.isTypeChanged() && !search.isOidSearchMode()) {
-            search.setCanConfigure(true);
-            if (ShadowType.class.equals(getType())) {
-                search.addSpecialItem(createObjectClassSearchItem(search));
-                search.addSpecialItem(createResourceRefSearchItem(search));
-            }
-            search.searchWasReload();
-        }
-    }
-
-    private PropertySearchItem createObjectClassSearchItem(Search search) {
-        PrismPropertyDefinition objectClassDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ShadowType.class)
-                .findPropertyDefinition(ShadowType.F_OBJECT_CLASS);
-        return new ObjectClassSearchItem(search, new SearchItemDefinition(ShadowType.F_OBJECT_CLASS, objectClassDef, null),
-                new PropertyModel(searchModel, Search.F_SPECIAL_ITEMS)) {
-
-            @Override
-            protected boolean canRemoveSearchItem() {
-                return false;
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return resourceReferenceIsNotEmpty();
-            }
-
-            @Override
-            public boolean isApplyFilter() {
-                return isEnabled();
-            }
-        };
-    }
-
-    private PropertySearchItem createResourceRefSearchItem(Search search) {
-        PrismReferenceDefinition resourceRefDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ShadowType.class)
-                .findReferenceDefinition(ShadowType.F_RESOURCE_REF);
-        PropertySearchItem<ObjectReferenceType> item = new PropertySearchItem<>(search, new SearchItemDefinition(ShadowType.F_RESOURCE_REF, resourceRefDef, null)) {
-            @Override
-            protected boolean canRemoveSearchItem() {
-                return false;
-            }
-        };
-        ObjectReferenceType ref = new ObjectReferenceType();
-        ref.setType(ResourceType.COMPLEX_TYPE);
-        item.setValue(new SearchValue<>(ref));
-        return item;
-    }
+//    private void configureSearch(@NotNull Search search) {
+//        if (search.isTypeChanged() && !search.isOidSearchMode()) {
+//            search.setCanConfigure(true);
+//            if (ShadowType.class.equals(getType())) {
+//                search.addSpecialItem(createObjectClassSearchItem(search));
+//                search.addSpecialItem(createResourceRefSearchItem(search));
+//            }
+//            search.searchWasReload();
+//        }
+//    }
+//
+//    private PropertySearchItem createObjectClassSearchItem(Search search) {
+//        PrismPropertyDefinition objectClassDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ShadowType.class)
+//                .findPropertyDefinition(ShadowType.F_OBJECT_CLASS);
+//        return new ObjectClassSearchItem(search, new SearchItemDefinition(ShadowType.F_OBJECT_CLASS, objectClassDef, null),
+//                new PropertyModel(searchModel, Search.F_SPECIAL_ITEMS)) {
+//
+//            @Override
+//            protected boolean canRemoveSearchItem() {
+//                return false;
+//            }
+//
+//            @Override
+//            public boolean isEnabled() {
+//                return resourceReferenceIsNotEmpty();
+//            }
+//
+//            @Override
+//            public boolean isApplyFilter() {
+//                return isEnabled();
+//            }
+//        };
+//    }
+//
+//    private PropertySearchItem createResourceRefSearchItem(Search search) {
+//        PrismReferenceDefinition resourceRefDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ShadowType.class)
+//                .findReferenceDefinition(ShadowType.F_RESOURCE_REF);
+//        PropertySearchItem<ObjectReferenceType> item = new PropertySearchItem<>(search, new SearchItemDefinition(ShadowType.F_RESOURCE_REF, resourceRefDef, null)) {
+//            @Override
+//            protected boolean canRemoveSearchItem() {
+//                return false;
+//            }
+//        };
+//        ObjectReferenceType ref = new ObjectReferenceType();
+//        ref.setType(ResourceType.COMPLEX_TYPE);
+//        item.setValue(new SearchValue<>(ref));
+//        return item;
+//    }
 
     private void objectEditPerformed(String oid, Class<? extends ObjectType> type) {
         PageParameters parameters = new PageParameters();
@@ -820,9 +843,9 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private ObjectReferenceType getResourceRefFromSearch() {
         Search search = searchModel.getObject();
-        SearchItem searchItem = search.findSpecialItem(ShadowType.F_RESOURCE_REF);
-        if (searchItem instanceof PropertySearchItem) {
-            DisplayableValue<ObjectReferenceType> displayableValue = ((PropertySearchItem) searchItem).getValue();
+        AbstractSearchItemWrapper searchItem = search.findSpecialItem(ShadowType.F_RESOURCE_REF);
+        if (searchItem instanceof PropertySearchItemWrapper) {
+            DisplayableValue<ObjectReferenceType> displayableValue = ((PropertySearchItemWrapper) searchItem).getValue();
             if (displayableValue != null) {
                 return displayableValue.getValue();
             }

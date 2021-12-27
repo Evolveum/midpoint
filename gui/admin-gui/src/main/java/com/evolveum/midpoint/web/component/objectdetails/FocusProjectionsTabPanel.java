@@ -18,6 +18,8 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.search.*;
+import com.evolveum.midpoint.web.component.search.refactored.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.web.component.search.refactored.Search;
 import com.evolveum.midpoint.web.component.util.ProjectionsListProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -213,11 +215,11 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                     @Override
                     protected Search createSearch(Class<ShadowType> type) {
                         Search search = super.createSearch(type);
-                        PropertySearchItem<Boolean> defaultDeadItem = search.findPropertySearchItem(ShadowType.F_DEAD);
-                        if (defaultDeadItem != null) {
-                            defaultDeadItem.setVisible(false);
-                        }
-                        addDeadSearchItem(search);
+//                        PropertySearchItem<Boolean> defaultDeadItem = search.findPropertySearchItem(ShadowType.F_DEAD);
+//                        if (defaultDeadItem != null) {
+//                            defaultDeadItem.setVisible(false);
+//                        }
+//                        addDeadSearchItem(search);
                         return search;
                     }
 
@@ -229,6 +231,16 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                         SearchFactory.addSearchPropertyDef(containerDef, ShadowType.F_NAME, defs);
                         SearchFactory.addSearchPropertyDef(containerDef, ShadowType.F_INTENT, defs);
                         SearchFactory.addSearchPropertyDef(containerDef, ShadowType.F_KIND, defs);
+                        return defs;
+                    }
+
+                    @Override
+                    protected List<? super AbstractSearchItemWrapper> initSearchableItemWrappers(PrismContainerDefinition<ShadowType> containerDef){
+                        List<? super AbstractSearchItemWrapper> defs = new ArrayList<>();
+                        SearchFactory.addSearchRefWrapper(containerDef, ShadowType.F_RESOURCE_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+                        SearchFactory.addSearchPropertyWrapper(containerDef, ShadowType.F_NAME, defs);
+                        SearchFactory.addSearchPropertyWrapper(containerDef, ShadowType.F_INTENT, defs);
+                        SearchFactory.addSearchPropertyWrapper(containerDef, ShadowType.F_KIND, defs);
                         return defs;
                     }
 
@@ -278,28 +290,28 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
         SearchItemDefinition def = new SearchItemDefinition(ShadowType.F_DEAD,
                 getShadowDefinition().findPropertyDefinition(ShadowType.F_DEAD),
                 Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
-        PropertySearchItem<Boolean> deadSearchItem = new PropertySearchItem<>(search, def, new SearchValue<>(false)) {
+//        PropertySearchItem<Boolean> deadSearchItem = new PropertySearchItem<>(search, def, new SearchValue<>(false)) {
+//
+//            @Override
+//            public ObjectFilter transformToFilter() {
+//                DisplayableValue<Boolean> selectedValue = getValue();
+//                if (selectedValue == null) {
+//                    return null;
+//                }
+//                Boolean value = selectedValue.getValue();
+//                if (BooleanUtils.isTrue(value)) {
+//                    return null; // let the default behavior to take their chance
+//                }
 
-            @Override
-            public ObjectFilter transformToFilter() {
-                DisplayableValue<Boolean> selectedValue = getValue();
-                if (selectedValue == null) {
-                    return null;
-                }
-                Boolean value = selectedValue.getValue();
-                if (BooleanUtils.isTrue(value)) {
-                    return null; // let the default behavior to take their chance
-                }
-
-                return getPrismContext().queryFor(ShadowType.class)
-                        .not()
-                        .item(ShadowType.F_DEAD)
-                        .eq(true)
-                        .buildFilter();
-            }
-        };
-        deadSearchItem.setFixed(true);
-        search.addSpecialItem(deadSearchItem);
+//                return getPrismContext().queryFor(ShadowType.class)
+//                        .not()
+//                        .item(ShadowType.F_DEAD)
+//                        .eq(true)
+//                        .buildFilter();
+//            }
+//        };
+//        deadSearchItem.setFixed(true);
+//        search.addSpecialItem(deadSearchItem);
     }
 
     private void loadShadowIfNeeded(IModel<PrismContainerValueWrapper<ShadowType>> rowModel, AjaxRequestTarget target) {

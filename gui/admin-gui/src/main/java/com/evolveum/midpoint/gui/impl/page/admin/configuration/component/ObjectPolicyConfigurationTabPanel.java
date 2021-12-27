@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.component.search.refactored.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -123,6 +124,18 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<PrismContainerW
                 SearchFactory.addSearchRefDef(containerDef, ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
                 SearchFactory.addSearchPropertyDef(containerDef, ObjectPolicyConfigurationType.F_SUBTYPE, defs);
                 SearchFactory.addSearchPropertyDef(containerDef, ItemPath
+                        .create(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL, LifecycleStateModelType.F_STATE, LifecycleStateType.F_NAME), defs);
+
+                return defs;
+            }
+
+            @Override
+            protected List<? super AbstractSearchItemWrapper> initSearchableItemWrappers(PrismContainerDefinition<ObjectPolicyConfigurationType> containerDef){
+                List<? super AbstractSearchItemWrapper> defs = new ArrayList<>();
+
+                SearchFactory.addSearchRefWrapper(containerDef, ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+                SearchFactory.addSearchPropertyWrapper(containerDef, ObjectPolicyConfigurationType.F_SUBTYPE, defs);
+                SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath
                         .create(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL, LifecycleStateModelType.F_STATE, LifecycleStateType.F_NAME), defs);
 
                 return defs;

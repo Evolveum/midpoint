@@ -60,6 +60,7 @@ import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvi
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.*;
+import com.evolveum.midpoint.web.component.search.refactored.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -122,17 +123,17 @@ public class AuditLogViewerPanel extends BasePanel {
                         return null;
                     }
 
-                    @Override
-                    protected Search createSearch(Class<AuditEventRecordType> type) {
-                        AuditLogStorage storage = (AuditLogStorage) getPageStorage(); //TODO: use storage?
-                        Search search = SearchFactory.createContainerSearch(new ContainerTypeSearchItem(new SearchValue(type, "")), AuditEventRecordType.F_TIMESTAMP, getPageBase(), true);
-                        DateSearchItem timestampItem = (DateSearchItem) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
-                        if (timestampItem != null && timestampItem.getFromDate() == null && timestampItem.getToDate() == null && !isCollectionViewPanelForWidget()) {
-                            Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
-                            timestampItem.setFromDate(MiscUtil.asXMLGregorianCalendar(todayDate));
-                        }
-                        return search;
-                    }
+//                    @Override
+//                    protected Search createSearch(Class<AuditEventRecordType> type) {
+//                        AuditLogStorage storage = (AuditLogStorage) getPageStorage(); //TODO: use storage?
+//                        Search search = SearchFactory.createContainerSearch(new ContainerTypeSearchItem(new SearchValue(type, "")), AuditEventRecordType.F_TIMESTAMP, getPageBase(), true);
+//                        DateSearchItem timestampItem = (DateSearchItem) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
+//                        if (timestampItem != null && timestampItem.getFromDate() == null && timestampItem.getToDate() == null && !isCollectionViewPanelForWidget()) {
+//                            Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
+//                            timestampItem.setFromDate(MiscUtil.asXMLGregorianCalendar(todayDate));
+//                        }
+//                        return search;
+//                    }
 
                     @Override
                     protected UserProfileStorage.TableId getTableId() {

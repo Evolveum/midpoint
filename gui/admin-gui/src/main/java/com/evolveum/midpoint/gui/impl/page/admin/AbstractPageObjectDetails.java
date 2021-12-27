@@ -413,6 +413,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             target.add(form);
         } catch (Throwable e) {
             error("Cannot instantiate panel, " + e.getMessage());
+            LOGGER.error("Cannot instantiate panel, " + e.getMessage(), e.getStackTrace());
             target.add(getFeedbackPanel());
         }
     }

@@ -10,7 +10,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.refactored.Search;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;

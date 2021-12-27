@@ -11,7 +11,9 @@ import java.util.*;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.refactored.Search;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
@@ -34,10 +36,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugObjectItem;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author lazyman
@@ -73,7 +71,7 @@ public class RepositoryObjectDataProvider<O extends ObjectType>
             query.setPaging(paging);
 
             Collection<SelectorOptions<GetOperationOptions>> options = getOptions();
-            Class<O> type = getSearchModel().getObject().isOidSearchMode() ? (Class<O>) ObjectType.class : getType();
+            Class<O> type = SearchBoxModeType.OID.equals(getSearchModel().getObject().getSearchMode()) ? (Class<O>) ObjectType.class : getType();
             List<? extends PrismObject<? extends ObjectType>> list = getModel().searchObjects(type, query, options,
                     getPageBase().createSimpleTask(OPERATION_SEARCH_OBJECTS), result);
             for (PrismObject<? extends ObjectType> object : list) {
@@ -172,7 +170,7 @@ public class RepositoryObjectDataProvider<O extends ObjectType>
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
-            Class<O> type = getSearchModel().getObject().isOidSearchMode() ? (Class<O>) ObjectType.class : getType();
+            Class<O> type = SearchBoxModeType.OID.equals(getSearchModel().getObject().getSearchMode()) ? (Class<O>) ObjectType.class : getType();
             count = getModel().countObjects(type, getQuery(), getOptions(),
                     getPageBase().createSimpleTask(OPERATION_COUNT_OBJECTS), result);
         } catch (Exception ex) {

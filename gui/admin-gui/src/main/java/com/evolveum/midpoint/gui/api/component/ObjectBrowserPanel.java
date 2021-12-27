@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import java.util.*;
-import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
@@ -19,8 +18,10 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchItem;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.refactored.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.web.component.search.refactored.Search;
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.Component;
@@ -239,17 +240,19 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 
             @Override
             protected Search createSearch(Class<O> type) {
-                Search search = super.createSearch(type);
-                getSpecialSearchItemFunctions()
-                        .forEach(function -> search.addSpecialItem(function.apply(search)));
-                return search;
+                String collectionName = isCollectionViewPanelForCompiledView() ? getCollectionNameParameterValue().toString() : null;
+                return SearchFactory.createSearchNew(type, collectionName, new ArrayList<>(getSpecialSearchItemWrappers()), getPageBase());
+//                Search search = super.createSearch(type);
+//                getSpecialSearchItemWrappers()
+//                        .forEach(function -> search.addSpecialItem(function.apply(search)));
+//                return search;
             }
         };
         listPanel.setOutputMarkupId(true);
         return listPanel;
     }
 
-    protected Set<Function<Search, SearchItem>> getSpecialSearchItemFunctions() {
+    protected Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItemWrappers() {
         return Collections.emptySet();
     }
 

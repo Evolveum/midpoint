@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.web.component.data.BaseSearchDataProvider;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 
-import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.refactored.Search;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.ObjectUtils;

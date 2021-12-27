@@ -11,6 +11,7 @@ import java.util.function.Supplier;
 
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.web.component.search.*;
+import com.evolveum.midpoint.web.component.search.refactored.Search;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
@@ -76,10 +77,9 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
 
     @Override
     protected Search createSearch(Class<O> type) {
-        ContainerTypeSearchItem<O> typeSearchItem = new ContainerTypeSearchItem<>(new SearchValue<>(type, ""));
+//        ContainerTypeSearchItem<O> typeSearchItem = new ContainerTypeSearchItem<>(new SearchValue<>(type, ""));
         String collectionName = isCollectionViewPanelForCompiledView() ? getCollectionNameParameterValue().toString() : null;
-        return SearchFactory.createSearch(typeSearchItem, collectionName, getFixedSearchItems(), null, getPageBase(),
-                null, true, true, Search.PanelType.DEFAULT);
+        return SearchFactory.createSearchNew(type, collectionName, getPageBase());
     }
 
     protected List<ItemPath> getFixedSearchItems() {

@@ -75,7 +75,7 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.ContainerTypeSearchItem;
-import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.refactored.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -223,15 +223,15 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             public void refreshTable(AjaxRequestTarget target) {
-                if (getSearchModel().isLoaded() && getSearchModel().getObject()!= null
-                        && getSearchModel().getObject().isTypeChanged()) {
-                    clearCache();
-                }
-                if (reloadPageOnRefresh()) {
-                    throw new RestartResponseException(getPage().getClass());
-                } else {
-                    super.refreshTable(target);
-                }
+//                if (getSearchModel().isLoaded() && getSearchModel().getObject()!= null
+//                        && getSearchModel().getObject().isTypeChanged()) {
+//                    clearCache();
+//                }
+//                if (reloadPageOnRefresh()) {
+//                    throw new RestartResponseException(getPage().getClass());
+//                } else {
+//                    super.refreshTable(target);
+//                }
             }
 
             @Override
@@ -321,24 +321,25 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     private <AH extends AssignmentHolderType> Search<AH> createMemberSearch(Class<AH> type) {
-        MemberPanelStorage memberPanelStorage = getMemberPanelStorage();
-        if (memberPanelStorage == null) { //normally, this should not happen
-            return SearchFactory.createSearch(new ContainerTypeSearchItem<>(type), null, null,
-                    null, getPageBase(), null, true, true, Search.PanelType.MEMBER_PANEL);
-        }
-
-        if (memberPanelStorage.getSearch() != null) {
-            return memberPanelStorage.getSearch();
-        }
-
-        Search<AH> search = SearchFactory.createSearch(createSearchTypeItem(memberPanelStorage), null, null,
-                null, getPageBase(), null, true, true, Search.PanelType.MEMBER_PANEL);
-        search.addCompositedSpecialItem(createMemberSearchPanel(search, memberPanelStorage));
-
-        if (additionalPanelConfig != null && additionalPanelConfig.getSearchBoxConfiguration() != null){
-            search.setCanConfigure(!Boolean.FALSE.equals(additionalPanelConfig.getSearchBoxConfiguration().isAllowToConfigureSearchItems()));
-        }
-        return search;
+//        MemberPanelStorage memberPanelStorage = getMemberPanelStorage();
+//        if (memberPanelStorage == null) { //normally, this should not happen
+//            return SearchFactory.createSearch(new ContainerTypeSearchItem<>(type), null, null,
+//                    null, getPageBase(), null, true, true, Search.PanelType.MEMBER_PANEL);
+//        }
+//
+//        if (memberPanelStorage.getSearch() != null) {
+//            return memberPanelStorage.getSearch();
+//        }
+//
+//        Search<AH> search = SearchFactory.createSearch(createSearchTypeItem(memberPanelStorage), null, null,
+//                null, getPageBase(), null, true, true, Search.PanelType.MEMBER_PANEL);
+//        search.addCompositedSpecialItem(createMemberSearchPanel(search, memberPanelStorage));
+//
+//        if (additionalPanelConfig != null && additionalPanelConfig.getSearchBoxConfiguration() != null){
+//            search.setCanConfigure(!Boolean.FALSE.equals(additionalPanelConfig.getSearchBoxConfiguration().isAllowToConfigureSearchItems()));
+//        }
+//        return search;
+        return null;
     }
 
     private <AH extends AssignmentHolderType> ContainerTypeSearchItem<AH> createSearchTypeItem(MemberPanelStorage memberPanelStorage) {

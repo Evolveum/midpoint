@@ -13,7 +13,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
+
+import com.evolveum.midpoint.web.component.search.refactored.AbstractSearchItemWrapper;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
@@ -84,6 +87,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.objectdetails.FocusPersonasTabPanel;
 import com.evolveum.midpoint.web.component.search.*;
+import com.evolveum.midpoint.web.component.search.refactored.Search;
 import com.evolveum.midpoint.web.component.util.ProjectionsListProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
@@ -218,11 +222,11 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     @Override
                     protected Search createSearch(Class<ShadowType> type) {
                         Search search = super.createSearch(type);
-                        PropertySearchItem<Boolean> defaultDeadItem = search.findPropertySearchItem(ShadowType.F_DEAD);
-                        if (defaultDeadItem != null) {
-                            defaultDeadItem.setVisible(false);
-                        }
-                        addDeadSearchItem(search);
+//                        PropertySearchItem<Boolean> defaultDeadItem = search.findPropertySearchItem(ShadowType.F_DEAD);
+//                        if (defaultDeadItem != null) {
+//                            defaultDeadItem.setVisible(false);
+//                        }
+//                        addDeadSearchItem(search);
                         return search;
                     }
 
@@ -234,6 +238,18 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                         SearchFactory.addSearchPropertyDef(containerDef, ShadowType.F_NAME, defs);
                         SearchFactory.addSearchPropertyDef(containerDef, ShadowType.F_INTENT, defs);
                         SearchFactory.addSearchPropertyDef(containerDef, ShadowType.F_KIND, defs);
+                        return defs;
+                    }
+
+                    @Override
+                    protected List<? super AbstractSearchItemWrapper> initSearchableItemWrappers(PrismContainerDefinition<ShadowType> containerDef){
+                        List<? super AbstractSearchItemWrapper> defs = new ArrayList<>();
+
+                        SearchFactory.addSearchRefWrapper(containerDef, ShadowType.F_RESOURCE_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+                        SearchFactory.addSearchPropertyWrapper(containerDef, ShadowType.F_NAME, defs);
+                        SearchFactory.addSearchPropertyWrapper(containerDef, ShadowType.F_INTENT, defs);
+                        SearchFactory.addSearchPropertyWrapper(containerDef, ShadowType.F_KIND, defs);
+
                         return defs;
                     }
 
@@ -288,33 +304,33 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         SearchItemDefinition def = new SearchItemDefinition(ShadowType.F_DEAD,
                 getShadowDefinition().findPropertyDefinition(ShadowType.F_DEAD),
                 Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
-        PropertySearchItem<Boolean> deadSearchItem = new PropertySearchItem<>(search, def, new SearchValue<>(false)) {
+//        PropertySearchItem<Boolean> deadSearchItem = new PropertySearchItem<>(search, def, new SearchValue<>(false)) {
+//
+//            @Override
+//            public ObjectFilter transformToFilter() {
+//                DisplayableValue<Boolean> selectedValue = getValue();
+//                if (selectedValue == null) {
+//                    return null;
+//                }
+//                Boolean value = selectedValue.getValue();
+//                if (BooleanUtils.isTrue(value)) {
+//                    return null; // let the default behavior to take their chance
+//                }
 
-            @Override
-            public ObjectFilter transformToFilter() {
-                DisplayableValue<Boolean> selectedValue = getValue();
-                if (selectedValue == null) {
-                    return null;
-                }
-                Boolean value = selectedValue.getValue();
-                if (BooleanUtils.isTrue(value)) {
-                    return null; // let the default behavior to take their chance
-                }
-
-                return PrismContext.get().queryFor(ShadowType.class)
-                        .not()
-                        .item(ShadowType.F_DEAD)
-                        .eq(true)
-                        .buildFilter();
-            }
-
-            @Override
-            protected boolean canRemoveSearchItem() {
-                return false;
-            }
-        };
-        deadSearchItem.setFixed(true);
-        search.addSpecialItem(deadSearchItem);
+//                return PrismContext.get().queryFor(ShadowType.class)
+//                        .not()
+//                        .item(ShadowType.F_DEAD)
+//                        .eq(true)
+//                        .buildFilter();
+//            }
+//
+//            @Override
+//            protected boolean canRemoveSearchItem() {
+//                return false;
+//            }
+//        };
+//        deadSearchItem.setFixed(true);
+//        search.addSpecialItem(deadSearchItem);
     }
 
     private void loadShadowIfNeeded(IModel<PrismContainerValueWrapper<ShadowType>> rowModel, AjaxRequestTarget target) {

@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.web.component.search.refactored.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -124,6 +125,22 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
 
                         return defs;
                     }
+
+                    @Override
+                    protected List<? super AbstractSearchItemWrapper> initSearchableItemWrappers(PrismContainerDefinition<GlobalPolicyRuleType> containerDef){
+                        List<? super AbstractSearchItemWrapper> defs = new ArrayList<>();
+
+                        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath
+                                .create(GlobalPolicyRuleType.F_FOCUS_SELECTOR, ObjectSelectorType.F_SUBTYPE), defs);
+                        SearchFactory.addSearchRefWrapper(containerDef,
+                                ItemPath.create(GlobalPolicyRuleType.F_POLICY_CONSTRAINTS,
+                                        PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());
+
+                        defs.addAll(SearchFactory.createSearchableExtensionWrapperList(containerDef));
+
+                        return defs;
+                    }
+
                 };
 
         add(multivalueContainerListPanel);

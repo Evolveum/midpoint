@@ -9,7 +9,7 @@ package com.evolveum.midpoint.web.component.data;
 import java.io.Serializable;
 import java.util.*;
 
-import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.refactored.Search;
 
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;

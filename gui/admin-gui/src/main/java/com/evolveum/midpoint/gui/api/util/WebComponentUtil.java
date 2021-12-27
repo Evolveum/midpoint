@@ -1370,6 +1370,80 @@ public final class WebComponentUtil {
         return name.getOrig();
     }
 
+    //todo copied from DashboardServiceImpl; may be move to som util class?
+    public static DisplayType combineDisplay(DisplayType display, DisplayType variationDisplay) {
+        DisplayType combinedDisplay = new DisplayType();
+        if (variationDisplay == null) {
+            return display;
+        }
+        if (display == null) {
+            return variationDisplay;
+        }
+        if (StringUtils.isBlank(variationDisplay.getColor())) {
+            combinedDisplay.setColor(display.getColor());
+        } else {
+            combinedDisplay.setColor(variationDisplay.getColor());
+        }
+        if (StringUtils.isBlank(variationDisplay.getCssClass())) {
+            combinedDisplay.setCssClass(display.getCssClass());
+        } else {
+            combinedDisplay.setCssClass(variationDisplay.getCssClass());
+        }
+        if (StringUtils.isBlank(variationDisplay.getCssStyle())) {
+            combinedDisplay.setCssStyle(display.getCssStyle());
+        } else {
+            combinedDisplay.setCssStyle(variationDisplay.getCssStyle());
+        }
+        if (variationDisplay.getHelp() == null) {
+            combinedDisplay.setHelp(display.getHelp());
+        } else {
+            combinedDisplay.setHelp(variationDisplay.getHelp());
+        }
+        if (variationDisplay.getLabel() == null) {
+            combinedDisplay.setLabel(display.getLabel());
+        } else {
+            combinedDisplay.setLabel(variationDisplay.getLabel());
+        }
+        if (variationDisplay.getSingularLabel() == null) {
+            combinedDisplay.setSingularLabel(display.getSingularLabel());
+        } else {
+            combinedDisplay.setSingularLabel(variationDisplay.getSingularLabel());
+        }
+        if (variationDisplay.getPluralLabel() == null) {
+            combinedDisplay.setPluralLabel(display.getPluralLabel());
+        } else {
+            combinedDisplay.setPluralLabel(variationDisplay.getPluralLabel());
+        }
+        if (variationDisplay.getTooltip() == null) {
+            combinedDisplay.setTooltip(display.getTooltip());
+        } else {
+            combinedDisplay.setTooltip(variationDisplay.getTooltip());
+        }
+        if (variationDisplay.getIcon() == null) {
+            combinedDisplay.setIcon(display.getIcon());
+        } else if (display.getIcon() != null) {
+            IconType icon = new IconType();
+            if (StringUtils.isBlank(variationDisplay.getIcon().getCssClass())) {
+                icon.setCssClass(display.getIcon().getCssClass());
+            } else {
+                icon.setCssClass(variationDisplay.getIcon().getCssClass());
+            }
+            if (StringUtils.isBlank(variationDisplay.getIcon().getColor())) {
+                icon.setColor(display.getIcon().getColor());
+            } else {
+                icon.setColor(variationDisplay.getIcon().getColor());
+            }
+            if (StringUtils.isBlank(variationDisplay.getIcon().getImageUrl())) {
+                icon.setImageUrl(display.getIcon().getImageUrl());
+            } else {
+                icon.setImageUrl(variationDisplay.getIcon().getImageUrl());
+            }
+            combinedDisplay.setIcon(icon);
+        }
+
+        return combinedDisplay;
+    }
+
     public static String getItemDefinitionDisplayNameOrName(ItemDefinition def, Component component) {
         if (def == null) {
             return null;

@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.component.search.*;
+import com.evolveum.midpoint.web.component.search.refactored.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
@@ -211,19 +212,22 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
 
     @Override
     protected SearchFormPanel initSearch(String headerId) {
-        return new SearchFormPanel<>(headerId, getSearchModel()) {
-            @Override
-            protected void searchPerformed(AjaxRequestTarget target) {
-                refreshTable(target);
-            }
-        };
+//        return new SearchFormPanel<>(headerId, getSearchModel()) {
+//            @Override
+//            protected void searchPerformed(AjaxRequestTarget target) {
+//                refreshTable(target);
+//            }
+//        };
+
+        return null;
     }
 
     @Override
     protected Search createSearch(Class<C> type) {
-        return SearchFactory.createSearchForReport(type,
-                getReport().getObjectCollection() == null ? Collections.emptyList() : getReport().getObjectCollection().getParameter(),
-                getPageBase());
+//        return SearchFactory.createSearchForReport(type,
+//                getReport().getObjectCollection() == null ? Collections.emptyList() : getReport().getObjectCollection().getParameter(),
+//                getPageBase());
+        return null;
     }
 
     @Override

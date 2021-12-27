@@ -37,7 +37,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.refactored.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
@@ -172,7 +172,8 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 
     @Override
     protected Search createSearch() {
-        return SearchFactory.createSearch(ShadowType.class, getPageBase());
+//        return SearchFactory.createSearch(ShadowType.class, getPageBase());
+        return null;
     }
 
     @Override

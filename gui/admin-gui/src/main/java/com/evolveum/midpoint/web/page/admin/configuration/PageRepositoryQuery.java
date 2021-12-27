@@ -17,6 +17,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.search.refactored.Search;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -58,7 +60,6 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.DataLanguagePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
-import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.RepoQueryDto;
@@ -430,9 +431,9 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
                 target.add(getFeedbackPanel());
                 return;
             }
-            Search search = SearchFactory.createSearch(request.getType(), this);
+            Search search = SearchFactory.createSearchNew(request.getType(), null, createSearchConfig(), this);
             search.setAdvancedQuery(filterAsString);
-            search.setSearchType(SearchBoxModeType.ADVANCED);
+//            search.setSearchType(SearchBoxModeType.ADVANCED);
             if (!search.isAdvancedQueryValid(getPrismContext())) {
                 // shouldn't occur because the query was already parsed
                 error("Query is not valid: " + search.getAdvancedError());
@@ -586,5 +587,12 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
             }
         }
         return sb.toString();
+    }
+
+    private SearchBoxConfigurationType createSearchConfig() {
+        SearchBoxConfigurationType config = new SearchBoxConfigurationType();
+        config.createAllowedModeList().add(SearchBoxModeType.ADVANCED);
+        config.setDefaultMode(SearchBoxModeType.ADVANCED);
+        return config;
     }
 }

@@ -181,11 +181,11 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         });
         form.add(debug);
 
-        PropertyModel<ObjectCollectionSearchItem> collectionModel = new PropertyModel<>(getModel(), Search.F_COLLECTION);
-        SearchObjectCollectionPanel collectionPanel = new SearchObjectCollectionPanel(ID_COLLECTION_REF_PANEL, collectionModel);
-        form.add(collectionPanel);
-        collectionPanel.add(new VisibleBehaviour(() -> collectionModel != null && collectionModel.getObject() != null
-                && getModelObject().isCollectionItemVisible()));
+//        PropertyModel<ObjectCollectionSearchItem> collectionModel = new PropertyModel<>(getModel(), Search.F_COLLECTION);
+//        SearchObjectCollectionPanel collectionPanel = new SearchObjectCollectionPanel(ID_COLLECTION_REF_PANEL, collectionModel);
+//        form.add(collectionPanel);
+//        collectionPanel.add(new VisibleBehaviour(() -> collectionModel != null && collectionModel.getObject() != null
+//                && getModelObject().isCollectionItemVisible()));
 
         PropertyModel<ContainerTypeSearchItem> typeModel = new PropertyModel<>(getModel(), Search.F_TYPE);
         SearchTypePanel typePanel = new SearchTypePanel(ID_TYPE_PANEL, typeModel){

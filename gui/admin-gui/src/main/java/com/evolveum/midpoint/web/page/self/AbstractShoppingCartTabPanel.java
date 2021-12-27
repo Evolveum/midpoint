@@ -38,9 +38,9 @@ import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
-import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.refactored.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchPanel;
+import com.evolveum.midpoint.web.component.search.refactored.SearchPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
@@ -122,7 +122,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
 
         IModel<Search> searchModel = Model.of(getRoleCatalogStorage().getSearch() != null ? getRoleCatalogStorage().getSearch() :
                 createSearch());
-        SearchPanel search = new SearchPanel(ID_SEARCH, searchModel, false) {
+        SearchPanel search = new SearchPanel(ID_SEARCH, searchModel) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -136,7 +136,8 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     }
 
     protected Search createSearch() {
-        return SearchFactory.createSearch(getQueryClass(), getPageBase());
+//        return SearchFactory.createSearch(getQueryClass(), getPageBase());
+        return SearchFactory.createSearchNew(getQueryClass(), getPageBase());
     }
 
     protected void searchPerformed(AjaxRequestTarget target) {
@@ -383,7 +384,8 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
 
             @Override
             public Search<AbstractRoleType> getObject() {
-                return getRoleCatalogStorage().getSearch();
+//                return getRoleCatalogStorage().getSearch();
+                return null;
             }
         };
         ObjectDataProvider provider = new ObjectDataProvider<AssignmentEditorDto, AbstractRoleType>(AbstractShoppingCartTabPanel.this,
@@ -465,7 +467,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
                 result, task, getPageBase());
     }
 
-    private Class<R> getQueryClass() {
+    protected Class<R> getQueryClass() {
         return (Class<R>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), getQueryType());
     }
 

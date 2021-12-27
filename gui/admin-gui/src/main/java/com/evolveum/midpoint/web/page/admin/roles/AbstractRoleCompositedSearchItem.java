@@ -21,7 +21,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.refactored.Search;
 import com.evolveum.midpoint.web.component.search.SearchItem;
 
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
@@ -45,99 +45,99 @@ public class AbstractRoleCompositedSearchItem extends SearchItem {
     private MemberPanelStorage memberPanelStorage;
 
     public AbstractRoleCompositedSearchItem(Search search, MemberPanelStorage memberPanelStorage) {
-        super(search);
+        super(null);
         this.memberPanelStorage = memberPanelStorage;
         create();
     }
 
 
     public void create() {
-        if (memberPanelStorage.isRelationVisible()) {
-            searchItems.add(createRelationItem(getSearch()));
-        }
-        if (memberPanelStorage.isIndirectVisible()) {
-            searchItems.add(createIndirectItem(getSearch()));
-        }
-        if (isOrg() && memberPanelStorage.isSearchScopeVisible()) {
-            searchItems.add(createScopeItem(getSearch()));
-        }
-        if (isRole()) {
-            if (memberPanelStorage.isTenantVisible()) {
-                searchItems.add(createTenantItem(getSearch()));
-            }
-            if (memberPanelStorage.isProjectVisible()) {
-                searchItems.add(createProjectItem(getSearch()));
-            }
-        }
+//        if (memberPanelStorage.isRelationVisible()) {
+//            searchItems.add(createRelationItem(getSearch()));
+//        }
+//        if (memberPanelStorage.isIndirectVisible()) {
+//            searchItems.add(createIndirectItem(getSearch()));
+//        }
+//        if (isOrg() && memberPanelStorage.isSearchScopeVisible()) {
+//            searchItems.add(createScopeItem(getSearch()));
+//        }
+//        if (isRole()) {
+//            if (memberPanelStorage.isTenantVisible()) {
+//                searchItems.add(createTenantItem(getSearch()));
+//            }
+//            if (memberPanelStorage.isProjectVisible()) {
+//                searchItems.add(createProjectItem(getSearch()));
+//            }
+//        }
     }
-
-    private SearchItem createScopeItem(Search search) {
-        return new ScopeSearchItem(search, new PropertyModel<>(memberPanelStorage, MemberPanelStorage.F_ORG_SEARCH_SCOPE_ITEM));
-    }
-
-    private SearchItem createIndirectItem(Search search) {
-        return new IndirectSearchItem(search, getMemberPanelStorage()) {
-            @Override
-            public boolean isApplyFilter() {
-                return !memberPanelStorage.isSearchScopeVisible()
-                        || !memberPanelStorage.isSearchScope(SearchBoxScopeType.SUBTREE);
-            }
-
-            @Override
-            protected boolean isPanelVisible() {
-                return getMemberPanelStorage() == null
-                        || (memberPanelStorage.getSupportedRelations() != null
-                        && !getMemberPanelStorage().isSearchScope(SearchBoxScopeType.SUBTREE));
-            }
-        };
-    }
-
-    private SearchItem createTenantItem(Search search) {
-        return new TenantSearchItem(search, getMemberPanelStorage()) {
-
-            @Override
-            public boolean isApplyFilter() {
-                return !memberPanelStorage.isSearchScopeVisible()
-                        || (!memberPanelStorage.isSearchScope(SearchBoxScopeType.SUBTREE)
-                        && !memberPanelStorage.isRelationVisible()
-                        && !memberPanelStorage.isIndirect());
-            }
-
-            @Override
-            public PrismReferenceDefinition getTenantDefinition() {
-                return getReferenceDefinition(AssignmentType.F_TENANT_REF);
-            }
-        };
-    }
-
-    private SearchItem createProjectItem(Search search) {
-        return new ProjectSearchItem(search, getMemberPanelStorage()) {
-            @Override
-            public boolean isApplyFilter() {
-                return !memberPanelStorage.isSearchScopeVisible()
-                        || (!memberPanelStorage.isSearchScope(SearchBoxScopeType.SUBTREE)
-                        && !memberPanelStorage.isRelationVisible()
-                        && !memberPanelStorage.isTenantVisible()
-                        && !memberPanelStorage.isIndirect());
-            }
-
-            @Override
-            public PrismReferenceDefinition getProjectRefDef() {
-                return getReferenceDefinition(AssignmentType.F_ORG_REF);
-            }
-        };
-    }
-
-    private RelationSearchItem createRelationItem(Search search) {
-        return new RelationSearchItem(search, getMemberPanelStorage()) {
-
-            @Override
-            public boolean isApplyFilter() {
-                return !memberPanelStorage.isSearchScopeVisible()
-                        || !memberPanelStorage.isSearchScope(SearchBoxScopeType.SUBTREE);
-            }
-        };
-    }
+//
+//    private SearchItem createScopeItem(Search search) {
+//        return new ScopeSearchItem(search, new PropertyModel<>(memberPanelStorage, MemberPanelStorage.F_ORG_SEARCH_SCOPE_ITEM));
+//    }
+//
+//    private SearchItem createIndirectItem(Search search) {
+//        return new IndirectSearchItem(search, getMemberPanelStorage()) {
+//            @Override
+//            public boolean isApplyFilter() {
+//                return !memberPanelStorage.isSearchScopeVisible()
+//                        || !memberPanelStorage.isSearchScope(SearchBoxScopeType.SUBTREE);
+//            }
+//
+//            @Override
+//            protected boolean isPanelVisible() {
+//                return getMemberPanelStorage() == null
+//                        || (memberPanelStorage.getSupportedRelations() != null
+//                        && !getMemberPanelStorage().isSearchScope(SearchBoxScopeType.SUBTREE));
+//            }
+//        };
+//    }
+//
+//    private SearchItem createTenantItem(Search search) {
+//        return new TenantSearchItem(search, getMemberPanelStorage()) {
+//
+//            @Override
+//            public boolean isApplyFilter() {
+//                return !memberPanelStorage.isSearchScopeVisible()
+//                        || (!memberPanelStorage.isSearchScope(SearchBoxScopeType.SUBTREE)
+//                        && !memberPanelStorage.isRelationVisible()
+//                        && !memberPanelStorage.isIndirect());
+//            }
+//
+//            @Override
+//            public PrismReferenceDefinition getTenantDefinition() {
+//                return getReferenceDefinition(AssignmentType.F_TENANT_REF);
+//            }
+//        };
+//    }
+//
+//    private SearchItem createProjectItem(Search search) {
+//        return new ProjectSearchItem(search, getMemberPanelStorage()) {
+//            @Override
+//            public boolean isApplyFilter() {
+//                return !memberPanelStorage.isSearchScopeVisible()
+//                        || (!memberPanelStorage.isSearchScope(SearchBoxScopeType.SUBTREE)
+//                        && !memberPanelStorage.isRelationVisible()
+//                        && !memberPanelStorage.isTenantVisible()
+//                        && !memberPanelStorage.isIndirect());
+//            }
+//
+//            @Override
+//            public PrismReferenceDefinition getProjectRefDef() {
+//                return getReferenceDefinition(AssignmentType.F_ORG_REF);
+//            }
+//        };
+//    }
+//
+//    private RelationSearchItem createRelationItem(Search search) {
+//        return new RelationSearchItem(search, getMemberPanelStorage()) {
+//
+//            @Override
+//            public boolean isApplyFilter() {
+//                return !memberPanelStorage.isSearchScopeVisible()
+//                        || !memberPanelStorage.isSearchScope(SearchBoxScopeType.SUBTREE);
+//            }
+//        };
+//    }
 
     public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
         AbstractRoleType object = getParentVariables(variables);
