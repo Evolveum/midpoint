@@ -36,7 +36,7 @@ public class TextSearchItemWrapper extends PropertySearchItemWrapper<String> {
 
     @Override
     public DisplayableValue<String> getDefaultValue() {
-        return new SearchValue<>("");
+        return new SearchValue<>();
     }
 
     public ItemDefinition<?> getItemDef() {

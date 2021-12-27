@@ -512,7 +512,8 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                 }
 
                 private boolean isPropertyItemVisible(AbstractSearchItemWrapper searchItem, String propertySearchText) {
-                    String name = createStringResource(searchItem.getName()).getString();
+                    String searchItemName = searchItem.getName();
+                    String name = searchItemName != null ? createStringResource(searchItemName).getString() : "";
                     return StringUtils.isEmpty(propertySearchText)
                                     || name.toLowerCase().contains(propertySearchText.toLowerCase());
                 }

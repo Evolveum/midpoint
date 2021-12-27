@@ -6,9 +6,12 @@
  */
 package com.evolveum.midpoint.web.component.search.refactored;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -91,6 +94,11 @@ public class ObjectCollectionSearchItemWrapper extends AbstractSearchItemWrapper
         }
 
         return objectCollectionView.getObjectCollectionDescription();
+    }
+
+
+    public ObjectFilter createFilter(PageBase pageBase) {
+        return null;
     }
 
     @Override

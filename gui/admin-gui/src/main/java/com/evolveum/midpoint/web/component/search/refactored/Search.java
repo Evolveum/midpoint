@@ -313,74 +313,34 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     private ObjectQuery createObjectQuerySimple(VariablesMap defaultVariables, PageBase pageBase) {
-//        List<SearchItem> searchItems = getItems();
-//        if (searchItems.isEmpty()) {
-//            return null;
-//        }
-//
-//        List<ObjectFilter> conditions = new ArrayList<>();
-//        for (PropertySearchItem item : getPropertyItems()) {
-//            if (item.isEnabled() && item.isApplyFilter()) {
-//                ObjectFilter filter = createFilterForSearchItem(item, pageBase.getPrismContext());
-//                if (filter != null) {
-//                    conditions.add(filter);
-//                }
-//            }
-//        }
-//
-//        VariablesMap variables = getFilterVariables(defaultVariables, pageBase);
-//
-//        for (FilterSearchItem item : getFilterItems()) {
-//            if (item.isEnabled() && item.isApplyFilter()) {
-//
-//                SearchFilterType filter = item.getPredefinedFilter().getFilter();
-//                if (filter == null && item.getPredefinedFilter().getFilterExpression() != null) {
-//                    ItemDefinition outputDefinition = pageBase.getPrismContext().definitionFactory().createPropertyDefinition(
-//                            ExpressionConstants.OUTPUT_ELEMENT_NAME, SearchFilterType.COMPLEX_TYPE);
-//                    Task task = pageBase.createSimpleTask("evaluate filter expression");
-//                    try {
-//                        PrismValue filterValue = ExpressionUtil.evaluateExpression(variables, outputDefinition, item.getPredefinedFilter().getFilterExpression(),
-//                                MiscSchemaUtil.getExpressionProfile(), pageBase.getExpressionFactory(), "", task, task.getResult());
-//                        if (filterValue == null || filterValue.getRealValue() == null) {
-//                            LOGGER.error("FilterExpression return null, ", item.getPredefinedFilter().getFilterExpression());
-//                        }
-//                        filter = filterValue.getRealValue();
-//                    } catch (Exception e) {
-//                        LOGGER.error("Unable to evaluate filter expression, {} ", item.getPredefinedFilter().getFilterExpression());
-//                    }
-//                }
-//                if (filter != null) {
-//                    try {
-//                        ObjectFilter convertedFilter = pageBase.getQueryConverter().parseFilter(filter, getTypeClass());
-//
-//                        convertedFilter = WebComponentUtil.evaluateExpressionsInFilter(convertedFilter, variables, new OperationResult("evaluated filter"), pageBase);
-//                        if (convertedFilter != null) {
-//                            conditions.add(convertedFilter);
-//                        }
-//                    } catch (SchemaException e) {
-//                        LOGGER.error("Unable to parse filter {}, {} ", filter, e);
-//                    }
-//                }
-//            }
-//        }
-//
-//        ObjectQuery query;
-//        if (getTypeClass() != null) {
-//            query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
-//        } else {
-//            query = pageBase.getPrismContext().queryFactory().createQuery();
-//        }
-//        switch (conditions.size()) {
-//            case 0:
-//                query = null;
-//                break;
-//            default:
-//                for (ObjectFilter filter : conditions) {
-//                    query.addFilter(filter);
-//                }
-//        }
-//        return query;
-        return null;
+        List<AbstractSearchItemWrapper> searchItems = getItems();
+        if (searchItems.isEmpty()) {
+            return null;
+        }
+
+        List<ObjectFilter> conditions = new ArrayList<>();
+        getItems().forEach(item -> {
+            ObjectFilter filter = item.createFilter(pageBase);
+            if (item != null) {
+                conditions.add(filter);
+            }
+        });
+        ObjectQuery query;
+        if (getTypeClass() != null) {
+            query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
+        } else {
+            query = pageBase.getPrismContext().queryFactory().createQuery();
+        }
+        switch (conditions.size()) {
+            case 0:
+                query = null;
+                break;
+            default:
+                for (ObjectFilter filter : conditions) {
+                    query.addFilter(filter);
+                }
+        }
+        return query;
     }
 
     public VariablesMap getFilterVariables(VariablesMap defaultVariables, PageBase pageBase) {
@@ -424,23 +384,23 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         ItemDefinition definition = item.getDefinition().getDef();
         ItemPath path = item.getPath();
 
-        if (definition instanceof PrismReferenceDefinition) {
-            PrismReferenceValue refValue = ((ObjectReferenceType) searchValue.getValue()).asReferenceValue();
-            if (refValue.isEmpty()) {
-                return null;
-            }
-            List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) definition).getTargetTypeName());
-            if (supportedTargets.size() == 1 && QNameUtil.match(supportedTargets.iterator().next(), refValue.getTargetType())  && refValue.getOid() == null
-                    && refValue.getObject() == null && refValue.getRelation() == null && refValue.getFilter() == null) {
-                return null;
-            }
-            RefFilter refFilter = (RefFilter) ctx.queryFor(ObjectType.class)
-                    .item(path, definition).ref(refValue.clone())
-                    .buildFilter();
-            refFilter.setOidNullAsAny(true);
-            refFilter.setTargetTypeNullAsAny(true);
-            return refFilter;
-        }
+//        if (definition instanceof PrismReferenceDefinition) {
+//            PrismReferenceValue refValue = ((ObjectReferenceType) searchValue.getValue()).asReferenceValue();
+//            if (refValue.isEmpty()) {
+//                return null;
+//            }
+//            List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) definition).getTargetTypeName());
+//            if (supportedTargets.size() == 1 && QNameUtil.match(supportedTargets.iterator().next(), refValue.getTargetType())  && refValue.getOid() == null
+//                    && refValue.getObject() == null && refValue.getRelation() == null && refValue.getFilter() == null) {
+//                return null;
+//            }
+//            RefFilter refFilter = (RefFilter) ctx.queryFor(ObjectType.class)
+//                    .item(path, definition).ref(refValue.clone())
+//                    .buildFilter();
+//            refFilter.setOidNullAsAny(true);
+//            refFilter.setTargetTypeNullAsAny(true);
+//            return refFilter;
+//        }
 
         PrismPropertyDefinition<?> propDef = (PrismPropertyDefinition<?>) definition;
         if ((propDef.getAllowedValues() != null && !propDef.getAllowedValues().isEmpty())
@@ -477,29 +437,31 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             }
             return ctx.queryFor(ObjectType.class)
                     .item(path, propDef).eq(qName).buildFilter();
-        } else if (DOMUtil.XSD_DATETIME.equals(propDef.getTypeName())) {
-            if (((DateSearchItem) item).getFromDate() != null && ((DateSearchItem) item).getToDate() != null) {
-                return ctx.queryFor(ObjectType.class)
-                        .item(path, propDef)
-                        .gt(((DateSearchItem) item).getFromDate())
-                        .and()
-                        .item(path, propDef)
-                        .lt(((DateSearchItem) item).getToDate())
-                        .buildFilter();
-            } else if (((DateSearchItem) item).getFromDate() != null) {
-                return ctx.queryFor(ObjectType.class)
-                        .item(path, propDef)
-                        .gt(((DateSearchItem) item).getFromDate())
-                        .buildFilter();
-            } else if (((DateSearchItem) item).getToDate() != null) {
-                return ctx.queryFor(ObjectType.class)
-                        .item(path, propDef)
-                        .lt(((DateSearchItem) item).getToDate())
-                        .buildFilter();
-            } else {
-                return null;
-            }
-        } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(propDef.getTypeName())) {
+        } else
+//            if (DOMUtil.XSD_DATETIME.equals(propDef.getTypeName())) {
+//            if (((DateSearchItem) item).getFromDate() != null && ((DateSearchItem) item).getToDate() != null) {
+//                return ctx.queryFor(ObjectType.class)
+//                        .item(path, propDef)
+//                        .gt(((DateSearchItem) item).getFromDate())
+//                        .and()
+//                        .item(path, propDef)
+//                        .lt(((DateSearchItem) item).getToDate())
+//                        .buildFilter();
+//            } else if (((DateSearchItem) item).getFromDate() != null) {
+//                return ctx.queryFor(ObjectType.class)
+//                        .item(path, propDef)
+//                        .gt(((DateSearchItem) item).getFromDate())
+//                        .buildFilter();
+//            } else if (((DateSearchItem) item).getToDate() != null) {
+//                return ctx.queryFor(ObjectType.class)
+//                        .item(path, propDef)
+//                        .lt(((DateSearchItem) item).getToDate())
+//                        .buildFilter();
+//            } else {
+//                return null;
+//            }
+//        } else
+            if (SchemaConstants.T_POLY_STRING_TYPE.equals(propDef.getTypeName())) {
             //we're looking for string value, therefore substring filter should be used
             String text = (String) searchValue.getValue();
             return ctx.queryFor(ObjectType.class)
@@ -508,11 +470,12 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             String value = (String) searchValue.getValue();
             return ctx.queryFor(ObjectType.class)
                     .item(path, propDef).contains(value).matchingCaseIgnore().buildFilter();
-        } else if (QNameUtil.match(ItemPathType.COMPLEX_TYPE, propDef.getTypeName())) {
-            ItemPathType itemPath = (ItemPathType) searchValue.getValue();
-            return ctx.queryFor(ObjectType.class)
-                    .item(path, propDef).eq(itemPath).buildFilter();
         }
+//            else if (QNameUtil.match(ItemPathType.COMPLEX_TYPE, propDef.getTypeName())) {
+//            ItemPathType itemPath = (ItemPathType) searchValue.getValue();
+//            return ctx.queryFor(ObjectType.class)
+//                    .item(path, propDef).eq(itemPath).buildFilter();
+//        }
 
         //we don't know how to create filter from search item, should not happen, ha ha ha :)
         //at least we try to cleanup field

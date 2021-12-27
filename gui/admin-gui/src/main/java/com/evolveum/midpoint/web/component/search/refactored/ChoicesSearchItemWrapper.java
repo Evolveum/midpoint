@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.component.search.refactored;
 
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 import java.util.List;
@@ -29,7 +30,7 @@ public class ChoicesSearchItemWrapper<T> extends PropertySearchItemWrapper {
     }
 
     public DisplayableValue<T> getDefaultValue() {
-        return null;
+        return new SearchValue();
     }
 
 }

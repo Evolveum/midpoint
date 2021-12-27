@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.component.search.refactored;
 
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
@@ -29,7 +30,7 @@ public class AutoCompleteSearchItemWrapper extends PropertySearchItemWrapper {
     }
 
     public DisplayableValue<String> getDefaultValue() {
-        return null;
+        return new SearchValue<>();
     }
 
 

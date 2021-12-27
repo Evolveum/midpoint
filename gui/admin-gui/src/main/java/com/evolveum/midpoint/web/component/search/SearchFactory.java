@@ -427,7 +427,7 @@ public class SearchFactory {
                         searchConfigWrapper.addSearchItem(property);
                     }
                 } else if (item.getFilter() != null) {
-                    searchConfigWrapper.addSearchItem(new FilterSearchItemWrapper(item));
+                    searchConfigWrapper.addSearchItem(new FilterSearchItemWrapper(item, searchConfigWrapper.getTypeClass()));
                 }
             });
         }
@@ -515,6 +515,7 @@ public class SearchFactory {
         if (item.isVisibleByDefault() != null && item.isVisibleByDefault().booleanValue()) {
             itemWrapper.setDisplayed(true);
         }
+        itemWrapper.setItemDef(itemDef);
         return itemWrapper;
     }
 

@@ -7,6 +7,10 @@
 package com.evolveum.midpoint.web.component.search.refactored;
 
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.DisplayableValue;
 
 import java.io.Serializable;
@@ -22,7 +26,7 @@ public abstract class AbstractSearchItemWrapper<T extends Serializable> implemen
     public static final String F_HELP = "help";
     public static final String F_TITLE = "title";
 
-    protected DisplayableValue<T> value;
+    private DisplayableValue<T> value;
     private boolean displayed;
     private boolean selected;
 
@@ -36,6 +40,8 @@ public abstract class AbstractSearchItemWrapper<T extends Serializable> implemen
 
     public abstract DisplayableValue<T> getDefaultValue();
 
+    public abstract ObjectFilter createFilter(PageBase pageBase);
+
     public boolean isVisible() {
         return true;
     }
@@ -45,6 +51,10 @@ public abstract class AbstractSearchItemWrapper<T extends Serializable> implemen
     }
 
     public boolean canRemoveSearchItem() {
+        return true;
+    }
+
+    public boolean isApplyFilter() {
         return true;
     }
 

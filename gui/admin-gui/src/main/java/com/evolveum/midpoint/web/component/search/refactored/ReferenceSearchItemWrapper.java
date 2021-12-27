@@ -6,13 +6,20 @@
  */
 package com.evolveum.midpoint.web.component.search.refactored;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 import javax.xml.namespace.QName;
@@ -59,5 +66,24 @@ public class ReferenceSearchItemWrapper<T extends Serializable> extends Property
             ref.setType(supportedTargets.iterator().next());
         }
         return new SearchValue<>(ref);
+    }
+
+    @Override
+    public ObjectFilter createFilter(PageBase pageBase) {
+        PrismReferenceValue refValue = ((ObjectReferenceType) getValue().getValue()).asReferenceValue();
+        if (refValue.isEmpty()) {
+            return null;
+        }
+        List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(def.getTargetTypeName());
+        if (supportedTargets.size() == 1 && QNameUtil.match(supportedTargets.iterator().next(), refValue.getTargetType())  && refValue.getOid() == null
+                && refValue.getObject() == null && refValue.getRelation() == null && refValue.getFilter() == null) {
+            return null;
+        }
+        RefFilter refFilter = (RefFilter) PrismContext.get().queryFor(ObjectType.class)
+                .item(getSearchItem().getPath().getItemPath()).ref(refValue.clone())
+                .buildFilter();
+        refFilter.setOidNullAsAny(true);
+        refFilter.setTargetTypeNullAsAny(true);
+        return refFilter;
     }
 }

@@ -6,10 +6,17 @@
  */
 package com.evolveum.midpoint.web.component.search.refactored;
 
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
-
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 public class DateSearchItemWrapper extends PropertySearchItemWrapper {
 
@@ -48,6 +55,32 @@ public class DateSearchItemWrapper extends PropertySearchItemWrapper {
 
     @Override
     public DisplayableValue<XMLGregorianCalendar> getDefaultValue() {
+        return new SearchValue();
+    }
+
+    @Override
+    public ObjectFilter createFilter(PageBase pageBase) {
+        PrismContext ctx = PrismContext.get();
+        ItemPath path = getSearchItem().getPath().getItemPath();
+        if (fromDate != null && toDate != null) {
+            return ctx.queryFor(ObjectType.class)
+                    .item(path)
+                    .gt(fromDate)
+                    .and()
+                    .item(path)
+                    .lt(toDate)
+                    .buildFilter();
+        } else if (fromDate != null) {
+            return ctx.queryFor(ObjectType.class)
+                    .item(path)
+                    .gt(fromDate)
+                    .buildFilter();
+        } else if (toDate != null) {
+            return ctx.queryFor(ObjectType.class)
+                    .item(path)
+                    .lt(toDate)
+                    .buildFilter();
+        }
         return null;
     }
 
