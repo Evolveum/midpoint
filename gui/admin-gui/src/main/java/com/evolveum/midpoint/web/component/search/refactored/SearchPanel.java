@@ -294,14 +294,14 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     }
 
     private void addOneItemPerformed(AbstractSearchItemWrapper searchItem, AjaxRequestTarget target) {
-        searchItem.setDisplayed(true);
+        searchItem.setApplyFilter(true);
         refreshSearchForm(target);
     }
 
     private void addItemPerformed(AjaxRequestTarget target) {
         getModelObject().getItems().forEach(item -> {
             if (item.isSelected()) {
-                item.setDisplayed(true);
+                item.setApplyFilter(true);
                 item.setSelected(false);
             }
         });
@@ -421,7 +421,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                 @Override
                 protected List<AbstractSearchItemWrapper> load() {
                     return getModelObject().getItems().stream().filter(item
-                            -> item.isDisplayed())
+                            -> item.isApplyFilter())
                             .collect(Collectors.toList());
                 }
             };
@@ -432,7 +432,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                 @Override
                 protected List<AbstractSearchItemWrapper> load() {
                     return getModelObject().getItems().stream().filter(item
-                            -> !item.isDisplayed())
+                            -> !item.isApplyFilter())
                             .collect(Collectors.toList());
                 }
             };

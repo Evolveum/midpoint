@@ -213,7 +213,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                     CompiledObjectCollectionView view = getObjectCollectionView();
 //                    search.setCollectionSearchItem(new ObjectCollectionSearchItem(search, view));
 //                    search.setCollectionItemVisible(isCollectionViewPanelForWidget());
-                    search.getItems().add(new ObjectCollectionSearchItemWrapper(view));
+                    if (isCollectionViewPanelForWidget()) {
+                        search.getItems().add(new ObjectCollectionSearchItemWrapper(view));
+                    }
                     if (storage != null && view.getPaging() != null) {
                         ObjectPaging paging = ObjectQueryUtil.convertToObjectPaging(view.getPaging(), getPrismContext());
                         if (storage.getPaging() == null) {

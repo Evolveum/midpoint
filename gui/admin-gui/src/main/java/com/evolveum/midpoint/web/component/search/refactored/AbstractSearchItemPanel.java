@@ -14,9 +14,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchItem;
-import com.evolveum.midpoint.web.component.search.refactored.SearchPanel;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -127,6 +124,10 @@ public abstract class AbstractSearchItemPanel<S extends AbstractSearchItemWrappe
         searchItemContainer.add(removeButton);
     }
 
+    protected WebMarkupContainer getSearchItemContainer() {
+        return (WebMarkupContainer) get(ID_SEARCH_ITEM_CONTAINER);
+    }
+
     private IModel<String> createHelpModel(){
         return Model.of(getModelObject().getHelp());
     }
@@ -138,7 +139,7 @@ public abstract class AbstractSearchItemPanel<S extends AbstractSearchItemWrappe
     }
 
     protected IModel<String> createLabelModel() {
-        return createStringResource(getModelObject().getName());
+        return StringUtils.isNotEmpty(getModelObject().getName()) ? createStringResource(getModelObject().getName()) : Model.of("");
     }
 
     private IModel<String> createTitleModel() {
@@ -149,7 +150,7 @@ public abstract class AbstractSearchItemPanel<S extends AbstractSearchItemWrappe
     }
 
     private void deletePerformed(AjaxRequestTarget target) {
-        getModelObject().setDisplayed(false);
+        getModelObject().setApplyFilter(false);
         SearchPanel panel = findParent(SearchPanel.class);
         panel.refreshSearchForm(target);
         panel.searchPerformed(target);

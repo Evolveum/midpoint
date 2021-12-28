@@ -8,13 +8,10 @@ package com.evolveum.midpoint.web.component.search.refactored;
 
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.DisplayableValue;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Objects;
 
 public abstract class AbstractSearchItemWrapper<T extends Serializable> implements Serializable {
@@ -27,7 +24,7 @@ public abstract class AbstractSearchItemWrapper<T extends Serializable> implemen
     public static final String F_TITLE = "title";
 
     private DisplayableValue<T> value;
-    private boolean displayed;
+    private boolean applyFilter;
     private boolean selected;
 
     public abstract Class<? extends AbstractSearchItemPanel> getSearchItemPanelClass();
@@ -54,9 +51,9 @@ public abstract class AbstractSearchItemWrapper<T extends Serializable> implemen
         return true;
     }
 
-    public boolean isApplyFilter() {
-        return true;
-    }
+//    public boolean isApplyFilter() {
+//        return true;
+//    }
 
     public DisplayableValue<T> getValue() {
         if (value == null) {
@@ -69,12 +66,12 @@ public abstract class AbstractSearchItemWrapper<T extends Serializable> implemen
         this.value = value;
     }
 
-    public boolean isDisplayed() {
-        return displayed;
+    public boolean isApplyFilter() {
+        return applyFilter;
     }
 
-    public void setDisplayed(boolean displayed) {
-        this.displayed = displayed;
+    public void setApplyFilter(boolean applyFilter) {
+        this.applyFilter = applyFilter;
     }
 
     public boolean isSelected() {

@@ -9,9 +9,10 @@ package com.evolveum.midpoint.web.component.search.refactored;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -34,6 +35,7 @@ public class ObjectCollectionSearchItemWrapper extends AbstractSearchItemWrapper
     public ObjectCollectionSearchItemWrapper(@NotNull CompiledObjectCollectionView objectCollectionView) {
         Validate.notNull(objectCollectionView, "Collection must not be null.");
         this.objectCollectionView = objectCollectionView;
+        setApplyFilter(true);
     }
 
     @Override
@@ -98,7 +100,10 @@ public class ObjectCollectionSearchItemWrapper extends AbstractSearchItemWrapper
 
 
     public ObjectFilter createFilter(PageBase pageBase) {
-        return null;
+        if (objectCollectionView.getFilter() == null) {
+            return null;
+        }
+        return WebComponentUtil.evaluateExpressionsInFilter(objectCollectionView.getFilter(), new OperationResult("evaluate filter"), pageBase);
     }
 
     @Override

@@ -31,16 +31,17 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 public class FilterSearchItemWrapper extends AbstractSearchItemWrapper {
 
     private static final Trace LOGGER = TraceManager.getTrace(FilterSearchItemWrapper.class);
-    SearchItemType searchItem;
+    private SearchItemType searchItem;
     private Class<? extends Containerable> typeClass;
 
     public FilterSearchItemWrapper(SearchItemType searchItem, Class<? extends Containerable> typeClass) {
         this.searchItem = searchItem;
         this.typeClass = typeClass;
+        setApplyFilter(true);
     }
 
-    public Class<AbstractSearchItemPanel> getSearchItemPanelClass() {
-        return null;
+    public Class<FilterSearchItemPanel> getSearchItemPanelClass() {
+        return FilterSearchItemPanel.class;
     }
 
     public String getName() {
@@ -65,20 +66,20 @@ public class FilterSearchItemWrapper extends AbstractSearchItemWrapper {
         PrismContext ctx = PrismContext.get();
         VariablesMap variables = getFilterVariables();
         if (isEnabled() && isApplyFilter()) {
-            SearchFilterType filter = searchItem.getFilter();
-            if (filter == null && searchItem.getFilterExpression() != null) {
+            SearchFilterType filter = getSearchItem().getFilter();
+            if (filter == null && getSearchItem().getFilterExpression() != null) {
                 ItemDefinition outputDefinition = ctx.definitionFactory().createPropertyDefinition(
                         ExpressionConstants.OUTPUT_ELEMENT_NAME, SearchFilterType.COMPLEX_TYPE);
                 Task task = pageBase.createSimpleTask("evaluate filter expression");
                 try {
-                    PrismValue filterValue = ExpressionUtil.evaluateExpression(variables, outputDefinition, searchItem.getFilterExpression(),
+                    PrismValue filterValue = ExpressionUtil.evaluateExpression(variables, outputDefinition, getSearchItem().getFilterExpression(),
                             MiscSchemaUtil.getExpressionProfile(), pageBase.getExpressionFactory(), "", task, task.getResult());
                     if (filterValue == null || filterValue.getRealValue() == null) {
-                        LOGGER.error("FilterExpression return null, ", searchItem.getFilterExpression());
+                        LOGGER.error("FilterExpression return null, ", getSearchItem().getFilterExpression());
                     }
                     filter = filterValue.getRealValue();
                 } catch (Exception e) {
-                    LOGGER.error("Unable to evaluate filter expression, {} ", searchItem.getFilterExpression());
+                    LOGGER.error("Unable to evaluate filter expression, {} ", getSearchItem().getFilterExpression());
                 }
             }
             if (filter != null) {
@@ -98,7 +99,7 @@ public class FilterSearchItemWrapper extends AbstractSearchItemWrapper {
 
     public VariablesMap getFilterVariables() {
         VariablesMap variables = new VariablesMap();
-        SearchFilterParameterType functionParameter = searchItem.getParameter();
+        SearchFilterParameterType functionParameter = getSearchItem().getParameter();
         if (functionParameter != null && functionParameter.getType() != null) {
             Class<?> inputClass = PrismContext.get().getSchemaRegistry().determineClassForType(functionParameter.getType());
             TypedValue value = new TypedValue(getValue().getValue(), inputClass);
@@ -107,5 +108,7 @@ public class FilterSearchItemWrapper extends AbstractSearchItemWrapper {
         return variables;
     }
 
-
+    public SearchItemType getSearchItem() {
+        return searchItem;
+    }
 }

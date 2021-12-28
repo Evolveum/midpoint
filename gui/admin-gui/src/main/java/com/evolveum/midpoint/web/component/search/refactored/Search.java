@@ -8,13 +8,10 @@ package com.evolveum.midpoint.web.component.search.refactored;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.*;
@@ -24,8 +21,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
@@ -320,6 +315,9 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
         List<ObjectFilter> conditions = new ArrayList<>();
         getItems().forEach(item -> {
+            if (!item.isApplyFilter()) {
+                return;
+            }
             ObjectFilter filter = item.createFilter(pageBase);
             if (item != null) {
                 conditions.add(filter);

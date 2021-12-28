@@ -47,6 +47,11 @@ public class OidSearchItemWrapper extends AbstractSearchItemWrapper {
     }
 
     @Override
+    public boolean isApplyFilter() {
+        return isVisible();
+    }
+
+    @Override
     public ObjectFilter createFilter(PageBase pageBase) {
         if (StringUtils.isEmpty((String)getValue().getValue())) {
             return null;
