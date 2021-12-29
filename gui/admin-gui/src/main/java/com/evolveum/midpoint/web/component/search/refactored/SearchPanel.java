@@ -110,6 +110,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     private static final String ID_FULL_TEXT_FIELD = "fullTextField";
     private static final String ID_OID_ITEM = "oidItem";
 
+    private LoadableModel<List<AbstractSearchItemWrapper>> displayedSearchItemsModel;
     private static final Trace LOG = TraceManager.getTrace(SearchPanel.class);
 
     public SearchPanel(String id, IModel<Search<C>> searchModel) {
@@ -119,7 +120,23 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        initDisplayedSearchItemsModel();
         initLayout();
+    }
+
+    private void initDisplayedSearchItemsModel() {
+        displayedSearchItemsModel = new LoadableModel<List<AbstractSearchItemWrapper>>(false) {
+            @Override
+            protected List<AbstractSearchItemWrapper> load() {
+                return getModelObject().getItems().stream().filter(item
+                        -> item.isApplyFilter())
+                        .collect(Collectors.toList());
+            }
+        };
+    }
+
+    public void displayedSearchItemsModelReset() {
+        displayedSearchItemsModel.reset();
     }
 
     private <S extends AbstractSearchItemWrapper, T extends Serializable> void initLayout() {
@@ -311,7 +328,6 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     protected abstract void searchPerformed(AjaxRequestTarget target);
 
     void refreshSearchForm(AjaxRequestTarget target) {
-//        getModelObject().getItemsModel().reset();
         target.add(get(ID_FORM));
         saveSearch(getModelObject(), target);
     }
@@ -373,7 +389,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
         private <T extends Serializable> void initBasicSearchLayout() {
 
-            ListView<AbstractSearchItemWrapper> items = new ListView<AbstractSearchItemWrapper>(ID_ITEMS, getDisplayedSearchItemsModel()) {
+            ListView<AbstractSearchItemWrapper> items = new ListView<AbstractSearchItemWrapper>(ID_ITEMS, displayedSearchItemsModel) {
 
                 private static final long serialVersionUID = 1L;
 
@@ -414,17 +430,6 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             moreGroup.add(more);
 
             initPopover();
-        }
-
-        private LoadableModel<List<AbstractSearchItemWrapper>> getDisplayedSearchItemsModel() {
-            return new LoadableModel<List<AbstractSearchItemWrapper>>() {
-                @Override
-                protected List<AbstractSearchItemWrapper> load() {
-                    return getModelObject().getItems().stream().filter(item
-                            -> item.isApplyFilter())
-                            .collect(Collectors.toList());
-                }
-            };
         }
 
         private LoadableModel<List<AbstractSearchItemWrapper>> getMorePopupItemsModel() {

@@ -44,10 +44,10 @@ public class SearchFormPanel<C extends Containerable> extends BasePanel<Search<C
                 SearchFormPanel.this.searchPerformed(target);
             }
 
-//            @Override
-//            protected void saveSearch(Search search, AjaxRequestTarget target) {
-//                SearchFormPanel.this.saveSearch(search, target);
-//            }
+            @Override
+            protected void saveSearch(Search search, AjaxRequestTarget target) {
+                SearchFormPanel.this.saveSearch(search, target);
+            }
         };
         searchForm.add(search);
     }

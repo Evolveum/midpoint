@@ -152,9 +152,9 @@ public abstract class AbstractSearchItemPanel<S extends AbstractSearchItemWrappe
     private void deletePerformed(AjaxRequestTarget target) {
         getModelObject().setApplyFilter(false);
         SearchPanel panel = findParent(SearchPanel.class);
+        panel.displayedSearchItemsModelReset();
         panel.refreshSearchForm(target);
         panel.searchPerformed(target);
-
     }
 
     protected IModel<List<DisplayableValue<Boolean>>> createBooleanChoices() {
