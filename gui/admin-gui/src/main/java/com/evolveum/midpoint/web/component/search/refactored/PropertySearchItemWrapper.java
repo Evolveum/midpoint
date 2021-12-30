@@ -81,6 +81,16 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
 //        return WebComponentUtil.getItemDefinitionDisplayNameOrName(getDef(), null);
     }
 
+    @Override
+    public String getHelp() {
+        return ""; //todo
+    }
+
+    @Override
+    public String getTitle() {
+        return ""; //todo
+    }
+
     public SearchItemType getSearchItem() {
         return searchItem;
     }
@@ -152,15 +162,4 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
 //            }
         return null;
     }
-
-    @Override
-    public String getHelp() {
-        return "";
-    }
-
-    @Override
-    public String getTitle() {
-        return "";
-    }
-
 }

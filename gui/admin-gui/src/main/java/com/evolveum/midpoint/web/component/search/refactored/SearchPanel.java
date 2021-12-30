@@ -110,7 +110,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     private static final String ID_FULL_TEXT_FIELD = "fullTextField";
     private static final String ID_OID_ITEM = "oidItem";
 
-    private LoadableModel<List<AbstractSearchItemWrapper>> displayedSearchItemsModel;
+    private LoadableModel<List<AbstractSearchItemWrapper>> basicSearchItemsModel;
     private static final Trace LOG = TraceManager.getTrace(SearchPanel.class);
 
     public SearchPanel(String id, IModel<Search<C>> searchModel) {
@@ -120,23 +120,23 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initDisplayedSearchItemsModel();
+        initBasicSearchItemsModel();
         initLayout();
     }
 
-    private void initDisplayedSearchItemsModel() {
-        displayedSearchItemsModel = new LoadableModel<List<AbstractSearchItemWrapper>>(false) {
+    private void initBasicSearchItemsModel() {
+        basicSearchItemsModel = new LoadableModel<List<AbstractSearchItemWrapper>>(false) {
             @Override
             protected List<AbstractSearchItemWrapper> load() {
                 return getModelObject().getItems().stream().filter(item
-                        -> item.isApplyFilter())
+                        -> !(item instanceof OidSearchItemWrapper) && item.isApplyFilter())
                         .collect(Collectors.toList());
             }
         };
     }
 
     public void displayedSearchItemsModelReset() {
-        displayedSearchItemsModel.reset();
+        basicSearchItemsModel.reset();
     }
 
     private <S extends AbstractSearchItemWrapper, T extends Serializable> void initLayout() {
@@ -389,7 +389,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
         private <T extends Serializable> void initBasicSearchLayout() {
 
-            ListView<AbstractSearchItemWrapper> items = new ListView<AbstractSearchItemWrapper>(ID_ITEMS, displayedSearchItemsModel) {
+            ListView<AbstractSearchItemWrapper> items = new ListView<AbstractSearchItemWrapper>(ID_ITEMS, basicSearchItemsModel) {
 
                 private static final long serialVersionUID = 1L;
 
