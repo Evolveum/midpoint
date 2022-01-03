@@ -42,7 +42,7 @@ public class OidcModuleFactory extends RemoteModuleFactory {
     }
 
     @Override
-    public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, ServletRequest request,
+    public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix, ServletRequest request,
                                          Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
         if (!(moduleType instanceof OidcAuthenticationModuleType)) {
             LOGGER.error("This factory support only OidcAuthenticationModuleType, but modelType is " + moduleType);
@@ -53,8 +53,8 @@ public class OidcModuleFactory extends RemoteModuleFactory {
 
         OidcModuleWebSecurityConfiguration.setProtector(getProtector());
         OidcModuleWebSecurityConfiguration configuration = OidcModuleWebSecurityConfiguration.build(
-                (OidcAuthenticationModuleType)moduleType, prefixOfSequence, getPublicUrlPrefix(request), request);
-        configuration.setPrefixOfSequence(prefixOfSequence);
+                (OidcAuthenticationModuleType)moduleType, sequenceSuffix, getPublicUrlPrefix(request), request);
+        configuration.setSequenceSuffix(sequenceSuffix);
         configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(new OidcProvider()));
 
         OidcModuleWebSecurityConfigurer<OidcModuleWebSecurityConfiguration> module = getObjectObjectPostProcessor().postProcess(
@@ -74,7 +74,7 @@ public class OidcModuleFactory extends RemoteModuleFactory {
         List<IdentityProvider> providers = new ArrayList<>();
         configuration.getClientRegistrationRepository().forEach(
                 client -> {
-                    String authRequestPrefixUrl = "/midpoint" + configuration.getPrefix() + OidcModuleAuthenticationImpl.AUTHORIZATION_REQUEST_PROCESSING_URL_SUFFIX_WITH_REG_ID;
+                    String authRequestPrefixUrl = "/midpoint" + configuration.getPrefixOfModule() + OidcModuleAuthenticationImpl.AUTHORIZATION_REQUEST_PROCESSING_URL_SUFFIX_WITH_REG_ID;
                     IdentityProvider mp = new IdentityProvider()
                                 .setLinkText(client.getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName())
                                 .setRedirectLink(authRequestPrefixUrl.replace("{registrationId}", client.getRegistrationId()));
@@ -84,7 +84,7 @@ public class OidcModuleFactory extends RemoteModuleFactory {
         moduleAuthentication.setClientsRepository(configuration.getClientRegistrationRepository());
         moduleAuthentication.setProviders(providers);
         moduleAuthentication.setNameOfModule(configuration.getNameOfModule());
-        moduleAuthentication.setPrefix(configuration.getPrefix());
+        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         return moduleAuthentication;
     }
 }

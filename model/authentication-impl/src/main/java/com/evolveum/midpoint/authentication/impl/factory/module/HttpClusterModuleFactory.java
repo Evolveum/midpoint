@@ -40,11 +40,11 @@ public class HttpClusterModuleFactory extends AbstractModuleFactory {
     }
 
     @Override
-    public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence,
+    public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix,
                                          ServletRequest request, Map<Class<?>, Object> sharedObjects,
                                          AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
 
-        ModuleWebSecurityConfiguration configuration = createConfiguration(moduleType, prefixOfSequence);
+        ModuleWebSecurityConfiguration configuration = createConfiguration(moduleType, sequenceSuffix);
 
         configuration.addAuthenticationProvider(createProvider());
 
@@ -59,7 +59,7 @@ public class HttpClusterModuleFactory extends AbstractModuleFactory {
 
     private ModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence) {
         ModuleWebSecurityConfigurationImpl configuration = ModuleWebSecurityConfigurationImpl.build(moduleType,prefixOfSequence);
-        configuration.setPrefixOfSequence(prefixOfSequence);
+        configuration.setSequenceSuffix(prefixOfSequence);
         return configuration;
     }
 
@@ -73,7 +73,7 @@ public class HttpClusterModuleFactory extends AbstractModuleFactory {
 
     private ModuleAuthenticationImpl createEmptyModuleAuthentication(ModuleWebSecurityConfiguration configuration) {
         ModuleAuthenticationImpl moduleAuthentication = new ModuleAuthenticationImpl(AuthenticationModuleNameConstants.CLUSTER);
-        moduleAuthentication.setPrefix(configuration.getPrefix());
+        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setNameOfModule(configuration.getNameOfModule());
         return moduleAuthentication;
     }

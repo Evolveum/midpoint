@@ -33,7 +33,7 @@ public class LoginFormModuleFactoryImpl extends AbstractCredentialModuleFactory
     @Override
     protected LoginFormModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
         LoginFormModuleWebSecurityConfiguration configuration = LoginFormModuleWebSecurityConfiguration.build(moduleType,prefixOfSequence);
-        configuration.setPrefixOfSequence(prefixOfSequence);
+        configuration.setSequenceSuffix(prefixOfSequence);
         return configuration;
     }
 
@@ -56,7 +56,7 @@ public class LoginFormModuleFactoryImpl extends AbstractCredentialModuleFactory
     protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType,
             LoginFormModuleWebSecurityConfiguration configuration) {
         LoginFormModuleAuthenticationImpl moduleAuthentication = new LoginFormModuleAuthenticationImpl();
-        moduleAuthentication.setPrefix(configuration.getPrefix());
+        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setCredentialName(((AbstractCredentialAuthenticationModuleType)moduleType).getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());
         moduleAuthentication.setNameOfModule(configuration.getNameOfModule());

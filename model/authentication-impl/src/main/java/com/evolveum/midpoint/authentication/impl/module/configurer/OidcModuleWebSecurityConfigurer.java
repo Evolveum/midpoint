@@ -10,8 +10,13 @@ package com.evolveum.midpoint.authentication.impl.module.configurer;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.entry.point.WicketLoginUrlAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
+import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationSuccessHandler;
+import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.authentication.impl.module.authentication.RemoteModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.OidcModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.authentication.impl.module.configuration.SamlModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.authentication.impl.oidc.OidcClientLogoutSuccessHandler;
+import com.evolveum.midpoint.authentication.impl.oidc.OidcLoginConfigurer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -47,15 +52,24 @@ public class OidcModuleWebSecurityConfigurer<C extends OidcModuleWebSecurityConf
         getOrApply(http, new MidpointExceptionHandlingConfigurer<>())
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint(OIDC_LOGIN_PATH));
 
-        http.oauth2Login()
-                .clientRegistrationRepository(clientRegistrationRepository())
-                .loginProcessingUrl(AuthUtil.stripEndingSlashes(getPrefix()) + RemoteModuleAuthenticationImpl.AUTHENTICATION_REQUEST_PROCESSING_URL_SUFFIX_WITH_REG_ID)
-                .loginPage(OIDC_LOGIN_PATH)
-                .authorizationEndpoint().baseUri(
-                        AuthUtil.stripEndingSlashes(getPrefix()) + RemoteModuleAuthenticationImpl.AUTHORIZATION_REQUEST_PROCESSING_URL_SUFFIX);
-        http.authenticationManager(new ProviderManager(Collections.emptyList(), authenticationManager()));
+        OidcLoginConfigurer configurer = new OidcLoginConfigurer();//(auditProvider);
+        configurer.clientRegistrationRepository(clientRegistrationRepository())
+                .loginProcessingUrl(
+                        AuthUtil.stripEndingSlashes(getPrefix()) + RemoteModuleAuthenticationImpl.AUTHENTICATION_REQUEST_PROCESSING_URL_SUFFIX_WITH_REG_ID)
+                .authorizationRequestBaseUri(
+                        AuthUtil.stripEndingSlashes(getPrefix()) + RemoteModuleAuthenticationImpl.AUTHORIZATION_REQUEST_PROCESSING_URL_SUFFIX)
+                .successHandler(getObjectPostProcessor().postProcess(
+                        new MidPointAuthenticationSuccessHandler()))
+                .failureHandler(new MidpointAuthenticationFailureHandler());
+        try {
+            configurer.authenticationManager(new ProviderManager(Collections.emptyList(), authenticationManager()));
+        } catch (Exception e) {
+            LOGGER.error("Couldn't initialize authentication manager for saml2 module");
+        }
+        getOrApply(http, configurer);
 
-        LogoutSuccessHandler logoutRequestSuccessHandler = logoutRequestSuccessHandler();
+        OidcClientLogoutSuccessHandler logoutRequestSuccessHandler = new OidcClientLogoutSuccessHandler(clientRegistrationRepository());
+        logoutRequestSuccessHandler.setPostLogoutRedirectUri(getConfiguration().getPrefixOfSequence());
         http.logout().clearAuthentication(true)
                 .logoutRequestMatcher(new AntPathRequestMatcher(getPrefix() + "/logout"))
                 .invalidateHttpSession(true)
@@ -65,11 +79,5 @@ public class OidcModuleWebSecurityConfigurer<C extends OidcModuleWebSecurityConf
 
     private InMemoryClientRegistrationRepository clientRegistrationRepository() {
         return getConfiguration().getClientRegistrationRepository();
-    }
-
-    private LogoutSuccessHandler logoutRequestSuccessHandler() {
-        OidcClientInitiatedLogoutSuccessHandler oidcLogoutSuccessHandler = new OidcClientInitiatedLogoutSuccessHandler(
-                        clientRegistrationRepository());
-        return oidcLogoutSuccessHandler;
     }
 }

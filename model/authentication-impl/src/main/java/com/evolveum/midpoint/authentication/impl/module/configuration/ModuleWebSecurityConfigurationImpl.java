@@ -24,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticati
 public class ModuleWebSecurityConfigurationImpl implements ModuleWebSecurityConfiguration {
 
     private List<AuthenticationProvider> authenticationProviders = new ArrayList<AuthenticationProvider>();
-    private String prefixOfSequence;
+    private String sequenceSuffix;
     private String nameOfModule;
     private String defaultSuccessLogoutURL;
     private String specificLogin;
@@ -55,12 +55,12 @@ public class ModuleWebSecurityConfigurationImpl implements ModuleWebSecurityConf
         return authenticationProviders;
     }
 
-    public String getPrefixOfSequence() {
-        return prefixOfSequence;
+    public String getSequenceSuffix() {
+        return sequenceSuffix;
     }
 
-    public void setPrefixOfSequence(String prefixOfSequence) {
-        this.prefixOfSequence = prefixOfSequence;
+    public void setSequenceSuffix(String sequenceSuffix) {
+        this.sequenceSuffix = sequenceSuffix;
     }
 
     public String getNameOfModule() {
@@ -79,8 +79,8 @@ public class ModuleWebSecurityConfigurationImpl implements ModuleWebSecurityConf
         return specificLogin;
     }
 
-    public String getPrefix() {
-        return DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + "/" + AuthUtil.stripSlashes(getPrefixOfSequence())
+    public String getPrefixOfModule() {
+        return DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + "/" + AuthUtil.stripSlashes(getSequenceSuffix())
                 + "/" + AuthUtil.stripSlashes(getNameOfModule());
     }
 
@@ -93,7 +93,7 @@ public class ModuleWebSecurityConfigurationImpl implements ModuleWebSecurityConf
     protected static <T extends ModuleWebSecurityConfiguration> T build(T configuration, AbstractAuthenticationModuleType module,
                                                               String prefixOfSequence){
         configuration.setNameOfModule(module.getName());
-        configuration.setPrefixOfSequence(prefixOfSequence);
+        configuration.setSequenceSuffix(prefixOfSequence);
         return configuration;
     }
 
@@ -103,7 +103,7 @@ public class ModuleWebSecurityConfigurationImpl implements ModuleWebSecurityConf
             throw new IllegalArgumentException("NameOfModule is blank");
         }
 
-        if (StringUtils.isBlank(getPrefixOfSequence()) || StringUtils.isBlank(AuthUtil.stripSlashes(getPrefixOfSequence()))) {
+        if (StringUtils.isBlank(getSequenceSuffix()) || StringUtils.isBlank(AuthUtil.stripSlashes(getSequenceSuffix()))) {
             throw new IllegalArgumentException("Suffix in channel of sequence " + getNameOfModule() + " can't be null for this usecase");
         }
     }

@@ -159,4 +159,8 @@ public class OidcModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
             throw new IllegalArgumentException("Oidc configuration is null");
         }
     }
+
+    public String getPrefixOfSequence() {
+        return DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + "/" + AuthUtil.stripSlashes(getSequenceSuffix());
+    }
 }

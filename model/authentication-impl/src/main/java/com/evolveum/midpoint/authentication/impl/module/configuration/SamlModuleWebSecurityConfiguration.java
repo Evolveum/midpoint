@@ -148,9 +148,9 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
                 StringUtils.isNotBlank(publicHttpUrlPattern) ? publicHttpUrlPattern : getBasePath((HttpServletRequest) request));
         UriComponentsBuilder ssoBuilder = builder.cloneBuilder();
-        ssoBuilder.pathSegment(AuthUtil.stripSlashes(configuration.getPrefix()) + SSO_LOCATION_URL_SUFFIX);
+        ssoBuilder.pathSegment(AuthUtil.stripSlashes(configuration.getPrefixOfModule()) + SSO_LOCATION_URL_SUFFIX);
         UriComponentsBuilder logoutBuilder = builder.cloneBuilder();
-        logoutBuilder.pathSegment(AuthUtil.stripSlashes(configuration.getPrefix()) + LOGOUT_LOCATION_URL_SUFFIX);
+        logoutBuilder.pathSegment(AuthUtil.stripSlashes(configuration.getPrefixOfModule()) + LOGOUT_LOCATION_URL_SUFFIX);
         registrationBuilder
                 .registrationId(registrationId)
                 .entityId(serviceProviderType.getEntityId())

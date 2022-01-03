@@ -48,7 +48,7 @@ public class Saml2ModuleFactory extends RemoteModuleFactory {
     }
 
     @Override
-    public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, ServletRequest request,
+    public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix, ServletRequest request,
                                          Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
         if (!(moduleType instanceof Saml2AuthenticationModuleType)) {
             LOGGER.error("This factory support only Saml2AuthenticationModuleType, but modelType is " + moduleType);
@@ -58,8 +58,8 @@ public class Saml2ModuleFactory extends RemoteModuleFactory {
         isSupportedChannel(authenticationChannel);
 
         SamlModuleWebSecurityConfiguration.setProtector(getProtector());
-        SamlModuleWebSecurityConfiguration configuration = SamlModuleWebSecurityConfiguration.build((Saml2AuthenticationModuleType)moduleType, prefixOfSequence, getPublicUrlPrefix(request), request);
-        configuration.setPrefixOfSequence(prefixOfSequence);
+        SamlModuleWebSecurityConfiguration configuration = SamlModuleWebSecurityConfiguration.build((Saml2AuthenticationModuleType)moduleType, sequenceSuffix, getPublicUrlPrefix(request), request);
+        configuration.setSequenceSuffix(sequenceSuffix);
         configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(new Saml2Provider()));
 
         SamlModuleWebSecurityConfigurer<SamlModuleWebSecurityConfiguration> module = getObjectObjectPostProcessor().postProcess(
@@ -85,7 +85,7 @@ public class Saml2ModuleFactory extends RemoteModuleFactory {
         List<IdentityProvider> providers = new ArrayList<>();
         configuration.getRelyingPartyRegistrationRepository().forEach(
                 p -> {
-                    String authRequestPrefixUrl = "/midpoint" + configuration.getPrefix()
+                    String authRequestPrefixUrl = "/midpoint" + configuration.getPrefixOfModule()
                             + RemoteModuleAuthenticationImpl.AUTHENTICATION_REQUEST_PROCESSING_URL_SUFFIX_WITH_REG_ID;
                     SamlMidpointAdditionalConfiguration config = configuration.getAdditionalConfiguration().get(p.getRegistrationId());
                     IdentityProvider mp = new IdentityProvider()
@@ -97,7 +97,7 @@ public class Saml2ModuleFactory extends RemoteModuleFactory {
         moduleAuthentication.setProviders(providers);
         moduleAuthentication.setAdditionalConfiguration(configuration.getAdditionalConfiguration());
         moduleAuthentication.setNameOfModule(configuration.getNameOfModule());
-        moduleAuthentication.setPrefix(configuration.getPrefix());
+        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         return moduleAuthentication;
     }
 }

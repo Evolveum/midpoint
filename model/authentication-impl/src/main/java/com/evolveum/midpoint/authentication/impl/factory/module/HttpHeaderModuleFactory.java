@@ -45,7 +45,7 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory {
     }
 
     @Override
-    public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, ServletRequest request,
+    public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix, ServletRequest request,
                                          Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
         if (!(moduleType instanceof HttpHeaderAuthenticationModuleType)) {
             LOGGER.error("This factory support only HttpHeaderAuthenticationModuleType, but modelType is " + moduleType);
@@ -54,7 +54,7 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory {
 
         isSupportedChannel(authenticationChannel);
         HttpHeaderAuthenticationModuleType httpModuleType = (HttpHeaderAuthenticationModuleType) moduleType;
-        HttpHeaderModuleWebSecurityConfiguration configuration = HttpHeaderModuleWebSecurityConfiguration.build(httpModuleType, prefixOfSequence);
+        HttpHeaderModuleWebSecurityConfiguration configuration = HttpHeaderModuleWebSecurityConfiguration.build(httpModuleType, sequenceSuffix);
         configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(new PasswordProvider()));
         HttpHeaderModuleWebSecurityConfigurer<HttpHeaderModuleWebSecurityConfiguration> module =
                 getObjectObjectPostProcessor().postProcess(new HttpHeaderModuleWebSecurityConfigurer<>(configuration));
@@ -69,7 +69,7 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory {
 
     private ModuleAuthenticationImpl createEmptyModuleAuthentication(ModuleWebSecurityConfigurationImpl configuration) {
         HttpHeaderModuleAuthentication moduleAuthentication = new HttpHeaderModuleAuthentication();
-        moduleAuthentication.setPrefix(configuration.getPrefix());
+        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setNameOfModule(configuration.getNameOfModule());
         return moduleAuthentication;
     }

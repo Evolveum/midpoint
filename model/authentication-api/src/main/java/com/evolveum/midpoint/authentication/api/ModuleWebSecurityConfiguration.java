@@ -32,15 +32,15 @@ public interface ModuleWebSecurityConfiguration {
 
     List<AuthenticationProvider> getAuthenticationProviders();
 
-    String getPrefixOfSequence();
+    String getSequenceSuffix();
 
-    void setPrefixOfSequence(String prefixOfSequence);
+    void setSequenceSuffix(String sequenceSuffix);
 
     String getNameOfModule();
 
     void setNameOfModule(String nameOfModule);
 
-    String getPrefix();
+    String getPrefixOfModule();
 
     String getSpecificLoginUrl();
 

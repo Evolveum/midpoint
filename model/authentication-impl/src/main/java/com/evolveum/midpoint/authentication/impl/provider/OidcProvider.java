@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
 import org.springframework.security.oauth2.client.oidc.authentication.OidcAuthorizationCodeAuthenticationProvider;
@@ -49,14 +50,14 @@ public class OidcProvider extends MidPointAbstractAuthenticationProvider {
     private static final Trace LOGGER = TraceManager.getTrace(OidcProvider.class);
 
     private final OidcAuthorizationCodeAuthenticationProvider oidcProvider = new OidcAuthorizationCodeAuthenticationProvider(
-            new DefaultAuthorizationCodeTokenResponseClient() ,new OidcUserService());
+            new DefaultAuthorizationCodeTokenResponseClient(), new OidcUserService());
 
     @Autowired
     @Qualifier("passwordAuthenticationEvaluator")
     private AuthenticationEvaluator<PasswordAuthenticationContext> authenticationEvaluator;
 
     public OidcProvider() {
-        JwtDecoderFactory<ClientRegistration>  decoder = new OidcIdTokenDecoderFactory();
+        JwtDecoderFactory<ClientRegistration> decoder = new OidcIdTokenDecoderFactory();
         oidcProvider.setJwtDecoderFactory(decoder);
     }
 
@@ -67,26 +68,31 @@ public class OidcProvider extends MidPointAbstractAuthenticationProvider {
 
     @Override
     protected void writeAuthentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication,
-                                       ModuleAuthenticationImpl moduleAuthentication, Authentication token) {
+            ModuleAuthenticationImpl moduleAuthentication, Authentication token) {
         Object principal = token.getPrincipal();
         if (principal instanceof GuiProfiledPrincipal) {
             mpAuthentication.setPrincipal(principal);
         }
         if (token instanceof PreAuthenticatedAuthenticationToken) {
-            ((PreAuthenticatedAuthenticationToken)token).setDetails(originalAuthentication);
+            ((PreAuthenticatedAuthenticationToken) token).setDetails(originalAuthentication);
         }
         moduleAuthentication.setAuthentication(token);
     }
 
+    private OAuth2AuthenticationToken createAuthenticationResult(OAuth2LoginAuthenticationToken authenticationResult) {
+        return new OAuth2AuthenticationToken(authenticationResult.getPrincipal(), authenticationResult.getAuthorities(), authenticationResult.getClientRegistration().getRegistrationId());
+    }
+
     @Override
     protected Authentication internalAuthentication(Authentication authentication, List requireAssignment,
-                                                    AuthenticationChannel channel, Class focusType) throws AuthenticationException {
+            AuthenticationChannel channel, Class focusType) throws AuthenticationException {
         ConnectionEnvironment connEnv = createEnvironment(channel);
 
         Authentication token;
         if (authentication instanceof OAuth2LoginAuthenticationToken) {
             OAuth2LoginAuthenticationToken oidcAuthenticationToken = (OAuth2LoginAuthenticationToken) authentication;
             OAuth2LoginAuthenticationToken oidcAuthentication = (OAuth2LoginAuthenticationToken) oidcProvider.authenticate(oidcAuthenticationToken);
+
             OidcModuleAuthenticationImpl oidcModule = (OidcModuleAuthenticationImpl) AuthUtil.getProcessingModule();
             try {
                 OidcUser principal = (OidcUser) oidcAuthentication.getPrincipal();
@@ -96,14 +102,14 @@ public class OidcProvider extends MidPointAbstractAuthenticationProvider {
                 ClientRegistration config = oidcModule.getClientsRepository().findByRegistrationId(
                         oidcAuthenticationToken.getClientRegistration().getRegistrationId());
                 String nameOfSamlAttribute = config.getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
-                if (!attributes.containsKey(nameOfSamlAttribute)){
+                if (!attributes.containsKey(nameOfSamlAttribute)) {
                     LOGGER.error("Couldn't find attribute for username in oidc response");
                     throw new AuthenticationServiceException("web.security.auth.oidc.username.null");
                 } else {
                     enteredUsername = String.valueOf(attributes.get(nameOfSamlAttribute));
                     if (StringUtils.isEmpty(enteredUsername)) {
-                        LOGGER.error("Saml attribute, which define username don't contains value");
-                        throw new AuthenticationServiceException("web.security.auth.saml2.username.null");
+                        LOGGER.error("Oidc attribute, which define username don't contains value");
+                        throw new AuthenticationServiceException("web.security.auth.oidc.username.null");
                     }
                 }
                 PreAuthenticationContext authContext = new PreAuthenticationContext(enteredUsername, focusType, requireAssignment);
@@ -113,7 +119,7 @@ public class OidcProvider extends MidPointAbstractAuthenticationProvider {
                 token = authenticationEvaluator.authenticateUserPreAuthenticated(connEnv, authContext);
             } catch (AuthenticationException e) {
                 oidcModule.setAuthentication(oidcAuthenticationToken);
-                LOGGER.info("Authentication with saml module failed: {}", e.getMessage());
+                LOGGER.info("Authentication with oidc module failed: {}", e.getMessage());
                 throw e;
             }
         } else {
@@ -141,24 +147,4 @@ public class OidcProvider extends MidPointAbstractAuthenticationProvider {
     public boolean supports(Class authentication) {
         return oidcProvider.supports(authentication);
     }
-
-//    public static class MidpointSaml2AuthenticatedPrincipal extends DefaultSaml2AuthenticatedPrincipal{
-//
-//        private final String spNameQualifier;
-//        private final String nameIdFormat;
-//
-//        public MidpointSaml2AuthenticatedPrincipal(String name, Map<String, List<Object>> attributes, NameID nameID) {
-//            super(name, attributes);
-//            spNameQualifier = nameID.getSPNameQualifier();
-//            nameIdFormat = nameID.getFormat();
-//        }
-//
-//        public String getNameIdFormat() {
-//            return nameIdFormat;
-//        }
-//
-//        public String getSpNameQualifier() {
-//            return spNameQualifier;
-//        }
-//    }
 }

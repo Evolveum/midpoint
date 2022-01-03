@@ -52,7 +52,7 @@ public abstract class AbstractModuleFactory {
 
     public abstract boolean match(AbstractAuthenticationModuleType moduleType);
 
-    public abstract AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence,
+    public abstract AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix,
                                                   ServletRequest request, Map<Class<?>, Object> sharedObjects,
                                                   AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy,
                                                   AuthenticationChannel authenticationChannel) throws Exception;
