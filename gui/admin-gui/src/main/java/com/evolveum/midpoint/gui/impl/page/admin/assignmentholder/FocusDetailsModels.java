@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
@@ -46,14 +47,14 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
     private static final String DOT_CLASS = FocusDetailsModels.class.getName() + ".";
     private static final String OPERATION_LOAD_SHADOW = DOT_CLASS + "loadShadow";
 
-    private LoadableModel<List<ShadowWrapper>> projectionModel;
+    private LoadableDetachableModel<List<ShadowWrapper>> projectionModel;
     private final LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
     private boolean isSelfProfile = false;
 
-    public FocusDetailsModels(LoadableModel<PrismObject<F>> prismObjectModel, PageBase serviceLocator) {
+    public FocusDetailsModels(LoadableDetachableModel<PrismObject<F>> prismObjectModel, PageBase serviceLocator) {
         super(prismObjectModel, serviceLocator);
 
-        projectionModel = new LoadableModel<>(false) {
+        projectionModel = new LoadableDetachableModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -210,7 +211,7 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
         return projection;
     }
 
-    public LoadableModel<List<ShadowWrapper>> getProjectionModel() {
+    public LoadableDetachableModel<List<ShadowWrapper>> getProjectionModel() {
         return projectionModel;
     }
 
