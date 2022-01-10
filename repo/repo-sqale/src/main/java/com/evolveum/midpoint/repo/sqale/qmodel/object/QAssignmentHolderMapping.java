@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -59,7 +60,8 @@ public class QAssignmentHolderMapping<
 
         addContainerTableMapping(AssignmentHolderType.F_ASSIGNMENT,
                 QAssignmentMapping.initAssignmentMapping(repositoryContext),
-                joinOn((o, a) -> o.oid.eq(a.ownerOid)));
+                joinOn((o, a) -> o.oid.eq(a.ownerOid)
+                        .and(a.containerType.eq(MContainerType.ASSIGNMENT))));
 
         addRefMapping(F_ARCHETYPE_REF, QObjectReferenceMapping.initForArchetype(repositoryContext));
         addRefMapping(F_DELEGATED_REF, QObjectReferenceMapping.initForDelegated(repositoryContext));
