@@ -12,6 +12,8 @@ import com.evolveum.midpoint.web.component.search.SearchValue;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
+
 import org.apache.commons.lang3.StringUtils;
 
 public class ProjectSearchItemWrapper extends AbstractRoleSearchItemWrapper{
@@ -65,5 +67,10 @@ public class ProjectSearchItemWrapper extends AbstractRoleSearchItemWrapper{
     @Override
     public String getTitle() {
         return ""; //todo
+    }
+
+    @Override
+    public boolean isApplyFilter() {
+        return true;
     }
 }

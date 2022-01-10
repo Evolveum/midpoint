@@ -408,6 +408,12 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         relationConfig.getSupportedRelations().addAll(getSupportedRelations());
         searchConfig.setRelationConfiguration(relationConfig);
 
+        SearchBoxConfigurationHelper searchBoxCofig = new SearchBoxConfigurationHelper(searchConfig);
+        searchConfig.setScopeConfiguration(searchBoxCofig.getDefaultSearchScopeConfiguration());
+        searchConfig.setProjectConfiguration(searchBoxCofig.getDefaultProjectConfiguration());
+        searchConfig.setIndirectConfiguration(searchBoxCofig.getDefaultIndirectConfiguration());
+        searchConfig.setTenantConfiguration(searchBoxCofig.getDefaultTenantConfiguration());
+
         return searchConfig;
     }
 

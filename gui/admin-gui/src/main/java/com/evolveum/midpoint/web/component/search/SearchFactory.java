@@ -407,9 +407,9 @@ public class SearchFactory {
         if (searchItemWrappers != null) {
             searchConfigurationWrapper.getItemsList().addAll((List<AbstractSearchItemWrapper>)searchItemWrappers);
         }
-        if (Search.PanelType.MEMBER_PANEL.equals(panelType)) {
-            searchConfigurationWrapper.getItemsList().addAll(createAbstractRoleSearchItemWrapperList(searchConfigurationWrapper));
-        }
+//        if (Search.PanelType.MEMBER_PANEL.equals(panelType)) {
+//            searchConfigurationWrapper.getItemsList().addAll(createAbstractRoleSearchItemWrapperList(searchConfigurationWrapper));
+//        }
         com.evolveum.midpoint.web.component.search.refactored.Search search =
                 new com.evolveum.midpoint.web.component.search.refactored.Search(Model.of(searchConfigurationWrapper));
         return search;
@@ -437,30 +437,24 @@ public class SearchFactory {
             OidSearchItemWrapper oidWrapper = new OidSearchItemWrapper();
             searchConfigWrapper.addSearchItem(oidWrapper);
         }
-//                if (config.getScopeConfiguration() != null) {
-//                    itemsList.add(new SpecialSearchItemWrapper<>(config.getScopeConfiguration()));
-//                }
-//                if (config.getObjectTypeConfiguration() != null) {
-//                    itemsList.add(new SpecialSearchItemWrapper<>(config.getObjectTypeConfiguration()));
-//                }
-//                if (config.getRelationConfiguration() != null) {
-//                    itemsList.add(new SpecialSearchItemWrapper<>(config.getRelationConfiguration()));
-//                }
-//                if (config.getIndirectConfiguration() != null) {
-//                    itemsList.add(new SpecialSearchItemWrapper<>(config.getIndirectConfiguration()));
-//                }
-//                if (config.getProjectConfiguration() != null) {
-//                    itemsList.add(new SpecialSearchItemWrapper<>(config.getProjectConfiguration()));
-//                }
-//                if (config.getTenantConfiguration() != null) {
-//                    itemsList.add(new SpecialSearchItemWrapper<>(config.getTenantConfiguration()));
-//                }
-//                if (config.getIndirectConfiguration() != null) {
-//                    itemsList.add(new SpecialSearchItemWrapper<>(config.getIndirectConfiguration()));
-//                }
-//                if (config.getAllowedMode().contains(SearchBoxModeType.OID)) {
-//                    itemsList.add(new OidSearchItemWrapper());
-//                }
+        if (config.getScopeConfiguration() != null) {
+            searchConfigWrapper.addSearchItem(new ScopeSearchItemWrapper(searchConfigWrapper));
+        }
+//        if (config.getObjectTypeConfiguration() != null) {
+//            searchConfigWrapper.addSearchItem(new ScopeSearchItemWrapper(searchConfigWrapper));
+//        }
+        if (config.getRelationConfiguration() != null) {
+            searchConfigWrapper.addSearchItem(new RelationSearchItemWrapper(searchConfigWrapper));
+        }
+        if (config.getIndirectConfiguration() != null) {
+            searchConfigWrapper.addSearchItem(new IndirectSearchItemWrapper(searchConfigWrapper));
+        }
+        if (config.getProjectConfiguration() != null) {
+            searchConfigWrapper.addSearchItem(new ProjectSearchItemWrapper(searchConfigWrapper));
+        }
+        if (config.getTenantConfiguration() != null) {
+            searchConfigWrapper.addSearchItem(new TenantSearchItemWrapper(searchConfigWrapper));
+        }
         //todo what to do with defaultScope and defaultObjectType?
 
     }

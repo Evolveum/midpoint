@@ -60,8 +60,9 @@ public class TenantSearchItemWrapper extends AbstractRoleSearchItemWrapper {
         return ""; //todo
     }
 
-//    public boolean isApplyFilter() {
-//        return  getScopeConfig() != null && getScopeConfig().getDefaultValue() == SearchBoxScopeType.SUBTREE;
-//    }
+    public boolean isApplyFilter() {
+        return  getSearchConfig().getConfig().getScopeConfiguration() != null
+                && SearchBoxScopeType.SUBTREE.equals(getSearchConfig().getConfig().getScopeConfiguration().getDefaultValue());
+    }
 
 }

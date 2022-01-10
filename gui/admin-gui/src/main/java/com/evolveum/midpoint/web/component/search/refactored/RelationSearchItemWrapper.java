@@ -6,13 +6,18 @@
  */
 package com.evolveum.midpoint.web.component.search.refactored;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.web.component.search.SearchValue;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
 
 import org.apache.commons.collections4.CollectionUtils;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScopeSearchItemConfigurationType;
 
 public class RelationSearchItemWrapper extends AbstractRoleSearchItemWrapper {
 
@@ -62,9 +67,8 @@ public class RelationSearchItemWrapper extends AbstractRoleSearchItemWrapper {
         return ""; //todo
     }
 
-//    @Override
-//            public boolean isApplyFilter() {
-//                return !memberPanelStorage.isSearchScopeVisible()
-//                        || !memberPanelStorage.isSearchScope(SearchBoxScopeType.SUBTREE);
-//            }
+    @Override
+    public boolean isApplyFilter() {
+        return !getSearchConfig().getScope().equals(SearchBoxScopeType.SUBTREE);
+    }
 }

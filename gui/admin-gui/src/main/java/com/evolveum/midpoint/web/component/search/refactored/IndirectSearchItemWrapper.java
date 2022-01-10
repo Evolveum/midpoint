@@ -61,4 +61,8 @@ public class IndirectSearchItemWrapper extends AbstractRoleSearchItemWrapper {
         return ""; //todo
     }
 
+    @Override
+    public boolean isApplyFilter() {
+        return true;
+    }
 }
