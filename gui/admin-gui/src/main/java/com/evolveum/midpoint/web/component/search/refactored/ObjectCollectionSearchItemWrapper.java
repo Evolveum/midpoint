@@ -12,6 +12,7 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -99,7 +100,8 @@ public class ObjectCollectionSearchItemWrapper extends AbstractSearchItemWrapper
     }
 
 
-    public ObjectFilter createFilter(PageBase pageBase) {
+    @Override
+    public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
         if (objectCollectionView.getFilter() == null) {
             return null;
         }

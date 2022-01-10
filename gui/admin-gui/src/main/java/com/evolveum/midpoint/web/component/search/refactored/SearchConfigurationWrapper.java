@@ -113,4 +113,12 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
     public void setTenantRef(ObjectReferenceType tenantRef) {
         this.tenantRef = tenantRef;
     }
+
+    public boolean isTenantEmpty() {
+        return tenantRef == null || tenantRef.getOid() == null || tenantRef.getOid() == null || tenantRef.asReferenceValue().isEmpty();
+    }
+
+    public boolean isProjectEmpty() {
+        return projectRef == null || projectRef.getOid() == null || projectRef.getOid() == null || projectRef.asReferenceValue().isEmpty();
+    }
 }

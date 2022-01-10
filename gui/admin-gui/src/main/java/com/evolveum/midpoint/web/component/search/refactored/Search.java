@@ -318,7 +318,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             if (!item.isApplyFilter()) {
                 return;
             }
-            ObjectFilter filter = item.createFilter(pageBase);
+            ObjectFilter filter = item.createFilter(pageBase, defaultVariables);
             if (item != null) {
                 conditions.add(filter);
             }

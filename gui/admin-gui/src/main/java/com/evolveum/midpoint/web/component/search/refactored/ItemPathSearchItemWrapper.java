@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -34,7 +35,7 @@ public class ItemPathSearchItemWrapper extends PropertySearchItemWrapper {
     }
 
     @Override
-    public ObjectFilter createFilter(PageBase pageBase) {
+    public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
         ItemPathType itemPath = (ItemPathType) getValue().getValue();
         return PrismContext.get().queryFor(ObjectType.class)
                     .item(getSearchItem().getPath().getItemPath()).eq(itemPath).buildFilter();

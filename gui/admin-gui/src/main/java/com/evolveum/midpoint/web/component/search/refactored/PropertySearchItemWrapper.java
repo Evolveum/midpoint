@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
@@ -108,7 +109,7 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
     }
 
     @Override
-    public ObjectFilter createFilter(PageBase pageBase) {
+    public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
         if (getValue().getValue() == null) {
             return null;
         }

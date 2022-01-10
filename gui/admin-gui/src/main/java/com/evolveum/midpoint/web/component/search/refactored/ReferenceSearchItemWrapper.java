@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.search.SearchValue;
@@ -69,7 +70,7 @@ public class ReferenceSearchItemWrapper<T extends Serializable> extends Property
     }
 
     @Override
-    public ObjectFilter createFilter(PageBase pageBase) {
+    public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
         PrismReferenceValue refValue = ((ObjectReferenceType) getValue().getValue()).asReferenceValue();
         if (refValue.isEmpty()) {
             return null;

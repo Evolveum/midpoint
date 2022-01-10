@@ -62,7 +62,7 @@ public class FilterSearchItemWrapper extends AbstractSearchItemWrapper {
     }
 
     @Override
-    public ObjectFilter createFilter(PageBase pageBase) {
+    public ObjectFilter createFilter(PageBase pageBase, VariablesMap var) {
         PrismContext ctx = PrismContext.get();
         VariablesMap variables = getFilterVariables();
         if (isEnabled() && isApplyFilter()) {

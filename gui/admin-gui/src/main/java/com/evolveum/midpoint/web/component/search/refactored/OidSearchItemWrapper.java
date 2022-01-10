@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -52,7 +53,7 @@ public class OidSearchItemWrapper extends AbstractSearchItemWrapper {
     }
 
     @Override
-    public ObjectFilter createFilter(PageBase pageBase) {
+    public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
         if (StringUtils.isEmpty((String)getValue().getValue())) {
             return null;
         }
