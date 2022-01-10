@@ -80,6 +80,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     private String accCertCampaign1Oid;
     private String connector1Oid;
     private String connector2Oid;
+    private String roleOid; // role for assignment-vs-inducement tests
 
     // other info used in queries
     private final QName relation1 = QName.valueOf("{https://random.org/ns}rel-1");
@@ -401,6 +402,15 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .framework(SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN)
                         .asPrismObject(), null, result);
 
+        roleOid = repositoryService.addObject(
+                new RoleType(prismContext)
+                        .name("role-ass-vs-ind")
+                        .assignment(new AssignmentType(prismContext)
+                                .lifecycleState("role-ass-lc"))
+                        .inducement(new AssignmentType(prismContext)
+                                .lifecycleState("role-ind-lc"))
+                        .asPrismObject(), null, result);
+
         // objects for OID range tests
         List.of("00000000-1000-0000-0000-000000000000",
                 "00000000-1000-0000-0000-000000000001",
@@ -631,7 +641,29 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test160SearchShadowByObjectClass() throws SchemaException {
+    public void test160SearchRoleByAssignment() throws SchemaException {
+        searchObjectTest("having assignment with specified lifecycle", RoleType.class,
+                f -> f.item(RoleType.F_ASSIGNMENT, AssignmentType.F_LIFECYCLE_STATE).eq("role-ass-lc"),
+                roleOid);
+    }
+
+    @Test
+    public void test161SearchRoleByInducementWithWrongName() throws SchemaException {
+        // this shows the bug when the containerType condition is missing in the query
+        searchObjectTest("having inducement with specified (wrong) lifecycle", RoleType.class,
+                f -> f.item(RoleType.F_INDUCEMENT, AssignmentType.F_LIFECYCLE_STATE).eq("role-ass-lc"));
+        // nothing must be found
+    }
+
+    @Test
+    public void test162SearchRoleByInducementWithRightName() throws SchemaException {
+        searchObjectTest("having inducement with specified lifecycle", RoleType.class,
+                f -> f.item(RoleType.F_INDUCEMENT, AssignmentType.F_LIFECYCLE_STATE).eq("role-ind-lc"),
+                roleOid);
+    }
+
+    @Test
+    public void test170SearchShadowByObjectClass() throws SchemaException {
         // this uses URI mapping with QName instead of String
         searchObjectTest("having specified object class", ShadowType.class,
                 f -> f.item(ShadowType.F_OBJECT_CLASS).eq(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS),
@@ -639,7 +671,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test170SearchShadowOwner() {
+    public void test171SearchShadowOwner() {
         when("searching for shadow owner by shadow OID");
         OperationResult operationResult = createOperationResult();
         PrismObject<UserType> result =
@@ -654,7 +686,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test171SearchShadowOwnerByNonexistentOid() {
+    public void test172SearchShadowOwnerByNonexistentOid() {
         when("searching for shadow owner by shadow OID");
         OperationResult operationResult = createOperationResult();
         PrismObject<UserType> result =
