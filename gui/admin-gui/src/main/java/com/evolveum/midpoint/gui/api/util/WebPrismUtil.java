@@ -10,6 +10,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
@@ -29,7 +31,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceAcquisitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceMetadataType;
@@ -243,7 +244,7 @@ public class WebPrismUtil {
     public static ProvenanceAcquisitionType createAcquition() {
         MidPointApplication app = MidPointApplication.get();
         ProvenanceAcquisitionType acquisitionType = new ProvenanceAcquisitionType(app.getPrismContext());
-        GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
+        GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
         if (principal != null) {
             FocusType focus = principal.getFocus();
             if (focus != null) {

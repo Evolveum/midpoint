@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.web.boot;
 
-import com.evolveum.midpoint.web.application.DescriptorLoader;
+import com.evolveum.midpoint.web.application.PageMounter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.Ordered;
@@ -46,7 +46,7 @@ public class TrailingSlashRedirectingFilter extends OncePerRequestFilter {
         }
         if (StringUtils.isNotBlank(pathWithoutContextPath) && !pathWithoutContextPath.equals("/") && pathWithoutContextPath.endsWith("/")) {
             String pathWithoutLastSlash = pathWithoutContextPath.replaceFirst(".$","");
-            if (!DescriptorLoader.getUrlClassMap().containsKey(pathWithoutLastSlash)) { // use redirect only for GUI pages
+            if (!PageMounter.getUrlClassMap().containsKey(pathWithoutLastSlash)) { // use redirect only for GUI pages
                 filterChain.doFilter(request, response);
                 return;
             }

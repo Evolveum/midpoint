@@ -30,6 +30,12 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
+import com.evolveum.midpoint.security.api.*;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.activity.run.reports.ActivityReportUtil;
@@ -112,10 +118,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ProvisioningStatistics;
 import com.evolveum.midpoint.schema.util.*;
-import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -4422,12 +4424,46 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected Authentication createMpAuthentication(Authentication authentication) {
         MidpointAuthentication mpAuthentication = new MidpointAuthentication(SecurityPolicyUtil.createDefaultSequence());
-        ModuleAuthentication moduleAuthentication = new ModuleAuthentication(AuthenticationModuleNameConstants.LOGIN_FORM);
-        moduleAuthentication.setAuthentication(authentication);
-        moduleAuthentication.setNameOfModule(SecurityPolicyUtil.DEFAULT_MODULE_NAME);
-        moduleAuthentication.setState(StateOfModule.SUCCESSFULLY);
-        moduleAuthentication.setPrefix(ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH
-                + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_FOR_DEFAULT_MODULE + SecurityPolicyUtil.DEFAULT_MODULE_NAME + "/");
+        ModuleAuthentication moduleAuthentication = new ModuleAuthentication() {
+            @Override
+            public String getNameOfModule() {
+                return SecurityPolicyUtil.DEFAULT_MODULE_NAME;
+            }
+
+            @Override
+            public String getNameOfModuleType() {
+                return AuthenticationModuleNameConstants.LOGIN_FORM;
+            }
+
+            @Override
+            public AuthenticationModuleState getState() {
+                return AuthenticationModuleState.SUCCESSFULLY;
+            }
+
+            @Override
+            public void setState(AuthenticationModuleState state) {
+            }
+
+            @Override
+            public Authentication getAuthentication() {
+                return authentication;
+            }
+
+            @Override
+            public void setAuthentication(Authentication authentication) {
+            }
+
+            @Override
+            public String getPrefix() {
+                return ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH
+                        + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_FOR_DEFAULT_MODULE + SecurityPolicyUtil.DEFAULT_MODULE_NAME + "/";
+            }
+
+            @Override
+            public QName getFocusType() {
+                return null;
+            }
+        };
         mpAuthentication.addAuthentications(moduleAuthentication);
         mpAuthentication.setPrincipal(authentication.getPrincipal());
         return mpAuthentication;

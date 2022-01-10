@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
@@ -84,7 +85,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentTabPanel.Operation;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -404,7 +404,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         if (StringUtils.isNotEmpty(archetypeOid)) {
             taskType.getAssignment().add(ObjectTypeUtil.createAssignmentTo(archetypeOid, ObjectTypes.ARCHETYPE, getPrismContext()));
         }
-        taskType.setOwnerRef(ObjectTypeUtil.createObjectRef(SecurityUtils.getPrincipalUser().getOid(), ObjectTypes.USER));
+        taskType.setOwnerRef(ObjectTypeUtil.createObjectRef(AuthUtil.getPrincipalUser().getOid(), ObjectTypes.USER));
         taskType.setObjectRef(
                 ObjectTypeUtil.createObjectRef(
                         getResourceType()));

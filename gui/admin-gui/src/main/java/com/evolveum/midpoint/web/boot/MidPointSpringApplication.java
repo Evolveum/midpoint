@@ -68,6 +68,7 @@ import java.util.Collections;
         "classpath:ctx-security-enforcer.xml",
         "classpath:ctx-model.xml",
         "classpath:ctx-model-common.xml",
+        "classpath:ctx-authentication.xml",
         "classpath:ctx-report.xml",
         "classpath*:ctx-workflow.xml",
         "classpath*:ctx-notifications.xml",
