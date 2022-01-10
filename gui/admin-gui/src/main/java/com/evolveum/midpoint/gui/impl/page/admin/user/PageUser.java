@@ -13,7 +13,6 @@ import java.util.Map;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.UserOperationalButtonsPanel;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -23,6 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -91,7 +91,7 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
     }
 
     @Override
-    protected Panel createSummaryPanel(String id, LoadableModel<UserType> summaryModel) {
+    protected Panel createSummaryPanel(String id, IModel<UserType> summaryModel) {
         return new UserSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 

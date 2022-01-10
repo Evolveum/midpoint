@@ -61,7 +61,7 @@ public class PageShadow extends AbstractPageObjectDetails<ShadowType, ShadowDeta
     }
 
     @Override
-    protected Panel createSummaryPanel(String id, LoadableModel<ShadowType> summaryModel) {
+    protected Panel createSummaryPanel(String id, IModel<ShadowType> summaryModel) {
         return new ShadowSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 

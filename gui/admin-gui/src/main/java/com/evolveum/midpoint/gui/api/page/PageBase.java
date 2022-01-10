@@ -26,6 +26,8 @@ import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessages;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
@@ -656,6 +658,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         getSession().getFeedbackMessages().clear();
     }
 
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+        response.render(OnDomReadyHeaderItem.forScript("jQuery(document).on('scroll', function(){console.trace('blabla')})"));
+    }
+
     private void initHeaderLayout(WebMarkupContainer container) {
         WebMarkupContainer menuToggle = new WebMarkupContainer(ID_MENU_TOGGLE);
         menuToggle.add(createUserStatusBehaviour());
@@ -802,8 +810,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private void initLayout() {
         TransparentWebMarkupContainer body = new TransparentWebMarkupContainer(ID_BODY);
-//        body.add(new AttributeAppender("class", "hold-transition ", " "));
-//        body.add(new AttributeAppender("class", "custom-hold-transition ", " "));
+        body.add(new AttributeAppender("class", "hold-transition ", " "));
+        body.add(new AttributeAppender("class", "custom-hold-transition ", " "));
 
         body.add(AttributeAppender.append("class", new IModel<String>() {
 

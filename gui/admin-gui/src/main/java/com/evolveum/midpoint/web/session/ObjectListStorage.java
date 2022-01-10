@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.session;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -18,6 +19,7 @@ public class ObjectListStorage implements PageStorage, DebugDumpable {
 
     private static final long serialVersionUID = 1L;
 
+    private String filter;
     private Search objectListSearch;
     private ObjectPaging objectListTablePaging;
 

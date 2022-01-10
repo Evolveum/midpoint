@@ -14,6 +14,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -70,7 +71,7 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
     }
 
     @Override
-    protected Panel createSummaryPanel(String id, LoadableModel<TaskType> summaryModel) {
+    protected Panel createSummaryPanel(String id, IModel<TaskType> summaryModel) {
         return new TaskSummaryPanel(id, summaryModel, getObjectDetailsModels().getRootTaskModel(), getSummaryPanelSpecification());
     }
 

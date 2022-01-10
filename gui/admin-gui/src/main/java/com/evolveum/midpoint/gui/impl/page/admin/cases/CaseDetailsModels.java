@@ -15,13 +15,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
+import org.apache.wicket.model.LoadableDetachableModel;
 
 public class CaseDetailsModels extends AssignmentHolderDetailsModel<CaseType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CaseDetailsModels.class);
     private static final String DOT_CLASS = CaseDetailsModels.class.getName() + ".";
 
-    public CaseDetailsModels(LoadableModel<PrismObject<CaseType>> prismObjectModel, PageBase serviceLocator) {
+    public CaseDetailsModels(LoadableDetachableModel<PrismObject<CaseType>> prismObjectModel, PageBase serviceLocator) {
         super(prismObjectModel, serviceLocator);
     }
 

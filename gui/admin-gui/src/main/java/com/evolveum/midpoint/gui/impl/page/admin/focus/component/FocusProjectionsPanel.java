@@ -24,6 +24,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +39,6 @@ import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -247,17 +247,20 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         setOutputMarkupId(true);
     }
 
-    private IModel<List<PrismContainerValueWrapper<ShadowType>>> loadShadowModel() {
-        return () -> {
-            List<PrismContainerValueWrapper<ShadowType>> items = new ArrayList<>();
-            for (ShadowWrapper projection : getProjectionsModel().getObject()) {
-                items.add(projection.getValue());
+    private LoadableDetachableModel<List<PrismContainerValueWrapper<ShadowType>>> loadShadowModel() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected List<PrismContainerValueWrapper<ShadowType>> load() {
+                List<PrismContainerValueWrapper<ShadowType>> items = new ArrayList<>();
+                for (ShadowWrapper projection : getProjectionsModel().getObject()) {
+                    items.add(projection.getValue());
+                }
+                return items;
             }
-            return items;
         };
     }
 
-    private LoadableModel<List<ShadowWrapper>> getProjectionsModel() {
+    private LoadableDetachableModel<List<ShadowWrapper>> getProjectionsModel() {
         return getObjectDetailsModels().getProjectionModel();
     }
 
@@ -266,7 +269,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
             return 0;
         }
 
-        if (!getProjectionsModel().isLoaded()) {
+        if (!getProjectionsModel().isAttached()) {
             return WebComponentUtil.countLinkForDeadShadows(getObjectWrapper().getObject().asObjectable().getLinkRef());
         }
 
