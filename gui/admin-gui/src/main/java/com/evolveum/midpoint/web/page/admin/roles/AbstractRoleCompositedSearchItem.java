@@ -52,9 +52,9 @@ public class AbstractRoleCompositedSearchItem extends SearchItem {
 
 
     public void create() {
-//        if (memberPanelStorage.isRelationVisible()) {
+        if (memberPanelStorage.isRelationVisible()) {
 //            searchItems.add(createRelationItem(getSearch()));
-//        }
+        }
 //        if (memberPanelStorage.isIndirectVisible()) {
 //            searchItems.add(createIndirectItem(getSearch()));
 //        }

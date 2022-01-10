@@ -407,6 +407,9 @@ public class SearchFactory {
         if (searchItemWrappers != null) {
             searchConfigurationWrapper.getItemsList().addAll((List<AbstractSearchItemWrapper>)searchItemWrappers);
         }
+        if (Search.PanelType.MEMBER_PANEL.equals(panelType)) {
+            searchConfigurationWrapper.getItemsList().addAll(createAbstractRoleSearchItemWrapperList(searchConfigurationWrapper));
+        }
         com.evolveum.midpoint.web.component.search.refactored.Search search =
                 new com.evolveum.midpoint.web.component.search.refactored.Search(Model.of(searchConfigurationWrapper));
         return search;
@@ -518,6 +521,16 @@ public class SearchFactory {
         return itemWrapper;
     }
 
+    private static List<AbstractRoleSearchItemWrapper> createAbstractRoleSearchItemWrapperList(SearchConfigurationWrapper searchConfig) {
+        List<AbstractRoleSearchItemWrapper> wrappers = new ArrayList<>();
+        wrappers.add(new IndirectSearchItemWrapper(searchConfig));
+        wrappers.add(new ScopeSearchItemWrapper(searchConfig));
+        wrappers.add(new TenantSearchItemWrapper(searchConfig));
+        wrappers.add(new ProjectSearchItemWrapper(searchConfig));
+        wrappers.add(new RelationSearchItemWrapper(searchConfig));
+        return wrappers;
+    }
+
     private static SearchBoxConfigurationType combineSearchBoxConfiguration(SearchBoxConfigurationType config, SearchBoxConfigurationType customConfig) {
         if (config == null) {
             return customConfig;
@@ -540,12 +553,12 @@ public class SearchFactory {
             ObjectTypeSearchItemConfigurationType objectTypeConfig = combineCustomUserInterfaceFeatureType(config.getObjectTypeConfiguration(), customConfig.getObjectTypeConfiguration());
             if (customConfig.getObjectTypeConfiguration().getDefaultValue() != null) {
                 objectTypeConfig.setDefaultValue(customConfig.getObjectTypeConfiguration().getDefaultValue());
-            } else {
+            } else if (config.getObjectTypeConfiguration() != null) {
                 objectTypeConfig.setDefaultValue(config.getObjectTypeConfiguration().getDefaultValue());
             }
             if (CollectionUtils.isNotEmpty(customConfig.getObjectTypeConfiguration().getSupportedTypes())) {
                 objectTypeConfig.createSupportedTypesList().addAll(customConfig.getObjectTypeConfiguration().getSupportedTypes());
-            } else {
+            } else if (config.getObjectTypeConfiguration() != null) {
                 objectTypeConfig.createSupportedTypesList().addAll(config.getObjectTypeConfiguration().getSupportedTypes());
             }
             config.setObjectTypeConfiguration(objectTypeConfig);
@@ -555,12 +568,12 @@ public class SearchFactory {
                     customConfig.getRelationConfiguration());
             if (customConfig.getRelationConfiguration().getDefaultValue() != null) {
                 relationConfig.setDefaultValue(customConfig.getRelationConfiguration().getDefaultValue());
-            } else {
+            } else if (config.getRelationConfiguration() != null) {
                 relationConfig.setDefaultValue(config.getRelationConfiguration().getDefaultValue());
             }
             if (CollectionUtils.isNotEmpty(customConfig.getRelationConfiguration().getSupportedRelations())) {
                 relationConfig.createSupportedRelationsList().addAll(customConfig.getRelationConfiguration().getSupportedRelations());
-            } else {
+            } else if (config.getRelationConfiguration() != null) {
                 relationConfig.createSupportedRelationsList().addAll(config.getRelationConfiguration().getSupportedRelations());
             }
             config.setRelationConfiguration(relationConfig);
@@ -570,7 +583,7 @@ public class SearchFactory {
                     customConfig.getIndirectConfiguration());
             if (customConfig.getIndirectConfiguration().isIndirect() != null) {
                 indirectConfig.setIndirect(customConfig.getIndirectConfiguration().isIndirect());
-            } else {
+            } else if (config.getIndirectConfiguration() != null) {
                 indirectConfig.setIndirect(config.getIndirectConfiguration().isIndirect());
             }
             config.setIndirectConfiguration(indirectConfig);

@@ -40,11 +40,19 @@ public class IndirectSearchItemWrapper extends AbstractRoleSearchItemWrapper {
 
     @Override
     public String getName() {
+        if (getSearchConfig().getConfig().getIndirectConfiguration() == null
+                || getSearchConfig().getConfig().getIndirectConfiguration().getDisplay() == null) {
+            return "";
+        }
         return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getIndirectConfiguration().getDisplay().getLabel());
     }
 
     @Override
     public String getHelp() {
+        if (getSearchConfig().getConfig().getIndirectConfiguration() == null
+                || getSearchConfig().getConfig().getIndirectConfiguration().getDisplay() == null) {
+            return "";
+        }
         return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getIndirectConfiguration().getDisplay().getHelp());
     }
 

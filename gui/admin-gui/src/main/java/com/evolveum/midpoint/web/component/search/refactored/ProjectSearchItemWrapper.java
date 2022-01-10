@@ -41,14 +41,20 @@ public class ProjectSearchItemWrapper extends AbstractRoleSearchItemWrapper{
 
     @Override
     public String getName() {
+        if (getSearchConfig().getConfig().getProjectConfiguration() == null
+                || getSearchConfig().getConfig().getProjectConfiguration().getDisplay() == null) {
+            return "";
+        }
         return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getProjectConfiguration().getDisplay().getLabel());
     }
 
     @Override
     public String getHelp() {
-//        if (getSearchConfig().getConfig().getProjectConfiguration().getDisplay().getHelp() != null){
+        if (getSearchConfig().getConfig().getProjectConfiguration() == null
+                || getSearchConfig().getConfig().getProjectConfiguration().getDisplay() == null) {
+            return "";
+        }
         return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getProjectConfiguration().getDisplay().getHelp());
-//        }
 //        String help = projectRefDef.getHelp();
 //        if (StringUtils.isNotEmpty(help)) {
 //            return getPageBase().createStringResource(help);

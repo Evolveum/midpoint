@@ -39,12 +39,20 @@ public class TenantSearchItemWrapper extends AbstractRoleSearchItemWrapper {
 
     @Override
     public String getName() {
-        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getScopeConfiguration().getDisplay().getLabel());
+        if (getSearchConfig().getConfig().getTenantConfiguration() == null
+                || getSearchConfig().getConfig().getTenantConfiguration().getDisplay() == null) {
+            return "";
+        }
+        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getTenantConfiguration().getDisplay().getLabel());
     }
 
     @Override
     public String getHelp() {
-        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getScopeConfiguration().getDisplay().getHelp());
+        if (getSearchConfig().getConfig().getTenantConfiguration() == null
+                || getSearchConfig().getConfig().getTenantConfiguration().getDisplay() == null) {
+            return "";
+        }
+        return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getTenantConfiguration().getDisplay().getHelp());
     }
 
     @Override

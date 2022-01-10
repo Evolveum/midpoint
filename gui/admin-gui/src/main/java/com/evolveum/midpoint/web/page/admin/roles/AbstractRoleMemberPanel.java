@@ -321,25 +321,38 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     private <AH extends AssignmentHolderType> Search<AH> createMemberSearch(Class<AH> type) {
-//        MemberPanelStorage memberPanelStorage = getMemberPanelStorage();
-//        if (memberPanelStorage == null) { //normally, this should not happen
-//            return SearchFactory.createSearch(new ContainerTypeSearchItem<>(type), null, null,
-//                    null, getPageBase(), null, true, true, Search.PanelType.MEMBER_PANEL);
-//        }
-//
-//        if (memberPanelStorage.getSearch() != null) {
-//            return memberPanelStorage.getSearch();
-//        }
-//
+        MemberPanelStorage memberPanelStorage = getMemberPanelStorage();
+        if (memberPanelStorage == null) { //normally, this should not happen
+            return SearchFactory.createMemberPanelSearch(type, getPageBase());
+        }
+
+        if (memberPanelStorage.getSearch() != null) {
+            return memberPanelStorage.getSearch();
+        }
+
+        return SearchFactory.createMemberPanelSearch(getDefaultObjectTypeClass(), createSearchConfig(), getPageBase());
 //        Search<AH> search = SearchFactory.createSearch(createSearchTypeItem(memberPanelStorage), null, null,
 //                null, getPageBase(), null, true, true, Search.PanelType.MEMBER_PANEL);
 //        search.addCompositedSpecialItem(createMemberSearchPanel(search, memberPanelStorage));
-//
-//        if (additionalPanelConfig != null && additionalPanelConfig.getSearchBoxConfiguration() != null){
-//            search.setCanConfigure(!Boolean.FALSE.equals(additionalPanelConfig.getSearchBoxConfiguration().isAllowToConfigureSearchItems()));
+
+//        if (additionalPanelConfig != null){
+//            search.setCanConfigure(!Boolean.FALSE.equals(additionalPanelConfig.isAllowToConfigureSearchItems()));
 //        }
 //        return search;
-        return null;
+    }
+
+    private SearchBoxConfigurationType createSearchConfig() {
+        SearchBoxConfigurationType searchConfig = new SearchBoxConfigurationType();
+        ObjectTypeSearchItemConfigurationType objTypeConfig = new ObjectTypeSearchItemConfigurationType();
+        objTypeConfig.getSupportedTypes().addAll(getDefaultSupportedObjectTypes(false));
+        objTypeConfig.setDefaultValue(WebComponentUtil.classToQName(getPrismContext(), getDefaultObjectType()));
+        searchConfig.setObjectTypeConfiguration(objTypeConfig);
+
+        RelationSearchItemConfigurationType relationConfig = new RelationSearchItemConfigurationType();
+        relationConfig.getSupportedRelations().addAll(getSupportedRelations());
+        searchConfig.setRelationConfiguration(relationConfig);
+
+        return searchConfig;
     }
 
     private <AH extends AssignmentHolderType> ContainerTypeSearchItem<AH> createSearchTypeItem(MemberPanelStorage memberPanelStorage) {

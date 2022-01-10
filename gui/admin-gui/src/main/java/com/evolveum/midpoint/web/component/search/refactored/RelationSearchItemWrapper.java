@@ -41,11 +41,19 @@ public class RelationSearchItemWrapper extends AbstractRoleSearchItemWrapper {
 
     @Override
     public String getName() {
+        if (getSearchConfig().getConfig().getRelationConfiguration() == null
+                || getSearchConfig().getConfig().getRelationConfiguration().getDisplay() == null) {
+            return "";
+        }
         return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getRelationConfiguration().getDisplay().getLabel());
     }
 
     @Override
     public String getHelp() {
+        if (getSearchConfig().getConfig().getRelationConfiguration() == null
+                || getSearchConfig().getConfig().getRelationConfiguration().getDisplay() == null) {
+            return "";
+        }
         return WebComponentUtil.getTranslatedPolyString(getSearchConfig().getConfig().getRelationConfiguration().getDisplay().getHelp());
     }
 
