@@ -440,9 +440,9 @@ public class SearchFactory {
         if (config.getScopeConfiguration() != null) {
             searchConfigWrapper.addSearchItem(new ScopeSearchItemWrapper(searchConfigWrapper));
         }
-//        if (config.getObjectTypeConfiguration() != null) {
-//            searchConfigWrapper.addSearchItem(new ScopeSearchItemWrapper(searchConfigWrapper));
-//        }
+        if (config.getObjectTypeConfiguration() != null) {
+            searchConfigWrapper.addSearchItem(new ObjectTypeSearchItemWrapper(config.getObjectTypeConfiguration()));
+        }
         if (config.getRelationConfiguration() != null) {
             searchConfigWrapper.addSearchItem(new RelationSearchItemWrapper(searchConfigWrapper));
         }
