@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.objectcollection;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 
@@ -14,6 +13,7 @@ import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -63,7 +63,7 @@ public class PageObjectCollection extends PageAssignmentHolderDetails<ObjectColl
     }
 
     @Override
-    protected Panel createSummaryPanel(String id, LoadableModel<ObjectCollectionType> summaryModel) {
+    protected Panel createSummaryPanel(String id, IModel<ObjectCollectionType> summaryModel) {
         return new ObjectCollectionSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 

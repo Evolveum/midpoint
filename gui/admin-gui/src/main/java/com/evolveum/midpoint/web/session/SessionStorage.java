@@ -270,14 +270,22 @@ public class SessionStorage implements Serializable, DebugDumpable {
         }
         MemberPanelStorage storage = (MemberPanelStorage) pageStorage;
 
-        storage.setIndirectSearchItem(searchBoxCofig.getDefaultIndirectConfiguration());
-        storage.setRelationSearchItem(searchBoxCofig.getDefaultRelationConfiguration());
-        storage.setScopeSearchItem(searchBoxCofig.getDefaultSearchScopeConfiguration());
-        storage.setObjectTypeSearchItem(searchBoxCofig.getDefaultObjectTypeConfiguration());
-        storage.setTenantSearchItem(searchBoxCofig.getDefaultTenantConfiguration());
-        storage.setProjectSearchItem(searchBoxCofig.getDefaultProjectConfiguration());
+//        storage.setIndirectSearchItem(searchBoxCofig.getDefaultIndirectConfiguration());
+//        storage.setRelationSearchItem(searchBoxCofig.getDefaultRelationConfiguration());
+//        storage.setScopeSearchItem(searchBoxCofig.getDefaultSearchScopeConfiguration());
+//        storage.setObjectTypeSearchItem(searchBoxCofig.getDefaultObjectTypeConfiguration());
+//        storage.setTenantSearchItem(searchBoxCofig.getDefaultTenantConfiguration());
+//        storage.setProjectSearchItem(searchBoxCofig.getDefaultProjectConfiguration());
 
         return storage;
+    }
+
+    public MemberPanelStorage initMemberStorage(String storageKey) {
+        PageStorage pageStorage = initPageStorage(storageKey);
+        if (!(pageStorage instanceof MemberPanelStorage)) {
+            return null;
+        }
+        return (MemberPanelStorage) pageStorage;
     }
 
     public void setUserProfile(UserProfileStorage profile) {

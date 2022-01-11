@@ -33,10 +33,7 @@ import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.core.request.mapper.MountedMapper;
-import org.apache.wicket.core.util.objects.checker.CheckingObjectOutputStream;
-import org.apache.wicket.core.util.objects.checker.IObjectChecker;
-import org.apache.wicket.core.util.objects.checker.NotDetachedModelChecker;
-import org.apache.wicket.core.util.objects.checker.ObjectSerializationChecker;
+import org.apache.wicket.core.util.objects.checker.*;
 import org.apache.wicket.core.util.resource.locator.IResourceStreamLocator;
 import org.apache.wicket.core.util.resource.locator.caching.CachingResourceStreamLocator;
 import org.apache.wicket.devutils.inspector.InspectorPage;
@@ -46,6 +43,7 @@ import org.apache.wicket.markup.head.PriorityFirstComparator;
 import org.apache.wicket.markup.html.SecurePackageResourceGuard;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
 import org.apache.wicket.request.resource.PackageResourceReference;
@@ -428,8 +426,10 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
             @Override
             protected ObjectOutputStream newObjectOutputStream(OutputStream out) throws IOException {
                 IObjectChecker checker1 = new MidPointObjectChecker();
-                IObjectChecker checker2 = new NotDetachedModelChecker();
+//                IObjectChecker checker2 = new NotDetachedModelChecker();
+//                IObjectChecker sessionChecker = new SessionChecker();
                 IObjectChecker checker3 = new ObjectSerializationChecker();
+
                 return new CheckingObjectOutputStream(out, checker1, checker3);
             }
         };
