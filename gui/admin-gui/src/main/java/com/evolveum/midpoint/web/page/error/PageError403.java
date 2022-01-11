@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.web.page.error;
 
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 /**
  * @author lazyman

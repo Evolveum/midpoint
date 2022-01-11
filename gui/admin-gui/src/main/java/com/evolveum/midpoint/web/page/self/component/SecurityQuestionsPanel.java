@@ -12,17 +12,16 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -40,7 +39,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.home.component.MyPasswordQuestionsPanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordQuestionsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SecurityQuestionAnswerDTO;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.Model;
@@ -77,7 +75,7 @@ public class SecurityQuestionsPanel extends BasePanel<PasswordQuestionsDto> {
     private PasswordQuestionsDto loadPageModel() {
         LOGGER.debug("Loading user for Security Question Page.");
 
-        GuiProfiledPrincipal principalUser = SecurityUtils.getPrincipalUser();
+        GuiProfiledPrincipal principalUser = AuthUtil.getPrincipalUser();
         PasswordQuestionsDto dto = new PasswordQuestionsDto(principalUser.getOid());
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
         try {

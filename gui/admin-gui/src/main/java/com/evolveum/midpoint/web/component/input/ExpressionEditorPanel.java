@@ -1,11 +1,25 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.input;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -23,31 +37,13 @@ import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
- *  @author shood
- * */
+ * @author shood
+ */
 public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionEditorPanel.class);
-
-    private static final String DOT_CLASS = ExpressionEditorPanel.class.getName() + ".";
-    private static final String OPERATION_LOAD_PASSWORD_POLICIES = DOT_CLASS + "createPasswordPolicyList";
 
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_TYPE = "type";
@@ -67,20 +63,20 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
     private static final String ID_T_EXPRESSION = "expressionTooltip";
 
     private IModel<ExpressionTypeDto> dtoModel;
-    private Map<String, String> policyMap = new HashMap<>();
+    private final Map<String, String> policyMap = new HashMap<>();
 
     public ExpressionEditorPanel(String id, IModel<ExpressionType> model, PageBase parentPage) {
         super(id, model);
         initLayout(parentPage);
     }
 
-    protected IModel<ExpressionTypeDto> getExpressionDtoModel(){
+    protected IModel<ExpressionTypeDto> getExpressionDtoModel() {
         return dtoModel;
     }
 
     private void loadDtoModel() {
         if (dtoModel == null) {
-            dtoModel = new LoadableModel<ExpressionTypeDto>(false) {
+            dtoModel = new LoadableModel<>(false) {
                 @Override
                 protected ExpressionTypeDto load() {
                     return new ExpressionTypeDto(getModel().getObject(), getPageBase().getPrismContext());
@@ -97,7 +93,7 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
         Label descriptionLabel = new Label(ID_LABEL_DESCRIPTION, createStringResource(getDescriptionLabelKey()));
         add(descriptionLabel);
 
-        TextArea description = new TextArea<>(ID_DESCRIPTION, new PropertyModel<String>(dtoModel, ExpressionTypeDto.F_DESCRIPTION));
+        TextArea<?> description = new TextArea<>(ID_DESCRIPTION, new PropertyModel<String>(dtoModel, ExpressionTypeDto.F_DESCRIPTION));
         description.setOutputMarkupId(true);
         //parentPage.addEditingEnabledBehavior(description);
         add(description);
@@ -105,10 +101,10 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
         Label typeLabel = new Label(ID_LABEL_TYPE, createStringResource(getTypeLabelKey()));
         add(typeLabel);
 
-        DropDownChoice type = new DropDownChoice<>(ID_TYPE,
-            new PropertyModel<>(dtoModel, ExpressionTypeDto.F_TYPE),
+        DropDownChoice<?> type = new DropDownChoice<>(ID_TYPE,
+                new PropertyModel<>(dtoModel, ExpressionTypeDto.F_TYPE),
                 WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
-            new EnumChoiceRenderer<>(this));
+                new EnumChoiceRenderer<>(this));
         //parentPage.addEditingEnabledBehavior(type);
         type.add(new AjaxFormComponentUpdatingBehavior("change") {
 
@@ -127,20 +123,20 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
         WebMarkupContainer languageContainer = new WebMarkupContainer(ID_LANGUAGE_CONTAINER);
         languageContainer.setOutputMarkupId(true);
         languageContainer.setOutputMarkupPlaceholderTag(true);
-        languageContainer.add(new VisibleEnableBehaviour(){
+        languageContainer.add(new VisibleEnableBehaviour() {
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return ExpressionUtil.ExpressionEvaluatorType.SCRIPT.equals(dtoModel.getObject().getType());
             }
         });
         //parentPage.addEditingEnabledBehavior(languageContainer);
         add(languageContainer);
 
-        DropDownChoice language = new DropDownChoice<>(ID_LANGUAGE,
-            new PropertyModel<>(dtoModel, ExpressionTypeDto.F_LANGUAGE),
+        DropDownChoice<?> language = new DropDownChoice<>(ID_LANGUAGE,
+                new PropertyModel<>(dtoModel, ExpressionTypeDto.F_LANGUAGE),
                 WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
-            new EnumChoiceRenderer<>(this));
+                new EnumChoiceRenderer<>(this));
         //parentPage.addEditingEnabledBehavior(language);
         language.add(new AjaxFormComponentUpdatingBehavior("change") {
 
@@ -157,25 +153,19 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
         WebMarkupContainer policyContainer = new WebMarkupContainer(ID_POLICY_CONTAINER);
         policyContainer.setOutputMarkupId(true);
         policyContainer.setOutputMarkupPlaceholderTag(true);
-        policyContainer.add(new VisibleEnableBehaviour(){
+        policyContainer.add(new VisibleEnableBehaviour() {
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return ExpressionUtil.ExpressionEvaluatorType.GENERATE.equals(dtoModel.getObject().getType());
             }
         });
         add(policyContainer);
 
-        DropDownChoice policyRef = new DropDownChoice<>(ID_POLICY_REF,
-            new PropertyModel<>(dtoModel, ExpressionTypeDto.F_POLICY_REF),
-                new IModel<List<ObjectReferenceType>>() {
-
-                    @Override
-                    public List<ObjectReferenceType> getObject() {
-                        return WebModelServiceUtils.createObjectReferenceList(ValuePolicyType.class, getPageBase(), policyMap);
-                    }
-                }, new ObjectReferenceChoiceRenderer(policyMap));
-        //parentPage.addEditingEnabledBehavior(policyRef);
+        DropDownChoice<?> policyRef = new DropDownChoice<>(ID_POLICY_REF,
+                new PropertyModel<>(dtoModel, ExpressionTypeDto.F_POLICY_REF),
+                (IModel<List<ObjectReferenceType>>) () -> WebModelServiceUtils.createObjectReferenceList(
+                        ValuePolicyType.class, getPageBase(), policyMap), new ObjectReferenceChoiceRenderer(policyMap));
         policyRef.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
@@ -206,8 +196,8 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
         updateLabel.setRenderBodyOnly(true);
         update.add(updateLabel);
         if (parentPage instanceof PageResourceWizard) {
-            ((PageResourceWizard)parentPage).addEditingEnabledBehavior(this);
-            ((PageResourceWizard)parentPage).addEditingVisibleBehavior(update);
+            ((PageResourceWizard) parentPage).addEditingEnabledBehavior(this);
+            ((PageResourceWizard) parentPage).addEditingVisibleBehavior(update);
         }
         add(update);
 
@@ -217,12 +207,12 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
         add(WebComponentUtil.createHelp(ID_T_EXPRESSION));
     }
 
-    protected void updateExpressionPerformed(AjaxRequestTarget target){
+    protected void updateExpressionPerformed(AjaxRequestTarget target) {
         try {
             dtoModel.getObject().updateExpression(getPageBase().getPrismContext());
 
             success(getString("ExpressionEditorPanel.message.expressionSuccess"));
-        } catch (Exception e){
+        } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Could not create JAXBElement<?> from provided xml expression.", e);
             error(getString("ExpressionEditorPanel.message.cantSerialize", e));
         }
@@ -232,25 +222,26 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
     }
 
     /**
-     *  Override this in component with ExpressionEditorPanel to provide additional functionality when expression is updated
-     * */
-    public void performExpressionHook(AjaxRequestTarget target){}
+     * Override this in component with ExpressionEditorPanel to provide additional functionality when expression is updated
+     */
+    public void performExpressionHook(AjaxRequestTarget target) {
+    }
 
     /**
-     *  Provide key for expression type label
-     * */
-    public String getTypeLabelKey(){
+     * Provide key for expression type label
+     */
+    public String getTypeLabelKey() {
         return "ExpressionEditorPanel.label.type";
     }
 
-    public String getDescriptionLabelKey(){
+    public String getDescriptionLabelKey() {
         return "ExpressionEditorPanel.label.description";
     }
 
     /**
-     *  Provide key for expression label
-     * */
-    public String getExpressionLabelKey(){
+     * Provide key for expression label
+     */
+    public String getExpressionLabelKey() {
         return "ExpressionEditorPanel.label.expression";
     }
 

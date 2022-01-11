@@ -10,10 +10,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.application.Url;
-import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import org.apache.wicket.Page;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -27,8 +25,8 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ContainerOfSystemConfigurationPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractRoleMainPanel;
@@ -46,9 +44,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
         },
         encoder = OnePageParameterEncoder.class,
         action = {
-                @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
-                        label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
-                        description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+                @AuthorizationAction(actionUri = AuthConstants.AUTH_CONFIGURATION_ALL,
+                        label = AuthConstants.AUTH_CONFIGURATION_ALL_LABEL,
+                        description = AuthConstants.AUTH_CONFIGURATION_ALL_DESCRIPTION),
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ARCHETYPES_ALL_URL,
                         label = "PageArchetypes.auth.archetypesAll.label",
                         description = "PageArchetypes.auth.archetypesAll.description"),

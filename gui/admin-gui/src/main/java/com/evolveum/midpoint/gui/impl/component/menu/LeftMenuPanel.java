@@ -39,7 +39,7 @@ import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.DescriptorLoader;
+import com.evolveum.midpoint.web.application.PageMounter;
 import com.evolveum.midpoint.web.component.menu.*;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.cases.*;
@@ -414,7 +414,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
             return menu;
         }
 
-        Map<String, Class> urlClassMap = DescriptorLoader.getUrlClassMap();
+        Map<String, Class> urlClassMap = PageMounter.getUrlClassMap();
         if (MapUtils.isEmpty(urlClassMap)) {
             return menu;
         }
