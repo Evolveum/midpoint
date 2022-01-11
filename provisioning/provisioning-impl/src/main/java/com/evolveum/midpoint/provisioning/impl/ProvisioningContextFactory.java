@@ -120,7 +120,7 @@ public class ProvisioningContextFactory {
             @NotNull Task task,
             @NotNull QName objectClassName,
             boolean useRawDefinition) throws SchemaException, ConfigurationException {
-        ResourceObjectDefinition definition = ResourceObjectDefinitionResolver.getObjectDefinitionPrecisely(
+        @NotNull ResourceObjectDefinition definition = ResourceObjectDefinitionResolver.getObjectDefinitionPrecisely(
                 originalCtx.getResource(),
                 null,
                 null,
