@@ -382,7 +382,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
     @Override
     public void test020Schema() throws Exception {
         //        IntegrationTestTools.displayXml("Resource XML", resource);
-        accountObjectClassDefinition = assertAdResourceSchema(resource, getAccountObjectClass());
+        accountDefinition = assertAdResourceSchema(resource, getAccountObjectClass());
         assertAdRefinedSchema(resource, getAccountObjectClass());
         if (hasExchange()) {
             assertExchangeSchema(resource, getAccountObjectClass());
@@ -908,7 +908,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, ATTRIBUTE_TITLE_NAME);
-        ResourceAttributeDefinition<?> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
@@ -943,7 +943,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
-        ResourceAttributeDefinition<?> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
         delta.addModification(attrDelta);
@@ -981,7 +981,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
-        ResourceAttributeDefinition<?> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
         delta.addModification(attrDelta);
@@ -1023,7 +1023,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, ATTRIBUTE_PROXY_ADDRESSES_NAME);
-        ResourceAttributeDefinition<?> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
         assertNotNull("No definition for attribute " + attrQName, attrDef);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationAddProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, PROXY_ADDRES_ADDR_UPCASE);
@@ -1062,7 +1062,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, ATTRIBUTE_USER_PARAMETERS_NAME);
-        ResourceAttributeDefinition<?> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
         assertNotNull("No definition for attribute " + attrQName, attrDef);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, VERY_STRANGE_PARAMETER);

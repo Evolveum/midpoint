@@ -8,6 +8,7 @@ package com.evolveum.midpoint.testing.conntest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayXml;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.LDAP_CONNECTOR_TYPE;
@@ -135,7 +136,8 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
     private static String stopCommand;
 
-    protected ResourceObjectDefinition accountObjectClassDefinition;
+    /** Should be object type (a.k.a. refined) definition, if available. */
+    protected ResourceObjectDefinition accountDefinition;
 
     protected DefaultConfigurableBinaryAttributeDetector binaryAttributeDetector = new DefaultConfigurableBinaryAttributeDetector();
 
@@ -357,27 +359,28 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     @Test
     public void test020Schema() throws Exception {
         ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
-        displayDumpable("Resource schema", resourceSchema);
+        displayDumpable("Raw resource schema", resourceSchema);
 
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        displayDumpable("Refined schema", refinedSchema);
-        accountObjectClassDefinition = refinedSchema.findObjectClassDefinition(getAccountObjectClass());
-        assertNotNull("No definition for object class " + getAccountObjectClass(), accountObjectClassDefinition);
-        displayDumpable("Account object class def", accountObjectClassDefinition);
+        displayDumpable("Complete resource schema", refinedSchema);
 
-        ResourceAttributeDefinition<?> cnDef = accountObjectClassDefinition.findAttributeDefinition("cn");
+        accountDefinition = refinedSchema.findDefinitionForObjectClassRequired(getAccountObjectClass());
+        assertThat(accountDefinition).as("account definition").isInstanceOf(ResourceObjectTypeDefinition.class);
+        displayDumpable("Account object class def", accountDefinition);
+
+        ResourceAttributeDefinition<?> cnDef = accountDefinition.findAttributeDefinition("cn");
         PrismAsserts.assertDefinition(cnDef, new QName(MidPointConstants.NS_RI, "cn"), DOMUtil.XSD_STRING, 1, 1);
         assertTrue("cn read", cnDef.canRead());
         assertTrue("cn modify", cnDef.canModify());
         assertTrue("cn add", cnDef.canAdd());
 
-        ResourceAttributeDefinition<?> oDef = accountObjectClassDefinition.findAttributeDefinition("o");
+        ResourceAttributeDefinition<?> oDef = accountDefinition.findAttributeDefinition("o");
         PrismAsserts.assertDefinition(oDef, new QName(MidPointConstants.NS_RI, "o"), DOMUtil.XSD_STRING, 0, -1);
         assertTrue("o read", oDef.canRead());
         assertTrue("o modify", oDef.canModify());
         assertTrue("o add", oDef.canAdd());
 
-        ResourceAttributeDefinition<?> createTimestampDef = accountObjectClassDefinition.findAttributeDefinition("createTimestamp");
+        ResourceAttributeDefinition<?> createTimestampDef = accountDefinition.findAttributeDefinition("createTimestamp");
         PrismAsserts.assertDefinition(createTimestampDef, new QName(MidPointConstants.NS_RI, "createTimestamp"),
                 getTimestampXsdType(), 0, 1);
         assertTrue("createTimestampDef read", createTimestampDef.canRead());
@@ -433,7 +436,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     }
 
     protected <T> ObjectFilter createAttributeFilter(String attrName, T attrVal) {
-        ResourceAttributeDefinition<?> ldapAttrDef = accountObjectClassDefinition.findAttributeDefinition(attrName);
+        ResourceAttributeDefinition<?> ldapAttrDef = accountDefinition.findAttributeDefinition(attrName);
         return prismContext.queryFor(ShadowType.class)
                 .itemWithDef(ldapAttrDef, ShadowType.F_ATTRIBUTES, ldapAttrDef.getItemName()).eq(attrVal)
                 .buildFilter();

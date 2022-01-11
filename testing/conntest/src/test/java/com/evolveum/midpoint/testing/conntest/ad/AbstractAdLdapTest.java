@@ -236,7 +236,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
     @Test
     @Override
     public void test020Schema() throws Exception {
-        accountObjectClassDefinition = assertAdResourceSchema(resource, getAccountObjectClass());
+        accountDefinition = assertAdResourceSchema(resource, getAccountObjectClass());
 
         assertLdapConnectorReasonableInstances();
     }
@@ -617,7 +617,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
-        ResourceAttributeDefinition<?> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
@@ -651,7 +651,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
-        ResourceAttributeDefinition<?> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
         delta.addModification(attrDelta);
@@ -688,7 +688,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
-        ResourceAttributeDefinition<?> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
         delta.addModification(attrDelta);
