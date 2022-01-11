@@ -44,14 +44,14 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
     @Override
     protected ObjectQuery getActionQuery(QueryScope scope, Collection<QName> relations) {
-        if (getMemberPanelStorage().isSearchScope(SearchBoxScopeType.ONE_LEVEL) ||
-                (getMemberPanelStorage().isSearchScope(SearchBoxScopeType.SUBTREE)
+        if (getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.ONE_LEVEL) ||
+                (getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE)
                         && !QueryScope.ALL.equals(scope))) {
             return super.getActionQuery(scope, relations);
         } else {
             String oid = getModelObject().getOid();
 
-            ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getModelObject(), getMemberPanelStorage().getDefaultRelation());
+            ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getModelObject(), getSearchBoxConfiguration().getDefaultRelation());
             ObjectQuery query = getPageBase().getPrismContext().queryFor(getSearchTypeClass())
                     .type(getSearchTypeClass())
                     .isChildOf(ref.asReferenceValue()).build();
@@ -124,7 +124,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
     @Override
     protected List<QName> getRelationsForRecomputeTask() {
-        if (CollectionUtils.isEmpty(getMemberPanelStorage().getSupportedRelations())) {
+        if (CollectionUtils.isEmpty(getSearchBoxConfiguration().getSupportedRelations())) {
             return Collections.singletonList(PrismConstants.Q_ANY);
         }
         return super.getRelationsForRecomputeTask();

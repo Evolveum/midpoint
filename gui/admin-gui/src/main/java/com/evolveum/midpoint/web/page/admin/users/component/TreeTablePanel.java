@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -24,6 +25,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -144,8 +146,9 @@ public class TreeTablePanel extends BasePanel<String> {
         setOutputMarkupId(true);
     }
 
-    private OrgMemberPanel createMemberPanel(OrgType org) {
-        OrgMemberPanel memberPanel = new OrgMemberPanel(ID_MEMBER_PANEL, new Model<>(org), getPageBase()) {
+    private com.evolveum.midpoint.gui.impl.page.admin.org.component.OrgMemberPanel createMemberPanel(OrgType org) {
+        FocusDetailsModels focusDetailsModels = new FocusDetailsModels(createOrgModel(org), getPageBase());
+        com.evolveum.midpoint.gui.impl.page.admin.org.component.OrgMemberPanel memberPanel = new com.evolveum.midpoint.gui.impl.page.admin.org.component.OrgMemberPanel(ID_MEMBER_PANEL, focusDetailsModels, null) {
 
             private static final long serialVersionUID = 1L;
 
@@ -156,6 +159,15 @@ public class TreeTablePanel extends BasePanel<String> {
         };
         memberPanel.setOutputMarkupId(true);
         return memberPanel;
+    }
+
+    private LoadableDetachableModel<PrismObject<OrgType>> createOrgModel(OrgType org) {
+        return new LoadableDetachableModel<PrismObject<OrgType>>() {
+            @Override
+            protected PrismObject<OrgType> load() {
+                return org.asPrismObject();
+            }
+        };
     }
 
     private WebMarkupContainer createManagerPanel() {

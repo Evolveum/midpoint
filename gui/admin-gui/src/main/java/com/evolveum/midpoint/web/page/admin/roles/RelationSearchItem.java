@@ -6,6 +6,17 @@
  */
 package com.evolveum.midpoint.web.page.admin.roles;
 
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.ResourceModel;
+
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -20,28 +31,19 @@ import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchSpecialItemPanel;
 import com.evolveum.midpoint.web.component.search.SpecialSearchItem;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.web.session.MemberPanelStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationSearchItemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.ResourceModel;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
 
 public class RelationSearchItem extends SpecialSearchItem {
 
-    private final MemberPanelStorage memberStorage;
+    private final SearchBoxConfigurationHelper searchBoxConfiguration;
 
-    public RelationSearchItem(Search search, MemberPanelStorage memberStorage) {
+    public RelationSearchItem(Search search, SearchBoxConfigurationHelper searchBoxConfiguration) {
         super(search);
-        this.memberStorage = memberStorage;
+        this.searchBoxConfiguration = searchBoxConfiguration;
     }
 
     @Override
@@ -51,7 +53,7 @@ public class RelationSearchItem extends SpecialSearchItem {
 
             @Override
             public SearchSpecialItemPanel createSpecialSearchPanel(String id) {
-                return new SearchSpecialItemPanel(id, new PropertyModel<>(memberStorage, MemberPanelStorage.F_RELATION_ITEM)) {
+                return new SearchSpecialItemPanel(id, new PropertyModel<>(searchBoxConfiguration, SearchBoxConfigurationHelper.F_RELATION_ITEM)) {
                     @Override
                     protected WebMarkupContainer initSearchItemField(String id) {
 
@@ -112,8 +114,13 @@ public class RelationSearchItem extends SpecialSearchItem {
 //        };
 //    }
 
+    public boolean isApplyFilter() {
+        return !searchBoxConfiguration.isSearchScopeVisible()
+                || !searchBoxConfiguration.isSearchScope(SearchBoxScopeType.SUBTREE);
+    }
+
     private RelationSearchItemConfigurationType getReltaionConfig() {
-        return memberStorage.getRelationSearchItem();
+        return searchBoxConfiguration.getDefaultRelationConfiguration();
     }
 
 

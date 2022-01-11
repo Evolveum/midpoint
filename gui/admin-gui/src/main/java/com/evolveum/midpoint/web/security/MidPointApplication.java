@@ -421,11 +421,11 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
             @Override
             protected ObjectOutputStream newObjectOutputStream(OutputStream out) throws IOException {
                 IObjectChecker checker1 = new MidPointObjectChecker();
-                IObjectChecker checker2 = new NotDetachedModelChecker();
+//                IObjectChecker checker2 = new NotDetachedModelChecker();
 //                IObjectChecker sessionChecker = new SessionChecker();
-//                IObjectChecker checker3 = new ObjectSerializationChecker();
+                IObjectChecker checker3 = new ObjectSerializationChecker();
 
-                return new CheckingObjectOutputStream(out, checker1, checker2);
+                return new CheckingObjectOutputStream(out, checker1, checker3);
             }
         };
         getFrameworkSettings().setSerializer(javaSerializer);

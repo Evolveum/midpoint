@@ -10,11 +10,13 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 
 /**
  * @author Viliam Repan (lazyman)
  */
-public abstract class SearchItem implements Serializable {
+public abstract class SearchItem implements Serializable, DebugDumpable {
 
     private static final long serialVersionUID = 1L;
 
@@ -87,5 +89,19 @@ public abstract class SearchItem implements Serializable {
 
     public boolean isEnabled() {
         return true;
+    }
+
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("Search item\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "searchItemDefinition", definition, indent + 1);
+        return sb.toString();
     }
 }

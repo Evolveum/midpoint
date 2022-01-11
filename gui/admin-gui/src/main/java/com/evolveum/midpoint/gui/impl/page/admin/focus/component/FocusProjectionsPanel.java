@@ -291,33 +291,38 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         SearchItemDefinition def = new SearchItemDefinition(ShadowType.F_DEAD,
                 getShadowDefinition().findPropertyDefinition(ShadowType.F_DEAD),
                 Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
-        PropertySearchItem<Boolean> deadSearchItem = new PropertySearchItem<>(search, def, new SearchValue<>(false)) {
-
-            @Override
-            public ObjectFilter transformToFilter() {
-                DisplayableValue<Boolean> selectedValue = getValue();
-                if (selectedValue == null) {
-                    return null;
-                }
-                Boolean value = selectedValue.getValue();
-                if (BooleanUtils.isTrue(value)) {
-                    return null; // let the default behavior to take their chance
-                }
-
-                return PrismContext.get().queryFor(ShadowType.class)
-                        .not()
-                        .item(ShadowType.F_DEAD)
-                        .eq(true)
-                        .buildFilter();
-            }
-
-            @Override
-            protected boolean canRemoveSearchItem() {
-                return false;
-            }
-        };
-        deadSearchItem.setFixed(true);
-        search.addSpecialItem(deadSearchItem);
+        DeadShadowSearchItem deadShadowSearchItem = new DeadShadowSearchItem(search, def);
+        search.addSpecialItem(deadShadowSearchItem);
+//        SearchItemDefinition def = new SearchItemDefinition(ShadowType.F_DEAD,
+//                getShadowDefinition().findPropertyDefinition(ShadowType.F_DEAD),
+//                Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
+//        PropertySearchItem<Boolean> deadSearchItem = new PropertySearchItem<>(search, def, new SearchValue<>(false)) {
+//
+//            @Override
+//            public ObjectFilter transformToFilter() {
+//                DisplayableValue<Boolean> selectedValue = getValue();
+//                if (selectedValue == null) {
+//                    return null;
+//                }
+//                Boolean value = selectedValue.getValue();
+//                if (BooleanUtils.isTrue(value)) {
+//                    return null; // let the default behavior to take their chance
+//                }
+//
+//                return PrismContext.get().queryFor(ShadowType.class)
+//                        .not()
+//                        .item(ShadowType.F_DEAD)
+//                        .eq(true)
+//                        .buildFilter();
+//            }
+//
+//            @Override
+//            protected boolean canRemoveSearchItem() {
+//                return false;
+//            }
+//        };
+//        deadSearchItem.setFixed(true);
+//        search.addSpecialItem(deadSearchItem);
     }
 
     private void loadShadowIfNeeded(IModel<PrismContainerValueWrapper<ShadowType>> rowModel, AjaxRequestTarget target) {
