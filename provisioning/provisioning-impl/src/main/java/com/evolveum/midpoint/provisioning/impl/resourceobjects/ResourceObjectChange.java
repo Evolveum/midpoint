@@ -78,9 +78,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
 
     /**
      * Refined object class definition as determined from (possibly updated) provisioning context.
-     * Kept here e.g. to avoid having to check for exceptions when obtaining it from the context.
-     *
-     * TODO can we have non-null {@link #initialResourceObjectDefinition} with this value being null?
+     * May be null in exceptional cases (wildcard LS with delete event with object class not provided).
      */
     protected ResourceObjectDefinition resourceObjectDefinition;
 
@@ -251,10 +249,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
         if (context.isWildcard()) {
             if (initialResourceObjectDefinition != null) {
                 context = applyObjectClassAndTask(initialResourceObjectDefinition.getTypeName(), task);
-                if (context.isWildcard()) {
-                    throw new SchemaException("Unknown object class " + initialResourceObjectDefinition.getTypeName()
-                            + " found in change " + this);
-                }
+                assert !context.isWildcard();
             } else {
                 assert isDelete(); // see the schema check above
                 context = applyTask(task);
@@ -262,6 +257,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
         } else {
             assert initialResourceObjectDefinition != null || !isDelete(); // see the schema check above
             context = applyTask(task);
+            assert !context.isWildcard();
         }
 
         if (context != contextBefore) {
@@ -269,6 +265,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
         }
     }
 
+    /** Returned context is not wildcard. */
     private ProvisioningContext applyObjectClassAndTask(@NotNull QName ocName, @NotNull Task task)
             throws SchemaException, ConfigurationException {
         // We know that current context has now OC name
@@ -288,7 +285,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
     }
 
     protected void setResourceObjectDefinition() {
-        resourceObjectDefinition = context.getObjectDefinitionRequired();
+        resourceObjectDefinition = context.getObjectDefinition();
     }
 
     public int getLocalSequenceNumber() {
@@ -319,8 +316,8 @@ public abstract class ResourceObjectChange implements InitializableMixin {
         sb.append("\n");
         DebugUtil.debugDumpWithLabelLn(sb, "localSequenceNumber", localSequenceNumber, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "primaryIdentifierValue", String.valueOf(primaryIdentifierRealValue), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "initialObjectClassDefinition", String.valueOf(initialResourceObjectDefinition), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "refinedObjectClassDefinition", String.valueOf(resourceObjectDefinition), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "initialResourceObjectDefinition", String.valueOf(initialResourceObjectDefinition), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "resourceObjectDefinition", String.valueOf(resourceObjectDefinition), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "identifiers", identifiers, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "objectDelta", objectDelta, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);
@@ -344,7 +341,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
     }
 
     /**
-     * @return The most precise object class definition known at this moment.
+     * @return The most precise object class definition known at this moment. (May be null.)
      */
     public ResourceObjectDefinition getCurrentResourceObjectDefinition() {
         if (resourceObjectDefinition != null) {

@@ -674,7 +674,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         //noinspection unchecked
         ResourceAttributeDefinition<String> attrDef =
-                (ResourceAttributeDefinition<String>) accountObjectClassDefinition.findAttributeDefinition(attrQName);
+                (ResourceAttributeDefinition<String>) accountDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
@@ -713,7 +713,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         //noinspection unchecked
         ResourceAttributeDefinition<String> attrDef =
-                (ResourceAttributeDefinition<String>) accountObjectClassDefinition.findAttributeDefinition(attrQName);
+                (ResourceAttributeDefinition<String>) accountDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationAddProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
@@ -752,7 +752,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         //noinspection unchecked
         ResourceAttributeDefinition<String> attrDef =
-                (ResourceAttributeDefinition<String>) accountObjectClassDefinition.findAttributeDefinition(attrQName);
+                (ResourceAttributeDefinition<String>) accountDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationAddProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "CAPTAIN");
         delta.addModification(attrDelta);
@@ -1157,7 +1157,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertNotNull(groupEvilShadowOid);
 
         if (hasLdapGroupBaseContext()) {
-            assertConnectorOperationIncrement(2, 2);
+            assertConnectorOperationIncrement(1, 2);
         } else {
             assertConnectorOperationIncrement(1, 1);
         }

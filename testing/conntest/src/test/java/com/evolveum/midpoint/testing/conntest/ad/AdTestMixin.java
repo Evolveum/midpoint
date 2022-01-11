@@ -72,7 +72,7 @@ public interface AdTestMixin extends InfraTestMixin {
     default ResourceObjectDefinition assertAdResourceSchema(
             PrismObject<ResourceType> resource, QName accountObjectClass)
             throws SchemaException {
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(resource.asObjectable());
         displayDumpable("Resource schema", resourceSchema);
         ResourceTypeUtil.validateSchema(resourceSchema, resource);
         return assertAdSchema(resource, accountObjectClass);

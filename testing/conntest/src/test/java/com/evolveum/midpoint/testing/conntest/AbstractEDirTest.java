@@ -439,7 +439,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         //noinspection unchecked
         ResourceAttributeDefinition<String> attrDef =
-                (ResourceAttributeDefinition<String>) accountObjectClassDefinition.findAttributeDefinition(attrQName);
+                (ResourceAttributeDefinition<String>) accountDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
@@ -554,7 +554,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         QName attrQName = new QName(MidPointConstants.NS_RI, "passwordAllowChange");
         //noinspection unchecked
         ResourceAttributeDefinition<Boolean> attrDef =
-                (ResourceAttributeDefinition<Boolean>) accountObjectClassDefinition.findAttributeDefinition(attrQName);
+                (ResourceAttributeDefinition<Boolean>) accountDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.FALSE);
         delta.addModification(attrDelta);
