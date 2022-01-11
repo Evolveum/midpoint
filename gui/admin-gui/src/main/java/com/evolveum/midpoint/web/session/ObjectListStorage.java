@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
 
 /**
  * Created by honchar.
@@ -19,7 +20,6 @@ public class ObjectListStorage implements PageStorage, DebugDumpable {
 
     private static final long serialVersionUID = 1L;
 
-    private String filter;
     private Search objectListSearch;
     private ObjectPaging objectListTablePaging;
 

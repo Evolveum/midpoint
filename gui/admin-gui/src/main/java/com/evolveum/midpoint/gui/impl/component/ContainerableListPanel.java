@@ -215,6 +215,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                     }
                 }
                 if (storage != null) {
+
                     storage.setSearch(search);
                 }
                 return search;
