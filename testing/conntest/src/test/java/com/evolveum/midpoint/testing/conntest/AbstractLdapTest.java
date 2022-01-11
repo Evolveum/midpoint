@@ -377,15 +377,17 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         assertTrue("o modify", oDef.canModify());
         assertTrue("o add", oDef.canAdd());
 
-        ResourceAttributeDefinition<?> createTimestampDef = accountObjectClassDefinition.findAttributeDefinition("createTimestamp");
-        PrismAsserts.assertDefinition(createTimestampDef, new QName(MidPointConstants.NS_RI, "createTimestamp"),
+        ResourceAttributeDefinition<?> createTimestampDef = accountObjectClassDefinition.findAttributeDefinition(getCreateTimeStampAttributeName());
+        PrismAsserts.assertDefinition(createTimestampDef, new QName(MidPointConstants.NS_RI, getCreateTimeStampAttributeName()),
                 getTimestampXsdType(), 0, 1);
-        assertTrue("createTimestampDef read", createTimestampDef.canRead());
-        assertFalse("createTimestampDef read", createTimestampDef.canModify());
-        assertFalse("createTimestampDef read", createTimestampDef.canAdd());
+        assertTrue(getCreateTimeStampAttributeName() + " def read", createTimestampDef.canRead());
+        assertFalse(getCreateTimeStampAttributeName() + " def read", createTimestampDef.canModify());
+        assertFalse(getCreateTimeStampAttributeName() + " def read", createTimestampDef.canAdd());
 
         assertStableSystem();
     }
+
+    protected String getCreateTimeStampAttributeName() { return "createTimestamp"; }
 
     protected QName getTimestampXsdType() {
         return DOMUtil.XSD_DATETIME;

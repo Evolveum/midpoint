@@ -356,6 +356,10 @@
                     </target>
                 </inbound>
             </attribute>
+            <attribute>
+                <ref>ri:member</ref>
+                <fetchStrategy>minimal</fetchStrategy>
+            </attribute>
         </objectType>
 
     </schemaHandling>

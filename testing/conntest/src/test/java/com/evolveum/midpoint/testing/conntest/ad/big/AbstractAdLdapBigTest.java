@@ -63,10 +63,17 @@ public abstract class AbstractAdLdapBigTest extends AbstractAdLdapTest {
 
     private static final String INTENT_GROUP = "group";
 
-    private static final int NUM_POPULATED_USERS_PH1 = 600;
-    private static final int NUM_POPULATED_USERS_PH2 = 1600;
-    private static final int NUM_POPULATED_USERS_PH3 = 3200;
-    private static final int NUM_POPULATED_USERS_PH4 = 5200;
+// Real numbers
+//    private static final int NUM_POPULATED_USERS_PH1 = 600;
+//    private static final int NUM_POPULATED_USERS_PH2 = 1600;
+//    private static final int NUM_POPULATED_USERS_PH3 = 3200;
+//    private static final int NUM_POPULATED_USERS_PH4 = 5200;
+
+// Smaller numbers to test the test ... to make it run quicker during test code development
+    private static final int NUM_POPULATED_USERS_PH1 = 6;
+    private static final int NUM_POPULATED_USERS_PH2 = 16;
+    private static final int NUM_POPULATED_USERS_PH3 = 32;
+    private static final int NUM_POPULATED_USERS_PH4 = 52;
 
     private static final int NUM_OTHER_USERS = 2;
 
@@ -127,12 +134,14 @@ public abstract class AbstractAdLdapBigTest extends AbstractAdLdapTest {
     public void test000Sanity() throws Exception {
 
         cleanupDelete(toAccountDn(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME));
-//        cleanupDeleteGeneratedAccounts();
-//        cleanupDelete(toGroupDn(GROUP_BIG_NAME));
+        cleanupDeleteGeneratedAccounts();
+        cleanupDelete(toGroupDn(GROUP_BIG_NAME));
     }
 
     private void cleanupDeleteGeneratedAccounts() throws CursorException, IOException, LdapException {
         int i = 0;
+        // We are NOT using the contants (e.g. NUM_POPULATED_USERS_PH4) here by purpose.
+        // We want to clean up entries left behind by a test that had the constants set differently than this test.
         while (true) {
             String username = generateUserName(i);
             String familyName = generateFamilyName(i);
@@ -147,7 +156,7 @@ public abstract class AbstractAdLdapBigTest extends AbstractAdLdapTest {
         }
     }
 
-    @Test(enabled = false)
+    @Test
     public void test100AddRoleBig() throws Exception {
         // GIVEN
         Task task = getTestTask();
@@ -199,7 +208,7 @@ public abstract class AbstractAdLdapBigTest extends AbstractAdLdapTest {
     }
 
 
-    @Test(enabled = false)
+    @Test
     public void test110AssignGuybrushBig() throws Exception {
         // GIVEN
         Task task = getTestTask();
@@ -235,7 +244,7 @@ public abstract class AbstractAdLdapBigTest extends AbstractAdLdapTest {
      *
      * TODO
      */
-    @Test(enabled = false)
+    @Test
     public void test120GetBigDefault() throws Exception {
         // GIVEN
         Task task = getTestTask();
@@ -257,13 +266,13 @@ public abstract class AbstractAdLdapBigTest extends AbstractAdLdapTest {
      * Test that fetch of very small group works.
      * Mostly just for sanity.
      */
-    @Test(enabled = false)
+    @Test
     public void test122GetBigFetchPh0() throws Exception {
         // GIVEN
         testGetBigFetch(1);
     }
 
-    @Test(enabled = false)
+    @Test
     public void test200PopulateUsersPh1() throws Exception {
         // GIVEN
         Task task = getTestTask();
@@ -284,13 +293,13 @@ public abstract class AbstractAdLdapBigTest extends AbstractAdLdapTest {
      * Normal fetch, under the magic 1500 limit.
      * Expecting no problems so far.
      */
-    @Test(enabled = false)
+    @Test
     public void test202GetBigFetchPh1() throws Exception {
         // GIVEN
         testGetBigFetch(NUM_POPULATED_USERS_PH1 + 1);
     }
 
-    @Test(enabled = false)
+    @Test
     public void test210PopulateUsersPh2() throws Exception {
         // GIVEN
         Task task = getTestTask();
@@ -311,13 +320,13 @@ public abstract class AbstractAdLdapBigTest extends AbstractAdLdapTest {
      * Range fetch, over the magic 1500 limit.
      * One additional range search is required.
      */
-    @Test(enabled = false)
+    @Test
     public void test212GetBigFetchPh2() throws Exception {
         // GIVEN
         testGetBigFetch(NUM_POPULATED_USERS_PH2 + 1);
     }
 
-    @Test(enabled = false)
+    @Test
     public void test220PopulateUsersPh3() throws Exception {
         // GIVEN
         Task task = getTestTask();
@@ -338,13 +347,13 @@ public abstract class AbstractAdLdapBigTest extends AbstractAdLdapTest {
      * Range fetch, twice over the magic 1500 limit.
      * Two additional range searches is required.
      */
-    @Test(enabled = false)
+    @Test
     public void test222GetBigFetchPh3() throws Exception {
         // GIVEN
         testGetBigFetch(NUM_POPULATED_USERS_PH3 + 1);
     }
 
-    @Test(enabled = false)
+    @Test
     public void test230PopulateUsersPh4() throws Exception {
         // GIVEN
         Task task = getTestTask();

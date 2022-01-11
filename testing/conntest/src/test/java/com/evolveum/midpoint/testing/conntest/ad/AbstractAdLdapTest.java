@@ -139,6 +139,9 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest
         return false;
     }
 
+    @Override
+    protected String getCreateTimeStampAttributeName() { return "whenCreated"; }
+
     protected String getObjectCategoryPerson() {
         return "CN=Person,CN=Schema,CN=Configuration," + getLdapSuffix();
     }
