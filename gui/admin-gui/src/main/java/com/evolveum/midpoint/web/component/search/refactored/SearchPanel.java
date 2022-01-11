@@ -111,6 +111,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     private static final String ID_OID_ITEM = "oidItem";
 
     private LoadableModel<List<AbstractSearchItemWrapper>> basicSearchItemsModel;
+    private LoadableModel<List<AbstractSearchItemWrapper>> morePopupModel;
     private static final Trace LOG = TraceManager.getTrace(SearchPanel.class);
 
     public SearchPanel(String id, IModel<Search<C>> searchModel) {
@@ -121,6 +122,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     protected void onInitialize() {
         super.onInitialize();
         initBasicSearchItemsModel();
+        initMorePopupModel();
         initLayout();
     }
 
@@ -130,6 +132,17 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             protected List<AbstractSearchItemWrapper> load() {
                 return getModelObject().getItems().stream().filter(item
                         -> !(item instanceof OidSearchItemWrapper) && item.isApplyFilter())
+                        .collect(Collectors.toList());
+            }
+        };
+    }
+
+    private void initMorePopupModel() {
+        morePopupModel = new LoadableModel<List<AbstractSearchItemWrapper>>() {
+            @Override
+            protected List<AbstractSearchItemWrapper> load() {
+                return getModelObject().getItems().stream().filter(item
+                        -> !item.isApplyFilter())
                         .collect(Collectors.toList());
             }
         };
@@ -328,6 +341,8 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     protected abstract void searchPerformed(AjaxRequestTarget target);
 
     void refreshSearchForm(AjaxRequestTarget target) {
+        displayedSearchItemsModelReset();
+        morePopupModel.reset();
         target.add(get(ID_FORM));
         saveSearch(getModelObject(), target);
     }
@@ -423,24 +438,13 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
                 @Override
                 public boolean isVisible() {
-                    return CollectionUtils.isNotEmpty(getMorePopupItemsModel().getObject());
+                    return CollectionUtils.isNotEmpty(morePopupModel.getObject());
                 }
             });
             more.setOutputMarkupId(true);
             moreGroup.add(more);
 
             initPopover();
-        }
-
-        private LoadableModel<List<AbstractSearchItemWrapper>> getMorePopupItemsModel() {
-            return new LoadableModel<List<AbstractSearchItemWrapper>>() {
-                @Override
-                protected List<AbstractSearchItemWrapper> load() {
-                    return getModelObject().getItems().stream().filter(item
-                            -> !item.isApplyFilter())
-                            .collect(Collectors.toList());
-                }
-            };
         }
 
         private void initPopover() {
@@ -468,7 +472,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             });
             popover.add(addText);
 
-            ListView<AbstractSearchItemWrapper> properties = new ListView<>(ID_PROPERTIES, getMorePopupItemsModel()) {
+            ListView<AbstractSearchItemWrapper> properties = new ListView<>(ID_PROPERTIES, morePopupModel) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
