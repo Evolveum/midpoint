@@ -7,10 +7,15 @@
 
 package com.evolveum.midpoint.web.page.login;
 
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.config.CredentialModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -23,15 +28,11 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.module.authentication.MailNonceModuleAuthentication;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang3.StringUtils;
@@ -55,7 +56,7 @@ import javax.servlet.http.HttpSession;
  */
 @PageDescriptor(urls = {
         @Url(mountUrl = "/emailNonce", matchUrlForSecurity = "/emailNonce")
-}, permitAll = true, loginPage = true)
+}, permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.MAIL_NONCE)
 public class PageEmailNonse extends PageAuthenticationBase {
     private static final long serialVersionUID = 1L;
 
@@ -201,18 +202,19 @@ public class PageEmailNonse extends PageAuthenticationBase {
         }
 
         ModuleAuthentication moduleAuthentication = ((MidpointAuthentication) authentication).getProcessingModuleAuthentication();
-        if (!(moduleAuthentication instanceof MailNonceModuleAuthentication)) {
+        if (!(moduleAuthentication instanceof CredentialModuleAuthentication)
+                && !AuthenticationModuleNameConstants.MAIL_NONCE.equals(moduleAuthentication.getNameOfModuleType())) {
             getSession().error(getString("PageForgotPassword.send.nonce.failed"));
             LOGGER.error("Bad type of module authentication, support only EmailNonceModuleAuthentication, but is "
                     + moduleAuthentication != null ? moduleAuthentication.getClass().getName() : null);
             throw new RestartResponseException(PageEmailNonse.class);
         }
-        MailNonceModuleAuthentication nonseAutht = (MailNonceModuleAuthentication) moduleAuthentication;
-        String credentialName = nonseAutht.getCredentialName();
+        CredentialModuleAuthentication nonceAuth = (CredentialModuleAuthentication) moduleAuthentication;
+        String credentialName = nonceAuth.getCredentialName();
 
         if (credentialName == null) {
             getSession().error(getString("PageForgotPassword.send.nonce.failed"));
-            LOGGER.error("EmailNonceModuleAuthentication " + nonseAutht.getNameOfModule() + " haven't define name of credential");
+            LOGGER.error("EmailNonceModuleAuthentication " + nonceAuth.getNameOfModule() + " haven't define name of credential");
             throw new RestartResponseException(PageEmailNonse.class);
         }
 
@@ -317,7 +319,7 @@ public class PageEmailNonse extends PageAuthenticationBase {
     protected void onBeforeRender() {
         super.onBeforeRender();
 
-        if (SecurityUtils.getPrincipalUser() != null) {
+        if (AuthUtil.getPrincipalUser() != null) {
             MidPointApplication app = getMidpointApplication();
             throw new RestartResponseException(app.getHomePage());
         }

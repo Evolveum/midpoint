@@ -98,15 +98,15 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
     @Override
     public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
-            AuthorizationParameters<O,T> params, OwnerResolver ownerResolver, Task task, OperationResult result)
+                                                                             AuthorizationParameters<O,T> params, OwnerResolver ownerResolver, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         AccessDecision decision = isAuthorizedInternal(getMidPointPrincipal(), operationUrl, phase, params, ownerResolver, null, task, result);
         return decision.equals(AccessDecision.ALLOW);
     }
 
     private <O extends ObjectType, T extends ObjectType> AccessDecision isAuthorizedInternal(MidPointPrincipal midPointPrincipal, String operationUrl, AuthorizationPhaseType phase,
-            AuthorizationParameters<O,T> params, OwnerResolver ownerResolver,
-            Consumer<Authorization> applicableAutzConsumer, Task task, OperationResult result)
+                                                                                             AuthorizationParameters<O,T> params, OwnerResolver ownerResolver,
+                                                                                             Consumer<Authorization> applicableAutzConsumer, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (phase == null) {
             AccessDecision requestPhaseDecision = isAuthorizedPhase(midPointPrincipal, operationUrl, AuthorizationPhaseType.REQUEST, params, ownerResolver, applicableAutzConsumer, task, result);

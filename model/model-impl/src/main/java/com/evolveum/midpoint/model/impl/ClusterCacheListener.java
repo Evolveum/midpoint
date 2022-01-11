@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl;
 import javax.annotation.PostConstruct;
 import javax.ws.rs.core.Response;
 
+import com.evolveum.midpoint.model.api.util.ClusterServiceConsts;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -16,7 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
-import com.evolveum.midpoint.model.impl.security.NodeAuthenticationToken;
+import com.evolveum.midpoint.authentication.api.config.NodeAuthenticationToken;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.api.CacheListener;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;

@@ -14,6 +14,8 @@ import java.util.Map;
 
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.Session;
@@ -45,7 +47,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -265,7 +266,7 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
     }
 
     private void setTimezoneIfNeeded(OperationResult result) {
-        if (result.isSuccess() && getDelta() != null && SecurityUtils.getPrincipalUser().getOid().equals(getDelta().getOid())) {
+        if (result.isSuccess() && getDelta() != null && AuthUtil.getPrincipalUser().getOid().equals(getDelta().getOid())) {
             Session.get().setLocale(WebComponentUtil.getLocale());
             LOGGER.debug("Using {} as locale", getLocale());
             WebSession.get().getClientInfo().getProperties().

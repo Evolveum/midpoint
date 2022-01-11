@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Application;
 import org.apache.wicket.ajax.AjaxChannel;
@@ -54,7 +56,6 @@ import com.evolveum.midpoint.web.page.self.PageRoleSelfProfile;
 import com.evolveum.midpoint.web.page.self.PageServiceSelfProfile;
 import com.evolveum.midpoint.web.page.self.PageUserSelfProfile;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -323,7 +324,7 @@ public class PasswordPanel extends InputPanel {
     protected <F extends FocusType> ValuePolicyType getValuePolicy(PrismObject<F> object) {
         ValuePolicyType valuePolicyType = null;
         try {
-            MidPointPrincipal user = SecurityUtils.getPrincipalUser();
+            MidPointPrincipal user = AuthUtil.getPrincipalUser();
             if (getPageBase() != null) {
                 if (user != null) {
                     Task task = getPageBase().createSimpleTask("load value policy");

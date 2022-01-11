@@ -10,6 +10,14 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.authentication.api.IdentityProvider;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.config.Saml2ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
@@ -24,13 +32,6 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
-import com.evolveum.midpoint.web.security.module.authentication.Saml2ModuleAuthentication;
-import com.evolveum.midpoint.web.security.util.IdentityProvider;
-
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
 
 /**
@@ -38,7 +39,7 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
  */
 @PageDescriptor(urls = {
         @Url(mountUrl = "/saml2/select", matchUrlForSecurity = "/saml2/select")
-}, permitAll = true, loginPage = true)
+}, permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.SAML_2)
 public class PageSamlSelect extends AbstractPageLogin implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -60,7 +61,7 @@ public class PageSamlSelect extends AbstractPageLogin implements Serializable {
             }
         });
         MidpointForm<?> form = new MidpointForm<>(ID_LOGOUT_FORM);
-        ModuleAuthentication actualModule = SecurityUtils.getProcessingModule(false);
+        ModuleAuthentication actualModule = AuthUtil.getProcessingModuleIfExist();
         form.add(new VisibleBehaviour(() -> existSamlAuthentication(actualModule)));
         form.add(AttributeModifier.replace("action",
                 (IModel<String>) () -> existSamlAuthentication(actualModule) ?
@@ -72,7 +73,7 @@ public class PageSamlSelect extends AbstractPageLogin implements Serializable {
     }
 
     private boolean existSamlAuthentication(ModuleAuthentication actualModule) {
-        return actualModule instanceof Saml2ModuleAuthentication
+        return AuthenticationModuleNameConstants.SAML_2.equals(actualModule.getPrefix())
                 && (actualModule.getAuthentication() instanceof Saml2AuthenticationToken
                     || (actualModule.getAuthentication() instanceof AnonymousAuthenticationToken
                         && actualModule.getAuthentication().getDetails() instanceof Saml2AuthenticationToken));

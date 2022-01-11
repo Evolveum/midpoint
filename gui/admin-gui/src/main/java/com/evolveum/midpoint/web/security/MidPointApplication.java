@@ -14,6 +14,11 @@ import java.util.*;
 import javax.servlet.ServletContext;
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.authentication.api.authorization.DescriptorLoader;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.common.Clock;
 
 import com.evolveum.midpoint.repo.api.*;
@@ -52,6 +57,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.env.Environment;
@@ -83,9 +89,6 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -94,7 +97,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
-import com.evolveum.midpoint.web.application.DescriptorLoader;
+import com.evolveum.midpoint.web.application.PageMounter;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
 import com.evolveum.midpoint.web.page.error.*;
 import com.evolveum.midpoint.web.page.login.PageLogin;
@@ -186,6 +189,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
     @Autowired private Clock clock;
     @Autowired private AccessCertificationService certificationService;
+    @Autowired @Qualifier("descriptorLoader") private DescriptorLoader descriptorLoader;
 
     private WebApplicationConfiguration webApplicationConfiguration;
 
@@ -199,7 +203,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     @Override
     public Class<? extends PageBase> getHomePage() {
-        if (WebModelServiceUtils.isPostAuthenticationEnabled(getTaskManager(), getModelInteractionService())) {
+        if (AuthUtil.isPostAuthenticationEnabled(getTaskManager(), getModelInteractionService())) {
             return PagePostAuthentication.class;
         }
 
@@ -298,7 +302,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         getSessionListeners().add((ISessionListener) asyncWebProcessManager);
 
         //descriptor loader, used for customization
-        new DescriptorLoader().loadData(this);
+        new PageMounter().loadData(this);
+        descriptorLoader.loadData();
 
         if (applicationContext != null) {
 
@@ -590,7 +595,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     }
 
     public Task createSimpleTask(String operation) {
-        MidPointPrincipal user = SecurityUtils.getPrincipalUser();
+        MidPointPrincipal user = AuthUtil.getPrincipalUser();
         if (user == null) {
             throw new RestartResponseException(PageLogin.class);
         }

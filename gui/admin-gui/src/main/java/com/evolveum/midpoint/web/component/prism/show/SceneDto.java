@@ -15,7 +15,6 @@ import com.evolveum.midpoint.model.api.visualizer.SceneDeltaItem;
 import com.evolveum.midpoint.model.api.visualizer.SceneItem;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.web.security.factory.channel.AbstractChannelFactory;
 
 import org.apache.wicket.Component;
 import org.jetbrains.annotations.NotNull;
