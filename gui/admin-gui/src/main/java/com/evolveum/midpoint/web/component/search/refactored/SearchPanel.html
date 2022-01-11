@@ -6,9 +6,9 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <form wicket:id="form" class="form-inline pull-right search-form"
+    <form wicket:id="form" class="form-inline search-form"
             style="padding-bottom:5px; width:100%; text-align: justify; -ms-text-justify: distribute-all-lines; text-justify: distribute-all-lines; text-align-last: right;">
-        <div class="form-inline" style="float:right; text-align-last: left;">
+        <div class="form-inline" style="float:right; text-align-last: left; width: fit-content;">
 
             <div class="pull-left" wicket:id="searchItemsPanel"></div>
 
@@ -33,9 +33,9 @@
     </form>
     <wicket:fragment wicket:id="basicSearchFragment">
         <wicket:container wicket:id="items">
-            <div wicket:id="item" class="form-group" style="padding-right: 5px; margin-bottom: 5px; text-align-last: left; display: table-cell !important;"/>
+            <div wicket:id="item" style="padding-right: 5px; margin-bottom: 5px; text-align-last: left; display: table-cell !important;"/>
         </wicket:container>
-        <div class="form-group" wicket:id="moreGroup" style="padding-right: 5px; display: table-cell !important;">
+        <div wicket:id="moreGroup" style="padding-right: 5px; display: table-cell !important;">
             <a wicket:id="more" class="btn btn-sm btn-default">
                 <wicket:message key="SearchPanel.more"/>
                 &nbsp;
