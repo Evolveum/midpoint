@@ -412,6 +412,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         try {
             initMainPanel(config, form);
             target.add(form);
+            target.add(getFeedbackPanel());
         } catch (Throwable e) {
             error("Cannot instantiate panel, " + e.getMessage());
             target.add(getFeedbackPanel());
