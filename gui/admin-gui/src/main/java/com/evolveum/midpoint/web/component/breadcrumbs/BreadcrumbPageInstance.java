@@ -47,9 +47,9 @@ public class BreadcrumbPageInstance extends Breadcrumb {
     @Override
     public WebPage redirect() {
         List<NewWindowNotifyingBehavior> behaviors = page.getBehaviors(NewWindowNotifyingBehavior.class);
-//        behaviors.forEach(behavior -> page.remove(behavior));
-//
-//        page.add(new NewWindowNotifyingBehavior());
+        behaviors.forEach(behavior -> page.remove(behavior));
+
+        page.add(new NewWindowNotifyingBehavior());
 
         return page;
     }

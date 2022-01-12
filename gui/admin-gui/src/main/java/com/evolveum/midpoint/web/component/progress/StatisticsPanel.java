@@ -274,7 +274,7 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
 
         private void initLayout() {
             add(new Label(ID_PROVISIONING_RESOURCE, new ReadOnlyModel<>(() -> WebModelServiceUtils.resolveReferenceName(getModelObject().getResourceRef(), getPageBase()))));
-            add(new Label(ID_PROVISIONING_OBJECT_CLASS, new PropertyModel<>(getModel(), ProvisioningStatisticsLineDto.F_OBJECT_CLASS + ".localPart")));
+            add(new Label(ID_PROVISIONING_OBJECT_CLASS, new ReadOnlyModel<>(() -> getModelObject().getObjectClass() != null ? getModelObject().getObjectClass().getLocalPart() : "")));
         }
     }
 
