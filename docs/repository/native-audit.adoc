@@ -315,7 +315,7 @@ The task consults the xref:/midpoint/reference/deployment/removing-obsolete-info
 (part of ) to figure out what to delete.
 If you absolutely require something on day-to-day basis and the audit database can handle deletion
 of a day's work, you may stick to the Cleanup task.
-There is also an option to use `maxRecords` instead of `auditRecords` in the `cleanupPolicy`.
+There is also an option to use `maxRecords` instead of `maxAge` in the `auditRecords` under `cleanupPolicy`.
 
 If you want to use Cleanup task, you probably do not need partions; but you might - read on.
 There is one problem with deleting data from the big audit table though.
