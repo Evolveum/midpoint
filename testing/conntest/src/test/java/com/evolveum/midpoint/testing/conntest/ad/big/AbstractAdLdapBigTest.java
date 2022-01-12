@@ -64,16 +64,16 @@ public abstract class AbstractAdLdapBigTest extends AbstractAdLdapTest {
     private static final String INTENT_GROUP = "group";
 
 // Real numbers
-//    private static final int NUM_POPULATED_USERS_PH1 = 600;
-//    private static final int NUM_POPULATED_USERS_PH2 = 1600;
-//    private static final int NUM_POPULATED_USERS_PH3 = 3200;
-//    private static final int NUM_POPULATED_USERS_PH4 = 5200;
+    private static final int NUM_POPULATED_USERS_PH1 = 600;
+    private static final int NUM_POPULATED_USERS_PH2 = 1600;
+    private static final int NUM_POPULATED_USERS_PH3 = 3200;
+    private static final int NUM_POPULATED_USERS_PH4 = 5200;
 
 // Smaller numbers to test the test ... to make it run quicker during test code development
-    private static final int NUM_POPULATED_USERS_PH1 = 6;
-    private static final int NUM_POPULATED_USERS_PH2 = 16;
-    private static final int NUM_POPULATED_USERS_PH3 = 32;
-    private static final int NUM_POPULATED_USERS_PH4 = 52;
+//    private static final int NUM_POPULATED_USERS_PH1 = 6;
+//    private static final int NUM_POPULATED_USERS_PH2 = 16;
+//    private static final int NUM_POPULATED_USERS_PH3 = 32;
+//    private static final int NUM_POPULATED_USERS_PH4 = 52;
 
     private static final int NUM_OTHER_USERS = 2;
 
@@ -257,7 +257,8 @@ public abstract class AbstractAdLdapBigTest extends AbstractAdLdapTest {
         // THEN
         then();
         display("Group Big fetched shadow", shadow);
-        assertNoAttribute(shadow.asObjectable(), GROUP_MEMBER_QNAME);
+        // MID-7556
+        //assertNoAttribute(shadow.asObjectable(), GROUP_MEMBER_QNAME);
 
         assertLdapConnectorReasonableInstances();
     }
@@ -376,7 +377,18 @@ public abstract class AbstractAdLdapBigTest extends AbstractAdLdapTest {
         testGetBigFetch(NUM_POPULATED_USERS_PH4 + 1);
     }
 
-    // TODO: delete users
+    @Test
+    public void test900DeleteUsers() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        for(int i = 0; i < NUM_POPULATED_USERS_PH4; i++) {
+            String username = generateUserName(i);
+            PrismObject<UserType> user = findUserByUsername(username);
+            deleteObject(UserType.class, user.getOid(), task, result);
+        }
+
+    }
 
     /**
      * Fetch group Big from AD, explicitly requesting member list.

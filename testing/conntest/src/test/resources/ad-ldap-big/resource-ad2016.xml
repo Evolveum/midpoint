@@ -111,7 +111,7 @@
             <attribute>
                 <ref>ri:cn</ref>
                 <limitations>
-                    <minOccurs>0</minOccurs>
+                    <minOccurs>1</minOccurs>
                 </limitations>
                 <outbound>
                     <source>
@@ -358,7 +358,7 @@
             </attribute>
             <attribute>
                 <ref>ri:member</ref>
-                <fetchStrategy>minimal</fetchStrategy>
+                <!-- <fetchStrategy>minimal</fetchStrategy> MID-7556 -->
             </attribute>
         </objectType>
 

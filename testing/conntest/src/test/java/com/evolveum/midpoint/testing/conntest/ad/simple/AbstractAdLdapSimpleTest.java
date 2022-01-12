@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019 Evolveum and contributors
+ * Copyright (c) 2015-2022 Evolveum and contributors
  * <p>
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -240,7 +240,7 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
     @Test
     @Override
     public void test020Schema() throws Exception {
-        accountObjectClassDefinition = assertAdResourceSchema(resource, getAccountObjectClass());
+        accountDefinition = assertAdResourceSchema(resource, getAccountObjectClass());
 
         assertLdapConnectorReasonableInstances();
     }
@@ -621,7 +621,7 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
-        ResourceAttributeDefinition<?> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
@@ -655,7 +655,7 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
-        ResourceAttributeDefinition<?> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
         delta.addModification(attrDelta);
@@ -692,7 +692,7 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
-        ResourceAttributeDefinition<?> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
         delta.addModification(attrDelta);
