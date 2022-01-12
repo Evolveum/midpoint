@@ -8,7 +8,11 @@ package com.evolveum.midpoint.web.page.login;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
+
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 
 import java.io.Serializable;
 
@@ -22,5 +26,12 @@ public class PageOidcSelect extends AbstractPageRemoteAuthenticationSelect imple
     private static final long serialVersionUID = 1L;
 
     public PageOidcSelect() {
+    }
+
+    protected boolean existRemoteAuthentication(ModuleAuthentication actualModule) {
+        return AuthenticationModuleNameConstants.OIDC.equals(actualModule.getNameOfModuleType())
+                && (actualModule.getAuthentication() instanceof OAuth2LoginAuthenticationToken
+                || (actualModule.getAuthentication() instanceof AnonymousAuthenticationToken
+                && actualModule.getAuthentication().getDetails() instanceof OAuth2LoginAuthenticationToken));
     }
 }

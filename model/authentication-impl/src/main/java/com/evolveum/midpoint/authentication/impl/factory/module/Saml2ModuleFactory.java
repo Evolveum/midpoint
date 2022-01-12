@@ -21,7 +21,7 @@ import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configurer.SamlModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.module.authentication.Saml2ModuleAuthenticationImpl;
-import com.evolveum.midpoint.authentication.impl.module.configuration.SamlMidpointAdditionalConfiguration;
+import com.evolveum.midpoint.authentication.impl.module.configuration.SamlAdditionalConfiguration;
 import com.evolveum.midpoint.authentication.impl.module.configuration.SamlModuleWebSecurityConfiguration;
 
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -87,7 +87,7 @@ public class Saml2ModuleFactory extends RemoteModuleFactory {
                 p -> {
                     String authRequestPrefixUrl = "/midpoint" + configuration.getPrefixOfModule()
                             + RemoteModuleAuthenticationImpl.AUTHENTICATION_REQUEST_PROCESSING_URL_SUFFIX_WITH_REG_ID;
-                    SamlMidpointAdditionalConfiguration config = configuration.getAdditionalConfiguration().get(p.getRegistrationId());
+                    SamlAdditionalConfiguration config = configuration.getAdditionalConfiguration().get(p.getRegistrationId());
                     IdentityProvider mp = new IdentityProvider()
                                 .setLinkText(config.getLinkText())
                                 .setRedirectLink(authRequestPrefixUrl.replace("{registrationId}", p.getRegistrationId()));

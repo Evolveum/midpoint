@@ -330,7 +330,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
     private List<AuthModule> createAuthenticationModuleBySequence(MidpointAuthentication mpAuthentication, AuthenticationSequenceType sequence,
             HttpServletRequest httpRequest, AuthenticationModulesType modules, AuthenticationChannel authenticationChannel, CredentialsPolicyType credentialsPolicy) {
         List<AuthModule> authModules;
-        if (processingSameAuthenticationSequence(mpAuthentication, sequence)) {
+        if (processingDifferentAuthenticationSequence(mpAuthentication, sequence)) {
             SecurityContextHolder.getContext().setAuthentication(null);
             authenticationManager.getProviders().clear();
             authModules = AuthSequenceUtil.buildModuleFilters(
@@ -342,7 +342,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
         return authModules;
     }
 
-    private boolean processingSameAuthenticationSequence(MidpointAuthentication mpAuthentication, AuthenticationSequenceType sequence) {
+    private boolean processingDifferentAuthenticationSequence(MidpointAuthentication mpAuthentication, AuthenticationSequenceType sequence) {
         return mpAuthentication == null || !sequence.equals(mpAuthentication.getSequence());
     }
 

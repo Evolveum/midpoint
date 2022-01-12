@@ -19,7 +19,7 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.Saml2ModuleAuthenticationImpl;
 
-import com.evolveum.midpoint.authentication.impl.module.configuration.SamlMidpointAdditionalConfiguration;
+import com.evolveum.midpoint.authentication.impl.module.configuration.SamlAdditionalConfiguration;
 
 import org.apache.commons.lang3.StringUtils;
 import org.opensaml.saml.saml2.core.*;
@@ -132,7 +132,7 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
                 samlAuthenticationToken.setDetails(principal);
                 Map<String, List<Object>> attributes = principal.getAttributes();
                 String enteredUsername;
-                SamlMidpointAdditionalConfiguration config = samlModule.getAdditionalConfiguration().get(samlAuthenticationToken.getRelyingPartyRegistration().getRegistrationId());
+                SamlAdditionalConfiguration config = samlModule.getAdditionalConfiguration().get(samlAuthenticationToken.getRelyingPartyRegistration().getRegistrationId());
                 String nameOfSamlAttribute = config.getNameOfUsernameAttribute();
                 enteredUsername = defineEnteredUsername(attributes, nameOfSamlAttribute);
                 PreAuthenticationContext authContext = new PreAuthenticationContext(enteredUsername, focusType, requireAssignment);

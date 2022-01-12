@@ -12,12 +12,12 @@ import java.io.Serializable;
  * @author skublik
  */
 
-public class SamlMidpointAdditionalConfiguration implements Serializable {
+public class SamlAdditionalConfiguration implements Serializable {
 
     private final String nameOfUsernameAttribute;
     private final String linkText;
 
-    private SamlMidpointAdditionalConfiguration(String nameOfUsernameAttribute, String linkText) {
+    private SamlAdditionalConfiguration(String nameOfUsernameAttribute, String linkText) {
         this.nameOfUsernameAttribute = nameOfUsernameAttribute;
         this.linkText = linkText;
     }
@@ -52,8 +52,8 @@ public class SamlMidpointAdditionalConfiguration implements Serializable {
             return this;
         }
 
-        public SamlMidpointAdditionalConfiguration build(){
-            return new SamlMidpointAdditionalConfiguration(this.nameOfUsernameAttribute, this.linkText);
+        public SamlAdditionalConfiguration build(){
+            return new SamlAdditionalConfiguration(this.nameOfUsernameAttribute, this.linkText);
         }
     }
 }

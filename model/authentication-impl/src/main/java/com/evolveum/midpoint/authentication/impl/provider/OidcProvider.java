@@ -12,6 +12,7 @@ import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.OidcModuleAuthenticationImpl;
+import com.evolveum.midpoint.authentication.impl.module.configuration.OidcAdditionalConfiguration;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
@@ -20,26 +21,38 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OidcAuthenticationModuleType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OidcClientAuthenticationModuleType;
+
+import com.nimbusds.jose.Algorithm;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.OctetSequenceKey;
+import com.nimbusds.jose.jwk.RSAKey;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
-import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.*;
 import org.springframework.security.oauth2.client.oidc.authentication.OidcAuthorizationCodeAuthenticationProvider;
 import org.springframework.security.oauth2.client.oidc.authentication.OidcIdTokenDecoderFactory;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.jwt.JwtDecoderFactory;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.util.*;
+import java.util.function.Function;
 
 /**
  * @author skublik
@@ -49,16 +62,52 @@ public class OidcProvider extends MidPointAbstractAuthenticationProvider {
 
     private static final Trace LOGGER = TraceManager.getTrace(OidcProvider.class);
 
-    private final OidcAuthorizationCodeAuthenticationProvider oidcProvider = new OidcAuthorizationCodeAuthenticationProvider(
-            new DefaultAuthorizationCodeTokenResponseClient(), new OidcUserService());
+    private final OidcAuthorizationCodeAuthenticationProvider oidcProvider;
+
+    private final Map<String, OidcAdditionalConfiguration> additionalConfiguration;
+    private Function<ClientRegistration, JWK> jwkResolver;
 
     @Autowired
     @Qualifier("passwordAuthenticationEvaluator")
     private AuthenticationEvaluator<PasswordAuthenticationContext> authenticationEvaluator;
 
-    public OidcProvider() {
+    public OidcProvider(Map<String, OidcAdditionalConfiguration> additionalConfiguration) {
+        this.additionalConfiguration = additionalConfiguration;
+        initJwkResolver();
         JwtDecoderFactory<ClientRegistration> decoder = new OidcIdTokenDecoderFactory();
+        OAuth2AuthorizationCodeGrantRequestEntityConverter requestEntityConverter =
+                new OAuth2AuthorizationCodeGrantRequestEntityConverter();
+        requestEntityConverter.addParametersConverter(
+                new NimbusJwtClientAuthenticationParametersConverter<>(jwkResolver));
+        DefaultAuthorizationCodeTokenResponseClient client = new DefaultAuthorizationCodeTokenResponseClient();
+        client.setRequestEntityConverter(requestEntityConverter);
+        oidcProvider = new OidcAuthorizationCodeAuthenticationProvider(client, new OidcUserService());
         oidcProvider.setJwtDecoderFactory(decoder);
+    }
+
+    private void initJwkResolver() {
+        jwkResolver = (clientRegistration) -> {
+            if (clientRegistration.getClientAuthenticationMethod().equals(ClientAuthenticationMethod.CLIENT_SECRET_JWT)) {
+                OctetSequenceKey.Builder builder = new OctetSequenceKey.Builder(clientRegistration.getClientSecret().getBytes(StandardCharsets.UTF_8))
+                        .keyID(UUID.randomUUID().toString());
+                String signingAlg = additionalConfiguration.get(clientRegistration.getRegistrationId()).getSingingAlg();
+                builder.algorithm(Algorithm.parse(signingAlg));
+                return builder.build();
+
+            } else if (clientRegistration.getClientAuthenticationMethod().equals(ClientAuthenticationMethod.PRIVATE_KEY_JWT)) {
+                OidcAdditionalConfiguration config = additionalConfiguration.get(clientRegistration.getRegistrationId());
+                RSAPublicKey publicKey = config.getPublicKey();
+                RSAPrivateKey privateKey = config.getPrivateKey();
+                RSAKey.Builder builder = new RSAKey.Builder(publicKey)
+                        .privateKey(privateKey)
+                        .keyID(UUID.randomUUID().toString());
+                String signingAlg = additionalConfiguration.get(clientRegistration.getRegistrationId()).getSingingAlg();
+                builder.algorithm(Algorithm.parse(signingAlg));
+                builder.keyID(additionalConfiguration.get(clientRegistration.getRegistrationId()).getKeyId());
+                return builder.build();
+            }
+            return null;
+        };
     }
 
     @Override
@@ -77,10 +126,6 @@ public class OidcProvider extends MidPointAbstractAuthenticationProvider {
             ((PreAuthenticatedAuthenticationToken) token).setDetails(originalAuthentication);
         }
         moduleAuthentication.setAuthentication(token);
-    }
-
-    private OAuth2AuthenticationToken createAuthenticationResult(OAuth2LoginAuthenticationToken authenticationResult) {
-        return new OAuth2AuthenticationToken(authenticationResult.getPrincipal(), authenticationResult.getAuthorities(), authenticationResult.getClientRegistration().getRegistrationId());
     }
 
     @Override

@@ -15,32 +15,42 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.pkcs.PKCSException;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrations;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
-import org.springframework.security.oauth2.core.AuthenticationMethod;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.*;
 import org.springframework.util.Assert;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.security.*;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil.getBasePath;
 
+import static org.springframework.util.StringUtils.hasText;
+
 /**
  * @author skublik
  */
 
-public class OidcModuleWebSecurityConfiguration extends ModuleWebSecurityConfigurationImpl {
+public class OidcModuleWebSecurityConfiguration extends RemoteModuleWebSecurityConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(OidcModuleWebSecurityConfiguration.class);
 
     private static Protector protector;
 
     private InMemoryClientRegistrationRepository clientRegistrationRepository;
+    private final Map<String, OidcAdditionalConfiguration> additionalConfiguration = new HashMap<>();
 
     private OidcModuleWebSecurityConfiguration() {
     }
@@ -81,7 +91,7 @@ public class OidcModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
                 builder.registrationId(client.getRegistrationId());
             }
             builder.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE);
-            builder.userInfoAuthenticationMethod(AuthenticationMethod.QUERY);
+            builder.userInfoAuthenticationMethod(AuthenticationMethod.HEADER);
             UriComponentsBuilder redirectUri = UriComponentsBuilder.fromUriString(
                     StringUtils.isNotBlank(publicHttpUrlPattern) ? publicHttpUrlPattern : getBasePath((HttpServletRequest) request));
             redirectUri.pathSegment(
@@ -108,10 +118,10 @@ public class OidcModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
             }
 
             getOptionalIfNotEmpty(client.getClientName()).ifPresent(builder::clientName);
-            getOptionalIfNotEmpty(openIdProvider.getAuthorizationUri()).ifPresent(builder::clientName);
-            getOptionalIfNotEmpty(openIdProvider.getTokenUri()).ifPresent(builder::clientName);
-            getOptionalIfNotEmpty(openIdProvider.getUserInfoUri()).ifPresent(builder::clientName);
-            getOptionalIfNotEmpty(openIdProvider.getIssuerUri()).ifPresent(builder::clientName);
+            getOptionalIfNotEmpty(openIdProvider.getAuthorizationUri()).ifPresent(builder::authorizationUri);
+            getOptionalIfNotEmpty(openIdProvider.getTokenUri()).ifPresent(builder::tokenUri);
+            getOptionalIfNotEmpty(openIdProvider.getUserInfoUri()).ifPresent(builder::userInfoUri);
+            getOptionalIfNotEmpty(openIdProvider.getIssuerUri()).ifPresent(builder::issuerUri);
             ClientRegistration clientRegistration = builder.build();
 
             if (clientRegistration.getScopes() == null || !clientRegistration.getScopes().contains("openid")) {
@@ -122,21 +132,41 @@ public class OidcModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
                 scopes.add("openid");
                 builder.scope(scopes);
             }
-            if (!clientRegistration.getProviderDetails().getConfigurationMetadata().containsKey("end_session_endpoint")
-                    && StringUtils.isNotEmpty(openIdProvider.getEndSessionUri())) {
+            if (StringUtils.isNotEmpty(openIdProvider.getEndSessionUri())) {
                 Map<String, Object> configurationMetadata = new HashMap<>(clientRegistration.getProviderDetails().getConfigurationMetadata());
+                if (configurationMetadata.containsKey("end_session_endpoint")) {
+                    configurationMetadata.remove("end_session_endpoint");
+                }
                 configurationMetadata.put("end_session_endpoint", openIdProvider.getEndSessionUri());
                 builder.providerConfigurationMetadata(configurationMetadata);
             }
+
+            if (client.getClientAuthenticationMethod() != null) {
+                builder.clientAuthenticationMethod(
+                        new ClientAuthenticationMethod(client.getClientAuthenticationMethod().name().toLowerCase()));
+            }
+
             clientRegistration = builder.build();
 
             Assert.hasText(clientRegistration.getProviderDetails().getUserInfoEndpoint().getUri(), "UserInfoUri cannot be empty");
 
             registrations.add(clientRegistration);
+
+            OidcAdditionalConfiguration.Builder additionalConfBuilder = OidcAdditionalConfiguration.builder()
+                    .singingAlg(client.getClientSigningAlgorithm());
+            if (client.getSimpleProofKey() != null) {
+                additionalConfBuilder.keyId(client.getSimpleProofKey().getKeyId());
+                initializeProofKey(client.getSimpleProofKey(), additionalConfBuilder);
+            } else if (client.getKeyStoreProofKey() != null) {
+                additionalConfBuilder.keyId(client.getKeyStoreProofKey().getKeyId());
+                initializeProofKey(client.getKeyStoreProofKey(), additionalConfBuilder);
+            }
+
+            configuration.additionalConfiguration.put(client.getRegistrationId(), additionalConfBuilder.build());
         });
 
         InMemoryClientRegistrationRepository clientRegistrationRepository = new InMemoryClientRegistrationRepository(registrations);
-        configuration.setClientRegistrationRepository(clientRegistrationRepository);
+        configuration.clientRegistrationRepository = clientRegistrationRepository;
         return configuration;
     }
 
@@ -148,8 +178,8 @@ public class OidcModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         return clientRegistrationRepository;
     }
 
-    public void setClientRegistrationRepository(InMemoryClientRegistrationRepository clientRegistrationRepository) {
-        this.clientRegistrationRepository = clientRegistrationRepository;
+    public Map<String, OidcAdditionalConfiguration> getAdditionalConfiguration() {
+        return additionalConfiguration;
     }
 
     @Override
@@ -162,5 +192,62 @@ public class OidcModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
 
     public String getPrefixOfSequence() {
         return DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + "/" + AuthUtil.stripSlashes(getSequenceSuffix());
+    }
+
+    private static void initializeProofKey(AbstractSimpleKeyType key, OidcAdditionalConfiguration.Builder builder) {
+        if (key == null) {
+            return;
+        }
+        PrivateKey pkey;
+        try {
+            pkey = getPrivateKey(key, protector);
+        } catch (IOException | OperatorCreationException | PKCSException | EncryptionException e) {
+            throw new OAuth2AuthenticationException(new OAuth2Error("missing_key"), "Unable get key from " + key, e);
+        }
+        if (!(pkey instanceof RSAPrivateKey)) {
+            throw new OAuth2AuthenticationException(new OAuth2Error("missing_key"), "Unable get key from " + key);
+        }
+
+        PublicKey publicKey;
+        try {
+            Certificate certificate = getCertificate(key, protector);
+            publicKey = certificate.getPublicKey();
+        } catch (EncryptionException | CertificateException e) {
+            throw new OAuth2AuthenticationException(new OAuth2Error("missing_key"), "Unable get certificate from " + key, e);
+        }
+
+        builder.privateKey((RSAPrivateKey) pkey);
+        builder.publicKey((RSAPublicKey) publicKey);
+    }
+
+    private static void initializeProofKey(AbstractKeyStoreKeyType key, OidcAdditionalConfiguration.Builder builder) {
+        if (key == null) {
+            return;
+        }
+        PrivateKey pkey;
+        try {
+            pkey = getPrivateKey(key, protector);
+        } catch (KeyStoreException | IOException | EncryptionException | CertificateException |
+                NoSuchAlgorithmException | UnrecoverableKeyException e) {
+            throw new OAuth2AuthenticationException(new OAuth2Error("missing_key"), "Unable get key from " + key, e);
+        }
+        if (!(pkey instanceof RSAPrivateKey)) {
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error("missing_key"), "Alias " + key.getKeyAlias() + " don't return key of RSAPrivateKey type.");
+        }
+
+        PublicKey publicKey;
+        try {
+            Certificate certificate = getCertificate(key, protector);
+            publicKey = certificate.getPublicKey();
+        } catch (EncryptionException | CertificateException  | KeyStoreException | IOException | NoSuchAlgorithmException e) {
+            throw new OAuth2AuthenticationException(new OAuth2Error("missing_key"), "Unable get certificate from " + key, e);
+        }
+        if (!(publicKey instanceof RSAPublicKey)) {
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error("missing_key"), "Alias " + key.getKeyAlias() + " don't return public key of RSAPublicKey type.");
+        }
+        builder.privateKey((RSAPrivateKey) pkey);
+        builder.publicKey((RSAPublicKey) publicKey);
     }
 }

@@ -15,8 +15,7 @@ import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.authentication.impl.util.ModuleType;
-import com.evolveum.midpoint.authentication.impl.util.RequestState;
-import com.evolveum.midpoint.authentication.impl.module.configuration.SamlMidpointAdditionalConfiguration;
+import com.evolveum.midpoint.authentication.impl.module.configuration.SamlAdditionalConfiguration;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,8 +27,7 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 
 public class Saml2ModuleAuthenticationImpl extends RemoteModuleAuthenticationImpl implements RemoteModuleAuthentication, Serializable {
 
-    private Map<String, SamlMidpointAdditionalConfiguration> additionalConfiguration;
-    private RequestState requestState;
+    private Map<String, SamlAdditionalConfiguration> additionalConfiguration;
 
     public Saml2ModuleAuthenticationImpl() {
         super(AuthenticationModuleNameConstants.SAML_2);
@@ -37,19 +35,11 @@ public class Saml2ModuleAuthenticationImpl extends RemoteModuleAuthenticationImp
         setState(AuthenticationModuleState.LOGIN_PROCESSING);
     }
 
-    public void setRequestState(RequestState requestState) {
-        this.requestState = requestState;
-    }
-
-    public RequestState getRequestState() {
-        return requestState;
-    }
-
-    public Map<String, SamlMidpointAdditionalConfiguration> getAdditionalConfiguration() {
+    public Map<String, SamlAdditionalConfiguration> getAdditionalConfiguration() {
         return additionalConfiguration;
     }
 
-    public void setAdditionalConfiguration(Map<String, SamlMidpointAdditionalConfiguration> additionalConfiguration) {
+    public void setAdditionalConfiguration(Map<String, SamlAdditionalConfiguration> additionalConfiguration) {
         this.additionalConfiguration = additionalConfiguration;
     }
 

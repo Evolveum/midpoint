@@ -827,25 +827,10 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="AbstractModuleSaml2KeyType" abstract="true">
-        <xsd:annotation>
-            <xsd:documentation>
-                Abstract SAML2 key.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.1</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="type" type="tns:ModuleSaml2KeyTypeType" minOccurs="0" maxOccurs="1"/>
-        </xsd:sequence>
-    </xsd:complexType>
-
     <xsd:complexType name="ModuleSaml2KeyStoreKeyType">
         <xsd:annotation>
             <xsd:documentation>
-                SAML2 simple key.
+                SAML2 key from key store. Supported only JKS type of key store.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -853,23 +838,104 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractModuleSaml2KeyType">
+            <xsd:extension base="tns:AbstractKeyStoreKeyType">
                 <xsd:sequence>
-                    <xsd:element name="keyStorePath" type="xsd:string" minOccurs="1" maxOccurs="1"/>
-                    <xsd:element name="keyStorePassword" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
-                    <xsd:element name="keyAlias" type="xsd:string" minOccurs="1" maxOccurs="1"/>
-                    <xsd:element name="keyPassword" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="type" type="tns:ModuleSaml2KeyTypeType" minOccurs="0" maxOccurs="1"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
+    <xsd:complexType name="AbstractKeyStoreKeyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Abstract type for key from key store. Supported only JKS type of key store.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.5</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="keyStorePath" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="keyStorePassword" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="keyAlias" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="keyPassword" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="OidcKeyStoreKeyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                OIDC key from key store. Supported only JKS type of key store.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractKeyStoreKeyType">
+                <xsd:sequence>
+                    <xsd:element name="keyId" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The key ID of JWK is used to match a specific key.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AbstractSimpleKeyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Abstract type for key from string representation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.5</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="privateKey" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="passphrase" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="certificate" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="OidcSimpleKeyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                OIDC key from string representation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.5</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractSimpleKeyType">
+                <xsd:sequence>
+                    <xsd:element name="keyId" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The key ID of JWK is used to match a specific key.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
     <xsd:complexType name="ModuleSaml2SimpleKeyType">
-
             <xsd:annotation>
                 <xsd:documentation>
-                    SAML2 key from key store. Supported only JKS type of key store.
+                    SAML2 key from string representation.
                 </xsd:documentation>
                 <xsd:appinfo>
                     <a:container/>
@@ -877,12 +943,9 @@
                 </xsd:appinfo>
             </xsd:annotation>
             <xsd:complexContent>
-            <xsd:extension base="tns:AbstractModuleSaml2KeyType">
+            <xsd:extension base="tns:AbstractSimpleKeyType">
                 <xsd:sequence>
-                    <xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1"/>
-                    <xsd:element name="privateKey" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
-                    <xsd:element name="passphrase" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
-                    <xsd:element name="certificate" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="type" type="tns:ModuleSaml2KeyTypeType" minOccurs="0" maxOccurs="1"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -1098,6 +1161,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="clientSigningAlgorithm" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identifier of algorithm for digitally sign or create a MAC
+                        of the content. (RFC7518 section-3.1)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="scope" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1121,6 +1192,22 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="openIdProvider" type="tns:OidcOpenIdProviderType" minOccurs="1" maxOccurs="1"/>
+            <xsd:choice>
+                <xsd:element name="simpleProofKey" type="tns:OidcSimpleKeyType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Key used for sign with PRIVATE_KEY_JWT.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="keyStoreProofKey" type="tns:OidcKeyStoreKeyType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Key used for sign with PRIVATE_KEY_JWT.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice> <!--> can use only one of types, but all can be null<-->
         </xsd:sequence>
     </xsd:complexType>
 

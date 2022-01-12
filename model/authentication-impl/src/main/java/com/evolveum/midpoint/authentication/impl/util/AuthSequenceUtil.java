@@ -6,10 +6,16 @@
  */
 package com.evolveum.midpoint.authentication.impl.util;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
@@ -19,7 +25,10 @@ import com.evolveum.midpoint.authentication.impl.factory.channel.AuthChannelRegi
 import com.evolveum.midpoint.authentication.impl.factory.module.AbstractModuleFactory;
 import com.evolveum.midpoint.authentication.impl.factory.module.AuthModuleRegistryImpl;
 import com.evolveum.midpoint.authentication.impl.factory.module.HttpClusterModuleFactory;
+import com.evolveum.midpoint.authentication.impl.filter.RemoteAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.module.authentication.HttpModuleAuthentication;
+import com.evolveum.midpoint.authentication.impl.module.authentication.RemoteModuleAuthenticationImpl;
+import com.evolveum.midpoint.authentication.impl.module.authentication.Saml2ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -32,6 +41,7 @@ import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.Validate;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -550,5 +560,31 @@ public class AuthSequenceUtil {
                 request.getServerName() +
                 (includePort ? (":" + request.getServerPort()) : "") +
                 request.getContextPath();
+    }
+
+    public static void doRemoteFilter(ServletRequest req, ServletResponse res, FilterChain chain, RemoteAuthenticationFilter remoteFilter)
+            throws IOException, ServletException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean sendedRequest = false;
+        if (authentication instanceof MidpointAuthentication) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+            RemoteModuleAuthenticationImpl moduleAuthentication = (RemoteModuleAuthenticationImpl) mpAuthentication.getProcessingModuleAuthentication();
+            if (moduleAuthentication != null && RequestState.SENDED.equals(moduleAuthentication.getRequestState())) {
+                sendedRequest = true;
+            }
+            boolean requiresAuthentication = remoteFilter.requiresAuth((HttpServletRequest) req, (HttpServletResponse) res);
+
+            if (!requiresAuthentication && sendedRequest) {
+                AuthenticationServiceException exception = new AuthenticationServiceException("web.security.flexAuth.oidc.not.response");
+                remoteFilter.unsuccessfulAuth((HttpServletRequest) req, (HttpServletResponse) res, exception);
+            } else {
+                if (moduleAuthentication != null && requiresAuthentication && sendedRequest) {
+                    moduleAuthentication.setRequestState(RequestState.RECEIVED);
+                }
+                remoteFilter.doAuth(req, res, chain);
+            }
+        } else {
+            throw new AuthenticationServiceException("Unsupported type of Authentication");
+        }
     }
 }

@@ -29,20 +29,11 @@ import java.io.Serializable;
 public class OidcModuleAuthenticationImpl extends RemoteModuleAuthenticationImpl implements RemoteModuleAuthentication, Serializable {
 
     private InMemoryClientRegistrationRepository clientsRepository;
-    private RequestState requestState;
 
     public OidcModuleAuthenticationImpl() {
         super(AuthenticationModuleNameConstants.OIDC);
         setType(ModuleType.REMOTE);
         setState(AuthenticationModuleState.LOGIN_PROCESSING);
-    }
-
-    public void setRequestState(RequestState requestState) {
-        this.requestState = requestState;
-    }
-
-    public RequestState getRequestState() {
-        return requestState;
     }
 
     public InMemoryClientRegistrationRepository getClientsRepository() {

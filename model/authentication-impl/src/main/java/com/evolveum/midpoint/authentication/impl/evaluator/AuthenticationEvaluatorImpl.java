@@ -124,7 +124,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         } else {
             recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "password mismatch", authnCtx.getPrincipalType(), false);
             recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch", false);
-            throw new BadCredentialsException("web.security.provider.invalid");
+            throw new BadCredentialsException("web.security.provider.invalid.credentials");
         }
     }
 
@@ -150,7 +150,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "password mismatch", authnCtx.getPrincipalType(), false);
             recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch", false);
 
-            throw new BadCredentialsException("web.security.provider.invalid");
+            throw new BadCredentialsException("web.security.provider.invalid.credentials");
         }
     }
 
@@ -160,7 +160,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         CredentialsType credentials = focusType.getCredentials();
         if (credentials == null || getCredential(credentials) == null) {
             recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "no credentials in user", authnCtx.getPrincipalType(), false);
-            throw new AuthenticationCredentialsNotFoundException("web.security.provider.invalid");
+            throw new AuthenticationCredentialsNotFoundException("web.security.provider.invalid.credentials");
         }
 
         CredentialPolicyType credentialsPolicy = getCredentialsPolicy(principal, authnCtx);
@@ -215,7 +215,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         CredentialsType credentials = focusType.getCredentials();
         if (credentials == null) {
             recordAuthenticationBehavior(username, null, connEnv, "no credentials in user", FocusType.class, false);
-            throw new AuthenticationCredentialsNotFoundException("web.security.provider.invalid");
+            throw new AuthenticationCredentialsNotFoundException("web.security.provider.invalid.credentials");
         }
         PasswordType passwordType = credentials.getPassword();
         SecurityPolicyType securityPolicy = principal.getApplicableSecurityPolicy();
@@ -267,7 +267,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         if (StringUtils.isBlank(enteredUsername)) {
             recordAuthenticationFailure(enteredUsername, connEnv, "no username");
-            throw new UsernameNotFoundException("web.security.provider.invalid");
+            throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
         }
 
         MidPointPrincipal principal;
@@ -275,7 +275,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             principal = focusProfileService.getPrincipal(enteredUsername, clazz);
         } catch (ObjectNotFoundException e) {
             recordAuthenticationFailure(enteredUsername, connEnv, "no focus");
-            throw new UsernameNotFoundException("web.security.provider.invalid");
+            throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
         } catch (SchemaException e) {
             recordAuthenticationFailure(enteredUsername, connEnv, "schema error");
             throw new InternalAuthenticationServiceException("web.security.provider.invalid");
@@ -296,7 +296,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         if (principal == null) {
             recordAuthenticationBehavior(enteredUsername, null, connEnv, "no focus", clazz, false);
-            throw new UsernameNotFoundException("web.security.provider.invalid");
+            throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
         }
 
         if (supportsActivationCheck && !principal.isEnabled()) {

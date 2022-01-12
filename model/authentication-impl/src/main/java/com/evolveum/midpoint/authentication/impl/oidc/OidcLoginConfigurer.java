@@ -9,13 +9,14 @@ package com.evolveum.midpoint.authentication.impl.oidc;
 
 import com.evolveum.midpoint.authentication.impl.module.configurer.OidcModuleWebSecurityConfigurer;
 
-import com.evolveum.midpoint.authentication.impl.saml.MidpointSaml2LoginConfigurer;
+import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.HttpSecurityBuilder;
 import org.springframework.security.config.annotation.web.configurers.AbstractAuthenticationFilterConfigurer;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.*;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.util.matcher.*;
 import org.springframework.util.Assert;
@@ -27,6 +28,12 @@ public final class OidcLoginConfigurer<B extends HttpSecurityBuilder<B>>
     private String authorizationRequestBaseUri;
     private String loginProcessingUrl = OAuth2LoginAuthenticationFilter.DEFAULT_FILTER_PROCESSES_URI;
     private AuthenticationManager authenticationManager;
+    private final ModelAuditRecorder auditProvider;
+    private AuthenticationFailureHandler failureHandler;
+
+    public OidcLoginConfigurer(ModelAuditRecorder auditProvider) {
+        this.auditProvider = auditProvider;
+    }
 
     public OidcLoginConfigurer<B> authenticationManager(AuthenticationManager authenticationManager) {
         Assert.notNull(authenticationManager, "authenticationManager cannot be null");
@@ -54,7 +61,7 @@ public final class OidcLoginConfigurer<B extends HttpSecurityBuilder<B>>
     @Override
     public void init(B http) throws Exception {
         OidcLoginAuthenticationFilter authenticationFilter = new OidcLoginAuthenticationFilter(
-                clientRegistrations, this.loginProcessingUrl);
+                clientRegistrations, this.loginProcessingUrl, auditProvider);
         if (this.authenticationManager != null) {
             authenticationFilter.setAuthenticationManager(this.authenticationManager);
         }
@@ -67,28 +74,25 @@ public final class OidcLoginConfigurer<B extends HttpSecurityBuilder<B>>
 
     @Override
     public void configure(B http) throws Exception {
-        OAuth2AuthorizationRequestRedirectFilter authorizationRequestFilter = new OAuth2AuthorizationRequestRedirectFilter(
-                clientRegistrations, this.authorizationRequestBaseUri);
-//        if (this.authorizationEndpointConfig.authorizationRequestRepository != null) {
-//            authorizationRequestFilter
-//                    .setAuthorizationRequestRepository(this.authorizationEndpointConfig.authorizationRequestRepository);
-//        }
+        OidcAuthorizationRequestRedirectFilter authorizationRequestFilter = new OidcAuthorizationRequestRedirectFilter(
+                clientRegistrations, this.authorizationRequestBaseUri, auditProvider);
+        authorizationRequestFilter.setAuthenticationFailureHandler(failureHandler);
         RequestCache requestCache = http.getSharedObject(RequestCache.class);
         if (requestCache != null) {
             authorizationRequestFilter.setRequestCache(requestCache);
         }
-        http.addFilter(this.postProcess(authorizationRequestFilter));
-//        OidcLoginAuthenticationFilter authenticationFilter = this.getAuthenticationFilter();
-//        if (this.authorizationEndpointConfig.authorizationRequestRepository != null) {
-//            authenticationFilter
-//                    .setAuthorizationRequestRepository(this.authorizationEndpointConfig.authorizationRequestRepository);
-//        }
+        http.addFilterBefore(this.postProcess(authorizationRequestFilter), OAuth2AuthorizationRequestRedirectFilter.class);
         super.configure(http);
     }
 
     @Override
     protected RequestMatcher createLoginProcessingUrlMatcher(String loginProcessingUrl) {
         return new AntPathRequestMatcher(loginProcessingUrl);
+    }
+
+    public OidcLoginConfigurer<B> midpointFailureHandler(AuthenticationFailureHandler authenticationFailureHandler) {
+        this.failureHandler = authenticationFailureHandler;
+        return super.failureHandler(authenticationFailureHandler);
     }
 
 //    @SuppressWarnings("unchecked")

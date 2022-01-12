@@ -92,7 +92,7 @@ public class MidpointRequestHeaderAuthenticationFilter extends RequestHeaderAuth
         Object credentials = getPreAuthenticatedCredentials(request);
 
         if (principal == null) {
-            AuthenticationException failed = new AuthenticationCredentialsNotFoundException("web.security.provider.invalid");
+            AuthenticationException failed = new AuthenticationCredentialsNotFoundException("web.security.provider.invalid.credentials");
             unsuccessfulAuthentication(request, response, failed);
             return;
         }

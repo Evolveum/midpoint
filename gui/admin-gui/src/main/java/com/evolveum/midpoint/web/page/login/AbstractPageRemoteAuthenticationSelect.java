@@ -11,7 +11,6 @@ import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.config.RemoteModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
@@ -22,10 +21,8 @@ import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -56,9 +53,9 @@ public abstract class AbstractPageRemoteAuthenticationSelect extends AbstractPag
         });
         MidpointForm<?> form = new MidpointForm<>(ID_LOGOUT_FORM);
         ModuleAuthentication actualModule = AuthUtil.getProcessingModuleIfExist();
-        form.add(new VisibleBehaviour(() -> existSamlAuthentication(actualModule)));
+        form.add(new VisibleBehaviour(() -> existRemoteAuthentication(actualModule)));
         form.add(AttributeModifier.replace("action",
-                (IModel<String>) () -> existSamlAuthentication(actualModule) ?
+                (IModel<String>) () -> existRemoteAuthentication(actualModule) ?
                         SecurityUtils.getPathForLogoutWithContextPath(getRequest().getContextPath(), actualModule) : ""));
         add(form);
 
@@ -66,12 +63,7 @@ public abstract class AbstractPageRemoteAuthenticationSelect extends AbstractPag
         form.add(csrfField);
     }
 
-    private boolean existSamlAuthentication(ModuleAuthentication actualModule) {
-        return AuthenticationModuleNameConstants.SAML_2.equals(actualModule.getPrefix())
-                && (actualModule.getAuthentication() instanceof Saml2AuthenticationToken
-                    || (actualModule.getAuthentication() instanceof AnonymousAuthenticationToken
-                        && actualModule.getAuthentication().getDetails() instanceof Saml2AuthenticationToken));
-    }
+    abstract protected boolean existRemoteAuthentication(ModuleAuthentication actualModule);
 
     private List<IdentityProvider> getProviders() {
         List<IdentityProvider> providers = new ArrayList<>();

@@ -935,7 +935,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     }
 
     private void assertBadPasswordException(BadCredentialsException e) {
-        assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.invalid"), getTranslatedMessage(e));
+        assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.invalid.credentials"), getTranslatedMessage(e));
     }
 
     private void assertEmptyPasswordException(BadCredentialsException e) {
@@ -959,7 +959,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     }
 
     private void assertNoUserException(UsernameNotFoundException e) {
-        assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.invalid"), getTranslatedMessage(e));
+        assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.invalid.credentials"), getTranslatedMessage(e));
     }
 
     private ConnectionEnvironment createConnectionEnvironment() {

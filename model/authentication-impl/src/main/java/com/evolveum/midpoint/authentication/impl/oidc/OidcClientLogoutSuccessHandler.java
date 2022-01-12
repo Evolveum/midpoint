@@ -14,17 +14,15 @@ import com.evolveum.midpoint.authentication.impl.handler.AuditedLogoutHandler;
 
 import com.evolveum.midpoint.authentication.impl.module.authentication.OidcModuleAuthenticationImpl;
 
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
-import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.security.web.util.UrlUtils;
 import org.springframework.util.Assert;
-import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.ServletException;
@@ -33,7 +31,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 
 public class OidcClientLogoutSuccessHandler extends AuditedLogoutHandler {
 
@@ -58,9 +55,10 @@ public class OidcClientLogoutSuccessHandler extends AuditedLogoutHandler {
             MidpointAuthentication mPAuthentication = (MidpointAuthentication) authentication;
             ModuleAuthentication moduleAuthentication = mPAuthentication.getProcessingModuleAuthentication();
             if (moduleAuthentication instanceof OidcModuleAuthenticationImpl) {
-                Authentication preAuthenticatedAuthentication = moduleAuthentication.getAuthentication();
-                if (preAuthenticatedAuthentication instanceof PreAuthenticatedAuthenticationToken) {
-                    Object details = ((PreAuthenticatedAuthenticationToken) preAuthenticatedAuthentication).getDetails();
+                Authentication internalAuthentication = moduleAuthentication.getAuthentication();
+                if (internalAuthentication instanceof PreAuthenticatedAuthenticationToken
+                        || internalAuthentication instanceof AnonymousAuthenticationToken) {
+                    Object details = internalAuthentication.getDetails();
                     if (details instanceof OAuth2LoginAuthenticationToken
                             && ((OAuth2LoginAuthenticationToken)details).getDetails() instanceof OidcUser) {
                         OAuth2LoginAuthenticationToken oidcAuthentication = (OAuth2LoginAuthenticationToken) details;
