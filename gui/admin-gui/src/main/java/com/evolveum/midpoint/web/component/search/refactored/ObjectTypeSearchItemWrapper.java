@@ -32,14 +32,12 @@ public class ObjectTypeSearchItemWrapper extends AbstractSearchItemWrapper<QName
         return ObjectTypeSearchItemPanel.class;
     }
 
-    public List<DisplayableValue<QName>> getAvailableValues() {
-        List<DisplayableValue<QName>> availableValues = new ArrayList<>();
-        config.getSupportedTypes().forEach(type -> availableValues.add(new SearchValue(type)));
-        return availableValues;
+    public List<QName> getAvailableValues() {
+        return config.getSupportedTypes();
     }
 
     public DisplayableValue<QName> getDefaultValue() {
-        return new SearchValue();
+        return new SearchValue(config.getDefaultValue());
     }
 
     @Override

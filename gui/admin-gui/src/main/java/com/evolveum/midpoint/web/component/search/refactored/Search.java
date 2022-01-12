@@ -6,30 +6,42 @@
  */
 package com.evolveum.midpoint.web.component.search.refactored;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.util.*;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.search.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.search.DateSearchItem;
+import com.evolveum.midpoint.web.component.search.ObjectCollectionSearchItem;
+import com.evolveum.midpoint.web.component.search.PropertySearchItem;
+import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 public class Search<C extends Containerable> implements Serializable, DebugDumpable {
 
@@ -314,20 +326,26 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         }
 
         List<ObjectFilter> conditions = new ArrayList<>();
-        getItems().forEach(item -> {
+        ObjectQuery query = null;
+        for (AbstractSearchItemWrapper item : getItems()) {
+            if (item instanceof ObjectTypeSearchItemWrapper) {
+                query = pageBase.getPrismContext().queryFor((Class<? extends Containerable>) WebComponentUtil.qnameToClass(PrismContext.get(),
+                        ((ObjectTypeSearchItemWrapper)item).getValue().getValue())).build();
+            }
             if (!item.isApplyFilter()) {
-                return;
+                continue;
             }
             ObjectFilter filter = item.createFilter(pageBase, defaultVariables);
-            if (item != null) {
+            if (filter != null) {
                 conditions.add(filter);
             }
-        });
-        ObjectQuery query;
-        if (getTypeClass() != null) {
-            query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
-        } else {
-            query = pageBase.getPrismContext().queryFactory().createQuery();
+        }
+        if (query == null) {
+            if (getTypeClass() != null) {
+                query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
+            } else {
+                query = pageBase.getPrismContext().queryFactory().createQuery();
+            }
         }
         switch (conditions.size()) {
             case 0:

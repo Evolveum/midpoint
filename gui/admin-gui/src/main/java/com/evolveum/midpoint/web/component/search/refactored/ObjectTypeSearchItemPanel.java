@@ -8,7 +8,11 @@ package com.evolveum.midpoint.web.component.search.refactored;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
+import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
+import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
+
 import org.apache.wicket.Component;
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -21,8 +25,11 @@ public class ObjectTypeSearchItemPanel<T> extends AbstractSearchItemPanel<Object
 
     @Override
     protected Component initSearchItemField() {
-        return WebComponentUtil.createDropDownChoices(
-                ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), ObjectTypeSearchItemWrapper.F_DISPLAYABLE_VALUE), Model.ofList(getModelObject().getAvailableValues()), true, getPageBase());
+        DropDownChoice choices = new DropDownChoice(ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), ObjectTypeSearchItemWrapper.F_VALUE),
+                Model.ofList(getModelObject().getAvailableValues()),
+                new QNameObjectTypeChoiceRenderer());
+        choices.add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
+        return choices;
     }
 
 }
