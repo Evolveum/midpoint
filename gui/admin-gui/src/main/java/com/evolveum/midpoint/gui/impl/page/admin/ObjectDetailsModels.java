@@ -48,7 +48,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
     private LoadableDetachableModel<PrismObject<O>> prismObjectModel;
 
     private LoadableModel<PrismObjectWrapper<O>> objectWrapperModel;
-    private LoadableDetachableModel<GuiObjectDetailsPageType> detailsPageConfigurationModel;
+    private LoadableModel<GuiObjectDetailsPageType> detailsPageConfigurationModel;
 
     private LoadableDetachableModel<O> summaryModel;
 
@@ -81,7 +81,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
             }
         };
 
-        detailsPageConfigurationModel = new LoadableDetachableModel<>() {
+        detailsPageConfigurationModel = new LoadableModel<>(false) {
             @Override
             protected GuiObjectDetailsPageType load() {
                 return loadDetailsPageConfiguration(null).clone();
@@ -313,7 +313,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
         return getObjectWrapper().getObject();
     }
 
-    public LoadableDetachableModel<GuiObjectDetailsPageType> getObjectDetailsPageConfiguration() {
+    public LoadableModel<GuiObjectDetailsPageType> getObjectDetailsPageConfiguration() {
         return detailsPageConfigurationModel;
     }
 
