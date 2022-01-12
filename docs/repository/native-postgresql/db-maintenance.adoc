@@ -321,3 +321,60 @@ As described in the notes for https://www.postgresql.org/docs/13/sql-createdatab
 one may need to specify `template0` as a template for database creation with different collation.
 Adding collation support for other languages to the operating system and then adding it to PG
 is beyond this page, but is described in the https://www.postgresql.org/docs/13/collation.html[docs].
+
+== Experimental
+
+=== Playing with JSON inside fullobject
+
+This is possible, but not efficient on large datasets and not recommended in production.
+This also assumes JSON is used as a serialization format (by default it is).
+
+[source,sql]
+----
+-- Full object is often readable in some clients, but not in psql (it's just byte array).
+select fullobject from m_user
+where oid = '00000000-0000-0000-0000-000000000002';
+
+-- Conversion to text helps, now it works in psql too.
+select convert_from(fullobject, 'UTF8') from m_user
+where oid = '00000000-0000-0000-0000-000000000002';
+
+-- Playing with JSON inside (assuming it's JSON and not XML).
+-- BAD: Converts JSONB fullobject into record, but there is only the top-level one (one row).
+-- Also, using jsonb_each in select, we loose (key, value) structure of the record.
+select jsonb_each(convert_from(fullobject, 'UTF8')::jsonb) from m_user
+where oid = '00000000-0000-0000-0000-000000000002';
+
+-- GOOD: jsonb_each is in from clause, it's structured now, but we still have just one row.
+select jrec, pg_typeof(jrec), pg_typeof(jrec.value), jrec.*
+from m_object, jsonb_each(convert_from(fullobject, 'UTF8')::jsonb) jrec
+where oid = '00000000-0000-0000-0000-000000000002';
+
+-- 2nd level jsonb_each must again be in FROM to preserve (key, value) structure.
+-- Now we see the top level structure of the actual object, whatever it's top level key was.
+select jrec.*
+from (select value jval
+        from m_object, jsonb_each(convert_from(fullobject, 'UTF8')::jsonb)
+        where oid = '00000000-0000-0000-0000-000000000002'
+    ) a,
+    jsonb_each(jval) jrec;
+
+-- It's easy to extract exact attribute from known object type (here user).
+-- But this is not optimal, also the top level key can be anything (type is
+select oid, convert_from(fullobject, 'UTF8')::jsonb->'user'->'indestructible' indestructible
+from m_user;
+
+-- To do it from any type (skipping the first level), try this:
+select oid,
+    (select value jval
+        from jsonb_each(convert_from(fullobject, 'UTF8')::jsonb))
+            ->'indestructible' indestructible
+from m_object;
+
+-- Wrap that with an outer select to extract multiple items from that JSON:
+select oid, jval->'indestructible' indestructible, jval->'iteration' iteration
+from (
+    select oid, (select value jval from jsonb_each(convert_from(fullobject, 'UTF8')::jsonb))
+    from m_object
+) a;
+----
