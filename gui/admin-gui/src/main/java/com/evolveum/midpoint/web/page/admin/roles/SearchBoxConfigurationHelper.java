@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.page.admin.roles;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -14,6 +15,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -21,6 +24,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class SearchBoxConfigurationHelper implements Serializable {
+
+    public static final String F_TENANT = "tenant";
+    public static final String F_PROJECT = "project";
+
+    public static final String F_RELATION_ITEM = "defaultRelationConfiguration";
+    public static final String F_ORG_SEARCH_SCOPE_ITEM = "defaultScopeConfiguration";
+    public static final String F_INDIRECT_ITEM = "defaultIndirectConfiguration";
+    public static final String F_OBJECT_TYPE_ITEM = "defaultObjectTypeConfiguration";
+
 
     private SearchBoxConfigurationType searchBoxConfigurationType;
 
@@ -35,6 +47,9 @@ public class SearchBoxConfigurationHelper implements Serializable {
     private List<QName> supportedObjectTypes;
     private QName defaultRelation;
     private QName defaultObjectType;
+
+    private ObjectReferenceType tenant = new ObjectReferenceType();
+    private ObjectReferenceType project = new ObjectReferenceType();
 
 
     public SearchBoxConfigurationHelper(GuiObjectListPanelConfigurationType additionalPanel) {
@@ -84,6 +99,7 @@ public class SearchBoxConfigurationHelper implements Serializable {
         return defaultScopeConfiguration;
     }
 
+    @NotNull
     public ObjectTypeSearchItemConfigurationType getDefaultObjectTypeConfiguration() {
         if (defaultObjectTypeConfiguration == null) {
             defaultObjectTypeConfiguration = searchBoxConfigurationType.getObjectTypeConfiguration();
@@ -198,5 +214,78 @@ public class SearchBoxConfigurationHelper implements Serializable {
         }
     }
 
+    public boolean isRelationVisible() {
+        return isSearchItemVisible(getDefaultRelationConfiguration());
+    }
 
+    public boolean isIndirectVisible() {
+        return isSearchItemVisible(getDefaultIndirectConfiguration());
+    }
+
+    public boolean isIndirect() {
+        return BooleanUtils.isTrue(getDefaultIndirectConfiguration().isIndirect());
+    }
+
+    public boolean isSearchScopeVisible() {
+        return isSearchItemVisible(getDefaultSearchScopeConfiguration());
+    }
+
+    public boolean isSearchScope(SearchBoxScopeType scope) {
+        return scope == getDefaultSearchScopeConfiguration().getDefaultValue();
+    }
+
+    public boolean isTenantVisible() {
+        return isSearchItemVisible(getDefaultTenantConfiguration());
+    }
+
+    public boolean isProjectVisible() {
+        return isSearchItemVisible(getDefaultProjectConfiguration());
+    }
+
+    private boolean isSearchItemVisible(UserInterfaceFeatureType feature) {
+        if (feature == null) {
+            return true;
+        }
+        return CompiledGuiProfile.isVisible(feature.getVisibility(), null);
+    }
+
+    public QName getDefaultRelation() {
+        return getDefaultRelationConfiguration().getDefaultValue();
+    }
+
+    public @NotNull List<QName> getSupportedRelations() {
+        return getDefaultRelationConfiguration().getSupportedRelations();
+    }
+
+    public List<QName> getSupportedObjectTypes() {
+        return getDefaultObjectTypeConfiguration().getSupportedTypes();
+    }
+
+    public boolean isTenantEmpty() {
+        return getTenant().getOid() == null || getTenant().getOid() == null || getTenant().asReferenceValue().isEmpty();
+    }
+
+    public boolean isProjectEmpty() {
+        return getProject() == null || getProject().getOid() == null || getProject().asReferenceValue().isEmpty();
+    }
+
+    public ObjectReferenceType getTenant() {
+        return tenant;
+    }
+
+    public ObjectReferenceType getProject() {
+        return project;
+    }
+
+    public void resetTenantRef(){
+        ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setType(OrgType.COMPLEX_TYPE);
+        this.tenant = ref;
+    }
+
+    public void resetProjectRef(){
+        ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setType(OrgType.COMPLEX_TYPE);
+        this.project = ref;
+    }
 }

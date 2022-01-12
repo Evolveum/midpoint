@@ -25,6 +25,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -83,7 +84,7 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
     }
 
     @Override
-    protected Panel createSummaryPanel(String id, LoadableModel<ReportType> summaryModel) {
+    protected Panel createSummaryPanel(String id, IModel<ReportType> summaryModel) {
         return new ReportSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 

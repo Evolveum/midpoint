@@ -6,6 +6,14 @@
  */
 package com.evolveum.midpoint.web.page.admin.roles;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.wicket.model.PropertyModel;
+
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsHelper;
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -23,120 +31,66 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchItem;
-
-import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.wicket.model.PropertyModel;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-public class AbstractRoleCompositedSearchItem extends SearchItem {
+public class AbstractRoleCompositedSearchItem<R extends AbstractRoleType> extends SearchItem {
 
     private static final Trace LOGGER = TraceManager.getTrace(RelationSearchItem.class);
 
     public static final String F_SEARCH_ITEMS = "searchItems";
     private List<SearchItem> searchItems = new ArrayList<>();
 
-    private MemberPanelStorage memberPanelStorage;
+    private SearchBoxConfigurationHelper searchBoxConfig;
+    private boolean role;
+    private boolean org;
 
-    public AbstractRoleCompositedSearchItem(Search search, MemberPanelStorage memberPanelStorage) {
+    public AbstractRoleCompositedSearchItem(Search search, SearchBoxConfigurationHelper searchBoxConfig, boolean role, boolean org) {
         super(search);
-        this.memberPanelStorage = memberPanelStorage;
+        this.searchBoxConfig = searchBoxConfig;
+        this.role = role;
+        this.org = org;
         create();
     }
 
 
     public void create() {
-        if (memberPanelStorage.isRelationVisible()) {
+        if (searchBoxConfig.isRelationVisible()) {
             searchItems.add(createRelationItem(getSearch()));
         }
-        if (memberPanelStorage.isIndirectVisible()) {
+        if (searchBoxConfig.isIndirectVisible()) {
             searchItems.add(createIndirectItem(getSearch()));
         }
-        if (isOrg() && memberPanelStorage.isSearchScopeVisible()) {
+        if (org && searchBoxConfig.isSearchScopeVisible()) {
             searchItems.add(createScopeItem(getSearch()));
         }
-        if (isRole()) {
-            if (memberPanelStorage.isTenantVisible()) {
+        if (role) {
+            if (searchBoxConfig.isTenantVisible()) {
                 searchItems.add(createTenantItem(getSearch()));
             }
-            if (memberPanelStorage.isProjectVisible()) {
+            if (searchBoxConfig.isProjectVisible()) {
                 searchItems.add(createProjectItem(getSearch()));
             }
         }
     }
 
     private SearchItem createScopeItem(Search search) {
-        return new ScopeSearchItem(search, new PropertyModel<>(memberPanelStorage, MemberPanelStorage.F_ORG_SEARCH_SCOPE_ITEM));
+        return new ScopeSearchItem(search, new PropertyModel<>(searchBoxConfig, SearchBoxConfigurationHelper.F_ORG_SEARCH_SCOPE_ITEM));
     }
 
     private SearchItem createIndirectItem(Search search) {
-        return new IndirectSearchItem(search, getMemberPanelStorage()) {
-            @Override
-            public boolean isApplyFilter() {
-                return !memberPanelStorage.isSearchScopeVisible()
-                        || !memberPanelStorage.isSearchScope(SearchBoxScopeType.SUBTREE);
-            }
-
-            @Override
-            protected boolean isPanelVisible() {
-                return getMemberPanelStorage() == null
-                        || (memberPanelStorage.getSupportedRelations() != null
-                        && !getMemberPanelStorage().isSearchScope(SearchBoxScopeType.SUBTREE));
-            }
-        };
+        return new IndirectSearchItem(search, searchBoxConfig);
     }
 
     private SearchItem createTenantItem(Search search) {
-        return new TenantSearchItem(search, getMemberPanelStorage()) {
-
-            @Override
-            public boolean isApplyFilter() {
-                return !memberPanelStorage.isSearchScopeVisible()
-                        || (!memberPanelStorage.isSearchScope(SearchBoxScopeType.SUBTREE)
-                        && !memberPanelStorage.isRelationVisible()
-                        && !memberPanelStorage.isIndirect());
-            }
-
-            @Override
-            public PrismReferenceDefinition getTenantDefinition() {
-                return getReferenceDefinition(AssignmentType.F_TENANT_REF);
-            }
-        };
+        return new TenantSearchItem(search, searchBoxConfig);
     }
 
     private SearchItem createProjectItem(Search search) {
-        return new ProjectSearchItem(search, getMemberPanelStorage()) {
-            @Override
-            public boolean isApplyFilter() {
-                return !memberPanelStorage.isSearchScopeVisible()
-                        || (!memberPanelStorage.isSearchScope(SearchBoxScopeType.SUBTREE)
-                        && !memberPanelStorage.isRelationVisible()
-                        && !memberPanelStorage.isTenantVisible()
-                        && !memberPanelStorage.isIndirect());
-            }
-
-            @Override
-            public PrismReferenceDefinition getProjectRefDef() {
-                return getReferenceDefinition(AssignmentType.F_ORG_REF);
-            }
-        };
+        return new ProjectSearchItem(search, searchBoxConfig);
     }
 
     private RelationSearchItem createRelationItem(Search search) {
-        return new RelationSearchItem(search, getMemberPanelStorage()) {
-
-            @Override
-            public boolean isApplyFilter() {
-                return !memberPanelStorage.isSearchScopeVisible()
-                        || !memberPanelStorage.isSearchScope(SearchBoxScopeType.SUBTREE);
-            }
-        };
+        return new RelationSearchItem(search, searchBoxConfig);
     }
 
     public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
@@ -146,7 +100,7 @@ public class AbstractRoleCompositedSearchItem extends SearchItem {
         }
 
         Class type = getSearch().getTypeClass();
-        SearchBoxScopeType scope = getMemberPanelStorage().getScopeSearchItem().getDefaultValue();
+        SearchBoxScopeType scope = searchBoxConfig.getDefaultSearchScopeConfiguration().getDefaultValue();
         if (SearchBoxScopeType.SUBTREE == scope) {
             ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(object, (QName) null);
             return pageBase.getPrismContext().queryFor(type).isChildOf(ref.asReferenceValue()).buildFilter();
@@ -154,15 +108,15 @@ public class AbstractRoleCompositedSearchItem extends SearchItem {
 
         PrismContext prismContext = pageBase.getPrismContext();
         List relations;
-        QName relation = getMemberPanelStorage().getDefaultRelation();
+        QName relation = searchBoxConfig.getDefaultRelation();
         if (QNameUtil.match(relation, PrismConstants.Q_ANY)){
-            relations = memberPanelStorage.getSupportedRelations();
+            relations = searchBoxConfig.getSupportedRelations();
         } else {
             relations = Collections.singletonList(relation);
         }
 
         ObjectFilter filter;
-        Boolean indirect = getMemberPanelStorage().getIndirectSearchItem().isIndirect();
+        Boolean indirect = searchBoxConfig.getDefaultIndirectConfiguration().isIndirect();
 
         if(BooleanUtils.isTrue(indirect)) {
             filter = prismContext.queryFor(type)
@@ -174,12 +128,12 @@ public class AbstractRoleCompositedSearchItem extends SearchItem {
                     .item(AssignmentType.F_TARGET_REF)
                     .ref(MemberOperationsHelper.createReferenceValuesList(object, relations));
 
-            if (!getMemberPanelStorage().isTenantEmpty()) {
-                q = q.and().item(AssignmentType.F_TENANT_REF).ref(getMemberPanelStorage().getTenant().getOid());
+            if (!searchBoxConfig.isTenantEmpty()) {
+                q = q.and().item(AssignmentType.F_TENANT_REF).ref(searchBoxConfig.getTenant().getOid());
             }
 
-            if (!getMemberPanelStorage().isProjectEmpty()) {
-                q = q.and().item(AssignmentType.F_ORG_REF).ref(getMemberPanelStorage().getProject().getOid());
+            if (!searchBoxConfig.isProjectEmpty()) {
+                q = q.and().item(AssignmentType.F_ORG_REF).ref(searchBoxConfig.getProject().getOid());
             }
             filter = q.endBlock().buildFilter();
         }
@@ -198,7 +152,7 @@ public class AbstractRoleCompositedSearchItem extends SearchItem {
         return null;
     }
 
-    private <R extends AbstractRoleType> R getParentVariables(VariablesMap variables) {
+    private R getParentVariables(VariablesMap variables) {
         if (variables == null) {
             return null;
         }
@@ -211,22 +165,9 @@ public class AbstractRoleCompositedSearchItem extends SearchItem {
     }
 
     protected PrismReferenceDefinition getReferenceDefinition(ItemName refName) {
-        return null;
+        return PrismContext.get().getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(AssignmentType.class)
+                .findReferenceDefinition(refName);
     }
 
-    private boolean isOrg() {
-        return getAbstractRoleObject() instanceof OrgType;
-    }
-
-    private boolean isRole() {
-        return getAbstractRoleObject() instanceof RoleType;
-    }
-
-    protected  <R extends AbstractRoleType> R getAbstractRoleObject() {
-        return null;
-    }
-
-    protected MemberPanelStorage getMemberPanelStorage() {
-        return memberPanelStorage;
-    }
 }

@@ -20,13 +20,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
+import org.apache.wicket.model.LoadableDetachableModel;
+
 import java.util.List;
 
 public class AssignmentHolderDetailsModel<AH extends AssignmentHolderType> extends ObjectDetailsModels<AH> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentHolderDetailsModel.class);
 
-    public AssignmentHolderDetailsModel(LoadableModel<PrismObject<AH>> prismObjectModel, ModelServiceLocator serviceLocator) {
+    public AssignmentHolderDetailsModel(LoadableDetachableModel<PrismObject<AH>> prismObjectModel, ModelServiceLocator serviceLocator) {
         super(prismObjectModel, serviceLocator);
     }
 
@@ -35,6 +37,7 @@ public class AssignmentHolderDetailsModel<AH extends AssignmentHolderType> exten
         GuiObjectDetailsPageType defaultPageConfig = super.loadDetailsPageConfiguration(assignmentHolder);
 
         OperationResult result = new OperationResult("mergeArchetypeConfig");
+        assignmentHolder = getPrismObject();
         try {
             ArchetypePolicyType archetypePolicyType = getModelServiceLocator().getModelInteractionService().determineArchetypePolicy(assignmentHolder, result);
             return getAdminGuiConfigurationMergeManager().mergeObjectDetailsPageConfiguration(defaultPageConfig, archetypePolicyType, result);

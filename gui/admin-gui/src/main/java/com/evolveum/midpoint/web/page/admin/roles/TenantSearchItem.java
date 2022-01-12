@@ -7,9 +7,21 @@
 
 package com.evolveum.midpoint.web.page.admin.roles;
 
+import java.util.Collections;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -18,26 +30,17 @@ import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchSpecialItemPanel;
 import com.evolveum.midpoint.web.component.search.SpecialSearchItem;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.session.MemberPanelStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-
-import javax.xml.namespace.QName;
-import java.util.Collections;
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceFeatureType;
 
 public class TenantSearchItem extends SpecialSearchItem {
 
-    private final MemberPanelStorage memberStorage;
+    private final SearchBoxConfigurationHelper searchBoxConfiguration;
 
-    public TenantSearchItem(Search search, MemberPanelStorage memberStorage) {
+    public TenantSearchItem(Search search, SearchBoxConfigurationHelper searchBoxConfiguration) {
         super(search);
-        this.memberStorage = memberStorage;
+        this.searchBoxConfiguration = searchBoxConfiguration;
     }
 
     @Override
@@ -46,16 +49,16 @@ public class TenantSearchItem extends SpecialSearchItem {
     }
 
     private UserInterfaceFeatureType getTenantConfig() {
-        return memberStorage.getTenantSearchItem();
+        return searchBoxConfiguration.getDefaultTenantConfiguration();
     }
 
     @Override
     public SearchSpecialItemPanel createSpecialSearchPanel(String id){
-        IModel tenantModel = new PropertyModel(getMemberPanelStorage(), MemberPanelStorage.F_TENANT) {
+        IModel tenantModel = new PropertyModel(searchBoxConfiguration, SearchBoxConfigurationHelper.F_TENANT) {
             @Override
             public void setObject(Object object) {
                 if (object == null) {
-                    getMemberPanelStorage().resetTenantRef();
+                    searchBoxConfiguration.resetTenantRef();
                 } else {
                     super.setObject(object);
                 }
@@ -65,10 +68,10 @@ public class TenantSearchItem extends SpecialSearchItem {
         SearchSpecialItemPanel panel = new SearchSpecialItemPanel(id, tenantModel) {
             @Override
             protected WebMarkupContainer initSearchItemField(String id) {
-                ReferenceValueSearchPanel searchItemField = new ReferenceValueSearchPanel(id, getModelValue(), tenantRefDef) {
+                return new ReferenceValueSearchPanel(id, getModelValue(), tenantRefDef) {
                     @Override
                     public Boolean isItemPanelEnabled() {
-                        return !getMemberPanelStorage().isIndirect();
+                        return !searchBoxConfiguration.isIndirect();
                     }
 
                     @Override
@@ -76,7 +79,6 @@ public class TenantSearchItem extends SpecialSearchItem {
                         return Collections.singletonList(RelationTypes.MEMBER.getRelation());
                     }
                 };
-                return searchItemField;
             }
 
             @Override
@@ -96,16 +98,27 @@ public class TenantSearchItem extends SpecialSearchItem {
                 return Model.of(tenantRefDef.getDocumentation());
             }
         };
-        panel.add(new VisibleBehaviour(() -> getMemberPanelStorage() == null
-                || !getMemberPanelStorage().isIndirect()));
+        panel.add(new VisibleBehaviour(() -> searchBoxConfiguration == null
+                || !searchBoxConfiguration.isIndirect()));
         return panel;
     }
 
-    public MemberPanelStorage getMemberPanelStorage() {
-        return memberStorage;
+    public PrismReferenceDefinition getTenantDefinition() {
+        return getReferenceDefinition(AssignmentType.F_TENANT_REF);
     }
 
-    public PrismReferenceDefinition getTenantDefinition() {
-        return null;
+    @Override
+    public boolean isApplyFilter() {
+        return !searchBoxConfiguration.isSearchScopeVisible()
+                || (!searchBoxConfiguration.isSearchScope(SearchBoxScopeType.SUBTREE)
+                && !searchBoxConfiguration.isRelationVisible()
+                && !searchBoxConfiguration.isIndirect());
     }
+
+    protected PrismReferenceDefinition getReferenceDefinition(ItemName refName) {
+        return PrismContext.get().getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(AssignmentType.class)
+                .findReferenceDefinition(refName);
+    }
+
 }
