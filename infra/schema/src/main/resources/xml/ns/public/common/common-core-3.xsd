@@ -19103,6 +19103,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000345">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_CORRELATION_CASE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000501">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -23436,6 +23443,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <!-- TODO operator -->
                     <xsd:element name="followOn" type="tns:CorrelatorsType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -23714,6 +23722,8 @@
         </xsd:annotation>
         <xsd:sequence>
             <!-- Should be anything here? -->
+            <!-- We could have a reference to case object here, but this link is maintained on the side of the case
+                 (via case.objectRef). -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -23751,5 +23761,4 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="idMatchCorrelationState" type="tns:IdMatchCorrelationStateType"/>
-
 </xsd:schema>

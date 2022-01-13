@@ -191,6 +191,17 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="correlationContext" type="tns:CorrelationContextType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Information related to correlation request that is to be resolved.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.5</a:since>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1287,4 +1298,111 @@
     </xsd:complexType>
     <xsd:element name="manualProvisioningContext" type="tns:ManualProvisioningContextType" />
 
+    <xsd:complexType name="CorrelationContextType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information related to correlation request that is to be resolved.
+                TODO resolve naming collision with CorrelationContext
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="correlatorPart" type="tns:AbstractCorrelationContextType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Parts of the context specific to a given correlation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="correlationContext" type="tns:CorrelationContextType" />
+
+    <xsd:complexType name="AbstractCorrelationContextType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Parts of the context specific to a given correlator.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <!-- anything here? -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="IdMatchCorrelationContextType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Parts of the context specific to ID Match correlator.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCorrelationContextType">
+                <xsd:sequence>
+                    <xsd:element name="potentialMatch" type="tns:IdMatchCorrelationPotentialMatchType"
+                            minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Potential matches among which (if any) the user should decide. Should be at least one,
+                                otherwise there's nothing to decide.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="idMatchCorrelationContext" type="tns:IdMatchCorrelationContextType"/>
+
+    <xsd:complexType name="IdMatchCorrelationPotentialMatchType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A potential match found by ID Match service.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="confidence" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        An integer between 0 and 100.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="referenceId" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference ID of the entity.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="attributes" type="c:ShadowAttributesType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Attributes of the entity.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
 </xsd:schema>

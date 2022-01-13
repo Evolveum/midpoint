@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.correlator.idmatch;
 import com.evolveum.midpoint.model.api.correlator.*;
 import com.evolveum.midpoint.model.api.correlator.idmatch.IdMatchService;
 import com.evolveum.midpoint.model.api.correlator.idmatch.MatchingResult;
+import com.evolveum.midpoint.model.api.correlator.idmatch.PotentialMatch;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -18,9 +19,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IdMatchCorrelationStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IdMatchCorrelatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,13 +62,25 @@ class IdMatchCorrelator implements Correlator {
             @Nullable IdMatchService serviceOverride,
             ModelBeans beans) throws ConfigurationException {
         this.configuration = configuration;
-        this.service = serviceOverride != null ?
-                serviceOverride : IdMatchServiceImpl.instantiate(configuration);
+        this.service = instantiateService(configuration, serviceOverride);
         this.beans = beans;
 
         this.followOnCorrelatorConfiguration = getFollowOnConfiguration(configuration);
 
         LOGGER.trace("Instantiated the correlator with the configuration:\n{}", configuration.debugDumpLazily(1));
+    }
+
+    @NotNull
+    private IdMatchService instantiateService(
+            @NotNull IdMatchCorrelatorType configuration, @Nullable IdMatchService serviceOverride)
+            throws ConfigurationException {
+        if (serviceOverride != null) {
+            return serviceOverride;
+        } else if (TemporaryIdMatchServiceImpl.URL.equals(configuration.getUrl())) {
+            return TemporaryIdMatchServiceImpl.INSTANCE;
+        } else {
+            return IdMatchServiceImpl.instantiate(configuration);
+        }
     }
 
     private CorrelatorConfiguration getFollowOnConfiguration(@NotNull IdMatchCorrelatorType configuration)
@@ -96,9 +107,13 @@ class IdMatchCorrelator implements Correlator {
                 createCorrelationState(mResult));
 
         if (mResult.getReferenceId() != null) {
+            beans.correlationCaseManager.closeCaseIfExists(resourceObject, result);
             return correlateUsingKnownReferenceId(resourceObject, correlationContext, task, result);
         } else {
-            // later we will create a case object here
+            beans.correlationCaseManager.createOrUpdateCase(
+                    resourceObject,
+                    createSpecificCaseContext(mResult),
+                    result);
             return CorrelationResult.uncertain();
         }
     }
@@ -118,5 +133,25 @@ class IdMatchCorrelator implements Correlator {
         return beans.correlatorFactoryRegistry
                 .instantiateCorrelator(followOnCorrelatorConfiguration, task, result)
                 .correlate(resourceObject, correlationContext, task, result);
+    }
+
+    /**
+     * Converts internal {@link MatchingResult} into "externalized" {@link IdMatchCorrelationContextType} bean
+     * to be stored in the correlation case.
+     */
+    private @NotNull IdMatchCorrelationContextType createSpecificCaseContext(MatchingResult mResult) {
+        IdMatchCorrelationContextType context = new IdMatchCorrelationContextType(PrismContext.get());
+        for (PotentialMatch potentialMatch : mResult.getPotentialMatches()) {
+            context.getPotentialMatch().add(
+                    createPotentialMatchBean(potentialMatch));
+        }
+        return context;
+    }
+
+    private IdMatchCorrelationPotentialMatchType createPotentialMatchBean(PotentialMatch potentialMatch) {
+        return new IdMatchCorrelationPotentialMatchType(PrismContext.get())
+                .confidence(potentialMatch.getConfidence())
+                .referenceId(potentialMatch.getReferenceId())
+                .attributes(potentialMatch.getAttributes());
     }
 }

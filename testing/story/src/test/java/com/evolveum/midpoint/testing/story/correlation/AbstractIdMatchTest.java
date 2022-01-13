@@ -9,10 +9,17 @@ package com.evolveum.midpoint.testing.story.correlation;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.model.impl.correlator.CorrelationCaseManager;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -43,6 +50,8 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
 
     private static final TestTask TASK_IMPORT_AIS = new TestTask(TEST_DIR, "task-import-ais.xml",
             "95ebbf1e-9c71-4870-a1fb-dc47ce6856c9", 30000);
+
+    @Autowired CorrelationCaseManager correlationCaseManager;
 
     /** This is the initialized object (retrieved from the repo). */
     private ResourceType resourceAis;
@@ -221,6 +230,17 @@ public abstract class AbstractIdMatchTest extends AbstractCorrelationTest {
                 .assertSynchronizationSituation(DISPUTED)
                 .assertMatchReferenceId(null) // not matched yet
                 .assertMatchRequestId("0");
+
+        CaseType correlationCase = correlationCaseManager.findCorrelationCase(newShadow.asObjectable(), result);
+        assertThat(correlationCase).as("case").isNotNull();
+
+        // @formatter:off
+        assertCase(correlationCase, "correlation case")
+                .display()
+                .assertOpen()
+                .workItems()
+                    .assertWorkItems(1);
+        // @formatter:on
     }
 
     private @NotNull PrismObject<UserType> findUserByEmail(@NotNull String email) throws SchemaException {

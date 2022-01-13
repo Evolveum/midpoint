@@ -24,6 +24,8 @@ import org.jetbrains.annotations.Nullable;
  * The context of the correlation operation(s).
  *
  * TODO decide on the exact use of this class -- will it be only at API level? Or will the correlator write its own notes here?
+ *
+ * TODO resolve naming conflict with CorrelationContextType
  */
 public class CorrelationContext implements DebugDumpable {
 
